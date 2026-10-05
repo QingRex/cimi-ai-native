@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { statSync } from "node:fs";
+import { CliInputError } from "./input.js";
 import { homedir } from "node:os";
 import { basename, isAbsolute, join, resolve } from "node:path";
 
@@ -25,6 +26,8 @@ const gitOutput = (directory: string, ...args: string[]): string | undefined => 
 
 export const locateProject = (startDirectory: string, allowNonGit = false): ProjectLocation => {
   const requested = resolve(startDirectory);
+  try { if (!statSync(requested).isDirectory()) throw new Error("not directory"); }
+  catch { throw new CliInputError("Project 目录不存在或不是目录", "CLI_ARGUMENT_INVALID", "validation", { project_dir: requested }); }
   const gitRoot = gitOutput(requested, "rev-parse", "--show-toplevel");
   if (gitRoot) {
     const commonDirectory = gitOutput(gitRoot, "rev-parse", "--git-common-dir");
@@ -44,10 +47,7 @@ export const locateProject = (startDirectory: string, allowNonGit = false): Proj
   }
 
   if (!allowNonGit) {
-    throw new Error("当前目录不是 Git Repository；初始化非 Git 项目时必须显式使用 --project-dir");
-  }
-  if (!existsSync(requested)) {
-    throw new Error(`目录不存在：${requested}`);
+    throw new CliInputError("当前目录不是 Git Repository；初始化非 Git 项目时必须显式使用 --project-dir");
   }
   const dataDirectory = join(requested, ".cimiloop");
   return {

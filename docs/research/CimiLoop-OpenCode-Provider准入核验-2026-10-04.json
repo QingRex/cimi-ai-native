@@ -1,0 +1,55 @@
+{
+  "observed_at": "2026-10-04T10:05:02.394Z",
+  "scope": "temporary_project_provider_governance_verification",
+  "database_format": 8,
+  "provider": {
+    "name": "opencode",
+    "version": "1.18.34",
+    "binary_digest": {
+      "algorithm": "sha256",
+      "value": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e"
+    },
+    "model": "zhipuai-coding-plan/glm-5.3"
+  },
+  "source_probe": "CimiLoop-OpenCode-智谱Runtime探针-2026-10-04.json",
+  "project_id": "01a1065f-8e3d-73aa-bf33-e87faec477c0",
+  "descriptor_id": "01a1065f-936a-72bd-ba6f-fc80d3dc6941",
+  "descriptor_digest": {
+    "algorithm": "sha256",
+    "value": "56517939f1cb50acc98a2edbc21fe29f607438aad12837ecfadb4d63303586a1"
+  },
+  "evidence_id": "01a1065f-99b1-736d-ba82-002b69ec01c9",
+  "evaluations": [
+    {
+      "id": "01a1065f-a177-735b-b9ca-0484a20ffebd",
+      "profile": "technical_contract",
+      "input_digest": {
+        "algorithm": "sha256",
+        "value": "09b987dab2047e40b2307eb577908057e252970c6d937a8270b038e7f56739bc"
+      },
+      "outcome": "ALLOW",
+      "reasons": []
+    },
+    {
+      "id": "01a1065f-a9fb-735d-8e1b-7c36f32812ec",
+      "profile": "controlled_execution",
+      "input_digest": {
+        "algorithm": "sha256",
+        "value": "a889974dbcd39c1eed4166e4b1dcd62e15e2f3047d1e2d4478c3849695db23b8"
+      },
+      "outcome": "NEED_MORE_EVIDENCE",
+      "reasons": [
+        "network_host_limits",
+        "cost_accounting_and_cap",
+        "disk_limit",
+        "crash_recovery"
+      ]
+    }
+  ],
+  "binding_id": "01a1065f-b24a-764b-a09b-d9ce2969eaff",
+  "binding_scope": "isolated_provider_probe",
+  "task_binding_rejected": true,
+  "task_binding_error": "PROVIDER_NOT_EVALUATED",
+  "formal_execution_enabled": false,
+  "model_requests_made": 0
+}

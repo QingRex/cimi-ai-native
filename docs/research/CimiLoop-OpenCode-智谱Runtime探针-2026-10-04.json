@@ -1,0 +1,256 @@
+{
+  "schema_version": "2.0.0",
+  "scope": "isolated_provider_probe",
+  "observed_at": "2026-10-04T08:42:22.377Z",
+  "provider": {
+    "name": "opencode",
+    "version": "1.18.34",
+    "binary_digest": {
+      "algorithm": "sha256",
+      "value": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e"
+    },
+    "model": "zhipuai-coding-plan/glm-5.3"
+  },
+  "sandbox": "windows_appcontainer_job",
+  "boundaries": [
+    {
+      "mode": "write",
+      "passed": true,
+      "outside_read_denied": true,
+      "outside_write_denied": true,
+      "subprocess_denied": true,
+      "inside_readable": true,
+      "inside_writable": true,
+      "loopback_denied": true,
+      "raw_refs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_stdout",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/83f2f47ebd5725e4bb7427a636b114089b43123dc256321d5cf0c1d2b06f7a2c",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "83f2f47ebd5725e4bb7427a636b114089b43123dc256321d5cf0c1d2b06f7a2c"
+          }
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_stderr",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "sandbox_proof",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/b00d9e8ccb01010f32093e054fffbe236dfc68fce9bbdcdfd2641836a3e39d9a",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "b00d9e8ccb01010f32093e054fffbe236dfc68fce9bbdcdfd2641836a3e39d9a"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "read",
+      "passed": true,
+      "outside_read_denied": true,
+      "outside_write_denied": true,
+      "subprocess_denied": true,
+      "inside_readable": true,
+      "inside_writable": false,
+      "loopback_denied": true,
+      "raw_refs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_stdout",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/a897904f1d5f768758ecc9264a85e0e89f0ea3f260c7304225cf6049de090bf7",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "a897904f1d5f768758ecc9264a85e0e89f0ea3f260c7304225cf6049de090bf7"
+          }
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_stderr",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "sandbox_proof",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/ff3979535f94ed11fdf61b82fee25deace85d23e941a6a4d7a41fa2cd97d6a2c",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "ff3979535f94ed11fdf61b82fee25deace85d23e941a6a4d7a41fa2cd97d6a2c"
+          }
+        }
+      ]
+    }
+  ],
+  "model_operations": [
+    {
+      "schema_version": "2.0.0",
+      "scope": "isolated_provider_probe",
+      "operation_key": "edit_19980862-e4d3-44f2-960c-e7de4d84dbf1",
+      "input_digest": {
+        "algorithm": "sha256",
+        "value": "6e12577d9779970c4d90f02a805b034980b4b6133943c46516715626c633400e"
+      },
+      "status": "Succeeded",
+      "reason": "provider_completed_probe",
+      "session_id": "ses_ef9ebd854ffe1safn1pIzQwdCb",
+      "exit_code": 0,
+      "cancel_requested": false,
+      "observed_at": "2026-10-04T08:42:44.473Z",
+      "raw_refs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/b99af8523ae3ad6c3ad82b5a91542f8c037415c79593d1638f5793ac105eaa84",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "b99af8523ae3ad6c3ad82b5a91542f8c037415c79593d1638f5793ac105eaa84"
+          },
+          "version": "stdout.raw"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "version": "stderr.raw"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/ec3499984c3993ccbc3fee34c065cae24ae6752fdbc2088d2fe9f1014dd745c8",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "ec3499984c3993ccbc3fee34c065cae24ae6752fdbc2088d2fe9f1014dd745c8"
+          },
+          "version": "native-proof.json"
+        }
+      ],
+      "outputs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_workspace_file",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/7b9a72466d3960eb2aacccfc848939453490db0678bd4725def3f789b891c919",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "7b9a72466d3960eb2aacccfc848939453490db0678bd4725def3f789b891c919"
+          },
+          "version": "input.txt"
+        }
+      ],
+      "usage": {
+        "cost_known": false
+      }
+    },
+    {
+      "schema_version": "2.0.0",
+      "scope": "isolated_provider_probe",
+      "operation_key": "review_6c325ec4-7b3d-4d09-bf11-f3d9ef1bdd8a",
+      "input_digest": {
+        "algorithm": "sha256",
+        "value": "40f199651381261faa63d57ace193dc226f92bacd475570f46627f5d10a604b0"
+      },
+      "status": "Succeeded",
+      "reason": "provider_completed_probe",
+      "session_id": "ses_ef9eb8018ffe4KNk6xB6kFaq0o",
+      "exit_code": 0,
+      "cancel_requested": false,
+      "observed_at": "2026-10-04T08:43:03.555Z",
+      "raw_refs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/07fc4472f6c1fdbaa967cf0e6bca968e6b5fcee0df7856dc1abc554c188b29fd",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "07fc4472f6c1fdbaa967cf0e6bca968e6b5fcee0df7856dc1abc554c188b29fd"
+          },
+          "version": "stdout.raw"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "version": "stderr.raw"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/2b325cefae22d9570eea779b123bc82e7f7f4ca9f45f6c62e58a37eb169c25bb",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "2b325cefae22d9570eea779b123bc82e7f7f4ca9f45f6c62e58a37eb169c25bb"
+          },
+          "version": "native-proof.json"
+        }
+      ],
+      "outputs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_workspace_file",
+          "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/7b9a72466d3960eb2aacccfc848939453490db0678bd4725def3f789b891c919",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "7b9a72466d3960eb2aacccfc848939453490db0678bd4725def3f789b891c919"
+          },
+          "version": "input.txt"
+        }
+      ],
+      "usage": {
+        "cost_known": false
+      }
+    }
+  ],
+  "contract_probe_passed": true,
+  "formal_execution_enabled": false,
+  "gaps": [
+    "native_provider_binding_and_task_run_integration_pending",
+    "provider_cost_and_network_host_limits_unproven"
+  ],
+  "evidence_refs": [
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_stdout",
+      "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/0438ee905c6501ebac12b5501476849e8a47aee2bbef3e1df947caa51bef7126",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0438ee905c6501ebac12b5501476849e8a47aee2bbef3e1df947caa51bef7126"
+      }
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_stderr",
+      "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "sandbox_proof",
+      "locator": ".cimiloop/runtime-probe-zhipu-v1-09/blobs/f8bb469ffb80e32ca74bf96896ac59857a6e3a300236ef226f67cc10ec4a7e75",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "f8bb469ffb80e32ca74bf96896ac59857a6e3a300236ef226f67cc10ec4a7e75"
+      }
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeExecutionPolicy.v2",
+  "type": "object",
+  "required": [
+    "network",
+    "cost"
+  ],
+  "properties": {
+    "network": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "deny_all"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "unrestricted_probe_only"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "mode",
+            "hosts"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "host_allowlist"
+            },
+            "hosts": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9.-]{0,252}$"
+              },
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "cost": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "unmetered_probe_only"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "mode",
+            "max_cost_microusd"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "const": "required_cap"
+            },
+            "max_cost_microusd": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000000
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "GateOutcome.v2",
+  "anyOf": [
+    {
+      "type": "string",
+      "const": "ALLOW"
+    },
+    {
+      "type": "string",
+      "const": "NEED_MORE_EVIDENCE"
+    },
+    {
+      "type": "string",
+      "const": "REQUIRE_HUMAN"
+    },
+    {
+      "type": "string",
+      "const": "DENY"
+    }
+  ]
+}

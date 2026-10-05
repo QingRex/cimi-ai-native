@@ -1,5 +1,35 @@
 # CimiLoop Change 端到端状态机 v0.1
 
+> 当前规则：2026-10-03 V1 实施基线。字段、命令、错误、迁移和任务统一以[可执行设计与实施计划](../implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准；本节给出本专项的当前职责。文档更新不代表功能已经实现。
+
+2026-10-04 V1-07实际边界：Human运行预约、累计预算、原始观测 / 未知核对、真实工作区 / Context、交接 / 接续及暂停需求恢复已接通，当前数据库格式7。操作见[运行预约与交接恢复](../implementation/CimiLoop运行预约与交接恢复-v0.1.md)；预约和取消请求不证明外部启动 / 停止，真实Runtime及Agent隔离仍待V1-09。
+
+## 当前设计与实施约束
+
+需求状态只表达自身推进位置，发布与环境结果按精确关联查询。
+
+| 状态 | 进入条件 |
+|---|---|
+| Draft | 一句话录入即可；目标版本可选 |
+| IntentReady | 需求负责人确认当前约定、风险及知识影响 |
+| Executing | 计划确认、开工容量与依赖满足 |
+| ReadyForDelivery | 本阶段自检、独立评价、安全合入及待验证交接满足 |
+| Completed | 本条验收与实际可用、生产检查和观察达标、必要知识 / 同步义务完成，需求负责人确认 |
+| Terminated | 取消、已拆分或被取代；在途动作与副作用已处置 |
+
+批准 Plan 只切换有效计划；不设 Planned。ReadyForDelivery 中确需重做实施时可回 Executing；Completed 后缺陷关联新 Change。延期调整规划和批次范围，不创建终态，也不重新生成需求身份。
+
+operating_status 保留 Active/Paused。AwaitingDecision、Blocked、NeedsRecovery 从最新待办、阻塞和外部事实派生，不保存可独立写入的 flow_condition。暂停保留位置；恢复先核对代码、授权、预算、容量和真实副作用。
+
+ReleaseBatch 显式状态为 Open/Terminated/Closed，准备、验证、待生产、观察和收尾阶段由事实派生。候选切换不能改写已批准内容；CompleteChange 与 CloseBatch 分别求值，关闭批次不批量完成需求。
+
+EnvironmentCoordination 使用 Free/Held/Switching/Reconciliation 和单调递增 epoch。部署超时、迟到结果或恢复不确定先进入核对，不能直接释放占用或重发部署。所有迁移通过当前版本的 Gate，保留拒绝原因、原始记录及幂等结果。
+
+## 既有设计记录（历史正文，非当前执行依据）
+
+以下保留原讨论正文和当时的确认状态，用于追溯设计来源。与上面的当前设计或实施基线冲突的对象、状态、职责和里程碑，不作为新的开发输入。
+
+
 > 状态：讨论确认稿
 > 日期：2026-09-19  
 > 修订：2026-09-28，需求 / 缺陷与共享发布双流程；文件名保留以维持引用。

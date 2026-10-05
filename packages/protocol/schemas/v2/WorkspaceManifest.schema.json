@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "WorkspaceManifest.v2",
+  "type": "object",
+  "required": [
+    "format",
+    "project_id",
+    "head_commit_id",
+    "head_source_digest",
+    "allowed_resources",
+    "worktree_diff_ref",
+    "index_diff_ref",
+    "files"
+  ],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "cimiloop/workspace/1.0.0"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "head_commit_id": {
+      "type": "string",
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "head_source_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "allowed_resources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "worktree_diff_ref": {
+      "type": "object",
+      "required": [
+        "provider",
+        "resource_type",
+        "locator",
+        "digest"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "const": "local_content"
+        },
+        "resource_type": {
+          "type": "string",
+          "const": "workspace_diff"
+        },
+        "locator": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "index_diff_ref": {
+      "type": "object",
+      "required": [
+        "provider",
+        "resource_type",
+        "locator",
+        "digest"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "const": "local_content"
+        },
+        "resource_type": {
+          "type": "string",
+          "const": "workspace_diff"
+        },
+        "locator": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "path",
+              "state",
+              "content_ref"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "state": {
+                "type": "string",
+                "const": "present"
+              },
+              "content_ref": {
+                "type": "object",
+                "required": [
+                  "provider",
+                  "resource_type",
+                  "locator",
+                  "digest"
+                ],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "const": "local_content"
+                  },
+                  "resource_type": {
+                    "type": "string",
+                    "const": "workspace_file"
+                  },
+                  "locator": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "path",
+              "state"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "state": {
+                "type": "string",
+                "const": "deleted"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

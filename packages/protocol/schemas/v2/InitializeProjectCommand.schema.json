@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "InitializeProjectCommand.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "command_id",
+    "correlation_id",
+    "requested_at",
+    "source",
+    "command_type",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "command_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "requested_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "origin",
+        "producer"
+      ],
+      "properties": {
+        "origin": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "human_cli"
+            },
+            {
+              "type": "string",
+              "const": "human_ui"
+            },
+            {
+              "type": "string",
+              "const": "agent"
+            },
+            {
+              "type": "string",
+              "const": "system"
+            },
+            {
+              "type": "string",
+              "const": "adapter"
+            }
+          ]
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repository_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "expected_input_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "command_type": {
+      "type": "string",
+      "const": "InitializeProject"
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "name",
+        "repository_kind",
+        "repository_path",
+        "owner_name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "repository_kind": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "git"
+            },
+            {
+              "type": "string",
+              "const": "directory"
+            }
+          ]
+        },
+        "repository_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "owner_email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 320
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

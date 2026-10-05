@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ContractBody.v2",
+  "type": "object",
+  "required": [
+    "goal",
+    "scope",
+    "non_goals",
+    "constraints",
+    "acceptance_criteria",
+    "delivery_endpoint",
+    "knowledge_impact",
+    "risk",
+    "unresolved_questions"
+  ],
+  "properties": {
+    "goal": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "non_goals": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "uniqueItems": true
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "uniqueItems": true
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "scenario",
+          "expected",
+          "evidence_requirements"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,79}$"
+          },
+          "scenario": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "expected": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "evidence_requirements": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "delivery_endpoint": {
+      "type": "string",
+      "const": "production_verified"
+    },
+    "knowledge_impact": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "description",
+          "required_before"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,79}$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "required_before": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "none"
+              },
+              {
+                "type": "string",
+                "const": "before_release"
+              },
+              {
+                "type": "string",
+                "const": "before_change_complete"
+              },
+              {
+                "type": "string",
+                "const": "before_batch_end"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "risk": {
+      "type": "object",
+      "required": [
+        "level",
+        "impact_categories",
+        "rationale"
+      ],
+      "properties": {
+        "level": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "ordinary"
+            },
+            {
+              "type": "string",
+              "const": "high"
+            }
+          ]
+        },
+        "impact_categories": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "permissions"
+              },
+              {
+                "type": "string",
+                "const": "important_data"
+              },
+              {
+                "type": "string",
+                "const": "key_compatibility"
+              },
+              {
+                "type": "string",
+                "const": "other"
+              }
+            ]
+          },
+          "uniqueItems": true
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "additionalProperties": false
+    },
+    "unresolved_questions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

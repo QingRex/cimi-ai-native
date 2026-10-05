@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach } from "vitest";
 import { projectStoreContract } from "../../../tests/contracts/project-store.contract.js";
-import { SqliteProjectStore } from "../src/index.js";
+import { SqliteProjectStore } from "../src/v1.js";
 
 const temporaryDirectories: string[] = [];
 

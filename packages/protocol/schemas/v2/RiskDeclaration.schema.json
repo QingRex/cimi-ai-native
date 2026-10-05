@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RiskDeclaration.v2",
+  "type": "object",
+  "required": [
+    "level",
+    "impact_categories",
+    "rationale"
+  ],
+  "properties": {
+    "level": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "ordinary"
+        },
+        {
+          "type": "string",
+          "const": "high"
+        }
+      ]
+    },
+    "impact_categories": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string",
+            "const": "permissions"
+          },
+          {
+            "type": "string",
+            "const": "important_data"
+          },
+          {
+            "type": "string",
+            "const": "key_compatibility"
+          },
+          {
+            "type": "string",
+            "const": "other"
+          }
+        ]
+      },
+      "uniqueItems": true
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    }
+  },
+  "additionalProperties": false
+}

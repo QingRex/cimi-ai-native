@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeOperationResult.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope",
+    "operation_key",
+    "input_digest",
+    "status",
+    "cancel_requested",
+    "observed_at",
+    "reason",
+    "raw_refs",
+    "outputs",
+    "usage"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "scope": {
+      "type": "string",
+      "const": "isolated_provider_probe"
+    },
+    "operation_key": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+    },
+    "input_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "Reserved"
+        },
+        {
+          "type": "string",
+          "const": "Running"
+        },
+        {
+          "type": "string",
+          "const": "Succeeded"
+        },
+        {
+          "type": "string",
+          "const": "Failed"
+        },
+        {
+          "type": "string",
+          "const": "Cancelled"
+        },
+        {
+          "type": "string",
+          "const": "Unknown"
+        },
+        {
+          "type": "string",
+          "const": "NotStarted"
+        }
+      ]
+    },
+    "cancel_requested": {
+      "type": "boolean"
+    },
+    "observed_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^ses_[a-zA-Z0-9]+$"
+    },
+    "exit_code": {
+      "type": "integer"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "raw_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "provider",
+          "resource_type",
+          "locator"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resource_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "provider",
+          "resource_type",
+          "locator"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resource_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "usage": {
+      "type": "object",
+      "required": [
+        "cost_known"
+      ],
+      "properties": {
+        "cost_known": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

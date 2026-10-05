@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ChangeDependency.v2",
+  "type": "object",
+  "required": [
+    "change_id",
+    "contract_ref",
+    "required_state"
+  ],
+  "properties": {
+    "change_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "contract_ref": {
+      "type": "object",
+      "required": [
+        "object_type",
+        "id",
+        "domain_version"
+      ],
+      "properties": {
+        "object_type": {
+          "type": "string",
+          "const": "contract_version"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "domain_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "required_state": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "ready_for_delivery"
+        },
+        {
+          "type": "string",
+          "const": "completed"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

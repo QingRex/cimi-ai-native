@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ChangeLifecycleState.v2",
+  "anyOf": [
+    {
+      "type": "string",
+      "const": "Draft"
+    },
+    {
+      "type": "string",
+      "const": "IntentReady"
+    },
+    {
+      "type": "string",
+      "const": "Executing"
+    },
+    {
+      "type": "string",
+      "const": "ReadyForDelivery"
+    },
+    {
+      "type": "string",
+      "const": "Completed"
+    },
+    {
+      "type": "string",
+      "const": "Terminated"
+    }
+  ]
+}

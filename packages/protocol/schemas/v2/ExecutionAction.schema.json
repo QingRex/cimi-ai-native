@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ExecutionAction.v2",
+  "anyOf": [
+    {
+      "type": "string",
+      "const": "read_files"
+    },
+    {
+      "type": "string",
+      "const": "edit_files"
+    },
+    {
+      "type": "string",
+      "const": "run_checks"
+    }
+  ]
+}

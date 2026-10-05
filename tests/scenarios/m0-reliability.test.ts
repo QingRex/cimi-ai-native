@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { CimiLoopKernel } from "../../packages/kernel/dist/index.js";
+import { CimiLoopKernel } from "../../packages/kernel/dist/v1.js";
 import {
   SCHEMA_VERSION,
   createInternalId,
@@ -10,8 +10,8 @@ import {
   type DomainError,
   type InternalId
 } from "../../packages/protocol/dist/index.js";
-import { SqliteProjectStore } from "../../packages/store-sqlite/dist/index.js";
-import type { ProjectStore } from "../../packages/store/dist/index.js";
+import { SqliteProjectStore } from "../../packages/store-sqlite/dist/v1.js";
+import type { ProjectStore } from "../../packages/store/dist/v1.js";
 
 const temporaryDirectories: string[] = [];
 

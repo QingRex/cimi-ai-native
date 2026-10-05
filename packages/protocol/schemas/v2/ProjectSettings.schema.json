@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ProjectSettings.v2",
+  "type": "object",
+  "required": [
+    "wip_limit",
+    "flow_owner_actor_id",
+    "priority_arbiter_actor_id",
+    "check_interval_ms",
+    "priority_order"
+  ],
+  "properties": {
+    "wip_limit": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "flow_owner_actor_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "priority_arbiter_actor_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "check_interval_ms": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "priority_order": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "higher_first"
+        },
+        {
+          "type": "string",
+          "const": "lower_first"
+        }
+      ]
+    },
+    "policy_ref": {
+      "type": "object",
+      "required": [
+        "object_type",
+        "id",
+        "domain_version"
+      ],
+      "properties": {
+        "object_type": {
+          "type": "string",
+          "const": "policy_version"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "domain_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

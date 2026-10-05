@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "EvaluateTaskCommand.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "command_id",
+    "correlation_id",
+    "requested_at",
+    "source",
+    "project_id",
+    "actor_id",
+    "acting_role",
+    "command_type",
+    "target",
+    "expected_revision",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "command_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "requested_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "origin",
+        "producer"
+      ],
+      "properties": {
+        "origin": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "human_cli"
+            },
+            {
+              "type": "string",
+              "const": "human_ui"
+            },
+            {
+              "type": "string",
+              "const": "agent"
+            },
+            {
+              "type": "string",
+              "const": "system"
+            },
+            {
+              "type": "string",
+              "const": "adapter"
+            }
+          ]
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repository_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "expected_input_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "actor_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "acting_role": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "technical_owner"
+        },
+        {
+          "type": "string",
+          "const": "executor"
+        }
+      ]
+    },
+    "command_type": {
+      "type": "string",
+      "const": "EvaluateTask"
+    },
+    "target": {
+      "type": "object",
+      "required": [
+        "object_type",
+        "id"
+      ],
+      "properties": {
+        "object_type": {
+          "type": "string",
+          "const": "task"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "expected_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "requirement_set_ref",
+        "input_digest"
+      ],
+      "properties": {
+        "requirement_set_ref": {
+          "type": "object",
+          "required": [
+            "object_type",
+            "id"
+          ],
+          "properties": {
+            "object_type": {
+              "type": "string",
+              "const": "requirement_set_record"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "context_ref": {
+          "type": "object",
+          "required": [
+            "object_type",
+            "id"
+          ],
+          "properties": {
+            "object_type": {
+              "type": "string",
+              "const": "evaluation_context"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "input_digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

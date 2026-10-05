@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeBoundaryProbe.v2",
+  "type": "object",
+  "required": [
+    "mode",
+    "passed",
+    "outside_read_denied",
+    "outside_write_denied",
+    "subprocess_denied",
+    "inside_readable",
+    "inside_writable",
+    "loopback_denied",
+    "raw_refs"
+  ],
+  "properties": {
+    "mode": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "write"
+        },
+        {
+          "type": "string",
+          "const": "read"
+        }
+      ]
+    },
+    "passed": {
+      "type": "boolean"
+    },
+    "outside_read_denied": {
+      "type": "boolean"
+    },
+    "outside_write_denied": {
+      "type": "boolean"
+    },
+    "subprocess_denied": {
+      "type": "boolean"
+    },
+    "inside_readable": {
+      "type": "boolean"
+    },
+    "inside_writable": {
+      "type": "boolean"
+    },
+    "loopback_denied": {
+      "type": "boolean"
+    },
+    "raw_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "provider",
+          "resource_type",
+          "locator"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resource_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

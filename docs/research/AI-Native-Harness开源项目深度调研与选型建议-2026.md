@@ -1,5 +1,7 @@
 # AI Native Harness 开源项目深度调研与选型建议
 
+> 适用状态（2026-10-02）：历史调研输入，正文保留当时研究和建议，本轮未复核外部项目现状。当前团队流程以[独立流程基线](../architecture/AI-Native软件研发流程-v0.1.md)为准；本文不授予产品实现或选型执行权限。
+
 > 调研日期：2026-09-17  
 > 调研对象：Matt Pocock Skills、obra/superpowers、Fission-AI/OpenSpec、affaan-m/ECC、Multica，以及 Agent Skills、OpenAI Symphony、GitHub Spec Kit、OPA、Argo Rollouts、OpenTelemetry、OpenHands  
 > 目标：不是选择一个“最好用的 Agent 工具”，而是判断哪些开源能力可以支撑已经对齐的 AI Native 软件研发新范式。

@@ -18,7 +18,7 @@ const canonicalize = (value: unknown): unknown => {
 export const requestDigest = (value: unknown): string =>
   createHash("sha256").update(JSON.stringify(canonicalize(value))).digest("hex");
 
-export const commandDigest = (command: AnyCommand): string => {
+export const commandDigest = (command: AnyCommand | import("@cimiloop/protocol/v2").AnyCommand): string => {
   const { correlation_id: _correlationId, requested_at: _requestedAt, ...semanticCommand } = command;
   return requestDigest(semanticCommand);
 };

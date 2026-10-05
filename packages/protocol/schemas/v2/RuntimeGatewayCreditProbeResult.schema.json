@@ -1,0 +1,396 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeGatewayCreditProbeResult.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope",
+    "observed_at",
+    "credit_budget_probe_passed",
+    "unit",
+    "rate_observation",
+    "checks",
+    "snapshots",
+    "recoveries",
+    "independent_host_processes",
+    "credit_ledger_format",
+    "http_requests",
+    "external_model_requests",
+    "actual_credentials_read",
+    "runtime_started",
+    "actual_cost_known",
+    "billing_admission_ready",
+    "formal_execution_enabled",
+    "evidence_refs",
+    "gaps"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "scope": {
+      "type": "string",
+      "const": "credit_budget_rehearsal"
+    },
+    "observed_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
+    "credit_budget_probe_passed": {
+      "type": "boolean"
+    },
+    "unit": {
+      "type": "string",
+      "const": "ZHIPU_CODING_PLAN_CREDIT"
+    },
+    "rate_observation": {
+      "type": "object",
+      "required": [
+        "digest",
+        "expires_at",
+        "reference_time",
+        "historical_rehearsal",
+        "account_version_verified",
+        "token_bounds_verified"
+      ],
+      "properties": {
+        "digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "expires_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+        },
+        "reference_time": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+        },
+        "historical_rehearsal": {
+          "type": "boolean",
+          "const": true
+        },
+        "account_version_verified": {
+          "type": "boolean",
+          "const": false
+        },
+        "token_bounds_verified": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "passed",
+          "reason"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 32
+    },
+    "snapshots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "case_name",
+          "snapshot"
+        ],
+        "properties": {
+          "case_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "snapshot": {
+            "type": "object",
+            "required": [
+              "scope",
+              "unit",
+              "account_scope_digest",
+              "policy_digest",
+              "maximum_micro_units",
+              "held_micro_units",
+              "remaining_micro_units",
+              "reserved",
+              "dispatching",
+              "completed",
+              "unknown",
+              "blocked",
+              "budgets",
+              "actual_cost_known",
+              "admission_ready"
+            ],
+            "properties": {
+              "scope": {
+                "type": "string",
+                "const": "credit_budget_rehearsal"
+              },
+              "unit": {
+                "type": "string",
+                "const": "ZHIPU_CODING_PLAN_CREDIT"
+              },
+              "account_scope_digest": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "policy_digest": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "maximum_micro_units": {
+                "type": "integer",
+                "minimum": 1000000,
+                "maximum": 1000000000000,
+                "multipleOf": 1000000
+              },
+              "held_micro_units": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000
+              },
+              "remaining_micro_units": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000
+              },
+              "reserved": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4096
+              },
+              "dispatching": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4096
+              },
+              "completed": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4096
+              },
+              "unknown": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4096
+              },
+              "blocked": {
+                "type": "boolean"
+              },
+              "budgets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "budget_key",
+                    "maximum_micro_units",
+                    "held_micro_units"
+                  ],
+                  "properties": {
+                    "budget_key": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+                    },
+                    "maximum_micro_units": {
+                      "type": "integer",
+                      "minimum": 1000000,
+                      "maximum": 1000000000000,
+                      "multipleOf": 1000000
+                    },
+                    "held_micro_units": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "maxItems": 4096
+              },
+              "actual_cost_known": {
+                "type": "boolean",
+                "const": false
+              },
+              "admission_ready": {
+                "type": "boolean",
+                "const": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 32
+    },
+    "recoveries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "case_name",
+          "reconciled_requests",
+          "active_owners",
+          "unknown_owners",
+          "verified_ended_owners"
+        ],
+        "properties": {
+          "case_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reconciled_requests": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4096
+          },
+          "active_owners": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4096
+          },
+          "unknown_owners": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4096
+          },
+          "verified_ended_owners": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4096
+          }
+        },
+        "additionalProperties": false
+      },
+      "maxItems": 32
+    },
+    "independent_host_processes": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "credit_ledger_format": {
+      "type": "number",
+      "const": 1
+    },
+    "http_requests": {
+      "type": "number",
+      "const": 0
+    },
+    "external_model_requests": {
+      "type": "number",
+      "const": 0
+    },
+    "actual_credentials_read": {
+      "type": "number",
+      "const": 0
+    },
+    "runtime_started": {
+      "type": "boolean",
+      "const": false
+    },
+    "actual_cost_known": {
+      "type": "boolean",
+      "const": false
+    },
+    "billing_admission_ready": {
+      "type": "boolean",
+      "const": false
+    },
+    "formal_execution_enabled": {
+      "type": "boolean",
+      "const": false
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "provider",
+          "resource_type",
+          "locator"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resource_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "additionalProperties": false
+}

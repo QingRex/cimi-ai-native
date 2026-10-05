@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeResourceObservation.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope",
+    "operation_key",
+    "enforcement",
+    "sample_interval_ms",
+    "limits",
+    "sandbox_bytes",
+    "sandbox_entries",
+    "largest_file_bytes",
+    "reason"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "scope": {
+      "type": "string",
+      "const": "isolated_provider_probe"
+    },
+    "operation_key": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+    },
+    "enforcement": {
+      "type": "string",
+      "const": "sampled_job_termination"
+    },
+    "sample_interval_ms": {
+      "type": "number",
+      "const": 100
+    },
+    "limits": {
+      "type": "object",
+      "required": [
+        "max_sandbox_bytes",
+        "max_sandbox_entries",
+        "max_file_bytes",
+        "max_output_bytes"
+      ],
+      "properties": {
+        "max_sandbox_bytes": {
+          "type": "integer",
+          "minimum": 65536,
+          "maximum": 268435456
+        },
+        "max_sandbox_entries": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 1024
+        },
+        "max_file_bytes": {
+          "type": "integer",
+          "minimum": 65536,
+          "maximum": 16777216
+        },
+        "max_output_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 16777216
+        }
+      },
+      "additionalProperties": false
+    },
+    "sandbox_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sandbox_entries": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "largest_file_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "within_limits"
+        },
+        {
+          "type": "string",
+          "const": "sandbox_bytes"
+        },
+        {
+          "type": "string",
+          "const": "sandbox_entries"
+        },
+        {
+          "type": "string",
+          "const": "file_bytes"
+        },
+        {
+          "type": "string",
+          "const": "observation_unavailable"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

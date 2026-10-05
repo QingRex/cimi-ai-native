@@ -1,0 +1,310 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeGatewayProbeResult.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope",
+    "observed_at",
+    "gateway_probe_passed",
+    "route",
+    "checks",
+    "budgets",
+    "synthetic_http_requests",
+    "external_model_requests",
+    "actual_credentials_read",
+    "cost_known",
+    "ipc_runtime_connected",
+    "formal_execution_enabled",
+    "evidence_refs",
+    "gaps"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "scope": {
+      "type": "string",
+      "const": "synthetic_gateway_probe"
+    },
+    "observed_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
+    "gateway_probe_passed": {
+      "type": "boolean"
+    },
+    "route": {
+      "type": "object",
+      "required": [
+        "host",
+        "path",
+        "model",
+        "tls_peer_verified",
+        "redirects",
+        "retries",
+        "certificate_digest",
+        "max_request_bytes",
+        "max_response_bytes",
+        "max_output_tokens"
+      ],
+      "properties": {
+        "host": {
+          "type": "string",
+          "const": "cimiloop-gateway.test"
+        },
+        "path": {
+          "type": "string",
+          "const": "/v1/chat/completions"
+        },
+        "model": {
+          "type": "string",
+          "const": "cimiloop-synthetic-text"
+        },
+        "tls_peer_verified": {
+          "type": "boolean",
+          "const": true
+        },
+        "redirects": {
+          "type": "boolean",
+          "const": false
+        },
+        "retries": {
+          "type": "number",
+          "const": 0
+        },
+        "certificate_digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "max_request_bytes": {
+          "type": "number",
+          "const": 16384
+        },
+        "max_response_bytes": {
+          "type": "number",
+          "const": 16384
+        },
+        "max_output_tokens": {
+          "type": "number",
+          "const": 128
+        }
+      },
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "passed",
+          "reason"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 32
+    },
+    "budgets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "case_name",
+          "policy_digest",
+          "snapshot"
+        ],
+        "properties": {
+          "case_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "policy_digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "snapshot": {
+            "type": "object",
+            "required": [
+              "currency",
+              "maximum_micro_units",
+              "held_micro_units",
+              "reserved",
+              "dispatching",
+              "completed",
+              "unknown",
+              "blocked"
+            ],
+            "properties": {
+              "currency": {
+                "type": "string",
+                "const": "TEST"
+              },
+              "maximum_micro_units": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000000000000
+              },
+              "held_micro_units": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000000000
+              },
+              "reserved": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4096
+              },
+              "dispatching": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4096
+              },
+              "completed": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4096
+              },
+              "unknown": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4096
+              },
+              "blocked": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 32
+    },
+    "synthetic_http_requests": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 64
+    },
+    "external_model_requests": {
+      "type": "number",
+      "const": 0
+    },
+    "actual_credentials_read": {
+      "type": "number",
+      "const": 0
+    },
+    "cost_known": {
+      "type": "boolean",
+      "const": false
+    },
+    "ipc_runtime_connected": {
+      "type": "boolean",
+      "const": false
+    },
+    "formal_execution_enabled": {
+      "type": "boolean",
+      "const": false
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "provider",
+          "resource_type",
+          "locator"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resource_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "additionalProperties": false
+}

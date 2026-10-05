@@ -4,11 +4,12 @@ import {
   type InternalId,
   type SourceDescriptor,
   type TransitionRecord
-} from "@cimiloop/protocol";
+} from "@cimiloop/protocol/v2";
 
 export interface DomainContext {
   now: string;
   actorId: InternalId;
+  actingRole: import("@cimiloop/protocol/v2").Assignment["role_key"];
   commandId: InternalId;
   id: () => InternalId;
 }
@@ -33,6 +34,7 @@ export const createDraftChange = (input: {
   source: input.source,
   created_at: input.now,
   updated_at: input.now,
+  kind: "requirement", priority: 0,
   revision: 1
 });
 
@@ -60,7 +62,7 @@ export const pauseDraftChange = (
       from_status: "Active",
       to_status: "Paused",
       reason,
-      actor_id: context.actorId,
+      actor_id: context.actorId, acting_role: context.actingRole, lifecycle_state: change.lifecycle_state,
       occurred_at: context.now
     }
   };
@@ -70,7 +72,7 @@ export const resumeDraftChange = (
   change: Change,
   context: DomainContext
 ): { change: Change; transition: TransitionRecord } => {
-  const { pause_reason: _removed, ...withoutPauseReason } = change;
+  const { pause_reason: _removed, ...withoutPauseReason } = change as Change & { pause_reason?: string };
   const next: Change = {
     ...withoutPauseReason,
     operating_status: "Active",
@@ -88,7 +90,7 @@ export const resumeDraftChange = (
       transition_type: "change_resumed",
       from_status: "Paused",
       to_status: "Active",
-      actor_id: context.actorId,
+      actor_id: context.actorId, acting_role: context.actingRole, lifecycle_state: change.lifecycle_state,
       occurred_at: context.now
     }
   };

@@ -1,0 +1,1205 @@
+{
+  "captured_at": "2026-10-04T13:31:13.902Z",
+  "decision": "D-198",
+  "scope": "synthetic_transport_probe",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2"
+  },
+  "actual_opencode": {
+    "schema_version": "2.0.0",
+    "scope": "synthetic_transport_probe",
+    "observed_at": "2026-10-04T13:30:49.194Z",
+    "provider": {
+      "name": "opencode",
+      "version": "1.18.34",
+      "binary_digest": {
+        "algorithm": "sha256",
+        "value": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e"
+      },
+      "module_digest": {
+        "algorithm": "sha256",
+        "value": "9380603cb89c7e9742a37fbd5b0ef5f0ee5e46980d3dc113f712b7c68b77188f"
+      }
+    },
+    "sandbox": "windows_appcontainer_job",
+    "network_mode": "deny_all",
+    "operation": {
+      "schema_version": "2.0.0",
+      "scope": "isolated_provider_probe",
+      "operation_key": "ipc_4fd329d205c5443b87512a1bf74e1932",
+      "input_digest": {
+        "algorithm": "sha256",
+        "value": "eb7897175fe3b6555375e32911b4b16fda840b19603da86aa0a9d7fe052af277"
+      },
+      "status": "Succeeded",
+      "reason": "synthetic_transport_completed",
+      "session_id": "ses_ef8e3ddefffe3p7htgFhxAaaCo",
+      "exit_code": 0,
+      "cancel_requested": false,
+      "observed_at": "2026-10-04T13:30:49.152Z",
+      "raw_refs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/ipc-transport-v1-09/blobs/602bc931aad99775d74fb82591feddc5d584896cca3eea5f2487f2b7c3003ca2",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "602bc931aad99775d74fb82591feddc5d584896cca3eea5f2487f2b7c3003ca2"
+          },
+          "version": "stdout.raw"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/ipc-transport-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "version": "stderr.raw"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/ipc-transport-v1-09/blobs/356c008a696f0162f0197b48589bed0464cfe4e1ecddaa200642d0ae54a00b8a",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "356c008a696f0162f0197b48589bed0464cfe4e1ecddaa200642d0ae54a00b8a"
+          },
+          "version": "native-proof.json"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/ipc-transport-v1-09/blobs/63316fa68122d411f8fdd593a8ff804e06e7667b88fa16cf11434f3ec4d9625f",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "63316fa68122d411f8fdd593a8ff804e06e7667b88fa16cf11434f3ec4d9625f"
+          },
+          "version": "resource-proof.json"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/ipc-transport-v1-09/blobs/c13882fd94bf7dc3e7aaf286c582d91720307aad66ea6d31f3f6d7884f6de856",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "c13882fd94bf7dc3e7aaf286c582d91720307aad66ea6d31f3f6d7884f6de856"
+          },
+          "version": "execution-policy-proof.json"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/ipc-transport-v1-09/blobs/ccd3f3b063326668ee9c17248bd1c25a8d1bf64c2b35a33a1f99b5d3ea39e53f",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "ccd3f3b063326668ee9c17248bd1c25a8d1bf64c2b35a33a1f99b5d3ea39e53f"
+          },
+          "version": "ipc-transport-proof.json"
+        }
+      ],
+      "outputs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_workspace_file",
+          "locator": ".cimiloop/ipc-transport-v1-09/blobs/c68e8c8247cf679b9866088b756c83d4133e4de279d9573fca0a986f4e223c7b",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "c68e8c8247cf679b9866088b756c83d4133e4de279d9573fca0a986f4e223c7b"
+          },
+          "version": "input.txt"
+        }
+      ],
+      "usage": {
+        "cost_known": false
+      }
+    },
+    "transport_probe_passed": true,
+    "external_model_requests": 0,
+    "actual_credentials_read": 0,
+    "formal_execution_enabled": false,
+    "evidence_refs": [
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_stdout",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/7f8aea7736fd946b51e0094f530bc5380047e8a33693bb6f3ee78f14f929aa72",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "7f8aea7736fd946b51e0094f530bc5380047e8a33693bb6f3ee78f14f929aa72"
+        }
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_stderr",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "sandbox_proof",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/dd3a8418524b60af5eba28852955e85489f38be594cb335f6b333cbc788226cc",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "dd3a8418524b60af5eba28852955e85489f38be594cb335f6b333cbc788226cc"
+        }
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "execution_policy_proof",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/4f602e11719731b0a1bc7ed56092fe4f67762f50747e186ad4dc828147ac8cc2",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "4f602e11719731b0a1bc7ed56092fe4f67762f50747e186ad4dc828147ac8cc2"
+        }
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/602bc931aad99775d74fb82591feddc5d584896cca3eea5f2487f2b7c3003ca2",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "602bc931aad99775d74fb82591feddc5d584896cca3eea5f2487f2b7c3003ca2"
+        },
+        "version": "stdout.raw"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "version": "stderr.raw"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/356c008a696f0162f0197b48589bed0464cfe4e1ecddaa200642d0ae54a00b8a",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "356c008a696f0162f0197b48589bed0464cfe4e1ecddaa200642d0ae54a00b8a"
+        },
+        "version": "native-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/63316fa68122d411f8fdd593a8ff804e06e7667b88fa16cf11434f3ec4d9625f",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "63316fa68122d411f8fdd593a8ff804e06e7667b88fa16cf11434f3ec4d9625f"
+        },
+        "version": "resource-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/c13882fd94bf7dc3e7aaf286c582d91720307aad66ea6d31f3f6d7884f6de856",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "c13882fd94bf7dc3e7aaf286c582d91720307aad66ea6d31f3f6d7884f6de856"
+        },
+        "version": "execution-policy-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/ipc-transport-v1-09/blobs/ccd3f3b063326668ee9c17248bd1c25a8d1bf64c2b35a33a1f99b5d3ea39e53f",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "ccd3f3b063326668ee9c17248bd1c25a8d1bf64c2b35a33a1f99b5d3ea39e53f"
+        },
+        "version": "ipc-transport-proof.json"
+      }
+    ],
+    "gaps": [
+      "gateway_host_path_model_enforcement",
+      "durable_cost_reservations_and_accounting",
+      "hard_filesystem_quota",
+      "complete_crash_recovery_acceptance",
+      "formal_task_binding_and_agent_entry"
+    ]
+  },
+  "actual_host_observation": {
+    "schema_version": "2.0.0",
+    "scope": "isolated_provider_probe",
+    "operation_key": "ipc_4fd329d205c5443b87512a1bf74e1932",
+    "phase": "ended",
+    "transport": "windows_named_pipe",
+    "synthetic_response_only": true,
+    "remote_clients_rejected": true,
+    "runtime_pid": 5392,
+    "client_identity_enforcement": "pid_creation_image",
+    "frame_limit_bytes": 262144,
+    "accepted_requests": 2,
+    "attempts": [
+      {
+        "pid": 5392,
+        "outcome": "accepted",
+        "reason": "runtime_identity_verified",
+        "request_bytes": 2621,
+        "request_digest": "e8025c9aca756090214154b2e552141c7984fef2b115696f024792511564e1aa",
+        "replay": false
+      },
+      {
+        "pid": 5392,
+        "outcome": "accepted",
+        "reason": "runtime_identity_verified",
+        "request_bytes": 9284,
+        "request_digest": "684128b807c1fb7f843ce773f8e8a30765cad3e2eb427a0e2ba85af0f716ca38",
+        "replay": false
+      }
+    ],
+    "failure_reason": null,
+    "external_model_requests": 0,
+    "formal_execution_enabled": false
+  },
+  "source_digests": {
+    "controller": {
+      "algorithm": "sha256",
+      "value": "124a8f18d52cc563d38e61f5d2e0a5c5c03726de90ff24550b5d212d13dd1963"
+    },
+    "ipc_controller": {
+      "algorithm": "sha256",
+      "value": "3124ddcc74f85882ef2cd54620761adabed2c572d18677744a20a99f1d367f4d"
+    },
+    "provider_module": {
+      "algorithm": "sha256",
+      "value": "9380603cb89c7e9742a37fbd5b0ef5f0ee5e46980d3dc113f712b7c68b77188f"
+    }
+  },
+  "cases": [
+    {
+      "scenario": "duplicate",
+      "operation_key": "ipc_e9583c96_duplicate",
+      "status": "Succeeded",
+      "observation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "ipc_e9583c96_duplicate",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "synthetic_response_only": true,
+        "remote_clients_rejected": true,
+        "runtime_pid": 21956,
+        "client_identity_enforcement": "pid_creation_image",
+        "frame_limit_bytes": 262144,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 21956,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 187,
+            "request_digest": "6810528e0f0c2dd877c466591379c372cade469cd97e1f5c6ad1ea891376d036",
+            "replay": false
+          },
+          {
+            "pid": 21956,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 187,
+            "request_digest": "6810528e0f0c2dd877c466591379c372cade469cd97e1f5c6ad1ea891376d036",
+            "replay": true
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      }
+    },
+    {
+      "scenario": "conflict",
+      "operation_key": "ipc_e9583c96_conflict",
+      "status": "Succeeded",
+      "observation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "ipc_e9583c96_conflict",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "synthetic_response_only": true,
+        "remote_clients_rejected": true,
+        "runtime_pid": 15272,
+        "client_identity_enforcement": "pid_creation_image",
+        "frame_limit_bytes": 262144,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 15272,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 185,
+            "request_digest": "a0122769546428ef57c5cf615234ca684590ee94905dda6a6957cc2fbbc656d5",
+            "replay": false
+          },
+          {
+            "pid": 15272,
+            "outcome": "rejected",
+            "reason": "request_id_conflict",
+            "request_bytes": 185,
+            "request_digest": "a6e9cbf1a3bef26ba00e45acc480557b49afb90506b50cc003ae718b1e08c092",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      }
+    },
+    {
+      "scenario": "mismatch",
+      "operation_key": "ipc_e9583c96_mismatch",
+      "status": "Succeeded",
+      "observation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "ipc_e9583c96_mismatch",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "synthetic_response_only": true,
+        "remote_clients_rejected": true,
+        "runtime_pid": 24240,
+        "client_identity_enforcement": "pid_creation_image",
+        "frame_limit_bytes": 262144,
+        "accepted_requests": 0,
+        "attempts": [
+          {
+            "pid": 24240,
+            "outcome": "rejected",
+            "reason": "ipc_request_invalid",
+            "request_bytes": 180,
+            "request_digest": "3009348f7f9462e801a60211e7b475f14d9358712b92219c6f6ab46a8d21c242",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      }
+    },
+    {
+      "scenario": "malformed",
+      "operation_key": "ipc_e9583c96_malformed",
+      "status": "Succeeded",
+      "observation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "ipc_e9583c96_malformed",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "synthetic_response_only": true,
+        "remote_clients_rejected": true,
+        "runtime_pid": 16712,
+        "client_identity_enforcement": "pid_creation_image",
+        "frame_limit_bytes": 262144,
+        "accepted_requests": 0,
+        "attempts": [
+          {
+            "pid": 16712,
+            "outcome": "rejected",
+            "reason": "ipc_request_invalid",
+            "request_bytes": 36,
+            "request_digest": "179a357f20c56580a6c2870fa556206e937866cd890fca2304dc9f74488d8fde",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      }
+    },
+    {
+      "scenario": "oversize",
+      "operation_key": "ipc_e9583c96_oversize",
+      "status": "Succeeded",
+      "observation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "ipc_e9583c96_oversize",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "synthetic_response_only": true,
+        "remote_clients_rejected": true,
+        "runtime_pid": 23396,
+        "client_identity_enforcement": "pid_creation_image",
+        "frame_limit_bytes": 262144,
+        "accepted_requests": 0,
+        "attempts": [
+          {
+            "pid": 23396,
+            "outcome": "rejected",
+            "reason": "ipc_frame_limit",
+            "request_bytes": 0,
+            "request_digest": null,
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      }
+    },
+    {
+      "scenario": "module_acl",
+      "operation_key": "ipc_e9583c96_module_acl",
+      "status": "Succeeded",
+      "observation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "ipc_e9583c96_module_acl",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "synthetic_response_only": true,
+        "remote_clients_rejected": true,
+        "runtime_pid": 23936,
+        "client_identity_enforcement": "pid_creation_image",
+        "frame_limit_bytes": 262144,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 23936,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 188,
+            "request_digest": "d0df0536fe06bcd1987da8dfe488ebcee1634811e625728c68d41e40c9ebb6b1",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      }
+    },
+    {
+      "scenario": "pid_sid_and_cancel",
+      "operation_key": "ipc_e9583c96_hold",
+      "observation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "ipc_e9583c96_hold",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "synthetic_response_only": true,
+        "remote_clients_rejected": true,
+        "runtime_pid": 12424,
+        "client_identity_enforcement": "pid_creation_image",
+        "frame_limit_bytes": 262144,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 12424,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 182,
+            "request_digest": "ad87744b204e009dbda5614f523f7868c5319db04fb74303d273801cb1d8e95a",
+            "replay": false
+          },
+          {
+            "pid": 12608,
+            "outcome": "rejected",
+            "reason": "client_identity_mismatch",
+            "request_bytes": 0,
+            "request_digest": null,
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "foreign_container": {
+        "event_type": "ipc.other_container",
+        "connected": false,
+        "error_code": 5
+      }
+    },
+    {
+      "scenario": "native_crash",
+      "operation_key": "ipc_e9583c96_crash",
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "ipc_e9583c96_crash",
+        "observed_at": "2026-10-04T13:31:10.691Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "ipc_e9583c96_crash",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "01413e1c9abd83fc4608d86c4f4307fa4a42fdad6b9757f586c6b61cc8796bd7"
+          },
+          "status": "Unknown",
+          "reason": "crash_recovered_completion_unproven",
+          "cancel_requested": false,
+          "observed_at": "2026-10-04T13:31:10.691Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/ipc-transport-v1-09/blobs/04c54e68cf31e9efe9cf7bd87e81992d3f8acc8784afb0b6ef4ee1dd23f674c3",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "04c54e68cf31e9efe9cf7bd87e81992d3f8acc8784afb0b6ef4ee1dd23f674c3"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "pipe_reopened": false
+    }
+  ],
+  "owned_resources": [
+    {
+      "operation_key": "ipc_4fd329d205c5443b87512a1bf74e1932",
+      "outcome": "recovered",
+      "resources_disposed": true
+    },
+    {
+      "operation_key": "ipc_e9583c96_duplicate",
+      "outcome": "recovered",
+      "resources_disposed": true
+    },
+    {
+      "operation_key": "ipc_e9583c96_conflict",
+      "outcome": "recovered",
+      "resources_disposed": true
+    },
+    {
+      "operation_key": "ipc_e9583c96_mismatch",
+      "outcome": "recovered",
+      "resources_disposed": true
+    },
+    {
+      "operation_key": "ipc_e9583c96_malformed",
+      "outcome": "recovered",
+      "resources_disposed": true
+    },
+    {
+      "operation_key": "ipc_e9583c96_oversize",
+      "outcome": "recovered",
+      "resources_disposed": true
+    },
+    {
+      "operation_key": "ipc_e9583c96_module_acl",
+      "outcome": "recovered",
+      "resources_disposed": true
+    },
+    {
+      "operation_key": "ipc_e9583c96_hold",
+      "outcome": "recovered",
+      "resources_disposed": true
+    },
+    {
+      "operation_key": "foreign_e9583c96",
+      "outcome": "recovered",
+      "resources_disposed": true
+    },
+    {
+      "operation_key": "ipc_e9583c96_crash",
+      "outcome": "recovered",
+      "resources_disposed": true
+    }
+  ],
+  "prior_unaccepted_attempts_retained": ".cimiloop/ipc-transport-debug",
+  "external_model_requests": 0,
+  "actual_credentials_read": 0,
+  "formal_execution_enabled": false,
+  "controlled_execution_promoted": false,
+  "hard_network_host_allowlist_verified": false,
+  "cost_cap_verified": false,
+  "evidence_refs": [
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_stdout",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/7f8aea7736fd946b51e0094f530bc5380047e8a33693bb6f3ee78f14f929aa72",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7f8aea7736fd946b51e0094f530bc5380047e8a33693bb6f3ee78f14f929aa72"
+      }
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_stderr",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "sandbox_proof",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/dd3a8418524b60af5eba28852955e85489f38be594cb335f6b333cbc788226cc",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "dd3a8418524b60af5eba28852955e85489f38be594cb335f6b333cbc788226cc"
+      }
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "execution_policy_proof",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/4f602e11719731b0a1bc7ed56092fe4f67762f50747e186ad4dc828147ac8cc2",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4f602e11719731b0a1bc7ed56092fe4f67762f50747e186ad4dc828147ac8cc2"
+      }
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/602bc931aad99775d74fb82591feddc5d584896cca3eea5f2487f2b7c3003ca2",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "602bc931aad99775d74fb82591feddc5d584896cca3eea5f2487f2b7c3003ca2"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "version": "stderr.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/356c008a696f0162f0197b48589bed0464cfe4e1ecddaa200642d0ae54a00b8a",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "356c008a696f0162f0197b48589bed0464cfe4e1ecddaa200642d0ae54a00b8a"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/63316fa68122d411f8fdd593a8ff804e06e7667b88fa16cf11434f3ec4d9625f",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "63316fa68122d411f8fdd593a8ff804e06e7667b88fa16cf11434f3ec4d9625f"
+      },
+      "version": "resource-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/c13882fd94bf7dc3e7aaf286c582d91720307aad66ea6d31f3f6d7884f6de856",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c13882fd94bf7dc3e7aaf286c582d91720307aad66ea6d31f3f6d7884f6de856"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/ccd3f3b063326668ee9c17248bd1c25a8d1bf64c2b35a33a1f99b5d3ea39e53f",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "ccd3f3b063326668ee9c17248bd1c25a8d1bf64c2b35a33a1f99b5d3ea39e53f"
+      },
+      "version": "ipc-transport-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "transport_cli",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/c5fd79ff4e2e707d57cccd2d57b16ba21a3c0aa24de9fb99bb373181e926e8c2",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c5fd79ff4e2e707d57cccd2d57b16ba21a3c0aa24de9fb99bb373181e926e8c2"
+      },
+      "version": "stdout.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/6a8a4d5c1a4ed91d42b179d0b0cd39cf10fbb1a41d81599dfc68513725797abe",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6a8a4d5c1a4ed91d42b179d0b0cd39cf10fbb1a41d81599dfc68513725797abe"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/159af80e0803560ed8d44d55d0b4dc423fca6b93a79b7f2cf549fddda510e027",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "159af80e0803560ed8d44d55d0b4dc423fca6b93a79b7f2cf549fddda510e027"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/f0a147344f67b1e9d725cb4fb9f865a75b43b7f1faa9524611bb42ccf112c078",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "f0a147344f67b1e9d725cb4fb9f865a75b43b7f1faa9524611bb42ccf112c078"
+      },
+      "version": "resource-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/4f16e622b84987b6c2bb528c1b77d7cb4e361513b83dbe46b476200a7938f3ba",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4f16e622b84987b6c2bb528c1b77d7cb4e361513b83dbe46b476200a7938f3ba"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/43340ab04130af324390c0fbdd3da83866cecc236a64b00319f601f38832b5a8",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "43340ab04130af324390c0fbdd3da83866cecc236a64b00319f601f38832b5a8"
+      },
+      "version": "ipc-transport-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/3509812db0afd028cfdc15d1845ae529a2e48ed9a17153760710f17cfb952f42",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3509812db0afd028cfdc15d1845ae529a2e48ed9a17153760710f17cfb952f42"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/24a75e8330161dd1b0e05a9116d6127e8143790424cfef58660573ba7645e0c9",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "24a75e8330161dd1b0e05a9116d6127e8143790424cfef58660573ba7645e0c9"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/9917785667323a8ab21316fa3c45b32689253a813a25ab16252c5f41892ad4fd",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9917785667323a8ab21316fa3c45b32689253a813a25ab16252c5f41892ad4fd"
+      },
+      "version": "resource-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/20a40a30d292b43fc5b7f14395c24d7ebdf825fb7069ee68c2d7c1df312c228d",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "20a40a30d292b43fc5b7f14395c24d7ebdf825fb7069ee68c2d7c1df312c228d"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/629fc269a18b3d490c93b9e8f59c60979790c8036d3a29d683d167fa31bee104",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "629fc269a18b3d490c93b9e8f59c60979790c8036d3a29d683d167fa31bee104"
+      },
+      "version": "ipc-transport-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/a1e0ab9a03368efb54a9019d5eb02f72fa0e3a33b618b6c8d6389789d80d5a5a",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a1e0ab9a03368efb54a9019d5eb02f72fa0e3a33b618b6c8d6389789d80d5a5a"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/8b522ac55f29a92117f305e696f630a3f4486429699bf4c71d6febbc48dcb08d",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8b522ac55f29a92117f305e696f630a3f4486429699bf4c71d6febbc48dcb08d"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/8084bf978ac88e990d80397363061852600c535c7243c86bc24003d5ebe16ead",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8084bf978ac88e990d80397363061852600c535c7243c86bc24003d5ebe16ead"
+      },
+      "version": "resource-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/044796eb44bdb822011f011d631f349fda47563c4b5d267cbdb5d535edbeb91e",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "044796eb44bdb822011f011d631f349fda47563c4b5d267cbdb5d535edbeb91e"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/90d88031564ae04744537ab72e3f735a2073e3058a3070fbc8099199077e8f42",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "90d88031564ae04744537ab72e3f735a2073e3058a3070fbc8099199077e8f42"
+      },
+      "version": "ipc-transport-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/02de37ff8b7f5b75d27eb2be8bf4e1d2e42735d8f1b5d4fcb49f982d56faeb71",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "02de37ff8b7f5b75d27eb2be8bf4e1d2e42735d8f1b5d4fcb49f982d56faeb71"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/189ec98c4c1be614620ff69a0309fd200fe0f81ce2c1d338df0271242e49faaa",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "189ec98c4c1be614620ff69a0309fd200fe0f81ce2c1d338df0271242e49faaa"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/924ca2724b05fc36a4f9bb73fe0bf0c229561153963769ba5271159b80da39b5",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "924ca2724b05fc36a4f9bb73fe0bf0c229561153963769ba5271159b80da39b5"
+      },
+      "version": "resource-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/cdbde067561165ff4715877e57353f29daddb22a0aa24792d7e9423ec08b03d0",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "cdbde067561165ff4715877e57353f29daddb22a0aa24792d7e9423ec08b03d0"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/5d5898b6938ef4b57c1a92df899b8634b42ad3094b9922315de4c6e43a5848a3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "5d5898b6938ef4b57c1a92df899b8634b42ad3094b9922315de4c6e43a5848a3"
+      },
+      "version": "ipc-transport-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/452e7cba97713c72ae4c8d7c3d628b7d39675696e6108095317cd69768008266",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "452e7cba97713c72ae4c8d7c3d628b7d39675696e6108095317cd69768008266"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/3a095e0e7ff1ba51c97aa3bc5c8c9ec9605e8f7fcf05692a2dcb8067088bd4e3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3a095e0e7ff1ba51c97aa3bc5c8c9ec9605e8f7fcf05692a2dcb8067088bd4e3"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/97e671d5edf1621e358a40167b7a024d9914f78dde8a1abd2a493804fc29e3e3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "97e671d5edf1621e358a40167b7a024d9914f78dde8a1abd2a493804fc29e3e3"
+      },
+      "version": "resource-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/f41f379dc1cb8053a720b1c59b75251ac7392cde01baf1d45e3b333c02b7dacb",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "f41f379dc1cb8053a720b1c59b75251ac7392cde01baf1d45e3b333c02b7dacb"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/4ccb65fa30330e85c602740ad6402bf4dc9646fca83c97f848f9bc0728f9d04b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4ccb65fa30330e85c602740ad6402bf4dc9646fca83c97f848f9bc0728f9d04b"
+      },
+      "version": "ipc-transport-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/a492116a5fab2d14044973ff53d0c13f7dd377db26f3f4f14c748a88e82551cc",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a492116a5fab2d14044973ff53d0c13f7dd377db26f3f4f14c748a88e82551cc"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/7ff4bf1d8c905eb4ffbc7da10693c020dda79ffdfa053413a9d22d059d90a4d8",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7ff4bf1d8c905eb4ffbc7da10693c020dda79ffdfa053413a9d22d059d90a4d8"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/89fc6f8b313b11b9b42c99a0157495d9682b578f2ac1550935251d79d8c7d4d3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "89fc6f8b313b11b9b42c99a0157495d9682b578f2ac1550935251d79d8c7d4d3"
+      },
+      "version": "resource-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/18adada71f5a18a8b639b38cf60e0fdb4f6a7a8794c3c3ca6a39303086029ef2",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "18adada71f5a18a8b639b38cf60e0fdb4f6a7a8794c3c3ca6a39303086029ef2"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/d6ec856a1dad320de1f42ef35d2d6d517ab3e9240cc7ca5c3d02f42adbc812ca",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d6ec856a1dad320de1f42ef35d2d6d517ab3e9240cc7ca5c3d02f42adbc812ca"
+      },
+      "version": "ipc-transport-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/04c50c46c89397a73b3cee7d28aa219b4de02779325e04b1b0244063ef87930f",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "04c50c46c89397a73b3cee7d28aa219b4de02779325e04b1b0244063ef87930f"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/942892f958741cb1ce38eef4a4424579daae369405d158162256187216895ff3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "942892f958741cb1ce38eef4a4424579daae369405d158162256187216895ff3"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/35d8f81ba85e24e05ef759b16378feed2eafad72630811bfcb28083643ccbc55",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "35d8f81ba85e24e05ef759b16378feed2eafad72630811bfcb28083643ccbc55"
+      },
+      "version": "resource-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/7eb4c6f153f8604accc40d278a4cee14c986107e8dbd0871155d570aeae7e8dc",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7eb4c6f153f8604accc40d278a4cee14c986107e8dbd0871155d570aeae7e8dc"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/8dcfdd55a41073fe40e4be34d4786454e80e3459682fef329d5f4ad9ce06f221",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8dcfdd55a41073fe40e4be34d4786454e80e3459682fef329d5f4ad9ce06f221"
+      },
+      "version": "ipc-transport-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/05f0567eca483878d6076398d6050ba3cafcd4b15ed5f6e813f0f4d791f55e4c",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "05f0567eca483878d6076398d6050ba3cafcd4b15ed5f6e813f0f4d791f55e4c"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/e99e3058a3bfc17e32415ba82d9ba62f3a8c5ed1ba9a6dbf1ce16071b6e5a992",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e99e3058a3bfc17e32415ba82d9ba62f3a8c5ed1ba9a6dbf1ce16071b6e5a992"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/348ad7bff495627e7942eac9b7c88b45aedfb496bdb8cb60936c96a025066ce2",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "348ad7bff495627e7942eac9b7c88b45aedfb496bdb8cb60936c96a025066ce2"
+      },
+      "version": "resource-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/5c0ce2ebaeb90f57e4f902416b76673bef9d2f58edb2ad7727b65f2d9e1f263e",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "5c0ce2ebaeb90f57e4f902416b76673bef9d2f58edb2ad7727b65f2d9e1f263e"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_recovery",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/04c54e68cf31e9efe9cf7bd87e81992d3f8acc8784afb0b6ef4ee1dd23f674c3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "04c54e68cf31e9efe9cf7bd87e81992d3f8acc8784afb0b6ef4ee1dd23f674c3"
+      },
+      "version": "native-recovery.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/e5a9db7e1396b5013b5e299a7d5a6b0ea1110f5eaaa3cdc74d2d143db3822860",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e5a9db7e1396b5013b5e299a7d5a6b0ea1110f5eaaa3cdc74d2d143db3822860"
+      },
+      "version": "stdout.raw"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/cc3a92a6ebf0879cb3c222bbb12666e2a5445aa71e6f8ae3d6ad25cdfa0184f6",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "cc3a92a6ebf0879cb3c222bbb12666e2a5445aa71e6f8ae3d6ad25cdfa0184f6"
+      },
+      "version": "native-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/1435d9ba21220b1fc2de2eb16faf57a2e75d2cbc5cc027c1fec256be33842fe2",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1435d9ba21220b1fc2de2eb16faf57a2e75d2cbc5cc027c1fec256be33842fe2"
+      },
+      "version": "execution-policy-proof.json"
+    },
+    {
+      "provider": "cimiloop-runtime-probe",
+      "resource_type": "probe_raw",
+      "locator": ".cimiloop/ipc-transport-v1-09/blobs/ec84a493cf91abe84eeafa4bf71938ee11175823bc301450d24ace367c0a31a4",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "ec84a493cf91abe84eeafa4bf71938ee11175823bc301450d24ace367c0a31a4"
+      },
+      "version": "ipc-transport-proof.json"
+    }
+  ],
+  "verification": {
+    "raw_digest_verified": true,
+    "specialized_test_files": 3,
+    "specialized_tests": 30,
+    "full_test_files": 34,
+    "full_tests": 328,
+    "isolated_recovery_tests": 14,
+    "initial_full_run": {
+      "test_files": 34,
+      "passed_tests": 327,
+      "failed_tests": 1,
+      "observation": "pinned_limits_resource_proof_not_available_after_20_seconds"
+    },
+    "final_full_run_passed": true,
+    "old_schema_digests": {
+      "RuntimeOperationResult": {
+        "algorithm": "sha256",
+        "value": "e4d785f38f836c223af0a23514f7d0b733de1a01277a9ec6b583d7766714f7ba"
+      },
+      "RuntimeProbeResult": {
+        "algorithm": "sha256",
+        "value": "fbfdde8bbf7108ca630a5952abb6ab4b9a799f3652bda454db09857436255f7c"
+      }
+    },
+    "owned_operations_disposed": 29
+  }
+}

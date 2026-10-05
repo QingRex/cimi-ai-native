@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ActingRole.v2",
+  "anyOf": [
+    {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "project_owner"
+        },
+        {
+          "type": "string",
+          "const": "change_owner"
+        },
+        {
+          "type": "string",
+          "const": "requirement_owner"
+        },
+        {
+          "type": "string",
+          "const": "technical_owner"
+        },
+        {
+          "type": "string",
+          "const": "quality_owner"
+        },
+        {
+          "type": "string",
+          "const": "release_owner"
+        },
+        {
+          "type": "string",
+          "const": "flow_owner"
+        },
+        {
+          "type": "string",
+          "const": "policy_owner"
+        },
+        {
+          "type": "string",
+          "const": "exception_owner"
+        }
+      ]
+    },
+    {
+      "type": "string",
+      "const": "executor"
+    }
+  ]
+}

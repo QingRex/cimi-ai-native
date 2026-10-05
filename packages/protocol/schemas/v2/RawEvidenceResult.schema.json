@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RawEvidenceResult.v2",
+  "type": "object",
+  "required": [
+    "format",
+    "producer_actor_id",
+    "observed_at",
+    "source_digest",
+    "method",
+    "claims"
+  ],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "cimiloop/manual-evidence/1.0.0"
+    },
+    "producer_actor_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "observed_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
+    "source_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "method": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "description",
+          "result",
+          "observation"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "supports"
+              },
+              {
+                "type": "string",
+                "const": "refutes"
+              },
+              {
+                "type": "string",
+                "const": "inconclusive"
+              }
+            ]
+          },
+          "observation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}

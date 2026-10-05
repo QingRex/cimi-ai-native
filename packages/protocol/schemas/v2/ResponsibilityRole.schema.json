@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ResponsibilityRole.v2",
+  "anyOf": [
+    {
+      "type": "string",
+      "const": "change_owner"
+    },
+    {
+      "type": "string",
+      "const": "requirement_owner"
+    }
+  ]
+}

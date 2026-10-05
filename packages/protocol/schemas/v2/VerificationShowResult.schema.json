@@ -1,0 +1,2435 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "VerificationShowResult.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "ok",
+    "source_snapshots",
+    "evidence",
+    "policy_snapshots",
+    "requirement_sets",
+    "contexts",
+    "evaluations",
+    "satisfactions",
+    "integration_readiness",
+    "as_of_event_sequence"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "ok": {
+      "type": "boolean",
+      "const": true
+    },
+    "source_snapshots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "project_id",
+          "created_at",
+          "producer_actor_id",
+          "change_id",
+          "repository_ref",
+          "commit_id",
+          "source_digest"
+        ],
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2.0.0"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "project_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "created_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "producer_actor_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "source_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resource_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "change_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "repository_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "project"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "commit_id": {
+            "type": "string",
+            "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+          },
+          "source_digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "project_id",
+          "created_at",
+          "producer_actor_id",
+          "change_id",
+          "contract_ref",
+          "plan_ref",
+          "source_snapshot_ref",
+          "task_id",
+          "definition_ref",
+          "work_item_ref",
+          "origin",
+          "raw_result_ref",
+          "observed_at",
+          "claims"
+        ],
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2.0.0"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "project_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "created_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "producer_actor_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "source_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resource_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "change_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "contract_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "contract_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "plan_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "plan_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "source_snapshot_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "source_snapshot"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "task_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "definition_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "task_definition"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "work_item_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "work_item"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "origin": {
+            "type": "string",
+            "const": "manual_observation"
+          },
+          "raw_result_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator",
+              "digest"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "const": "local_content"
+              },
+              "resource_type": {
+                "type": "string",
+                "const": "manual_evidence"
+              },
+              "locator": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "observed_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "claims": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "description",
+                "result",
+                "observation"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "result": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "const": "supports"
+                    },
+                    {
+                      "type": "string",
+                      "const": "refutes"
+                    },
+                    {
+                      "type": "string",
+                      "const": "inconclusive"
+                    }
+                  ]
+                },
+                "observation": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "policy_snapshots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "project_id",
+          "created_at",
+          "producer_actor_id",
+          "change_id",
+          "contract_ref",
+          "plan_ref",
+          "source_snapshot_ref",
+          "rule_version",
+          "profile",
+          "risk_ref"
+        ],
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2.0.0"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "project_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "created_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "producer_actor_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "source_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resource_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "change_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "contract_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "contract_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "plan_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "plan_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "source_snapshot_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "source_snapshot"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "rule_version": {
+            "type": "string",
+            "const": "verification/1.0.0"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "Feature"
+              },
+              {
+                "type": "string",
+                "const": "Bugfix"
+              }
+            ]
+          },
+          "risk_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "risk_assessment"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "requirement_sets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "project_id",
+          "created_at",
+          "producer_actor_id",
+          "change_id",
+          "contract_ref",
+          "plan_ref",
+          "source_snapshot_ref",
+          "task_id",
+          "definition_ref",
+          "policy_snapshot_ref",
+          "requirements"
+        ],
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2.0.0"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "project_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "created_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "producer_actor_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "source_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resource_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "change_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "contract_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "contract_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "plan_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "plan_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "source_snapshot_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "source_snapshot"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "task_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "definition_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "task_definition"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "policy_snapshot_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "policy_snapshot"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "description"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "contexts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "project_id",
+          "created_at",
+          "producer_actor_id",
+          "change_id",
+          "contract_ref",
+          "plan_ref",
+          "source_snapshot_ref",
+          "task_id",
+          "definition_ref",
+          "work_item_ref",
+          "evaluator_actor_id",
+          "boundary",
+          "allowed_resources",
+          "requirement_set_ref",
+          "input_digest"
+        ],
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2.0.0"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "project_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "created_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "producer_actor_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "source_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resource_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "change_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "contract_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "contract_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "plan_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "plan_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "source_snapshot_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "source_snapshot"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "task_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "definition_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "task_definition"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "work_item_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "work_item"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "evaluator_actor_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "boundary": {
+            "type": "string",
+            "const": "manual_independent_read_only"
+          },
+          "allowed_resources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "requirement_set_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "requirement_set_record"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "input_digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evaluations": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "schema_version",
+              "id",
+              "project_id",
+              "created_at",
+              "producer_actor_id",
+              "change_id",
+              "contract_ref",
+              "plan_ref",
+              "source_snapshot_ref",
+              "purpose",
+              "task_id",
+              "definition_ref",
+              "work_item_ref",
+              "requirement_set_ref",
+              "input_digest",
+              "evidence_refs",
+              "outcome",
+              "reasons",
+              "assessments"
+            ],
+            "properties": {
+              "schema_version": {
+                "type": "string",
+                "const": "2.0.0"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "project_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "created_at": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+              },
+              "producer_actor_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "source_ref": {
+                "type": "object",
+                "required": [
+                  "provider",
+                  "resource_type",
+                  "locator"
+                ],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "resource_type": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "change_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "contract_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id",
+                  "domain_version"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "contract_version"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "domain_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
+              },
+              "plan_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id",
+                  "domain_version"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "plan_version"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "domain_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
+              },
+              "source_snapshot_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "source_snapshot"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "purpose": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "self_check"
+                  },
+                  {
+                    "type": "string",
+                    "const": "independent"
+                  }
+                ]
+              },
+              "task_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "definition_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id",
+                  "domain_version"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "task_definition"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "domain_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
+              },
+              "work_item_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "work_item"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "requirement_set_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "requirement_set_record"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "context_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "evaluation_context"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "input_digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "evidence_refs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "evidence"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "uniqueItems": true
+              },
+              "disposition_refs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "decision"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "outcome": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "ALLOW"
+                  },
+                  {
+                    "type": "string",
+                    "const": "NEED_MORE_EVIDENCE"
+                  },
+                  {
+                    "type": "string",
+                    "const": "REQUIRE_HUMAN"
+                  },
+                  {
+                    "type": "string",
+                    "const": "DENY"
+                  }
+                ]
+              },
+              "reasons": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                }
+              },
+              "assessments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "result",
+                    "evidence_refs"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4000
+                    },
+                    "result": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "supports"
+                        },
+                        {
+                          "type": "string",
+                          "const": "refutes"
+                        },
+                        {
+                          "type": "string",
+                          "const": "inconclusive"
+                        }
+                      ]
+                    },
+                    "evidence_refs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "object_type",
+                          "id"
+                        ],
+                        "properties": {
+                          "object_type": {
+                            "type": "string",
+                            "const": "evidence"
+                          },
+                          "id": {
+                            "type": "string",
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "uniqueItems": true
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "minItems": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "schema_version",
+              "id",
+              "project_id",
+              "created_at",
+              "producer_actor_id",
+              "change_id",
+              "contract_ref",
+              "plan_ref",
+              "source_snapshot_ref",
+              "purpose",
+              "policy_snapshot_ref",
+              "input_digest",
+              "task_evaluation_refs",
+              "evidence_refs",
+              "deferred_checks",
+              "outcome",
+              "reasons"
+            ],
+            "properties": {
+              "schema_version": {
+                "type": "string",
+                "const": "2.0.0"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "project_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "created_at": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+              },
+              "producer_actor_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "source_ref": {
+                "type": "object",
+                "required": [
+                  "provider",
+                  "resource_type",
+                  "locator"
+                ],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "resource_type": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "change_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "contract_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id",
+                  "domain_version"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "contract_version"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "domain_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
+              },
+              "plan_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id",
+                  "domain_version"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "plan_version"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  },
+                  "domain_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
+              },
+              "source_snapshot_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "source_snapshot"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "purpose": {
+                "type": "string",
+                "const": "safe_integration"
+              },
+              "policy_snapshot_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "policy_snapshot"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "input_digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "task_evaluation_refs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "evaluation"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "uniqueItems": true
+              },
+              "evidence_refs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "evidence"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "uniqueItems": true
+              },
+              "deferred_checks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "acceptance_key",
+                    "reason",
+                    "responsible_actor_id",
+                    "environment",
+                    "next_check_at",
+                    "method",
+                    "required_before"
+                  ],
+                  "properties": {
+                    "acceptance_key": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4000
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4000
+                    },
+                    "responsible_actor_id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    },
+                    "environment": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "test"
+                        },
+                        {
+                          "type": "string",
+                          "const": "production"
+                        }
+                      ]
+                    },
+                    "next_check_at": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+                    },
+                    "method": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 4000
+                    },
+                    "required_before": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "before_release"
+                        },
+                        {
+                          "type": "string",
+                          "const": "before_change_complete"
+                        },
+                        {
+                          "type": "string",
+                          "const": "before_batch_end"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "outcome": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "ALLOW"
+                  },
+                  {
+                    "type": "string",
+                    "const": "NEED_MORE_EVIDENCE"
+                  },
+                  {
+                    "type": "string",
+                    "const": "REQUIRE_HUMAN"
+                  },
+                  {
+                    "type": "string",
+                    "const": "DENY"
+                  }
+                ]
+              },
+              "reasons": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                }
+              },
+              "professional_decision_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "decision"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "satisfactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "project_id",
+          "created_at",
+          "producer_actor_id",
+          "change_id",
+          "contract_ref",
+          "plan_ref",
+          "source_snapshot_ref",
+          "task_id",
+          "definition_ref",
+          "work_item_ref",
+          "evaluation_ref",
+          "assignment_ref",
+          "task_revision"
+        ],
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2.0.0"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "project_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "created_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "producer_actor_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "source_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resource_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "change_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "contract_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "contract_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "plan_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "plan_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "source_snapshot_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "source_snapshot"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "task_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "definition_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "task_definition"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "work_item_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "work_item"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "evaluation_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "evaluation"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "assignment_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "assignment"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "task_revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "integration_readiness": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "project_id",
+          "created_at",
+          "producer_actor_id",
+          "change_id",
+          "contract_ref",
+          "plan_ref",
+          "source_snapshot_ref",
+          "evaluation_ref",
+          "input_digest",
+          "assignment_ref",
+          "deferred_checks",
+          "change_revision"
+        ],
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2.0.0"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "project_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "created_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "producer_actor_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "source_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resource_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "change_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "contract_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "contract_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "plan_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id",
+              "domain_version"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "plan_version"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "domain_version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "source_snapshot_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "source_snapshot"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "evaluation_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "evaluation"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "input_digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "assignment_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "assignment"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "deferred_checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "acceptance_key",
+                "reason",
+                "responsible_actor_id",
+                "environment",
+                "next_check_at",
+                "method",
+                "required_before"
+              ],
+              "properties": {
+                "acceptance_key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "responsible_actor_id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                },
+                "environment": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "const": "test"
+                    },
+                    {
+                      "type": "string",
+                      "const": "production"
+                    }
+                  ]
+                },
+                "next_check_at": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+                },
+                "method": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "required_before": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "const": "before_release"
+                    },
+                    {
+                      "type": "string",
+                      "const": "before_change_complete"
+                    },
+                    {
+                      "type": "string",
+                      "const": "before_batch_end"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "change_revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "as_of_event_sequence": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

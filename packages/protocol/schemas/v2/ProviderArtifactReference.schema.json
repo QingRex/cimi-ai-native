@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ProviderArtifactReference.v2",
+  "type": "object",
+  "required": [
+    "provider",
+    "resource_type",
+    "locator",
+    "digest"
+  ],
+  "properties": {
+    "provider": {
+      "type": "string",
+      "const": "local_content"
+    },
+    "resource_type": {
+      "type": "string",
+      "const": "provider_probe_artifact"
+    },
+    "locator": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false
+}

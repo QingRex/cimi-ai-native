@@ -1,0 +1,421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeGatewayNetworkProbeResult.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope",
+    "observed_at",
+    "route",
+    "dns",
+    "tls",
+    "network_probe_passed",
+    "failure_reason",
+    "billing",
+    "http_requests",
+    "external_model_requests",
+    "actual_credentials_read",
+    "runtime_started",
+    "formal_execution_enabled",
+    "evidence_refs",
+    "gaps"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "scope": {
+      "type": "string",
+      "const": "public_gateway_network_probe"
+    },
+    "observed_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
+    "route": {
+      "type": "object",
+      "required": [
+        "provider",
+        "model",
+        "host",
+        "port",
+        "path",
+        "policy_digest",
+        "proxy",
+        "redirects",
+        "retries"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "const": "zhipuai-coding-plan"
+        },
+        "model": {
+          "type": "string",
+          "const": "glm-5.3"
+        },
+        "host": {
+          "type": "string",
+          "const": "open.bigmodel.cn"
+        },
+        "port": {
+          "type": "number",
+          "const": 443
+        },
+        "path": {
+          "type": "string",
+          "const": "/api/coding/paas/v4/chat/completions"
+        },
+        "policy_digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "proxy": {
+          "type": "boolean",
+          "const": false
+        },
+        "redirects": {
+          "type": "boolean",
+          "const": false
+        },
+        "retries": {
+          "type": "number",
+          "const": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "dns": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "resolved_at",
+            "expires_at",
+            "addresses",
+            "selected",
+            "pin_digest"
+          ],
+          "properties": {
+            "resolved_at": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+            },
+            "expires_at": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+            },
+            "addresses": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "address",
+                  "family",
+                  "ttl_seconds"
+                ],
+                "properties": {
+                  "address": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "family": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "const": 4
+                      },
+                      {
+                        "type": "number",
+                        "const": 6
+                      }
+                    ]
+                  },
+                  "ttl_seconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 604800
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "maxItems": 32
+            },
+            "selected": {
+              "type": "object",
+              "required": [
+                "address",
+                "family",
+                "ttl_seconds"
+              ],
+              "properties": {
+                "address": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "family": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "const": 4
+                    },
+                    {
+                      "type": "number",
+                      "const": 6
+                    }
+                  ]
+                },
+                "ttl_seconds": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 604800
+                }
+              },
+              "additionalProperties": false
+            },
+            "pin_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "tls": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "verified",
+            "peer_address",
+            "protocol",
+            "certificate_digest"
+          ],
+          "properties": {
+            "verified": {
+              "type": "boolean",
+              "const": true
+            },
+            "peer_address": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "protocol": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "TLSv1.2"
+                },
+                {
+                  "type": "string",
+                  "const": "TLSv1.3"
+                }
+              ]
+            },
+            "certificate_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "network_probe_passed": {
+      "type": "boolean"
+    },
+    "failure_reason": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^gateway_[a-z_]{1,80}$"
+        }
+      ]
+    },
+    "billing": {
+      "type": "object",
+      "required": [
+        "admission_ready",
+        "cost_known",
+        "reason",
+        "credit_rate_digest",
+        "account_plan_version_verified",
+        "token_bounds_verified"
+      ],
+      "properties": {
+        "admission_ready": {
+          "type": "boolean",
+          "const": false
+        },
+        "cost_known": {
+          "type": "boolean",
+          "const": false
+        },
+        "reason": {
+          "type": "string",
+          "const": "gateway_reliable_billing_profile_unavailable"
+        },
+        "credit_rate_digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "account_plan_version_verified": {
+          "type": "boolean",
+          "const": false
+        },
+        "token_bounds_verified": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "http_requests": {
+      "type": "number",
+      "const": 0
+    },
+    "external_model_requests": {
+      "type": "number",
+      "const": 0
+    },
+    "actual_credentials_read": {
+      "type": "number",
+      "const": 0
+    },
+    "runtime_started": {
+      "type": "boolean",
+      "const": false
+    },
+    "formal_execution_enabled": {
+      "type": "boolean",
+      "const": false
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "provider",
+          "resource_type",
+          "locator"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resource_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "additionalProperties": false
+}

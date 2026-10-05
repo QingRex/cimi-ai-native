@@ -1,5 +1,7 @@
 # AI Native 软件研发新范式
 
+> 适用状态（2026-10-02）：历史行业研究与传播材料，正文保留当时观点，本轮未复核外部案例和数据。现行团队职责、阶段和执行规则以[独立流程基线](../architecture/AI-Native软件研发流程-v0.1.md)为准，本文不构成当前实施要求。
+
 ## 面向管理决策与落地团队的行业洞察精炼版
 
 > 研究范围：OpenAI、Anthropic、Microsoft、Cursor、Coinbase、Dropbox、Siemens、Block 等已公开采用 AI Native 研发实践的企业  

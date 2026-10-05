@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ProfessionalFinding.v2",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "results"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "condition_verification"
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "condition_index",
+              "condition",
+              "result",
+              "observation"
+            ],
+            "properties": {
+              "condition_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "condition": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "result": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "supports"
+                  },
+                  {
+                    "type": "string",
+                    "const": "refutes"
+                  },
+                  {
+                    "type": "string",
+                    "const": "inconclusive"
+                  }
+                ]
+              },
+              "observation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "claim_keys",
+        "defect",
+        "analysis",
+        "correction_evidence_refs"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "evidence_invalidation"
+        },
+        "claim_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "defect": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "wrong_method"
+            },
+            {
+              "type": "string",
+              "const": "wrong_observation"
+            },
+            {
+              "type": "string",
+              "const": "inapplicable_assertion"
+            }
+          ]
+        },
+        "analysis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "correction_evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "evidence"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "result",
+        "observation"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "integration_review"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "supports"
+            },
+            {
+              "type": "string",
+              "const": "refutes"
+            },
+            {
+              "type": "string",
+              "const": "inconclusive"
+            }
+          ]
+        },
+        "observation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

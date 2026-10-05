@@ -1,0 +1,4077 @@
+{
+  "captured_at": "2026-10-04T16:42:43.864Z",
+  "decision": "D-200",
+  "scope": "synthetic_gateway_bridge_probe",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2"
+  },
+  "implementation_scope": "authenticated AppContainer IPC to host-private HTTPS and durable synthetic budget; actual-provider acceptance remains pending",
+  "actual_probe": {
+    "schema_version": "2.0.0",
+    "scope": "synthetic_gateway_bridge_probe",
+    "observed_at": "2026-10-04T16:39:33.195Z",
+    "provider": {
+      "name": "opencode",
+      "version": "1.18.34",
+      "binary_digest": {
+        "algorithm": "sha256",
+        "value": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e"
+      },
+      "module_digest": {
+        "algorithm": "sha256",
+        "value": "d56d0bf85678ac3ed1953a7749ff833047fe2f0a21fb6bd6e3fbf6c976ecea55"
+      }
+    },
+    "sandbox": "windows_appcontainer_job",
+    "network_mode": "deny_all",
+    "operation": {
+      "schema_version": "2.0.0",
+      "scope": "isolated_provider_probe",
+      "operation_key": "gateway_673640d002fc4e0b975af9eb6a3a467b",
+      "input_digest": {
+        "algorithm": "sha256",
+        "value": "bd0c16215f4e67a083529fb457427cd1dc045af4f6ee18f9b26785a34cd132cf"
+      },
+      "status": "Succeeded",
+      "reason": "synthetic_gateway_bridge_completed",
+      "session_id": "ses_ef8371527ffePNhLnX7gpNEK45",
+      "exit_code": 0,
+      "cancel_requested": false,
+      "observed_at": "2026-10-04T16:39:33.137Z",
+      "raw_refs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/gateway-bridge-v1-09/blobs/970c7c529b4b953f2615626c109023527ea20891961776954208cdcb643b9331",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "970c7c529b4b953f2615626c109023527ea20891961776954208cdcb643b9331"
+          },
+          "version": "stdout.raw"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "version": "stderr.raw"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b6b9bada8d86757ae54022cff2f4e3509c403baf6629995cecc2db605818dec8",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "b6b9bada8d86757ae54022cff2f4e3509c403baf6629995cecc2db605818dec8"
+          },
+          "version": "native-proof.json"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/gateway-bridge-v1-09/blobs/910332e87b0cafa9bbafe58a3fac1d42f76ccdb47547045a7b13e7ec0482d574",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "910332e87b0cafa9bbafe58a3fac1d42f76ccdb47547045a7b13e7ec0482d574"
+          },
+          "version": "resource-proof.json"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/gateway-bridge-v1-09/blobs/76bf64f24febfcdf5b2cbf4c92b251957d70350bf201b5205f4709437ccd351f",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "76bf64f24febfcdf5b2cbf4c92b251957d70350bf201b5205f4709437ccd351f"
+          },
+          "version": "execution-policy-proof.json"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/gateway-bridge-v1-09/blobs/41f904e41ce67751c281cbec772b649034f638c2cb6be156791af7d29b6ed25b",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "41f904e41ce67751c281cbec772b649034f638c2cb6be156791af7d29b6ed25b"
+          },
+          "version": "gateway-transport-proof.json"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/gateway-bridge-v1-09/blobs/1a44807c590119d9d40975c4e7efc3569316977978407a48b58f09a3b0a42177",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "1a44807c590119d9d40975c4e7efc3569316977978407a48b58f09a3b0a42177"
+          },
+          "version": "gateway-host-proof.json"
+        },
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_raw",
+          "locator": ".cimiloop/gateway-bridge-v1-09/blobs/3a7a92170e6532ee9e712bb33b6259ff85864d53bbfe709db759ebeed968bbfa",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "3a7a92170e6532ee9e712bb33b6259ff85864d53bbfe709db759ebeed968bbfa"
+          },
+          "version": "gateway-upstream-proof.json"
+        }
+      ],
+      "outputs": [
+        {
+          "provider": "cimiloop-runtime-probe",
+          "resource_type": "probe_workspace_file",
+          "locator": ".cimiloop/gateway-bridge-v1-09/blobs/bc58a7ffb1369931a3cac3f8e9f0d7a2d1d24617cbeb454066823440b154e14e",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "bc58a7ffb1369931a3cac3f8e9f0d7a2d1d24617cbeb454066823440b154e14e"
+          },
+          "version": "input.txt"
+        }
+      ],
+      "usage": {
+        "cost_known": false
+      }
+    },
+    "bridge": {
+      "schema_version": "2.0.0",
+      "scope": "isolated_provider_probe",
+      "operation_key": "gateway_673640d002fc4e0b975af9eb6a3a467b",
+      "phase": "ended",
+      "native_pid": 18360,
+      "runtime_pid": 12768,
+      "gateway_policy_digest": {
+        "algorithm": "sha256",
+        "value": "daab5ec66302747ce3193fc307612407179a4131df046e61bdbcb05354ec3f56"
+      },
+      "fixture_config_digest": {
+        "algorithm": "sha256",
+        "value": "bc49f6052d97c858f04a28d6ba64bea89c620c976838d343e7b222b4405e32f1"
+      },
+      "network_mode": "deny_all",
+      "synthetic_http_requests": 2,
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 267264,
+        "held_micro_units": 66816,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 2,
+        "unknown": 0,
+        "blocked": false
+      },
+      "attempts": [
+        {
+          "request_id": "6fd9cf8c-fe3c-4393-8542-6568351962dd",
+          "wire_digest": {
+            "algorithm": "sha256",
+            "value": "e588857f2c74ede0a67c074e7821f65cff981df3f48b8c51b3f98473e34fe728"
+          },
+          "outcome": "completed",
+          "reason": null,
+          "replay": false
+        },
+        {
+          "request_id": "775e3b86-ccd8-46fb-999e-8acf8ff732ea",
+          "wire_digest": {
+            "algorithm": "sha256",
+            "value": "59445fdcc68f5b6a72eff74b16cb69b180f66dc4c1fe9163536d3aec0b40bf5c"
+          },
+          "outcome": "completed",
+          "reason": null,
+          "replay": false
+        }
+      ],
+      "failure_reason": null,
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false
+    },
+    "transport": {
+      "schema_version": "2.0.0",
+      "scope": "isolated_provider_probe",
+      "operation_key": "gateway_673640d002fc4e0b975af9eb6a3a467b",
+      "phase": "ended",
+      "transport": "windows_named_pipe",
+      "runtime_pid": 12768,
+      "client_identity_enforcement": "pid_creation_image",
+      "remote_clients_rejected": true,
+      "gateway_policy_digest": {
+        "algorithm": "sha256",
+        "value": "daab5ec66302747ce3193fc307612407179a4131df046e61bdbcb05354ec3f56"
+      },
+      "frame_limit_bytes": 16384,
+      "accepted_requests": 2,
+      "attempts": [
+        {
+          "pid": 12768,
+          "outcome": "accepted",
+          "reason": "runtime_identity_verified",
+          "request_bytes": 2607,
+          "request_digest": "e588857f2c74ede0a67c074e7821f65cff981df3f48b8c51b3f98473e34fe728",
+          "replay": false
+        },
+        {
+          "pid": 12768,
+          "outcome": "accepted",
+          "reason": "runtime_identity_verified",
+          "request_bytes": 9329,
+          "request_digest": "59445fdcc68f5b6a72eff74b16cb69b180f66dc4c1fe9163536d3aec0b40bf5c",
+          "replay": false
+        }
+      ],
+      "failure_reason": null,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false
+    },
+    "bridge_probe_passed": true,
+    "ipc_runtime_connected": true,
+    "cost_known": false,
+    "external_model_requests": 0,
+    "actual_credentials_read": 0,
+    "formal_execution_enabled": false,
+    "evidence_refs": [
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_stdout",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/882678ec7c934fd87cd555abf91e20b0c607ac248b825605298b381d53b059cf",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "882678ec7c934fd87cd555abf91e20b0c607ac248b825605298b381d53b059cf"
+        }
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_stderr",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "sandbox_proof",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e65a50fe9448a4db736dfd8a7dd932bc7e5b88f569af6d38b0612ad782531fcb",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e65a50fe9448a4db736dfd8a7dd932bc7e5b88f569af6d38b0612ad782531fcb"
+        }
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "execution_policy_proof",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/572e3b2bfadfe67205b4e7c96df6f99682fa8d8ee7e41422858ff631ed3446b5",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "572e3b2bfadfe67205b4e7c96df6f99682fa8d8ee7e41422858ff631ed3446b5"
+        }
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/970c7c529b4b953f2615626c109023527ea20891961776954208cdcb643b9331",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "970c7c529b4b953f2615626c109023527ea20891961776954208cdcb643b9331"
+        },
+        "version": "stdout.raw"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "version": "stderr.raw"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b6b9bada8d86757ae54022cff2f4e3509c403baf6629995cecc2db605818dec8",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "b6b9bada8d86757ae54022cff2f4e3509c403baf6629995cecc2db605818dec8"
+        },
+        "version": "native-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/910332e87b0cafa9bbafe58a3fac1d42f76ccdb47547045a7b13e7ec0482d574",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "910332e87b0cafa9bbafe58a3fac1d42f76ccdb47547045a7b13e7ec0482d574"
+        },
+        "version": "resource-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/76bf64f24febfcdf5b2cbf4c92b251957d70350bf201b5205f4709437ccd351f",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "76bf64f24febfcdf5b2cbf4c92b251957d70350bf201b5205f4709437ccd351f"
+        },
+        "version": "execution-policy-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/41f904e41ce67751c281cbec772b649034f638c2cb6be156791af7d29b6ed25b",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "41f904e41ce67751c281cbec772b649034f638c2cb6be156791af7d29b6ed25b"
+        },
+        "version": "gateway-transport-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/1a44807c590119d9d40975c4e7efc3569316977978407a48b58f09a3b0a42177",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "1a44807c590119d9d40975c4e7efc3569316977978407a48b58f09a3b0a42177"
+        },
+        "version": "gateway-host-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/3a7a92170e6532ee9e712bb33b6259ff85864d53bbfe709db759ebeed968bbfa",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "3a7a92170e6532ee9e712bb33b6259ff85864d53bbfe709db759ebeed968bbfa"
+        },
+        "version": "gateway-upstream-proof.json"
+      }
+    ],
+    "gaps": [
+      "verified_real_provider_billing_upper_bound",
+      "real_provider_gateway_acceptance",
+      "tool_and_multimodal_gateway_contracts",
+      "hard_filesystem_quota",
+      "complete_crash_recovery_acceptance",
+      "formal_task_binding_and_agent_entry"
+    ]
+  },
+  "actual_collected_after_owned_recovery": {
+    "schema_version": "2.0.0",
+    "scope": "isolated_provider_probe",
+    "operation_key": "gateway_673640d002fc4e0b975af9eb6a3a467b",
+    "input_digest": {
+      "algorithm": "sha256",
+      "value": "bd0c16215f4e67a083529fb457427cd1dc045af4f6ee18f9b26785a34cd132cf"
+    },
+    "status": "Succeeded",
+    "reason": "synthetic_gateway_bridge_completed",
+    "session_id": "ses_ef8371527ffePNhLnX7gpNEK45",
+    "exit_code": 0,
+    "cancel_requested": false,
+    "observed_at": "2026-10-04T16:42:43.815Z",
+    "raw_refs": [
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/970c7c529b4b953f2615626c109023527ea20891961776954208cdcb643b9331",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "970c7c529b4b953f2615626c109023527ea20891961776954208cdcb643b9331"
+        },
+        "version": "stdout.raw"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "version": "stderr.raw"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b6b9bada8d86757ae54022cff2f4e3509c403baf6629995cecc2db605818dec8",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "b6b9bada8d86757ae54022cff2f4e3509c403baf6629995cecc2db605818dec8"
+        },
+        "version": "native-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/910332e87b0cafa9bbafe58a3fac1d42f76ccdb47547045a7b13e7ec0482d574",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "910332e87b0cafa9bbafe58a3fac1d42f76ccdb47547045a7b13e7ec0482d574"
+        },
+        "version": "resource-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/76bf64f24febfcdf5b2cbf4c92b251957d70350bf201b5205f4709437ccd351f",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "76bf64f24febfcdf5b2cbf4c92b251957d70350bf201b5205f4709437ccd351f"
+        },
+        "version": "execution-policy-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/41f904e41ce67751c281cbec772b649034f638c2cb6be156791af7d29b6ed25b",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "41f904e41ce67751c281cbec772b649034f638c2cb6be156791af7d29b6ed25b"
+        },
+        "version": "gateway-transport-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/1a44807c590119d9d40975c4e7efc3569316977978407a48b58f09a3b0a42177",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "1a44807c590119d9d40975c4e7efc3569316977978407a48b58f09a3b0a42177"
+        },
+        "version": "gateway-host-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/3a7a92170e6532ee9e712bb33b6259ff85864d53bbfe709db759ebeed968bbfa",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "3a7a92170e6532ee9e712bb33b6259ff85864d53bbfe709db759ebeed968bbfa"
+        },
+        "version": "gateway-upstream-proof.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_raw",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/2b14571bb6cb9b7cb7fd0764ee509d07b7850439a9361f9da1420cfd5d88bf6b",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "2b14571bb6cb9b7cb7fd0764ee509d07b7850439a9361f9da1420cfd5d88bf6b"
+        },
+        "version": "gateway-recovery.json"
+      }
+    ],
+    "outputs": [
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "probe_workspace_file",
+        "locator": ".cimiloop/gateway-bridge-v1-09/blobs/bc58a7ffb1369931a3cac3f8e9f0d7a2d1d24617cbeb454066823440b154e14e",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "bc58a7ffb1369931a3cac3f8e9f0d7a2d1d24617cbeb454066823440b154e14e"
+        },
+        "version": "input.txt"
+      }
+    ],
+    "usage": {
+      "cost_known": false
+    }
+  },
+  "persistent_bridge_fixtures": [
+    {
+      "name": "duplicate",
+      "passed": true,
+      "operation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_aa0576eb9a06439db0aac71343abce46",
+        "input_digest": {
+          "algorithm": "sha256",
+          "value": "e2381f41afc5f85bffea8c48b015cb25821385aa61832a32fffc4875999d29cb"
+        },
+        "status": "Succeeded",
+        "reason": "native_fixture_exited",
+        "exit_code": 0,
+        "cancel_requested": false,
+        "observed_at": "2026-10-04T16:34:39.453Z",
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/16350a5e374d59ccc6479291fba8f95adb545b6b6cfc10545be59ddf311a3d35",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "16350a5e374d59ccc6479291fba8f95adb545b6b6cfc10545be59ddf311a3d35"
+            },
+            "version": "stdout.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "version": "stderr.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e6138bb7090475e7d1fccb59f011e97d5c47555b63f920ae9c347d469bcc3672",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e6138bb7090475e7d1fccb59f011e97d5c47555b63f920ae9c347d469bcc3672"
+            },
+            "version": "native-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/11358055db34fad70257c4a6b3b49fa8d57082fb4a1b28c2152ce600c0ba299a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "11358055db34fad70257c4a6b3b49fa8d57082fb4a1b28c2152ce600c0ba299a"
+            },
+            "version": "resource-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/45339ba539460c72989d1446e61015ac77c394c3bb6e9444908f891a1aaa2690",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "45339ba539460c72989d1446e61015ac77c394c3bb6e9444908f891a1aaa2690"
+            },
+            "version": "execution-policy-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7c6dc9bf53e19a9cd3514dbed63ed0e82ee50bbe91981aa69fb061d2de71f515",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "7c6dc9bf53e19a9cd3514dbed63ed0e82ee50bbe91981aa69fb061d2de71f515"
+            },
+            "version": "gateway-transport-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/c6cde1c708a201b58671cb8c485d6a1506e188c81da64c2ca20ae9ba8fc77d1b",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "c6cde1c708a201b58671cb8c485d6a1506e188c81da64c2ca20ae9ba8fc77d1b"
+            },
+            "version": "gateway-host-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/493565b8caa676f22d4751e8672ae80e57506f16551b1468c292363115321926",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "493565b8caa676f22d4751e8672ae80e57506f16551b1468c292363115321926"
+            },
+            "version": "gateway-upstream-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0bfc8874878c802a3045633011a508a6d30687153a0833160d8d0dc3f0eee6df",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0bfc8874878c802a3045633011a508a6d30687153a0833160d8d0dc3f0eee6df"
+            },
+            "version": "gateway-recovery.json"
+          }
+        ],
+        "outputs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_workspace_file",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9"
+            },
+            "version": "input.txt"
+          }
+        ],
+        "usage": {
+          "cost_known": false
+        }
+      },
+      "host": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_aa0576eb9a06439db0aac71343abce46",
+        "phase": "ended",
+        "native_pid": 23692,
+        "runtime_pid": 24848,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "d61cde8c6a1a8227a158eb8ceb831f6679b16f08f31b52a7c905727d13e61d5e"
+        },
+        "fixture_config_digest": {
+          "algorithm": "sha256",
+          "value": "bc49f6052d97c858f04a28d6ba64bea89c620c976838d343e7b222b4405e32f1"
+        },
+        "network_mode": "deny_all",
+        "synthetic_http_requests": 1,
+        "budget": {
+          "currency": "TEST",
+          "maximum_micro_units": 267264,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 0,
+          "blocked": false
+        },
+        "attempts": [
+          {
+            "request_id": "333ff2eb-0d9b-4c06-ab80-a7d521208d2d",
+            "wire_digest": {
+              "algorithm": "sha256",
+              "value": "c177e559e61851439ab3fd893a4422a590c070f33622eca767cba4253525d344"
+            },
+            "outcome": "completed",
+            "reason": null,
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "actual_credentials_read": 0,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "transport": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_aa0576eb9a06439db0aac71343abce46",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "runtime_pid": 24848,
+        "client_identity_enforcement": "pid_creation_image",
+        "remote_clients_rejected": true,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "d61cde8c6a1a8227a158eb8ceb831f6679b16f08f31b52a7c905727d13e61d5e"
+        },
+        "frame_limit_bytes": 16384,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 24848,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 269,
+            "request_digest": "c177e559e61851439ab3fd893a4422a590c070f33622eca767cba4253525d344",
+            "replay": false
+          },
+          {
+            "pid": 24848,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 269,
+            "request_digest": "c177e559e61851439ab3fd893a4422a590c070f33622eca767cba4253525d344",
+            "replay": true
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_aa0576eb9a06439db0aac71343abce46",
+        "observed_at": "2026-10-04T16:34:39.428Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_already_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "gateway_aa0576eb9a06439db0aac71343abce46",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "e2381f41afc5f85bffea8c48b015cb25821385aa61832a32fffc4875999d29cb"
+          },
+          "status": "Succeeded",
+          "reason": "native_fixture_exited",
+          "exit_code": 0,
+          "cancel_requested": false,
+          "observed_at": "2026-10-04T16:34:39.427Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 267264,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 1,
+        "unknown": 0,
+        "blocked": false
+      }
+    },
+    {
+      "name": "conflict",
+      "passed": true,
+      "operation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b",
+        "input_digest": {
+          "algorithm": "sha256",
+          "value": "d7e669eeae5f1f55cd282d3a63a978fd7ff61c7755d8ccdcca578227a9f530ed"
+        },
+        "status": "Succeeded",
+        "reason": "native_fixture_exited",
+        "exit_code": 0,
+        "cancel_requested": false,
+        "observed_at": "2026-10-04T16:34:42.925Z",
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e2df931c1f650cd6bd42300888ee6201e52384cab20c2b9db1be50174b15a504",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e2df931c1f650cd6bd42300888ee6201e52384cab20c2b9db1be50174b15a504"
+            },
+            "version": "stdout.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "version": "stderr.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/1f8f8add4a2e1e7855606a275828a52056fd443f7da57c5aefe50076b12c26a8",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "1f8f8add4a2e1e7855606a275828a52056fd443f7da57c5aefe50076b12c26a8"
+            },
+            "version": "native-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/94cc6f3a3d38e10d76f3f0933bca742c7def008b7d0d5b2888d834ba034a9fd0",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "94cc6f3a3d38e10d76f3f0933bca742c7def008b7d0d5b2888d834ba034a9fd0"
+            },
+            "version": "resource-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/ae8035f4a54cc5d3cab7b0829db1dc3cca34f9739b4960ba320f36bf1f8cde09",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "ae8035f4a54cc5d3cab7b0829db1dc3cca34f9739b4960ba320f36bf1f8cde09"
+            },
+            "version": "execution-policy-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/543966756789088540833269d574e00a6dcb1cae96ad6cc192ed073e7efcd87e",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "543966756789088540833269d574e00a6dcb1cae96ad6cc192ed073e7efcd87e"
+            },
+            "version": "gateway-transport-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6fb2cb3063863b8838fa3130eaedc123b3655ec60635edc50b631bdffc5a431e",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "6fb2cb3063863b8838fa3130eaedc123b3655ec60635edc50b631bdffc5a431e"
+            },
+            "version": "gateway-host-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/619e6e5fbfe82bcc92876787774d3a44b9e52413f379dd7ba5ce23131357e314",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "619e6e5fbfe82bcc92876787774d3a44b9e52413f379dd7ba5ce23131357e314"
+            },
+            "version": "gateway-upstream-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b9eb8bcaa1aee164064317466a2954983f436de3bb943c91089cd2b24a3d55d6",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "b9eb8bcaa1aee164064317466a2954983f436de3bb943c91089cd2b24a3d55d6"
+            },
+            "version": "gateway-recovery.json"
+          }
+        ],
+        "outputs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_workspace_file",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9"
+            },
+            "version": "input.txt"
+          }
+        ],
+        "usage": {
+          "cost_known": false
+        }
+      },
+      "host": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b",
+        "phase": "ended",
+        "native_pid": 2296,
+        "runtime_pid": 6456,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "e05c33160700ef59ab0b5c06cf4f0831fda7703b4734a5bf1bb0676139389e1e"
+        },
+        "fixture_config_digest": {
+          "algorithm": "sha256",
+          "value": "bc49f6052d97c858f04a28d6ba64bea89c620c976838d343e7b222b4405e32f1"
+        },
+        "network_mode": "deny_all",
+        "synthetic_http_requests": 1,
+        "budget": {
+          "currency": "TEST",
+          "maximum_micro_units": 267264,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 0,
+          "blocked": false
+        },
+        "attempts": [
+          {
+            "request_id": "dae9d579-0d9b-42e6-af42-0ea16d199340",
+            "wire_digest": {
+              "algorithm": "sha256",
+              "value": "8a0962ef3c9ad4f0efb22bc8b491f5b0537565766c7b53cffd704f6b016bb7d7"
+            },
+            "outcome": "completed",
+            "reason": null,
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "actual_credentials_read": 0,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "transport": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "runtime_pid": 6456,
+        "client_identity_enforcement": "pid_creation_image",
+        "remote_clients_rejected": true,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "e05c33160700ef59ab0b5c06cf4f0831fda7703b4734a5bf1bb0676139389e1e"
+        },
+        "frame_limit_bytes": 16384,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 6456,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 263,
+            "request_digest": "8a0962ef3c9ad4f0efb22bc8b491f5b0537565766c7b53cffd704f6b016bb7d7",
+            "replay": false
+          },
+          {
+            "pid": 6456,
+            "outcome": "rejected",
+            "reason": "request_id_conflict",
+            "request_bytes": 263,
+            "request_digest": "d540f93e4559272f520d13e060cfa5cd52d4a5d77e367dbf1d73cca44dc64d85",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b",
+        "observed_at": "2026-10-04T16:34:42.915Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_already_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "d7e669eeae5f1f55cd282d3a63a978fd7ff61c7755d8ccdcca578227a9f530ed"
+          },
+          "status": "Succeeded",
+          "reason": "native_fixture_exited",
+          "exit_code": 0,
+          "cancel_requested": false,
+          "observed_at": "2026-10-04T16:34:42.915Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 267264,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 1,
+        "unknown": 0,
+        "blocked": false
+      }
+    },
+    {
+      "name": "invalid",
+      "passed": true,
+      "operation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_bab434a6c58f4aa895f80083983909c7",
+        "input_digest": {
+          "algorithm": "sha256",
+          "value": "b83a1554a1aa1dd883d3b06f5f69f4f2c4bb951a9665753a27e6b9d654ca4355"
+        },
+        "status": "Succeeded",
+        "reason": "native_fixture_exited",
+        "exit_code": 0,
+        "cancel_requested": false,
+        "observed_at": "2026-10-04T16:34:47.280Z",
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/81b4885f26520a3dcfff0cd89cd711febfcb8dac258ff8c49bbb18709f278502",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "81b4885f26520a3dcfff0cd89cd711febfcb8dac258ff8c49bbb18709f278502"
+            },
+            "version": "stdout.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "version": "stderr.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7ba4ff24d4941a0cea8af10fabf13e5a0d3f1f004fd22f1c02a7039d9038ea4d",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "7ba4ff24d4941a0cea8af10fabf13e5a0d3f1f004fd22f1c02a7039d9038ea4d"
+            },
+            "version": "native-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/91d813788caf58468f680ccfff75ff41d13006306481a65508ad8644932efeb7",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "91d813788caf58468f680ccfff75ff41d13006306481a65508ad8644932efeb7"
+            },
+            "version": "resource-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6009dcd9b3753cf6b21a0836f6070625196964f08264e12036ecabee582dfb4c",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "6009dcd9b3753cf6b21a0836f6070625196964f08264e12036ecabee582dfb4c"
+            },
+            "version": "execution-policy-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/ee60c48b4f0fb1049353f17a6f6898c980246cd7dd429074aab1c29880422f2b",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "ee60c48b4f0fb1049353f17a6f6898c980246cd7dd429074aab1c29880422f2b"
+            },
+            "version": "gateway-transport-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/1c22ff2eee677439e788d7514dbbc2619a692420eb81259973e9311c9246b3a1",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "1c22ff2eee677439e788d7514dbbc2619a692420eb81259973e9311c9246b3a1"
+            },
+            "version": "gateway-host-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/3f108b6d6cedc361f1049f4471d5310ff7d3ef2d214b814c0b5962f81b103ce1",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "3f108b6d6cedc361f1049f4471d5310ff7d3ef2d214b814c0b5962f81b103ce1"
+            },
+            "version": "gateway-upstream-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6a6ddac159216e8486c094cf8a91e9421154adac6d8b055dc8f8c8571cc3a92a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "6a6ddac159216e8486c094cf8a91e9421154adac6d8b055dc8f8c8571cc3a92a"
+            },
+            "version": "gateway-recovery.json"
+          }
+        ],
+        "outputs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_workspace_file",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9"
+            },
+            "version": "input.txt"
+          }
+        ],
+        "usage": {
+          "cost_known": false
+        }
+      },
+      "host": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_bab434a6c58f4aa895f80083983909c7",
+        "phase": "ended",
+        "native_pid": 13124,
+        "runtime_pid": 20344,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "04fdeae8d4dd33dd4294a06a2efa8e28da1924a154fc951dbeb2e0b17ed02384"
+        },
+        "fixture_config_digest": {
+          "algorithm": "sha256",
+          "value": "bc49f6052d97c858f04a28d6ba64bea89c620c976838d343e7b222b4405e32f1"
+        },
+        "network_mode": "deny_all",
+        "synthetic_http_requests": 0,
+        "budget": {
+          "currency": "TEST",
+          "maximum_micro_units": 267264,
+          "held_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 0,
+          "blocked": false
+        },
+        "attempts": [
+          {
+            "request_id": "ab536e49-a12f-4050-b46f-3109d9316416",
+            "wire_digest": {
+              "algorithm": "sha256",
+              "value": "87ec326c915999374d95dc760e1297930dd0a41144c6eaf4020289753b2efdbe"
+            },
+            "outcome": "denied",
+            "reason": "gateway_request_denied",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "actual_credentials_read": 0,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "transport": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_bab434a6c58f4aa895f80083983909c7",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "runtime_pid": 20344,
+        "client_identity_enforcement": "pid_creation_image",
+        "remote_clients_rejected": true,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "04fdeae8d4dd33dd4294a06a2efa8e28da1924a154fc951dbeb2e0b17ed02384"
+        },
+        "frame_limit_bytes": 16384,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 20344,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 270,
+            "request_digest": "87ec326c915999374d95dc760e1297930dd0a41144c6eaf4020289753b2efdbe",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_bab434a6c58f4aa895f80083983909c7",
+        "observed_at": "2026-10-04T16:34:47.268Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_already_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "gateway_bab434a6c58f4aa895f80083983909c7",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "b83a1554a1aa1dd883d3b06f5f69f4f2c4bb951a9665753a27e6b9d654ca4355"
+          },
+          "status": "Succeeded",
+          "reason": "native_fixture_exited",
+          "exit_code": 0,
+          "cancel_requested": false,
+          "observed_at": "2026-10-04T16:34:47.268Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 267264,
+        "held_micro_units": 0,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 0,
+        "blocked": false
+      }
+    },
+    {
+      "name": "private_acl",
+      "passed": true,
+      "operation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_f6303382740b409c8db31a146814d304",
+        "input_digest": {
+          "algorithm": "sha256",
+          "value": "40a88e4dea287aecb669ce5af10c0db954ac05464ecede1cdca2e3a2143e8989"
+        },
+        "status": "Succeeded",
+        "reason": "native_fixture_exited",
+        "exit_code": 0,
+        "cancel_requested": false,
+        "observed_at": "2026-10-04T16:34:51.629Z",
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/a333e6a6a5c7d74ca25fb506592edb1b694a54221335580dadb352e0297abb9d",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "a333e6a6a5c7d74ca25fb506592edb1b694a54221335580dadb352e0297abb9d"
+            },
+            "version": "stdout.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "version": "stderr.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/52518d2c1b935d11c72ab2e9c324cc3748aa7bf5fe70c6ed17b93a8b2389acfb",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "52518d2c1b935d11c72ab2e9c324cc3748aa7bf5fe70c6ed17b93a8b2389acfb"
+            },
+            "version": "native-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/4dc692dd7a8982dc37f01833edd7be4add28b95648f79073a08257782350fce3",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "4dc692dd7a8982dc37f01833edd7be4add28b95648f79073a08257782350fce3"
+            },
+            "version": "resource-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/5864d0e3c62a27e1fe0e2aaa08008dbf1fd2b371597fc53c149ea3f10cace46b",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "5864d0e3c62a27e1fe0e2aaa08008dbf1fd2b371597fc53c149ea3f10cace46b"
+            },
+            "version": "execution-policy-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/cd7e36e67c44a0791084f02d767bc08f9b03be8b1fd2a075a0b0e228ca0a3c9b",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "cd7e36e67c44a0791084f02d767bc08f9b03be8b1fd2a075a0b0e228ca0a3c9b"
+            },
+            "version": "gateway-transport-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9b4a48e68c87c2ce268abe16a9361c4211a9a112443cb9687fde4ce137ee535d",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "9b4a48e68c87c2ce268abe16a9361c4211a9a112443cb9687fde4ce137ee535d"
+            },
+            "version": "gateway-host-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e1690d3c767cba049ae8d7d536cefca503e3cecc7f79c5c0e7cdb79f6c031e76",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e1690d3c767cba049ae8d7d536cefca503e3cecc7f79c5c0e7cdb79f6c031e76"
+            },
+            "version": "gateway-upstream-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/8aa618491c9bfbf5db3dfc81f8cf3ce58baf156a7e44d145715a08a30bcf2d05",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "8aa618491c9bfbf5db3dfc81f8cf3ce58baf156a7e44d145715a08a30bcf2d05"
+            },
+            "version": "gateway-recovery.json"
+          }
+        ],
+        "outputs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_workspace_file",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9"
+            },
+            "version": "input.txt"
+          }
+        ],
+        "usage": {
+          "cost_known": false
+        }
+      },
+      "host": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_f6303382740b409c8db31a146814d304",
+        "phase": "ended",
+        "native_pid": 22892,
+        "runtime_pid": 760,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "cbb546e551d8323430116aa55cce64d31522d7472eaf46b5da654f207f3f9b4d"
+        },
+        "fixture_config_digest": {
+          "algorithm": "sha256",
+          "value": "bc49f6052d97c858f04a28d6ba64bea89c620c976838d343e7b222b4405e32f1"
+        },
+        "network_mode": "deny_all",
+        "synthetic_http_requests": 1,
+        "budget": {
+          "currency": "TEST",
+          "maximum_micro_units": 267264,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 0,
+          "blocked": false
+        },
+        "attempts": [
+          {
+            "request_id": "d7ad49e9-3959-4af8-9ff8-9067a9fd530d",
+            "wire_digest": {
+              "algorithm": "sha256",
+              "value": "e2c6fe886a1d6fbe57a0f297b75f22898a9a1ac8d7140717aeec731b183dd7f8"
+            },
+            "outcome": "completed",
+            "reason": null,
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "actual_credentials_read": 0,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "transport": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_f6303382740b409c8db31a146814d304",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "runtime_pid": 760,
+        "client_identity_enforcement": "pid_creation_image",
+        "remote_clients_rejected": true,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "cbb546e551d8323430116aa55cce64d31522d7472eaf46b5da654f207f3f9b4d"
+        },
+        "frame_limit_bytes": 16384,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 760,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 269,
+            "request_digest": "e2c6fe886a1d6fbe57a0f297b75f22898a9a1ac8d7140717aeec731b183dd7f8",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_f6303382740b409c8db31a146814d304",
+        "observed_at": "2026-10-04T16:34:51.618Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_already_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "gateway_f6303382740b409c8db31a146814d304",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "40a88e4dea287aecb669ce5af10c0db954ac05464ecede1cdca2e3a2143e8989"
+          },
+          "status": "Succeeded",
+          "reason": "native_fixture_exited",
+          "exit_code": 0,
+          "cancel_requested": false,
+          "observed_at": "2026-10-04T16:34:51.618Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 267264,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 1,
+        "unknown": 0,
+        "blocked": false
+      }
+    },
+    {
+      "name": "budget",
+      "passed": true,
+      "operation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_4deff37890264cdca39bf533aa76f236",
+        "input_digest": {
+          "algorithm": "sha256",
+          "value": "18821ea6479b3631e7af549c963d602af1911c43a8201047cfc96a05684484f1"
+        },
+        "status": "Succeeded",
+        "reason": "native_fixture_exited",
+        "exit_code": 0,
+        "cancel_requested": false,
+        "observed_at": "2026-10-04T16:34:55.633Z",
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/a46beb3e57ff4ea114784d53de574c037242a263f7340a22d2b2441211c6448f",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "a46beb3e57ff4ea114784d53de574c037242a263f7340a22d2b2441211c6448f"
+            },
+            "version": "stdout.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "version": "stderr.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/da73d0554a6909a18420e0be1c479312c509f9767c85b9c3973ae14ff8d32300",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "da73d0554a6909a18420e0be1c479312c509f9767c85b9c3973ae14ff8d32300"
+            },
+            "version": "native-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/78b774d932535e0935de789c3e9c13a9bb865c45def307ca08b423a9abc086b4",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "78b774d932535e0935de789c3e9c13a9bb865c45def307ca08b423a9abc086b4"
+            },
+            "version": "resource-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/72d6f5368757b509680fae2a0cc73d22d1d9cbbb40fc37135cf2b6f73b2e085b",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "72d6f5368757b509680fae2a0cc73d22d1d9cbbb40fc37135cf2b6f73b2e085b"
+            },
+            "version": "execution-policy-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/d13dda81bd0063627dc3e56c33f7d34f462d4ee2e864cd108d9afef75ec3eea4",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "d13dda81bd0063627dc3e56c33f7d34f462d4ee2e864cd108d9afef75ec3eea4"
+            },
+            "version": "gateway-transport-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6b62ba59e3b72a6d0e4fe2e09fc359d9facd392c0fa84cb131e908568c938d93",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "6b62ba59e3b72a6d0e4fe2e09fc359d9facd392c0fa84cb131e908568c938d93"
+            },
+            "version": "gateway-host-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7c27cf632f5fe41cfc64632c6da2f5de69e55cb9a25829404dc1112bed97a9c9",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "7c27cf632f5fe41cfc64632c6da2f5de69e55cb9a25829404dc1112bed97a9c9"
+            },
+            "version": "gateway-upstream-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7b89d43665b2aae7201097dedc65812c9db3596b07729e6ff45e397ec2164d12",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "7b89d43665b2aae7201097dedc65812c9db3596b07729e6ff45e397ec2164d12"
+            },
+            "version": "gateway-recovery.json"
+          }
+        ],
+        "outputs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_workspace_file",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9"
+            },
+            "version": "input.txt"
+          }
+        ],
+        "usage": {
+          "cost_known": false
+        }
+      },
+      "host": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_4deff37890264cdca39bf533aa76f236",
+        "phase": "ended",
+        "native_pid": 18344,
+        "runtime_pid": 22788,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "9fab92d146dd814d76849d2de85f8aac0b0c623b634f64e56e998e04fbc28ab1"
+        },
+        "fixture_config_digest": {
+          "algorithm": "sha256",
+          "value": "4e8490f86628d446d71c0642b2f4bed7208629190f2fa157d35a51ca4a2ff9a0"
+        },
+        "network_mode": "deny_all",
+        "synthetic_http_requests": 1,
+        "budget": {
+          "currency": "TEST",
+          "maximum_micro_units": 33408,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 0,
+          "blocked": false
+        },
+        "attempts": [
+          {
+            "request_id": "9eb83f5a-0b7f-44de-ae68-18053445b1bb",
+            "wire_digest": {
+              "algorithm": "sha256",
+              "value": "c78c0f730f5f1d654afe840baf498549188a26c29b1beda8253920668b057986"
+            },
+            "outcome": "completed",
+            "reason": null,
+            "replay": false
+          },
+          {
+            "request_id": "d4f1fb69-3766-46c7-b186-1ba0df7c624e",
+            "wire_digest": {
+              "algorithm": "sha256",
+              "value": "e11ed3d3e51dc3c66f74a63a6020e16acb9099c26054728aed0ce0b9e6e4d030"
+            },
+            "outcome": "denied",
+            "reason": "gateway_budget_exhausted",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "actual_credentials_read": 0,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "transport": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_4deff37890264cdca39bf533aa76f236",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "runtime_pid": 22788,
+        "client_identity_enforcement": "pid_creation_image",
+        "remote_clients_rejected": true,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "9fab92d146dd814d76849d2de85f8aac0b0c623b634f64e56e998e04fbc28ab1"
+        },
+        "frame_limit_bytes": 16384,
+        "accepted_requests": 2,
+        "attempts": [
+          {
+            "pid": 22788,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 269,
+            "request_digest": "c78c0f730f5f1d654afe840baf498549188a26c29b1beda8253920668b057986",
+            "replay": false
+          },
+          {
+            "pid": 22788,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 269,
+            "request_digest": "e11ed3d3e51dc3c66f74a63a6020e16acb9099c26054728aed0ce0b9e6e4d030",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_4deff37890264cdca39bf533aa76f236",
+        "observed_at": "2026-10-04T16:34:55.622Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_already_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "gateway_4deff37890264cdca39bf533aa76f236",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "18821ea6479b3631e7af549c963d602af1911c43a8201047cfc96a05684484f1"
+          },
+          "status": "Succeeded",
+          "reason": "native_fixture_exited",
+          "exit_code": 0,
+          "cancel_requested": false,
+          "observed_at": "2026-10-04T16:34:55.622Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 33408,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 1,
+        "unknown": 0,
+        "blocked": false
+      }
+    },
+    {
+      "name": "cancel",
+      "passed": true,
+      "operation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_daff28631d87488380fac2edb104aad4",
+        "input_digest": {
+          "algorithm": "sha256",
+          "value": "5b0cc0f36b4e3d378c47d3215bb8f54770ffd2cc93fcb261b61824225cd93c7d"
+        },
+        "status": "Cancelled",
+        "reason": "native_job_terminated",
+        "exit_code": 130,
+        "cancel_requested": true,
+        "observed_at": "2026-10-04T16:34:59.257Z",
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/763787ec3bdf475274b973068d09e108328894d5d72ba1dc8d83de44e6fda287",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "763787ec3bdf475274b973068d09e108328894d5d72ba1dc8d83de44e6fda287"
+            },
+            "version": "stdout.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "version": "stderr.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/bb56ad9fe25b4aeda03fb2c745960edc89909d782f1c8ed206bb628512e01cae",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "bb56ad9fe25b4aeda03fb2c745960edc89909d782f1c8ed206bb628512e01cae"
+            },
+            "version": "native-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/5acfbf7cf5226109645156258ef0ae80f4b4aca036d73262836896486249adbb",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "5acfbf7cf5226109645156258ef0ae80f4b4aca036d73262836896486249adbb"
+            },
+            "version": "resource-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9b7901bc6527090ac14b4dbc8c6a6b2d1aea6692af177abc58bbbeec4fc8e0c2",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "9b7901bc6527090ac14b4dbc8c6a6b2d1aea6692af177abc58bbbeec4fc8e0c2"
+            },
+            "version": "execution-policy-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6733ccc6905ef4cd8fca94f0de8a5a88b8d690be4982017da3accb69c7b7f69b",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "6733ccc6905ef4cd8fca94f0de8a5a88b8d690be4982017da3accb69c7b7f69b"
+            },
+            "version": "gateway-transport-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/be11ecbac200332045b68c62952a3f93851f26168a213c920dd97d91dd4e3ffe",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "be11ecbac200332045b68c62952a3f93851f26168a213c920dd97d91dd4e3ffe"
+            },
+            "version": "gateway-host-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b7f2b09ce642b779b6df18c60c454a70140974f492e95f3f05caf8bb977c6816",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "b7f2b09ce642b779b6df18c60c454a70140974f492e95f3f05caf8bb977c6816"
+            },
+            "version": "gateway-upstream-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b486873a7b6a267bbace44dc79e3665c2267a131389f1235fa3538540fa2e45b",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "b486873a7b6a267bbace44dc79e3665c2267a131389f1235fa3538540fa2e45b"
+            },
+            "version": "gateway-recovery.json"
+          }
+        ],
+        "outputs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_workspace_file",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0adb2517e1ad97ab1ccd641ca89446be11b6e186f54d5450721c72f277e31df9"
+            },
+            "version": "input.txt"
+          }
+        ],
+        "usage": {
+          "cost_known": false
+        }
+      },
+      "host": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_daff28631d87488380fac2edb104aad4",
+        "phase": "ended",
+        "native_pid": 2880,
+        "runtime_pid": 15840,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "e9afa546ea5054a1d1854462b6d8ac34054559408efac8ee5569de019684eea9"
+        },
+        "fixture_config_digest": {
+          "algorithm": "sha256",
+          "value": "29b75752735aab64dd2667e46bf3522fa3cca968b1cbca7710c176afd674ca51"
+        },
+        "network_mode": "deny_all",
+        "synthetic_http_requests": 1,
+        "budget": {
+          "currency": "TEST",
+          "maximum_micro_units": 267264,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false
+        },
+        "attempts": [
+          {
+            "request_id": "34d17f20-b047-42b3-b916-bd18298c2c70",
+            "wire_digest": {
+              "algorithm": "sha256",
+              "value": "d7d918465b22c44c7b6833b3576bf3735d17042618f49baea6ea42dd05267910"
+            },
+            "outcome": "denied",
+            "reason": "gateway_aborted",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "actual_credentials_read": 0,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "transport": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_daff28631d87488380fac2edb104aad4",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "runtime_pid": 15840,
+        "client_identity_enforcement": "pid_creation_image",
+        "remote_clients_rejected": true,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "e9afa546ea5054a1d1854462b6d8ac34054559408efac8ee5569de019684eea9"
+        },
+        "frame_limit_bytes": 16384,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 15840,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 269,
+            "request_digest": "d7d918465b22c44c7b6833b3576bf3735d17042618f49baea6ea42dd05267910",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_daff28631d87488380fac2edb104aad4",
+        "observed_at": "2026-10-04T16:34:59.244Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_already_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "gateway_daff28631d87488380fac2edb104aad4",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "5b0cc0f36b4e3d378c47d3215bb8f54770ffd2cc93fcb261b61824225cd93c7d"
+          },
+          "status": "Cancelled",
+          "reason": "native_job_terminated",
+          "exit_code": 130,
+          "cancel_requested": true,
+          "observed_at": "2026-10-04T16:34:59.244Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 267264,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false
+      }
+    },
+    {
+      "name": "native_crash",
+      "passed": true,
+      "operation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_ed48777a94724ab9948d7eabe090c6f8",
+        "input_digest": {
+          "algorithm": "sha256",
+          "value": "6ec75034f6efa77c2cd4dc83eea0d17d239ab58d9835c449db26a053594f6999"
+        },
+        "status": "Unknown",
+        "reason": "gateway_native_completion_unproven",
+        "cancel_requested": false,
+        "observed_at": "2026-10-04T16:35:03.016Z",
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/d754f835e5d8b4bd033caeeaa4b28d5d702df0dbdc69aa95a2d3edce661ac6e3",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "d754f835e5d8b4bd033caeeaa4b28d5d702df0dbdc69aa95a2d3edce661ac6e3"
+            },
+            "version": "stdout.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "version": "stderr.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/d52c4be48ee7f73791d38176e7f5dbcbb86db0ba7c176907f95b9cdf864e51d0",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "d52c4be48ee7f73791d38176e7f5dbcbb86db0ba7c176907f95b9cdf864e51d0"
+            },
+            "version": "native-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/58934fb8d27e49e5c6a15e52e6f54405c710104bbf7f5899ce81dd6756d4bf6e",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "58934fb8d27e49e5c6a15e52e6f54405c710104bbf7f5899ce81dd6756d4bf6e"
+            },
+            "version": "execution-policy-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/94273fe9beba3c3a88a93b48ce7408fc7fe784a378677105bda3497590929a0e",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "94273fe9beba3c3a88a93b48ce7408fc7fe784a378677105bda3497590929a0e"
+            },
+            "version": "gateway-transport-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/848018262e35c127f3b9e2f36408fc2056918da7354e9a693cb2dd35d9ac99e8",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "848018262e35c127f3b9e2f36408fc2056918da7354e9a693cb2dd35d9ac99e8"
+            },
+            "version": "gateway-host-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9bf235230c4a0da6565dc6fc05114fa59e5ab77954227358d4d08fd691ddfc36",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "9bf235230c4a0da6565dc6fc05114fa59e5ab77954227358d4d08fd691ddfc36"
+            },
+            "version": "gateway-upstream-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7ffea32c460567d7a3472f6367812b561c18634d6b0f220f259d09760e580231",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "7ffea32c460567d7a3472f6367812b561c18634d6b0f220f259d09760e580231"
+            },
+            "version": "gateway-recovery.json"
+          }
+        ],
+        "outputs": [],
+        "usage": {
+          "cost_known": false
+        }
+      },
+      "host": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_ed48777a94724ab9948d7eabe090c6f8",
+        "phase": "ended",
+        "native_pid": 25152,
+        "runtime_pid": 20876,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "13bf2c0a9ed0a9545bf460c867c3d665fb8999e6c3d5113fe3d4a5d0aeb93a2b"
+        },
+        "fixture_config_digest": {
+          "algorithm": "sha256",
+          "value": "29b75752735aab64dd2667e46bf3522fa3cca968b1cbca7710c176afd674ca51"
+        },
+        "network_mode": "deny_all",
+        "synthetic_http_requests": 1,
+        "budget": {
+          "currency": "TEST",
+          "maximum_micro_units": 267264,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false
+        },
+        "attempts": [
+          {
+            "request_id": "5731681e-6b8e-43a8-a856-11c6ac381914",
+            "wire_digest": {
+              "algorithm": "sha256",
+              "value": "c4158855b986a918ebd31efed9bc138e5c819c831773d2a396f62a94314b7ea2"
+            },
+            "outcome": "denied",
+            "reason": "gateway_aborted",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "actual_credentials_read": 0,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "transport": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_ed48777a94724ab9948d7eabe090c6f8",
+        "phase": "running",
+        "transport": "windows_named_pipe",
+        "runtime_pid": 20876,
+        "client_identity_enforcement": "pid_creation_image",
+        "remote_clients_rejected": true,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "13bf2c0a9ed0a9545bf460c867c3d665fb8999e6c3d5113fe3d4a5d0aeb93a2b"
+        },
+        "frame_limit_bytes": 16384,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 20876,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 269,
+            "request_digest": "c4158855b986a918ebd31efed9bc138e5c819c831773d2a396f62a94314b7ea2",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_ed48777a94724ab9948d7eabe090c6f8",
+        "observed_at": "2026-10-04T16:35:03.004Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "gateway_ed48777a94724ab9948d7eabe090c6f8",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "6ec75034f6efa77c2cd4dc83eea0d17d239ab58d9835c449db26a053594f6999"
+          },
+          "status": "Unknown",
+          "reason": "gateway_native_completion_unproven",
+          "cancel_requested": false,
+          "observed_at": "2026-10-04T16:35:03.004Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/04c54e68cf31e9efe9cf7bd87e81992d3f8acc8784afb0b6ef4ee1dd23f674c3",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "04c54e68cf31e9efe9cf7bd87e81992d3f8acc8784afb0b6ef4ee1dd23f674c3"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 267264,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false
+      },
+      "crashed_owner": {
+        "pid": 25152,
+        "creation_ticks": "134356053007099589",
+        "image": ".cimiloop/gateway-bridge-v1-09/tools/ba9c5f2e865034dc00e8c7454910e65d6659547ee4c9b1a8f51d93936f2bb249/AppContainer.exe"
+      },
+      "fault_method": "one_verified_os_process_handle"
+    },
+    {
+      "name": "supervisor_crash",
+      "passed": true,
+      "operation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_6351d77bc403476095eaefb8fb1299f1",
+        "input_digest": {
+          "algorithm": "sha256",
+          "value": "1a0fc5950f67e8c1e3152aac298d66d99a9d46a170723a4af48ece4b202258e4"
+        },
+        "status": "Unknown",
+        "reason": "crash_recovered_completion_unproven",
+        "cancel_requested": false,
+        "observed_at": "2026-10-04T16:35:07.127Z",
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b265bb8a3be87922e41e77826a03f165e67e80e2da5b9ad551c906ca5c5b9339",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "b265bb8a3be87922e41e77826a03f165e67e80e2da5b9ad551c906ca5c5b9339"
+            },
+            "version": "stdout.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "version": "stderr.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9f3845c4cffc3e99ee8a64dfd88496a36c0bf59416fcdf000d877b99796be391",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "9f3845c4cffc3e99ee8a64dfd88496a36c0bf59416fcdf000d877b99796be391"
+            },
+            "version": "native-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b5b5b86f5732b10aee1d86c9ff851f2b3e2e6f38d2b293e9fe23b867508e3475",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "b5b5b86f5732b10aee1d86c9ff851f2b3e2e6f38d2b293e9fe23b867508e3475"
+            },
+            "version": "execution-policy-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/086f9044b713eb7e4d71e2f7f58b36a039f8e2543fe2686aa9ba2e53cf878809",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "086f9044b713eb7e4d71e2f7f58b36a039f8e2543fe2686aa9ba2e53cf878809"
+            },
+            "version": "gateway-transport-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9c09c28da8d4949cd2f4bbb67b2860761caa833d770741336217792b38f224e3",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "9c09c28da8d4949cd2f4bbb67b2860761caa833d770741336217792b38f224e3"
+            },
+            "version": "gateway-host-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0256470d5c10a85be78d7e00f56d22f2eb3eccb801ee2ec500dbcb2bdfbcaba5",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0256470d5c10a85be78d7e00f56d22f2eb3eccb801ee2ec500dbcb2bdfbcaba5"
+            },
+            "version": "gateway-upstream-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/3f528f0bb06658586e66ba4fa331bc46be116bc3ea0fe76700d962f57c42bbd7",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "3f528f0bb06658586e66ba4fa331bc46be116bc3ea0fe76700d962f57c42bbd7"
+            },
+            "version": "gateway-recovery.json"
+          }
+        ],
+        "outputs": [],
+        "usage": {
+          "cost_known": false
+        }
+      },
+      "host": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_6351d77bc403476095eaefb8fb1299f1",
+        "phase": "running",
+        "native_pid": null,
+        "runtime_pid": null,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "4c0cc88d4fc4b581ae7f1f61c8260ae059f29950a9ebd8f14ef88909eb0523fc"
+        },
+        "fixture_config_digest": {
+          "algorithm": "sha256",
+          "value": "29b75752735aab64dd2667e46bf3522fa3cca968b1cbca7710c176afd674ca51"
+        },
+        "network_mode": "deny_all",
+        "synthetic_http_requests": 0,
+        "budget": {
+          "currency": "TEST",
+          "maximum_micro_units": 267264,
+          "held_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 0,
+          "blocked": false
+        },
+        "attempts": [],
+        "failure_reason": null,
+        "actual_credentials_read": 0,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "transport": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_6351d77bc403476095eaefb8fb1299f1",
+        "phase": "running",
+        "transport": "windows_named_pipe",
+        "runtime_pid": 10472,
+        "client_identity_enforcement": "pid_creation_image",
+        "remote_clients_rejected": true,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "4c0cc88d4fc4b581ae7f1f61c8260ae059f29950a9ebd8f14ef88909eb0523fc"
+        },
+        "frame_limit_bytes": 16384,
+        "accepted_requests": 1,
+        "attempts": [
+          {
+            "pid": 10472,
+            "outcome": "accepted",
+            "reason": "runtime_identity_verified",
+            "request_bytes": 269,
+            "request_digest": "4be17ad837a7915d8f064d20d74a9be369959eda0866a9f0a16ea857fbb77c99",
+            "replay": false
+          }
+        ],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_6351d77bc403476095eaefb8fb1299f1",
+        "observed_at": "2026-10-04T16:35:07.114Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_already_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "gateway_6351d77bc403476095eaefb8fb1299f1",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "1a0fc5950f67e8c1e3152aac298d66d99a9d46a170723a4af48ece4b202258e4"
+          },
+          "status": "Unknown",
+          "reason": "crash_recovered_completion_unproven",
+          "cancel_requested": false,
+          "observed_at": "2026-10-04T16:35:07.114Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 267264,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false
+      },
+      "crashed_owner": {
+        "pid": 21120,
+        "creation_ticks": "134356053031149800",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "fault_method": "one_verified_os_process_handle",
+      "active_before_crash": "active",
+      "original_host_proof_preserved": true
+    },
+    {
+      "name": "mailbox_nonce",
+      "passed": true,
+      "operation": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_1ea66013017748eca43933bcfd7d7f9e",
+        "input_digest": {
+          "algorithm": "sha256",
+          "value": "5f569462c6f0eb05caf1e912b4d6ee3adca4cb9b4c535592a4a08d53fdd8bf46"
+        },
+        "status": "Unknown",
+        "reason": "gateway_bridge_unproven",
+        "cancel_requested": true,
+        "observed_at": "2026-10-04T16:35:10.256Z",
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/5a4cf13b0c055a7547ab45b48db7b8346fc4b67e03e6f1e6a576f592df81134a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "5a4cf13b0c055a7547ab45b48db7b8346fc4b67e03e6f1e6a576f592df81134a"
+            },
+            "version": "stdout.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "version": "stderr.raw"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/4178b151613de0f2187a89af67e732f8d3f57f557a6c1a905d2b8ff61f0374b1",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "4178b151613de0f2187a89af67e732f8d3f57f557a6c1a905d2b8ff61f0374b1"
+            },
+            "version": "native-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/08e2ad978b5f73b98313f6d0e33082cad1f726bcc904ccea07139051f409409b",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "08e2ad978b5f73b98313f6d0e33082cad1f726bcc904ccea07139051f409409b"
+            },
+            "version": "resource-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/d712c554fafb4fa3d785620c99113edca3ec4c5ad420af8088f5ee9498589b2a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "d712c554fafb4fa3d785620c99113edca3ec4c5ad420af8088f5ee9498589b2a"
+            },
+            "version": "execution-policy-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/90bbb6cccaf86282ed66f653098c8015cf6183f001488fa46289138ece60a78d",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "90bbb6cccaf86282ed66f653098c8015cf6183f001488fa46289138ece60a78d"
+            },
+            "version": "gateway-transport-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b6078ffa0d61d62f7c27671805787ad7fd9b4f08ffa70bb14684b5f17e00c024",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "b6078ffa0d61d62f7c27671805787ad7fd9b4f08ffa70bb14684b5f17e00c024"
+            },
+            "version": "gateway-host-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/3f108b6d6cedc361f1049f4471d5310ff7d3ef2d214b814c0b5962f81b103ce1",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "3f108b6d6cedc361f1049f4471d5310ff7d3ef2d214b814c0b5962f81b103ce1"
+            },
+            "version": "gateway-upstream-proof.json"
+          },
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_raw",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/c643fa9e83251dde327252bc8e6738f427a430aa38ed026e2cbfd6dc71272c66",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "c643fa9e83251dde327252bc8e6738f427a430aa38ed026e2cbfd6dc71272c66"
+            },
+            "version": "gateway-recovery.json"
+          }
+        ],
+        "outputs": [],
+        "usage": {
+          "cost_known": false
+        }
+      },
+      "host": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_1ea66013017748eca43933bcfd7d7f9e",
+        "phase": "ended",
+        "native_pid": 6868,
+        "runtime_pid": null,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "e2929c612ae4c9fde56a97d3ffdb8ae36b64807a9057512f66d85b40a434f086"
+        },
+        "fixture_config_digest": {
+          "algorithm": "sha256",
+          "value": "bc49f6052d97c858f04a28d6ba64bea89c620c976838d343e7b222b4405e32f1"
+        },
+        "network_mode": "deny_all",
+        "synthetic_http_requests": 0,
+        "budget": {
+          "currency": "TEST",
+          "maximum_micro_units": 267264,
+          "held_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 0,
+          "blocked": false
+        },
+        "attempts": [],
+        "failure_reason": "gateway_mailbox_identity_unproven",
+        "actual_credentials_read": 0,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "transport": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_1ea66013017748eca43933bcfd7d7f9e",
+        "phase": "ended",
+        "transport": "windows_named_pipe",
+        "runtime_pid": 23352,
+        "client_identity_enforcement": "pid_creation_image",
+        "remote_clients_rejected": true,
+        "gateway_policy_digest": {
+          "algorithm": "sha256",
+          "value": "e2929c612ae4c9fde56a97d3ffdb8ae36b64807a9057512f66d85b40a434f086"
+        },
+        "frame_limit_bytes": 16384,
+        "accepted_requests": 0,
+        "attempts": [],
+        "failure_reason": null,
+        "external_model_requests": 0,
+        "formal_execution_enabled": false
+      },
+      "recovery": {
+        "schema_version": "2.0.0",
+        "scope": "isolated_provider_probe",
+        "operation_key": "gateway_1ea66013017748eca43933bcfd7d7f9e",
+        "observed_at": "2026-10-04T16:35:10.244Z",
+        "outcome": "recovered",
+        "reason": "owned_resources_already_disposed",
+        "operation": {
+          "schema_version": "2.0.0",
+          "scope": "isolated_provider_probe",
+          "operation_key": "gateway_1ea66013017748eca43933bcfd7d7f9e",
+          "input_digest": {
+            "algorithm": "sha256",
+            "value": "5f569462c6f0eb05caf1e912b4d6ee3adca4cb9b4c535592a4a08d53fdd8bf46"
+          },
+          "status": "Unknown",
+          "reason": "gateway_bridge_unproven",
+          "cancel_requested": true,
+          "observed_at": "2026-10-04T16:35:10.244Z",
+          "raw_refs": [],
+          "outputs": [],
+          "usage": {
+            "cost_known": false
+          }
+        },
+        "cleanup": {
+          "resources_disposed": true,
+          "state_removed": true,
+          "workspace_discarded": false
+        },
+        "raw_refs": [
+          {
+            "provider": "cimiloop-runtime-probe",
+            "resource_type": "probe_recovery",
+            "locator": ".cimiloop/gateway-bridge-v1-09/blobs/79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a"
+            },
+            "version": "native-recovery.json"
+          }
+        ]
+      },
+      "budget": {
+        "currency": "TEST",
+        "maximum_micro_units": 267264,
+        "held_micro_units": 0,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 0,
+        "blocked": false
+      }
+    }
+  ],
+  "owned_resource_recovery": [
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_1d7a4ee0718049fab40c36e36c0588fe",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_1ea66013017748eca43933bcfd7d7f9e",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_2ee24bb11ac14eee95b83f26d1b5e9fb",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_3392a683868b4814a1774903c3ded694",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_462662ede47f4972b3426392d7da9f61",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_4deff37890264cdca39bf533aa76f236",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_5917cc375308450ba0e78c51ff4001c8",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_6351d77bc403476095eaefb8fb1299f1",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_673640d002fc4e0b975af9eb6a3a467b",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_689a574ad8b6447880902b81593f5f38",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_a8bcdad23b6f45cdb95419eff15dcc05",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_aa0576eb9a06439db0aac71343abce46",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_baa542802bae440798fd186f7c98d1ac",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_bab434a6c58f4aa895f80083983909c7",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_bbc747d3f227431d9818d70aa74decb7",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_bc6ee04822954f7cada2329654e105a6",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_daff28631d87488380fac2edb104aad4",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_ed48777a94724ab9948d7eabe090c6f8",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_f6303382740b409c8db31a146814d304",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-v1-09",
+      "key": "gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-debug",
+      "key": "gateway_04279048dff4400bb80f13ae74749eee",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    },
+    {
+      "root": ".cimiloop/gateway-bridge-debug",
+      "key": "gateway_c09447ca222c46028302f076d2d98670",
+      "resources_disposed": true,
+      "outcome": "recovered"
+    }
+  ],
+  "source_digests": [
+    {
+      "locator": "packages/runtime-adapter/native/AppContainer.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3035fd965901e333f28fd9c83dbafd0a04857e23eb563a5a3f50eb20f9eb8b7d"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/native/IpcTransport.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "54211cd37c54cca3050a3311652779228bb9418fc6957375cdb0727d8d42aa59"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/native/GatewayTransport.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c28b0a8b4d52e1688d25007d61d19d10336ae629efc9431b08358d4700313dbf"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/native.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "617f7935e17e7fbb4295459fab3effa223ece0cd35cf6290d5f95ff3d31f84d1"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/ipc-observation.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "2c47874e72e3a34e4a750864780c7b5fe7387b3d1fb11e3734880c6d443df38c"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/model-gateway.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a6b2d0cf9569b416c9b703ffc7370472ae47811b66e328a735ac1faa7bc30333"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-bridge.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "bbae6f9cd3cef7465b16c15cefe9bb93231ec063f30817547711c1c948bedd8b"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-bridge-probe.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "41c9985a99bace12b85a0220b60cb1135ccdcefcdea92b8cece74381d7720f5f"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/operations.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "16275db1f49cb756344e132929ed87bb51dc0922fae5116d049d4561cd17b0a9"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/supervise.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "442a9afb6ee48067e02de08c8f10ab4858c9d9ada6f217c1aab3d1b8a43a4b9a"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/recovery.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7289aa5c64a6ba9bc248e8af7172f5f85842360ac4fd9b2899712737ef56e095"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1acbdc101041e14f3aa43296867de1e7493b18ecd25550b88ff5a48450af5a87"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/transport/opencode-gateway-probe.mjs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d56d0bf85678ac3ed1953a7749ff833047fe2f0a21fb6bd6e3fbf6c976ecea55"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-bridge.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "43dc8919ffff67dbcda7991202f234fe3072bc16d09c8cdf6598840568245df8"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-client.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c1a1dcb9b58333cbe08d86a2db06c1523a2287a5c64acd7b9de01ee13283c3df"
+      }
+    },
+    {
+      "locator": "packages/protocol/src/v2/runtime-gateway-bridge.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "590460711a850289c3a3c4c646e567fcecdf614555ecefb1735cb177c272b7e3"
+      }
+    },
+    {
+      "locator": "packages/protocol/src/v2/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7f3ac0d613f2587aac3f311350b102f02371c47ed01f2255a221244ca26083ff"
+      }
+    },
+    {
+      "locator": "apps/cli/src/bin.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e3c81a173cc06d6ecd166fd67b24c27bfb7c50b9a52ad3318a84be6bc3846356"
+      }
+    },
+    {
+      "locator": "apps/cli/src/runtime-probe.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "03040a63f66d98a53112e47c9c5288cc924ae350171d7e195dfeb24f5eb6b918"
+      }
+    },
+    {
+      "locator": "tests/scenarios/runtime-probe-cli.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1f4e3151e7f0ac0758eb723b2a77e8bdeabd4918a4a5a1ebc74cd8fb29673a9e"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/fixtures/gateway-tls/cert.pem",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "90abef6912292e57059110a262b163062d2deef4e3a32d134dba3d14b29fd05b"
+      }
+    },
+    {
+      "locator": "packages/protocol/schemas/v2/RuntimeGatewayTransportObservation.schema.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "90291d7e8390b09320a77460f5fec5a66f5d245452ee69d4483bb84eae999bb2"
+      }
+    },
+    {
+      "locator": "packages/protocol/schemas/v2/RuntimeGatewayBridgeObservation.schema.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d817cea284f60abaf4e0bdc95ac51690820b54535ec24b4cc8327d5ce7287bc8"
+      }
+    },
+    {
+      "locator": "packages/protocol/schemas/v2/RuntimeGatewayBridgeProbeResult.schema.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "2be5d821ffc452dcf1796322d8e4aeb6b6946b1a7472cb261f8a713bc7217994"
+      }
+    }
+  ],
+  "raw_references": [
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/882678ec7c934fd87cd555abf91e20b0c607ac248b825605298b381d53b059cf",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "882678ec7c934fd87cd555abf91e20b0c607ac248b825605298b381d53b059cf"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e65a50fe9448a4db736dfd8a7dd932bc7e5b88f569af6d38b0612ad782531fcb",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e65a50fe9448a4db736dfd8a7dd932bc7e5b88f569af6d38b0612ad782531fcb"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/572e3b2bfadfe67205b4e7c96df6f99682fa8d8ee7e41422858ff631ed3446b5",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "572e3b2bfadfe67205b4e7c96df6f99682fa8d8ee7e41422858ff631ed3446b5"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/970c7c529b4b953f2615626c109023527ea20891961776954208cdcb643b9331",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "970c7c529b4b953f2615626c109023527ea20891961776954208cdcb643b9331"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b6b9bada8d86757ae54022cff2f4e3509c403baf6629995cecc2db605818dec8",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b6b9bada8d86757ae54022cff2f4e3509c403baf6629995cecc2db605818dec8"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/910332e87b0cafa9bbafe58a3fac1d42f76ccdb47547045a7b13e7ec0482d574",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "910332e87b0cafa9bbafe58a3fac1d42f76ccdb47547045a7b13e7ec0482d574"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/76bf64f24febfcdf5b2cbf4c92b251957d70350bf201b5205f4709437ccd351f",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "76bf64f24febfcdf5b2cbf4c92b251957d70350bf201b5205f4709437ccd351f"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/41f904e41ce67751c281cbec772b649034f638c2cb6be156791af7d29b6ed25b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "41f904e41ce67751c281cbec772b649034f638c2cb6be156791af7d29b6ed25b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/1a44807c590119d9d40975c4e7efc3569316977978407a48b58f09a3b0a42177",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1a44807c590119d9d40975c4e7efc3569316977978407a48b58f09a3b0a42177"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/3a7a92170e6532ee9e712bb33b6259ff85864d53bbfe709db759ebeed968bbfa",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3a7a92170e6532ee9e712bb33b6259ff85864d53bbfe709db759ebeed968bbfa"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/2b14571bb6cb9b7cb7fd0764ee509d07b7850439a9361f9da1420cfd5d88bf6b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "2b14571bb6cb9b7cb7fd0764ee509d07b7850439a9361f9da1420cfd5d88bf6b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/16350a5e374d59ccc6479291fba8f95adb545b6b6cfc10545be59ddf311a3d35",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "16350a5e374d59ccc6479291fba8f95adb545b6b6cfc10545be59ddf311a3d35"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e6138bb7090475e7d1fccb59f011e97d5c47555b63f920ae9c347d469bcc3672",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e6138bb7090475e7d1fccb59f011e97d5c47555b63f920ae9c347d469bcc3672"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/11358055db34fad70257c4a6b3b49fa8d57082fb4a1b28c2152ce600c0ba299a",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "11358055db34fad70257c4a6b3b49fa8d57082fb4a1b28c2152ce600c0ba299a"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/45339ba539460c72989d1446e61015ac77c394c3bb6e9444908f891a1aaa2690",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "45339ba539460c72989d1446e61015ac77c394c3bb6e9444908f891a1aaa2690"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7c6dc9bf53e19a9cd3514dbed63ed0e82ee50bbe91981aa69fb061d2de71f515",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7c6dc9bf53e19a9cd3514dbed63ed0e82ee50bbe91981aa69fb061d2de71f515"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/c6cde1c708a201b58671cb8c485d6a1506e188c81da64c2ca20ae9ba8fc77d1b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c6cde1c708a201b58671cb8c485d6a1506e188c81da64c2ca20ae9ba8fc77d1b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/493565b8caa676f22d4751e8672ae80e57506f16551b1468c292363115321926",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "493565b8caa676f22d4751e8672ae80e57506f16551b1468c292363115321926"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0bfc8874878c802a3045633011a508a6d30687153a0833160d8d0dc3f0eee6df",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0bfc8874878c802a3045633011a508a6d30687153a0833160d8d0dc3f0eee6df"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "79f0bc86ed0bda9d808e73f0811ebda86462d81095991314d16809c238b4625a"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e2df931c1f650cd6bd42300888ee6201e52384cab20c2b9db1be50174b15a504",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e2df931c1f650cd6bd42300888ee6201e52384cab20c2b9db1be50174b15a504"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/1f8f8add4a2e1e7855606a275828a52056fd443f7da57c5aefe50076b12c26a8",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1f8f8add4a2e1e7855606a275828a52056fd443f7da57c5aefe50076b12c26a8"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/94cc6f3a3d38e10d76f3f0933bca742c7def008b7d0d5b2888d834ba034a9fd0",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "94cc6f3a3d38e10d76f3f0933bca742c7def008b7d0d5b2888d834ba034a9fd0"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/ae8035f4a54cc5d3cab7b0829db1dc3cca34f9739b4960ba320f36bf1f8cde09",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "ae8035f4a54cc5d3cab7b0829db1dc3cca34f9739b4960ba320f36bf1f8cde09"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/543966756789088540833269d574e00a6dcb1cae96ad6cc192ed073e7efcd87e",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "543966756789088540833269d574e00a6dcb1cae96ad6cc192ed073e7efcd87e"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6fb2cb3063863b8838fa3130eaedc123b3655ec60635edc50b631bdffc5a431e",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6fb2cb3063863b8838fa3130eaedc123b3655ec60635edc50b631bdffc5a431e"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/619e6e5fbfe82bcc92876787774d3a44b9e52413f379dd7ba5ce23131357e314",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "619e6e5fbfe82bcc92876787774d3a44b9e52413f379dd7ba5ce23131357e314"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b9eb8bcaa1aee164064317466a2954983f436de3bb943c91089cd2b24a3d55d6",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b9eb8bcaa1aee164064317466a2954983f436de3bb943c91089cd2b24a3d55d6"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/81b4885f26520a3dcfff0cd89cd711febfcb8dac258ff8c49bbb18709f278502",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "81b4885f26520a3dcfff0cd89cd711febfcb8dac258ff8c49bbb18709f278502"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7ba4ff24d4941a0cea8af10fabf13e5a0d3f1f004fd22f1c02a7039d9038ea4d",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7ba4ff24d4941a0cea8af10fabf13e5a0d3f1f004fd22f1c02a7039d9038ea4d"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/91d813788caf58468f680ccfff75ff41d13006306481a65508ad8644932efeb7",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "91d813788caf58468f680ccfff75ff41d13006306481a65508ad8644932efeb7"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6009dcd9b3753cf6b21a0836f6070625196964f08264e12036ecabee582dfb4c",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6009dcd9b3753cf6b21a0836f6070625196964f08264e12036ecabee582dfb4c"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/ee60c48b4f0fb1049353f17a6f6898c980246cd7dd429074aab1c29880422f2b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "ee60c48b4f0fb1049353f17a6f6898c980246cd7dd429074aab1c29880422f2b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/1c22ff2eee677439e788d7514dbbc2619a692420eb81259973e9311c9246b3a1",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1c22ff2eee677439e788d7514dbbc2619a692420eb81259973e9311c9246b3a1"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/3f108b6d6cedc361f1049f4471d5310ff7d3ef2d214b814c0b5962f81b103ce1",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3f108b6d6cedc361f1049f4471d5310ff7d3ef2d214b814c0b5962f81b103ce1"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6a6ddac159216e8486c094cf8a91e9421154adac6d8b055dc8f8c8571cc3a92a",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6a6ddac159216e8486c094cf8a91e9421154adac6d8b055dc8f8c8571cc3a92a"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/a333e6a6a5c7d74ca25fb506592edb1b694a54221335580dadb352e0297abb9d",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a333e6a6a5c7d74ca25fb506592edb1b694a54221335580dadb352e0297abb9d"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/52518d2c1b935d11c72ab2e9c324cc3748aa7bf5fe70c6ed17b93a8b2389acfb",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "52518d2c1b935d11c72ab2e9c324cc3748aa7bf5fe70c6ed17b93a8b2389acfb"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/4dc692dd7a8982dc37f01833edd7be4add28b95648f79073a08257782350fce3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4dc692dd7a8982dc37f01833edd7be4add28b95648f79073a08257782350fce3"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/5864d0e3c62a27e1fe0e2aaa08008dbf1fd2b371597fc53c149ea3f10cace46b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "5864d0e3c62a27e1fe0e2aaa08008dbf1fd2b371597fc53c149ea3f10cace46b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/cd7e36e67c44a0791084f02d767bc08f9b03be8b1fd2a075a0b0e228ca0a3c9b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "cd7e36e67c44a0791084f02d767bc08f9b03be8b1fd2a075a0b0e228ca0a3c9b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9b4a48e68c87c2ce268abe16a9361c4211a9a112443cb9687fde4ce137ee535d",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9b4a48e68c87c2ce268abe16a9361c4211a9a112443cb9687fde4ce137ee535d"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/e1690d3c767cba049ae8d7d536cefca503e3cecc7f79c5c0e7cdb79f6c031e76",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e1690d3c767cba049ae8d7d536cefca503e3cecc7f79c5c0e7cdb79f6c031e76"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/8aa618491c9bfbf5db3dfc81f8cf3ce58baf156a7e44d145715a08a30bcf2d05",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8aa618491c9bfbf5db3dfc81f8cf3ce58baf156a7e44d145715a08a30bcf2d05"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/a46beb3e57ff4ea114784d53de574c037242a263f7340a22d2b2441211c6448f",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a46beb3e57ff4ea114784d53de574c037242a263f7340a22d2b2441211c6448f"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/da73d0554a6909a18420e0be1c479312c509f9767c85b9c3973ae14ff8d32300",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "da73d0554a6909a18420e0be1c479312c509f9767c85b9c3973ae14ff8d32300"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/78b774d932535e0935de789c3e9c13a9bb865c45def307ca08b423a9abc086b4",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "78b774d932535e0935de789c3e9c13a9bb865c45def307ca08b423a9abc086b4"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/72d6f5368757b509680fae2a0cc73d22d1d9cbbb40fc37135cf2b6f73b2e085b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "72d6f5368757b509680fae2a0cc73d22d1d9cbbb40fc37135cf2b6f73b2e085b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/d13dda81bd0063627dc3e56c33f7d34f462d4ee2e864cd108d9afef75ec3eea4",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d13dda81bd0063627dc3e56c33f7d34f462d4ee2e864cd108d9afef75ec3eea4"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6b62ba59e3b72a6d0e4fe2e09fc359d9facd392c0fa84cb131e908568c938d93",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6b62ba59e3b72a6d0e4fe2e09fc359d9facd392c0fa84cb131e908568c938d93"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7c27cf632f5fe41cfc64632c6da2f5de69e55cb9a25829404dc1112bed97a9c9",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7c27cf632f5fe41cfc64632c6da2f5de69e55cb9a25829404dc1112bed97a9c9"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7b89d43665b2aae7201097dedc65812c9db3596b07729e6ff45e397ec2164d12",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7b89d43665b2aae7201097dedc65812c9db3596b07729e6ff45e397ec2164d12"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/763787ec3bdf475274b973068d09e108328894d5d72ba1dc8d83de44e6fda287",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "763787ec3bdf475274b973068d09e108328894d5d72ba1dc8d83de44e6fda287"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/bb56ad9fe25b4aeda03fb2c745960edc89909d782f1c8ed206bb628512e01cae",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "bb56ad9fe25b4aeda03fb2c745960edc89909d782f1c8ed206bb628512e01cae"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/5acfbf7cf5226109645156258ef0ae80f4b4aca036d73262836896486249adbb",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "5acfbf7cf5226109645156258ef0ae80f4b4aca036d73262836896486249adbb"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9b7901bc6527090ac14b4dbc8c6a6b2d1aea6692af177abc58bbbeec4fc8e0c2",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9b7901bc6527090ac14b4dbc8c6a6b2d1aea6692af177abc58bbbeec4fc8e0c2"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/6733ccc6905ef4cd8fca94f0de8a5a88b8d690be4982017da3accb69c7b7f69b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6733ccc6905ef4cd8fca94f0de8a5a88b8d690be4982017da3accb69c7b7f69b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/be11ecbac200332045b68c62952a3f93851f26168a213c920dd97d91dd4e3ffe",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "be11ecbac200332045b68c62952a3f93851f26168a213c920dd97d91dd4e3ffe"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b7f2b09ce642b779b6df18c60c454a70140974f492e95f3f05caf8bb977c6816",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b7f2b09ce642b779b6df18c60c454a70140974f492e95f3f05caf8bb977c6816"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b486873a7b6a267bbace44dc79e3665c2267a131389f1235fa3538540fa2e45b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b486873a7b6a267bbace44dc79e3665c2267a131389f1235fa3538540fa2e45b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/d754f835e5d8b4bd033caeeaa4b28d5d702df0dbdc69aa95a2d3edce661ac6e3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d754f835e5d8b4bd033caeeaa4b28d5d702df0dbdc69aa95a2d3edce661ac6e3"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/d52c4be48ee7f73791d38176e7f5dbcbb86db0ba7c176907f95b9cdf864e51d0",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d52c4be48ee7f73791d38176e7f5dbcbb86db0ba7c176907f95b9cdf864e51d0"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/58934fb8d27e49e5c6a15e52e6f54405c710104bbf7f5899ce81dd6756d4bf6e",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "58934fb8d27e49e5c6a15e52e6f54405c710104bbf7f5899ce81dd6756d4bf6e"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/94273fe9beba3c3a88a93b48ce7408fc7fe784a378677105bda3497590929a0e",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "94273fe9beba3c3a88a93b48ce7408fc7fe784a378677105bda3497590929a0e"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/848018262e35c127f3b9e2f36408fc2056918da7354e9a693cb2dd35d9ac99e8",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "848018262e35c127f3b9e2f36408fc2056918da7354e9a693cb2dd35d9ac99e8"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9bf235230c4a0da6565dc6fc05114fa59e5ab77954227358d4d08fd691ddfc36",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9bf235230c4a0da6565dc6fc05114fa59e5ab77954227358d4d08fd691ddfc36"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/7ffea32c460567d7a3472f6367812b561c18634d6b0f220f259d09760e580231",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7ffea32c460567d7a3472f6367812b561c18634d6b0f220f259d09760e580231"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/04c54e68cf31e9efe9cf7bd87e81992d3f8acc8784afb0b6ef4ee1dd23f674c3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "04c54e68cf31e9efe9cf7bd87e81992d3f8acc8784afb0b6ef4ee1dd23f674c3"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b265bb8a3be87922e41e77826a03f165e67e80e2da5b9ad551c906ca5c5b9339",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b265bb8a3be87922e41e77826a03f165e67e80e2da5b9ad551c906ca5c5b9339"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9f3845c4cffc3e99ee8a64dfd88496a36c0bf59416fcdf000d877b99796be391",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9f3845c4cffc3e99ee8a64dfd88496a36c0bf59416fcdf000d877b99796be391"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b5b5b86f5732b10aee1d86c9ff851f2b3e2e6f38d2b293e9fe23b867508e3475",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b5b5b86f5732b10aee1d86c9ff851f2b3e2e6f38d2b293e9fe23b867508e3475"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/086f9044b713eb7e4d71e2f7f58b36a039f8e2543fe2686aa9ba2e53cf878809",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "086f9044b713eb7e4d71e2f7f58b36a039f8e2543fe2686aa9ba2e53cf878809"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/9c09c28da8d4949cd2f4bbb67b2860761caa833d770741336217792b38f224e3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9c09c28da8d4949cd2f4bbb67b2860761caa833d770741336217792b38f224e3"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/0256470d5c10a85be78d7e00f56d22f2eb3eccb801ee2ec500dbcb2bdfbcaba5",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0256470d5c10a85be78d7e00f56d22f2eb3eccb801ee2ec500dbcb2bdfbcaba5"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/3f528f0bb06658586e66ba4fa331bc46be116bc3ea0fe76700d962f57c42bbd7",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3f528f0bb06658586e66ba4fa331bc46be116bc3ea0fe76700d962f57c42bbd7"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/5a4cf13b0c055a7547ab45b48db7b8346fc4b67e03e6f1e6a576f592df81134a",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "5a4cf13b0c055a7547ab45b48db7b8346fc4b67e03e6f1e6a576f592df81134a"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/4178b151613de0f2187a89af67e732f8d3f57f557a6c1a905d2b8ff61f0374b1",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4178b151613de0f2187a89af67e732f8d3f57f557a6c1a905d2b8ff61f0374b1"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/08e2ad978b5f73b98313f6d0e33082cad1f726bcc904ccea07139051f409409b",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "08e2ad978b5f73b98313f6d0e33082cad1f726bcc904ccea07139051f409409b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/d712c554fafb4fa3d785620c99113edca3ec4c5ad420af8088f5ee9498589b2a",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d712c554fafb4fa3d785620c99113edca3ec4c5ad420af8088f5ee9498589b2a"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/90bbb6cccaf86282ed66f653098c8015cf6183f001488fa46289138ece60a78d",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "90bbb6cccaf86282ed66f653098c8015cf6183f001488fa46289138ece60a78d"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/b6078ffa0d61d62f7c27671805787ad7fd9b4f08ffa70bb14684b5f17e00c024",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b6078ffa0d61d62f7c27671805787ad7fd9b4f08ffa70bb14684b5f17e00c024"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/blobs/c643fa9e83251dde327252bc8e6738f427a430aa38ed026e2cbfd6dc71272c66",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c643fa9e83251dde327252bc8e6738f427a430aa38ed026e2cbfd6dc71272c66"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/cli-final.stdout.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "686b1469ff1fb7be4adb32740fbbae826733e23ffafa93f5c19e5959e24bdba1"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/gateway-bridge-probe-result.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "77da926de12d3892107e860d905d09bf2477af55ad6699e01d8fc29e3dd4a191"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/fixture-cases.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "bf59cd2cf00d391ae341549902b74373471425f04dfe45f7bf0f2c0281213270"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/fixture-verifier-accepted.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "332d52e179a95ca8d91284c57db14759105e8d039a852c7f21d609b3c465feef"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/fixture-verifier.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "78b47c7c355292edc4b807c4fb4e81b51c603069fd4cd2df48b570aaf91b0eb7"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/fixture-verifier-final.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c8efe95fd71f77a6e2f0d6b83f5470b281e96bf962fe34eff703da9d9f30c6ea"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/full-final-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6878c8b14fa4e06f7e7823e4cf336ed5b198bb4970ecd5fa8e01ba22b5b28160"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/targeted-final-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "08b57936ebdcfbb2145ac3ec9489176f37af92b438c83b262d81a7c43f659cee"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/owned-recovery-summary.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a350263fc0c4d35bca57e8156164499b98036cdf6a26c9c17350f2b834b133b9"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_aa0576eb9a06439db0aac71343abce46/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e6138bb7090475e7d1fccb59f011e97d5c47555b63f920ae9c347d469bcc3672"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_aa0576eb9a06439db0aac71343abce46/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c6cde1c708a201b58671cb8c485d6a1506e188c81da64c2ca20ae9ba8fc77d1b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_aa0576eb9a06439db0aac71343abce46/gateway-transport-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7c6dc9bf53e19a9cd3514dbed63ed0e82ee50bbe91981aa69fb061d2de71f515"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_aa0576eb9a06439db0aac71343abce46/gateway-upstream-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "493565b8caa676f22d4751e8672ae80e57506f16551b1468c292363115321926"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_aa0576eb9a06439db0aac71343abce46/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0bfc8874878c802a3045633011a508a6d30687153a0833160d8d0dc3f0eee6df"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1f8f8add4a2e1e7855606a275828a52056fd443f7da57c5aefe50076b12c26a8"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6fb2cb3063863b8838fa3130eaedc123b3655ec60635edc50b631bdffc5a431e"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b/gateway-transport-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "543966756789088540833269d574e00a6dcb1cae96ad6cc192ed073e7efcd87e"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b/gateway-upstream-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "619e6e5fbfe82bcc92876787774d3a44b9e52413f379dd7ba5ce23131357e314"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_fa478fbbb5ac449fa1be9bdf7c2a9a2b/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b9eb8bcaa1aee164064317466a2954983f436de3bb943c91089cd2b24a3d55d6"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_bab434a6c58f4aa895f80083983909c7/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7ba4ff24d4941a0cea8af10fabf13e5a0d3f1f004fd22f1c02a7039d9038ea4d"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_bab434a6c58f4aa895f80083983909c7/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1c22ff2eee677439e788d7514dbbc2619a692420eb81259973e9311c9246b3a1"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_bab434a6c58f4aa895f80083983909c7/gateway-transport-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "ee60c48b4f0fb1049353f17a6f6898c980246cd7dd429074aab1c29880422f2b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_bab434a6c58f4aa895f80083983909c7/gateway-upstream-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3f108b6d6cedc361f1049f4471d5310ff7d3ef2d214b814c0b5962f81b103ce1"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_bab434a6c58f4aa895f80083983909c7/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6a6ddac159216e8486c094cf8a91e9421154adac6d8b055dc8f8c8571cc3a92a"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_f6303382740b409c8db31a146814d304/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "52518d2c1b935d11c72ab2e9c324cc3748aa7bf5fe70c6ed17b93a8b2389acfb"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_f6303382740b409c8db31a146814d304/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9b4a48e68c87c2ce268abe16a9361c4211a9a112443cb9687fde4ce137ee535d"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_f6303382740b409c8db31a146814d304/gateway-transport-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "cd7e36e67c44a0791084f02d767bc08f9b03be8b1fd2a075a0b0e228ca0a3c9b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_f6303382740b409c8db31a146814d304/gateway-upstream-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e1690d3c767cba049ae8d7d536cefca503e3cecc7f79c5c0e7cdb79f6c031e76"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_f6303382740b409c8db31a146814d304/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8aa618491c9bfbf5db3dfc81f8cf3ce58baf156a7e44d145715a08a30bcf2d05"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_4deff37890264cdca39bf533aa76f236/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "da73d0554a6909a18420e0be1c479312c509f9767c85b9c3973ae14ff8d32300"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_4deff37890264cdca39bf533aa76f236/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6b62ba59e3b72a6d0e4fe2e09fc359d9facd392c0fa84cb131e908568c938d93"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_4deff37890264cdca39bf533aa76f236/gateway-transport-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d13dda81bd0063627dc3e56c33f7d34f462d4ee2e864cd108d9afef75ec3eea4"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_4deff37890264cdca39bf533aa76f236/gateway-upstream-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7c27cf632f5fe41cfc64632c6da2f5de69e55cb9a25829404dc1112bed97a9c9"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_4deff37890264cdca39bf533aa76f236/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7b89d43665b2aae7201097dedc65812c9db3596b07729e6ff45e397ec2164d12"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_daff28631d87488380fac2edb104aad4/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "bb56ad9fe25b4aeda03fb2c745960edc89909d782f1c8ed206bb628512e01cae"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_daff28631d87488380fac2edb104aad4/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "be11ecbac200332045b68c62952a3f93851f26168a213c920dd97d91dd4e3ffe"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_daff28631d87488380fac2edb104aad4/gateway-transport-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6733ccc6905ef4cd8fca94f0de8a5a88b8d690be4982017da3accb69c7b7f69b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_daff28631d87488380fac2edb104aad4/gateway-upstream-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b7f2b09ce642b779b6df18c60c454a70140974f492e95f3f05caf8bb977c6816"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_daff28631d87488380fac2edb104aad4/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b486873a7b6a267bbace44dc79e3665c2267a131389f1235fa3538540fa2e45b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_ed48777a94724ab9948d7eabe090c6f8/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d52c4be48ee7f73791d38176e7f5dbcbb86db0ba7c176907f95b9cdf864e51d0"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_ed48777a94724ab9948d7eabe090c6f8/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "848018262e35c127f3b9e2f36408fc2056918da7354e9a693cb2dd35d9ac99e8"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_ed48777a94724ab9948d7eabe090c6f8/gateway-transport-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "94273fe9beba3c3a88a93b48ce7408fc7fe784a378677105bda3497590929a0e"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_ed48777a94724ab9948d7eabe090c6f8/gateway-upstream-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9bf235230c4a0da6565dc6fc05114fa59e5ab77954227358d4d08fd691ddfc36"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_ed48777a94724ab9948d7eabe090c6f8/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7ffea32c460567d7a3472f6367812b561c18634d6b0f220f259d09760e580231"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_6351d77bc403476095eaefb8fb1299f1/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9f3845c4cffc3e99ee8a64dfd88496a36c0bf59416fcdf000d877b99796be391"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_6351d77bc403476095eaefb8fb1299f1/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9c09c28da8d4949cd2f4bbb67b2860761caa833d770741336217792b38f224e3"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_6351d77bc403476095eaefb8fb1299f1/gateway-transport-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "086f9044b713eb7e4d71e2f7f58b36a039f8e2543fe2686aa9ba2e53cf878809"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_6351d77bc403476095eaefb8fb1299f1/gateway-upstream-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0256470d5c10a85be78d7e00f56d22f2eb3eccb801ee2ec500dbcb2bdfbcaba5"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_6351d77bc403476095eaefb8fb1299f1/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3f528f0bb06658586e66ba4fa331bc46be116bc3ea0fe76700d962f57c42bbd7"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_1ea66013017748eca43933bcfd7d7f9e/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4178b151613de0f2187a89af67e732f8d3f57f557a6c1a905d2b8ff61f0374b1"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_1ea66013017748eca43933bcfd7d7f9e/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b6078ffa0d61d62f7c27671805787ad7fd9b4f08ffa70bb14684b5f17e00c024"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_1ea66013017748eca43933bcfd7d7f9e/gateway-transport-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "90bbb6cccaf86282ed66f653098c8015cf6183f001488fa46289138ece60a78d"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_1ea66013017748eca43933bcfd7d7f9e/gateway-upstream-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3f108b6d6cedc361f1049f4471d5310ff7d3ef2d214b814c0b5962f81b103ce1"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_1ea66013017748eca43933bcfd7d7f9e/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c643fa9e83251dde327252bc8e6738f427a430aa38ed026e2cbfd6dc71272c66"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_bbc747d3f227431d9818d70aa74decb7/native-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "5fa45598affaba169051930a0c340972c8348784a95f0740b45dd0e8c19887ab"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_bbc747d3f227431d9818d70aa74decb7/gateway-host-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6dccea077915b700d24606dee4f76c96a931af694186c5f816ec22b4a1c45fbf"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-bridge-v1-09/operations/gateway_bbc747d3f227431d9818d70aa74decb7/gateway-recovery.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "71df7d7b57c9bc9714ede39207f558a1594875aeb6fb95223d20607ab92db5af"
+      }
+    }
+  ],
+  "validation": {
+    "build_and_typecheck": "passed",
+    "schema_export": "passed",
+    "targeted": {
+      "files": 4,
+      "tests": 50,
+      "duration_seconds": 26.06,
+      "passed": true
+    },
+    "full": {
+      "files": 37,
+      "tests": 383,
+      "duration_seconds": 281.73,
+      "passed": true
+    },
+    "new_regressions": 25,
+    "old_runtime_schemas": [
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeOperationResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e4d785f38f836c223af0a23514f7d0b733de1a01277a9ec6b583d7766714f7ba"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "fbfdde8bbf7108ca630a5952abb6ab4b9a799f3652bda454db09857436255f7c"
+        },
+        "unchanged": true
+      }
+    ],
+    "frozen_v1": "full protocol compatibility tests passed"
+  },
+  "initial_failures_and_fixes": [
+    {
+      "issue": "Recovery test assumed native children must survive supervisor termination",
+      "fix": "Verify active-owner refusal before the fault, then follow exact OS identity observations; ended native children are valid",
+      "final_acceptance": "targeted and full tests plus supervisor_crash fixture passed"
+    },
+    {
+      "issue": "Cancel abort could deliver a runtime error and allow exit 0 before native loop observed the cancellation flag",
+      "operation_key": "gateway_bbc747d3f227431d9818d70aa74decb7",
+      "original_status": "Succeeded",
+      "accepted": false,
+      "fix": "Normalize cancellation or output-limit flags after child exit before saving final native observation; deterministic cancel_race regression added",
+      "final_acceptance": "final cancel fixture is Cancelled with unknown reservation retained; 383 tests passed"
+    },
+    {
+      "issue": "Windows process handle can briefly report closing original owners as unknown during recovery",
+      "fix": "Bounded repeated read-only exact-identity observations; preserve unknown until every original owner is confirmed ended, no forced cleanup",
+      "final_acceptance": "all retained original operations resources_disposed=true"
+    }
+  ],
+  "billing": {
+    "currency": "TEST",
+    "single_request_held_micro_units": 33408,
+    "actual_cost_known": false,
+    "automatic_refunds": false,
+    "real_provider_billing_profile": "unavailable; actual runtime gateway admission remains closed"
+  },
+  "formal_execution_enabled": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "ipc_runtime_connected": true,
+  "domain_database_format": 8,
+  "host_ledger_format": 1,
+  "user_databases_migrated": 0,
+  "notes": [
+    "Actual installed OpenCode 1.18.34 completed two requests through the authenticated IPC bridge while its AppContainer had no network capability. The upstream was the local public-certificate test fixture, not a real model.",
+    "Supervisor-crash original running host proof remains untouched and can show zero requests; the receiver observed one request and durable recovery retained one unknown reservation. Missing completion is never inferred from ledger recovery.",
+    "Fault injection holds one verified OS Process handle while checking creation identity and image and terminating that same handle; it does not later terminate by PID alone.",
+    "Raw mailbox frames, SQLite ledger contents, prompts and real credentials are not embedded in this snapshot; referenced raw evidence is retained in the ignored local probe directories.",
+    "Real billing ceilings, production DNS pinning/rebinding protection, tool/multimodal/upstream streaming acceptance, filesystem hard quotas and full controlled-execution recovery remain pending."
+  ]
+}

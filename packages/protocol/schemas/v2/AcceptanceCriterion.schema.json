@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "AcceptanceCriterion.v2",
+  "type": "object",
+  "required": [
+    "key",
+    "scenario",
+    "expected",
+    "evidence_requirements"
+  ],
+  "properties": {
+    "key": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,79}$"
+    },
+    "scenario": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "expected": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "evidence_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

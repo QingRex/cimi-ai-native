@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "PriorityOrder.v2",
+  "anyOf": [
+    {
+      "type": "string",
+      "const": "higher_first"
+    },
+    {
+      "type": "string",
+      "const": "lower_first"
+    }
+  ]
+}

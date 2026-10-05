@@ -16,7 +16,7 @@ import {
   StoreConflictError,
   type OutboxMessage,
   type ProjectStore
-} from "../../packages/store/dist/index.js";
+} from "../../packages/store/dist/v1.js";
 
 export interface ProjectStoreContractFactory {
   create(): ProjectStore;

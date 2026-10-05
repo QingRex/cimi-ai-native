@@ -1,0 +1,1850 @@
+{
+  "captured_at": "2026-10-05T00:07:22.256Z",
+  "decision": "D-202",
+  "scope": "credit_budget_rehearsal",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2"
+  },
+  "implementation_scope": "independent durable unapproved account/task credit ceilings, opaque one-use dispatch permits, conservative held balances and exact original OS owner recovery",
+  "actual_probe": {
+    "schema_version": "2.0.0",
+    "scope": "credit_budget_rehearsal",
+    "observed_at": "2026-10-04T23:55:30.272Z",
+    "credit_budget_probe_passed": true,
+    "unit": "ZHIPU_CODING_PLAN_CREDIT",
+    "rate_observation": {
+      "digest": {
+        "algorithm": "sha256",
+        "value": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346"
+      },
+      "expires_at": "2026-10-12T00:00:00.000Z",
+      "reference_time": "2026-10-05T00:00:00.000Z",
+      "historical_rehearsal": true,
+      "account_version_verified": false,
+      "token_bounds_verified": false
+    },
+    "checks": [
+      {
+        "name": "shared_account_ceiling",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "immutable_task_ceiling",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "global_request_identity",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "completed_receipt_replay",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "opaque_dispatch_permit",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "cancel_holds_credit",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "active_owner_not_reconciled",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "unknown_owner_not_reconciled",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "expired_rate_before_dispatch",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "historic_completion_readable",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "bound_violation_blocks_account",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "two_host_account_cas",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "abrupt_dispatch_recovery",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "real_billing_admission_closed",
+        "passed": true,
+        "reason": "condition_verified"
+      },
+      {
+        "name": "foreign_test_ledger_rejected",
+        "passed": true,
+        "reason": "condition_verified"
+      }
+    ],
+    "snapshots": [
+      {
+        "case_name": "shared",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+          "maximum_micro_units": 4000000,
+          "held_micro_units": 2000000,
+          "remaining_micro_units": 2000000,
+          "reserved": 1,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 0,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 2000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "completed",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+          "maximum_micro_units": 4000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 3000000,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 0,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "cancel",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+          "maximum_micro_units": 1000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "expiry",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+          "maximum_micro_units": 4000000,
+          "held_micro_units": 2000000,
+          "remaining_micro_units": 2000000,
+          "reserved": 1,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 0,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 2000000
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "overflow",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+          "maximum_micro_units": 4000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 3000000,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": true,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "cas",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+          "maximum_micro_units": 1000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "crash",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+          "maximum_micro_units": 1000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "shared_closed",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+          "maximum_micro_units": 4000000,
+          "held_micro_units": 3000000,
+          "remaining_micro_units": 1000000,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 2,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 2000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 1000000
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "completed_closed",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+          "maximum_micro_units": 4000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 3000000,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 0,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "cancel_closed",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+          "maximum_micro_units": 1000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "expiry_closed",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+          "maximum_micro_units": 4000000,
+          "held_micro_units": 2000000,
+          "remaining_micro_units": 2000000,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 1,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 2000000
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "overflow_closed",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+          "maximum_micro_units": 4000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 3000000,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": true,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 3000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "cas_closed",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+          "maximum_micro_units": 1000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      },
+      {
+        "case_name": "crash_closed",
+        "snapshot": {
+          "scope": "credit_budget_rehearsal",
+          "unit": "ZHIPU_CODING_PLAN_CREDIT",
+          "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+          "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+          "maximum_micro_units": 1000000,
+          "held_micro_units": 1000000,
+          "remaining_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false,
+          "budgets": [
+            {
+              "budget_key": "task_a",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 1000000
+            },
+            {
+              "budget_key": "task_b",
+              "maximum_micro_units": 1000000,
+              "held_micro_units": 0
+            }
+          ],
+          "actual_cost_known": false,
+          "admission_ready": false
+        }
+      }
+    ],
+    "recoveries": [
+      {
+        "case_name": "active",
+        "reconciled_requests": 0,
+        "active_owners": 1,
+        "unknown_owners": 0,
+        "verified_ended_owners": 0
+      },
+      {
+        "case_name": "unavailable_observer",
+        "reconciled_requests": 0,
+        "active_owners": 0,
+        "unknown_owners": 1,
+        "verified_ended_owners": 0
+      },
+      {
+        "case_name": "crash",
+        "reconciled_requests": 1,
+        "active_owners": 0,
+        "unknown_owners": 0,
+        "verified_ended_owners": 1
+      }
+    ],
+    "independent_host_processes": 3,
+    "credit_ledger_format": 1,
+    "http_requests": 0,
+    "external_model_requests": 0,
+    "actual_credentials_read": 0,
+    "runtime_started": false,
+    "actual_cost_known": false,
+    "billing_admission_ready": false,
+    "formal_execution_enabled": false,
+    "evidence_refs": [
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_budget_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/a5f3414c19d0632c007ffc0ec2fbea01ae409d04622ca359c8a5e9670c0c83b0",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "a5f3414c19d0632c007ffc0ec2fbea01ae409d04622ca359c8a5e9670c0c83b0"
+        },
+        "version": "credit-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/fd239c3ff01f8ca7401ad54d6cb0946b6cd6028ea6f2c61c2f84aeff3f0f2b10",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "fd239c3ff01f8ca7401ad54d6cb0946b6cd6028ea6f2c61c2f84aeff3f0f2b10"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/6448ef391c76a2e9cbaf8a3fc5f5c11399f659b84e5b668af781c1dc3e474bd1",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "6448ef391c76a2e9cbaf8a3fc5f5c11399f659b84e5b668af781c1dc3e474bd1"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+        },
+        "version": "credit-owner-observation.json"
+      },
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "credit_owner_observation",
+        "locator": ".cimiloop/gateway-credit-v1-09/blobs/b600576c2dc21ff8d168bbab0c4eb1c1147a8baf88adb18df6d14d3c1d5d2c9c",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "b600576c2dc21ff8d168bbab0c4eb1c1147a8baf88adb18df6d14d3c1d5d2c9c"
+        },
+        "version": "credit-owner-observation.json"
+      }
+    ],
+    "gaps": [
+      "confirmed_account_credit_plan_and_gateway_eligibility",
+      "server_enforced_input_and_reasoning_output_bounds",
+      "approved_account_credit_budget_and_single_trusted_store",
+      "provider_invoice_and_quota_reconciliation",
+      "authenticated_real_provider_https_contract",
+      "hard_filesystem_quota",
+      "complete_controlled_execution_recovery",
+      "formal_task_binding_and_agent_entry"
+    ]
+  },
+  "owned_ledger_audit": [
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "shared",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+        "maximum_micro_units": 4000000,
+        "held_micro_units": 3000000,
+        "remaining_micro_units": 1000000,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 2,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 2000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 1000000
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "completed",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+        "maximum_micro_units": 4000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 3000000,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 1,
+        "unknown": 0,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "cancel",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+        "maximum_micro_units": 1000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 0,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "expiry",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+        "maximum_micro_units": 4000000,
+        "held_micro_units": 2000000,
+        "remaining_micro_units": 2000000,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 1,
+        "unknown": 1,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 2000000
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "overflow",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+        "maximum_micro_units": 4000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 3000000,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": true,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "cas",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+        "maximum_micro_units": 1000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 0,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "crash",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+        "maximum_micro_units": 1000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 0,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "shared",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+        "maximum_micro_units": 4000000,
+        "held_micro_units": 3000000,
+        "remaining_micro_units": 1000000,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 2,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 2000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 1000000
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "completed",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+        "maximum_micro_units": 4000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 3000000,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 1,
+        "unknown": 0,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "cancel",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+        "maximum_micro_units": 1000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 0,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "expiry",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+        "maximum_micro_units": 4000000,
+        "held_micro_units": 2000000,
+        "remaining_micro_units": 2000000,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 1,
+        "unknown": 1,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 2000000
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "overflow",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "25ecf546764772653b5dd2619c6ce89f5df959c0c6596afbe813f392caeca58c",
+        "maximum_micro_units": 4000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 3000000,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": true,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 3000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "cas",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+        "maximum_micro_units": 1000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 0,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "crash",
+      "snapshot": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "d89be14e8b1476e9354364353aeb5503cdcc7065a3c4d4b72b71e8e34ae43db8",
+        "policy_digest": "d6debc4c0164f247a7fcce24c5303d78b1a8a1aa6a53e9e4b2b6546b944359bf",
+        "maximum_micro_units": 1000000,
+        "held_micro_units": 1000000,
+        "remaining_micro_units": 0,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "task_a",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 1000000
+          },
+          {
+            "budget_key": "task_b",
+            "maximum_micro_units": 1000000,
+            "held_micro_units": 0
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      }
+    }
+  ],
+  "original_owner_observations": [
+    {
+      "identity_digest": "42834a587b97d035ab7ae8552b39bab5eaf14d32e40b5a061d43f6da61af2499",
+      "identity": {
+        "pid": 25576,
+        "creation_ticks": "134356315173520721",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "state": "absent"
+    },
+    {
+      "identity_digest": "afc826875811de67fac030a6b209750ee000a38d8357490de0971ae21e60cc59",
+      "identity": {
+        "pid": 24580,
+        "creation_ticks": "134356315206785262",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "state": "absent"
+    },
+    {
+      "identity_digest": "18b97752fca83e861a5748e27c35b64d531a01f69de3c1866b89b2551d393510",
+      "identity": {
+        "pid": 9744,
+        "creation_ticks": "134356315213298734",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "state": "absent"
+    },
+    {
+      "identity_digest": "475957f68f19a4b3bb4e279c90cfd96b16634192a88ab421f1cfc933636f36a8",
+      "identity": {
+        "pid": 17456,
+        "creation_ticks": "134356317223878894",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "state": "absent"
+    },
+    {
+      "identity_digest": "2f3247262050c0d0de16e5c709c0545fe255c299d29e4b4fa7e10cd8f279a6e7",
+      "identity": {
+        "pid": 12688,
+        "creation_ticks": "134356317252389333",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "state": "absent"
+    },
+    {
+      "identity_digest": "7170c69febabcd6f96af9813b12d5b68e0e51503a984ec7f72d4b220f830623c",
+      "identity": {
+        "pid": 15892,
+        "creation_ticks": "134356317258795593",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "state": "absent"
+    }
+  ],
+  "original_owner_nonce_records": [
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "shared",
+      "nonce": "bfec8fda-56d0-45ac-85e3-4e87a4c89fc3",
+      "identity": {
+        "pid": 25576,
+        "creation_ticks": "134356315173520721",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "42834a587b97d035ab7ae8552b39bab5eaf14d32e40b5a061d43f6da61af2499"
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "completed",
+      "nonce": "98b395fa-8218-4e12-b42a-05b2dee1d611",
+      "identity": {
+        "pid": 25576,
+        "creation_ticks": "134356315173520721",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "42834a587b97d035ab7ae8552b39bab5eaf14d32e40b5a061d43f6da61af2499"
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "cancel",
+      "nonce": "bfdf50a3-3114-4d1d-b93a-ddde891a7ee3",
+      "identity": {
+        "pid": 25576,
+        "creation_ticks": "134356315173520721",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "42834a587b97d035ab7ae8552b39bab5eaf14d32e40b5a061d43f6da61af2499"
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "expiry",
+      "nonce": "b6ed0827-b26e-49db-be73-254c8daaedaa",
+      "identity": {
+        "pid": 25576,
+        "creation_ticks": "134356315173520721",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "42834a587b97d035ab7ae8552b39bab5eaf14d32e40b5a061d43f6da61af2499"
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "overflow",
+      "nonce": "7328e6ba-163a-456c-9aa5-f4254ae632bc",
+      "identity": {
+        "pid": 25576,
+        "creation_ticks": "134356315173520721",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "42834a587b97d035ab7ae8552b39bab5eaf14d32e40b5a061d43f6da61af2499"
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "cas",
+      "nonce": "acaa6f08-30e7-40f8-a3d6-ca10ec83cdbc",
+      "identity": {
+        "pid": 24580,
+        "creation_ticks": "134356315206785262",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "afc826875811de67fac030a6b209750ee000a38d8357490de0971ae21e60cc59"
+    },
+    {
+      "run": "8813aa6d-205d-4c30-b75f-8b20bc0b405c",
+      "case_name": "crash",
+      "nonce": "c6a53741-0a66-4cc3-9d27-2ba2f571f12e",
+      "identity": {
+        "pid": 9744,
+        "creation_ticks": "134356315213298734",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "18b97752fca83e861a5748e27c35b64d531a01f69de3c1866b89b2551d393510"
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "shared",
+      "nonce": "dc8b04cc-af1c-4b55-81de-cd6d90688619",
+      "identity": {
+        "pid": 17456,
+        "creation_ticks": "134356317223878894",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "475957f68f19a4b3bb4e279c90cfd96b16634192a88ab421f1cfc933636f36a8"
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "completed",
+      "nonce": "4607d8ec-8afe-4a6d-bc66-087d70403d37",
+      "identity": {
+        "pid": 17456,
+        "creation_ticks": "134356317223878894",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "475957f68f19a4b3bb4e279c90cfd96b16634192a88ab421f1cfc933636f36a8"
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "cancel",
+      "nonce": "13fd8caf-b7d2-4a9f-8cbf-4af6686031ba",
+      "identity": {
+        "pid": 17456,
+        "creation_ticks": "134356317223878894",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "475957f68f19a4b3bb4e279c90cfd96b16634192a88ab421f1cfc933636f36a8"
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "expiry",
+      "nonce": "a3d02879-c923-490b-811c-13f63c888c57",
+      "identity": {
+        "pid": 17456,
+        "creation_ticks": "134356317223878894",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "475957f68f19a4b3bb4e279c90cfd96b16634192a88ab421f1cfc933636f36a8"
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "overflow",
+      "nonce": "ae8a1eff-9b1d-4964-8fc4-6f71c0b57e9f",
+      "identity": {
+        "pid": 17456,
+        "creation_ticks": "134356317223878894",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "475957f68f19a4b3bb4e279c90cfd96b16634192a88ab421f1cfc933636f36a8"
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "cas",
+      "nonce": "628830bb-7266-4002-9532-3c11002b7859",
+      "identity": {
+        "pid": 12688,
+        "creation_ticks": "134356317252389333",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "2f3247262050c0d0de16e5c709c0545fe255c299d29e4b4fa7e10cd8f279a6e7"
+    },
+    {
+      "run": "9d6466c6-686f-4317-aa85-b7cecbd67bd9",
+      "case_name": "crash",
+      "nonce": "1aef20ae-c50f-4ccf-a7f9-6a4f39dcb6e9",
+      "identity": {
+        "pid": 15892,
+        "creation_ticks": "134356317258795593",
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe"
+      },
+      "identity_digest": "7170c69febabcd6f96af9813b12d5b68e0e51503a984ec7f72d4b220f830623c"
+    }
+  ],
+  "source_digests": [
+    {
+      "locator": "packages/runtime-adapter/src/gateway-credit.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c74446b670423c8ca2f846de92ffbf65be138ef4d96bd20d16986fe1a2cef6e0"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/c74446b670423c8ca2f846de92ffbf65be138ef4d96bd20d16986fe1a2cef6e0"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-credit-owner.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "878f3c7e956defe988760a6bc4e61d4ea76d3ed019eb7b8369fd33dbdae93508"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/878f3c7e956defe988760a6bc4e61d4ea76d3ed019eb7b8369fd33dbdae93508"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-credit-probe.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "08873e45eb8a5cda43a18414556d62306a21d80dd6f845a86956214a44c55886"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/08873e45eb8a5cda43a18414556d62306a21d80dd6f845a86956214a44c55886"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-billing.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "15f0ba1a7c29581b0a626ece9654051192cc7305901ef579702267fb06a1f4eb"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/15f0ba1a7c29581b0a626ece9654051192cc7305901ef579702267fb06a1f4eb"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+    },
+    {
+      "locator": "packages/runtime-adapter/native/AppContainer.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "745c4db68b77d703fce7ff0279e473fddc27b517d5c7e77ed35f3072f8b00f53"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/745c4db68b77d703fce7ff0279e473fddc27b517d5c7e77ed35f3072f8b00f53"
+    },
+    {
+      "locator": "packages/runtime-adapter/native/IpcTransport.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "5b56bd547e32ac959de69be7409ad6f8f1e30ab27ec6f6c075131a8991081e68"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/5b56bd547e32ac959de69be7409ad6f8f1e30ab27ec6f6c075131a8991081e68"
+    },
+    {
+      "locator": "packages/runtime-adapter/native/GatewayTransport.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7b60e4898f278dbeb950ad794c6fd2d53e56c51ebb4b33c40b73167cbb63d8ca"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/7b60e4898f278dbeb950ad794c6fd2d53e56c51ebb4b33c40b73167cbb63d8ca"
+    },
+    {
+      "locator": "packages/protocol/src/v2/runtime-gateway-credit.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4aef4058557e767453885f1502c429334cf8c8b54c6e5c63e9715cffd03a5644"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/4aef4058557e767453885f1502c429334cf8c8b54c6e5c63e9715cffd03a5644"
+    },
+    {
+      "locator": "packages/protocol/src/v2/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e7410a43a7129a6f59976047a809aef18a768b4ac48ff78744da64515dbd1868"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/e7410a43a7129a6f59976047a809aef18a768b4ac48ff78744da64515dbd1868"
+    },
+    {
+      "locator": "packages/protocol/schemas/v2/RuntimeGatewayCreditSnapshot.schema.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "de93ca03f2ae3099886e82d2f56f351e51dbbbfca1094058195b90cac2dcda87"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/de93ca03f2ae3099886e82d2f56f351e51dbbbfca1094058195b90cac2dcda87"
+    },
+    {
+      "locator": "packages/protocol/schemas/v2/RuntimeGatewayCreditProbeResult.schema.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "27ceec835701033cb03d7edecc9ea5a07160c410700f25b7462112e7b9333fef"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/27ceec835701033cb03d7edecc9ea5a07160c410700f25b7462112e7b9333fef"
+    },
+    {
+      "locator": "apps/cli/src/bin.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0c1382e9b957052b14805cdf5e5e88d0c7ee15e91ebc4952600d50b9dc987bfb"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/0c1382e9b957052b14805cdf5e5e88d0c7ee15e91ebc4952600d50b9dc987bfb"
+    },
+    {
+      "locator": "apps/cli/src/runtime-probe.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1d77d2e7a7912ebcd1fd1e54284f12bc05255f931a94649d10823e6fe2f1ff11"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/1d77d2e7a7912ebcd1fd1e54284f12bc05255f931a94649d10823e6fe2f1ff11"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-credit.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1cdc22d96e76ad3a5650bbfcb4c78050a1bd4d8af431f1df78219c03a9181720"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/1cdc22d96e76ad3a5650bbfcb4c78050a1bd4d8af431f1df78219c03a9181720"
+    },
+    {
+      "locator": "tests/scenarios/runtime-probe-cli.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "63f5b30c6a317c7f7cc539a0fa33264fbe7ad7fbd2a60cd62f627a879ce96990"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/source-blobs/63f5b30c6a317c7f7cc539a0fa33264fbe7ad7fbd2a60cd62f627a879ce96990"
+    }
+  ],
+  "raw_references": [
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/blobs/a5f3414c19d0632c007ffc0ec2fbea01ae409d04622ca359c8a5e9670c0c83b0",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a5f3414c19d0632c007ffc0ec2fbea01ae409d04622ca359c8a5e9670c0c83b0"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/a5f3414c19d0632c007ffc0ec2fbea01ae409d04622ca359c8a5e9670c0c83b0"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/blobs/fd239c3ff01f8ca7401ad54d6cb0946b6cd6028ea6f2c61c2f84aeff3f0f2b10",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "fd239c3ff01f8ca7401ad54d6cb0946b6cd6028ea6f2c61c2f84aeff3f0f2b10"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/fd239c3ff01f8ca7401ad54d6cb0946b6cd6028ea6f2c61c2f84aeff3f0f2b10"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/blobs/6448ef391c76a2e9cbaf8a3fc5f5c11399f659b84e5b668af781c1dc3e474bd1",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6448ef391c76a2e9cbaf8a3fc5f5c11399f659b84e5b668af781c1dc3e474bd1"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/6448ef391c76a2e9cbaf8a3fc5f5c11399f659b84e5b668af781c1dc3e474bd1"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/0e267e802118f23c59d25c743bc1fd4def10ec2927dd0d95efacd89219e8a128"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/blobs/b600576c2dc21ff8d168bbab0c4eb1c1147a8baf88adb18df6d14d3c1d5d2c9c",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b600576c2dc21ff8d168bbab0c4eb1c1147a8baf88adb18df6d14d3c1d5d2c9c"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/b600576c2dc21ff8d168bbab0c4eb1c1147a8baf88adb18df6d14d3c1d5d2c9c"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/blobs/d0f866a8a9748acdb251e2b85a6ad630f51e8262fc1f537d56bff38810b6417c",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d0f866a8a9748acdb251e2b85a6ad630f51e8262fc1f537d56bff38810b6417c"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/d0f866a8a9748acdb251e2b85a6ad630f51e8262fc1f537d56bff38810b6417c"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/blobs/fd2b4bbc2a148ec307f833683b2342d919c59591607d9e53ac810bdd77fdea2c",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "fd2b4bbc2a148ec307f833683b2342d919c59591607d9e53ac810bdd77fdea2c"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/fd2b4bbc2a148ec307f833683b2342d919c59591607d9e53ac810bdd77fdea2c"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/runs/8813aa6d-205d-4c30-b75f-8b20bc0b405c/credit-observation.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d0f866a8a9748acdb251e2b85a6ad630f51e8262fc1f537d56bff38810b6417c"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/d0f866a8a9748acdb251e2b85a6ad630f51e8262fc1f537d56bff38810b6417c"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/runs/8813aa6d-205d-4c30-b75f-8b20bc0b405c/gateway-credit-probe-result.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4b44831f95905d93ccc7cfeac688e7758ebc3f932dd8f5af58299bc60e214fb7"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/4b44831f95905d93ccc7cfeac688e7758ebc3f932dd8f5af58299bc60e214fb7"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/runs/9d6466c6-686f-4317-aa85-b7cecbd67bd9/credit-observation.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a5f3414c19d0632c007ffc0ec2fbea01ae409d04622ca359c8a5e9670c0c83b0"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/a5f3414c19d0632c007ffc0ec2fbea01ae409d04622ca359c8a5e9670c0c83b0"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/runs/9d6466c6-686f-4317-aa85-b7cecbd67bd9/gateway-credit-probe-result.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b6a6aa62181a49b8bc18e7ea52824742212410228c32992b129a33be96d7c115"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/b6a6aa62181a49b8bc18e7ea52824742212410228c32992b129a33be96d7c115"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/cli.stdout.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "ac9936a0b7b4dda6bf25021da85cc916beba8cfa4abb20008f1679476ee5773c"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/ac9936a0b7b4dda6bf25021da85cc916beba8cfa4abb20008f1679476ee5773c"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/cli-final.stdout.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "645905360b4123ea5fe58fc5856e168ef465ba91abc9a5c307acd04befaf9e06"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/645905360b4123ea5fe58fc5856e168ef465ba91abc9a5c307acd04befaf9e06"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/gateway-credit-probe-result.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b6a6aa62181a49b8bc18e7ea52824742212410228c32992b129a33be96d7c115"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/b6a6aa62181a49b8bc18e7ea52824742212410228c32992b129a33be96d7c115"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/targeted-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0842fcaeecf078ff51256383b0d09edebea2b4c1f790a853a09cbe2f7cb704a5"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/0842fcaeecf078ff51256383b0d09edebea2b4c1f790a853a09cbe2f7cb704a5"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/full-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a0af5682200c0de16b21beb05f5f1476adca56fcf415d69782382069076f36d5"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/a0af5682200c0de16b21beb05f5f1476adca56fcf415d69782382069076f36d5"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/schema-export.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "bc39d2ba429065cf4102f45b8e3f71d834dfe1e2c7df919a42107d45f81cbd43"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/bc39d2ba429065cf4102f45b8e3f71d834dfe1e2c7df919a42107d45f81cbd43"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/final-check.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/owned-ledger-audit.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "239bee819ac14a30663ad0717633b0e34182f5bdd6461c8a9c03227c3b718c00"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/239bee819ac14a30663ad0717633b0e34182f5bdd6461c8a9c03227c3b718c00"
+    },
+    {
+      "locator": ".cimiloop/credit-initial-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "ab60c83d2fa90059100195c795d01d0bdb319d0eb6dac379964d8228e1a4104d"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/ab60c83d2fa90059100195c795d01d0bdb319d0eb6dac379964d8228e1a4104d"
+    },
+    {
+      "locator": ".cimiloop/credit-core-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "cde706f1eab6038e328de85a02c034f4f3ec9caf553263fb0e0b5a9b218731ed"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/cde706f1eab6038e328de85a02c034f4f3ec9caf553263fb0e0b5a9b218731ed"
+    },
+    {
+      "locator": ".cimiloop/credit-core-recheck.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b5cad94289478801d8968fa68cfb89e8eb550c988c9dc1f8af2aa946deea1603"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/b5cad94289478801d8968fa68cfb89e8eb550c988c9dc1f8af2aa946deea1603"
+    },
+    {
+      "locator": ".cimiloop/credit-surface-check.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "locator": ".cimiloop/coding-plan-overview-2026-10-05.md",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b061718a0ba097bd5c0d8256a4e8a50f3d1a93c6f84c7ea1e60c410cc8d66a07"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/b061718a0ba097bd5c0d8256a4e8a50f3d1a93c6f84c7ea1e60c410cc8d66a07"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/tools/37888f8ce9d6ca9a86e3b09729bf2fb1e23c9b07fdfb9bbb28eff4818a23982c/AppContainer.exe",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1e50f9115cd71d171d9ba1eef0f4075f71cd770b6ca3d39d49506ba1549a82f4"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/1e50f9115cd71d171d9ba1eef0f4075f71cd770b6ca3d39d49506ba1549a82f4"
+    },
+    {
+      "locator": ".cimiloop/gateway-credit-v1-09/tools/37888f8ce9d6ca9a86e3b09729bf2fb1e23c9b07fdfb9bbb28eff4818a23982c/build.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "2693faaf4caa2f40daeadf67584a13d734b492a961796396e39101c004c3030b"
+      },
+      "archived_locator": ".cimiloop/gateway-credit-v1-09/evidence-blobs/2693faaf4caa2f40daeadf67584a13d734b492a961796396e39101c004c3030b"
+    }
+  ],
+  "validation": {
+    "build_and_typecheck": "passed",
+    "schema_export": "passed",
+    "targeted": {
+      "files": 5,
+      "tests": 89,
+      "passed": true,
+      "duration_seconds": 34.68,
+      "stage": "before final malformed-completion regression"
+    },
+    "full": {
+      "files": 40,
+      "tests": 436,
+      "passed": true,
+      "duration_seconds": 473.13,
+      "stage": "final source including malformed-completion regression"
+    },
+    "new_regressions": 25,
+    "old_runtime_schemas": [
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeOperationResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e4d785f38f836c223af0a23514f7d0b733de1a01277a9ec6b583d7766714f7ba"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "fbfdde8bbf7108ca630a5952abb6ab4b9a799f3652bda454db09857436255f7c"
+        },
+        "unchanged": true
+      }
+    ],
+    "previous_network_schema": {
+      "locator": "packages/protocol/schemas/v2/RuntimeGatewayNetworkProbeResult.schema.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "f06d03972219af8af95a6177b6bd762089716871d97b00906de18e8ec4e379d5"
+      },
+      "unchanged": true
+    },
+    "frozen_v1": "full compatibility suite passed"
+  },
+  "initial_failures_and_adjustments": [
+    {
+      "issue": "New native inspection variable shadowed an existing Main local",
+      "fix": "Use a distinct identityState local; native compilation and actual host cases passed"
+    },
+    {
+      "issue": "Corruption fixtures hit SQLite foreign-key protection before exercising the ledger",
+      "fix": "Disable foreign keys only in intentional fixture tampering; the production ledger verifies foreign keys and refuses damaged data"
+    },
+    {
+      "issue": "An exited Windows process can briefly be unreadable rather than proven absent",
+      "fix": "Keep the original state and held credits until bounded repeated exact-identity reads prove absent; no timeout-based assumption or forced termination"
+    },
+    {
+      "issue": "Completion digest accepted coercible values in the first implementation",
+      "fix": "Require a string digest before any state change; new malformed-completion regression passed in the final full suite"
+    }
+  ],
+  "credit_unit": "ZHIPU_CODING_PLAN_CREDIT",
+  "observed_rate": {
+    "format": "cimiloop/coding-plan-credit-observation/1.0.0",
+    "observed_on": "2026-10-05",
+    "expires_at": "2026-10-12T00:00:00.000Z",
+    "source_url": "https://docs.bigmodel.cn/cn/coding-plan/overview",
+    "source_digest": "b061718a0ba097bd5c0d8256a4e8a50f3d1a93c6f84c7ea1e60c410cc8d66a07",
+    "provider": "zhipuai-coding-plan",
+    "model": "glm-5.3",
+    "required_account_version": "credit_based_personal_plan",
+    "unit": "ZHIPU_CODING_PLAN_CREDIT",
+    "micro_units_per_input_token": 690,
+    "micro_units_per_output_token": 2400,
+    "cache_discount_applied": false,
+    "off_peak_discount_applied": false,
+    "reservation_quantum_micro_units": 1000000
+  },
+  "historical_rehearsal": true,
+  "actual_account_plan_version": "unknown",
+  "actual_token_bounds_verified": false,
+  "actual_cost_known": false,
+  "billing_admission_ready": false,
+  "formal_execution_enabled": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "http_requests": 0,
+  "domain_database_format": 8,
+  "original_test_ledger_format": 1,
+  "credit_rehearsal_ledger_format": 1,
+  "user_databases_migrated": 0,
+  "notes": [
+    "The three independent hosts are child credit writers in the CLI probe: two contend and one exits after dispatch. The main CLI process also writes single-host rehearsal cases. Native identity helpers are not model Runtimes.",
+    "The rehearsal uses a fixed historical rate time, not a live authorization. Default ledger reservation and dispatch check current time; completed replay and recovery preserve stored observations after expiry.",
+    "Each SQLite case is an isolated experiment. Its synthetic account digest cannot authorize a real credential or prove a unique protected store across files, projects or hosts.",
+    "Completed receipts contain hashes and conditional usage, never a billing invoice or the model response text. Every completed, cancelled or ambiguous request retains its original rounded reservation.",
+    "The audit found no reserved/dispatching requests in retained owned stores and verified every distinct stored original writer identity absent. It does not claim to clean Runtime/AppContainer resources, which this probe never created.",
+    "Raw prompts, credential contents and SQLite ledger bytes are not embedded or archived. Source and narrow observations are archived by digest; original failed test logs remain available.",
+    "Actual account/gateway eligibility, server-enforced token and reasoning bounds, approved account budgets and protected unique store, quota/invoice reconciliation, real HTTPS, filesystem hard quota and full controlled recovery remain pending."
+  ]
+}

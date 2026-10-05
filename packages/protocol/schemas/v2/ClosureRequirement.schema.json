@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ClosureRequirement.v2",
+  "anyOf": [
+    {
+      "type": "string",
+      "const": "none"
+    },
+    {
+      "type": "string",
+      "const": "before_release"
+    },
+    {
+      "type": "string",
+      "const": "before_change_complete"
+    },
+    {
+      "type": "string",
+      "const": "before_batch_end"
+    }
+  ]
+}

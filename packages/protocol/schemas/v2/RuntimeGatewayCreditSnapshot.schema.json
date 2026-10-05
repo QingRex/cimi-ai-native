@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeGatewayCreditSnapshot.v2",
+  "type": "object",
+  "required": [
+    "scope",
+    "unit",
+    "account_scope_digest",
+    "policy_digest",
+    "maximum_micro_units",
+    "held_micro_units",
+    "remaining_micro_units",
+    "reserved",
+    "dispatching",
+    "completed",
+    "unknown",
+    "blocked",
+    "budgets",
+    "actual_cost_known",
+    "admission_ready"
+  ],
+  "properties": {
+    "scope": {
+      "type": "string",
+      "const": "credit_budget_rehearsal"
+    },
+    "unit": {
+      "type": "string",
+      "const": "ZHIPU_CODING_PLAN_CREDIT"
+    },
+    "account_scope_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "policy_digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "maximum_micro_units": {
+      "type": "integer",
+      "minimum": 1000000,
+      "maximum": 1000000000000,
+      "multipleOf": 1000000
+    },
+    "held_micro_units": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "remaining_micro_units": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "reserved": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "dispatching": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "completed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "unknown": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "blocked": {
+      "type": "boolean"
+    },
+    "budgets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "budget_key",
+          "maximum_micro_units",
+          "held_micro_units"
+        ],
+        "properties": {
+          "budget_key": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+          },
+          "maximum_micro_units": {
+            "type": "integer",
+            "minimum": 1000000,
+            "maximum": 1000000000000,
+            "multipleOf": 1000000
+          },
+          "held_micro_units": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          }
+        },
+        "additionalProperties": false
+      },
+      "maxItems": 4096
+    },
+    "actual_cost_known": {
+      "type": "boolean",
+      "const": false
+    },
+    "admission_ready": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}

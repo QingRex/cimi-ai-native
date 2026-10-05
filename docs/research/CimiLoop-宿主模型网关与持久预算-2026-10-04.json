@@ -1,0 +1,584 @@
+{
+  "captured_at": "2026-10-04T15:28:49.245Z",
+  "decision": "D-199",
+  "scope": "synthetic_gateway_probe",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2"
+  },
+  "implementation_scope": "host_gateway_core_only; authenticated AppContainer IPC bridge remains pending",
+  "actual_probe": {
+    "schema_version": "2.0.0",
+    "scope": "synthetic_gateway_probe",
+    "observed_at": "2026-10-04T15:26:58.153Z",
+    "gateway_probe_passed": true,
+    "route": {
+      "host": "cimiloop-gateway.test",
+      "path": "/v1/chat/completions",
+      "model": "cimiloop-synthetic-text",
+      "tls_peer_verified": true,
+      "redirects": false,
+      "retries": 0,
+      "certificate_digest": {
+        "algorithm": "sha256",
+        "value": "90abef6912292e57059110a262b163062d2deef4e3a32d134dba3d14b29fd05b"
+      },
+      "max_request_bytes": 16384,
+      "max_response_bytes": 16384,
+      "max_output_tokens": 128
+    },
+    "checks": [
+      {
+        "name": "fixed_https_route",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "durable_replay_and_conflict",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "input_rejected_before_reservation",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "concurrent_budget_cap",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "redirect_retains_reservation",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "malformed_retains_reservation",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "usage_overflow_retains_reservation",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "deadline_retains_reservation",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "abort_retains_uncertain_reservation",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "untrusted_tls_peer_no_http",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "ended_owner_never_resends",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      },
+      {
+        "name": "actual_provider_billing_gate_closed",
+        "passed": true,
+        "reason": "host_gateway_observed"
+      }
+    ],
+    "budgets": [
+      {
+        "case_name": "completed",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "8549df684daae85648482bc348d19f725752a96df14ccfbe9b9bb7e53ddfe060"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 33408,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 0,
+          "blocked": false
+        }
+      },
+      {
+        "case_name": "denied",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "8549df684daae85648482bc348d19f725752a96df14ccfbe9b9bb7e53ddfe060"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 33408,
+          "held_micro_units": 0,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 0,
+          "blocked": false
+        }
+      },
+      {
+        "case_name": "competing",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "8549df684daae85648482bc348d19f725752a96df14ccfbe9b9bb7e53ddfe060"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 33408,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 1,
+          "unknown": 0,
+          "blocked": false
+        }
+      },
+      {
+        "case_name": "redirect",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "8549df684daae85648482bc348d19f725752a96df14ccfbe9b9bb7e53ddfe060"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 66816,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false
+        }
+      },
+      {
+        "case_name": "malformed",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "8549df684daae85648482bc348d19f725752a96df14ccfbe9b9bb7e53ddfe060"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 66816,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false
+        }
+      },
+      {
+        "case_name": "usage_overflow",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "8549df684daae85648482bc348d19f725752a96df14ccfbe9b9bb7e53ddfe060"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 66816,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": true
+        }
+      },
+      {
+        "case_name": "timeout",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "d46ab9f44ff0adfeec9fa70a64a7fee8e1ce477b523fd95c50ddfc7e0b9839c2"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 33408,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false
+        }
+      },
+      {
+        "case_name": "cancelled",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "8549df684daae85648482bc348d19f725752a96df14ccfbe9b9bb7e53ddfe060"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 33408,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false
+        }
+      },
+      {
+        "case_name": "tls",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "8737d7d11760e6492e34f4ff153157caf548e922ae90bd4492886237158132d1"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 33408,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false
+        }
+      },
+      {
+        "case_name": "ended",
+        "policy_digest": {
+          "algorithm": "sha256",
+          "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "snapshot": {
+          "currency": "TEST",
+          "maximum_micro_units": 33408,
+          "held_micro_units": 33408,
+          "reserved": 0,
+          "dispatching": 0,
+          "completed": 0,
+          "unknown": 1,
+          "blocked": false
+        }
+      }
+    ],
+    "synthetic_http_requests": 6,
+    "external_model_requests": 0,
+    "actual_credentials_read": 0,
+    "cost_known": false,
+    "ipc_runtime_connected": false,
+    "formal_execution_enabled": false,
+    "evidence_refs": [
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "gateway_host_observation",
+        "locator": ".cimiloop/gateway-host-v1-10/blobs/6fd5d97b92c9ab33e971b299ad4d9f9467f5ae2f58d1786771d7082a7538e002",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "6fd5d97b92c9ab33e971b299ad4d9f9467f5ae2f58d1786771d7082a7538e002"
+        },
+        "version": "host-observation.json"
+      }
+    ],
+    "gaps": [
+      "authenticated_ipc_gateway_bridge",
+      "verified_real_provider_billing_upper_bound",
+      "real_provider_gateway_acceptance",
+      "hard_filesystem_quota",
+      "complete_crash_recovery_acceptance",
+      "formal_task_binding_and_agent_entry"
+    ]
+  },
+  "persistent_host_fixtures": {
+    "crash": {
+      "scope": "synthetic_gateway_probe",
+      "method": "owned_child_self_exit_after_upstream_received_request",
+      "owner": {
+        "pid": 24480,
+        "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe",
+        "exit_code": 73
+      },
+      "dispatch_observed": {
+        "state": "dispatching",
+        "held": 33408
+      },
+      "before": {
+        "currency": "TEST",
+        "maximum_micro_units": 33408,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 1,
+        "completed": 0,
+        "unknown": 0,
+        "blocked": false
+      },
+      "after": {
+        "currency": "TEST",
+        "maximum_micro_units": 33408,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 0,
+        "unknown": 1,
+        "blocked": false
+      },
+      "reconciled": 1,
+      "same_request_reason": "gateway_request_outcome_unproven",
+      "new_request_reason": "gateway_budget_exhausted",
+      "requests": [
+        {
+          "path": "/v1/chat/completions",
+          "method": "POST",
+          "host": "cimiloop-gateway.test:9574",
+          "authenticated": true,
+          "body_digest": "91c0c1b374c65a3237c40f458c335b3f28f225fc24ef23ebc2d9600547f0b1c2",
+          "model": "cimiloop-synthetic-text",
+          "output_limit": 16,
+          "stream": false,
+          "n": 1
+        }
+      ],
+      "passed": true
+    },
+    "competition": {
+      "scope": "synthetic_gateway_probe",
+      "method": "two_independent_gateway_hosts_one_budget",
+      "owners": [
+        {
+          "pid": 23012,
+          "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe",
+          "exit_code": 0
+        },
+        {
+          "pid": 2752,
+          "image": "C:\\Users\\chaol\\.cache\\cimiloop-v1-01-npm\\_npx\\a105f8cfdc768adc\\node_modules\\node\\bin\\node.exe",
+          "exit_code": 0
+        }
+      ],
+      "outcomes": [
+        "completed",
+        "gateway_budget_exhausted"
+      ],
+      "snapshot": {
+        "currency": "TEST",
+        "maximum_micro_units": 33408,
+        "held_micro_units": 33408,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 1,
+        "unknown": 0,
+        "blocked": false
+      },
+      "requests": [
+        {
+          "path": "/v1/chat/completions",
+          "method": "POST",
+          "host": "cimiloop-gateway.test:9580",
+          "authenticated": true,
+          "body_digest": "91c0c1b374c65a3237c40f458c335b3f28f225fc24ef23ebc2d9600547f0b1c2",
+          "model": "cimiloop-synthetic-text",
+          "output_limit": 16,
+          "stream": false,
+          "n": 1
+        }
+      ],
+      "passed": true
+    }
+  },
+  "source_digests": [
+    {
+      "locator": "packages/runtime-adapter/src/gateway-budget.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "018e3d01215d18e8e848a37b80e31304a51b3165538f6eb3db3d6dacaeaf6e58"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/model-gateway.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "392e3d5fb3a729cc377b6ea5220c099ed925ca704ce70d8e9e7ebd65d9552e0c"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-fixture.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "72afbd27933efe54c170c7ce7c895138f49468a11b791c747fad7d4d0e17bf50"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-probe.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "ca6826839801a32b3d84d48221ca60d61d0f8f8829619bf0a2d5dfb6cec58a3d"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/src/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "2fd627495078a164774823b2a5b9bb9d6cc9135183d3e78a77f581ccc031a028"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/test/model-gateway.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b13f8f03a745dcdf14ba30698a2d3a3e8fd06c1c641e2a256b82c87faf187600"
+      }
+    },
+    {
+      "locator": "packages/protocol/src/v2/runtime-gateway.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "75424f90ba09d53b9ce44b6ad66a9de55a82ab054bb140ad50f754b08b7f03b5"
+      }
+    },
+    {
+      "locator": "packages/protocol/src/v2/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "aa484d6f4823972898312dd60ab5d406fed11684468ab263ffb9243ce04b1c76"
+      }
+    },
+    {
+      "locator": "apps/cli/src/bin.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "70c940a51c64cb3055c3dc6bb80017dce74d6ea1fff889283bf2e3e4ada3e675"
+      }
+    },
+    {
+      "locator": "apps/cli/src/runtime-probe.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "eb897f53e52208ba2a361aa8727e177f8dacab2dc3868a383771dba433ddbcb6"
+      }
+    },
+    {
+      "locator": "tests/scenarios/runtime-probe-cli.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "469ed86e2b57b16133fdeba80e74c2564faee528e9aa9a9064c20de397eab6e3"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/fixtures/gateway-tls/cert.pem",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "90abef6912292e57059110a262b163062d2deef4e3a32d134dba3d14b29fd05b"
+      }
+    },
+    {
+      "locator": "packages/runtime-adapter/fixtures/gateway-tls/untrusted-cert.pem",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "62e57be88c183da64dd403efd25046a7d2562cb519e824f95290a6170f44123a"
+      }
+    }
+  ],
+  "raw_references": [
+    {
+      "locator": ".cimiloop/gateway-host-v1-10/cli.stdout.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "aec1ac23d3ab65dcdc301ec9ace09b3b835808bce067393c68ccaf2d671c689c"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-host-v1-10/gateway-probe-result.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "f7acf25c6e7f0b77342b3cefadab714c9035a9a4b72d428a82075e9bbb8c1501"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-host-v1-10/fault-fixtures/crash-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "817ade6dbd08da8437c549d0b1e8252d6ad5fecbde78b3e6a93a0b44cab488cc"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-host-v1-10/fault-fixtures/concurrent-proof.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9217f0db1e7155402b6b2572efd08636be4ba7f08284f09e5263d0d2b7011a1a"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-host-v1-10/full-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "59348f11f44f299a1cfce7dd0f015054d2ad8316c81d121c26f1c86d51350c6b"
+      }
+    },
+    {
+      "locator": ".cimiloop/gateway-host-v1-10/blobs/6fd5d97b92c9ab33e971b299ad4d9f9467f5ae2f58d1786771d7082a7538e002",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "6fd5d97b92c9ab33e971b299ad4d9f9467f5ae2f58d1786771d7082a7538e002"
+      }
+    }
+  ],
+  "validation": {
+    "build_and_typecheck": "passed",
+    "schema_export": "passed",
+    "targeted": {
+      "files": 3,
+      "tests": 61,
+      "passed": true
+    },
+    "full": {
+      "files": 35,
+      "tests": 358,
+      "duration_seconds": 269.22,
+      "passed": true
+    },
+    "new_regressions": 30,
+    "old_runtime_schemas": [
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeOperationResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e4d785f38f836c223af0a23514f7d0b733de1a01277a9ec6b583d7766714f7ba"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "fbfdde8bbf7108ca630a5952abb6ab4b9a799f3652bda454db09857436255f7c"
+        },
+        "unchanged": true
+      }
+    ],
+    "frozen_v1": "full protocol compatibility tests passed",
+    "documentation": {
+      "markdown_files": 89,
+      "broken_local_links": 0,
+      "raw_and_source_digests_verified": true
+    }
+  },
+  "billing": {
+    "currency": "TEST",
+    "single_request_held_micro_units": 33408,
+    "actual_cost_known": false,
+    "automatic_refunds": false,
+    "real_provider_billing_profile": "unavailable; rejected before decryption or network"
+  },
+  "formal_execution_enabled": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "ipc_runtime_connected": false,
+  "domain_database_format": 8,
+  "host_ledger_format": 1,
+  "user_databases_migrated": 0,
+  "notes": [
+    "CLI ended-owner check closes the original ledger normally; separate retained crash proof ends an owned child with exit 73 only after the synthetic HTTPS receiver observes the committed dispatch claim.",
+    "All owned synthetic listeners and child IPC channels were closed; no AppContainer or native controller was started in this batch.",
+    "TEST usage and the public fixture credential are synthetic. No financial price or actual-provider cost cap is claimed.",
+    "The public-address classifier is a helper; production DNS pinning/rebinding protection and actual-provider gateway acceptance remain pending."
+  ]
+}

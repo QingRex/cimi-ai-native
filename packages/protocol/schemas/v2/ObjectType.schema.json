@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ObjectType.v2",
+  "anyOf": [
+    {
+      "type": "string",
+      "const": "project"
+    },
+    {
+      "type": "string",
+      "const": "actor"
+    },
+    {
+      "type": "string",
+      "const": "role"
+    },
+    {
+      "type": "string",
+      "const": "assignment"
+    },
+    {
+      "type": "string",
+      "const": "change"
+    },
+    {
+      "type": "string",
+      "const": "target_version"
+    },
+    {
+      "type": "string",
+      "const": "project_settings_version"
+    },
+    {
+      "type": "string",
+      "const": "contract_proposal"
+    },
+    {
+      "type": "string",
+      "const": "plan_proposal"
+    },
+    {
+      "type": "string",
+      "const": "contract_version"
+    },
+    {
+      "type": "string",
+      "const": "plan_version"
+    },
+    {
+      "type": "string",
+      "const": "task_definition"
+    },
+    {
+      "type": "string",
+      "const": "lifecycle_transition_record"
+    },
+    {
+      "type": "string",
+      "const": "task"
+    },
+    {
+      "type": "string",
+      "const": "standing_authorization"
+    },
+    {
+      "type": "string",
+      "const": "standing_authorization_version"
+    },
+    {
+      "type": "string",
+      "const": "authorization_revocation_record"
+    },
+    {
+      "type": "string",
+      "const": "work_item_authorization_record"
+    },
+    {
+      "type": "string",
+      "const": "work_item"
+    },
+    {
+      "type": "string",
+      "const": "run_record"
+    },
+    {
+      "type": "string",
+      "const": "run"
+    },
+    {
+      "type": "string",
+      "const": "run_observation"
+    },
+    {
+      "type": "string",
+      "const": "context_manifest"
+    },
+    {
+      "type": "string",
+      "const": "handoff_record"
+    },
+    {
+      "type": "string",
+      "const": "resumption_record"
+    },
+    {
+      "type": "string",
+      "const": "workspace_snapshot"
+    },
+    {
+      "type": "string",
+      "const": "evidence"
+    },
+    {
+      "type": "string",
+      "const": "evaluation"
+    },
+    {
+      "type": "string",
+      "const": "requirement_set_record"
+    },
+    {
+      "type": "string",
+      "const": "evaluation_context"
+    },
+    {
+      "type": "string",
+      "const": "task_satisfaction_record"
+    },
+    {
+      "type": "string",
+      "const": "integration_readiness_record"
+    },
+    {
+      "type": "string",
+      "const": "risk_assessment"
+    },
+    {
+      "type": "string",
+      "const": "policy_version"
+    },
+    {
+      "type": "string",
+      "const": "policy_snapshot"
+    },
+    {
+      "type": "string",
+      "const": "decision_request"
+    },
+    {
+      "type": "string",
+      "const": "decision"
+    },
+    {
+      "type": "string",
+      "const": "blocker"
+    },
+    {
+      "type": "string",
+      "const": "source_snapshot"
+    },
+    {
+      "type": "string",
+      "const": "artifact"
+    },
+    {
+      "type": "string",
+      "const": "release_batch"
+    },
+    {
+      "type": "string",
+      "const": "release_candidate"
+    },
+    {
+      "type": "string",
+      "const": "release"
+    },
+    {
+      "type": "string",
+      "const": "deployment_record"
+    },
+    {
+      "type": "string",
+      "const": "deployment_observation"
+    },
+    {
+      "type": "string",
+      "const": "environment"
+    },
+    {
+      "type": "string",
+      "const": "environment_conditions"
+    },
+    {
+      "type": "string",
+      "const": "environment_coordination"
+    },
+    {
+      "type": "string",
+      "const": "production_observation_plan"
+    },
+    {
+      "type": "string",
+      "const": "change_delivery_assessment"
+    },
+    {
+      "type": "string",
+      "const": "provider_descriptor"
+    },
+    {
+      "type": "string",
+      "const": "provider_binding"
+    },
+    {
+      "type": "string",
+      "const": "transition_record"
+    },
+    {
+      "type": "string",
+      "const": "event"
+    },
+    {
+      "type": "string",
+      "const": "outbox_message"
+    }
+  ]
+}

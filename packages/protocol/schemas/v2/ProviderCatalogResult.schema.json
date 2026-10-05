@@ -1,0 +1,1520 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ProviderCatalogResult.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "ok",
+    "descriptors",
+    "bindings",
+    "assessment_checks",
+    "admission",
+    "binding_checks",
+    "agent_bindings",
+    "as_of_event_sequence"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "ok": {
+      "type": "boolean",
+      "const": true
+    },
+    "descriptors": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "schema_version",
+              "id",
+              "project_id",
+              "created_at",
+              "producer_actor_id",
+              "source_ref",
+              "provider_kind",
+              "name",
+              "version",
+              "capabilities",
+              "dependencies",
+              "required_permissions",
+              "input_schema_ref",
+              "output_schema_ref",
+              "trust_status"
+            ],
+            "properties": {
+              "schema_version": {
+                "type": "string",
+                "const": "2.0.0"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "project_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "created_at": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+              },
+              "producer_actor_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "source_ref": {
+                "type": "object",
+                "required": [
+                  "provider",
+                  "resource_type",
+                  "locator",
+                  "version",
+                  "digest"
+                ],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "resource_type": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "provider_kind": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "runtime"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill"
+                  },
+                  {
+                    "type": "string",
+                    "const": "evaluator"
+                  },
+                  {
+                    "type": "string",
+                    "const": "spec_adapter"
+                  },
+                  {
+                    "type": "string",
+                    "const": "devops"
+                  }
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "capability_id",
+                    "version"
+                  ],
+                  "properties": {
+                    "capability_id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
+                    },
+                    "version": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "dependencies": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "descriptor_ref",
+                    "digest"
+                  ],
+                  "properties": {
+                    "descriptor_ref": {
+                      "type": "object",
+                      "required": [
+                        "object_type",
+                        "id"
+                      ],
+                      "properties": {
+                        "object_type": {
+                          "type": "string",
+                          "const": "provider_descriptor"
+                        },
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "digest": {
+                      "type": "object",
+                      "required": [
+                        "algorithm",
+                        "value"
+                      ],
+                      "properties": {
+                        "algorithm": {
+                          "type": "string",
+                          "const": "sha256"
+                        },
+                        "value": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "uniqueItems": true
+              },
+              "required_permissions": {
+                "type": "object",
+                "required": [
+                  "actions",
+                  "resources",
+                  "environment_ids",
+                  "network_hosts"
+                ],
+                "properties": {
+                  "actions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "uniqueItems": true
+                  },
+                  "resources": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "provider",
+                        "resource_type",
+                        "locator"
+                      ],
+                      "properties": {
+                        "provider": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "resource_type": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "locator": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "version": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "digest": {
+                          "type": "object",
+                          "required": [
+                            "algorithm",
+                            "value"
+                          ],
+                          "properties": {
+                            "algorithm": {
+                              "type": "string",
+                              "const": "sha256"
+                            },
+                            "value": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{64}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "uniqueItems": true
+                  },
+                  "environment_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    },
+                    "uniqueItems": true
+                  },
+                  "network_hosts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "uniqueItems": true
+                  }
+                },
+                "additionalProperties": false
+              },
+              "input_schema_ref": {
+                "type": "object",
+                "required": [
+                  "schema_id",
+                  "digest"
+                ],
+                "properties": {
+                  "schema_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "output_schema_ref": {
+                "type": "object",
+                "required": [
+                  "schema_id",
+                  "digest"
+                ],
+                "properties": {
+                  "schema_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "trust_status": {
+                "type": "string",
+                "const": "candidate"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "schema_version",
+              "id",
+              "project_id",
+              "created_at",
+              "producer_actor_id",
+              "source_ref",
+              "provider_kind",
+              "name",
+              "version",
+              "capabilities",
+              "dependencies",
+              "required_permissions",
+              "input_schema_ref",
+              "output_schema_ref",
+              "trust_status",
+              "evaluation_ref"
+            ],
+            "properties": {
+              "schema_version": {
+                "type": "string",
+                "const": "2.0.0"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "project_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "created_at": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+              },
+              "producer_actor_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "source_ref": {
+                "type": "object",
+                "required": [
+                  "provider",
+                  "resource_type",
+                  "locator",
+                  "version",
+                  "digest"
+                ],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "resource_type": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "provider_kind": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "runtime"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill"
+                  },
+                  {
+                    "type": "string",
+                    "const": "evaluator"
+                  },
+                  {
+                    "type": "string",
+                    "const": "spec_adapter"
+                  },
+                  {
+                    "type": "string",
+                    "const": "devops"
+                  }
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "capability_id",
+                    "version"
+                  ],
+                  "properties": {
+                    "capability_id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
+                    },
+                    "version": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "dependencies": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "descriptor_ref",
+                    "digest"
+                  ],
+                  "properties": {
+                    "descriptor_ref": {
+                      "type": "object",
+                      "required": [
+                        "object_type",
+                        "id"
+                      ],
+                      "properties": {
+                        "object_type": {
+                          "type": "string",
+                          "const": "provider_descriptor"
+                        },
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "digest": {
+                      "type": "object",
+                      "required": [
+                        "algorithm",
+                        "value"
+                      ],
+                      "properties": {
+                        "algorithm": {
+                          "type": "string",
+                          "const": "sha256"
+                        },
+                        "value": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "uniqueItems": true
+              },
+              "required_permissions": {
+                "type": "object",
+                "required": [
+                  "actions",
+                  "resources",
+                  "environment_ids",
+                  "network_hosts"
+                ],
+                "properties": {
+                  "actions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "uniqueItems": true
+                  },
+                  "resources": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "provider",
+                        "resource_type",
+                        "locator"
+                      ],
+                      "properties": {
+                        "provider": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "resource_type": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "locator": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "version": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "digest": {
+                          "type": "object",
+                          "required": [
+                            "algorithm",
+                            "value"
+                          ],
+                          "properties": {
+                            "algorithm": {
+                              "type": "string",
+                              "const": "sha256"
+                            },
+                            "value": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{64}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "uniqueItems": true
+                  },
+                  "environment_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    },
+                    "uniqueItems": true
+                  },
+                  "network_hosts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "uniqueItems": true
+                  }
+                },
+                "additionalProperties": false
+              },
+              "input_schema_ref": {
+                "type": "object",
+                "required": [
+                  "schema_id",
+                  "digest"
+                ],
+                "properties": {
+                  "schema_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "output_schema_ref": {
+                "type": "object",
+                "required": [
+                  "schema_id",
+                  "digest"
+                ],
+                "properties": {
+                  "schema_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "trust_status": {
+                "type": "string",
+                "const": "evaluated"
+              },
+              "evaluation_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "evaluation"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "id",
+          "project_id",
+          "created_at",
+          "producer_actor_id",
+          "descriptor_ref",
+          "descriptor_digest",
+          "capability",
+          "resolved_dependencies",
+          "input_schema_ref",
+          "output_schema_ref",
+          "effective_permissions",
+          "probe_evidence_refs"
+        ],
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2.0.0"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "project_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "created_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "producer_actor_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "source_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resource_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "descriptor_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "provider_descriptor"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "descriptor_digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "capability": {
+            "type": "object",
+            "required": [
+              "capability_id",
+              "version"
+            ],
+            "properties": {
+              "capability_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
+              },
+              "version": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "resolved_dependencies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "descriptor_ref",
+                "digest"
+              ],
+              "properties": {
+                "descriptor_ref": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "provider_descriptor"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "uniqueItems": true
+          },
+          "runtime_binding_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "provider_binding"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "input_schema_ref": {
+            "type": "object",
+            "required": [
+              "schema_id",
+              "digest"
+            ],
+            "properties": {
+              "schema_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "output_schema_ref": {
+            "type": "object",
+            "required": [
+              "schema_id",
+              "digest"
+            ],
+            "properties": {
+              "schema_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "effective_permissions": {
+            "type": "object",
+            "required": [
+              "actions",
+              "resources",
+              "environment_ids",
+              "network_hosts"
+            ],
+            "properties": {
+              "actions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              },
+              "resources": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "provider",
+                    "resource_type",
+                    "locator"
+                  ],
+                  "properties": {
+                    "provider": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "resource_type": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "locator": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "digest": {
+                      "type": "object",
+                      "required": [
+                        "algorithm",
+                        "value"
+                      ],
+                      "properties": {
+                        "algorithm": {
+                          "type": "string",
+                          "const": "sha256"
+                        },
+                        "value": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "uniqueItems": true
+              },
+              "environment_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                },
+                "uniqueItems": true
+              },
+              "network_hosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              }
+            },
+            "additionalProperties": false
+          },
+          "approval": {
+            "type": "object",
+            "required": [
+              "assignment_ref",
+              "evaluation_ref",
+              "input_digest",
+              "binding_scope"
+            ],
+            "properties": {
+              "assignment_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "assignment"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "evaluation_ref": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "evaluation"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "input_digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "binding_scope": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "isolated_provider_probe"
+                  },
+                  {
+                    "type": "string",
+                    "const": "task_execution"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "probe_evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "object_type",
+                "id"
+              ],
+              "properties": {
+                "object_type": {
+                  "type": "string",
+                  "const": "evidence"
+                },
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "assessment_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "evaluation_ref",
+          "descriptor_ref",
+          "profile",
+          "outcome",
+          "input_digest",
+          "blockers"
+        ],
+        "properties": {
+          "evaluation_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "evaluation"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "descriptor_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "provider_descriptor"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "technical_contract"
+              },
+              {
+                "type": "string",
+                "const": "controlled_execution"
+              }
+            ]
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "ALLOW"
+              },
+              {
+                "type": "string",
+                "const": "NEED_MORE_EVIDENCE"
+              },
+              {
+                "type": "string",
+                "const": "REQUIRE_HUMAN"
+              },
+              {
+                "type": "string",
+                "const": "DENY"
+              }
+            ]
+          },
+          "input_digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "admission": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "descriptor_ref",
+          "descriptor_digest",
+          "execution_enabled",
+          "blockers"
+        ],
+        "properties": {
+          "descriptor_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "provider_descriptor"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "descriptor_digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "execution_enabled": {
+            "type": "boolean",
+            "const": false
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "binding_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "binding_ref",
+          "binding_digest",
+          "execution_enabled",
+          "blockers"
+        ],
+        "properties": {
+          "binding_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "provider_binding"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "binding_digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "execution_enabled": {
+            "type": "boolean",
+            "const": false
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "agent_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "actor_ref",
+          "identity_matches_binding",
+          "execution_enabled",
+          "blockers"
+        ],
+        "properties": {
+          "actor_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "actor"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "binding_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "provider_binding"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "identity_matches_binding": {
+            "type": "boolean"
+          },
+          "execution_enabled": {
+            "type": "boolean",
+            "const": false
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "as_of_event_sequence": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

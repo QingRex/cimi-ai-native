@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeGatewayBridgeObservation.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope",
+    "operation_key",
+    "phase",
+    "native_pid",
+    "runtime_pid",
+    "gateway_policy_digest",
+    "fixture_config_digest",
+    "network_mode",
+    "synthetic_http_requests",
+    "budget",
+    "attempts",
+    "failure_reason",
+    "actual_credentials_read",
+    "external_model_requests",
+    "formal_execution_enabled"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "scope": {
+      "type": "string",
+      "const": "isolated_provider_probe"
+    },
+    "operation_key": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+    },
+    "phase": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "running"
+        },
+        {
+          "type": "string",
+          "const": "ended"
+        }
+      ]
+    },
+    "native_pid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "runtime_pid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "gateway_policy_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fixture_config_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "network_mode": {
+      "type": "string",
+      "const": "deny_all"
+    },
+    "synthetic_http_requests": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 8
+    },
+    "budget": {
+      "type": "object",
+      "required": [
+        "currency",
+        "maximum_micro_units",
+        "held_micro_units",
+        "reserved",
+        "dispatching",
+        "completed",
+        "unknown",
+        "blocked"
+      ],
+      "properties": {
+        "currency": {
+          "type": "string",
+          "const": "TEST"
+        },
+        "maximum_micro_units": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000000
+        },
+        "held_micro_units": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000
+        },
+        "reserved": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4096
+        },
+        "dispatching": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4096
+        },
+        "completed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4096
+        },
+        "unknown": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4096
+        },
+        "blocked": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "request_id",
+          "wire_digest",
+          "outcome",
+          "reason",
+          "replay"
+        ],
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$"
+          },
+          "wire_digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "completed"
+              },
+              {
+                "type": "string",
+                "const": "denied"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "replay": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "maxItems": 8
+    },
+    "failure_reason": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "actual_credentials_read": {
+      "type": "number",
+      "const": 0
+    },
+    "external_model_requests": {
+      "type": "number",
+      "const": 0
+    },
+    "formal_execution_enabled": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,5 +1,7 @@
 # AI Native 产研全流程 v1.7：行业对标与 v2.0 优化建议
 
+> 适用状态（2026-10-02）：历史流程对标，正文保留当时建议；旧 N3 风险授权、Agent 主导及成熟度判断不作为当前规范。现行 N3 为共同集成与发布准备，风险授权贯穿全程，人可以直接实施；完整规则见[独立流程基线](../architecture/AI-Native软件研发流程-v0.1.md)。本轮未复核外部研究结论。
+
 > 对标对象：飞书《AI Native 产研全流程 v1.7》  
 > 行业参照：OpenAI、Anthropic、Microsoft、Cursor、Coinbase、Dropbox、Siemens、Block 公开实践  
 > 评估日期：2026-09-16

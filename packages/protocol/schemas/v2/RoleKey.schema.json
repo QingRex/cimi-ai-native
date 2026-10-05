@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RoleKey.v2",
+  "anyOf": [
+    {
+      "type": "string",
+      "const": "project_owner"
+    },
+    {
+      "type": "string",
+      "const": "change_owner"
+    },
+    {
+      "type": "string",
+      "const": "requirement_owner"
+    },
+    {
+      "type": "string",
+      "const": "technical_owner"
+    },
+    {
+      "type": "string",
+      "const": "quality_owner"
+    },
+    {
+      "type": "string",
+      "const": "release_owner"
+    },
+    {
+      "type": "string",
+      "const": "flow_owner"
+    },
+    {
+      "type": "string",
+      "const": "policy_owner"
+    },
+    {
+      "type": "string",
+      "const": "exception_owner"
+    }
+  ]
+}

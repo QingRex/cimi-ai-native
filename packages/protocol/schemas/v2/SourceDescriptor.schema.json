@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "SourceDescriptor.v2",
+  "type": "object",
+  "required": [
+    "origin",
+    "producer"
+  ],
+  "properties": {
+    "origin": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "human_cli"
+        },
+        {
+          "type": "string",
+          "const": "human_ui"
+        },
+        {
+          "type": "string",
+          "const": "agent"
+        },
+        {
+          "type": "string",
+          "const": "system"
+        },
+        {
+          "type": "string",
+          "const": "adapter"
+        }
+      ]
+    },
+    "producer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository_path": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeExecutionPolicyObservation.v2",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "scope",
+        "operation_key",
+        "pid",
+        "network_mode",
+        "enforcement",
+        "capability_sids",
+        "cost_mode",
+        "formal_execution_enabled"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "2.0.0"
+        },
+        "scope": {
+          "type": "string",
+          "const": "isolated_provider_probe"
+        },
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+        },
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "network_mode": {
+          "type": "string",
+          "const": "deny_all"
+        },
+        "enforcement": {
+          "type": "string",
+          "const": "appcontainer_no_network_capabilities"
+        },
+        "capability_sids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 0
+        },
+        "cost_mode": {
+          "type": "string",
+          "const": "unmetered_probe_only"
+        },
+        "formal_execution_enabled": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "scope",
+        "operation_key",
+        "pid",
+        "network_mode",
+        "enforcement",
+        "capability_sids",
+        "cost_mode",
+        "formal_execution_enabled"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "2.0.0"
+        },
+        "scope": {
+          "type": "string",
+          "const": "isolated_provider_probe"
+        },
+        "operation_key": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+        },
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "network_mode": {
+          "type": "string",
+          "const": "unrestricted_probe_only"
+        },
+        "enforcement": {
+          "type": "string",
+          "const": "appcontainer_internet_client"
+        },
+        "capability_sids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "const": "S-1-15-3-1"
+          },
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "cost_mode": {
+          "type": "string",
+          "const": "unmetered_probe_only"
+        },
+        "formal_execution_enabled": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

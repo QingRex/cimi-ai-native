@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeGatewayTransportObservation.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope",
+    "operation_key",
+    "phase",
+    "transport",
+    "runtime_pid",
+    "client_identity_enforcement",
+    "remote_clients_rejected",
+    "gateway_policy_digest",
+    "frame_limit_bytes",
+    "accepted_requests",
+    "attempts",
+    "failure_reason",
+    "external_model_requests",
+    "formal_execution_enabled"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "scope": {
+      "type": "string",
+      "const": "isolated_provider_probe"
+    },
+    "operation_key": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+    },
+    "phase": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "running"
+        },
+        {
+          "type": "string",
+          "const": "ended"
+        }
+      ]
+    },
+    "transport": {
+      "type": "string",
+      "const": "windows_named_pipe"
+    },
+    "runtime_pid": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "client_identity_enforcement": {
+      "type": "string",
+      "const": "pid_creation_image"
+    },
+    "remote_clients_rejected": {
+      "type": "boolean",
+      "const": true
+    },
+    "gateway_policy_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "frame_limit_bytes": {
+      "type": "number",
+      "const": 16384
+    },
+    "accepted_requests": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 8
+    },
+    "attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "pid",
+          "outcome",
+          "reason",
+          "request_bytes",
+          "request_digest",
+          "replay"
+        ],
+        "properties": {
+          "pid": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "accepted"
+              },
+              {
+                "type": "string",
+                "const": "rejected"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "runtime_identity_verified"
+              },
+              {
+                "type": "string",
+                "const": "client_identity_mismatch"
+              },
+              {
+                "type": "string",
+                "const": "ipc_frame_limit"
+              },
+              {
+                "type": "string",
+                "const": "ipc_request_invalid"
+              },
+              {
+                "type": "string",
+                "const": "request_id_conflict"
+              },
+              {
+                "type": "string",
+                "const": "ipc_request_limit"
+              }
+            ]
+          },
+          "request_bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 262144
+          },
+          "request_digest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "replay": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "maxItems": 32
+    },
+    "failure_reason": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "external_model_requests": {
+      "type": "number",
+      "const": 0
+    },
+    "formal_execution_enabled": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}

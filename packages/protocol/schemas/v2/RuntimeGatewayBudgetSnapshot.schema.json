@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RuntimeGatewayBudgetSnapshot.v2",
+  "type": "object",
+  "required": [
+    "currency",
+    "maximum_micro_units",
+    "held_micro_units",
+    "reserved",
+    "dispatching",
+    "completed",
+    "unknown",
+    "blocked"
+  ],
+  "properties": {
+    "currency": {
+      "type": "string",
+      "const": "TEST"
+    },
+    "maximum_micro_units": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000000000
+    },
+    "held_micro_units": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "reserved": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "dispatching": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "completed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "unknown": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "blocked": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

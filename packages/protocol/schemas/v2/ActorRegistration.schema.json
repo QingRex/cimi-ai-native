@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ActorRegistration.v2",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "actor_type",
+        "identity_source",
+        "display_name"
+      ],
+      "properties": {
+        "actor_type": {
+          "type": "string",
+          "const": "human"
+        },
+        "identity_source": {
+          "type": "string",
+          "const": "local_operator"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 320
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "actor_type",
+        "identity_source",
+        "display_name",
+        "provider_identity_ref"
+      ],
+      "properties": {
+        "actor_type": {
+          "type": "string",
+          "const": "agent"
+        },
+        "identity_source": {
+          "type": "string",
+          "const": "runtime_binding"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "provider_identity_ref": {
+          "type": "object",
+          "required": [
+            "provider",
+            "resource_type",
+            "locator"
+          ],
+          "properties": {
+            "provider": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resource_type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "locator": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "actor_type",
+        "identity_source",
+        "display_name"
+      ],
+      "properties": {
+        "actor_type": {
+          "type": "string",
+          "const": "system"
+        },
+        "identity_source": {
+          "type": "string",
+          "const": "local_service"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

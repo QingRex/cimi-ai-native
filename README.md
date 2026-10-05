@@ -4,7 +4,21 @@ CimiLoop 是一个面向 AI-Native 软件研发的 Runtime-neutral Harness（运
 
 ## 当前状态
 
-项目目前已完成从整体能力架构到 V1 产品范围的主要设计工作：
+当前开发入口是[CimiLoop V1可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)。S1–S4共23项任务，OpenSpec试点可选，技能Provider及Matt / Superpowers试点进入S1。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。格式8支持显式1–7升级并保留历史、任务、授权、运行和回执；没有升级用户现有数据库。
+
+V1-09实施中：独立探针Adapter与Windows AppContainer / Job隔离已实现，OpenCode已更新1.18.34并固定摘要。专用智谱`zhipuai-coding-plan/glm-5.3`已完成真实合成文件修改及新只读会话独立验收，双模式权限探针通过；Key以Windows DPAPI加密保存在仓库外。前批Zen免费接口403保留为历史事实。原生Provider评测及探针范围Binding已接通；新合成操作的资源归属、恢复清理及磁盘 / 日志超限停止已由D-196实现；Task绑定、Agent Run及网络 / 费用 / 文件系统硬配额和完整恢复验收仍待完成。操作与实测证据见[Runtime探针与隔离](docs/implementation/CimiLoop-Runtime探针与隔离-v0.1.md)。合成探针不修改Task、原生Run或Gate，正式Agent执行尚未启用。
+
+V1-09续批已接通`provider register / list`、原生Provider元数据详情及Binding / Agent身份缺口检查；登记固定candidate，不批准正式绑定，不授权运行。规则与操作见[Provider候选登记与接入检查](docs/implementation/CimiLoop-Provider候选登记与接入检查-v0.1.md)。
+
+最新续批已接通原生Provider证据、两类确定性评测及Human批准的探针范围Binding，见[Provider证据、评测与受限绑定](docs/implementation/CimiLoop-Provider证据评测与受限绑定-v0.1.md)。智谱实际证据经CLI导入后，技术契约ALLOW；受控执行因费用 / 网络 / 磁盘 / 恢复证据未完备保持NEED_MORE_EVIDENCE，Task执行绑定被拒绝。
+
+D-196已接通[Runtime恢复与资源限额](docs/implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)：实际Windows中断 / 超限与CLI恢复已验证，原运行Unknown不因资源清理而变成成功，同键不重启。日志在写入前限长，沙箱总量采用采样后停止，完整硬配额尚未验收。
+
+最新D-202已实现独立持久积分演练账本、共享账户 / 任务累计上限、一次发送凭据、历史回执及原宿主身份核验后的恢复。实际三个独立宿主验证共享上限CAS与发送状态提交后的进程退出；15项CLI检查通过。HTTP、真实Key及模型请求0，真实计费准入与正式Task / Agent仍未启用。 专项5个文件89项通过，补充异常完成数据回归后最终全量40个文件436项通过，本批新增25项回归。 见[持久积分预算与宿主恢复](docs/implementation/CimiLoop-持久积分预算与宿主恢复-v0.1.md)。下一步确认套餐版本与网关工具资格，证明服务端输入及思考输出上界，固定实际账户唯一账本、配额 / 账单核对及Task现金 / 积分预算关系，再实现真实HTTPS请求契约；文件系统硬配额和完整受控恢复仍待完成。
+
+已实现操作见[任务、授权与预算](docs/implementation/CimiLoop任务授权与预算-v0.1.md)、[证据、评价与安全集成](docs/implementation/CimiLoop证据评价与安全集成-v0.1.md)、[运行预约与交接恢复](docs/implementation/CimiLoop运行预约与交接恢复-v0.1.md)及[CLI动作、查询与诊断](docs/implementation/CimiLoop-CLI动作查询与诊断-v0.1.md)。
+
+既有设计与实现记录：
 
 - 已确认六个一级能力域，以及 Kernel（内核）作为 Change 生命周期唯一状态权威。
 - 已完成核心领域模型、聚合边界、身份与版本关系设计。
@@ -15,18 +29,23 @@ CimiLoop 是一个面向 AI-Native 软件研发的 Runtime-neutral Harness（运
 
 项目已经进入正式实现阶段。M0 首个可恢复纵向切片已经可以运行：初始化 Project、创建 Draft Change、查询、暂停、恢复、幂等重放、Revision 冲突检查、Event/Outbox 原子提交及重启恢复。Contract、Plan、Gate 和 Agent Runtime Adapter 从后续里程碑逐步加入。
 
-2026-09-29 文档校准：以上保留原设计与 M0 实现记录。现行流程继续采用 N1–N5，七段文章只是讲解顺序；需求 / 缺陷统一身份、目标版本可选及项目级共享发布已进入修订架构，但完整字段、状态与迁移尚未冻结。V1 旧范围及 M1–M5 / 原型计划待重对齐，暂不直接执行，不能据文档更新声称代码已迁移。详见 [文档适用状态](docs/README.md)。
+2026-09-29 文档校准记录：当时字段、状态及迁移待设计；2026-10-03 已由当前实施基线收敛。现行流程采用 N1–N5，七段文章只是讲解顺序。旧范围及 M1–M5 / 原型计划保留历史参考，当前不直接执行，不能据文档更新声称代码已迁移。详见 [文档适用状态](docs/README.md)。
 
 2026-09-30 阶段修订：N3 改为共同集成与发布准备，N4 聚焦发布验证与生产交付；风险授权贯穿 N1–N5，不单列为第三阶段。旧规范、讲稿和配图中的“N3 风险授权”仅作历史参考，现行映射以 [研发流程基线](docs/architecture/AI-Native软件研发流程-v0.1.md) 为准。
+
+2026-10-02 流程评审修订：当前有效规则统一归入流程基线，补齐紧急修复、环境恢复、独立评价、接续执行、验收责任和开工容量；新增[执行记录与演练](docs/practices/AI-Native研发流程执行记录与演练-v0.1.md)。填写示例为虚构，三个真实演练场景尚未执行；本轮仅更新流程文档。
+
+2026-10-02–03 产品与实施设计：已产出 [业务对象与协作闭环设计](docs/architecture/CimiLoop业务对象与协作闭环设计-v0.1.md)及可执行设计，明确需求、批次、候选、环境、授权与执行边界，包含三个场景推演、具体开发任务和故障验收。专项规则与领域语言已同步；协议基础已实现，其余功能、真实工作台、Provider集成和流程演练按任务推进。
 
 ## 建议阅读顺序
 
 1. [AI Native 软件研发新范式](docs/articles/01-AI-Native软件研发新范式.md)：先沿 SkillsHub 版本需求理解七段流程，不先讲 CimiLoop。
 2. [AI Native 软件研发流程基线](docs/architecture/AI-Native软件研发流程-v0.1.md)：已确认流程、协作边界与共同发布规则。
-3. [CimiLoop 整体架构通俗解读](docs/architecture/CimiLoop整体架构通俗解读-v0.1.md)：再了解工具如何承载流程。
-4. [CimiLoop 整体能力架构](docs/architecture/CimiLoop整体能力架构-v0.1.md)：正式架构总纲。
-5. [CimiLoop V1 产品范围与实施里程碑](docs/plans/2026-09-19-cimiloop-v1产品范围与实施里程碑-v0.1.md)：旧范围参考，待按新流程重对齐，不直接执行。
-6. [文档导航](docs/README.md)：查看完整架构、协议、角色与计划文档。
+3. [CimiLoop 业务对象与协作闭环设计](docs/architecture/CimiLoop业务对象与协作闭环设计-v0.1.md)：产品边界和三个场景推演，具体选择以实施基线为准。
+4. [CimiLoop V1 可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)：当前开发入口，字段、命令、迁移、任务与验收统一在此。
+5. [CimiLoop 整体架构通俗解读](docs/architecture/CimiLoop整体架构通俗解读-v0.1.md)：先读顶部当前设计，历史正文保留作来源。
+6. [CimiLoop 整体能力架构](docs/architecture/CimiLoop整体能力架构-v0.1.md)：当前架构职责及历史记录。
+7. [文档导航](docs/README.md)：查看完整架构、协议、角色与计划文档。
 
 ## 核心原则
 
@@ -48,12 +67,14 @@ CimiLoop 是一个面向 AI-Native 软件研发的 Runtime-neutral Harness（运
 │  ├─ protocol/       # Protocol Schema、ID、Command/Event 与校验
 │  ├─ kernel/         # 聚合规则、状态转换和命令处理
 │  ├─ store/          # Kernel 使用的逻辑 Store Port
-│  └─ store-sqlite/   # Embedded Solo Mode SQLite 实现
+│  ├─ store-sqlite/   # Embedded Solo Mode SQLite 实现
+│  └─ runtime-adapter/# 独立Runtime探针、受限启动与原始结果采集；正式Agent Run待接通
 ├─ tests/
 │  └─ scenarios/      # 跨模块和 CLI 端到端场景
 ├─ docs/
 │  ├─ architecture/   # 正式架构、领域模型、协议与流程规范
 │  ├─ plans/          # 讨论记录、决策账本、产品范围与实施计划
+│  ├─ practices/      # 流程执行记录、虚构填写示例与演练方法
 │  ├─ articles/       # 面向传播和理解的流程文章
 │  ├─ research/       # 历史调研、选型输入及其图片
 │  └─ implementation/ # 技术决策与 M0–M5 实施设计
@@ -74,9 +95,14 @@ node apps/cli/dist/bin.js --help
 node apps/cli/dist/bin.js init
 node apps/cli/dist/bin.js change create --title "第一个 Change"
 node apps/cli/dist/bin.js change list
+node apps/cli/dist/bin.js --json inspect change CHG-0001
 ```
 
-Agent 或脚本在命令中增加 `--json` 即可获得经过 Protocol Schema 校验的稳定结构输出。
+本地操作者或受信脚本增加 `--json` 可获得经过 Protocol Schema 校验的稳定结构输出。CLI 绑定初始化的本地 Human 身份；Agent Runtime 须通过绑定 Agent 的入口，不能借人类 CLI 代行责任操作，该 Runtime 入口尚未接入。
+
+角色登记、指派、结束与责任移交的命令及兼容边界见 [责任治理与身份入口](docs/implementation/CimiLoop责任治理与身份入口-v0.1.md)。
+
+设置更新、目标版本、规划排序和WIP命令见 [项目设置、规划与容量](docs/implementation/CimiLoop项目设置规划与容量-v0.1.md)。未配置容量或缺少真实确认依据时，开工保持阻塞。
 
 交互式演示原型（固定数据，可离线）：
 
@@ -107,6 +133,8 @@ npx pnpm@12.4.2 --filter @cimiloop/demo-web dev
 
 ## 下一阶段
 
-下一步先沿 N1–N5 完善现行流程细则，再重对齐 V1 范围与 M1–M5 的任务和验收，另行确认后进入 M1。下述 M0 冻结记录继续保留，本轮未复验代码。
+当前正在S1，V1-06人工复核、V1-07 Human运行控制 / 交接恢复及V1-08 CLI已完成本阶段实现。V1-09独立探针Adapter与Windows隔离已实现，专用智谱模型已完成真实合成修改 / 独立只读评价；原生Provider评测及受限探针绑定已完成；D-200合成IPC / HTTPS、D-201公网连接边界及D-202积分预算 / 原宿主恢复演练已验收；下一步确认套餐版本与网关工具资格，证明服务端输入及思考输出上界，固定实际账户唯一账本、配额 / 账单核对及Task现金 / 积分预算关系，再实现真实HTTPS请求契约；文件系统硬配额和完整受控恢复仍待完成。S1退出要求普通需求在真实Runtime和受控技能上走到可安全集成，并验证跨会话接续与可靠性；人工报告及另一Actor不能替代真实Agent独立上下文。完整业务闭环仍在实施，最新验证结果见实施基线第10节。
 
-M0 已补齐 CLI 机器输出 Schema、JSON Schema 制品同步与全量注册、共享 Store Port 契约，以及事务回滚、幂等重放、双客户端 Revision 竞争、响应丢失恢复、数据库重开与 Outbox Lease 恢复测试，并已在 Node.js 24.15.0 + pnpm 12.4.2 基线上完成复验。M0 现已冻结；原计划中的 M1 包括真实 Contract、Risk、Profile、Decision、Gate、Plan 与 Knowledge Impact Assessment，仍需按新流程重对齐后再实施。实施边界见 [M0 实施架构](docs/implementation/2026-09-19-cimiloop-m0实施架构-v0.1.md)。
+已有M0项目的操作说明见 [数据库迁移与恢复](docs/implementation/CimiLoop-M0数据库迁移与恢复-v0.1.md)。正常入口只提示迁移，不自动升级实际项目。
+
+M0 已补齐 CLI 机器输出 Schema、JSON Schema 制品同步与全量注册、共享 Store Port 契约，以及事务回滚、幂等重放、双客户端 Revision 竞争、响应丢失恢复、数据库重开与 Outbox Lease 恢复测试，并已在 Node.js 24.15.0 + pnpm 12.4.2 基线上完成复验。M0 现已冻结；原 M1 的约定、计划、风险、决定和知识影响进入 S1 当前任务。M0 实现边界见 [M0 实施架构](docs/implementation/2026-09-19-cimiloop-m0实施架构-v0.1.md)。

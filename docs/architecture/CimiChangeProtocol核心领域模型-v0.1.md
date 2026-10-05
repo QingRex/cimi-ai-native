@@ -1,5 +1,36 @@
 # Cimi Change Protocol 核心领域模型 v0.1
 
+> 当前规则：2026-10-03 V1 实施基线。字段、命令、错误、迁移和任务统一以[可执行设计与实施计划](../implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准；本节给出本专项的当前职责。文档更新不代表功能已经实现。
+
+2026-10-04 V1-07实际边界：Human运行预约、累计预算、原始观测 / 未知核对、真实工作区 / Context、交接 / 接续及暂停需求恢复已接通，当前数据库格式7。操作见[运行预约与交接恢复](../implementation/CimiLoop运行预约与交接恢复-v0.1.md)；预约和取消请求不证明外部启动 / 停止，真实Runtime及Agent隔离仍待V1-09。
+
+## 当前设计与实施约束
+
+对象身份与事务边界按下表落实；原设计中 Contract/Plan 独立可变根的方案在本轮由 Change 内版本记录替代。
+
+| 对象 | 当前权威边界 |
+|---|---|
+| Project / Assignment / Settings | 治理、有效角色与容量配置；设置版本化 |
+| Change | 同一需求 / 缺陷身份；六种生命周期状态和 Active/Paused；当前有效 Contract/Plan 指针 |
+| ContractVersion / PlanVersion | 不可变内容记录，由 Change 确认事务同时追加并切换指针；未批准 Proposal 独立修订 |
+| TaskDefinition / Task | 版本化定义与独立执行聚合；含 purpose、依赖、验收及关闭时点 |
+| WorkItem / RunRecord | 授权聚合与不可变尝试记录；过程另追加 Observation，累计预算不随会话重置 |
+| ReleaseBatch | 计划范围、窗口、选定候选及终止 / 关闭事实 |
+| ReleaseCandidate | 固定源码、制品、实际 membership 和依赖；形成后不可改写 |
+| Release / DeploymentRecord | 环境授权聚合与不可变操作身份；结果另追加 Observation |
+| EnvironmentCoordination | 共享真实资源的占用代次、核对及恢复；旧代次不能执行新副作用 |
+
+目标版本只组织规划。界面的发布版本对应 ReleaseCandidate；Release 是内部授权名称，不再承担完整批次过程。Evidence、Evaluation、Decision、Handoff 与 Event 保留不可变历史及精确适用引用。
+
+UUIDv7 延续 M0，Protocol v2 使用严格 Schema、完整 SHA-256 摘要和 UTC 时间。Ref 的 domain version 与 Revision 分开。一个命令有一个主聚合；同事务保存记录、事件、Receipt 和 Outbox，跨聚合推进幂等且显示待关联状态。负责人移交和稀缺资源预约使用明确的原子协调。
+
+最小字段、结果 Union、错误和 Schema 兼容见实施基线第 2–5 节；数据库兼容见第 7 节。历史协议 1.0.0 保留原始记录和回执，不批量改写已发生事实。
+
+## 既有设计记录（历史正文，非当前执行依据）
+
+以下保留原讨论正文和当时的确认状态，用于追溯设计来源。与上面的当前设计或实施基线冲突的对象、状态、职责和里程碑，不作为新的开发输入。
+
+
 > 状态：领域模型讨论确认稿  
 > 日期：2026-09-18  
 > 修订：2026-09-28，需求 / 缺陷统一身份与共享发布模型；保留文件名以维持现有引用。

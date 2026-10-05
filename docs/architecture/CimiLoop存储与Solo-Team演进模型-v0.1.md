@@ -1,5 +1,37 @@
 # CimiLoop 存储与 Solo–Team 演进模型 v0.1
 
+> 当前规则：2026-10-03 V1 实施基线。字段、命令、错误、迁移和任务统一以[可执行设计与实施计划](../implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准；本节给出本专项的当前职责。文档更新不代表功能已经实现。
+
+任务 / 授权的实际操作与边界见[任务、授权与预算](../implementation/CimiLoop任务授权与预算-v0.1.md)。executor只声明绑定执行者使用常规授权，不是Human责任角色；Task持久用量不因重建WorkItem清零，创建授权不启动Runtime。
+
+2026-10-04 V1-07实际边界：Human运行预约、累计预算、原始观测 / 未知核对、真实工作区 / Context、交接 / 接续及暂停需求恢复已接通，当前数据库格式7。操作见[运行预约与交接恢复](../implementation/CimiLoop运行预约与交接恢复-v0.1.md)；预约和取消请求不证明外部启动 / 停止，真实Runtime及Agent隔离仍待V1-09。
+
+## 当前设计与实施约束
+
+V1 默认 Embedded Solo Mode，SQLite 为单一写权威。Store Port 保持隔离；Current State、不可变记录、事件、Receipt 和待传播 Outbox 在主聚合事务一起保存。跨聚合传播可恢复、可幂等，缺关联时明确显示 pending。
+
+| 数据 | 当前处理 |
+|---|---|
+| Contract/Plan | Change 内不可变版本记录与当前指针原子切换；不再等待独立根传播后才获得有效基线 |
+| Task / WorkItem | 独立执行与授权聚合；Plan 定义先保存，运行 Task 初始化和关联可恢复 |
+| Candidate / Decision / Observation | 不可变记录，保留精确适用引用和原始历史 |
+| Receipt | command_id 查重放，同 ID 不同内容拒绝；响应丢失不重新产生副作用 |
+| Outbox | event_id + effect_key 唯一，一事件可产生多个目标效应；稳定外部 operation_key |
+| 环境占用 | epoch 与实际核对记录；Worker Lease 只控制工作领取，不能清除业务占用 |
+
+V1-02 已实现数据库独立格式版本、预检查、一致性WAL备份与内容清单、事务升级和失败恢复；基础Kernel / Store / CLI已切到v2。旧程序遇新库拒写；未知旧状态拒绝猜测，迁移不生成虚构约定、风险批准或外部人员签署。操作说明见 [M0数据库迁移与恢复](../implementation/CimiLoop-M0数据库迁移与恢复-v0.1.md)，仅临时测试样本已升级；Team导入、业务占用和部署尚未实现。
+
+M0 ID、序号、Draft/Active/Paused 和原始 schema 1.0.0 Event/Transition/Receipt 保留；新模型建立当前视图及迁移事件，旧回执仍按原 Schema 重放。历史 Outbox 指定 legacy 效应，绝不解释为待部署任务。WAL 下不得直接复制活跃数据库作为备份。
+
+V1-03责任治理沿用既有表，增加Project CAS与只允许结束的Assignment CAS；设置 / 规划增加不可变设置版本和目标版本表，原授予事实不改写。V1-04增加不可变intent_records，V1-05增加任务 / 授权对象及严格不可变记录，当前格式5，新项目直接创建，格式1 / 2 / 3 / 4显式升级并保留原确认 / 设置 / 规划历史。确认记录、正式指针、生命周期、不可变事件、Outbox和Receipt同事务提交；旧Change不补造指派或批准。治理、Flow、Intent与Execution查询使用一致读快照。真实确认后StartChange与容量同事务，已由两个实际进程争抢最后名额验证，详见[确认与开工](../implementation/CimiLoop约定计划确认与开工-v0.1.md)。
+
+升级前停止写入并核对外部动作；产生新业务事实或副作用后不自动回退丢弃历史。未来 Solo→Team 保留身份、协议和引用，旧实例只读封存后切换单一权威；中心化组织认证及导入实现延后。
+
+## 既有设计记录（历史正文，非当前执行依据）
+
+以下保留原讨论正文和当时的确认状态，用于追溯设计来源。与上面的当前设计或实施基线冲突的对象、状态、职责和里程碑，不作为新的开发输入。
+
+
 > 状态：讨论确认稿
 > 日期：2026-09-19
 > 修订：2026-09-28，补充规划、拆分与共享发布的可移植关联；具体 Schema 待定。

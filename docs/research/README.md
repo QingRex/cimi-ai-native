@@ -1,8 +1,27 @@
 # CimiLoop 背景研究
 
-本目录保存 CimiLoop 正式架构形成之前的行业研究、流程对标与开源项目选型输入。它们用于解释决策来源，不是当前领域语义和实现边界的最终权威；发生冲突时，以 `docs/architecture/` 和决策账本为准。
+本目录保存 CimiLoop 正式架构形成之前的行业研究、流程对标与开源项目选型输入。它们用于解释决策来源，正文保留当时判断，本轮未复核外部案例和数据。当前有效研发流程统一见[独立流程基线](../architecture/AI-Native软件研发流程-v0.1.md)，决策账本只追溯来源及替代关系；领域和实现边界另见适用的专项架构。各研究文件顶部也标记历史状态，避免直接搜索命中时误作现行规范。
 
 ## 研究材料
+
+- [持久积分预算与宿主恢复实测](CimiLoop-持久积分预算与宿主恢复-2026-10-05.json)：D-202独立SQLite积分演练、三个实际宿主的账户CAS / 崩溃保守恢复、原始观测与源码归档；未批准真实计费、未读取Key或调用模型。
+
+- [公网网关边界与积分估算实测](CimiLoop-公网网关边界与积分估算-2026-10-05.json)：D-201固定智谱域名的实际A / AAAA和TLS1.3核验、原始证据 / 源码归档摘要及有期限的积分费率观察；模型端点HTTP、Key读取和模型请求0，未验证实际计费准入。
+
+- [IPC宿主网关桥接实测](CimiLoop-IPC宿主网关桥接-2026-10-05.json)：D-200无网络OpenCode完成2次合成HTTPS回复、9组桥接异常与恢复、140份原始引用及24份固定源摘要，22个保留操作资源准确回收；取消竞态及初次失败保留追踪，TEST不作为真实费用。
+
+- [宿主网关与持久预算实测](CimiLoop-宿主模型网关与持久预算-2026-10-04.json)：12项合成HTTPS / 持久预留验证、跨进程竞争及实际发出请求后异常退出回归；真实Key读取与模型调用0，尚未桥接AppContainer IPC，TEST金额不能作为真实费用。
+
+- [Runtime IPC传输实测](CimiLoop-RuntimeIPC传输-2026-10-04.json)：固定OpenCode 1.18.34实际无网络IPC响应、8组合成异常 / 身份 / 恢复验证、55份原始引用摘要核对；没有外部模型请求或实际Key读取，不提升正式Provider准入。
+
+- [Runtime恢复与资源限额实测](CimiLoop-Runtime恢复与资源限额-2026-10-04.json)：真实Windows合成进程总量 / 单文件 / 条目 / 日志超限、强制中断与实际CLI恢复，Unknown保留及同键不重启；没有模型请求或实际凭据读取，完整硬配额仍未验证。
+- [Runtime网络与费用策略实测](CimiLoop-Runtime网络与费用策略-2026-10-04.json)：默认无网络Capability，实际公网TCP拒绝 / 双栈回环TCP未连接 / 受控回环UDP未收到、显式宽权限证明及3项真实CLI启动前拒绝；另验证OpenCode版本和双模式OS边界，不调用模型或读取实际Key，主机白名单 / 计费硬上限仍未验收。
+
+- [CimiLoop OpenCode Provider准入核验 2026-10-04](CimiLoop-OpenCode-Provider准入核验-2026-10-04.json)：实际智谱原始证据经CLI导入临时Project，技术契约ALLOW、受控执行NEED_MORE_EVIDENCE，仅批准探针Binding，Task绑定拒绝；本批新增模型请求为0。
+
+- [2026-10-04 OpenCode智谱实际探针快照](CimiLoop-OpenCode-智谱Runtime探针-2026-10-04.json)：专用GLM-5.3真实合成修改及新的独立只读会话通过，保留实际会话ID、版本 / 摘要与原始引用；正式执行仍关闭，不收录API Key或会话状态库。
+
+- [2026-10-04 OpenCode Runtime实际探针快照](CimiLoop-OpenCode-Runtime探针-2026-10-04.json)：实施期单机事实，含1.18.34版本 / 摘要、OS边界及模型403；不构成正式Provider评价或其他主机的隔离证明。[操作与边界](../implementation/CimiLoop-Runtime探针与隔离-v0.1.md)记录适用范围及后续工作。
 
 - [AI-Native Harness 开源项目深度调研与选型建议](AI-Native-Harness开源项目深度调研与选型建议-2026.md)
 - [AI-Native 软件研发新范式行业深度调研](AI-Native软件研发新范式行业深度调研-2026.md)

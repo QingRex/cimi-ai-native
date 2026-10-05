@@ -1,5 +1,8 @@
 # CimiLoop Build / Adopt / Adapt 选型矩阵 v0.1
 
+> 2026-10-03 适用性：自研权威、适配执行的原则继续参考；原 M0–M5 映射及开源选型结论保留为历史。当前任务以[V1 实施基线](../implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准，Runtime 与 DevOps 必须通过实际版本和能力探针，不能仅凭本表认定已可集成。
+> 当前接入安排：S1的V1-21包装技能Provider，V1-22试点Matt并对Superpowers重叠能力评测择优；OpenSpec为可选V1-23，ECC按需要参考。V1-01已定义Provider元数据，实际调用与适配尚未实现。
+
 > 状态：选型基线
 >
 > 日期：2026-09-19

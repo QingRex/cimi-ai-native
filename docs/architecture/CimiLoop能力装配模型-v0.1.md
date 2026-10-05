@@ -1,5 +1,34 @@
 # CimiLoop 能力装配模型 v0.1
 
+> 当前规则：2026-10-03 V1 实施基线。字段、命令、错误、迁移和任务统一以[可执行设计与实施计划](../implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准；本节给出本专项的当前职责。文档更新不代表功能已经实现。
+
+## 当前设计与实施约束
+
+Kernel 拥有状态、权限与准入权威；Runtime、Evaluator、DevOps 和知识来源通过版本化 Binding / Adapter 提供能力。调用清单必须与当前 Provider 实际可用能力一致。
+
+2026-10-05 D-202已实现独立持久积分演练账本、共享账户 / 任务累计上限、一次发送凭据、历史回执及原宿主身份核验后的恢复。实际三个独立宿主验证共享上限CAS与发送状态提交后的进程退出；15项CLI检查通过。HTTP、真实Key及模型请求0，真实计费准入与正式Task / Agent仍未启用。 专项5个文件89项通过，补充异常完成数据回归后最终全量40个文件436项通过，本批新增25项回归。 见[持久积分预算与宿主恢复](../implementation/CimiLoop-持久积分预算与宿主恢复-v0.1.md)。下一步确认套餐版本与网关工具资格，证明服务端输入及思考输出上界，固定实际账户唯一账本、配额 / 账单核对及Task现金 / 积分预算关系，再实现真实HTTPS请求契约；文件系统硬配额和完整受控恢复仍待完成。
+
+| 边界 | V1 最小契约 |
+|---|---|
+| Runtime | probe、start、query、cancel、collect；稳定操作 ID、身份、权限、用量与未知状态 |
+| DevOps | describe、inspect、deploy、query、recover、verify_conditions；取消仅在实际支持时声明 |
+| 环境切换 | fencing 或可验证串行机制；在途动作可核对，否则阻止无人值守切换 |
+| Evaluator | 原始输入及独立 Context，可复查结论；不能写 Gate 或人类决定 |
+| Binding | 固定实际 Provider 版本、能力、权限和配置引用；运行记录引用精确绑定 |
+
+首个 Runtime 以 OpenCode 为目标，由 V1-09 先探测实际接口；不满足契约时采用既有备选 Claude Code 并记录理由。名称可用不代表能力接通；模拟运行或人工填写不计为真实适配验收。
+
+Skill包装与真实试点在S1一起实现：V1-21固定来源、依赖、Schema和权限，V1-22接入Matt候选并对Superpowers重叠能力做评测择优。OpenSpec在原生Contract/Plan成立后按可选V1-23适配，ECC只按需要参考。V1-01的Descriptor / Binding协议已进入实际候选登记；D-195接通原生Provider证据 / 两类评测及探针范围批准，见[证据、评测与受限绑定](../implementation/CimiLoop-Provider证据评测与受限绑定-v0.1.md)。D-196已接通[受管理合成操作恢复与资源阈值控制](../implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)。Task绑定、实际网络 / 费用 / 文件系统硬上限及完整恢复验收、可信Agent入口和技能调用仍待实现。
+
+未知结果先 query / reconcile；不能因 start 超时再次盲启动。费用不可知时不得宣称充足预算。Adapter 不可写权威库、伪造 Human Actor 或获得永久生产权限；撤销在下一次动作前生效。
+
+Manifest / 技能包继续表达可发现能力与上下文资源，不作为批准本身。首版固定基础 Profile 和策略，延后通用编程式策略市场。真实能力不足时返回可解释缺口，不以静默降级绕过授权与验证。
+
+## 既有设计记录（历史正文，非当前执行依据）
+
+以下保留原讨论正文和当时的确认状态，用于追溯设计来源。与上面的当前设计或实施基线冲突的对象、状态、职责和里程碑，不作为新的开发输入。
+
+
 > 状态：讨论确认稿
 > 日期：2026-09-19
 > 范围：定义 Capability Requirement、Provider、Resolver、Binding、Invocation、替换与审计语义；不选择具体 Skill、模型、工具、Adapter 产品或开源实现。
