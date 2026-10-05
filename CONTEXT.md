@@ -4,7 +4,7 @@ CimiLoop 以项目、目标版本、需求、缺陷和任务组织日常研发�
 
 2026-10-05 当前V1字段、状态、命令和任务以[可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。V1-09实施中：独立探针Adapter、Windows隔离、OpenCode 1.18.34固定来源、候选登记及专用智谱连接已实现；真实合成修改和新只读会话独立验收通过，凭据保存在仓库外DPAPI文件，Zen403保留为历史。最新原生Provider Evidence / Evaluation已接通，技术契约ALLOW并批准isolated_provider_probe Binding；受控执行仍为NEED_MORE_EVIDENCE，Task执行绑定被拒绝。详见[Provider证据、评测与受限绑定](docs/implementation/CimiLoop-Provider证据评测与受限绑定-v0.1.md)。当前数据库格式8，支持显式1–7升级，未升级用户库；合成探针及Provider批准不改变Task、Run或Gate，D-196已实现新合成操作的持久归属、恢复清理及资源超限停止，见[Runtime恢复与资源限额](docs/implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)。完整A9及Agent Run仍待网络主机、费用、文件系统硬上限和完整恢复验收。本文术语更新不代表完整功能已经实现。
 
-D-203已实现固定连接HTTPS传输原语：一次交接D-201核验的原TLS连接、冻结纯文本请求字节、固定端点和请求 / 响应边界，拒绝重连、重试、重定向及凭据回显。本地TLS / HTTP故障案例与D-202持久发送顺序已验证；同批公网TLS1.3重验只握手，HTTP、真实Key和模型请求0。真实计费与正式Task / Agent仍关闭。 见[固定连接HTTPS传输](docs/implementation/CimiLoop-固定连接HTTPS传输-v0.1.md)。下一步落实实际账户套餐 / 工具资格、服务端输入与思考输出约束、唯一受保护账本及账单核对，再实现获准宿主协调器、响应缓存和OpenCode工具 / 流式契约；文件系统硬配额及完整受控恢复仍待完成。
+D-204已实现宿主协调器演练与原子回复缓存：显式积分格式2把限定公开回复和完成回执同事务提交，发送前共享预留缓存容量，串联持久dispatch、固定连接HTTPS、取消 / 时限及关闭。实际子宿主验证完成提交前 / 后退出与缓存位置竞争；仅用公开测试Key和本地TLS，真实计费与正式Task / Agent仍关闭。 见[宿主协调与原子回复缓存](docs/implementation/CimiLoop-宿主协调与原子回复缓存-v0.1.md)。下一步落实实际套餐 / 工具资格、服务端输入与思考输出约束、唯一受保护账户账本及账单核对，再装配生产宿主并扩展OpenCode工具 / 流式契约；硬配额及完整受控恢复仍待完成。
 
 ## 业务语言
 

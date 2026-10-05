@@ -6,6 +6,7 @@ import { digest, RuntimeAdapterError } from "./files.js";
 
 export const GATEWAY_HTTP_REQUEST_BYTES = 65536, GATEWAY_HTTP_RESPONSE_BYTES = 262144, GATEWAY_HTTP_HEADER_BYTES = 8192;
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+const sha = /^[a-f0-9]{64}$/;
 const integer = (value: unknown, min: number, max: number): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= min && value <= max;
 const fields = (value: unknown, required: string[], optional: string[] = []): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) &&
   required.every(key => Object.hasOwn(value, key)) && Object.keys(value).every(key => required.includes(key) || optional.includes(key));
@@ -19,6 +20,19 @@ export interface GatewayHttpResponse {
   readonly finish_reason: "stop" | "length"; readonly usage: Readonly<{ input_tokens: number; output_tokens: number; total_tokens: number }>;
   readonly thinking_usage_verified: false; readonly actual_cost_known: false; readonly billing_admission_ready: false;
 }
+// The persisted envelope contains only the previously accepted public reply.
+// The ledger additionally binds it to the original request and credit receipt.
+export const parseCachedGatewayHttpResponse = (input: unknown): GatewayHttpResponse => {
+  if (!fields(input, ["request_id", "input_digest", "response_digest", "text", "finish_reason", "usage", "thinking_usage_verified", "actual_cost_known", "billing_admission_ready"]) ||
+    typeof input.request_id !== "string" || !uuid.test(input.request_id) || typeof input.input_digest !== "string" || !sha.test(input.input_digest) ||
+    typeof input.response_digest !== "string" || !sha.test(input.response_digest) || !text(input.text, GATEWAY_HTTP_RESPONSE_BYTES) ||
+    (input.finish_reason !== "stop" && input.finish_reason !== "length") || input.thinking_usage_verified !== false || input.actual_cost_known !== false || input.billing_admission_ready !== false ||
+    !fields(input.usage, ["input_tokens", "output_tokens", "total_tokens"]) || !integer(input.usage.input_tokens, 0, 1048576) ||
+    !integer(input.usage.output_tokens, 0, 131072) || input.usage.total_tokens !== input.usage.input_tokens + input.usage.output_tokens) fail("gateway_cached_response_invalid");
+  return Object.freeze({ request_id: input.request_id, input_digest: input.input_digest, response_digest: input.response_digest, text: input.text, finish_reason: input.finish_reason,
+    usage: Object.freeze({ input_tokens: input.usage.input_tokens, output_tokens: input.usage.output_tokens, total_tokens: input.usage.total_tokens as number }),
+    thinking_usage_verified: false, actual_cost_known: false, billing_admission_ready: false });
+};
 const parseResponse = (bytes: Buffer, prepared: PreparedGatewayHttpRequest, apiKey: string): GatewayHttpResponse => {
   try {
     if (bytes.includes(Buffer.from(apiKey))) fail("gateway_credential_disclosure_blocked");

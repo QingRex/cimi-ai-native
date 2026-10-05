@@ -63,6 +63,6 @@ export const httpFixture = async (options: { mode?: HttpFixtureMode; onRequest?:
       dials++; tlsSocket = tlsConnect({ ...dialOptions, host: "127.0.0.1", port: address.port, ...(options.untrusted ? {} : { ca: certificate }) });
       Object.defineProperty(tlsSocket, "remoteAddress", { configurable: true, get: () => "8.8.8.8" }); return tlsSocket;
     } });
-  return { boundary, observations, counts: () => ({ dns, dials }), socket: () => tlsSocket,
+  return { boundary, port: address.port, observations, counts: () => ({ dns, dials }), socket: () => tlsSocket,
     close: async () => { tlsSocket?.destroy(); for (const socket of sockets) socket.destroy(); await new Promise<void>(done => server.close(() => done())); } };
 };
