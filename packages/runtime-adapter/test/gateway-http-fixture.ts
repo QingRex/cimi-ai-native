@@ -10,7 +10,8 @@ export const HTTP_FIXTURE_KEY = "CIMILOOP_HTTP_PUBLIC_FIXTURE_KEY";
 export type HttpFixtureMode = "valid" | "length" | "reasoning" | "cache" | "redirect" | "status" | "encoded" | "partial" | "oversize" | "chunked_oversize" |
   "header_oversize" | "duplicate_type" | "wrong_type" | "trailer" | "invalid_utf8" | "malformed" | "wrong_model" | "wrong_id" | "usage_inconsistent" | "input_overflow" |
   "output_overflow" | "tools" | "extra_usage" | "reasoning_secret" | "escaped_secret" | "timeout" | "disconnect" | "upgrade" | "information" | "bad_finish" | "secret_error";
-export const httpFixture = async (options: { mode?: HttpFixtureMode; onRequest?: () => void; untrusted?: boolean } = {}) => {
+export const httpFixture = async (options: { mode?: HttpFixtureMode; onRequest?: () => void; untrusted?: boolean;
+  reply?: (body: unknown) => { content_type: string; chunks: readonly Buffer[]; incomplete?: boolean; hang?: boolean } } = {}) => {
   const mode = options.mode ?? "valid", certificate = bytesAt(fileURLToPath(new URL("../fixtures/gateway-http-tls/cert.pem", import.meta.url)));
   const observations: { path: string; method: string; host: string; authenticated: boolean; input_digest: string; body: unknown }[] = [];
   const sockets = new Set<Duplex>(); let dns = 0, dials = 0; let tlsSocket: TLSSocket | undefined;
@@ -21,6 +22,11 @@ export const httpFixture = async (options: { mode?: HttpFixtureMode; onRequest?:
       const bytes = Buffer.concat(chunks), body = JSON.parse(bytes.toString()) as { request_id: string; max_tokens: number };
       observations.push({ path: request.url ?? "", method: request.method ?? "", host: request.headers.host ?? "", authenticated: request.headers.authorization === `Bearer ${HTTP_FIXTURE_KEY}`,
         input_digest: digest(bytes).value, body }); options.onRequest?.();
+      if (options.reply) {
+        const reply = options.reply(body); response.setHeader("content-type", reply.content_type);
+        for (const chunk of reply.chunks) response.write(chunk);
+        if (reply.incomplete) setImmediate(() => response.destroy()); else if (!reply.hang) response.end(); return;
+      }
       if (mode === "timeout") return;
       if (mode === "disconnect") { response.destroy(); return; }
       if (mode === "upgrade") { response.writeHead(101, { connection: "Upgrade", upgrade: "test" }); response.end(); return; }

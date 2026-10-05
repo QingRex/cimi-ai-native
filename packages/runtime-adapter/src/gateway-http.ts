@@ -3,6 +3,7 @@ import type { ClientRequest, IncomingMessage } from "node:http";
 import { performance } from "node:perf_hooks";
 import { GatewayNetworkBoundary, DEDICATED_GATEWAY_HOST, DEDICATED_GATEWAY_PATH, type GatewayTlsConnection } from "./gateway-network.js";
 import { digest, RuntimeAdapterError } from "./files.js";
+import { prepareGatewayConversation, parseGatewayConversation, type GatewayConversationResponse, type PreparedGatewayConversationRequest } from "./gateway-conversation.js";
 
 export const GATEWAY_HTTP_REQUEST_BYTES = 65536, GATEWAY_HTTP_RESPONSE_BYTES = 262144, GATEWAY_HTTP_HEADER_BYTES = 8192;
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
@@ -65,6 +66,7 @@ const parseResponse = (bytes: Buffer, prepared: PreparedGatewayHttpRequest, apiK
 // and durable dispatch before invoking this layer with a decrypted credential.
 export class GatewayHttpTransport {
   private readonly prepared = new WeakMap<PreparedGatewayHttpRequest, { body: Buffer; consumed: boolean }>();
+  private readonly conversations = new WeakMap<PreparedGatewayConversationRequest, { body: Buffer; consumed: boolean; parse?: (bytes: Buffer, key: string) => GatewayConversationResponse }>();
   constructor(private readonly boundary: GatewayNetworkBoundary) {}
   prepare(input: unknown): PreparedGatewayHttpRequest {
     if (!fields(input, ["request_id", "messages", "input_tokens", "max_output_tokens"]) || typeof input.request_id !== "string" || !uuid.test(input.request_id) ||
@@ -81,9 +83,24 @@ export class GatewayHttpTransport {
     const prepared = Object.freeze({ request_id: input.request_id, input_digest: digest(body).value, input_tokens: input.input_tokens, output_tokens: input.max_output_tokens });
     this.prepared.set(prepared, { body, consumed: false }); return prepared;
   }
+  prepareConversation(input: unknown): PreparedGatewayConversationRequest {
+    const { body, tools, prior_call_ids, prepared } = prepareGatewayConversation(input);
+    this.conversations.set(prepared, { body, consumed: false, parse: (bytes, key) => parseGatewayConversation(bytes, prepared, tools, prior_call_ids, key) }); return prepared;
+  }
+  async sendConversation(prepared: PreparedGatewayConversationRequest, connection: GatewayTlsConnection, apiKey: string, deadlineMs = 8000, signal?: AbortSignal): Promise<GatewayConversationResponse> {
+    const owned = this.conversations.get(prepared);
+    if (!owned || owned.consumed || !owned.parse) fail("gateway_http_request_unowned");
+    const parse = owned.parse;
+    try { return await this.exchange(owned, connection, apiKey, deadlineMs, signal, prepared.response_mode === "sse" ? "text/event-stream" : "application/json", bytes => parse(bytes, apiKey)); }
+    finally { if (owned.consumed) delete owned.parse; }
+  }
   async send(prepared: PreparedGatewayHttpRequest, connection: GatewayTlsConnection, apiKey: string, deadlineMs = 8000, signal?: AbortSignal): Promise<GatewayHttpResponse> {
     const owned = this.prepared.get(prepared);
     if (!owned || owned.consumed) fail("gateway_http_request_unowned");
+    return this.exchange(owned, connection, apiKey, deadlineMs, signal, "application/json", bytes => parseResponse(bytes, prepared, apiKey));
+  }
+  private async exchange<Response>(owned: { body: Buffer; consumed: boolean }, connection: GatewayTlsConnection, apiKey: string, deadlineMs: number, signal: AbortSignal | undefined,
+    mediaType: "application/json" | "text/event-stream", parse: (bytes: Buffer) => Response): Promise<Response> {
     if (typeof apiKey !== "string" || !/^[A-Za-z0-9._-]{8,512}$/.test(apiKey)) fail("invalid_gateway_http_credential");
     if (owned.body.includes(Buffer.from(apiKey))) fail("gateway_credential_in_request");
     if (!integer(deadlineMs, 25, 30000)) fail("invalid_gateway_http_deadline");
@@ -100,7 +117,7 @@ export class GatewayHttpTransport {
       let settled = false, upstream: ClientRequest | undefined, response: IncomingMessage | undefined, size = 0;
       const expires = performance.now() + deadlineMs;
       const chunks: Buffer[] = [];
-      const finish = (reason?: string, result?: GatewayHttpResponse) => {
+      const finish = (reason?: string, result?: Response) => {
         if (settled) return; settled = true; clearTimeout(timer); signal?.removeEventListener("abort", cancel);
         response?.destroy(); upstream?.destroy(); socket.destroy(); agent.destroy(); chunks.length = 0;
         owned.body = Buffer.alloc(0);
@@ -113,11 +130,12 @@ export class GatewayHttpTransport {
       try {
         upstream = httpsRequest({ hostname: DEDICATED_GATEWAY_HOST, port: 443, path: DEDICATED_GATEWAY_PATH, method: "POST", agent,
           maxHeaderSize: GATEWAY_HTTP_HEADER_BYTES, insecureHTTPParser: false, joinDuplicateHeaders: false,
-          headers: { host: DEDICATED_GATEWAY_HOST, "content-type": "application/json", accept: "application/json", "accept-encoding": "identity",
+          headers: { host: DEDICATED_GATEWAY_HOST, "content-type": "application/json", accept: mediaType, "accept-encoding": "identity",
             "content-length": owned.body.length, connection: "close", authorization: `Bearer ${apiKey}` } }, incoming => {
           response = incoming; if (settled) { incoming.destroy(); return; }
           const distinct = incoming.headersDistinct, contentType = distinct["content-type"], length = distinct["content-length"], transfer = distinct["transfer-encoding"];
-          if (incoming.statusCode !== 200 || contentType?.length !== 1 || !/^application\/json(?:;\s*charset=utf-8)?$/i.test(contentType[0]!) || distinct["content-encoding"] || distinct["location"] ||
+          const typeMatches = mediaType === "application/json" ? /^application\/json(?:;\s*charset=utf-8)?$/i : /^text\/event-stream(?:;\s*charset=utf-8)?$/i;
+          if (incoming.statusCode !== 200 || contentType?.length !== 1 || !typeMatches.test(contentType[0]!) || distinct["content-encoding"] || distinct["location"] ||
             (length && (length.length !== 1 || !/^(?:0|[1-9][0-9]*)$/.test(length[0]!))) || (transfer && (transfer.length !== 1 || transfer[0]?.toLowerCase() !== "chunked")) || (length && transfer))
             { finish("gateway_http_response_denied"); return; }
           if (length && Number(length[0]) > GATEWAY_HTTP_RESPONSE_BYTES) { finish("gateway_response_limit"); return; }
@@ -129,7 +147,7 @@ export class GatewayHttpTransport {
           incoming.on("end", () => {
             if (settled) return;
             if (!incoming.complete || incoming.rawTrailers.length || (length && size !== Number(length[0]))) { finish("gateway_http_response_incomplete"); return; }
-            try { finish(undefined, parseResponse(Buffer.concat(chunks, size), prepared, apiKey)); }
+            try { finish(undefined, parse(Buffer.concat(chunks, size))); }
             catch (error) { finish(error instanceof RuntimeAdapterError ? error.reason : "gateway_response_contract_unproven"); }
           });
         });
