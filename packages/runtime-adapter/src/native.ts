@@ -31,13 +31,14 @@ export const buildWindowsLauncher = async (root: string): Promise<string> => {
   const source = fileURLToPath(new URL("../native/AppContainer.cs", import.meta.url));
   const transport = fileURLToPath(new URL("../native/IpcTransport.cs", import.meta.url));
   const gateway = fileURLToPath(new URL("../native/GatewayTransport.cs", import.meta.url));
-  const build = directory(join(root, "tools", digest(Buffer.concat([bytesAt(source), bytesAt(transport), bytesAt(gateway)])).value));
+  const conversation = fileURLToPath(new URL("../native/ConversationTransport.cs", import.meta.url));
+  const build = directory(join(root, "tools", digest(Buffer.concat([bytesAt(source), bytesAt(transport), bytesAt(gateway), bytesAt(conversation)])).value));
   const output = join(build, "AppContainer.exe"), metadata = join(build, "build.json");
   if (!existsSync(output) || !existsSync(metadata)) {
     const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
     if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
     const candidate = join(build, `${randomUUID()}.exe`);
-    try { await execute(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source, transport, gateway], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment() }); }
+    try { await execute(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source, transport, gateway, conversation], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment() }); }
     catch { throw new RuntimeAdapterError("native_launcher_build_failed"); }
     renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
   }

@@ -260,6 +260,7 @@ partial class AppContainer {
     if(args.Length==7&&args[0]=="--recover") return Recover(args[1],args[2],args[3],args[4],args[5],args[6]);
     if(args.Length==4&&args[0]=="--ipc-client") { try { return IpcClient(args[1],args[2],int.Parse(args[3])); } catch(Exception ex) { Console.Error.WriteLine("IPC fixture failed: "+ex.GetType().Name+" "+ex.HResult); return 13; } }
     if(args.Length==4&&args[0]=="--gateway-client") { try { return GatewayClient(args[1],args[2],int.Parse(args[3])); } catch(Exception ex) { Console.Error.WriteLine("Gateway fixture failed: "+ex.GetType().Name); return 13; } }
+    if(args.Length==3&&args[0]=="--conversation-client") { try { return ConversationClient(args[1],args[2]); } catch(Exception ex) { Console.Error.WriteLine("Conversation fixture failed: "+ex.GetType().Name); return 13; } }
     if(args.Length==2&&args[0]=="--pipe-attempt") return PipeAttempt(args[1]);
     if(args.Length==2&&args[0]=="--network-canary") return NetworkCanary(args[1]);
     // Synthetic resource fixtures remain inside the same AppContainer and job.
@@ -293,7 +294,7 @@ partial class AppContainer {
       argvStart+=2;
     }
     ownedNetworkMode=networkMode; SaveOwnership();
-    string ipcOperation=null,gatewayPolicy=null;
+    string ipcOperation=null,gatewayPolicy=null,conversationPolicy=null;
     if(args.Length>argvStart+1&&args[argvStart]=="--ipc-probe") {
       if(!policySupplied||networkMode!="deny_all"||ownershipPath==null) return 2;
       ipcOperation=args[argvStart+1]; argvStart+=2;
@@ -301,6 +302,10 @@ partial class AppContainer {
     else if(args.Length>argvStart+2&&args[argvStart]=="--ipc-gateway") {
       if(!policySupplied||networkMode!="deny_all"||ownershipPath==null) return 2;
       ipcOperation=args[argvStart+1]; gatewayPolicy=args[argvStart+2]; argvStart+=3;
+    }
+    else if(args.Length>argvStart+2&&args[argvStart]=="--ipc-conversation") {
+      if(!policySupplied||networkMode!="deny_all"||ownershipPath==null||args[1]!="read") return 2;
+      ipcOperation=args[argvStart+1]; conversationPolicy=args[argvStart+2]; argvStart+=3;
     }
     int capabilityCount=networkMode=="deny_all"?0:1;
     IntPtr sid=IntPtr.Zero,list=IntPtr.Zero,capsMemory=IntPtr.Zero,networkSid=IntPtr.Zero,capArray=IntPtr.Zero,handles=IntPtr.Zero,job=IntPtr.Zero,jobList=IntPtr.Zero;
@@ -318,6 +323,7 @@ partial class AppContainer {
         ownedTransportGranted=Directory.Exists(transport); ownedTransportWriteAttributes=ownedTransportGranted; SaveOwnership();
         if(ownedTransportGranted) Grant(transport,principal,FileSystemRights.ReadAndExecute|FileSystemRights.WriteAttributes,true,true);
         ipcPipe=new ProbePipe(ownershipNonce,ipcOperation,principal,root,Path.GetFullPath(args[5]));
+        if(conversationPolicy!=null) ipcPipe.EnableConversation(root,ownershipNonce,conversationPolicy);
         if(gatewayPolicy!=null) {
           ipcPipe.EnableGateway(root,ownershipNonce,gatewayPolicy);
           if(args.Length>argvStart&&args[argvStart]=="--gateway-client") Environment.SetEnvironmentVariable("CIMILOOP_GATEWAY_PRIVATE_CANARY",Path.Combine(Path.GetDirectoryName(root),"gateway","private-canary.json"));

@@ -14,7 +14,7 @@ V1-09续批已接通`provider register / list`、原生Provider元数据详情�
 
 D-196已接通[Runtime恢复与资源限额](docs/implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)：实际Windows中断 / 超限与CLI恢复已验证，原运行Unknown不因资源清理而变成成功，同键不重启。日志在写入前限长，沙箱总量采用采样后停止，完整硬配额尚未验收。
 
-D-206已接通工具回复持久缓存与宿主协调演练：显式积分格式3保存最小校验契约并原子提交工具 / 文本回复与回执，沿用固定连接HTTPS、取消 / 时限及关闭。实际子宿主验证事务中途退出整体回滚、提交后缓存重放与容量竞争；旧格式1 / 2保持，仅公开测试Key和本地TLS，真实计费与正式Task / Agent仍关闭。 见[工具回复持久缓存与宿主协调](docs/implementation/CimiLoop-工具回复持久缓存与宿主协调-v0.1.md)。下一步扩展明确版本的IPC工具载荷及OpenCode消费契约，再验收工具实际权限 / 副作用恢复；实际套餐 / 工具资格、服务端输入与思考输出上界、唯一受保护账本、批准预算及账单核对仍待落实，硬配额和完整受控恢复继续待验收。
+D-207已接通独立版本的工具IPC与固定OpenCode1.18.34消费演练：AppContainer内接收read提议、实际读取公开只读文件、回传关联结果并取得最终SSE回复，两次请求进入D-206格式3原子缓存。新帧绑定操作 / 策略 / 字节摘要，旧文本协议及Schema保持；真实Key / 模型请求0，正式Task / Agent与真实计费仍关闭。 见[工具IPC与OpenCode消费契约](docs/implementation/CimiLoop-工具IPC与OpenCode消费契约-v0.1.md)。下一步实现WorkItem / Run绑定的工具能力、路径 / 命令约束、执行身份及副作用恢复，再验证宿主退出时IPC / Runtime整体恢复与文件系统硬配额。实际套餐 / 工具资格、服务端输入与思考输出上界、唯一受保护账户Ledger、批准预算及账单核对仍待落实。
 
 已实现操作见[任务、授权与预算](docs/implementation/CimiLoop任务授权与预算-v0.1.md)、[证据、评价与安全集成](docs/implementation/CimiLoop证据评价与安全集成-v0.1.md)、[运行预约与交接恢复](docs/implementation/CimiLoop运行预约与交接恢复-v0.1.md)及[CLI动作、查询与诊断](docs/implementation/CimiLoop-CLI动作查询与诊断-v0.1.md)。
 
@@ -133,7 +133,7 @@ npx pnpm@12.4.2 --filter @cimiloop/demo-web dev
 
 ## 下一阶段
 
-当前正在S1，V1-06人工复核、V1-07 Human运行控制 / 交接恢复及V1-08 CLI已完成本阶段实现。V1-09最新进展见[工具回复持久缓存与宿主协调](docs/implementation/CimiLoop-工具回复持久缓存与宿主协调-v0.1.md)及实施基线第10节。下一步扩展明确版本的IPC工具载荷及OpenCode消费契约，再验收工具实际权限 / 副作用恢复；实际套餐 / 工具资格、服务端输入与思考输出上界、唯一受保护账本、批准预算及账单核对仍待落实，硬配额和完整受控恢复继续待验收。S1退出要求普通需求在真实Runtime和受控技能上走到可安全集成，并验证跨会话接续与可靠性；人工报告及另一Actor不能替代真实Agent独立上下文。完整业务闭环仍在实施。
+当前正在S1，V1-06人工复核、V1-07 Human运行控制 / 交接恢复及V1-08 CLI已完成本阶段实现。V1-09最新进展见[工具IPC与OpenCode消费契约](docs/implementation/CimiLoop-工具IPC与OpenCode消费契约-v0.1.md)及实施基线第10节。下一步实现WorkItem / Run绑定的工具能力、路径 / 命令约束、执行身份及副作用恢复，再验证宿主退出时IPC / Runtime整体恢复与文件系统硬配额。实际套餐 / 工具资格、服务端输入与思考输出上界、唯一受保护账户Ledger、批准预算及账单核对仍待落实。S1退出要求普通需求在真实Runtime和受控技能上走到可安全集成，并验证跨会话接续与可靠性；人工报告及另一Actor不能替代真实Agent独立上下文。完整业务闭环仍在实施。
 
 已有M0项目的操作说明见 [数据库迁移与恢复](docs/implementation/CimiLoop-M0数据库迁移与恢复-v0.1.md)。正常入口只提示迁移，不自动升级实际项目。
 

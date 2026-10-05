@@ -4,7 +4,7 @@ CimiLoop 以项目、目标版本、需求、缺陷和任务组织日常研发�
 
 2026-10-05 当前V1字段、状态、命令和任务以[可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。V1-09实施中：独立探针Adapter、Windows隔离、OpenCode 1.18.34固定来源、候选登记及专用智谱连接已实现；真实合成修改和新只读会话独立验收通过，凭据保存在仓库外DPAPI文件，Zen403保留为历史。最新原生Provider Evidence / Evaluation已接通，技术契约ALLOW并批准isolated_provider_probe Binding；受控执行仍为NEED_MORE_EVIDENCE，Task执行绑定被拒绝。详见[Provider证据、评测与受限绑定](docs/implementation/CimiLoop-Provider证据评测与受限绑定-v0.1.md)。当前数据库格式8，支持显式1–7升级，未升级用户库；合成探针及Provider批准不改变Task、Run或Gate，D-196已实现新合成操作的持久归属、恢复清理及资源超限停止，见[Runtime恢复与资源限额](docs/implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)。完整A9及Agent Run仍待网络主机、费用、文件系统硬上限和完整恢复验收。本文术语更新不代表完整功能已经实现。
 
-D-206已接通工具回复持久缓存与宿主协调演练：显式积分格式3保存最小校验契约并原子提交工具 / 文本回复与回执，沿用固定连接HTTPS、取消 / 时限及关闭。实际子宿主验证事务中途退出整体回滚、提交后缓存重放与容量竞争；旧格式1 / 2保持，仅公开测试Key和本地TLS，真实计费与正式Task / Agent仍关闭。 见[工具回复持久缓存与宿主协调](docs/implementation/CimiLoop-工具回复持久缓存与宿主协调-v0.1.md)。下一步扩展明确版本的IPC工具载荷及OpenCode消费契约，再验收工具实际权限 / 副作用恢复；实际套餐 / 工具资格、服务端输入与思考输出上界、唯一受保护账本、批准预算及账单核对仍待落实，硬配额和完整受控恢复继续待验收。
+D-207已接通独立版本的工具IPC与固定OpenCode1.18.34消费演练：AppContainer内接收read提议、实际读取公开只读文件、回传关联结果并取得最终SSE回复，两次请求进入D-206格式3原子缓存。新帧绑定操作 / 策略 / 字节摘要，旧文本协议及Schema保持；真实Key / 模型请求0，正式Task / Agent与真实计费仍关闭。 见[工具IPC与OpenCode消费契约](docs/implementation/CimiLoop-工具IPC与OpenCode消费契约-v0.1.md)。下一步实现WorkItem / Run绑定的工具能力、路径 / 命令约束、执行身份及副作用恢复，再验证宿主退出时IPC / Runtime整体恢复与文件系统硬配额。实际套餐 / 工具资格、服务端输入与思考输出上界、唯一受保护账户Ledger、批准预算及账单核对仍待落实。
 
 ## 业务语言
 

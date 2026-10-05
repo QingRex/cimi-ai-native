@@ -1,0 +1,530 @@
+{
+  "captured_at": "2026-10-05T03:43:13.534Z",
+  "decision": "D-207",
+  "scope": "isolated_conversation_rehearsal_verification",
+  "baseline_commit": "5b4fa3d",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2"
+  },
+  "implementation_scope": "independent bounded authenticated Windows conversation IPC profile and fixed LanguageModel v3 consumer; explicit public read fixture in pinned OpenCode AppContainer, using the D-206 format-3 host and atomic cache",
+  "protocol": {
+    "request_format": "cimiloop/model-conversation-request/1.0.0",
+    "reply_format": "cimiloop/model-conversation-reply/1.0.0",
+    "mailbox_format": "cimiloop/ipc-conversation-mailbox/1.0.0",
+    "request_bytes": 65536,
+    "reply_bytes": 294912,
+    "request_mailbox_bytes": 98304,
+    "reply_mailbox_bytes": 393216,
+    "request_fields": 10,
+    "reply_fields": 12,
+    "native_requests": 8,
+    "prior_text_request_bytes": 16384,
+    "prior_text_reply_bytes": 32768,
+    "old_profile_source_unchanged": [
+      {
+        "locator": "packages/runtime-adapter/transport/opencode-gateway-probe.mjs",
+        "content_unchanged_ignoring_checkout_line_endings": true
+      },
+      {
+        "locator": "packages/runtime-adapter/native/GatewayTransport.cs",
+        "content_unchanged_ignoring_checkout_line_endings": true
+      }
+    ],
+    "old_public_schema_unchanged": [
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeOperationResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e4d785f38f836c223af0a23514f7d0b733de1a01277a9ec6b583d7766714f7ba"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "fbfdde8bbf7108ca630a5952abb6ab4b9a799f3652bda454db09857436255f7c"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeGatewayNetworkProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "f06d03972219af8af95a6177b6bd762089716871d97b00906de18e8ec4e379d5"
+        },
+        "unchanged": true
+      }
+    ],
+    "client_identity": "kernel pipe client PID + original creation ticks and image",
+    "host_identity": "nonce, native PID/creation/image, owned root/binary/read mode/deny_all, runtime image/PID and canonical Base64/raw frame SHA",
+    "frame_terminal_event": "exact bounded frame at EOF or terminal Windows EPIPE/ECONNRESET; never published during data callback",
+    "retry_after_send": false,
+    "duplicate_native_frame": "original host reply file and original receipt, no new HTTP; native replay observation separate from original host replay field"
+  },
+  "consumer": {
+    "specification_version": "v3",
+    "generate_and_stream": true,
+    "streaming_delivery": "buffer complete validated HTTP/SSE and atomic host receipt before SDK events",
+    "tools": "function declarations with strict host schema subset",
+    "tool_result_types": [
+      "text",
+      "json",
+      "error-text",
+      "error-json"
+    ],
+    "unsupported": [
+      "multimodal",
+      "reasoning history",
+      "provider-executed calls",
+      "approval messages",
+      "required/specific tool choices",
+      "structured output",
+      "raw chunks",
+      "unknown dialects or schema assertion keywords"
+    ],
+    "sdk_undefined_annotations_normalized_only_at_envelopes": true,
+    "business_json_accessors_and_sparse_arrays_denied": true,
+    "caller_frame_detached_before_connect": true,
+    "input_wire_and_credit_receipt_bound": true,
+    "unverified_reasoning_text_and_cache_usage_splits": "undefined"
+  },
+  "actual_OpenCode": {
+    "version": "1.18.34",
+    "binary_digest": {
+      "algorithm": "sha256",
+      "value": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e"
+    },
+    "module_digest": {
+      "algorithm": "sha256",
+      "value": "0aa4d4b5b989de363520bfabe7522b016df04ace37e7f708d0af0b917b9f1ae2"
+    },
+    "policy_digest": "a332e2c60d13d5eeba77f632f9a96d4c4cfa8cc6b43d6212e0c97f6730b823c3",
+    "operation_key": "conversation_b490c90dd1354f3196405a24a4937d0b",
+    "outcome": "Passed",
+    "actual_public_read_verified": true,
+    "associated_tool_result_seen_by_local_https_fixture": true,
+    "final_text_verified": true,
+    "final_finish_verified": true,
+    "synthetic_https_requests": 2,
+    "completed": 2,
+    "held_rehearsal_credit_micro_units": 92000000,
+    "private_state_removed": true,
+    "original_native_proof": {
+      "pid": 25116,
+      "profile": "CimiLoop.b490c90dd1354f3196405a24a4937d0b",
+      "phase": "ended",
+      "reason": "exited",
+      "exit_code": 0
+    },
+    "transport_proof": {
+      "format": "cimiloop/conversation-transport-proof/1.0.0",
+      "scope": "isolated_conversation_rehearsal",
+      "operation_key": "conversation_b490c90dd1354f3196405a24a4937d0b",
+      "phase": "ended",
+      "transport": "windows_named_pipe",
+      "runtime_pid": 25116,
+      "client_identity_enforcement": "pid_creation_image",
+      "remote_clients_rejected": true,
+      "policy_digest": "a332e2c60d13d5eeba77f632f9a96d4c4cfa8cc6b43d6212e0c97f6730b823c3",
+      "request_limit_bytes": 65536,
+      "response_limit_bytes": 294912,
+      "accepted_requests": 2,
+      "attempts": [
+        {
+          "pid": 25116,
+          "outcome": "accepted",
+          "reason": "runtime_identity_verified",
+          "request_bytes": 11194,
+          "request_digest": "593163344fdb4401cb25a99aac0029ff9e5b712434a611af9a2ee470d15d322b",
+          "replay": false
+        },
+        {
+          "pid": 25116,
+          "outcome": "accepted",
+          "reason": "runtime_identity_verified",
+          "request_bytes": 11581,
+          "request_digest": "786223c0421f74450053d75672cc6fe5eac76abfbcffa509e67d083e5b5ee6cf",
+          "replay": false
+        }
+      ],
+      "failure_reason": null,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false
+    },
+    "host_proof": {
+      "format": "cimiloop/conversation-host-proof/1.0.0",
+      "scope": "isolated_conversation_rehearsal",
+      "operation_key": "conversation_b490c90dd1354f3196405a24a4937d0b",
+      "phase": "ended",
+      "native_pid": 18920,
+      "runtime_pid": 25116,
+      "policy_digest": "a332e2c60d13d5eeba77f632f9a96d4c4cfa8cc6b43d6212e0c97f6730b823c3",
+      "budget": {
+        "scope": "credit_budget_rehearsal",
+        "unit": "ZHIPU_CODING_PLAN_CREDIT",
+        "account_scope_digest": "7e94b7a8121fa38bb8f661eb3a3161bb410b1ab44f6645e9884b5f106d638848",
+        "policy_digest": "ede7b96569fe9c2123d17328f1cd993102543279d80d5795371041c345eaf03d",
+        "maximum_micro_units": 368000000,
+        "held_micro_units": 92000000,
+        "remaining_micro_units": 276000000,
+        "reserved": 0,
+        "dispatching": 0,
+        "completed": 2,
+        "unknown": 0,
+        "blocked": false,
+        "budgets": [
+          {
+            "budget_key": "public_probe",
+            "maximum_micro_units": 368000000,
+            "held_micro_units": 92000000
+          }
+        ],
+        "actual_cost_known": false,
+        "admission_ready": false
+      },
+      "cache": {
+        "storage_format": 3,
+        "entries": 2,
+        "stored_bytes": 2303,
+        "pending_reserved_bytes": 0,
+        "maximum_bytes": 2686976,
+        "maximum_entries": 8,
+        "contract_entries": 2,
+        "contract_bytes": 1137
+      },
+      "attempts": [
+        {
+          "request_id": "68cc2377-12a5-45dc-8cd7-eca7cb4feecb",
+          "frame_digest": "593163344fdb4401cb25a99aac0029ff9e5b712434a611af9a2ee470d15d322b",
+          "outcome": "completed",
+          "reason": null,
+          "replay": false
+        },
+        {
+          "request_id": "b7142301-f77b-444b-83ee-7f4dffc766a6",
+          "frame_digest": "786223c0421f74450053d75672cc6fe5eac76abfbcffa509e67d083e5b5ee6cf",
+          "outcome": "completed",
+          "reason": null,
+          "replay": false
+        }
+      ],
+      "failure_reason": null,
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false
+    },
+    "upstream_proof": [
+      {
+        "input_digest": "3dfc741bc26ad63cdb97f92f93670daf1d0fd244ff16117297931b5e9cd898ac",
+        "authenticated": true,
+        "mode": "sse",
+        "tool_result_verified": false
+      },
+      {
+        "input_digest": "3a0e142d7823d214bbf6fb80fee253286f2c2bb1361bcd6ec7ae2eb8b6fb0a46",
+        "authenticated": true,
+        "mode": "sse",
+        "tool_result_verified": true
+      }
+    ],
+    "execution_policy": {
+      "schema_version": "2.0.0",
+      "scope": "isolated_provider_probe",
+      "operation_key": "conversation_b490c90dd1354f3196405a24a4937d0b",
+      "pid": 25116,
+      "network_mode": "deny_all",
+      "enforcement": "appcontainer_no_network_capabilities",
+      "capability_sids": [],
+      "cost_mode": "unmetered_probe_only",
+      "formal_execution_enabled": false
+    },
+    "auxiliary_title_summary_compaction_agents_disabled": true,
+    "real_dns_or_provider_certificate_verified": false,
+    "tool_fixture_authority": "trusted read-only probe configuration and exact owned public.txt path; not a WorkItem approval"
+  },
+  "actual_native_fixture_scenarios": [
+    "identical_frame_replay",
+    "conflicting_request_id",
+    "oversized_frame",
+    "wrong_policy",
+    "private_host_acl",
+    "64KiB_reply"
+  ],
+  "new_independent_Node_ledger_hosts": 0,
+  "storage": {
+    "domain_format": 8,
+    "credit_format": 3,
+    "prior_credit_formats": [
+      1,
+      2
+    ],
+    "test_format": 1,
+    "implicit_conversion": false,
+    "user_database_migrations": 0,
+    "account_and_task_rehearsal_maximum_micro_units": 368000000,
+    "input_bound": 65536,
+    "output_bound": 128,
+    "reservation_per_request_micro_units": 46000000,
+    "approved_real_account_budget": false,
+    "clock": "trusted fixture-only 2026-10-05; production tariff expiration unchanged",
+    "tool_side_effect_cache": false,
+    "authenticated_real_business_cache": false
+  },
+  "validation": {
+    "typecheck": "passed",
+    "earlier_focused": {
+      "files": 2,
+      "tests": 41,
+      "passed": true
+    },
+    "final_runtime_protocol_cli_regression": {
+      "files": 22,
+      "tests": 457,
+      "passed": true,
+      "new_tests": 45,
+      "includes_six_native_cases_and_pinned_OpenCode": true
+    },
+    "source_archives": 20,
+    "new_public_schemas": 0,
+    "new_CLI_commands": 0,
+    "new_package_exports": 0,
+    "standalone_actual_OpenCode_probe": "passed"
+  },
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "production_authenticated_http_requests": 0,
+  "actual_cost_known": false,
+  "billing_admission_ready": false,
+  "formal_execution_enabled": false,
+  "tool_execution_authorized": false,
+  "retained_payloads": {
+    "actual_key": false,
+    "sqlite_contents_archived": false,
+    "request_messages_archived": false,
+    "raw_upstream_body_archived": false,
+    "reasoning_content_archived": false,
+    "raw_OpenCode_output_archived": false,
+    "public_fixture_source_archived": true
+  },
+  "reference_primary_sources": [
+    "https://github.com/vercel/ai/blob/main/packages/provider/src/language-model/v3/language-model-v3-prompt.ts",
+    "https://github.com/vercel/ai/blob/main/packages/provider/src/language-model/v3/language-model-v3-tool-call.ts",
+    "https://github.com/vercel/ai/blob/main/packages/provider/src/language-model/v3/language-model-v3-stream-part.ts"
+  ],
+  "source_digests": [
+    {
+      "locator": "packages/runtime-adapter/native/AppContainer.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "491abe0bccd403d66dacfcec5fb2e925b43127b88393b1c6358337df7589072d"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\491abe0bccd403d66dacfcec5fb2e925b43127b88393b1c6358337df7589072d"
+    },
+    {
+      "locator": "packages/runtime-adapter/native/IpcTransport.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8010ef8d6c595b94ddd1b8782d0574326773260aea737fe3dc0bb0894cea8d0e"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\8010ef8d6c595b94ddd1b8782d0574326773260aea737fe3dc0bb0894cea8d0e"
+    },
+    {
+      "locator": "packages/runtime-adapter/native/GatewayTransport.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7b60e4898f278dbeb950ad794c6fd2d53e56c51ebb4b33c40b73167cbb63d8ca"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\7b60e4898f278dbeb950ad794c6fd2d53e56c51ebb4b33c40b73167cbb63d8ca"
+    },
+    {
+      "locator": "packages/runtime-adapter/native/ConversationTransport.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "81b8b01a99f91fcd0478aa8ad265e4c5f1c69113bc5c1cfb32d7a1c8d3f113c2"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\81b8b01a99f91fcd0478aa8ad265e4c5f1c69113bc5c1cfb32d7a1c8d3f113c2"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/native.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "2a58017a1da71f8e98d12545a29705cfc8dd5d3ed8fce1e15384015781d6586e"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\2a58017a1da71f8e98d12545a29705cfc8dd5d3ed8fce1e15384015781d6586e"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-conversation-bridge.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "86b82acd98ee4bb2fbded14cdf463cbc562867c454aa113b73cc28c7807a027c"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\86b82acd98ee4bb2fbded14cdf463cbc562867c454aa113b73cc28c7807a027c"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-conversation-probe.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4aa58a0af5aa0c7a3046dd969e503d22430fefba0ca34fe1bcd01ebe4bd42a13"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\4aa58a0af5aa0c7a3046dd969e503d22430fefba0ca34fe1bcd01ebe4bd42a13"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-conversation.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8421fac5ce4c3b5a66129f74d3d821927b59332568e64094f45e1f8849afee1e"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\8421fac5ce4c3b5a66129f74d3d821927b59332568e64094f45e1f8849afee1e"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-host.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7afe83b098423d38bcb4301970e254e8b9d2cf8b68f17d1db456932f0246f32d"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\7afe83b098423d38bcb4301970e254e8b9d2cf8b68f17d1db456932f0246f32d"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-credit.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c1218baf14990019a8ee20fc341dbf6ab14cfc105fc5e6bb406d1db09d8879d1"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\c1218baf14990019a8ee20fc341dbf6ab14cfc105fc5e6bb406d1db09d8879d1"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-credit-owner.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "878f3c7e956defe988760a6bc4e61d4ea76d3ed019eb7b8369fd33dbdae93508"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\878f3c7e956defe988760a6bc4e61d4ea76d3ed019eb7b8369fd33dbdae93508"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-http.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a5812f50d00e02cb63398a8daec2a675449a90abb3ca865f7668e8af923ff479"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\a5812f50d00e02cb63398a8daec2a675449a90abb3ca865f7668e8af923ff479"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-network.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e09e87f0767bd5723a115cb561d3b8566bcaa665fd651cf0bd1dc38bae71e7bb"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\e09e87f0767bd5723a115cb561d3b8566bcaa665fd651cf0bd1dc38bae71e7bb"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-billing.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "15f0ba1a7c29581b0a626ece9654051192cc7305901ef579702267fb06a1f4eb"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\15f0ba1a7c29581b0a626ece9654051192cc7305901ef579702267fb06a1f4eb"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/files.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0d3f0cccf00864534e5e4ee75ea4b0db7ccc0ff99c0b8dfd943d0b602c9d96a2"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\0d3f0cccf00864534e5e4ee75ea4b0db7ccc0ff99c0b8dfd943d0b602c9d96a2"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+    },
+    {
+      "locator": "packages/runtime-adapter/transport/opencode-conversation-probe.mjs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0aa4d4b5b989de363520bfabe7522b016df04ace37e7f708d0af0b917b9f1ae2"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\0aa4d4b5b989de363520bfabe7522b016df04ace37e7f708d0af0b917b9f1ae2"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-conversation-client.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3b6484eb78875437e9d0357cdb6db28de8ec488934a9908b870a2d380a339840"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\3b6484eb78875437e9d0357cdb6db28de8ec488934a9908b870a2d380a339840"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e13a444cc02797169a8b921440b5b46a6e157d7637fee6fbc4cb9d8714ed2142"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\e13a444cc02797169a8b921440b5b46a6e157d7637fee6fbc4cb9d8714ed2142"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-http-fixture.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "97ff47a59b9e17c764c2bc3a7895861fe3160e34f1b3fbca118a79fb6d805e99"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\source-blobs\\97ff47a59b9e17c764c2bc3a7895861fe3160e34f1b3fbca118a79fb6d805e99"
+    }
+  ],
+  "raw_references": [
+    {
+      "locator": ".cimiloop/conversation-ipc-v1-09/final-check.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\evidence-blobs\\c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "locator": ".cimiloop/conversation-ipc-v1-09/regression-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "b8d803e10360f9767f78306b84ce129cec6477b0a30c5c463d1247b2b4b9d688"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\evidence-blobs\\b8d803e10360f9767f78306b84ce129cec6477b0a30c5c463d1247b2b4b9d688"
+    },
+    {
+      "locator": ".cimiloop/conversation-ipc-v1-09/targeted-test-final.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9427a0f84a0c174daa792368dd549783923ff3c4362292357f6dc0c4d39994f3"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\evidence-blobs\\9427a0f84a0c174daa792368dd549783923ff3c4362292357f6dc0c4d39994f3"
+    },
+    {
+      "locator": ".cimiloop/conversation-ipc-v1-09/actual-probe.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7e635af8bd66ac4ca784b174caf533f53701319ce4309f7c7642656f297a0708"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\evidence-blobs\\7e635af8bd66ac4ca784b174caf533f53701319ce4309f7c7642656f297a0708"
+    },
+    {
+      "locator": ".cimiloop/conversation-ipc-v1-09/actual-probe-result.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e161bd83c04878e11a141028dde7dfbc3351e910aeb78f31db801031bdc4399f"
+      },
+      "archived_locator": ".cimiloop\\conversation-ipc-v1-09\\evidence-blobs\\e161bd83c04878e11a141028dde7dfbc3351e910aeb78f31db801031bdc4399f"
+    }
+  ],
+  "gaps": [
+    "WorkItem_Run_tool_capability_and_path_command_authority",
+    "tool_execution_identity_and_nonduplicate_side_effect_recovery",
+    "whole_IPC_Runtime_recovery_after_abrupt_probe_host_exit",
+    "hard_filesystem_quota",
+    "actual_account_plan_and_gateway_tool_eligibility",
+    "server_enforced_input_and_reasoning_output_bounds",
+    "unique_protected_account_ledger_approved_budget_and_invoice_reconciliation",
+    "formal_Task_Agent_admission"
+  ]
+}

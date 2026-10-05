@@ -1,0 +1,136 @@
+import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
+import { writeFileSync, copyFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { createServer } from "node:https";
+import { connect as tlsConnect } from "node:tls";
+import type { Duplex } from "node:stream";
+import { bytesAt, digest, directory, atomicJson, readJson, RuntimeAdapterError } from "./files.js";
+import { buildWindowsLauncher, isolatedEnvironment, pinBinary } from "./native.js";
+import { defaultExecutionPolicy } from "./execution-policy.js";
+import { GatewayNetworkBoundary, DEDICATED_GATEWAY_PATH } from "./gateway-network.js";
+import { GatewayCreditLedger, GATEWAY_CONVERSATION_CACHE_SLOT_BYTES, type GatewayCreditPolicy } from "./gateway-credit.js";
+import { creditHostDependencies } from "./gateway-credit-owner.js";
+import { GatewayConversationHostRehearsal, GATEWAY_HOST_REHEARSAL_KEY } from "./gateway-host.js";
+import { PublicConversationBridge } from "./gateway-conversation-bridge.js";
+import { parseGatewayJson } from "./gateway-conversation.js";
+import { removePrivateDirectory } from "./private-cleanup.js";
+
+export const conversationProbeModule = () => {
+  const path = fileURLToPath(new URL("../transport/opencode-conversation-probe.mjs", import.meta.url)); return { path, digest: digest(bytesAt(path, 65536)) };
+};
+export const PINNED_CONVERSATION_OPENCODE_SHA = "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e";
+const publicText = "CIMILOOP_PUBLIC_READ_RESULT", finalText = "CIMILOOP_CONVERSATION_OK";
+// Internal, explicitly synthetic entry point. No serialized endpoint/key/budget
+// option and no CLI admission. The Windows binary digest is fixed to 1.18.34.
+export const runOpenCodeConversationProbe = async (options: { root: string; binary: string; maxElapsedMs?: number }) => {
+  const elapsed = options.maxElapsedMs ?? 30000;
+  if (!Number.isSafeInteger(elapsed) || elapsed < 1000 || elapsed > 90000) throw new RuntimeAdapterError("invalid_conversation_probe_elapsed");
+  if (digest(bytesAt(options.binary, 512 * 1024 * 1024)).value !== PINNED_CONVERSATION_OPENCODE_SHA) throw new RuntimeAdapterError("conversation_opencode_digest_unproven");
+  const launcher = await buildWindowsLauncher(options.root), pinned = pinBinary(options.root, options.binary), module = conversationProbeModule();
+  const nonce = randomUUID(), operationKey = "conversation_" + nonce.replaceAll("-", ""), path = directory(join(options.root, "conversation-probes", operationKey));
+  const sandbox = directory(join(path, "sandbox")), workspace = directory(join(sandbox, "workspace")); directory(join(sandbox, "state"));
+  writeFileSync(join(workspace, "public.txt"), publicText, { flag: "wx" });
+  copyFileSync(module.path, join(directory(join(sandbox, "transport")), "provider.mjs"));
+  if (digest(bytesAt(join(sandbox, "transport", "provider.mjs"), 65536)).value !== module.digest.value) throw new RuntimeAdapterError("conversation_module_changed");
+  const policyDigest = digest(JSON.stringify({ format: "cimiloop/public-conversation-probe/1.0.0", module_digest: module.digest.value, binary_digest: pinned.digest.value,
+    network: "deny_all", tool: "read", file: "public.txt", input_tokens: 65536, output_tokens: 128, maximum_requests: 8, real_credential: false, formal_execution_enabled: false })).value;
+  const sockets = new Set<Duplex>(), observations: { input_digest: string; authenticated: boolean; mode: string; tool_result_verified: boolean }[] = [];
+  const cert = bytesAt(fileURLToPath(new URL("../fixtures/gateway-http-tls/cert.pem", import.meta.url)));
+  const key = bytesAt(fileURLToPath(new URL("../fixtures/gateway-http-tls/key.pem", import.meta.url)));
+  const server = createServer({ key, cert }, (request, response) => {
+    let count = 0; const chunks: Buffer[] = []; request.on("error", () => request.destroy());
+    request.on("data", (bytes: Buffer) => { count += bytes.length; if (count > 65536) request.destroy(); else chunks.push(bytes); });
+    request.on("end", () => {
+      try {
+        const bytes = Buffer.concat(chunks), body = parseGatewayJson(bytes.toString("utf8"), 65536) as { request_id: string; stream: boolean; messages: { role: string; content: string; tool_call_id?: string }[] };
+        const authenticated = request.headers.authorization === `Bearer ${GATEWAY_HOST_REHEARSAL_KEY}`;
+        if (!authenticated || request.url !== DEDICATED_GATEWAY_PATH || request.method !== "POST" || request.headers.host !== "open.bigmodel.cn") { response.writeHead(403); response.end(); return; }
+        const results = body.messages.filter(message => message.role === "tool"), verified = results.length === 1 && results[0]!.tool_call_id === "public_read_1" && results[0]!.content.includes(publicText);
+        if (results.length && !verified) { response.writeHead(422); response.end(); return; }
+        const ownership = readJson(join(path, "native-ownership.json")) as { mapping: string };
+        const calls = [{ id: "public_read_1", type: "function", function: { name: "read", arguments: JSON.stringify({ filePath: ownership.mapping + "\\workspace\\public.txt" }) } }];
+        const finish = verified ? "stop" : "tool_calls", message = verified ? { role: "assistant", content: finalText } : { role: "assistant", content: null, tool_calls: calls };
+        const usage = { prompt_tokens: 4, completion_tokens: 3, total_tokens: 7 };
+        observations.push({ input_digest: digest(bytes).value, authenticated, mode: body.stream ? "sse" : "json", tool_result_verified: verified });
+        if (body.stream) {
+          response.setHeader("content-type", "text/event-stream"); const base = { id: "public-completion", model: "glm-5.3", request_id: body.request_id, object: "chat.completion.chunk" };
+          response.end([{ ...base, choices: [{ index: 0, delta: { role: "assistant", ...(verified ? { content: finalText } : { tool_calls: [{ index: 0, ...calls[0] }] }) }, finish_reason: null }] },
+            { ...base, choices: [{ index: 0, delta: {}, finish_reason: finish }], usage }, "[DONE]"].map(event => "data: " + (typeof event === "string" ? event : JSON.stringify(event)) + "\n\n").join(""));
+        } else { response.setHeader("content-type", "application/json"); response.end(JSON.stringify({ id: "public-completion", object: "chat.completion", model: "glm-5.3", request_id: body.request_id, choices: [{ index: 0, message, finish_reason: finish }], usage })); }
+      } catch { response.destroy(); }
+    });
+  });
+  server.on("connection", socket => { sockets.add(socket); socket.once("close", () => sockets.delete(socket)); }); server.on("tlsClientError", () => {});
+  let bridge: PublicConversationBridge | undefined, host: GatewayConversationHostRehearsal | undefined, ledger: GatewayCreditLedger | undefined, child: ReturnType<typeof spawn> | undefined, childEnded = false;
+  let output = "", errorOutput = "", overflow = false, stateCleanup = false;
+  try {
+    await new Promise<void>((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
+    const address = server.address(); if (!address || typeof address === "string") throw new RuntimeAdapterError("conversation_fixture_unavailable");
+    // Public test CA, loopback dial and synthetic public peer only. No real DNS
+    // or Provider certificate acceptance is claimed by this rehearsal.
+    const boundary = new GatewayNetworkBoundary({ resolve: async () => [{ address: "8.8.8.8", family: 4, ttl_seconds: 60 }], connect: config => {
+      const socket = tlsConnect({ ...config, host: "127.0.0.1", port: address.port, ca: cert }); Object.defineProperty(socket, "remoteAddress", { get: () => "8.8.8.8" }); return socket;
+    } });
+    const policy: GatewayCreditPolicy = { format: "cimiloop/gateway-credit-rehearsal/1.0.0", scope: "credit_budget_rehearsal", account_scope_digest: digest("public conversation probe " + nonce).value,
+      unit: "ZHIPU_CODING_PLAN_CREDIT", model: "glm-5.3", maximum_micro_units: 368000000 };
+    ledger = new GatewayCreditLedger(join(path, "conversation", "credit.sqlite"), policy, await creditHostDependencies(launcher, { now: () => Date.parse("2026-10-05T00:00:00Z") }),
+      { conversation_cache: { maximum_entries: 8, maximum_bytes: 8 * GATEWAY_CONVERSATION_CACHE_SLOT_BYTES } }); ledger.registerBudget("public_probe", policy.maximum_micro_units);
+    host = new GatewayConversationHostRehearsal({ ledger, boundary }); bridge = new PublicConversationBridge({ path, nonce, operationKey, launcher, binary: pinned.path, policyDigest, ledger, host });
+    const permission = { "*": "deny", read: "allow" };
+    const config = { autoupdate: false, share: "disabled", snapshot: false, enabled_providers: ["cimiloop-conversation"], model: "cimiloop-conversation/cimiloop-public-tools", small_model: "cimiloop-conversation/cimiloop-public-tools", permission,
+      provider: { "cimiloop-conversation": { npm: "file:///CIMILOOP_TRANSPORT/provider.mjs", options: { operationKey, policyDigest },
+        models: { "cimiloop-public-tools": { name: "Public isolated read-tool fixture", limit: { context: 65536, output: 128 }, tool_call: true } } } },
+      agent: { cimi: { description: "Public CimiLoop read-tool rehearsal", mode: "primary", steps: 3, permission }, title: { disable: true }, summary: { disable: true }, compaction: { disable: true } }, default_agent: "cimi" };
+    const limits = { max_sandbox_bytes: 64 * 1024 * 1024, max_sandbox_entries: 256, max_file_bytes: 8 * 1024 * 1024, max_output_bytes: 1024 * 1024 };
+    atomicJson(join(path, "probe-owner.json"), { format: "cimiloop/public-conversation-owner/1.0.0", nonce, operation_key: operationKey, launcher, binary: pinned.path, binary_digest: pinned.digest, module_digest: module.digest, policy_digest: policyDigest });
+    child = spawn(launcher, [sandbox, "read", String(elapsed), pinned.path, join(path, "native-proof.json"), join(path, "cancel"), "--managed", nonce, JSON.stringify(limits), "--policy", JSON.stringify(defaultExecutionPolicy()),
+      "--ipc-conversation", operationKey, policyDigest, "run", "--pure", "--format", "json", "--model", "cimiloop-conversation/cimiloop-public-tools", "--agent", "cimi", "Read public.txt with the read tool, then return the fixture's final response."],
+      { windowsHide: true, stdio: ["ignore", "pipe", "pipe"], env: { ...isolatedEnvironment(), OPENCODE_CONFIG_CONTENT: JSON.stringify(config) } });
+    const append = (bytes: Buffer, error = false) => {
+      if (Buffer.byteLength(output) + Buffer.byteLength(errorOutput) + bytes.length > limits.max_output_bytes) {
+        overflow = true; if (!existsSync(join(path, "cancel"))) writeFileSync(join(path, "cancel"), "output budget exhausted", { flag: "wx" }); return;
+      }
+      if (error) errorOutput += bytes.toString("utf8"); else output += bytes.toString("utf8");
+    };
+    child.stdout!.on("data", append); child.stderr!.on("data", bytes => append(bytes, true));
+    const ended = new Promise<void>((resolve, reject) => { child!.once("error", reject); child!.once("close", () => { childEnded = true; resolve(); }); }); if (child.pid) bridge.start(child);
+    await ended; await bridge.finish(); bridge = undefined; host = undefined;
+    writeFileSync(join(path, "stdout.raw"), output, { flag: "wx" }); writeFileSync(join(path, "stderr.raw"), errorOutput, { flag: "wx" });
+    if (digest(bytesAt(join(sandbox, "transport", "provider.mjs"), 65536)).value !== module.digest.value) throw new RuntimeAdapterError("conversation_module_changed");
+    removePrivateDirectory(path, "state"); stateCleanup = true;
+    const native = readJson(join(path, "native-proof.json")) as { phase: string; reason: string; exit_code: number };
+    const ownership = readJson(join(path, "native-ownership.json")) as { nonce: string; resources_disposed: boolean; runtime_identity: { pid: number } };
+    const policyProof = readJson(join(path, "execution-policy-proof.json")) as { network_mode: string; enforcement: string; capability_sids: unknown[]; pid: number };
+    const transport = readJson(join(path, "conversation-transport-proof.json")) as { phase: string; accepted_requests: number; failure_reason: string | null };
+    const hostProof = readJson(join(path, "conversation-host-proof.json")) as { failure_reason: string | null; budget: { completed: number; unknown: number }; attempts: { outcome: string }[] };
+    const events = output.split(/\r?\n/).filter(line => line.startsWith("{")).map(line => JSON.parse(line) as { type?: string; part?: { text?: string; tool?: string; state?: { status?: string; output?: string }; reason?: string } });
+    const tool = events.some(event => event.type === "tool_use" && event.part?.tool === "read" && event.part.state?.status === "completed" && event.part.state.output?.includes(publicText));
+    const final = events.some(event => event.type === "text" && event.part?.text === finalText), finish = events.some(event => event.type === "step_finish" && event.part?.reason === "stop");
+    const passed = native.phase === "ended" && native.reason === "exited" && native.exit_code === 0 && ownership.nonce === nonce && ownership.resources_disposed === true &&
+      policyProof.network_mode === "deny_all" && policyProof.enforcement === "appcontainer_no_network_capabilities" && policyProof.capability_sids.length === 0 && policyProof.pid === ownership.runtime_identity.pid &&
+      bytesAt(join(workspace, "public.txt")).toString("utf8") === publicText && !events.some(event => event.type === "error") && transport.phase === "ended" && transport.failure_reason === null && transport.accepted_requests === 2 &&
+      hostProof.failure_reason === null && hostProof.budget.completed === 2 && hostProof.budget.unknown === 0 && hostProof.attempts.length === 2 && hostProof.attempts.every(attempt => attempt.outcome === "completed") &&
+      observations.length === 2 && observations.every(o => o.authenticated && o.mode === "sse") && observations[1]!.tool_result_verified && tool && final && finish && !overflow;
+    const result = { format: "cimiloop/public-conversation-probe-result/1.0.0", scope: "isolated_conversation_rehearsal", outcome: passed ? "Passed" : "Failed", operation_key: operationKey, path,
+      opencode_version: "1.18.34", binary_digest: pinned.digest, module_digest: module.digest, policy_digest: policyDigest, native, transport, host: hostProof, upstream: observations, execution_policy: policyProof,
+      tool_result_verified: tool, final_text_verified: final, final_finish_verified: finish, private_state_removed: stateCleanup, actual_credentials_read: 0, external_model_requests: 0,
+      actual_cost_known: false, billing_admission_ready: false, formal_execution_enabled: false };
+    atomicJson(join(path, "result.json"), result); return result;
+  } finally {
+    try {
+      if (child && !childEnded) {
+        if (!existsSync(join(path, "cancel"))) writeFileSync(join(path, "cancel"), "conversation probe cleanup", { flag: "wx" });
+        await new Promise<void>((resolve, reject) => {
+          const closed = () => { clearTimeout(timer); childEnded = true; resolve(); };
+          const timer = setTimeout(() => { child!.removeListener("close", closed); reject(new RuntimeAdapterError("conversation_child_close_unproven")); }, 10000); child!.once("close", closed);
+        });
+      }
+    } finally {
+      try { if (bridge) await bridge.finish(); else if (host) await host.close(); else ledger?.close(); }
+      finally { for (const socket of sockets) socket.destroy(); if (server.listening) await new Promise<void>(resolve => server.close(() => resolve())); }
+      if (childEnded && !stateCleanup) removePrivateDirectory(path, "state");
+    }
+  }
+};

@@ -10,7 +10,7 @@ V1-09续批D-195已接通[Provider证据、评测与受限绑定](implementation
 
 D-196实现[Runtime恢复与资源限额](implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)：新合成操作按nonce保存资源归属，核对PID / 创建时间 / 程序路径后清理；实际超限与CLI恢复通过，同键不重启、未完成观测仍Unknown。日志限长与沙箱采样阈值已落实，完整硬配额及正式Task执行仍未验收。
 
-D-206已接通工具回复持久缓存与宿主协调演练：显式积分格式3保存最小校验契约并原子提交工具 / 文本回复与回执，沿用固定连接HTTPS、取消 / 时限及关闭。实际子宿主验证事务中途退出整体回滚、提交后缓存重放与容量竞争；旧格式1 / 2保持，仅公开测试Key和本地TLS，真实计费与正式Task / Agent仍关闭。 见[工具回复持久缓存与宿主协调](implementation/CimiLoop-工具回复持久缓存与宿主协调-v0.1.md)。下一步扩展明确版本的IPC工具载荷及OpenCode消费契约，再验收工具实际权限 / 副作用恢复；实际套餐 / 工具资格、服务端输入与思考输出上界、唯一受保护账本、批准预算及账单核对仍待落实，硬配额和完整受控恢复继续待验收。
+D-207已接通独立版本的工具IPC与固定OpenCode1.18.34消费演练：AppContainer内接收read提议、实际读取公开只读文件、回传关联结果并取得最终SSE回复，两次请求进入D-206格式3原子缓存。新帧绑定操作 / 策略 / 字节摘要，旧文本协议及Schema保持；真实Key / 模型请求0，正式Task / Agent与真实计费仍关闭。 见[工具IPC与OpenCode消费契约](implementation/CimiLoop-工具IPC与OpenCode消费契约-v0.1.md)。下一步实现WorkItem / Run绑定的工具能力、路径 / 命令约束、执行身份及副作用恢复，再验证宿主退出时IPC / Runtime整体恢复与文件系统硬配额。实际套餐 / 工具资格、服务端输入与思考输出上界、唯一受保护账户Ledger、批准预算及账单核对仍待落实。
 
 1. [AI Native 软件研发新范式：七段入门文章](articles/01-AI-Native软件研发新范式.md)：沿 SkillsHub 版本需求讲流程，不先引入 CimiLoop。
 2. [AI Native 软件研发流程基线](architecture/AI-Native软件研发流程-v0.1.md)：查看 N1–N5 主线、责任、验证交接、release 条件与环境管理、交付收尾及复盘细则；七段是讲解顺序，不是新生命周期。

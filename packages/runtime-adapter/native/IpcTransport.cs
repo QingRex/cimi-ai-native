@@ -29,8 +29,8 @@ partial class AppContainer {
     return ReadExact(stream,length);
   }
   static byte[] ReadExact(Stream stream,int length) { var bytes=new byte[length]; int offset=0; while(offset<length) { int count=stream.Read(bytes,offset,length-offset); if(count==0) throw new EndOfStreamException(); offset+=count; } return bytes; }
-  static JavaScriptSerializer IpcJson() { return new JavaScriptSerializer { MaxJsonLength=IpcMaximum,RecursionLimit=64 }; }
-  static void WriteFrame(Stream stream,object value) { var bytes=Encoding.UTF8.GetBytes(IpcJson().Serialize(value)); if(bytes.Length>IpcMaximum) throw new InvalidDataException("ipc_frame_limit"); stream.Write(BitConverter.GetBytes(bytes.Length),0,4); stream.Write(bytes,0,bytes.Length); stream.Flush(); }
+  static JavaScriptSerializer IpcJson(int maximum=IpcMaximum) { return new JavaScriptSerializer { MaxJsonLength=maximum,RecursionLimit=64 }; }
+  static void WriteFrame(Stream stream,object value,int maximum=IpcMaximum) { var bytes=Encoding.UTF8.GetBytes(IpcJson(maximum).Serialize(value)); if(bytes.Length>maximum) throw new InvalidDataException("ipc_frame_limit"); stream.Write(BitConverter.GetBytes(bytes.Length),0,4); stream.Write(bytes,0,bytes.Length); stream.Flush(); }
 
   partial class ProbePipe : IDisposable {
     public readonly string name;
@@ -61,6 +61,7 @@ partial class AppContainer {
       } finally { LocalFree(descriptor); }
     }
     void Save(string phase) {
+      if(conversationEnabled) { ConversationSave(phase); return; }
       if(gatewayEnabled) { GatewaySave(phase); return; }
       lock(gate) Atomic(path,IpcJson().Serialize(new {
         schema_version="2.0.0",scope="isolated_provider_probe",operation_key=operation,phase=phase,
@@ -98,13 +99,15 @@ partial class AppContainer {
             Check(GetNamedPipeClientProcessId(server.SafePipeHandle,out pid));
             if(pid!=Convert.ToUInt32(expected["pid"])||InspectIdentity(expected)!="active") { Record(pid,"rejected","client_identity_mismatch",0,null,false); continue; }
             byte[] bytes;
-            try { bytes=ReadFrame(server,gatewayEnabled?16384:IpcMaximum); } catch(InvalidDataException) { Record(pid,"rejected","ipc_frame_limit",0,null,false); continue; }
+            try { bytes=ReadFrame(server,conversationEnabled?65536:gatewayEnabled?16384:IpcMaximum); } catch(InvalidDataException) { Record(pid,"rejected","ipc_frame_limit",0,null,false); continue; }
             catch(Exception ex) { if(CancelledPipeIo(ex)) return; throw; }
             string hash=Sha(bytes); Dictionary<string,object> request;
             try { request=IpcJson().Deserialize<Dictionary<string,object>>(new UTF8Encoding(false,true).GetString(bytes)); }
             catch { Record(pid,"rejected","ipc_request_invalid",bytes.Length,hash,false); continue; }
             Guid requestId;
-            if(gatewayEnabled) {
+            if(conversationEnabled) {
+              if(!ConversationRequestValid(request,out requestId)) { Record(pid,"rejected","ipc_request_invalid",bytes.Length,hash,false); continue; }
+            } else if(gatewayEnabled) {
               if(!GatewayRequestValid(request,out requestId)) { Record(pid,"rejected","ipc_request_invalid",bytes.Length,hash,false); continue; }
             } else if(request==null||request.Count!=6||!request.ContainsKey("payload")||!request.ContainsKey("request_id")||!Guid.TryParseExact(request["request_id"] as string,"D",out requestId)||
               !request.ContainsKey("format")||request["format"] as string!="cimiloop/ipc-probe/1.0.0"||!request.ContainsKey("operation_key")||request["operation_key"] as string!=operation||
@@ -115,10 +118,10 @@ partial class AppContainer {
             if(replay&&previous!=hash) { Record(pid,"rejected","request_id_conflict",bytes.Length,hash,false); continue; }
             if(!replay) { if(requests.Count>=8) { Record(pid,"rejected","ipc_request_limit",bytes.Length,hash,false); continue; } requests.Add(id,hash); accepted++; }
             Record(pid,"accepted","runtime_identity_verified",bytes.Length,hash,replay);
-            object reply=gatewayEnabled?GatewayReply(id,hash,bytes):new { format="cimiloop/ipc-probe/1.0.0",request_id=id,request_digest=hash,synthetic=true,text="CIMILOOP_IPC_OK" };
+            object reply=conversationEnabled?ConversationReply(id,hash,bytes):gatewayEnabled?GatewayReply(id,hash,bytes):new { format="cimiloop/ipc-probe/1.0.0",request_id=id,request_digest=hash,synthetic=true,text="CIMILOOP_IPC_OK" };
             // Disconnect discards unread pipe bytes. Wait until the peer has
             // consumed the reply; disposing the pipe on cancellation unblocks it.
-            try { WriteFrame(server,reply); server.WaitForPipeDrain(); }
+            try { WriteFrame(server,reply,conversationEnabled?294912:IpcMaximum); server.WaitForPipeDrain(); }
             catch(Exception ex) { if(CancelledPipeIo(ex)) return; throw; }
           } finally {
             try { if(server.IsConnected) server.Disconnect(); }
