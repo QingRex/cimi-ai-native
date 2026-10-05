@@ -3,7 +3,8 @@ import type { ClientRequest, IncomingMessage } from "node:http";
 import { performance } from "node:perf_hooks";
 import { GatewayNetworkBoundary, DEDICATED_GATEWAY_HOST, DEDICATED_GATEWAY_PATH, type GatewayTlsConnection } from "./gateway-network.js";
 import { digest, RuntimeAdapterError } from "./files.js";
-import { prepareGatewayConversation, parseGatewayConversation, type GatewayConversationResponse, type PreparedGatewayConversationRequest } from "./gateway-conversation.js";
+import { prepareGatewayConversation, parseGatewayConversation, createGatewayConversationCacheContract, parseGatewayJson,
+  type GatewayConversationCacheContract, type GatewayConversationResponse, type PreparedGatewayConversationRequest } from "./gateway-conversation.js";
 
 export const GATEWAY_HTTP_REQUEST_BYTES = 65536, GATEWAY_HTTP_RESPONSE_BYTES = 262144, GATEWAY_HTTP_HEADER_BYTES = 8192;
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
@@ -66,7 +67,7 @@ const parseResponse = (bytes: Buffer, prepared: PreparedGatewayHttpRequest, apiK
 // and durable dispatch before invoking this layer with a decrypted credential.
 export class GatewayHttpTransport {
   private readonly prepared = new WeakMap<PreparedGatewayHttpRequest, { body: Buffer; consumed: boolean }>();
-  private readonly conversations = new WeakMap<PreparedGatewayConversationRequest, { body: Buffer; consumed: boolean; parse?: (bytes: Buffer, key: string) => GatewayConversationResponse }>();
+  private readonly conversations = new WeakMap<PreparedGatewayConversationRequest, { body: Buffer; consumed: boolean; contract?: GatewayConversationCacheContract; parse?: (bytes: Buffer, key: string) => GatewayConversationResponse }>();
   constructor(private readonly boundary: GatewayNetworkBoundary) {}
   prepare(input: unknown): PreparedGatewayHttpRequest {
     if (!fields(input, ["request_id", "messages", "input_tokens", "max_output_tokens"]) || typeof input.request_id !== "string" || !uuid.test(input.request_id) ||
@@ -85,14 +86,25 @@ export class GatewayHttpTransport {
   }
   prepareConversation(input: unknown): PreparedGatewayConversationRequest {
     const { body, tools, prior_call_ids, prepared } = prepareGatewayConversation(input);
-    this.conversations.set(prepared, { body, consumed: false, parse: (bytes, key) => parseGatewayConversation(bytes, prepared, tools, prior_call_ids, key) }); return prepared;
+    this.conversations.set(prepared, { body, consumed: false, contract: createGatewayConversationCacheContract(prepared, tools, prior_call_ids),
+      parse: (bytes, key) => parseGatewayConversation(bytes, prepared, tools, prior_call_ids, key) }); return prepared;
+  }
+  conversationCacheContract(prepared: PreparedGatewayConversationRequest, apiKey: string): GatewayConversationCacheContract {
+    const owned = this.conversations.get(prepared);
+    if (!owned || owned.consumed || !owned.contract) fail("gateway_http_request_unowned");
+    if (typeof apiKey !== "string" || !/^[A-Za-z0-9._-]{8,512}$/.test(apiKey)) fail("invalid_gateway_http_credential");
+    if (owned.body.includes(Buffer.from(apiKey))) fail("gateway_credential_in_request");
+    // Check nested argument JSON before the host persists any minimal contract.
+    const body = parseGatewayJson(owned.body.toString()) as { messages: { tool_calls?: { function: { arguments: string } }[] }[] };
+    for (const message of body.messages) for (const call of message.tool_calls ?? []) if (JSON.stringify(parseGatewayJson(call.function.arguments)).includes(apiKey)) fail("gateway_credential_in_request");
+    return owned.contract;
   }
   async sendConversation(prepared: PreparedGatewayConversationRequest, connection: GatewayTlsConnection, apiKey: string, deadlineMs = 8000, signal?: AbortSignal): Promise<GatewayConversationResponse> {
     const owned = this.conversations.get(prepared);
     if (!owned || owned.consumed || !owned.parse) fail("gateway_http_request_unowned");
     const parse = owned.parse;
     try { return await this.exchange(owned, connection, apiKey, deadlineMs, signal, prepared.response_mode === "sse" ? "text/event-stream" : "application/json", bytes => parse(bytes, apiKey)); }
-    finally { if (owned.consumed) delete owned.parse; }
+    finally { if (owned.consumed) { delete owned.parse; delete owned.contract; } }
   }
   async send(prepared: PreparedGatewayHttpRequest, connection: GatewayTlsConnection, apiKey: string, deadlineMs = 8000, signal?: AbortSignal): Promise<GatewayHttpResponse> {
     const owned = this.prepared.get(prepared);

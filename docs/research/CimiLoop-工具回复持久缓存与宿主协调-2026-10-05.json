@@ -1,0 +1,347 @@
+{
+  "captured_at": "2026-10-05T02:50:47.607Z",
+  "decision": "D-206",
+  "scope": "gateway_conversation_host_rehearsal_verification",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2"
+  },
+  "baseline_commit": "1405aa1",
+  "implementation_scope": "explicit new credit ledger format 3 and shared internal public-fixture host coordinator; minimal tool validation contracts, transactionally reserved cache capacity, atomic conversation reply/receipt, cancellation and original-host recovery",
+  "storage": {
+    "application_id": "0x43494d43",
+    "default_credit_format": 1,
+    "explicit_text_cache_format": 2,
+    "explicit_conversation_cache_format": 3,
+    "domain_format": 8,
+    "test_ledger_format": 1,
+    "implicit_conversion": false,
+    "user_database_migrations": 0,
+    "maximum_contract_bytes": 65536,
+    "maximum_response_bytes": 270336,
+    "minimum_cache_capacity": 335872,
+    "maximum_cache_content_bytes": 16777216,
+    "maximum_contract_entries": 4096,
+    "pending_reply_reserved_bytes": 270336,
+    "contract_bytes": "exact canonical UTF-8 contents retained for every request state",
+    "unknown": "frees unwritten reply reservation only; retains contract entry, actual contract bytes, full credit hold and no resend",
+    "cache_eviction": false,
+    "physical_sqlite_wal_hard_quota_verified": false
+  },
+  "contract": {
+    "format": "cimiloop/conversation-cache-contract/1.0.0",
+    "fields": [
+      "request_id",
+      "input_digest",
+      "input_tokens",
+      "output_tokens",
+      "response_mode",
+      "tool_names_and_parameter_schemas",
+      "prior_call_ids"
+    ],
+    "source": "original immutable transport request capsule; copies and foreign instances denied; no real credential access",
+    "excluded": [
+      "prompts",
+      "tool_results",
+      "prior_assistant_content",
+      "prior_arguments",
+      "reasoning_content",
+      "tool_and_schema_documentation"
+    ],
+    "business_property_named_description_preserved": true,
+    "enum_const_business_values_retained": true,
+    "authenticated_storage_verified": false,
+    "original_wire_digest_recomputable_without_original_request_body": false
+  },
+  "actual_independent_host_tests": {
+    "new_child_hosts": 5,
+    "abrupt_exit_code": 73,
+    "before_cache_transaction": "dispatching with contract but no reply; original OS identity proved absent, recovered unknown with full hold and same key denied",
+    "inside_cache_transaction": "owned child exits after reply INSERT and before completed receipt UPDATE; reopening rolls back both, retained contract and dispatching request recover unknown without resend",
+    "after_cache_commit": "completed receipt and immutable tool reply replay with no new DNS or HTTP",
+    "last_cache_entry": "two independent hosts race; one dispatches/completes, the other refuses before new credit claim, contract or HTTP",
+    "fixture_exit_seam": "trusted test-only DatabaseSync prepare interception inside the owned child, no PID kill or runtime flag",
+    "identity_helpers_counted_as_hosts": false,
+    "new_actual_OpenCode_tool_run": false
+  },
+  "cancellation": {
+    "before_commit": "transaction checkpoints roll back reply and completed receipt; unknown retains contract and full credit hold",
+    "after_commit_before_delivery": "delivery can fail while completed cache and receipt remain replayable",
+    "close": "abort and join all active operations, release exact TLS sockets, then close ledger",
+    "interrupts_synchronous_sqlite_commit": false
+  },
+  "validation": {
+    "typecheck": "passed",
+    "initial_targeted": {
+      "files": 5,
+      "tests": 171,
+      "passed": true
+    },
+    "supplementary_edges": {
+      "files": 2,
+      "tests": 48,
+      "passed": true
+    },
+    "final_runtime_protocol_cli_regression": {
+      "files": 20,
+      "tests": 412,
+      "passed": true,
+      "new_cache_and_host_tests": 48
+    },
+    "corrupt_contract_and_reply_cases": 15,
+    "old_runtime_schemas_unchanged": [
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeOperationResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e4d785f38f836c223af0a23514f7d0b733de1a01277a9ec6b583d7766714f7ba"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "fbfdde8bbf7108ca630a5952abb6ab4b9a799f3652bda454db09857436255f7c"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeGatewayNetworkProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "f06d03972219af8af95a6177b6bd762089716871d97b00906de18e8ec4e379d5"
+        },
+        "unchanged": true
+      }
+    ],
+    "new_public_schema_exports": 0,
+    "power_loss_test_performed": false
+  },
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "production_authenticated_http_requests": 0,
+  "billing_admission_ready": false,
+  "actual_cost_known": false,
+  "tool_execution_authorized": false,
+  "formal_execution_enabled": false,
+  "new_cli_commands": 0,
+  "new_tool_IPC_frame_versions": 0,
+  "retained_payloads": {
+    "actual_request_messages": false,
+    "raw_upstream_payloads": false,
+    "reasoning_content": false,
+    "real_api_key": false,
+    "sqlite_contents_archived": false,
+    "reply_body_archived": false,
+    "public_fixture_source_archived": true
+  },
+  "source_digests": [
+    {
+      "locator": "packages/runtime-adapter/src/gateway-conversation.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8421fac5ce4c3b5a66129f74d3d821927b59332568e64094f45e1f8849afee1e"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\8421fac5ce4c3b5a66129f74d3d821927b59332568e64094f45e1f8849afee1e"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-credit.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c1218baf14990019a8ee20fc341dbf6ab14cfc105fc5e6bb406d1db09d8879d1"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\c1218baf14990019a8ee20fc341dbf6ab14cfc105fc5e6bb406d1db09d8879d1"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-host.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7afe83b098423d38bcb4301970e254e8b9d2cf8b68f17d1db456932f0246f32d"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\7afe83b098423d38bcb4301970e254e8b9d2cf8b68f17d1db456932f0246f32d"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-http.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a5812f50d00e02cb63398a8daec2a675449a90abb3ca865f7668e8af923ff479"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\a5812f50d00e02cb63398a8daec2a675449a90abb3ca865f7668e8af923ff479"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-network.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e09e87f0767bd5723a115cb561d3b8566bcaa665fd651cf0bd1dc38bae71e7bb"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\e09e87f0767bd5723a115cb561d3b8566bcaa665fd651cf0bd1dc38bae71e7bb"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-billing.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "15f0ba1a7c29581b0a626ece9654051192cc7305901ef579702267fb06a1f4eb"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\15f0ba1a7c29581b0a626ece9654051192cc7305901ef579702267fb06a1f4eb"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/model-gateway.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "2a5a9952609176a96eb16546e85bec94680d38497d04702762fb75e17e86671a"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\2a5a9952609176a96eb16546e85bec94680d38497d04702762fb75e17e86671a"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-credit-owner.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "878f3c7e956defe988760a6bc4e61d4ea76d3ed019eb7b8369fd33dbdae93508"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\878f3c7e956defe988760a6bc4e61d4ea76d3ed019eb7b8369fd33dbdae93508"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/native.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "617f7935e17e7fbb4295459fab3effa223ece0cd35cf6290d5f95ff3d31f84d1"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\617f7935e17e7fbb4295459fab3effa223ece0cd35cf6290d5f95ff3d31f84d1"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-conversation-cache.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "639ef0cbe0d8fe248c694eeaedae3da2150c13838e00e786966e1696b02fb0c8"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\639ef0cbe0d8fe248c694eeaedae3da2150c13838e00e786966e1696b02fb0c8"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-conversation-host.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "3e85ea85260b0ada4e66c8fc8ac1deb7ce285405b5fbe9493e54231d17e3b7e2"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\3e85ea85260b0ada4e66c8fc8ac1deb7ce285405b5fbe9493e54231d17e3b7e2"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-conversation-fixture.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4320ecd0df306be0cdc7ca4767329d2c5a82f7fe71708da88b234ef016ef6118"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\4320ecd0df306be0cdc7ca4767329d2c5a82f7fe71708da88b234ef016ef6118"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-host-worker.mjs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "632d9fd9f6b8adaeed77b42b06d5f80e69ce68ba6928e3d1e10d515768948e4b"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\632d9fd9f6b8adaeed77b42b06d5f80e69ce68ba6928e3d1e10d515768948e4b"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-conversation.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "dbc0349828cfb060be2435c7ffd933791cca43a92a2ee6399e8e2109eaba037d"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\dbc0349828cfb060be2435c7ffd933791cca43a92a2ee6399e8e2109eaba037d"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-credit-cache.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4a3668449b271e97907c594044a064419838e1938600cbf0ef218d72fa1a5212"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\4a3668449b271e97907c594044a064419838e1938600cbf0ef218d72fa1a5212"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-host.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0b9fb491060bb260356e29122fef3a559e222066cd2bff88dd73108a745a036f"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\0b9fb491060bb260356e29122fef3a559e222066cd2bff88dd73108a745a036f"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-http-fixture.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "97ff47a59b9e17c764c2bc3a7895861fe3160e34f1b3fbca118a79fb6d805e99"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\source-blobs\\97ff47a59b9e17c764c2bc3a7895861fe3160e34f1b3fbca118a79fb6d805e99"
+    }
+  ],
+  "raw_references": [
+    {
+      "locator": ".cimiloop/gateway-conversation-host-v1-09/initial-check.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\evidence-blobs\\c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "locator": ".cimiloop/gateway-conversation-host-v1-09/targeted-check.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\evidence-blobs\\c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "locator": ".cimiloop/gateway-conversation-host-v1-09/targeted-test-initial.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "032d1218e7a2612f60566107069d1909c6f97e762f5398988bd73a32d8ca5bb0"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\evidence-blobs\\032d1218e7a2612f60566107069d1909c6f97e762f5398988bd73a32d8ca5bb0"
+    },
+    {
+      "locator": ".cimiloop/gateway-conversation-host-v1-09/edge-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "75c02eee247c7d67f02efd653451fa482ee6b9ac2786fda76e2454924f856c42"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\evidence-blobs\\75c02eee247c7d67f02efd653451fa482ee6b9ac2786fda76e2454924f856c42"
+    },
+    {
+      "locator": ".cimiloop/gateway-conversation-host-v1-09/final-check.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\evidence-blobs\\c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "locator": ".cimiloop/gateway-conversation-host-v1-09/regression-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "24944c0f71f7b4a4263bc834b96368c6d8a9662d827e9c5f5461f2d1169ad3b8"
+      },
+      "archived_locator": ".cimiloop\\gateway-conversation-host-v1-09\\evidence-blobs\\24944c0f71f7b4a4263bc834b96368c6d8a9662d827e9c5f5461f2d1169ad3b8"
+    }
+  ],
+  "gaps": [
+    "IPC_versioned_tool_payloads_and_actual_OpenCode_consumption",
+    "actual_workitem_tool_permissions_and_side_effect_identity_recovery",
+    "provider_contract_acceptance_including_preserved_thinking_and_additional_stream_shapes",
+    "actual_account_plan_and_gateway_tool_eligibility",
+    "server_enforced_input_and_reasoning_output_bounds",
+    "unique_protected_real_account_ledger_and_approved_budget",
+    "provider_quota_invoice_reconciliation_and_task_cash_credit_relationship",
+    "hard_filesystem_quota",
+    "complete_controlled_runtime_recovery",
+    "formal_task_agent_admission"
+  ]
+}

@@ -3,6 +3,7 @@ import type { PreparedGatewayHttpRequest } from "./gateway-http.js";
 
 export const GATEWAY_CONVERSATION_PROFILE = "cimiloop/gateway-conversation/1.0.0";
 export const GATEWAY_TOOL_ARGUMENT_BYTES = 16384, GATEWAY_TOOL_COUNT = 32, GATEWAY_SSE_EVENTS = 512;
+export const GATEWAY_CONVERSATION_CONTRACT_BYTES = 65536, GATEWAY_CONVERSATION_REPLY_BYTES = 270336;
 const REQUEST_BYTES = 65536, RESPONSE_BYTES = 262144;
 type ObjectValue = Record<string, unknown>;
 const fields = (value: unknown, required: string[], optional: string[] = []): value is ObjectValue => !!value && typeof value === "object" && !Array.isArray(value) &&
@@ -133,10 +134,10 @@ function calls(value: unknown, tools: readonly GatewayFunctionTool[]): readonly 
   }));
 }
 function freeze(value: unknown): void { if (value && typeof value === "object") { for (const child of Object.values(value)) freeze(child); Object.freeze(value); } }
-function copyJson(value: unknown, budget = { nodes: 0 }, depth = 0): unknown {
+function copyJson(value: unknown, budget = { nodes: 0 }, depth = 0, maxText = REQUEST_BYTES): unknown {
   if (++budget.nodes > 16384 || depth > 16) fail("invalid_gateway_conversation_request");
   if (value === null || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") { if (!text(value, REQUEST_BYTES)) fail("gateway_request_limit"); return value; }
+  if (typeof value === "string") { if (!text(value, maxText)) fail("gateway_request_limit"); return value; }
   if (!object(value) && !Array.isArray(value)) fail("invalid_gateway_conversation_request");
   if (Object.getOwnPropertySymbols(value).length || (!Array.isArray(value) && ![null, Object.prototype].includes(Object.getPrototypeOf(value) as object | null))) fail("invalid_gateway_conversation_request");
   const keys = Object.keys(value), result: ObjectValue | unknown[] = Array.isArray(value) ? [] : Object.create(null) as ObjectValue;
@@ -144,9 +145,72 @@ function copyJson(value: unknown, budget = { nodes: 0 }, depth = 0): unknown {
   for (const key of keys) {
     const property = Object.getOwnPropertyDescriptor(value, key);
     if (!property || !Object.hasOwn(property, "value") || ["__proto__", "prototype", "constructor"].includes(key)) fail("invalid_gateway_conversation_request");
-    const child = copyJson(property.value, budget, depth + 1); if (Array.isArray(result)) result.push(child); else result[key] = child;
+    const child = copyJson(property.value, budget, depth + 1, maxText); if (Array.isArray(result)) result.push(child); else result[key] = child;
   }
   return result;
+}
+
+export interface GatewayConversationCacheContract {
+  readonly format: "cimiloop/conversation-cache-contract/1.0.0";
+  readonly request_id: string; readonly input_digest: string; readonly input_tokens: number; readonly output_tokens: number;
+  readonly response_mode: "json" | "sse";
+  readonly tools: readonly Readonly<{ type: "function"; function: Readonly<{ name: string; parameters: ObjectValue }> }>[];
+  readonly prior_call_ids: readonly string[];
+}
+// Canonicalize only JSON object key order; arrays keep their declared order.
+const canonical = (value: unknown): unknown => Array.isArray(value) ? value.map(canonical) : object(value) ?
+  Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+function withoutDescriptions(schema: ObjectValue): ObjectValue {
+  const result = { ...schema }; delete result.description;
+  if (object(schema.properties)) result.properties = Object.fromEntries(Object.entries(schema.properties).map(([key, value]) => [key, withoutDescriptions(value as ObjectValue)]));
+  if (object(schema.items)) result.items = withoutDescriptions(schema.items);
+  if (object(schema.additionalProperties)) result.additionalProperties = withoutDescriptions(schema.additionalProperties);
+  if (Array.isArray(schema.anyOf)) result.anyOf = schema.anyOf.map(value => withoutDescriptions(value as ObjectValue));
+  return result;
+}
+export function createGatewayConversationCacheContract(prepared: PreparedGatewayConversationRequest, tools: readonly GatewayFunctionTool[], priorCallIds: readonly string[]): GatewayConversationCacheContract {
+  return parseGatewayConversationCacheContract({ format: "cimiloop/conversation-cache-contract/1.0.0", request_id: prepared.request_id, input_digest: prepared.input_digest,
+    input_tokens: prepared.input_tokens, output_tokens: prepared.output_tokens, response_mode: prepared.response_mode,
+    tools: tools.map(tool => ({ type: "function", function: { name: tool.function.name, parameters: withoutDescriptions(tool.function.parameters) } })), prior_call_ids: priorCallIds });
+}
+export function parseGatewayConversationCacheContract(input: unknown): GatewayConversationCacheContract {
+  try {
+    const raw = JSON.stringify(copyJson(input)); if (Buffer.byteLength(raw) > GATEWAY_CONVERSATION_CONTRACT_BYTES) fail();
+    const value = parseGatewayJson(raw, GATEWAY_CONVERSATION_CONTRACT_BYTES);
+    if (!fields(value, ["format", "request_id", "input_digest", "input_tokens", "output_tokens", "response_mode", "tools", "prior_call_ids"]) || value.format !== "cimiloop/conversation-cache-contract/1.0.0" ||
+      typeof value.request_id !== "string" || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(value.request_id) || typeof value.input_digest !== "string" || !/^[a-f0-9]{64}$/.test(value.input_digest) ||
+      !integer(value.input_tokens, 1, 1048576) || !integer(value.output_tokens, 1, 131072) || !["json", "sse"].includes(value.response_mode as string) ||
+      !Array.isArray(value.tools) || value.tools.length > GATEWAY_TOOL_COUNT || !Array.isArray(value.prior_call_ids) || value.prior_call_ids.length > 2048 ||
+      value.prior_call_ids.some(id => !callId(id)) || new Set(value.prior_call_ids).size !== value.prior_call_ids.length) fail();
+    const names = new Set<string>();
+    for (const tool of value.tools) {
+      if (!fields(tool, ["type", "function"]) || tool.type !== "function" || !fields(tool.function, ["name", "parameters"]) || !name(tool.function.name) || names.has(tool.function.name)) fail(); names.add(tool.function.name);
+      validateSchema(tool.function.parameters, { nodes: 0 });
+      if (tool.function.parameters.type !== "object" || Buffer.byteLength(JSON.stringify(tool.function.parameters)) > GATEWAY_TOOL_ARGUMENT_BYTES ||
+        JSON.stringify(canonical(tool.function.parameters)) !== JSON.stringify(canonical(withoutDescriptions(tool.function.parameters)))) fail();
+    }
+    const contract = canonical(value) as unknown as GatewayConversationCacheContract; freeze(contract); return contract;
+  } catch { fail("gateway_conversation_cache_contract_invalid"); }
+}
+export function parseCachedGatewayConversationResponse(input: unknown, contract: GatewayConversationCacheContract): GatewayConversationResponse {
+  try {
+    const raw = JSON.stringify(copyJson(input, { nodes: 0 }, 0, RESPONSE_BYTES));
+    if (Buffer.byteLength(raw) > GATEWAY_CONVERSATION_REPLY_BYTES) fail("credit_response_cache_entry_limit");
+    const value = parseGatewayJson(raw, GATEWAY_CONVERSATION_REPLY_BYTES);
+    if (!fields(value, ["profile", "request_id", "input_digest", "response_digest", "text", "tool_calls", "finish_reason", "usage", "thinking_usage_verified", "actual_cost_known", "billing_admission_ready", "tool_execution_authorized"]) ||
+      value.profile !== GATEWAY_CONVERSATION_PROFILE || value.request_id !== contract.request_id || value.input_digest !== contract.input_digest ||
+      typeof value.response_digest !== "string" || !/^[a-f0-9]{64}$/.test(value.response_digest) || !["stop", "length", "tool_calls"].includes(value.finish_reason as string) ||
+      (value.text !== null && !text(value.text, RESPONSE_BYTES)) || !Array.isArray(value.tool_calls) || value.thinking_usage_verified !== false || value.actual_cost_known !== false || value.billing_admission_ready !== false || value.tool_execution_authorized !== false ||
+      !fields(value.usage, ["input_tokens", "output_tokens", "total_tokens"]) || !integer(value.usage.input_tokens, 0, 1048576) || !integer(value.usage.output_tokens, 0, 131072) ||
+      value.usage.total_tokens !== value.usage.input_tokens + value.usage.output_tokens) fail();
+    const tools: GatewayFunctionTool[] = contract.tools.map(tool => ({ type: "function", function: { ...tool.function, description: "" } }));
+    const accepted = value.finish_reason === "tool_calls" ? calls(value.tool_calls, tools) : Object.freeze([]);
+    if (value.finish_reason !== "tool_calls" && (value.tool_calls.length || value.text === null) || accepted.some(call => contract.prior_call_ids.includes(call.id))) fail();
+    return Object.freeze({ profile: GATEWAY_CONVERSATION_PROFILE, request_id: contract.request_id, input_digest: contract.input_digest, response_digest: value.response_digest,
+      text: value.text as string | null, tool_calls: accepted, finish_reason: value.finish_reason as GatewayConversationResponse["finish_reason"],
+      usage: Object.freeze({ input_tokens: value.usage.input_tokens, output_tokens: value.usage.output_tokens, total_tokens: value.usage.total_tokens as number }),
+      thinking_usage_verified: false, actual_cost_known: false, billing_admission_ready: false, tool_execution_authorized: false });
+  } catch (error) { if (error instanceof RuntimeAdapterError && error.reason === "credit_response_cache_entry_limit") throw error; fail("gateway_cached_conversation_response_invalid"); }
 }
 export function prepareGatewayConversation(input: unknown): { body: Buffer; tools: readonly GatewayFunctionTool[]; prior_call_ids: readonly string[]; prepared: PreparedGatewayConversationRequest } {
   try {

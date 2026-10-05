@@ -1,7 +1,8 @@
 import { performance } from "node:perf_hooks";
-import { GatewayHttpTransport, type GatewayHttpResponse } from "./gateway-http.js";
+import { GatewayHttpTransport, type GatewayHttpResponse, type PreparedGatewayHttpRequest } from "./gateway-http.js";
+import type { GatewayConversationResponse, PreparedGatewayConversationRequest } from "./gateway-conversation.js";
 import { GatewayNetworkBoundary, type GatewayTlsConnection } from "./gateway-network.js";
-import { GatewayCreditLedger, type CreditReceipt } from "./gateway-credit.js";
+import { GatewayCreditLedger, type CreditReceipt, type CreditReservation } from "./gateway-credit.js";
 import { requireDedicatedGatewayBilling } from "./model-gateway.js";
 import { RuntimeAdapterError } from "./files.js";
 
@@ -12,8 +13,8 @@ interface Dependencies {
   // Trusted host test fault injection only; no serialized input chooses this.
   phase?: (phase: Phase) => void | Promise<void>;
 }
-export interface GatewayHostRehearsalResult {
-  scope: "host_gateway_rehearsal"; response: GatewayHttpResponse; receipt: CreditReceipt; replay: boolean;
+export interface GatewayHostRehearsalResult<Response = GatewayHttpResponse> {
+  scope: "host_gateway_rehearsal"; response: Response; receipt: CreditReceipt; replay: boolean;
   actual_cost_known: false; billing_admission_ready: false; formal_execution_enabled: false;
 }
 // A real provider factory stays closed before any side effect. The independently
@@ -29,27 +30,37 @@ const releaseConnection = (connection?: GatewayTlsConnection): Promise<void> => 
   });
 };
 
-export class GatewayHostRehearsal {
+interface Strategy<Prepared, Response> {
+  prepare: (input: unknown) => Prepared;
+  reserve: (prepared: Prepared, budgetKey: string) => { permit: CreditReservation; replay?: never; cached_response?: never } | { replay: CreditReceipt; permit?: never; cached_response?: Response };
+  send: (prepared: Prepared, connection: GatewayTlsConnection, deadline: number, signal: AbortSignal) => Promise<Response>;
+  complete: (permit: CreditReservation, response: Response, checkpoint: () => void) => CreditReceipt;
+}
+// The two constructors below select a trusted code strategy, never a Runtime
+// flag. The shared cancellation/commit/close sequence has one implementation.
+class GatewayHostCoordinator<Prepared extends PreparedGatewayHttpRequest, Response> {
   private readonly transport: GatewayHttpTransport;
   private readonly ledger: GatewayCreditLedger;
   private readonly boundary: GatewayNetworkBoundary;
   private readonly deadlineMs: number;
   private readonly phase: Dependencies["phase"];
+  private readonly strategy: Strategy<Prepared, Response>;
   private readonly active = new Set<{ abort: AbortController; done: Promise<void> }>();
   private closing = false;
   private closePromise: Promise<void> | undefined;
-  constructor(dependencies: Dependencies) {
+  constructor(dependencies: Dependencies, storageFormat: 2 | 3, strategy: (transport: GatewayHttpTransport, ledger: GatewayCreditLedger) => Strategy<Prepared, Response>) {
     if (!Number.isSafeInteger(dependencies.deadlineMs ?? 8000) || (dependencies.deadlineMs ?? 8000) < 100 || (dependencies.deadlineMs ?? 8000) > 30000) throw new RuntimeAdapterError("invalid_host_gateway_deadline");
-    if (dependencies.ledger.storageFormat !== 2) throw new RuntimeAdapterError("host_gateway_cache_required");
+    if (dependencies.ledger.storageFormat !== storageFormat) throw new RuntimeAdapterError(storageFormat === 3 ? "host_gateway_conversation_cache_required" : "host_gateway_cache_required");
     dependencies.ledger.cacheSnapshot();
     this.ledger = dependencies.ledger; this.boundary = dependencies.boundary; this.transport = new GatewayHttpTransport(this.boundary);
+    this.strategy = strategy(this.transport, this.ledger);
     this.deadlineMs = dependencies.deadlineMs ?? 8000; this.phase = dependencies.phase;
   }
-  async execute(input: unknown, budgetKey: string, signal?: AbortSignal): Promise<GatewayHostRehearsalResult> {
+  async execute(input: unknown, budgetKey: string, signal?: AbortSignal): Promise<GatewayHostRehearsalResult<Response>> {
     if (this.closing || signal?.aborted) throw new RuntimeAdapterError("host_gateway_aborted");
-    const expires = performance.now() + this.deadlineMs, prepared = this.transport.prepare(input);
-    const claim = this.ledger.reserve({ request_id: prepared.request_id, budget_key: budgetKey, input_digest: prepared.input_digest, input_tokens: prepared.input_tokens, output_tokens: prepared.output_tokens });
-    const result = (response: GatewayHttpResponse, receipt: CreditReceipt, replay: boolean): GatewayHostRehearsalResult => Object.freeze({
+    const expires = performance.now() + this.deadlineMs, prepared = this.strategy.prepare(input);
+    const claim = this.strategy.reserve(prepared, budgetKey);
+    const result = (response: Response, receipt: CreditReceipt, replay: boolean): GatewayHostRehearsalResult<Response> => Object.freeze({
       scope: "host_gateway_rehearsal", response, receipt, replay, actual_cost_known: false, billing_admission_ready: false, formal_execution_enabled: false });
     if (claim.replay) {
       if (!claim.cached_response) throw new RuntimeAdapterError("host_gateway_cached_response_unproven");
@@ -79,10 +90,10 @@ export class GatewayHostRehearsal {
       remaining(); this.ledger.dispatch(claim.permit); await phase("dispatch_committed");
       const pin = await this.boundary.resolve(remaining(), control.signal);
       connection = await this.boundary.connect(pin, remaining(), control.signal);
-      const response = await this.transport.send(prepared, connection, GATEWAY_HOST_REHEARSAL_KEY, remaining(), control.signal);
+      const response = await this.strategy.send(prepared, connection, remaining(), control.signal);
       await releaseConnection(connection); connection = undefined;
       await phase("response_validated"); remaining();
-      const receipt = this.ledger.completeCached(claim.permit, response, () => { remaining(false); }); await phase("completion_committed"); remaining(false);
+      const receipt = this.strategy.complete(claim.permit, response, () => { remaining(false); }); await phase("completion_committed"); remaining(false);
       return result(response, receipt, false);
     } catch (error) {
       const deadlineFailure = error instanceof RuntimeAdapterError && ["gateway_dns_deadline_exhausted", "gateway_tls_deadline_exhausted", "gateway_http_deadline_exhausted"].includes(error.reason);
@@ -104,5 +115,22 @@ export class GatewayHostRehearsal {
       this.closePromise = Promise.all([...this.active].map(operation => operation.done)).then(() => { this.ledger.close(); });
     }
     return this.closePromise;
+  }
+}
+const creditRequest = (prepared: PreparedGatewayHttpRequest, budgetKey: string) => ({ request_id: prepared.request_id, budget_key: budgetKey,
+  input_digest: prepared.input_digest, input_tokens: prepared.input_tokens, output_tokens: prepared.output_tokens });
+export class GatewayHostRehearsal extends GatewayHostCoordinator<PreparedGatewayHttpRequest, GatewayHttpResponse> {
+  constructor(dependencies: Dependencies) {
+    super(dependencies, 2, (transport, ledger) => ({ prepare: input => transport.prepare(input), reserve: (prepared, budget) => ledger.reserve(creditRequest(prepared, budget)),
+      send: (prepared, connection, deadline, signal) => transport.send(prepared, connection, GATEWAY_HOST_REHEARSAL_KEY, deadline, signal), complete: (permit, response, checkpoint) => ledger.completeCached(permit, response, checkpoint) }));
+  }
+}
+export type GatewayConversationHostRehearsalResult = GatewayHostRehearsalResult<GatewayConversationResponse>;
+export class GatewayConversationHostRehearsal extends GatewayHostCoordinator<PreparedGatewayConversationRequest, GatewayConversationResponse> {
+  constructor(dependencies: Dependencies) {
+    super(dependencies, 3, (transport, ledger) => ({ prepare: input => transport.prepareConversation(input), reserve: (prepared, budget) =>
+      ledger.reserveConversation(creditRequest(prepared, budget), transport.conversationCacheContract(prepared, GATEWAY_HOST_REHEARSAL_KEY)),
+      send: (prepared, connection, deadline, signal) => transport.sendConversation(prepared, connection, GATEWAY_HOST_REHEARSAL_KEY, deadline, signal),
+      complete: (permit, response, checkpoint) => ledger.completeConversationCached(permit, response, checkpoint) }));
   }
 }
