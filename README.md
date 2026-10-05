@@ -14,7 +14,7 @@ V1-09续批已接通`provider register / list`、原生Provider元数据详情�
 
 D-196已接通[Runtime恢复与资源限额](docs/implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)：实际Windows中断 / 超限与CLI恢复已验证，原运行Unknown不因资源清理而变成成功，同键不重启。日志在写入前限长，沙箱总量采用采样后停止，完整硬配额尚未验收。
 
-最新D-202已实现独立持久积分演练账本、共享账户 / 任务累计上限、一次发送凭据、历史回执及原宿主身份核验后的恢复。实际三个独立宿主验证共享上限CAS与发送状态提交后的进程退出；15项CLI检查通过。HTTP、真实Key及模型请求0，真实计费准入与正式Task / Agent仍未启用。 专项5个文件89项通过，补充异常完成数据回归后最终全量40个文件436项通过，本批新增25项回归。 见[持久积分预算与宿主恢复](docs/implementation/CimiLoop-持久积分预算与宿主恢复-v0.1.md)。下一步确认套餐版本与网关工具资格，证明服务端输入及思考输出上界，固定实际账户唯一账本、配额 / 账单核对及Task现金 / 积分预算关系，再实现真实HTTPS请求契约；文件系统硬配额和完整受控恢复仍待完成。
+D-203已实现固定连接HTTPS传输原语：一次交接D-201核验的原TLS连接、冻结纯文本请求字节、固定端点和请求 / 响应边界，拒绝重连、重试、重定向及凭据回显。本地TLS / HTTP故障案例与D-202持久发送顺序已验证；同批公网TLS1.3重验只握手，HTTP、真实Key和模型请求0。真实计费与正式Task / Agent仍关闭。 见[固定连接HTTPS传输](docs/implementation/CimiLoop-固定连接HTTPS传输-v0.1.md)。下一步落实实际账户套餐 / 工具资格、服务端输入与思考输出约束、唯一受保护账本及账单核对，再实现获准宿主协调器、响应缓存和OpenCode工具 / 流式契约；文件系统硬配额及完整受控恢复仍待完成。
 
 已实现操作见[任务、授权与预算](docs/implementation/CimiLoop任务授权与预算-v0.1.md)、[证据、评价与安全集成](docs/implementation/CimiLoop证据评价与安全集成-v0.1.md)、[运行预约与交接恢复](docs/implementation/CimiLoop运行预约与交接恢复-v0.1.md)及[CLI动作、查询与诊断](docs/implementation/CimiLoop-CLI动作查询与诊断-v0.1.md)。
 

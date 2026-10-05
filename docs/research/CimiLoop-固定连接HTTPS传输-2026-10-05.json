@@ -1,0 +1,346 @@
+{
+  "captured_at": "2026-10-05T01:14:41.856Z",
+  "decision": "D-203",
+  "scope": "bounded_https_transport_verification",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2"
+  },
+  "baseline_commit": "90dd187",
+  "implementation_scope": "internal one-use takeover of original pinned TLS socket, immutable bounded text wire request, fixed origin with no re-dial, retry, proxy or redirect, strict complete response and credential echo rejection",
+  "local_tls_http_fixture": {
+    "actual_loopback_tls_and_http": true,
+    "public_fixture_key_only": true,
+    "production_hostname_san": true,
+    "dns_and_dial_substituted_by_trusted_test_code": true,
+    "peer_address_is_synthetic": true,
+    "production_provider_authenticated": false,
+    "tool_calls_verified": false,
+    "streaming_verified": false,
+    "reasoning_billing_bound_verified": false,
+    "persistent_credit_sequence": "test coordinator only, dispatch before local request; completed/unknown retain full reservation; unknown never resends"
+  },
+  "validation": {
+    "typecheck": "passed",
+    "initial_targeted": {
+      "files": 4,
+      "tests": 118,
+      "passed": true
+    },
+    "runtime_protocol_cli_regression": {
+      "files": 15,
+      "tests": 240,
+      "passed": true
+    },
+    "baseline_full_suite": {
+      "decision": "D-202",
+      "files": 40,
+      "tests": 436,
+      "log_locator": ".cimiloop/gateway-credit-v1-09/full-test.log"
+    },
+    "old_runtime_schemas_unchanged": [
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeOperationResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e4d785f38f836c223af0a23514f7d0b733de1a01277a9ec6b583d7766714f7ba"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "fbfdde8bbf7108ca630a5952abb6ab4b9a799f3652bda454db09857436255f7c"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeGatewayNetworkProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "f06d03972219af8af95a6177b6bd762089716871d97b00906de18e8ec4e379d5"
+        },
+        "unchanged": true
+      }
+    ]
+  },
+  "public_network_probe": {
+    "schema_version": "2.0.0",
+    "scope": "public_gateway_network_probe",
+    "observed_at": "2026-10-05T01:10:01.093Z",
+    "route": {
+      "provider": "zhipuai-coding-plan",
+      "model": "glm-5.3",
+      "host": "open.bigmodel.cn",
+      "port": 443,
+      "path": "/api/coding/paas/v4/chat/completions",
+      "policy_digest": {
+        "algorithm": "sha256",
+        "value": "f957925bec428f39bb9cff8ad6a1ad603790b686e33a131dd3f85963ce7b5f76"
+      },
+      "proxy": false,
+      "redirects": false,
+      "retries": 0
+    },
+    "dns": {
+      "resolved_at": "2026-10-05T01:10:00.907Z",
+      "expires_at": "2026-10-05T01:10:01.907Z",
+      "addresses": [
+        {
+          "address": "47.102.128.206",
+          "family": 4,
+          "ttl_seconds": 34
+        },
+        {
+          "address": "8.133.182.104",
+          "family": 4,
+          "ttl_seconds": 34
+        },
+        {
+          "address": "2408:4002:1601:e2:1034:e4c1:715e:1637",
+          "family": 6,
+          "ttl_seconds": 1
+        },
+        {
+          "address": "2408:4002:1601:f0:5122:eaf1:3c55:875e",
+          "family": 6,
+          "ttl_seconds": 1
+        }
+      ],
+      "selected": {
+        "address": "47.102.128.206",
+        "family": 4,
+        "ttl_seconds": 34
+      },
+      "pin_digest": {
+        "algorithm": "sha256",
+        "value": "98a1c13789c90a019e18a42401dca1b60f15b7d3f15d1a03b1be273b6a70b6f3"
+      }
+    },
+    "tls": {
+      "verified": true,
+      "peer_address": "47.102.128.206",
+      "protocol": "TLSv1.3",
+      "certificate_digest": {
+        "algorithm": "sha256",
+        "value": "b725bf2cd9db8f27a5d7ece57ab835ef6f1488fa6662955a0db18ae9efb248d2"
+      }
+    },
+    "failure_reason": null,
+    "http_requests": 0,
+    "actual_credentials_read": 0,
+    "network_probe_passed": true,
+    "billing": {
+      "admission_ready": false,
+      "cost_known": false,
+      "reason": "gateway_reliable_billing_profile_unavailable",
+      "credit_rate_digest": {
+        "algorithm": "sha256",
+        "value": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346"
+      },
+      "account_plan_version_verified": false,
+      "token_bounds_verified": false
+    },
+    "external_model_requests": 0,
+    "runtime_started": false,
+    "formal_execution_enabled": false,
+    "evidence_refs": [
+      {
+        "provider": "cimiloop-runtime-probe",
+        "resource_type": "gateway_network_observation",
+        "locator": "D:\\Dev\\hector\\github\\cimi-ai-native\\.cimiloop\\gateway-http-v1-09\\public-network\\blobs\\8757679e2f63c373bd03ed9ddb3f9839ee5d189d31193f46c8e3b417e31dcef3",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "8757679e2f63c373bd03ed9ddb3f9839ee5d189d31193f46c8e3b417e31dcef3"
+        },
+        "version": "network-observation.json"
+      }
+    ],
+    "gaps": [
+      "confirmed_account_credit_plan_and_gateway_eligibility",
+      "verified_input_and_reasoning_output_bounds",
+      "approved_persistent_credit_budget",
+      "authenticated_real_provider_https_contract",
+      "hard_filesystem_quota",
+      "complete_controlled_execution_recovery",
+      "formal_task_binding_and_agent_entry"
+    ]
+  },
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "production_authenticated_http_requests": 0,
+  "billing_admission_ready": false,
+  "actual_cost_known": false,
+  "formal_execution_enabled": false,
+  "new_cli_commands": 0,
+  "new_protocol_schemas": 0,
+  "user_database_migrations": 0,
+  "source_digests": [
+    {
+      "locator": "packages/runtime-adapter/src/gateway-http.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8d81fb3f7d2253a9a4e1d925b4e4e0726245191ee3f91ac14cce7fb716872500"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\8d81fb3f7d2253a9a4e1d925b4e4e0726245191ee3f91ac14cce7fb716872500"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-network.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e09e87f0767bd5723a115cb561d3b8566bcaa665fd651cf0bd1dc38bae71e7bb"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\e09e87f0767bd5723a115cb561d3b8566bcaa665fd651cf0bd1dc38bae71e7bb"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-credit.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c74446b670423c8ca2f846de92ffbf65be138ef4d96bd20d16986fe1a2cef6e0"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\c74446b670423c8ca2f846de92ffbf65be138ef4d96bd20d16986fe1a2cef6e0"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-billing.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "15f0ba1a7c29581b0a626ece9654051192cc7305901ef579702267fb06a1f4eb"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\15f0ba1a7c29581b0a626ece9654051192cc7305901ef579702267fb06a1f4eb"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/model-gateway.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "2a5a9952609176a96eb16546e85bec94680d38497d04702762fb75e17e86671a"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\2a5a9952609176a96eb16546e85bec94680d38497d04702762fb75e17e86671a"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/connection.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7869761bd8cfd10776460a45e2fa6556ca2686191bf76e6aef327657466b39f4"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\7869761bd8cfd10776460a45e2fa6556ca2686191bf76e6aef327657466b39f4"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-network-probe.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c36504ca32be51739e07503b0f2c39e746dd387c31794237dce06979621bdccb"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\c36504ca32be51739e07503b0f2c39e746dd387c31794237dce06979621bdccb"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-http.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "57f99b4452122bf22c5e91c21a9f146d258694837cbc3ca8f258adc3df52ee32"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\57f99b4452122bf22c5e91c21a9f146d258694837cbc3ca8f258adc3df52ee32"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-http-fixture.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0fbf41606f047795f4169f76a89843b5306eaa7c37bf989d64a5212bca22aa22"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\0fbf41606f047795f4169f76a89843b5306eaa7c37bf989d64a5212bca22aa22"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/gateway-network.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "53839ade2057479379054ca8595266cda8095db8c29779b3c4fd3403ee64cee4"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\53839ade2057479379054ca8595266cda8095db8c29779b3c4fd3403ee64cee4"
+    },
+    {
+      "locator": "packages/runtime-adapter/fixtures/gateway-http-tls/cert.pem",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "296b6309d0220430a28df9693edb7d845705c4b20334fa1cccecb3d355999200"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\296b6309d0220430a28df9693edb7d845705c4b20334fa1cccecb3d355999200"
+    },
+    {
+      "locator": "packages/runtime-adapter/fixtures/gateway-http-tls/README.md",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c30a743395cb3d70a5be9be6fe2166ab4be74693647a99d02d0f04969d63c367"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\source-blobs\\c30a743395cb3d70a5be9be6fe2166ab4be74693647a99d02d0f04969d63c367"
+    }
+  ],
+  "raw_references": [
+    {
+      "locator": ".cimiloop/gateway-http-v1-09/typecheck.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\evidence-blobs\\c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "locator": ".cimiloop/gateway-http-v1-09/targeted-test-initial.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "20707c1d28f749a3bb320e829d0ff0ae9c0412d13c0ab204b980e100bd97f68c"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\evidence-blobs\\20707c1d28f749a3bb320e829d0ff0ae9c0412d13c0ab204b980e100bd97f68c"
+    },
+    {
+      "locator": ".cimiloop/gateway-http-v1-09/regression-test.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "bc921ef74a8328c2b1a114a53756d46101faf0dad447fa786a3528d25ce6289e"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\evidence-blobs\\bc921ef74a8328c2b1a114a53756d46101faf0dad447fa786a3528d25ce6289e"
+    },
+    {
+      "locator": ".cimiloop/gateway-http-v1-09/public-network-cli.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4a9e9ab8aa5147c055994db0720dd3bfa429fda544f524d53be73f39e365d9d3"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\evidence-blobs\\4a9e9ab8aa5147c055994db0720dd3bfa429fda544f524d53be73f39e365d9d3"
+    },
+    {
+      "locator": ".cimiloop/gateway-http-v1-09/public-network/gateway-network-probe-result.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "7d0b0f10f41c445c59c8b9c4e45d5ac4136ef3ab3a2478ab9c40b19bf05d26df"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\evidence-blobs\\7d0b0f10f41c445c59c8b9c4e45d5ac4136ef3ab3a2478ab9c40b19bf05d26df"
+    },
+    {
+      "locator": "D:\\Dev\\hector\\github\\cimi-ai-native\\.cimiloop\\gateway-http-v1-09\\public-network\\blobs\\8757679e2f63c373bd03ed9ddb3f9839ee5d189d31193f46c8e3b417e31dcef3",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8757679e2f63c373bd03ed9ddb3f9839ee5d189d31193f46c8e3b417e31dcef3"
+      },
+      "archived_locator": ".cimiloop\\gateway-http-v1-09\\evidence-blobs\\8757679e2f63c373bd03ed9ddb3f9839ee5d189d31193f46c8e3b417e31dcef3"
+    }
+  ],
+  "gaps": [
+    "confirmed_actual_account_plan_and_gateway_tool_eligibility",
+    "server_enforced_input_and_reasoning_output_bounds",
+    "unique_protected_actual_account_ledger_and_approved_budget",
+    "provider_quota_windows_billing_reconciliation_and_task_budget_relationship",
+    "approved_host_coordinator_and_bounded_persistent_response_cache",
+    "opencode_tool_and_streaming_contract",
+    "hard_filesystem_quota",
+    "complete_controlled_runtime_recovery",
+    "formal_task_agent_entry"
+  ]
+}

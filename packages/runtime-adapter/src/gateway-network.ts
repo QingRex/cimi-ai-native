@@ -17,6 +17,7 @@ export interface GatewayAddressPin {
   readonly selected: Readonly<GatewayDnsAddress>; readonly digest: string;
 }
 export interface GatewayTlsObservation { peer_address: string; protocol: string; certificate_digest: string }
+export interface GatewayTlsConnection { readonly socket: TLSSocket; readonly observation: Readonly<GatewayTlsObservation> }
 // These dependency functions are trusted host code/test seams. They are never
 // accepted from JSON, CLI, a connection file, environment or Runtime input.
 interface NetworkDependencies {
@@ -44,6 +45,7 @@ const resolvePublicHost = async (signal: AbortSignal): Promise<GatewayDnsAddress
 };
 export class GatewayNetworkBoundary {
   private readonly pins = new WeakMap<GatewayAddressPin, { expires: number; consumed: boolean }>();
+  private readonly connections = new WeakMap<GatewayTlsConnection, { pin: GatewayAddressPin; expires: number; consumed: boolean; bytesWritten: number }>();
   private readonly resolver: NonNullable<NetworkDependencies["resolve"]>;
   private readonly dial: NonNullable<NetworkDependencies["connect"]>;
   private readonly now: () => number;
@@ -89,7 +91,7 @@ export class GatewayNetworkBoundary {
   // The returned socket is TLS-authorized and belongs to the chosen DNS pin.
   // Callers may write only after this promise resolves. No HTTP/header/body is
   // sent here, and no proxy or subsequent DNS lookup participates in dialing.
-  connect(pin: GatewayAddressPin, deadlineMs = 8000, signal?: AbortSignal): Promise<{ socket: TLSSocket; observation: GatewayTlsObservation }> {
+  connect(pin: GatewayAddressPin, deadlineMs = 8000, signal?: AbortSignal): Promise<GatewayTlsConnection> {
     const owner = this.pins.get(pin);
     if (!owner || owner.consumed) return Promise.reject(new RuntimeAdapterError("gateway_address_pin_unowned"));
     if (this.monotonic() >= owner.expires) return Promise.reject(new RuntimeAdapterError("gateway_address_pin_expired"));
@@ -102,7 +104,11 @@ export class GatewayNetworkBoundary {
       const finish = (reason?: string, observation?: GatewayTlsObservation) => {
         if (settled) return; settled = true; clearTimeout(timer); signal?.removeEventListener("abort", cancel);
         if (reason) { socket?.destroy(); reject(new RuntimeAdapterError(reason)); }
-        else resolve({ socket: socket!, observation: observation! });
+        else {
+          const connection = Object.freeze({ socket: socket!, observation: Object.freeze(observation!) });
+          this.connections.set(connection, { pin, expires: owner.expires, consumed: false, bytesWritten: socket!.bytesWritten });
+          resolve(connection);
+        }
       };
       const timer = setTimeout(() => finish("gateway_tls_deadline_exhausted"), deadlineMs);
       signal?.addEventListener("abort", cancel, { once: true });
@@ -125,5 +131,23 @@ export class GatewayNetworkBoundary {
         if (signal?.aborted) cancel();
       } catch { finish("gateway_tls_unproven"); }
     });
+  }
+  // One host HTTP operation may take over the original, still-live socket.
+  // Object copies, foreign boundaries, expired pins and prior writes are denied.
+  consumeHttpConnection(connection: GatewayTlsConnection): TLSSocket {
+    const owned = this.connections.get(connection);
+    if (!owned || owned.consumed) throw new RuntimeAdapterError("gateway_tls_connection_unowned");
+    owned.consumed = true;
+    const socket = connection.socket;
+    try {
+      if (this.monotonic() >= owned.expires) throw new RuntimeAdapterError("gateway_address_pin_expired");
+      if (socket.destroyed || socket.writableEnded || socket.readableEnded || socket.writable === false || !socket.authorized ||
+        !socket.remoteAddress || !gatewayPeerMatchesPin(owned.pin.selected.address, socket.remoteAddress) || socket.bytesWritten !== owned.bytesWritten || socket.readableLength > 0)
+        throw new RuntimeAdapterError("gateway_tls_connection_changed");
+      const certificate = socket.getPeerCertificate();
+      if (!certificate.raw?.length || checkServerIdentity(DEDICATED_GATEWAY_HOST, certificate) || digest(certificate.raw).value !== connection.observation.certificate_digest ||
+        socket.getProtocol() !== connection.observation.protocol) throw new RuntimeAdapterError("gateway_tls_connection_changed");
+      return socket;
+    } catch (error) { socket.destroy(); throw error; }
   }
 }

@@ -13,6 +13,7 @@ import { bytesAt } from "../src/files.js";
 const record = (address = "8.8.8.8", ttl = 60): GatewayDnsAddress => ({ address, family: address.includes(":") ? 6 : 4, ttl_seconds: ttl });
 class ObservedSocket extends EventEmitter {
   authorized = true; remoteAddress = "8.8.8.8"; destroyed = false; closed = false;
+  bytesWritten = 0; readableLength = 0;
   certificateHost = "open.bigmodel.cn"; protocol = "TLSv1.3";
   getPeerCertificate() { return { raw: Buffer.from("synthetic-test-certificate"), subjectaltname: `DNS:${this.certificateHost}`, subject: { CN: this.certificateHost } }; }
   getProtocol() { return this.protocol; }
@@ -26,6 +27,28 @@ const fixture = (options: { records?: GatewayDnsAddress[]; alter?: (socket: Obse
   return { boundary, socket, advance: (ms: number) => { time += ms; }, dnsCalls: () => dnsCalls, dialCalls: () => dialCalls, captured: () => captured };
 };
 describe("public gateway DNS and exact TLS boundary", () => {
+  it("hands off only its original connection once and does not consume it on a copied claim", async () => {
+    const f = fixture(), connection = await f.boundary.connect(await f.boundary.resolve());
+    expect(Object.isFrozen(connection)).toBe(true); expect(Object.isFrozen(connection.observation)).toBe(true);
+    expect(() => f.boundary.consumeHttpConnection({ ...connection })).toThrow("gateway_tls_connection_unowned");
+    expect(() => fixture().boundary.consumeHttpConnection(connection)).toThrow("gateway_tls_connection_unowned");
+    expect(f.boundary.consumeHttpConnection(connection)).toBe(connection.socket);
+    expect(() => f.boundary.consumeHttpConnection(connection)).toThrow("gateway_tls_connection_unowned"); connection.socket.destroy();
+  });
+  it.each(["expired", "closed", "prior_write", "incoming_data", "peer", "certificate", "protocol", "authorization"])("destroys an owned connection changed before HTTP: %s", async mode => {
+    const f = fixture(), connection = await f.boundary.connect(await f.boundary.resolve());
+    if (mode === "expired") f.advance(30001);
+    if (mode === "closed") f.socket.destroy();
+    if (mode === "prior_write") f.socket.bytesWritten++;
+    if (mode === "incoming_data") f.socket.readableLength++;
+    if (mode === "peer") f.socket.remoteAddress = "8.8.4.4";
+    if (mode === "certificate") f.socket.certificateHost = "other.example";
+    if (mode === "protocol") f.socket.protocol = "TLSv1.2";
+    if (mode === "authorization") f.socket.authorized = false;
+    expect(() => f.boundary.consumeHttpConnection(connection)).toThrow(mode === "expired" ? "gateway_address_pin_expired" : "gateway_tls_connection_changed");
+    expect(f.socket.destroyed).toBe(true);
+    expect(() => f.boundary.consumeHttpConnection(connection)).toThrow("gateway_tls_connection_unowned");
+  });
   it("pins a frozen DNS result, bypasses later DNS and sends no HTTP, headers or proxy configuration", async () => {
     const records = [record()], f = fixture({ records }), pin = await f.boundary.resolve();
     records[0]!.address = "127.0.0.1"; records.push(record("169.254.169.254"));

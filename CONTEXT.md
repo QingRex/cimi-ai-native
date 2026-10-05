@@ -4,7 +4,7 @@ CimiLoop 以项目、目标版本、需求、缺陷和任务组织日常研发�
 
 2026-10-05 当前V1字段、状态、命令和任务以[可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。V1-09实施中：独立探针Adapter、Windows隔离、OpenCode 1.18.34固定来源、候选登记及专用智谱连接已实现；真实合成修改和新只读会话独立验收通过，凭据保存在仓库外DPAPI文件，Zen403保留为历史。最新原生Provider Evidence / Evaluation已接通，技术契约ALLOW并批准isolated_provider_probe Binding；受控执行仍为NEED_MORE_EVIDENCE，Task执行绑定被拒绝。详见[Provider证据、评测与受限绑定](docs/implementation/CimiLoop-Provider证据评测与受限绑定-v0.1.md)。当前数据库格式8，支持显式1–7升级，未升级用户库；合成探针及Provider批准不改变Task、Run或Gate，D-196已实现新合成操作的持久归属、恢复清理及资源超限停止，见[Runtime恢复与资源限额](docs/implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)。完整A9及Agent Run仍待网络主机、费用、文件系统硬上限和完整恢复验收。本文术语更新不代表完整功能已经实现。
 
-D-202已实现独立持久积分演练账本、共享账户 / 任务累计上限、一次发送凭据、历史回执及原宿主身份核验后的恢复。实际三个独立宿主验证共享上限CAS与发送状态提交后的进程退出；15项CLI检查通过。HTTP、真实Key及模型请求0，真实计费准入与正式Task / Agent仍未启用。 专项5个文件89项通过，补充异常完成数据回归后最终全量40个文件436项通过，本批新增25项回归。 见[持久积分预算与宿主恢复](docs/implementation/CimiLoop-持久积分预算与宿主恢复-v0.1.md)。下一步确认套餐版本与网关工具资格，证明服务端输入及思考输出上界，固定实际账户唯一账本、配额 / 账单核对及Task现金 / 积分预算关系，再实现真实HTTPS请求契约；文件系统硬配额和完整受控恢复仍待完成。
+D-203已实现固定连接HTTPS传输原语：一次交接D-201核验的原TLS连接、冻结纯文本请求字节、固定端点和请求 / 响应边界，拒绝重连、重试、重定向及凭据回显。本地TLS / HTTP故障案例与D-202持久发送顺序已验证；同批公网TLS1.3重验只握手，HTTP、真实Key和模型请求0。真实计费与正式Task / Agent仍关闭。 见[固定连接HTTPS传输](docs/implementation/CimiLoop-固定连接HTTPS传输-v0.1.md)。下一步落实实际账户套餐 / 工具资格、服务端输入与思考输出约束、唯一受保护账本及账单核对，再实现获准宿主协调器、响应缓存和OpenCode工具 / 流式契约；文件系统硬配额及完整受控恢复仍待完成。
 
 ## 业务语言
 
