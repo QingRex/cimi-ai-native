@@ -114,8 +114,14 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("actual W
     const { adapter, key, path } = await start("hold", true, 20000); await until(() => observation(path).accepted_requests === 1);
     const ownership = JSON.parse(readFileSync(join(path, "native-ownership.json"), "utf8")) as { native_identity: { pid: number; creation_ticks: string; image: string }; nonce: string };
     const identity = await nativeControl(launcher, ["--identity", String(ownership.native_identity.pid)]); expect(identity.value).toEqual(ownership.native_identity);
-    await crashOwnedFixture(ownership.native_identity); await waitForOperation(adapter, key, 15000); await delay(200);
-    const recovery = await recoverProbeOperation(root, key); expect(recovery).toMatchObject({ outcome: "recovered", cleanup: { resources_disposed: true }, operation: { status: "Unknown" } });
+    await crashOwnedFixture(ownership.native_identity); await waitForOperation(adapter, key, 15000);
+    // The verified controller exit can precede Job/Profile teardown. Reobserve
+    // the full guarded recovery instead of assuming a fixed 200ms is sufficient.
+    let recovery = await recoverProbeOperation(root, key); const deadline = Date.now() + 8000;
+    while (recovery.outcome !== "recovered" && Date.now() < deadline) {
+      await delay(100); recovery = await recoverProbeOperation(root, key);
+    }
+    expect(recovery, `Owned crash recovery: ${recovery.outcome}/${recovery.reason}`).toMatchObject({ outcome: "recovered", cleanup: { resources_disposed: true }, operation: { status: "Unknown" } });
     await expect(new Promise<void>((done, fail) => { const client = createConnection(`\\\\.\\pipe\\CimiLoop.${ownership.nonce}`); client.once("connect", () => { client.destroy(); done(); }); client.once("error", fail); })).rejects.toThrow();
     expect(observation(path).phase).toBe("running");
   }, 45000);

@@ -4,12 +4,12 @@
 
 ## 当前阶段
 
-- 最新工具链路：[工具IPC与OpenCode消费契约](CimiLoop-工具IPC与OpenCode消费契约-v0.1.md)，D-207独立帧与固定OpenCode公开只读往返；持久协调见[工具回复持久缓存与宿主协调](CimiLoop-工具回复持久缓存与宿主协调-v0.1.md)。
+- 最新工具切片：[WorkItem工具授权与执行账本](CimiLoop-WorkItem工具授权与执行账本-v0.1.md)，D-208原生Human权限、独立公开工具事实与副作用恢复；OpenCode只读消费见[工具IPC与OpenCode消费契约](CimiLoop-工具IPC与OpenCode消费契约-v0.1.md)。
 
 - 当前里程碑：M0 Kernel 最小闭环已完成并冻结。
 - 当前状态：M0 工程骨架、首个可恢复纵向切片、Schema、Store Port 契约和可靠性场景均已实现，并已在 Node.js 24.15.0 + pnpm 12.4.2 基线上完成复验。
 - 当前切片：S1需求与执行闭环；V1-01–05本阶段实现及联调已完成，V1-06本阶段人工证据 / 专业复核 / 安全集成已完成；V1-07 Human运行控制及V1-08 CLI已完成。V1-09实施中：独立探针Adapter / Windows隔离已实现，OpenCode已更新1.18.34；专用智谱GLM-5.3已完成真实合成修改 / 独立只读评价，正式Agent Run尚未接通。
-- V1-09：D-207已接通独立版本的工具IPC与固定OpenCode1.18.34消费演练：AppContainer内接收read提议、实际读取公开只读文件、回传关联结果并取得最终SSE回复，两次请求进入D-206格式3原子缓存。新帧绑定操作 / 策略 / 字节摘要，旧文本协议及Schema保持；真实Key / 模型请求0，正式Task / Agent与真实计费仍关闭。 见[工具IPC与OpenCode消费契约](CimiLoop-工具IPC与OpenCode消费契约-v0.1.md)。
+- V1-09：D-208已实现原生Human Run实时工具权限查询及独立公开文件执行账本：固定WorkItem / Context / 原操作身份，执行和缓存重放前重新核对授权；公开读取 / 替换保存完成回执，确认原宿主退出后将未dispatch预约归为not_started、已dispatch未完成保留Unknown。四处实际Windows宿主退出和双宿主一槽位争用通过，工具事实不推进原生Task / Run。正式工作区效果、IPC / OpenCode接入该账本及Agent运行仍待验收。 见[WorkItem工具授权与执行账本](CimiLoop-WorkItem工具授权与执行账本-v0.1.md)。
 - 当前实施基线：[V1 可执行设计与实施计划](CimiLoop-V1可执行设计与实施计划-v0.1.md)，含字段、状态、命令、角色、错误、迁移及23项任务和32个验收场景。V1-21/22技能包装与试点进入S1，V1-23 OpenSpec可选。
 - 既有实现记录：[CimiLoop M0 实施架构 v0.1](2026-09-19-cimiloop-m0实施架构-v0.1.md)。
 - 当前操作说明：[M0 数据库迁移与恢复](CimiLoop-M0数据库迁移与恢复-v0.1.md)。

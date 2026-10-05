@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ToolAuthorityAssessment.v2",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "scope",
+        "request",
+        "assessed_at",
+        "as_of_event_sequence",
+        "formal_agent_execution_enabled",
+        "decision",
+        "reasons",
+        "authority"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "2.0.0"
+        },
+        "scope": {
+          "type": "string",
+          "const": "human_run_tool_assessment"
+        },
+        "request": {
+          "type": "object",
+          "required": [
+            "project_id",
+            "run_id",
+            "operation_key",
+            "executor_actor_id",
+            "context_digest",
+            "action",
+            "resource"
+          ],
+          "properties": {
+            "project_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "operation_key": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "executor_actor_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "context_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "action": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "read_files"
+                },
+                {
+                  "type": "string",
+                  "const": "edit_files"
+                },
+                {
+                  "type": "string",
+                  "const": "run_checks"
+                }
+              ]
+            },
+            "resource": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        },
+        "assessed_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+        },
+        "as_of_event_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "formal_agent_execution_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "decision": {
+          "type": "string",
+          "const": "ALLOW"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 0
+        },
+        "authority": {
+          "type": "object",
+          "required": [
+            "change_id",
+            "task_id",
+            "work_item_id",
+            "run_record_id",
+            "context_id",
+            "basis_digest"
+          ],
+          "properties": {
+            "change_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "task_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "work_item_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "run_record_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "context_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "basis_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "scope",
+        "request",
+        "assessed_at",
+        "as_of_event_sequence",
+        "formal_agent_execution_enabled",
+        "decision",
+        "authority",
+        "reasons"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "2.0.0"
+        },
+        "scope": {
+          "type": "string",
+          "const": "human_run_tool_assessment"
+        },
+        "request": {
+          "type": "object",
+          "required": [
+            "project_id",
+            "run_id",
+            "operation_key",
+            "executor_actor_id",
+            "context_digest",
+            "action",
+            "resource"
+          ],
+          "properties": {
+            "project_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "operation_key": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "executor_actor_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "context_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "action": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "read_files"
+                },
+                {
+                  "type": "string",
+                  "const": "edit_files"
+                },
+                {
+                  "type": "string",
+                  "const": "run_checks"
+                }
+              ]
+            },
+            "resource": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          "additionalProperties": false
+        },
+        "assessed_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+        },
+        "as_of_event_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "formal_agent_execution_enabled": {
+          "type": "boolean",
+          "const": false
+        },
+        "decision": {
+          "type": "string",
+          "const": "DENY"
+        },
+        "authority": {
+          "type": "null"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "minItems": 1,
+          "maxItems": 32
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

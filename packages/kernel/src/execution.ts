@@ -97,6 +97,24 @@ export const executionReadiness = (reader: Reader, task: Task, now: string, forE
   return { task_id: task.id, ready: !reasons.length, reasons, usage_digest: usageDigest(reader, task), budget_remaining: item ? budgetRemaining(task, item.budget, now) : null };
 };
 
+// The already reserved attempt owns its pending usage. Tool checks must still
+// revalidate the same native baseline, dependencies and live authorization.
+export const activeToolScopeProblems = (reader: Reader, task: Task, item: WorkItem, now: string): string[] => {
+  const reasons: string[] = [], definition = definitionFor(reader, task), change = reader.getChange(task.change_id);
+  if (task.status !== "InProgress" || item.status !== "Active" || task.active_work_item_ref?.id !== item.id ||
+    item.task_id !== task.id || item.change_id !== task.change_id || item.project_id !== task.project_id ||
+    !equal(item.definition_ref, task.definition_ref) || !equal(item.plan_ref, task.plan_ref) || !equal(item.contract_ref, task.contract_ref)) reasons.push("WORK_ITEM_STATE_INVALID");
+  if (!definition) reasons.push("BASELINE_MISMATCH");
+  if (!change || change.operating_status !== "Active" || change.lifecycle_state !== "Executing") reasons.push("CHANGE_NOT_EXECUTING");
+  if (definition && change) { const problem = dependencyProblem(reader, definition, change); if (problem) reasons.push(problem); }
+  const problem = basisProblem(reader, item, now); if (problem) reasons.push(problem);
+  if (!Number.isFinite(Date.parse(now)) || !task.usage.cost_known || budgetRemaining(task, item.budget, now).elapsed_ms <= 0 ||
+    task.usage.attempts_consumed - (task.usage.attempts_released ?? 0) + (task.usage.attempt_releases_reversed ?? 0) > item.budget.max_attempts ||
+    (item.budget.max_cost && ((task.usage.cost_currency && task.usage.cost_currency !== item.budget.max_cost.currency) ||
+      (task.usage.cost_consumed_micros ?? 0) >= item.budget.max_cost.amount_micros))) reasons.push("BUDGET_UNAVAILABLE");
+  return reasons;
+};
+
 export const executeExecution = (tx: StoreTransaction, command: ExecutionCommand, context: IntentContext): Mutation => {
   const mutation = (event_type: string, object_type: Mutation["aggregate"]["object_type"], id: string, revision: number, data: Record<string, unknown>, payload = data): Mutation =>
     ({ event_type, aggregate: { object_type, id } as Mutation["aggregate"], revision, data: data as Mutation["data"], payload });

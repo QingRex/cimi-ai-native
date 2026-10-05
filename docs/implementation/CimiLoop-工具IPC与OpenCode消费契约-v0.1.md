@@ -46,4 +46,4 @@ SDK类型参考[官方v3 prompt定义](https://github.com/vercel/ai/blob/main/pa
 
 实现和窄证据见[工具IPC与OpenCode消费验证](../research/CimiLoop-工具IPC与OpenCode消费-2026-10-05.json)。归档源码、验证日志及不含提示词 / 结果正文的证明摘要；不归档实际Key、运行SQLite、完整上游请求、思考文本或完整OpenCode原始输出。公开read工具调用及public.txt内容可以从固定测试源码复现。
 
-下一步建立WorkItem / Run绑定的工具能力清单、路径与命令约束、调用 / 执行 / 结果身份，以及工具已执行但结果未交付时的恢复与禁止重复副作用。继续补充独立宿主退出时IPC / Runtime整体恢复和文件系统硬配额。实际套餐 / 工具资格、服务端输入与思考输出上界、受保护的唯一账户Ledger、批准预算及配额 / 账单核对仍待落实，生产工厂和正式Task / Agent准入保持关闭。
+后续D-208已实现[WorkItem工具授权与执行账本](CimiLoop-WorkItem工具授权与执行账本-v0.1.md)，包括原生Human权限查询、独立公开文件效果与已完成 / Unknown恢复。本页的OpenCode只读往返保持原实现；下一步将该账本接入正式工作区工具和IPC / OpenCode消费，并完善工具与原生Run核对、整体受控恢复及物理硬配额。真实计费和正式Agent准入仍关闭。

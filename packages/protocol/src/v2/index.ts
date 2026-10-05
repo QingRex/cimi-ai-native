@@ -17,6 +17,7 @@ import * as gatewayBridge from "./runtime-gateway-bridge.js";
 import * as gatewayNetwork from "./runtime-gateway-network.js";
 import * as gatewayCredit from "./runtime-gateway-credit.js";
 import * as providerAssessment from "./provider-assessment.js";
+import * as toolAuthority from "./tool-authority.js";
 import { Type, type TSchema } from "typebox";
 
 export * from "../ids.js";
@@ -40,8 +41,11 @@ export * from "./runtime-gateway-bridge.js";
 export * from "./runtime-gateway-network.js";
 export * from "./runtime-gateway-credit.js";
 export * from "./provider-assessment.js";
+export * from "./tool-authority.js";
 
 export const protocolSchemas: Readonly<Record<string, TSchema>> = {
+  ToolAuthorityRequest: toolAuthority.ToolAuthorityRequestSchema,
+  ToolAuthorityAssessment: toolAuthority.ToolAuthorityAssessmentSchema,
   RuntimeGatewayNetworkProbeResult: gatewayNetwork.RuntimeGatewayNetworkProbeResultSchema,
   RuntimeGatewayCreditSnapshot: gatewayCredit.RuntimeGatewayCreditSnapshotSchema,
   RuntimeGatewayCreditProbeResult: gatewayCredit.RuntimeGatewayCreditProbeResultSchema,

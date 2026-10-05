@@ -1,0 +1,500 @@
+{
+  "captured_at": "2026-10-05T04:52:37.988Z",
+  "decision": "D-208",
+  "scope": "native_human_authority_and_public_tool_rehearsal_verification",
+  "baseline_commit": "62cb6ca",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2"
+  },
+  "implementation_scope": "live read-only Kernel authority assessment for an existing native Human Run plus a separate durable public-file effect journal; no production Runtime or Agent admission",
+  "authority": {
+    "request_schema": "ToolAuthorityRequest",
+    "assessment_schema": "ToolAuthorityAssessment",
+    "schema_version": "2.0.0",
+    "query": "CimiLoopKernel.assessRunTool",
+    "native_database_writes": 0,
+    "native_events_appended_by_queries_or_tool_host": 0,
+    "trusted_caller_required": "local_operator matching an actual Human Actor",
+    "snapshot": "one consistent Store readSnapshot and event sequence",
+    "bindings": [
+      "Project",
+      "Change",
+      "Task",
+      "WorkItem",
+      "Run",
+      "RunRecord",
+      "ContextManifest",
+      "original operation key",
+      "executor Actor",
+      "fixed baseline/source/workspace refs",
+      "computed Context digest",
+      "authorization basis"
+    ],
+    "live_checks": [
+      "current baseline and dependencies",
+      "active current WorkItem and Run",
+      "cancellation and reservation release",
+      "known usage and no other unsettled Task Run",
+      "current specific grantor assignment",
+      "standing authorization version/status/expiry/coverage",
+      "concrete bounded resource and action",
+      "independent read-only boundary",
+      "cumulative elapsed time and attempts/cost"
+    ],
+    "owned_last_reserved_attempt_usable": true,
+    "owned_pending_reconciliation_not_treated_as_another_unknown_run": true,
+    "assessment_digest_is_not_a_capability": true,
+    "model_cash_or_credit_spending_authorized": false,
+    "formal_agent_execution_enabled": false
+  },
+  "journal": {
+    "application_id": "0x43494d54",
+    "storage_format": 1,
+    "scope": "public_tool_rehearsal",
+    "separate_from_native_and_credit_stores": true,
+    "invocation_format": "cimiloop/public-tool-invocation/1.0.0",
+    "receipt_format": "cimiloop/public-tool-receipt/1.0.0",
+    "tools": [
+      "read_file",
+      "replace_file"
+    ],
+    "identity": "original Run + call_id; exact input and authority basis digest",
+    "maximum_file_bytes": 16384,
+    "maximum_input_or_receipt_bytes": 114688,
+    "logical_slot_bytes": 229376,
+    "maximum_entries": 32,
+    "maximum_logical_bytes": 8388608,
+    "states": [
+      "reserved",
+      "executing",
+      "completed",
+      "unknown",
+      "not_started"
+    ],
+    "permit": "instance-owned WeakMap reference; JSON copies and other instances rejected",
+    "order": [
+      "live authority",
+      "atomic reservation",
+      "live authority",
+      "atomic dispatch",
+      "live authority",
+      "single fixed public effect",
+      "atomic completed receipt",
+      "return"
+    ],
+    "completed_replay_requires_live_authority": true,
+    "replay_performs_new_file_effect": false,
+    "replay_represents_current_file_state": false,
+    "unknown_blocks_new_calls_for_original_run_or_same_resource": true,
+    "automatic_retry_after_unknown": false,
+    "file_postimage_proves_completion": false,
+    "recovery": "trusted Windows PID/creation/image observer must verify original owner absence; active or unknown remains blocked",
+    "private_data": "inputs include bounded replacement text; receipts include bounded public read text; no actual credentials are opened",
+    "physical_disk_hard_quota_proven": false
+  },
+  "public_fixture": {
+    "fixed_logical_resource": "src/query.ts",
+    "mapped_file": "public.txt in an exclusively public temporary fixture directory",
+    "native_Run_workspace_modified": false,
+    "file_handle_checks": [
+      "ordinary file",
+      "single hard link",
+      "bounded bytes",
+      "strict UTF-8 with BOM preserved",
+      "expected preimage digest"
+    ],
+    "write": "same open handle, positional writes, truncate and fsync",
+    "production_windows_path_race_or_reparse_isolation_proven": false,
+    "arbitrary_host_file_access": false,
+    "shell_execution": false,
+    "run_checks_effect_port_available": false
+  },
+  "actual_native_tests": {
+    "native_Project_and_WorkItem_prepared_by_kernel": true,
+    "real_Git_source_captured": true,
+    "native_Human_Run_reserved": true,
+    "Windows_owners_inspected_by_original_pid_creation_image": true,
+    "independent_tool_host_child_processes": 6,
+    "abrupt_exits": 4,
+    "abrupt_exit_code": 73,
+    "crash_cases": [
+      {
+        "phase": "reserved_committed",
+        "after_verified_absence": "not_started",
+        "file_effect": false
+      },
+      {
+        "phase": "effect_completed",
+        "after_verified_absence": "unknown",
+        "file_effect": true
+      },
+      {
+        "phase": "before_completion_update",
+        "after_verified_absence": "unknown",
+        "file_effect": true,
+        "open_sqlite_transaction_rolled_back": true
+      },
+      {
+        "phase": "completion_committed",
+        "after_verified_absence": "completed",
+        "replay_only": true
+      }
+    ],
+    "concurrent_case": {
+      "independent_hosts": 2,
+      "slots": 1,
+      "completed_calls": 1,
+      "loser": "tool_journal_capacity_exhausted",
+      "file_effects": 1
+    },
+    "original_Run_status_after_tool_crashes": "Reserved",
+    "native_Run_not_completed_by_tool_receipt": true,
+    "actual_credentials_read": 0,
+    "external_model_requests": 0,
+    "model_HTTP_requests": 0,
+    "opencode_used_for_tool_journal_cases": false
+  },
+  "regression_timing_fix": {
+    "test": "ipc-transport.test.ts owned native crash recovery",
+    "previous_assumption": "fixed 200ms after the verified controller exit",
+    "change": "bounded 8-second reobservation through the original guarded recovery",
+    "production_recovery_code_changed": false,
+    "active_or_unknown_forced_cleanup": false,
+    "first_regression": {
+      "files": 27,
+      "passed": 564,
+      "failed": 1,
+      "log": {
+        "locator": ".cimiloop/tool-journal-v1-10/regression-before-ipc-timing-fix.log",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "822c89852742318cdd6bfc72290a0f75b2da49738cedef27a76417a555108c0f"
+        },
+        "archived_locator": ".cimiloop\\tool-journal-v1-10\\evidence-blobs\\822c89852742318cdd6bfc72290a0f75b2da49738cedef27a76417a555108c0f"
+      }
+    },
+    "focused_after_fix": {
+      "files": 1,
+      "tests": 12,
+      "duration_seconds": 17.86,
+      "log": {
+        "locator": ".cimiloop/tool-journal-v1-10/ipc-timing-test.log",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "2363c9c9ce845039bba8a3f89c589f227aacd7a60bf2137b55daeb912691f2e2"
+        },
+        "archived_locator": ".cimiloop\\tool-journal-v1-10\\evidence-blobs\\2363c9c9ce845039bba8a3f89c589f227aacd7a60bf2137b55daeb912691f2e2"
+      }
+    }
+  },
+  "validation": {
+    "new_tests": 54,
+    "new_tool_host_tests": 36,
+    "new_native_authority_and_owner_tests": 16,
+    "new_protocol_tests": 2,
+    "targeted": {
+      "files": 3,
+      "tests": 54,
+      "duration_seconds": 99.24,
+      "log": {
+        "locator": ".cimiloop/tool-journal-v1-10/targeted-test-final.log",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "1684f84be12ce408065ffbbe5c58370fba740316d5279a9f393ba9b7a9f1ef06"
+        },
+        "archived_locator": ".cimiloop\\tool-journal-v1-10\\evidence-blobs\\1684f84be12ce408065ffbbe5c58370fba740316d5279a9f393ba9b7a9f1ef06"
+      }
+    },
+    "regression": {
+      "files": 27,
+      "tests": 565,
+      "duration_seconds": 261.74,
+      "log": {
+        "locator": ".cimiloop/tool-journal-v1-10/regression-test.log",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "780238b86ee17e3e9a7278a7e7b71bd2f3f5a4ae2e6d3be72583ea89599b7a24"
+        },
+        "archived_locator": ".cimiloop\\tool-journal-v1-10\\evidence-blobs\\780238b86ee17e3e9a7278a7e7b71bd2f3f5a4ae2e6d3be72583ea89599b7a24"
+      }
+    },
+    "typecheck": {
+      "locator": ".cimiloop/tool-journal-v1-10/check.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\evidence-blobs\\c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    "build_and_schema_export": {
+      "locator": ".cimiloop/tool-journal-v1-10/schema.log",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "bc39d2ba429065cf4102f45b8e3f71d834dfe1e2c7df919a42107d45f81cbd43"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\evidence-blobs\\bc39d2ba429065cf4102f45b8e3f71d834dfe1e2c7df919a42107d45f81cbd43"
+    },
+    "tracked_existing_schema_files_unchanged": 191,
+    "comparison": "normalized checkout CRLF against prior committed LF; three archived Runtime schemas also exact raw SHA256",
+    "old_public_schema_unchanged": [
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeOperationResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "e4d785f38f836c223af0a23514f7d0b733de1a01277a9ec6b583d7766714f7ba"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "fbfdde8bbf7108ca630a5952abb6ab4b9a799f3652bda454db09857436255f7c"
+        },
+        "unchanged": true
+      },
+      {
+        "locator": "packages/protocol/schemas/v2/RuntimeGatewayNetworkProbeResult.schema.json",
+        "digest": {
+          "algorithm": "sha256",
+          "value": "f06d03972219af8af95a6177b6bd762089716871d97b00906de18e8ec4e379d5"
+        },
+        "unchanged": true
+      }
+    ],
+    "domain_database_format": 8,
+    "TEST_format": 1,
+    "credit_formats": [
+      1,
+      2,
+      3
+    ],
+    "user_database_upgraded": false
+  },
+  "package_entry_exports_added": false,
+  "CLI_switch_added": false,
+  "D207_opencode_consumer_wired_to_new_journal": false,
+  "actual_cost_known": false,
+  "formal_agent_execution_enabled": false,
+  "remaining": [
+    "formal workspace file effect and OS-enforced path authority",
+    "approved command capabilities and effect identity",
+    "connect live authority/journal to IPC and OpenCode consumer",
+    "include independent tool Unknown in native Run reconciliation",
+    "whole IPC/Runtime owned recovery",
+    "physical filesystem hard quota",
+    "account/tool eligibility and server-enforced input/reasoning output bounds",
+    "approved cash/credit budget and protected unique account ledger with actual invoices"
+  ],
+  "source_archives": [
+    {
+      "locator": "packages/protocol/src/v2/tool-authority.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d5776411a181f05cebdb9cd4df49543e56b030820ee0e686a07b4088043a16e2"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\d5776411a181f05cebdb9cd4df49543e56b030820ee0e686a07b4088043a16e2"
+    },
+    {
+      "locator": "packages/protocol/src/v2/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "c206173b70cd463252c8bac164020a80b7816ae06ba7c87a0ead39e68ad5e8f6"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\c206173b70cd463252c8bac164020a80b7816ae06ba7c87a0ead39e68ad5e8f6"
+    },
+    {
+      "locator": "packages/protocol/schemas/v2/ToolAuthorityRequest.schema.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d13610a16c95f7317275c3d6f92b8cb4daab4ebe72716709e8c55b78024beaf2"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\d13610a16c95f7317275c3d6f92b8cb4daab4ebe72716709e8c55b78024beaf2"
+    },
+    {
+      "locator": "packages/protocol/schemas/v2/ToolAuthorityAssessment.schema.json",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "a75f03e3f992cfb1533670b755756356d027f1b646c2ea9a2f578d93aba696b2"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\a75f03e3f992cfb1533670b755756356d027f1b646c2ea9a2f578d93aba696b2"
+    },
+    {
+      "locator": "packages/protocol/test/tool-authority.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "042badad04bd261d0805f363173fe78d13e39874697f9a40191ed112130cfdf0"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\042badad04bd261d0805f363173fe78d13e39874697f9a40191ed112130cfdf0"
+    },
+    {
+      "locator": "packages/kernel/src/tool-authority.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "ec04bcae08dd0987acae775fbd3b8b9c18ecaba2808b8fecca69f27ba6966da1"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\ec04bcae08dd0987acae775fbd3b8b9c18ecaba2808b8fecca69f27ba6966da1"
+    },
+    {
+      "locator": "packages/kernel/src/kernel.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "74d7d3929f780a5c36e6384e577352a008cba620f08b179e4567918f01bf8006"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\74d7d3929f780a5c36e6384e577352a008cba620f08b179e4567918f01bf8006"
+    },
+    {
+      "locator": "packages/kernel/src/execution.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "5645251c768201c3c6470ff7f5ece4ea5651c2d621ede21a5bd9e5ab796797be"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\5645251c768201c3c6470ff7f5ece4ea5651c2d621ede21a5bd9e5ab796797be"
+    },
+    {
+      "locator": "packages/kernel/src/runs.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "f704fe7039d0bc9940d657719f2a051419f70c72fb251c8324b79f59c146ed49"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\f704fe7039d0bc9940d657719f2a051419f70c72fb251c8324b79f59c146ed49"
+    },
+    {
+      "locator": "packages/kernel/src/authorization.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "59976e92dd3a2ce318c8846249addcbe46546bd2a2df5cb116e4b42693f2528c"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\59976e92dd3a2ce318c8846249addcbe46546bd2a2df5cb116e4b42693f2528c"
+    },
+    {
+      "locator": "packages/kernel/src/intent.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1b1a1bd50458e943517c033b88daab471863bc58548f922a20746c74c1f85172"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\1b1a1bd50458e943517c033b88daab471863bc58548f922a20746c74c1f85172"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/tool-journal.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "4807ff138e9b9f5ff7aaeb1af097c085fe15c47a58f98883d62b11e8bd95654c"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\4807ff138e9b9f5ff7aaeb1af097c085fe15c47a58f98883d62b11e8bd95654c"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/tool-host.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "1a1df3ec01451db926e04211fbe5bda554499ba22ef82a14c02ceec01d6ed0a6"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\1a1df3ec01451db926e04211fbe5bda554499ba22ef82a14c02ceec01d6ed0a6"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/gateway-credit-owner.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "878f3c7e956defe988760a6bc4e61d4ea76d3ed019eb7b8369fd33dbdae93508"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\878f3c7e956defe988760a6bc4e61d4ea76d3ed019eb7b8369fd33dbdae93508"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/native.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "2a58017a1da71f8e98d12545a29705cfc8dd5d3ed8fce1e15384015781d6586e"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\2a58017a1da71f8e98d12545a29705cfc8dd5d3ed8fce1e15384015781d6586e"
+    },
+    {
+      "locator": "packages/runtime-adapter/native/AppContainer.cs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "491abe0bccd403d66dacfcec5fb2e925b43127b88393b1c6358337df7589072d"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\491abe0bccd403d66dacfcec5fb2e925b43127b88393b1c6358337df7589072d"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/files.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0d3f0cccf00864534e5e4ee75ea4b0db7ccc0ff99c0b8dfd943d0b602c9d96a2"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\0d3f0cccf00864534e5e4ee75ea4b0db7ccc0ff99c0b8dfd943d0b602c9d96a2"
+    },
+    {
+      "locator": "packages/runtime-adapter/src/index.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\d9049d9b9bf8af2b7395bd0901fc02ea601ed0508b3f71375199bbb475dbfb8b"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/tool-fixture.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e01fdedb3cd58cbb7d581a71540fef30f8520c887ae9eb0be13246265f4364b7"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\e01fdedb3cd58cbb7d581a71540fef30f8520c887ae9eb0be13246265f4364b7"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/tool-host.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "df979033cb2789182cc6fb742314ff004937cefd2cbd72aacbc8604e268a6144"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\df979033cb2789182cc6fb742314ff004937cefd2cbd72aacbc8604e268a6144"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/tool-host-worker.mjs",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "0f5aa887693afd542de653c6c4c32e12690ff60118d3bbc22893dc7e85eda93b"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\0f5aa887693afd542de653c6c4c32e12690ff60118d3bbc22893dc7e85eda93b"
+    },
+    {
+      "locator": "packages/runtime-adapter/test/ipc-transport.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "632d740440699d7781f7aa260b094860b0b469e36b551d13950aed97da597c54"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\632d740440699d7781f7aa260b094860b0b469e36b551d13950aed97da597c54"
+    },
+    {
+      "locator": "packages/store-sqlite/test/tool-authority.test.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "8dd7612f8ae9dad6fb09c232a235367af9069274278542cdf3e20c88a60b766a"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\8dd7612f8ae9dad6fb09c232a235367af9069274278542cdf3e20c88a60b766a"
+    },
+    {
+      "locator": "tests/fixtures/run-project.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "52a2363874a2e7d797921a910653cc1a2cf4a4b25b1a1d007c41a7e776daa36a"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\52a2363874a2e7d797921a910653cc1a2cf4a4b25b1a1d007c41a7e776daa36a"
+    },
+    {
+      "locator": "tests/fixtures/verification-project.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "9ecf6e6cbdd6e4431c310db15020a58ace917eccd1cf222df35eb361eb7e84ef"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\9ecf6e6cbdd6e4431c310db15020a58ace917eccd1cf222df35eb361eb7e84ef"
+    },
+    {
+      "locator": "tests/fixtures/flow-project.ts",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "e69fe85dfef2f970e4f6666649ac74ec1de4f26b181e46259948533a14f36146"
+      },
+      "archived_locator": ".cimiloop\\tool-journal-v1-10\\source-blobs\\e69fe85dfef2f970e4f6666649ac74ec1de4f26b181e46259948533a14f36146"
+    }
+  ]
+}
