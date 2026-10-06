@@ -1,0 +1,18 @@
+{
+  "format": "cimiloop/skill-import/1.0.0",
+  "repository_url": "https://github.com/mattpocock/skills",
+  "commit_id": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+  "entry_path": "skills/productivity/grill-me",
+  "license_path": "LICENSE",
+  "name": "matt-clarification",
+  "version": "1.0.0",
+  "modules": [
+    { "path": "skills/productivity/grill-me", "dependencies": ["skills/productivity/grilling"] },
+    { "path": "skills/productivity/grilling", "dependencies": [] }
+  ],
+  "capabilities": [{ "capability_id": "intent.clarify", "version": "1.0.0" }],
+  "provider_dependencies": [],
+  "required_permissions": { "actions": [], "resources": [], "environment_ids": [], "network_hosts": [] },
+  "harness_requirements": ["explicit_invocation", "human_interview", "invoke_skills", "subagent_delegation"],
+  "dependency_review": "At this commit grill-me explicitly calls grilling. Both complete directories are included. Grilling requires human decisions and delegates environmental fact-finding; these are recorded harness requirements, not permissions granted by the source. No issue tracker or bootstrap is installed."
+}

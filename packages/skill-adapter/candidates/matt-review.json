@@ -1,0 +1,15 @@
+{
+  "format": "cimiloop/skill-import/1.0.0",
+  "repository_url": "https://github.com/mattpocock/skills",
+  "commit_id": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+  "entry_path": "skills/engineering/code-review",
+  "license_path": "LICENSE",
+  "name": "matt-review",
+  "version": "1.0.0",
+  "modules": [{ "path": "skills/engineering/code-review", "dependencies": [] }],
+  "capabilities": [{ "capability_id": "verification.review", "version": "1.0.0" }],
+  "provider_dependencies": [],
+  "required_permissions": { "actions": ["read_files", "run_checks"], "resources": [], "environment_ids": [], "network_hosts": [] },
+  "harness_requirements": ["fixed_git_diff", "project_issue_tracker", "subagent_delegation", "independent_context"],
+  "dependency_review": "This code-review entry does not call another Skill. It requires a fixed Git diff, an issue/spec source and separate Standards/Spec subagents. The complete directory, including agents metadata, is packaged as data. The setup skill mentioned for missing configuration is not invoked or silently installed."
+}

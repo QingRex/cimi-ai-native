@@ -4,6 +4,8 @@ CimiLoop 是一个面向 AI-Native 软件研发的 Runtime-neutral Harness（运
 
 ## 当前状态
 
+2026-10-07 D-210 已接通技能包固定来源、离线 Git 证明核验及原生候选登记。三个真实 Matt / Superpowers 包已通过临时项目 CLI 导入和核对；严格方法输入输出已定义，许可与完整模块依赖保留。见[技能包固定来源与候选登记](docs/implementation/CimiLoop-技能包固定来源与候选登记-v0.1.md)。V1-21 的证据、评测、绑定和实际调用仍待完成，V1-22 尚无行为评测或默认 Provider 结论。
+
 2026-10-07 D-209 已实现连接原生 Kernel / SQLite 的本地工作台人工操作阶段：CLI 与页面共享项目及身份装配，需求池、目标版本、约定 / 计划决定、任务事实与交接已接通；本地会话、来源校验和响应丢失后的原请求核对通过验证。操作见[本地工作台与共享应用服务](docs/implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md)。正式 Agent 执行、技能接入及 S1 全链路验收仍待完成。
 
 当前开发入口是[CimiLoop V1可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)。S1–S4共23项任务，OpenSpec试点可选，技能Provider及Matt / Superpowers试点进入S1。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。格式8支持显式1–7升级并保留历史、任务、授权、运行和回执；没有升级用户现有数据库。

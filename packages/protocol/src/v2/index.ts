@@ -18,6 +18,7 @@ import * as gatewayNetwork from "./runtime-gateway-network.js";
 import * as gatewayCredit from "./runtime-gateway-credit.js";
 import * as providerAssessment from "./provider-assessment.js";
 import * as toolAuthority from "./tool-authority.js";
+import * as skills from "./skills.js";
 import { Type, type TSchema } from "typebox";
 
 export * from "../ids.js";
@@ -42,8 +43,13 @@ export * from "./runtime-gateway-network.js";
 export * from "./runtime-gateway-credit.js";
 export * from "./provider-assessment.js";
 export * from "./tool-authority.js";
+export * from "./skills.js";
 
 export const protocolSchemas: Readonly<Record<string, TSchema>> = {
+  SkillImportSpec: skills.SkillImportSpecSchema, SkillPackage: skills.SkillPackageSchema,
+  SkillPackageReference: skills.SkillPackageReferenceSchema,
+  SkillPackageInspectionResult: skills.SkillPackageInspectionResultSchema,
+  SkillMethodInput: skills.SkillMethodInputSchema, SkillMethodOutput: skills.SkillMethodOutputSchema,
   ToolAuthorityRequest: toolAuthority.ToolAuthorityRequestSchema,
   ToolAuthorityAssessment: toolAuthority.ToolAuthorityAssessmentSchema,
   RuntimeGatewayNetworkProbeResult: gatewayNetwork.RuntimeGatewayNetworkProbeResultSchema,

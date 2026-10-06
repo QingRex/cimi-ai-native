@@ -1,0 +1,15 @@
+{
+  "format": "cimiloop/skill-import/1.0.0",
+  "repository_url": "https://github.com/obra/superpowers",
+  "commit_id": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+  "entry_path": "skills/verification-before-completion",
+  "license_path": "LICENSE",
+  "name": "superpowers-verification",
+  "version": "1.0.0",
+  "modules": [{ "path": "skills/verification-before-completion", "dependencies": [] }],
+  "capabilities": [{ "capability_id": "verification.review", "version": "1.0.0" }],
+  "provider_dependencies": [],
+  "required_permissions": { "actions": ["read_files", "run_checks"], "resources": [], "environment_ids": [], "network_hosts": [] },
+  "harness_requirements": ["fresh_check_output", "independent_context"],
+  "dependency_review": "Only verification-before-completion is selected. It asks for fresh complete evidence for each claimed outcome and does not call another Skill. using-superpowers bootstrap, hooks, other skills and task orchestration are excluded. Behavioural benefit remains to be evaluated against Matt; no default provider is selected here."
+}

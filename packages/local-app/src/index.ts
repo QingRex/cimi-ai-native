@@ -9,3 +9,4 @@ export { LocalEvidenceVerifier } from "./evidence-local.js";
 export type { ContentReference } from "./evidence-local.js";
 export { LocalRunVerifier } from "./runs-local.js";
 export { LocalProviderVerifier } from "./providers-local.js";
+export { LocalSkillPackageStore } from "./skills-local.js";

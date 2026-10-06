@@ -15,7 +15,7 @@ import {
   updateSettings, createTargetVersion, closeTargetVersion, changePlanning, startChange, showFlow,
   submitIntentProposal, assessRisk, requestIntentDecision, recordIntentDecision, confirmIntent, showIntent,
   executionMutation, showExecution, verificationMutation, showVerification, runMutation, showRuns, inspectObject,
-  type GlobalOptions
+  importSkillProvider, inspectSkillProvider, type GlobalOptions
 } from "./commands.js";
 import { outputError } from "./output.js";
 import { CliInputError } from "./input.js";
@@ -38,6 +38,13 @@ program.configureOutput({ writeErr: () => undefined });
 
 const globals = (command: Command): GlobalOptions => command.optsWithGlobals<GlobalOptions>();
 const provider = program.command("provider").description("登记候选Provider、查看固定描述与正式接入缺口");
+const skill = program.command("skill").description("固定Git来源与完整依赖包；候选登记不授权技能执行");
+skill.command("import").requiredOption("--file <json>", "严格SkillImportSpec，含实际commit、模块依赖与权限需求")
+  .requiredOption("--repository <path>", "已获取固定commit的本地Git仓库；不自动下载或执行技能")
+  .option("--expected-revision <revision>", "期望Project Revision")
+  .action((options, command) => importSkillProvider({ ...globals(command), ...options }));
+skill.command("inspect").argument("<descriptor-id>", "当前项目的Skill Provider Descriptor ID")
+  .action((id, _options, command) => inspectSkillProvider(id, globals(command)));
 provider.command("register").requiredOption("--file <json>", "严格ProviderRegistration；不接受信任状态、身份或凭据")
   .option("--expected-revision <revision>", "期望Project Revision")
   .action((options, command) => registerProvider({ ...globals(command), ...options }));

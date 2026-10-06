@@ -15,7 +15,8 @@ import { VerificationShowResultSchema } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
-import { openLocalProject } from "@cimiloop/local-app";
+import { openLocalProject, LocalSkillPackageStore } from "@cimiloop/local-app";
+import { SkillPackageInspectionResultSchema, type SkillPackageInspectionResult, type ProviderRegistration } from "@cimiloop/protocol/v2";
 import { RunShowResultSchema, ProviderCatalogResultSchema } from "@cimiloop/protocol/v2";
 import { MigrationRunner, SqliteProjectRegistry, SqliteProjectStore } from "@cimiloop/store-sqlite";
 import { parseVersionedCommandResult } from "@cimiloop/protocol";
@@ -363,6 +364,42 @@ export const registerActor = (options: GovernanceOptions & { type: string; name:
 });
 export const registerProvider = (options: GovernanceOptions & { file: string }): void =>
   runGovernance("RegisterProvider", options, readJsonObject(options.file));
+
+export const importSkillProvider = (options: GovernanceOptions & { file: string; repository: string }): void => {
+  const context = openProject(options); let registration: ProviderRegistration;
+  try {
+    const store = new LocalSkillPackageStore(context.location.repositoryPath, context.location.dataDirectory);
+    registration = store.importGit(resolve(options.repository), readJsonObject(options.file)).registration;
+  } catch (error) {
+    if (error instanceof CliInputError) throw error;
+    throw new CliInputError("技能包的固定来源、依赖、路径或元数据不可核对", "PROVIDER_OUTPUT_INVALID");
+  } finally { context.store.close(); }
+  runGovernance("RegisterProvider", options, registration);
+};
+
+export const inspectSkillProvider = (id: string, options: GlobalOptions): void => {
+  const context = openProject(options);
+  try {
+    const descriptor = context.store.getProviderDescriptor(id);
+    if (!descriptor || descriptor.project_id !== context.instance.project_id) return outputError(targetNotFound("provider_descriptor", id), Boolean(options.json));
+    const store = new LocalSkillPackageStore(context.location.repositoryPath, context.location.dataDirectory);
+    store.provider.sourceDigest(context.store.getProject()!, descriptor);
+    if (store.provider.schemaDigest(descriptor.input_schema_ref.schema_id).value !== descriptor.input_schema_ref.digest.value ||
+      store.provider.schemaDigest(descriptor.output_schema_ref.schema_id).value !== descriptor.output_schema_ref.digest.value) throw new Error("Skill Schema changed");
+    const verified = store.inspect(descriptor), pkg = verified.package, { version: _version, ...package_ref } = descriptor.source_ref;
+    const result = compileValidator<SkillPackageInspectionResult>(SkillPackageInspectionResultSchema)({ schema_version: SCHEMA_VERSION, ok: true,
+      descriptor, package_ref, spec: pkg.spec, modules: verified.modules.map(module => ({ path: module.path, name: module.name,
+        description: module.description, dependencies: pkg.spec.modules.find(value => value.path === module.path)!.dependencies })),
+      file_count: pkg.files.length, content_bytes: pkg.files.reduce((sum, file) => sum + file.bytes, 0), admission: "candidate_package_only" });
+    if (options.json) return outputJson(result, compileValidator<SkillPackageInspectionResult>(SkillPackageInspectionResultSchema));
+    stdout.write(`${descriptor.name} ${descriptor.version}（candidate，尚未授权执行）\n来源commit：${pkg.spec.commit_id}\n技能包：${package_ref.locator}\n`);
+    for (const module of result.modules) stdout.write(`模块：${module.name}\t${module.path}\t依赖：${module.dependencies.join("、") || "无"}\n`);
+    stdout.write(`文件：${result.file_count}；原始字节：${result.content_bytes}；宿主需求：${pkg.spec.harness_requirements.join("、") || "无"}\n`);
+  } catch (error) {
+    if (error instanceof CliInputError) throw error;
+    throw new CliInputError("技能包、Descriptor 或输入输出Schema已经失配", "PROVIDER_OUTPUT_INVALID");
+  } finally { context.store.close(); }
+};
 export const providerMutation = (kind: "RecordProviderEvidence" | "EvaluateProvider" | "RegisterProviderBinding",
   options: GovernanceOptions & { file: string; probeFile?: string; artifactRoot?: string }): void => {
   const payload = readJsonObject(options.file);

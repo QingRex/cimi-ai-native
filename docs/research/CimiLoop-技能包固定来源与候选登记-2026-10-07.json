@@ -1,0 +1,572 @@
+{
+  "decision": "D-210",
+  "verified_at": "2026-10-06T17:06:02.429Z",
+  "timezone": "Asia/Shanghai",
+  "baseline_commit": "5b9667e3dc5fbcac6828d55cf10ab98574f27256",
+  "scope": "V1-21 fixed-source skill package and native candidate registration only; V1-22 source candidates fixed, behavior trials pending",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2",
+    "yaml": "2.9.1",
+    "git": "git version 2.27.0.windows.1"
+  },
+  "sources": [
+    {
+      "url": "https://agentskills.io/specification",
+      "role": "Skill metadata format; allowed-tools does not grant native capabilities"
+    },
+    {
+      "url": "https://eemeli.org/yaml/#parsing-documents",
+      "role": "Strict YAML parser API"
+    },
+    {
+      "url": "https://github.com/mattpocock/skills/tree/6fd947921b935b7e1e69293a200400f0fdd5c15f",
+      "role": "matt-clarification",
+      "commit_id": "6fd947921b935b7e1e69293a200400f0fdd5c15f"
+    },
+    {
+      "url": "https://github.com/mattpocock/skills/tree/6fd947921b935b7e1e69293a200400f0fdd5c15f",
+      "role": "matt-review",
+      "commit_id": "6fd947921b935b7e1e69293a200400f0fdd5c15f"
+    },
+    {
+      "url": "https://github.com/obra/superpowers/tree/8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+      "role": "superpowers-verification",
+      "commit_id": "8ca22dba9a94f28898bbce59f2537ff4d87c747d"
+    }
+  ],
+  "actual_source_verification": {
+    "verified_at": "2026-10-06T16:59:09.904Z",
+    "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+    "items": [
+      {
+        "name": "matt-clarification",
+        "upstream": "https://github.com/mattpocock/skills.git",
+        "commit_id": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+        "descriptor_id": "01a11227-6461-7378-848e-e2895ad5c809",
+        "request_id": "01a11227-5bbe-753a-8c6a-0abd46cb0830",
+        "spec_path": "packages/skill-adapter/candidates/matt-clarification.json",
+        "spec_digest": "92cce90f7c9eef2194ef91f823fb4b8d9361510241baedf3a1706f3427d18963",
+        "package_digest": "f59f753f16a25d089441a5f8fca3e8c209fe8b84e1c5f19a316e73decc42aed2",
+        "package_bytes": 9717,
+        "archived_package": ".cimiloop/skill-v1-21/matt-clarification.package.json",
+        "file_count": 5,
+        "content_bytes": 3462,
+        "modules": [
+          {
+            "path": "skills/productivity/grill-me",
+            "name": "grill-me",
+            "description": "A relentless interview to sharpen a plan or design.",
+            "dependencies": [
+              "skills/productivity/grilling"
+            ]
+          },
+          {
+            "path": "skills/productivity/grilling",
+            "name": "grilling",
+            "description": "Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.",
+            "dependencies": []
+          }
+        ],
+        "files": [
+          {
+            "path": "LICENSE",
+            "git_oid": "f1dd2c09108dde1a5f56097cee8461b3ea834499",
+            "mode": "100644",
+            "bytes": 1068,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+            }
+          },
+          {
+            "path": "skills/productivity/grill-me/agents/openai.yaml",
+            "git_oid": "4d6fb0c746c5d21364dce5d0cf8c51eab9712e7b",
+            "mode": "100644",
+            "bytes": 137,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "c061e39c3e0f9d865fb1b97556d485704af2a8a58f4b8221a8917a5c2074a32b"
+            }
+          },
+          {
+            "path": "skills/productivity/grill-me/SKILL.md",
+            "git_oid": "3947ff9c4ad980d14fc07fccbf659d47c114e81d",
+            "mode": "100644",
+            "bytes": 157,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "caaf8b8de1684f96e26b28f3c29189db5c89cce4b73e1c93d86164f66ef88637"
+            }
+          },
+          {
+            "path": "skills/productivity/grilling/agents/openai.yaml",
+            "git_oid": "ddbdb96139c0c1dfe6bca698f39d0465674b8a39",
+            "mode": "100644",
+            "bytes": 113,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b"
+            }
+          },
+          {
+            "path": "skills/productivity/grilling/SKILL.md",
+            "git_oid": "8ca78c6d8f901aab0c5a1f896034b70e666ff2a3",
+            "mode": "100644",
+            "bytes": 1987,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2"
+            }
+          }
+        ],
+        "license_digest": {
+          "algorithm": "sha256",
+          "value": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+        },
+        "input_schema_ref": {
+          "schema_id": "SkillMethodInput",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "b705bc4e8c32affaf45197f2ca86efd3cf9e128370e0924c5eeb4fe1d052c9b3"
+          }
+        },
+        "output_schema_ref": {
+          "schema_id": "SkillMethodOutput",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "41ed268e5f968ed60f391e1c413874e50e77cedb107e3d98d53d48387c402fb9"
+          }
+        },
+        "required_permissions": {
+          "actions": [],
+          "resources": [],
+          "environment_ids": [],
+          "network_hosts": []
+        },
+        "harness_requirements": [
+          "explicit_invocation",
+          "human_interview",
+          "invoke_skills",
+          "subagent_delegation"
+        ],
+        "candidate_only": true,
+        "offline_verified": true,
+        "inspect_appended_events": 0,
+        "exact_command_replayed": true
+      },
+      {
+        "name": "matt-review",
+        "upstream": "https://github.com/mattpocock/skills.git",
+        "commit_id": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+        "descriptor_id": "01a11227-7d6a-75cf-abcc-cfdabba1d875",
+        "request_id": "01a11227-7629-74b7-a9e4-54a8663972f8",
+        "spec_path": "packages/skill-adapter/candidates/matt-review.json",
+        "spec_digest": "76968073b928435a6c3a80103b4f6e430e52cee5592f0d1643bb3e42589dbb1a",
+        "package_digest": "2b4521ccb3592cad05254884918e3556f67d9b72b7bf9715da0124e607d6dccc",
+        "package_bytes": 15262,
+        "archived_package": ".cimiloop/skill-v1-21/matt-review.package.json",
+        "file_count": 3,
+        "content_bytes": 7757,
+        "modules": [
+          {
+            "path": "skills/engineering/code-review",
+            "name": "code-review",
+            "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".",
+            "dependencies": []
+          }
+        ],
+        "files": [
+          {
+            "path": "LICENSE",
+            "git_oid": "f1dd2c09108dde1a5f56097cee8461b3ea834499",
+            "mode": "100644",
+            "bytes": 1068,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+            }
+          },
+          {
+            "path": "skills/engineering/code-review/agents/openai.yaml",
+            "git_oid": "9076774ba327f49068db9273feceda03bfe940fa",
+            "mode": "100644",
+            "bytes": 100,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "8229ca854e11dc8e6aef2131ee03f31fb1561cf905fab9ccc325180cf3331352"
+            }
+          },
+          {
+            "path": "skills/engineering/code-review/SKILL.md",
+            "git_oid": "e28d7acbf7b3bb4d7817b7eb5d9c105af03f6ec4",
+            "mode": "100644",
+            "bytes": 6589,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "47f4e52c21694def9c7c11cbfbf891ca35eac7a93e395797515be3c8a409ae50"
+            }
+          }
+        ],
+        "license_digest": {
+          "algorithm": "sha256",
+          "value": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+        },
+        "input_schema_ref": {
+          "schema_id": "SkillMethodInput",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "b705bc4e8c32affaf45197f2ca86efd3cf9e128370e0924c5eeb4fe1d052c9b3"
+          }
+        },
+        "output_schema_ref": {
+          "schema_id": "SkillMethodOutput",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "41ed268e5f968ed60f391e1c413874e50e77cedb107e3d98d53d48387c402fb9"
+          }
+        },
+        "required_permissions": {
+          "actions": [
+            "read_files",
+            "run_checks"
+          ],
+          "resources": [],
+          "environment_ids": [],
+          "network_hosts": []
+        },
+        "harness_requirements": [
+          "fixed_git_diff",
+          "project_issue_tracker",
+          "subagent_delegation",
+          "independent_context"
+        ],
+        "candidate_only": true,
+        "offline_verified": true,
+        "inspect_appended_events": 0,
+        "exact_command_replayed": true
+      },
+      {
+        "name": "superpowers-verification",
+        "upstream": "https://github.com/obra/superpowers.git",
+        "commit_id": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+        "descriptor_id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324",
+        "request_id": "01a11227-8ca3-759f-a0b4-0bfd94dbcc69",
+        "spec_path": "packages/skill-adapter/candidates/superpowers-verification.json",
+        "spec_digest": "d7dabe9a14c4a8ce053770d47dfeb15312891f6e916100939b33c62bff266029",
+        "package_digest": "ca2e6b828d23532ebc5646d89a83f2162106b95bbc3b90606ab41d332c8c9a11",
+        "package_bytes": 148767,
+        "archived_package": ".cimiloop/skill-v1-21/superpowers-verification.package.json",
+        "file_count": 2,
+        "content_bytes": 4716,
+        "modules": [
+          {
+            "path": "skills/verification-before-completion",
+            "name": "verification-before-completion",
+            "description": "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always",
+            "dependencies": []
+          }
+        ],
+        "files": [
+          {
+            "path": "LICENSE",
+            "git_oid": "abf0390320aa14406af7a520b9b0739fdda9bf08",
+            "mode": "100644",
+            "bytes": 1070,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400"
+            }
+          },
+          {
+            "path": "skills/verification-before-completion/SKILL.md",
+            "git_oid": "7d45333cc4a49c57a80df6c1fe2fa777a207afbc",
+            "mode": "100644",
+            "bytes": 3646,
+            "digest": {
+              "algorithm": "sha256",
+              "value": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3"
+            }
+          }
+        ],
+        "license_digest": {
+          "algorithm": "sha256",
+          "value": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400"
+        },
+        "input_schema_ref": {
+          "schema_id": "SkillMethodInput",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "b705bc4e8c32affaf45197f2ca86efd3cf9e128370e0924c5eeb4fe1d052c9b3"
+          }
+        },
+        "output_schema_ref": {
+          "schema_id": "SkillMethodOutput",
+          "digest": {
+            "algorithm": "sha256",
+            "value": "41ed268e5f968ed60f391e1c413874e50e77cedb107e3d98d53d48387c402fb9"
+          }
+        },
+        "required_permissions": {
+          "actions": [
+            "read_files",
+            "run_checks"
+          ],
+          "resources": [],
+          "environment_ids": [],
+          "network_hosts": []
+        },
+        "harness_requirements": [
+          "fresh_check_output",
+          "independent_context"
+        ],
+        "candidate_only": true,
+        "offline_verified": true,
+        "inspect_appended_events": 0,
+        "exact_command_replayed": true
+      }
+    ],
+    "native": {
+      "descriptors": 3,
+      "bindings": 0,
+      "appended_events": 3,
+      "all_execution_disabled": true
+    },
+    "model_requests": 0,
+    "actual_credentials_read": 0,
+    "upstream_scripts_executed": 0,
+    "cleanup": "temporary project removed after verification"
+  },
+  "checks": {
+    "build_and_typecheck": "passed",
+    "schema_export": "passed",
+    "targeted_regression": {
+      "files": 9,
+      "tests": 98,
+      "result": "passed",
+      "new_skill_files": 2,
+      "new_skill_tests": 29,
+      "paths": [
+        "packages/skill-adapter/test/package.test.ts",
+        "tests/scenarios/skill-package-cli.test.ts",
+        "packages/protocol/test/v2.test.ts",
+        "packages/protocol/test/schema.test.ts",
+        "tests/scenarios/provider-assessment.test.ts",
+        "tests/scenarios/provider-catalog.test.ts",
+        "apps/workbench/test/server.test.ts",
+        "apps/workbench/test/frontend.test.ts",
+        "tests/scenarios/cli.test.ts"
+      ]
+    },
+    "protocol_compatibility": {
+      "existing_schema_files_unchanged": 193,
+      "changed_existing_files": [],
+      "normalization": "CRLF to LF for Git/worktree comparison",
+      "added_schema_files": [
+        {
+          "path": "packages/protocol/schemas/v2/SkillImportSpec.schema.json",
+          "sha256": "ba90bffef4a9c1a5dc7583c8e784d16a739350dc8430acee638fcd1200802f77"
+        },
+        {
+          "path": "packages/protocol/schemas/v2/SkillMethodInput.schema.json",
+          "sha256": "b705bc4e8c32affaf45197f2ca86efd3cf9e128370e0924c5eeb4fe1d052c9b3"
+        },
+        {
+          "path": "packages/protocol/schemas/v2/SkillMethodOutput.schema.json",
+          "sha256": "41ed268e5f968ed60f391e1c413874e50e77cedb107e3d98d53d48387c402fb9"
+        },
+        {
+          "path": "packages/protocol/schemas/v2/SkillPackage.schema.json",
+          "sha256": "611b3fb8d2f789105132aeb3d79720dc623aa2d95b74a9179b280a69438261ab"
+        },
+        {
+          "path": "packages/protocol/schemas/v2/SkillPackageInspectionResult.schema.json",
+          "sha256": "a6d67884a9a2278c5c377f15f9697766fd338215e06287b843ff7a59d37afa02"
+        },
+        {
+          "path": "packages/protocol/schemas/v2/SkillPackageReference.schema.json",
+          "sha256": "4e465aabafc5b31585d0d50e62c528b5591009f072723f49aa7e21e97c78efbd"
+        }
+      ],
+      "protocol_version": "2.0.0",
+      "domain_database_format": 8,
+      "user_database_migration": false,
+      "new_skill_schema_eol": "LF via scoped .gitattributes"
+    },
+    "full_native_suite": {
+      "rerun_this_batch": false,
+      "reason": "Kernel, Store and existing protocol shapes unchanged; exercised affected CLI, provider, protocol and workbench paths"
+    },
+    "delivery": {
+      "checked_markdown_files": 7,
+      "checked_local_links": 194,
+      "broken_links": [],
+      "repository_baseline": {
+        "files": 686,
+        "bytes": 51879655,
+        "problems": []
+      }
+    },
+    "schema_checkout": {
+      "git_core_autocrlf": true,
+      "checked_schemas": 6,
+      "exact_bytes_equal": true,
+      "cleanup": "owned temporary checkout removed"
+    }
+  },
+  "repaired_observations": [
+    {
+      "issue": "Root scenario imports used workspace package aliases that the repository root cannot resolve",
+      "repair": "Use existing relative source import convention",
+      "status": "final targeted suite passed"
+    },
+    {
+      "issue": "Case-collision fixture still named a missing dependency and failed earlier in graph validation",
+      "repair": "Use an existing dependency to isolate collision rejection",
+      "status": "final targeted suite passed"
+    },
+    {
+      "issue": "CLI rejection fixture parsed stderr, but stable --json errors are written to stdout.error",
+      "repair": "Assert actual structured native diagnostic",
+      "status": "final targeted suite passed"
+    },
+    {
+      "issue": "Acceptance script initially traversed one directory too far when importing dist packages",
+      "repair": "Correct two-level relative import paths",
+      "status": "actual source verification passed"
+    },
+    {
+      "issue": "Actual Superpowers commit object is 103555 bytes, exceeding the initial 64 KiB limit",
+      "repair": "Bound commit to 256 KiB with pre-read size check and retained 512 KiB total proof limit; test valid large and oversized commits",
+      "status": "actual source verification and final targeted suite passed"
+    },
+    {
+      "issue": "Verification helper inherited the 1 MiB default child-process buffer, smaller than an existing exported aggregate schema",
+      "repair": "Use a bounded 64 MiB buffer for Git schema comparison; existing schema bytes unchanged",
+      "status": "all 193 existing schemas verified unchanged"
+    }
+  ],
+  "limits": {
+    "modules": 32,
+    "files": 256,
+    "file_bytes": 262144,
+    "commit_bytes": 262144,
+    "tree_bytes": 131072,
+    "proof_bytes": 524288,
+    "content_bytes": 2097152,
+    "package_bytes": 6291456,
+    "method_input_bytes": 393216,
+    "method_output_bytes": 1048576
+  },
+  "unresolved": [
+    "Skill-specific evidence, behavioral evaluation and approved ProviderBinding",
+    "Versioned Context/Run pinning and actual Skill invocation records with raw input/output",
+    "Matt interview/delegation and independent two-axis review harness requirements",
+    "Superpowers comparison and evidence-based default selection",
+    "Formal Runtime workspace effects, Agent binding, resource/cost admission and complete recovery",
+    "Real model account plan, approved credit/cash limits and bill reconciliation",
+    "S1 ordinary real change with approved baselines, actual Agent execution, independent evaluation and real Skill calls to ReadyForDelivery"
+  ],
+  "invariants": {
+    "native_business_authority": "Kernel",
+    "candidate_registration": "RegisterProvider",
+    "bindings_created": 0,
+    "actual_skill_invocations": 0,
+    "behavior_evaluations": 0,
+    "actual_credentials_read": 0,
+    "model_requests": 0,
+    "upstream_scripts_executed": 0,
+    "global_bootstrap_installed": false,
+    "default_skill_provider_selected": false,
+    "user_database_changed": false
+  },
+  "evidence": [
+    {
+      "path": ".cimiloop/skill-v1-21/check.log",
+      "bytes": 79,
+      "sha256": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/schema.log",
+      "bytes": 73,
+      "sha256": "bc39d2ba429065cf4102f45b8e3f71d834dfe1e2c7df919a42107d45f81cbd43"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/final-test.log",
+      "bytes": 196,
+      "sha256": "00ad81d756dc72f6952fda813ce98c3a2d74acf6d2886024a7c31bc684eebf7e"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/actual-source-import.log",
+      "bytes": 441,
+      "sha256": "925a705d3c635488d3ec67e852eec3757ca39d2bcd5930ec03b16701765956bc"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/actual-source-result.json",
+      "bytes": 10979,
+      "sha256": "cbb51b3a3e9413a5dee9aec39ef0abcb8bae93fb29490d7a7da086a659380e7c"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/actual-source-import.mjs",
+      "bytes": 6930,
+      "sha256": "0e191aba54db802600f7b17520e370ad6137ff15148e10d53af02359837902f4"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/matt-clarification.package.json",
+      "bytes": 9717,
+      "sha256": "f59f753f16a25d089441a5f8fca3e8c209fe8b84e1c5f19a316e73decc42aed2"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/matt-clarification.receipt.json",
+      "bytes": 4852,
+      "sha256": "befce8a3067604f67985610c8f8bc59475cb9a2b4295072e068bd94f24586d35"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/matt-clarification.inspection.json",
+      "bytes": 3789,
+      "sha256": "5ac7fff7d1ab116400a8b97d4e3eee7a983eef4cc9b5a87db9bcfd7310e13fb4"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/matt-review.package.json",
+      "bytes": 15262,
+      "sha256": "2b4521ccb3592cad05254884918e3556f67d9b72b7bf9715da0124e607d6dccc"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/matt-review.receipt.json",
+      "bytes": 4972,
+      "sha256": "c4ab7cd0e7eaa6ac95e75b2892e4082f64072395d15be694462db8c35e01ff1b"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/matt-review.inspection.json",
+      "bytes": 3807,
+      "sha256": "f37d99e2f08a16223eab034e904ccf5c565b2672807d1fa5b2fe00f331c0f46d"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/superpowers-verification.package.json",
+      "bytes": 148767,
+      "sha256": "ca2e6b828d23532ebc5646d89a83f2162106b95bbc3b90606ab41d332c8c9a11"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/superpowers-verification.receipt.json",
+      "bytes": 4998,
+      "sha256": "32467a66951a27eb41efae086aebc29a6e467963b42c250e03fb8e50f9cfbf74"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/superpowers-verification.inspection.json",
+      "bytes": 3643,
+      "sha256": "07312124d9ff7c40dbab0d87e481d90077a8ba35f3878828d9e0a79a58e007cd"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/schema-checkout.json",
+      "bytes": 134,
+      "sha256": "9d492eb0bb6a4592c6b3c40ac33fa40df4a194c7b7c57fc28f4fd9caf85694eb"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21/delivery-check.json",
+      "bytes": 178,
+      "sha256": "e1ac576e17b3ec3391cd88ced44478d56f36dfca3dcc134b82b956e2f4463665"
+    }
+  ],
+  "evidence_storage": "Public source packages and acceptance logs archived in ignored .cimiloop/skill-v1-21; summary and fixed import specs committed",
+  "reproducibility": "Obtain each fixed upstream Git commit; initialize a temporary native project; run skill import and inspect with committed candidates; offline-verify package bytes against captured SHA-256. No Runtime or model request required."
+}

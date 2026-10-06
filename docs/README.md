@@ -4,6 +4,8 @@
 
 ## 快速理解
 
+2026-10-07 D-210：[技能包固定来源与候选登记](implementation/CimiLoop-技能包固定来源与候选登记-v0.1.md)记录实际 Matt / Superpowers commit、完整模块 / 许可、离线 Git 证明、严格方法 IO 及原生 CLI 登记。V1-21 第一阶段已实现；技能评测、Binding 和真实调用仍待完成，未选择默认 Provider。
+
 2026-10-07 D-209：[本地工作台与共享应用服务](implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md)已实现人工操作阶段，连接真实 Kernel / SQLite，复用 CLI 项目及身份装配。包含启动、页面能力、本地会话、原请求恢复及验证记录；正式 Agent、技能和 S1 全链路仍待完成。
 
 V1-09续批新增[Provider候选登记与接入检查](implementation/CimiLoop-Provider候选登记与接入检查-v0.1.md)：候选治理及元数据检查已接通；后续原生评测和受限绑定见D-195，Task绑定及Agent运行仍未启用。

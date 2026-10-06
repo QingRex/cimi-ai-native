@@ -2,9 +2,10 @@ import { createHash } from "node:crypto";
 import { lstatSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { verifySkillPackageBytes, assertSkillDescriptor } from "@cimiloop/skill-adapter";
 import type { ProviderVerifierPort } from "@cimiloop/kernel";
 import { compileValidator, RuntimeProbeResultSchema, ProviderArtifactReferenceSchema, type ExternalReference,
-  type ProviderDescriptor, type ProviderProbeReference, type ProviderArtifactReference, type RuntimeProbeResult, type Project } from "@cimiloop/protocol/v2";
+  type ProviderDescriptor, type ProviderProbeReference, type ProviderArtifactReference, type RuntimeProbeResult, type Project, SkillPackageReferenceSchema, type SkillPackageReference } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 
 const parseProbe = compileValidator<RuntimeProbeResult>(RuntimeProbeResultSchema);
@@ -26,12 +27,19 @@ export class LocalProviderVerifier implements ProviderVerifierPort {
   #project(project: Project) { if (resolve(project.repository_path) !== resolve(this.repositoryPath)) throw new Error("Provider project mismatch"); }
   sourceDigest(project: Project, descriptor: ProviderDescriptor) {
     this.#project(project);
+    if (descriptor.provider_kind === "skill") {
+      const { version: _version, ...raw } = descriptor.source_ref;
+      const ref = compileValidator<SkillPackageReference>(SkillPackageReferenceSchema)(raw);
+      const verified = verifySkillPackageBytes(this.content.readContent(ref), ref.digest);
+      assertSkillDescriptor(verified, descriptor);
+      return verified.source_digest;
+    }
     if (descriptor.source_ref.provider !== "local_file" || descriptor.source_ref.resource_type !== "executable") throw new Error("Unsupported Provider source");
     const source = isAbsolute(descriptor.source_ref.locator) ? descriptor.source_ref.locator : resolve(this.repositoryPath, descriptor.source_ref.locator);
     return digest(ordinaryFile(source, 512 * 1024 * 1024));
   }
   schemaDigest(schemaId: string) {
-    if (!["RuntimeOperationResult", "RuntimeProbeResult"].includes(schemaId)) throw new Error("Unsupported probe schema");
+    if (!["RuntimeOperationResult", "RuntimeProbeResult", "SkillMethodInput", "SkillMethodOutput"].includes(schemaId)) throw new Error("Unsupported probe schema");
     const root = fileURLToPath(new URL("../../../packages/protocol/schemas/v2/", import.meta.url));
     return digest(ordinaryFile(join(root, `${schemaId}.schema.json`), 1024 * 1024));
   }
