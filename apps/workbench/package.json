@@ -1,0 +1,9 @@
+{
+  "name": "@cimiloop/workbench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node dist/bin.js" },
+  "dependencies": { "@cimiloop/local-app": "workspace:*", "@cimiloop/protocol": "workspace:*" },
+  "devDependencies": { "jsdom": "26.1.0" }
+}

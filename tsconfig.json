@@ -6,6 +6,8 @@
     { "path": "packages/kernel" },
     { "path": "packages/store-sqlite" },
     { "path": "packages/runtime-adapter" },
-    { "path": "apps/cli" }
+    { "path": "packages/local-app" },
+    { "path": "apps/cli" },
+    { "path": "apps/workbench" }
   ]
 }

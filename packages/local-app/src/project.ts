@@ -1,0 +1,77 @@
+import { existsSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { CimiLoopKernel, type KernelResult } from "@cimiloop/kernel";
+import { SCHEMA_VERSION, type ActingRole, type InternalId, type TypedReference } from "@cimiloop/protocol/v2";
+import { SqliteProjectStore } from "@cimiloop/store-sqlite";
+import { readInstance, type SoloInstance } from "./instance.js";
+import { locateProject, type ProjectLocation } from "./location.js";
+import { LocalProjectError } from "./errors.js";
+import { LocalEvidenceVerifier } from "./evidence-local.js";
+import { LocalRunVerifier } from "./runs-local.js";
+import { LocalProviderVerifier } from "./providers-local.js";
+
+export interface LocalProject {
+  location: ProjectLocation;
+  instance: SoloInstance;
+  store: SqliteProjectStore;
+  kernel: CimiLoopKernel;
+}
+
+// Only a trusted local launcher supplies the project directory and operator.
+// HTTP requests never select a database, filesystem path or caller identity.
+export const openLocalProject = (options: { projectDir?: string } = {}): LocalProject => {
+  const start = options.projectDir ? resolve(options.projectDir) : process.cwd();
+  const location = locateProject(start, Boolean(options.projectDir) || existsSync(join(start, ".cimiloop", "instance.json")));
+  if (!existsSync(location.instancePath) || !existsSync(location.databasePath)) {
+    throw new LocalProjectError("当前目录尚未初始化 CimiLoop Project，请先运行 cimiloop init", "PROJECT_NOT_INITIALIZED", "not_found");
+  }
+  const instance = readInstance(location.instancePath);
+  const store = new SqliteProjectStore(location.databasePath);
+  try {
+    const project = store.getProject(), actor = store.getActor(instance.actor_id);
+    if (!project || project.id !== instance.project_id || project.instance_id !== instance.instance_id ||
+      resolve(project.repository_path) !== location.repositoryPath || project.repository_kind !== location.repositoryKind ||
+      !actor || actor.project_id !== project.id || actor.actor_type !== "human") {
+      throw new LocalProjectError("本地入口与项目或 Human 身份不匹配", "CALLER_IDENTITY_MISMATCH", "forbidden");
+    }
+    const kernel = new CimiLoopKernel({ store, caller: { kind: "local_operator", project_id: project.id, actor_id: actor.id },
+      evidenceVerifier: new LocalEvidenceVerifier(location.repositoryPath, location.dataDirectory),
+      runVerifier: new LocalRunVerifier(location.repositoryPath, location.dataDirectory),
+      providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory) });
+    return { location, instance, store, kernel };
+  } catch (error) { store.close(); throw error; }
+};
+
+export const LOCAL_COMMAND_TYPES = [
+  "CreateChange", "PauseChange", "ResumeChange", "ChangePlanning", "CreateTargetVersion", "CloseTargetVersion",
+  "SubmitContractProposal", "SubmitPlanProposal", "RecordRiskAssessment", "RequestDecision", "RecordDecision",
+  "ConfirmContract", "ConfirmPlan", "StartChange", "InitializePlanTasks", "CreateWorkItem", "RevokeWorkItem",
+  "CaptureSourceSnapshot", "PrepareTaskEvaluation", "RecordEvidence", "EvaluateTask", "SatisfyTask",
+  "EvaluateIntegration", "MarkReadyForIntegration", "PrepareRunContext", "ReserveRun", "RecordRunObservation",
+  "ReconcileRun", "CancelRun", "SaveHandoff", "CheckResumption"
+] as const;
+
+export interface LocalCommandInput {
+  command_id: InternalId;
+  requested_at: string;
+  acting_role: ActingRole;
+  command_type: typeof LOCAL_COMMAND_TYPES[number];
+  target?: TypedReference;
+  expected_revision?: number;
+  expected_input_digest?: { algorithm: "sha256"; value: string };
+  payload: unknown;
+}
+
+export const executeLocalCommand = (context: LocalProject, input: unknown): KernelResult => {
+  const keys = new Set(["command_id", "requested_at", "acting_role", "command_type", "target", "expected_revision", "expected_input_digest", "payload"]);
+  if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some(key => !keys.has(key))) {
+    throw new LocalProjectError("动作包含不支持的字段", "INVALID_COMMAND");
+  }
+  const command = input as LocalCommandInput;
+  if (!(LOCAL_COMMAND_TYPES as readonly string[]).includes(command.command_type)) throw new LocalProjectError("该入口尚未支持此动作", "INVALID_COMMAND");
+  // Preserve the complete request across retries. The receipt, not a browser
+  // cache or a new timestamp, determines whether a command has already run.
+  return context.kernel.execute({ ...command, schema_version: SCHEMA_VERSION, correlation_id: command.command_id,
+    project_id: context.instance.project_id, actor_id: context.instance.actor_id,
+    source: { origin: "human_ui", producer: "cimiloop-workbench", repository_path: context.location.repositoryPath } });
+};

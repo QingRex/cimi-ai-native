@@ -1,0 +1,12 @@
+{
+  "name": "@cimiloop/local-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "dependencies": {
+    "@cimiloop/kernel": "workspace:*",
+    "@cimiloop/protocol": "workspace:*",
+    "@cimiloop/store-sqlite": "workspace:*"
+  }
+}

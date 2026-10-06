@@ -1,11 +1,8 @@
 import { readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import type { DomainError } from "@cimiloop/protocol/v2";
-
-export class CliInputError extends Error {
-  constructor(message: string, readonly code: DomainError["code"] = "CLI_ARGUMENT_INVALID",
-    readonly category: DomainError["category"] = "validation", readonly details: Record<string, unknown> = {}) { super(message); }
-}
+import { LocalProjectError as CliInputError } from "@cimiloop/local-app";
+export { LocalProjectError as CliInputError } from "@cimiloop/local-app";
 export const readJsonObject = (file: string): Record<string, unknown> => {
   const path = resolve(file);
   let content: string;

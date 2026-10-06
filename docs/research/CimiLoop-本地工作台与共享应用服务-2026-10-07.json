@@ -1,0 +1,376 @@
+{
+  "captured_at": "2026-10-06T16:20:13.319Z",
+  "decision": "D-209",
+  "scope": "native_human_workbench_and_shared_local_application_service",
+  "baseline_commit": "5dd9b948ffc4b99a0c95aa02b1c3b89a54039c8a",
+  "toolchain": {
+    "node": "v24.15.0",
+    "pnpm": "12.4.2"
+  },
+  "implementation": {
+    "packages": [
+      "@cimiloop/local-app",
+      "@cimiloop/workbench"
+    ],
+    "native_kernel_and_sqlite": true,
+    "second_business_state": false,
+    "caller": "fixed initialized Human local_operator",
+    "command_source": "human_ui / cimiloop-workbench",
+    "project_and_actor_override": false,
+    "automatic_initialization_or_migration": false,
+    "real_pages": [
+      "project dashboard",
+      "requirements and target versions",
+      "change and task facts",
+      "contract and plan decisions",
+      "handoff records"
+    ],
+    "pending_pages": [
+      "release batches",
+      "environments"
+    ],
+    "remaining_cli_operations": [
+      "complete Plan proposals",
+      "complex contracts",
+      "professional report imports",
+      "condition checks",
+      "authorization and independent evaluation"
+    ],
+    "formal_agent_execution_enabled": false
+  },
+  "transport": {
+    "loopback": "127.0.0.1",
+    "opaque_single_use_bootstrap_bytes": 32,
+    "session_bytes": 32,
+    "csrf_bytes": 32,
+    "session_max_age_hours": 8,
+    "cookie": [
+      "HttpOnly",
+      "SameSite=Strict"
+    ],
+    "origin_and_host_checks": true,
+    "cors": false,
+    "body_limit_bytes": 131072,
+    "response_limit_bytes": 4194304,
+    "assets_frozen_at_service_start": true,
+    "query_aggregate_is_one_atomic_snapshot": false
+  },
+  "recovery": {
+    "original_command_id_and_timestamp_reused": true,
+    "pending_request_storage": "sessionStorage per origin and project; no session/CSRF credentials",
+    "response_loss_across_same_origin_reload_verified": true,
+    "transport_auth_rejection_retains_original_request": true,
+    "known_commit_followed_by_refresh_failure_not_unknown": true,
+    "old_session_invalid_after_restart": true,
+    "native_receipt_survives_restart": true,
+    "pending_requests_not_automatically_migrated_between_ports": true
+  },
+  "validation": {
+    "build_and_typecheck": "passed",
+    "frontend_js_syntax": "passed",
+    "native_full_regression": {
+      "files": 52,
+      "tests": 770,
+      "result": "passed",
+      "note": "before addition of the three DOM recovery tests and final frontend fixes; final frontend separately retested against unchanged native service"
+    },
+    "final_workbench": {
+      "files": 2,
+      "tests": 18,
+      "result": "passed",
+      "native_http_sqlite_cases": 15,
+      "frontend_real_service_cases": 3,
+      "unhandled_errors": 0
+    },
+    "cli_independent_rerun": {
+      "files": 1,
+      "tests": 6,
+      "result": "passed"
+    },
+    "existing_schema_files_unchanged": 193,
+    "schema_comparison": "all tracked schema files against baseline HEAD, CRLF normalized",
+    "local_document_links_checked": 189,
+    "logs": [
+      {
+        "locator": ".cimiloop/workbench-v1-10/check-final.log",
+        "bytes": 79,
+        "sha256": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508",
+        "archived_locator": ".cimiloop/workbench-v1-10/archive/c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+      },
+      {
+        "locator": ".cimiloop/workbench-v1-10/regression-test.log",
+        "bytes": 187,
+        "sha256": "8809f63b19ccdac1a106eb73e3d00762499c5238fbddc41c403640cc4010af1d",
+        "archived_locator": ".cimiloop/workbench-v1-10/archive/8809f63b19ccdac1a106eb73e3d00762499c5238fbddc41c403640cc4010af1d"
+      },
+      {
+        "locator": ".cimiloop/workbench-v1-10/workbench-test.log",
+        "bytes": 196,
+        "sha256": "3a1c9b421754bdbc7b6fb9d3a8bccad1d84d1dea2b950c939531fa526575d78e",
+        "archived_locator": ".cimiloop/workbench-v1-10/archive/3a1c9b421754bdbc7b6fb9d3a8bccad1d84d1dea2b950c939531fa526575d78e"
+      },
+      {
+        "locator": ".cimiloop/workbench-v1-10/cli-test.log",
+        "bytes": 194,
+        "sha256": "1989c86d6d17f0aea459ff765b9b7f274228334f2d8e12fe126d664eaa90fe72",
+        "archived_locator": ".cimiloop/workbench-v1-10/archive/1989c86d6d17f0aea459ff765b9b7f274228334f2d8e12fe126d664eaa90fe72"
+      },
+      {
+        "locator": ".cimiloop/workbench-v1-10/browser-smoke.log",
+        "bytes": 183,
+        "sha256": "c72671c446f3ae2e3c6cb24ee865ffde192468309f7fdda77081fbdf0a36d86a",
+        "archived_locator": ".cimiloop/workbench-v1-10/archive/c72671c446f3ae2e3c6cb24ee865ffde192468309f7fdda77081fbdf0a36d86a"
+      }
+    ]
+  },
+  "browser": {
+    "earlier_manual_flow": {
+      "result": "native independent verification passed",
+      "changes": 3,
+      "target_versions": 1,
+      "applied_contract_versions": 1,
+      "handoffs": 1,
+      "original_task_status": "InProgress",
+      "original_run_status": "Reserved",
+      "attempts_consumed": 1,
+      "fixture_wait_result": "timed out after successful UI effects; not counted as a passed automated test",
+      "facts": {
+        "locator": ".cimiloop/workbench-v1-10/browser-native-facts.json",
+        "bytes": 37531,
+        "sha256": "45ffc3e5b44eae730099aa06befa7b997749e8fe3a0a78184f5376eb2cb703af",
+        "archived_locator": ".cimiloop/workbench-v1-10/archive/45ffc3e5b44eae730099aa06befa7b997749e8fe3a0a78184f5376eb2cb703af"
+      }
+    },
+    "final_browser_smoke": {
+      "result": "passed and cleanly stopped",
+      "fixture_tests": 1,
+      "changes": 3,
+      "target_versions": 1,
+      "applied_contract_versions": 1,
+      "plan_versions": 0,
+      "no_start_button_without_plan": true,
+      "corrected_intent_ready_label_observed": "约定已确认",
+      "independent_verification": {
+        "locator": ".cimiloop/workbench-v1-10/browser-final-verification.json",
+        "bytes": 15129,
+        "sha256": "95e5abe5ca75d6973fa0ca086730f98e0a3c2a4b5feb2e54acda54fb1a66c1ce",
+        "archived_locator": ".cimiloop/workbench-v1-10/archive/95e5abe5ca75d6973fa0ca086730f98e0a3c2a4b5feb2e54acda54fb1a66c1ce"
+      }
+    }
+  },
+  "repaired_findings": [
+    "raw Host test corrected because Fetch does not forward its supplied Host override",
+    "native events do not carry source; source checked on created Change",
+    "fixture Git preparation and keep-alive connection contention isolated without weakening production checks",
+    "standalone CLI timeout under competing resources rerun successfully",
+    "Flow Owner used for target versions and StartChange",
+    "no literal null in decision conditions",
+    "IntentReady does not imply confirmed Plan",
+    "submit form captured before asynchronous currentTarget is cleared",
+    "original pending command retained after session expiry",
+    "DOM tests await final render before teardown"
+  ],
+  "preserved": {
+    "native_database_format": 8,
+    "protocol_version": "2.0.0",
+    "frozen_v1_unchanged": true,
+    "user_database_upgraded": false,
+    "real_credentials_read": 0,
+    "external_model_http_requests": 0,
+    "real_billing_admitted": false
+  },
+  "remaining_s1": [
+    "V1-09 formal workspace tools, trusted Agent identity, resource/cost admission and full recovery",
+    "V1-21 versioned Skill Provider invocation contract",
+    "V1-22 actual Matt and Superpowers pilots",
+    "V1-11 full ordinary real Runtime/Skill flow to ReadyForDelivery"
+  ],
+  "sources": [
+    {
+      "locator": "apps/cli/package.json",
+      "bytes": 405,
+      "sha256": "0e4623d998a34b7280d821ad5dfc78456465f27205a491d81a3381e852dde5cd",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/0e4623d998a34b7280d821ad5dfc78456465f27205a491d81a3381e852dde5cd"
+    },
+    {
+      "locator": "apps/cli/src/commands.ts",
+      "bytes": 52566,
+      "sha256": "3fe2f4c87f8e65192837c046e29931b529c7d1ec424165169aaf192540c3ec2d",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/3fe2f4c87f8e65192837c046e29931b529c7d1ec424165169aaf192540c3ec2d"
+    },
+    {
+      "locator": "apps/cli/src/evidence-local.ts",
+      "bytes": 122,
+      "sha256": "97cbb223b536355f24c13e84c539d86cce74a836468b096b04ffc2cb3be29fd3",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/97cbb223b536355f24c13e84c539d86cce74a836468b096b04ffc2cb3be29fd3"
+    },
+    {
+      "locator": "apps/cli/src/input.ts",
+      "bytes": 1899,
+      "sha256": "257ae3d35d1a4942bd0151ee7a78f3e1298bd7a25feb09d1b1e432e7e730f108",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/257ae3d35d1a4942bd0151ee7a78f3e1298bd7a25feb09d1b1e432e7e730f108"
+    },
+    {
+      "locator": "apps/cli/src/instance.ts",
+      "bytes": 124,
+      "sha256": "61cf8967a80cf11e117862130da0994a4aa9a27cd9a42f0e13181f871b44afe2",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/61cf8967a80cf11e117862130da0994a4aa9a27cd9a42f0e13181f871b44afe2"
+    },
+    {
+      "locator": "apps/cli/src/location.ts",
+      "bytes": 152,
+      "sha256": "c54ae75ffae6f0debec84235396568d68b61a539ca34f13db08e41c372c3013d",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/c54ae75ffae6f0debec84235396568d68b61a539ca34f13db08e41c372c3013d"
+    },
+    {
+      "locator": "apps/cli/src/providers-local.ts",
+      "bytes": 61,
+      "sha256": "b91831a057016a804b16663bfc127a78da14c39ff51b5983d64f8f6d5e3df33c",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/b91831a057016a804b16663bfc127a78da14c39ff51b5983d64f8f6d5e3df33c"
+    },
+    {
+      "locator": "apps/cli/src/runs-local.ts",
+      "bytes": 56,
+      "sha256": "62412d1287f90cf46313cc25a99cbb7a9a3ca048a730fd6f07c7ea1a94256768",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/62412d1287f90cf46313cc25a99cbb7a9a3ca048a730fd6f07c7ea1a94256768"
+    },
+    {
+      "locator": "apps/cli/tsconfig.json",
+      "bytes": 436,
+      "sha256": "1983bbf542ca0788081583bf5cf930b9f10b25f5ec2d39e30fd3000c4fba22dc",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/1983bbf542ca0788081583bf5cf930b9f10b25f5ec2d39e30fd3000c4fba22dc"
+    },
+    {
+      "locator": "apps/workbench/package.json",
+      "bytes": 284,
+      "sha256": "b53cc9df9e5cada24957790fb83254a0e8d795b94bf4637d1c7f776c8fe66b1b",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/b53cc9df9e5cada24957790fb83254a0e8d795b94bf4637d1c7f776c8fe66b1b"
+    },
+    {
+      "locator": "apps/workbench/public/app.js",
+      "bytes": 27296,
+      "sha256": "651530e6d1457f635d089d977ffadcebb076e677a10593cd8ba1202e285e1ca7",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/651530e6d1457f635d089d977ffadcebb076e677a10593cd8ba1202e285e1ca7"
+    },
+    {
+      "locator": "apps/workbench/public/index.html",
+      "bytes": 1359,
+      "sha256": "445f5be5cdef1d17748d9b8a10826ea538ac1685b01265ea65e98a57d8b9c565",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/445f5be5cdef1d17748d9b8a10826ea538ac1685b01265ea65e98a57d8b9c565"
+    },
+    {
+      "locator": "apps/workbench/public/style.css",
+      "bytes": 5665,
+      "sha256": "49af74aa93e23854456e6a671cc9991b7c8bdd5a1548c104405e10eec0cd90e0",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/49af74aa93e23854456e6a671cc9991b7c8bdd5a1548c104405e10eec0cd90e0"
+    },
+    {
+      "locator": "apps/workbench/src/bin.ts",
+      "bytes": 1969,
+      "sha256": "8173076157d9b1ac0ac2be65b873e84f3c63af54db7afb06c7a8ca582f71440e",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/8173076157d9b1ac0ac2be65b873e84f3c63af54db7afb06c7a8ca582f71440e"
+    },
+    {
+      "locator": "apps/workbench/src/server.ts",
+      "bytes": 11586,
+      "sha256": "74b68df36aba9eef017f65b392337deb310c200feca51347f2112b46c4b55f1e",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/74b68df36aba9eef017f65b392337deb310c200feca51347f2112b46c4b55f1e"
+    },
+    {
+      "locator": "apps/workbench/test/frontend.test.ts",
+      "bytes": 8164,
+      "sha256": "27a81a9df7acbc8c5fdb6480e870b8af74cc11c0c6ef3e5a564b5d826ae66750",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/27a81a9df7acbc8c5fdb6480e870b8af74cc11c0c6ef3e5a564b5d826ae66750"
+    },
+    {
+      "locator": "apps/workbench/test/server.test.ts",
+      "bytes": 17832,
+      "sha256": "c46aaada7e702db11825a37e692d3bf735d1e200c6a5c227c9e6aadb5dea7907",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/c46aaada7e702db11825a37e692d3bf735d1e200c6a5c227c9e6aadb5dea7907"
+    },
+    {
+      "locator": "apps/workbench/tsconfig.json",
+      "bytes": 272,
+      "sha256": "7f75254318488f5609193fc753d4ed023c8c6cb45c43b2ce486aa6c8c66a13e6",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/7f75254318488f5609193fc753d4ed023c8c6cb45c43b2ce486aa6c8c66a13e6"
+    },
+    {
+      "locator": "package.json",
+      "bytes": 688,
+      "sha256": "96aa6da413dfedaed1993f0cfd91d0f2520230758052a205bfc7108ce652d791",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/96aa6da413dfedaed1993f0cfd91d0f2520230758052a205bfc7108ce652d791"
+    },
+    {
+      "locator": "packages/local-app/package.json",
+      "bytes": 332,
+      "sha256": "071920f9e03e6bb7275d18715b484cb72eab0141269ef314e45e9d954993c16a",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/071920f9e03e6bb7275d18715b484cb72eab0141269ef314e45e9d954993c16a"
+    },
+    {
+      "locator": "packages/local-app/src/errors.ts",
+      "bytes": 331,
+      "sha256": "0749499d5d123c91aa3f6b2cd90915d623069655dc315a14547ee31b3ecdabde",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/0749499d5d123c91aa3f6b2cd90915d623069655dc315a14547ee31b3ecdabde"
+    },
+    {
+      "locator": "packages/local-app/src/evidence-local.ts",
+      "bytes": 7666,
+      "sha256": "2687f24ad6502ddd4d87f068a7daafd1b4790e4590955e788bcdc2b77e4bcbc4",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/2687f24ad6502ddd4d87f068a7daafd1b4790e4590955e788bcdc2b77e4bcbc4"
+    },
+    {
+      "locator": "packages/local-app/src/index.ts",
+      "bytes": 697,
+      "sha256": "dd83c20b7318a749683574f93bbbd70a18119b0efad827681070b8d46f3fc655",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/dd83c20b7318a749683574f93bbbd70a18119b0efad827681070b8d46f3fc655"
+    },
+    {
+      "locator": "packages/local-app/src/instance.ts",
+      "bytes": 1078,
+      "sha256": "65994d735da55512fb77f373e2bc567df607859bc016b58a9b731ce25ebb2f14",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/65994d735da55512fb77f373e2bc567df607859bc016b58a9b731ce25ebb2f14"
+    },
+    {
+      "locator": "packages/local-app/src/location.ts",
+      "bytes": 3021,
+      "sha256": "cbfef36c5b1cb299b1d9bac2ce1a9d255f00c1e5a8e0e15e290475fd676131d3",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/cbfef36c5b1cb299b1d9bac2ce1a9d255f00c1e5a8e0e15e290475fd676131d3"
+    },
+    {
+      "locator": "packages/local-app/src/project.ts",
+      "bytes": 4812,
+      "sha256": "cb3f9cf4043b5d64fc0975867713dd5524170d15608e0f1ca81d3d0074149cd1",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/cb3f9cf4043b5d64fc0975867713dd5524170d15608e0f1ca81d3d0074149cd1"
+    },
+    {
+      "locator": "packages/local-app/src/providers-local.ts",
+      "bytes": 4488,
+      "sha256": "1a0298c69907a9b780ce554cd654c0f986f5791279289a07adaf2da1e60c3446",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/1a0298c69907a9b780ce554cd654c0f986f5791279289a07adaf2da1e60c3446"
+    },
+    {
+      "locator": "packages/local-app/src/runs-local.ts",
+      "bytes": 7390,
+      "sha256": "4f0e316622c2247e50b501a38c01a33bce39b35480f925d8e8a08e0263a15530",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/4f0e316622c2247e50b501a38c01a33bce39b35480f925d8e8a08e0263a15530"
+    },
+    {
+      "locator": "packages/local-app/tsconfig.json",
+      "bytes": 284,
+      "sha256": "37edeb1d3f342203c082860bb973656e2189473e0d0a0f55e9b9247059a76146",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/37edeb1d3f342203c082860bb973656e2189473e0d0a0f55e9b9247059a76146"
+    },
+    {
+      "locator": "pnpm-lock.yaml",
+      "bytes": 91282,
+      "sha256": "3cf710c040bd1e4db5123f67693c7b37cfa4a459744c1838b5a1d5499a38b733",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/3cf710c040bd1e4db5123f67693c7b37cfa4a459744c1838b5a1d5499a38b733"
+    },
+    {
+      "locator": "tsconfig.json",
+      "bytes": 331,
+      "sha256": "c4a2138f04daa3dd630a879fb45632467c26c7e2e782f099e446db6bd0db0ecc",
+      "archived_locator": ".cimiloop/workbench-v1-10/archive/c4a2138f04daa3dd630a879fb45632467c26c7e2e782f099e446db6bd0db0ecc"
+    }
+  ]
+}

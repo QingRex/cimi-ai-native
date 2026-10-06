@@ -4,6 +4,8 @@
 
 ## 快速理解
 
+2026-10-07 D-209：[本地工作台与共享应用服务](implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md)已实现人工操作阶段，连接真实 Kernel / SQLite，复用 CLI 项目及身份装配。包含启动、页面能力、本地会话、原请求恢复及验证记录；正式 Agent、技能和 S1 全链路仍待完成。
+
 V1-09续批新增[Provider候选登记与接入检查](implementation/CimiLoop-Provider候选登记与接入检查-v0.1.md)：候选治理及元数据检查已接通；后续原生评测和受限绑定见D-195，Task绑定及Agent运行仍未启用。
 
 V1-09续批D-195已接通[Provider证据、评测与受限绑定](implementation/CimiLoop-Provider证据评测与受限绑定-v0.1.md)：智谱真实证据进入Project原生事实，技术契约ALLOW，仅批准合成探针范围；受控执行缺口继续阻止Task绑定。格式8提供显式1–7迁移，未升级用户库，Agent Run仍未启用。

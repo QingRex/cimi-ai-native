@@ -4,6 +4,8 @@ CimiLoop 是一个面向 AI-Native 软件研发的 Runtime-neutral Harness（运
 
 ## 当前状态
 
+2026-10-07 D-209 已实现连接原生 Kernel / SQLite 的本地工作台人工操作阶段：CLI 与页面共享项目及身份装配，需求池、目标版本、约定 / 计划决定、任务事实与交接已接通；本地会话、来源校验和响应丢失后的原请求核对通过验证。操作见[本地工作台与共享应用服务](docs/implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md)。正式 Agent 执行、技能接入及 S1 全链路验收仍待完成。
+
 当前开发入口是[CimiLoop V1可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)。S1–S4共23项任务，OpenSpec试点可选，技能Provider及Matt / Superpowers试点进入S1。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。格式8支持显式1–7升级并保留历史、任务、授权、运行和回执；没有升级用户现有数据库。
 
 V1-09实施中：独立探针Adapter与Windows AppContainer / Job隔离已实现，OpenCode已更新1.18.34并固定摘要。专用智谱`zhipuai-coding-plan/glm-5.3`已完成真实合成文件修改及新只读会话独立验收，双模式权限探针通过；Key以Windows DPAPI加密保存在仓库外。前批Zen免费接口403保留为历史事实。原生Provider评测及探针范围Binding已接通；新合成操作的资源归属、恢复清理及磁盘 / 日志超限停止已由D-196实现；Task绑定、Agent Run及网络 / 费用 / 文件系统硬配额和完整恢复验收仍待完成。操作与实测证据见[Runtime探针与隔离](docs/implementation/CimiLoop-Runtime探针与隔离-v0.1.md)。合成探针不修改Task、原生Run或Gate，正式Agent执行尚未启用。
@@ -62,12 +64,14 @@ D-208已实现原生Human Run实时工具权限查询及独立公开文件执行
 .
 ├─ apps/
 │  ├─ cli/            # cimiloop 命令行入口与本地装配
+│  ├─ workbench/      # 连接正式 Kernel 的本地 Human 工作台
 │  └─ demo-web/       # 纯前端交互演示原型，不连接正式 Kernel
 ├─ packages/
 │  ├─ protocol/       # Protocol Schema、ID、Command/Event 与校验
 │  ├─ kernel/         # 聚合规则、状态转换和命令处理
 │  ├─ store/          # Kernel 使用的逻辑 Store Port
 │  ├─ store-sqlite/   # Embedded Solo Mode SQLite 实现
+│  ├─ local-app/      # CLI / Workbench 共享项目、身份和本地核验器
 │  └─ runtime-adapter/# 独立Runtime探针、受限启动与原始结果采集；正式Agent Run待接通
 ├─ tests/
 │  └─ scenarios/      # 跨模块和 CLI 端到端场景
@@ -103,6 +107,12 @@ node apps/cli/dist/bin.js --json inspect change CHG-0001
 角色登记、指派、结束与责任移交的命令及兼容边界见 [责任治理与身份入口](docs/implementation/CimiLoop责任治理与身份入口-v0.1.md)。
 
 设置更新、目标版本、规划排序和WIP命令见 [项目设置、规划与容量](docs/implementation/CimiLoop项目设置规划与容量-v0.1.md)。未配置容量或缺少真实确认依据时，开工保持阻塞。
+
+真实项目工作台会自动打开本地浏览器；项目须先通过 CLI 初始化，完整操作与恢复说明见[工作台指南](docs/implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md)：
+
+```text
+npx pnpm@12.4.2 workbench --project-dir <已初始化项目目录>
+```
 
 交互式演示原型（固定数据，可离线）：
 

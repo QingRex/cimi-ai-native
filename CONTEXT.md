@@ -6,6 +6,8 @@ CimiLoop 以项目、目标版本、需求、缺陷和任务组织日常研发�
 
 D-208已实现原生Human Run实时工具权限查询及独立公开文件执行账本：固定WorkItem / Context / 原操作身份，执行和缓存重放前重新核对授权；公开读取 / 替换保存完成回执，确认原宿主退出后将未dispatch预约归为not_started、已dispatch未完成保留Unknown。四处实际Windows宿主退出和双宿主一槽位争用通过，工具事实不推进原生Task / Run。正式工作区效果、IPC / OpenCode接入该账本及Agent运行仍待验收。 见[WorkItem工具授权与执行账本](docs/implementation/CimiLoop-WorkItem工具授权与执行账本-v0.1.md)。下一步建立正式工作区的宿主文件 / 命令能力约束和可验证效果身份，将实时授权与工具账本接入IPC / OpenCode消费，并把工具Unknown纳入原生Run接续核对；继续完成整体受控恢复和物理硬配额。实际套餐 / 工具资格、服务端输入及思考输出上界、受保护的唯一账户Ledger、批准的现金 / 积分预算和账单核对仍待落实。
 
+2026-10-07 D-209：本地工作台人工操作阶段已连接正式 Kernel / SQLite，CLI 与页面共用 `packages/local-app` 的项目、Human 身份和核验器。需求录入、目标版本、约定 / 计划决定、任务事实与交接，以及本地会话 / CSRF / 原请求恢复已接通，见[操作和验证边界](docs/implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md)。V1-09 正式 Agent、V1-21/22 技能及 V1-11 全链路验收仍待完成；发布 / 环境入口尚未实施。数据库仍为格式8，未升级用户库。
+
 ## 业务语言
 
 **项目**：

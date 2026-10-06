@@ -1,0 +1,11 @@
+export { openLocalProject, executeLocalCommand, LOCAL_COMMAND_TYPES } from "./project.js";
+export type { LocalProject, LocalCommandInput } from "./project.js";
+export { LocalProjectError } from "./errors.js";
+export { locateProject, readGitIdentity, registryDatabasePath } from "./location.js";
+export type { ProjectLocation } from "./location.js";
+export { readInstance, writeInstance } from "./instance.js";
+export type { SoloInstance } from "./instance.js";
+export { LocalEvidenceVerifier } from "./evidence-local.js";
+export type { ContentReference } from "./evidence-local.js";
+export { LocalRunVerifier } from "./runs-local.js";
+export { LocalProviderVerifier } from "./providers-local.js";

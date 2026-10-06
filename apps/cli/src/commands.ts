@@ -15,6 +15,7 @@ import { VerificationShowResultSchema } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
+import { openLocalProject } from "@cimiloop/local-app";
 import { RunShowResultSchema, ProviderCatalogResultSchema } from "@cimiloop/protocol/v2";
 import { MigrationRunner, SqliteProjectRegistry, SqliteProjectStore } from "@cimiloop/store-sqlite";
 import { parseVersionedCommandResult } from "@cimiloop/protocol";
@@ -157,19 +158,7 @@ export const initProject = async (options: InitOptions): Promise<void> => {
   }
 };
 
-const openProject = (options: GlobalOptions) => {
-  const start = options.projectDir ? resolve(options.projectDir) : process.cwd();
-  const allowNonGit = Boolean(options.projectDir) || existsSync(join(start, ".cimiloop", "instance.json"));
-  const location = locateProject(start, allowNonGit);
-  if (!existsSync(location.instancePath) || !existsSync(location.databasePath)) {
-    throw new CliInputError("当前目录尚未初始化 CimiLoop Project，请先运行 cimiloop init", "PROJECT_NOT_INITIALIZED", "not_found");
-  }
-  const instance = readInstance(location.instancePath);
-  const store = new SqliteProjectStore(location.databasePath);
-  return { location, instance, store, kernel: new CimiLoopKernel({ store, caller: {
-    kind: "local_operator", project_id: instance.project_id, actor_id: instance.actor_id
-  }, evidenceVerifier: new LocalEvidenceVerifier(location.repositoryPath, location.dataDirectory), runVerifier: new LocalRunVerifier(location.repositoryPath, location.dataDirectory), providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory) }) };
-};
+const openProject = (options: GlobalOptions) => openLocalProject(options);
 
 export const createChange = (title: string, options: GlobalOptions & { kind?: string; requirementOwner?: string; targetVersion?: string }): void => {
   const context = openProject(options);

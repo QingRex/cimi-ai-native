@@ -4,6 +4,7 @@
 
 ## 当前阶段
 
+- 最新工作台切片：[本地工作台与共享应用服务](CimiLoop-本地工作台与共享应用服务-v0.1.md)，D-209 / V1-10 人工操作阶段已接通真实 Kernel、身份、决定与交接；正式 Agent 与 S1 全链路仍待完成。
 - 最新工具切片：[WorkItem工具授权与执行账本](CimiLoop-WorkItem工具授权与执行账本-v0.1.md)，D-208原生Human权限、独立公开工具事实与副作用恢复；OpenCode只读消费见[工具IPC与OpenCode消费契约](CimiLoop-工具IPC与OpenCode消费契约-v0.1.md)。
 
 - 当前里程碑：M0 Kernel 最小闭环已完成并冻结。
@@ -73,17 +74,19 @@ TypeScript 与 Node.js 的常规工程选择由实现负责人按稳定性、可
 
 ```text
 apps/
-└─ cli/                 # V1 用户入口与本地编排
+├─ cli/                 # V1 命令行入口与本地编排
+└─ workbench/           # 原生 Kernel 的本地 Human 页面与 HTTP 入口
 packages/
 ├─ protocol/            # 稳定 ID、引用、Command/Event Envelope 与 Schema
 ├─ kernel/              # 聚合规则、状态机、Gate 与命令处理
 ├─ store/               # Kernel 使用的逻辑 Store Port
-└─ store-sqlite/        # Embedded Solo Mode 的 SQLite 实现
+├─ store-sqlite/        # Embedded Solo Mode 的 SQLite 实现
+└─ local-app/           # CLI / Workbench 共享项目、身份与本地核验器
 tests/
 └─ scenarios/           # 跨模块的 Change 端到端行为场景
 ```
 
-依赖规则：`kernel` 依赖 `protocol` 与 `store`，`store` 只依赖 `protocol`，`store-sqlite` 依赖 `store` 与 `protocol`，`cli` 负责组装 `kernel` 与 `store-sqlite`。Kernel 不得依赖 CLI、SQLite 或具体 Agent Runtime。
+依赖规则：`kernel` 依赖 `protocol` 与 `store`，`store` 只依赖 `protocol`，`store-sqlite` 依赖 `store` 与 `protocol`。V1 的 `local-app` 负责可信项目和身份装配，CLI / Workbench 复用它；M0 初始装配保留历史记录。Kernel 不得依赖 CLI、Workbench、SQLite 或具体 Agent Runtime。
 
 Workbench、Team Server 和具体 Agent Runtime Adapter 不进入 M0 工程骨架；它们在核心闭环成立后按里程碑加入。
 
