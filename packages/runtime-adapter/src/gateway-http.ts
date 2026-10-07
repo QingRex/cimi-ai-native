@@ -99,6 +99,21 @@ export class GatewayHttpTransport {
     for (const message of body.messages) for (const call of message.tool_calls ?? []) if (JSON.stringify(parseGatewayJson(call.function.arguments)).includes(apiKey)) fail("gateway_credential_in_request");
     return owned.contract;
   }
+  conversationOriginalInput(prepared: PreparedGatewayConversationRequest, apiKey: string): unknown {
+    // Guard credentials before even reserving/persisting original input bytes.
+    this.conversationCacheContract(prepared, apiKey);
+    const body = parseGatewayJson(this.conversations.get(prepared)!.body.toString()) as Record<string, unknown>;
+    return { request_id: prepared.request_id, messages: body.messages, tools: body.tools ?? [], response_mode: prepared.response_mode,
+      input_tokens: prepared.input_tokens, max_output_tokens: prepared.output_tokens };
+  }
+  async sendConversationOriginal(prepared: PreparedGatewayConversationRequest, connection: GatewayTlsConnection, apiKey: string, deadlineMs = 8000, signal?: AbortSignal) {
+    const owned = this.conversations.get(prepared);
+    if (!owned || owned.consumed || !owned.parse) fail("gateway_http_request_unowned");
+    const parse = owned.parse;
+    try { return await this.exchange(owned, connection, apiKey, deadlineMs, signal, prepared.response_mode === "sse" ? "text/event-stream" : "application/json",
+      bytes => { const response = parse(bytes, apiKey); return { response, bytes: Buffer.from(bytes) }; }); }
+    finally { if (owned.consumed) { delete owned.parse; delete owned.contract; } }
+  }
   async sendConversation(prepared: PreparedGatewayConversationRequest, connection: GatewayTlsConnection, apiKey: string, deadlineMs = 8000, signal?: AbortSignal): Promise<GatewayConversationResponse> {
     const owned = this.conversations.get(prepared);
     if (!owned || owned.consumed || !owned.parse) fail("gateway_http_request_unowned");

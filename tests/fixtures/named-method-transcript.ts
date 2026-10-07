@@ -13,6 +13,7 @@ export function constructedNamedTranscript(profile: FixedMethodProfile, files: {
     source_digest: profile.source_digest, request_digest: profile.request_digest, profile_digest: digest(JSON.stringify(profile)), exchanges: [] };
   const sessionID = "ses_" + randomUUID().replaceAll("-", ""), native = { pid: 123, profile: "CimiLoop." + randomUUID().replaceAll("-", ""), phase: "ended", reason: "exited", exit_code: 0 };
   const events: unknown[] = [{ event: "sandbox.started", pid: native.pid, profile: native.profile }];
+  const gateway_inputs: unknown[] = [], raw_responses: Buffer[] = [];
   const orderedModules: FixedMethodProfile["modules"] = [];
   const order = (name: string) => { if (orderedModules.some(module => module.name === name)) return; const module = profile.modules.find(module => module.name === name)!;
     orderedModules.push(module); module.dependencies.forEach(order); };
@@ -26,6 +27,7 @@ export function constructedNamedTranscript(profile: FixedMethodProfile, files: {
       choices: [{ index: 0, message: resource ? { role: "assistant", content: emptyAssistantText ? "" : null, tool_calls: [{ id: "call_" + i, type: "function", function: fn }] } :
         { role: "assistant", content: JSON.stringify(output) }, finish_reason: resource ? "tool_calls" : "stop" }], usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 } }));
     const prepared = prepareGatewayConversation(projection.input);
+    gateway_inputs.push(structuredClone(projection.input)); raw_responses.push(Buffer.from(raw));
     const upstream = parseGatewayConversation(raw, prepared.prepared, prepared.tools, prepared.prior_call_ids, "PUBLIC_TEST_SECRET_NOT_PRESENT");
     const mapped = adapter.accept(upstream, projection);
     transcript.exchanges.push({ sdk_input: structuredClone(sdk), upstream_response: structuredClone(upstream), mapped_response: structuredClone(mapped) });
@@ -38,5 +40,5 @@ export function constructedNamedTranscript(profile: FixedMethodProfile, files: {
       events.push({ type: "text", sessionID, part: { sessionID, text: JSON.stringify(output) } }, { type: "step_finish", sessionID, part: { sessionID, reason: "stop" } });
     }
   }
-  return { transcript, native, stdout: Buffer.from(events.map(event => JSON.stringify(event)).join("\n") + "\n"), events, sessionID };
+  return { transcript, native, stdout: Buffer.from(events.map(event => JSON.stringify(event)).join("\n") + "\n"), events, sessionID, gateway_inputs, raw_responses };
 }

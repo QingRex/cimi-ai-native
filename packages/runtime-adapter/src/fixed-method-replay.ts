@@ -24,6 +24,7 @@ export function replayFixedMethodTranscript(profile: FixedMethodProfile, files: 
   if (transcript.invocation_key !== profile.invocation_key || !same(transcript.source_digest, profile.source_digest) ||
     !same(transcript.request_digest, profile.request_digest) || !same(transcript.profile_digest, digest(JSON.stringify(profile)))) fail("fixed_method_transcript_pins_changed");
   const adapter = new FixedMethodConversationAdapter(profile, files, transcript.invocation_key), ids = new Set<string>();
+  const original_requests: { input: unknown; response: unknown }[] = [];
   let previous: Input | undefined, expectedHistory: Input["messages"] | undefined;
   for (const [index, exchange] of transcript.exchanges.entries()) {
     const projection = adapter.project(exchange.sdk_input, transcript.mapping), input = projection.sdk;
@@ -46,6 +47,7 @@ export function replayFixedMethodTranscript(profile: FixedMethodProfile, files: 
     const upstream = parseCachedGatewayConversationResponse(exchange.upstream_response,
       createGatewayConversationCacheContract(prepared.prepared, prepared.tools, prepared.prior_call_ids));
     const mapped = adapter.accept(upstream, projection);
+    original_requests.push({ input: structuredClone(projection.input), response: structuredClone(upstream) });
     if (!same(mapped, exchange.mapped_response)) fail("fixed_method_transcript_mapping_changed");
     if (mapped.finish_reason === "stop") {
       if (index !== transcript.exchanges.length - 1) fail("fixed_method_transcript_after_completion");
@@ -56,7 +58,7 @@ export function replayFixedMethodTranscript(profile: FixedMethodProfile, files: 
   }
   const proof = adapter.snapshot();
   if (proof.status !== "Succeeded") fail("fixed_method_transcript_incomplete");
-  return { transcript, proof };
+  return { transcript, proof, original_requests };
 }
 
 export function verifyFixedMethodSdkEffects(replay: ReturnType<typeof replayFixedMethodTranscript>, stdout: Uint8Array, native: unknown) {

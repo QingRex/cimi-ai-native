@@ -35,7 +35,11 @@ export class PublicConversationBridge {
   private readonly methodExchanges: FixedMethodTranscript["exchanges"] = [];
   private readonly ended = () => this.abort.abort();
   constructor(context: Context) {
-    if (context.ledger.storageFormat !== 3 || !/^[a-f0-9]{64}$/.test(context.policyDigest) || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(context.nonce) || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(context.operationKey)) fail("conversation_bridge_profile_invalid");
+    if (context.ledger.storageFormat !== (context.fixedMethod ? 4 : 3) || !/^[a-f0-9]{64}$/.test(context.policyDigest) || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(context.nonce) || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(context.operationKey)) fail("conversation_bridge_profile_invalid");
+    if (context.fixedMethod) {
+      const original = context.ledger.conversationOriginalContext();
+      if (original.operation_key !== context.operationKey || original.profile_digest !== digest(JSON.stringify(context.fixedMethod.profile)).value) fail("conversation_bridge_profile_invalid");
+    }
     const profile = context.skillProfile && compileValidator<SkillRuntimeProfile>(SkillRuntimeProfileSchema)(structuredClone(context.skillProfile));
     if (profile) { if (profile.skill_names.length > 3) fail("conversation_bridge_profile_invalid"); Object.freeze(profile.skill_names); Object.freeze(profile.source_digest); Object.freeze(profile); }
     const paths = context.methodReadPaths && [...context.methodReadPaths];

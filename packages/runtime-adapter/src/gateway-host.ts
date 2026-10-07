@@ -36,7 +36,7 @@ interface Strategy<Prepared, Response> {
   send: (prepared: Prepared, connection: GatewayTlsConnection, deadline: number, signal: AbortSignal) => Promise<Response>;
   complete: (permit: CreditReservation, response: Response, checkpoint: () => void) => CreditReceipt;
 }
-// The two constructors below select a trusted code strategy, never a Runtime
+// The constructors below select a trusted code strategy, never a Runtime
 // flag. The shared cancellation/commit/close sequence has one implementation.
 class GatewayHostCoordinator<Prepared extends PreparedGatewayHttpRequest, Response> {
   private readonly transport: GatewayHttpTransport;
@@ -48,9 +48,9 @@ class GatewayHostCoordinator<Prepared extends PreparedGatewayHttpRequest, Respon
   private readonly active = new Set<{ abort: AbortController; done: Promise<void> }>();
   private closing = false;
   private closePromise: Promise<void> | undefined;
-  constructor(dependencies: Dependencies, storageFormat: 2 | 3, strategy: (transport: GatewayHttpTransport, ledger: GatewayCreditLedger) => Strategy<Prepared, Response>) {
+  constructor(dependencies: Dependencies, storageFormat: 2 | 3 | 4, strategy: (transport: GatewayHttpTransport, ledger: GatewayCreditLedger) => Strategy<Prepared, Response>) {
     if (!Number.isSafeInteger(dependencies.deadlineMs ?? 8000) || (dependencies.deadlineMs ?? 8000) < 100 || (dependencies.deadlineMs ?? 8000) > 30000) throw new RuntimeAdapterError("invalid_host_gateway_deadline");
-    if (dependencies.ledger.storageFormat !== storageFormat) throw new RuntimeAdapterError(storageFormat === 3 ? "host_gateway_conversation_cache_required" : "host_gateway_cache_required");
+    if (dependencies.ledger.storageFormat !== storageFormat) throw new RuntimeAdapterError(storageFormat === 4 ? "host_gateway_conversation_originals_required" : storageFormat === 3 ? "host_gateway_conversation_cache_required" : "host_gateway_cache_required");
     dependencies.ledger.cacheSnapshot();
     this.ledger = dependencies.ledger; this.boundary = dependencies.boundary; this.transport = new GatewayHttpTransport(this.boundary);
     this.strategy = strategy(this.transport, this.ledger);
@@ -132,5 +132,21 @@ export class GatewayConversationHostRehearsal extends GatewayHostCoordinator<Pre
       ledger.reserveConversation(creditRequest(prepared, budget), transport.conversationCacheContract(prepared, GATEWAY_HOST_REHEARSAL_KEY)),
       send: (prepared, connection, deadline, signal) => transport.sendConversation(prepared, connection, GATEWAY_HOST_REHEARSAL_KEY, deadline, signal),
       complete: (permit, response, checkpoint) => ledger.completeConversationCached(permit, response, checkpoint) }));
+  }
+}
+export class GatewayConversationOriginalHostRehearsal extends GatewayHostCoordinator<PreparedGatewayConversationRequest, GatewayConversationResponse> {
+  constructor(dependencies: Dependencies) {
+    super(dependencies, 4, (transport, ledger) => {
+      const originals = new WeakMap<GatewayConversationResponse, Buffer>();
+      return { prepare: input => transport.prepareConversation(input), reserve: (prepared, budget) =>
+        ledger.reserveConversationOriginal(creditRequest(prepared, budget), transport.conversationOriginalInput(prepared, GATEWAY_HOST_REHEARSAL_KEY)),
+      send: async (prepared, connection, deadline, signal) => {
+        const original = await transport.sendConversationOriginal(prepared, connection, GATEWAY_HOST_REHEARSAL_KEY, deadline, signal);
+        originals.set(original.response, original.bytes); return original.response;
+      }, complete: (permit, response, checkpoint) => {
+        const bytes = originals.get(response); if (!bytes) throw new RuntimeAdapterError("host_gateway_original_response_unproven");
+        try { return ledger.completeConversationOriginal(permit, response, bytes, checkpoint); } finally { originals.delete(response); }
+      } };
+    });
   }
 }

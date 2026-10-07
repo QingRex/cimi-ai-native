@@ -4,7 +4,8 @@ import { compileValidator, NamedSkillMethodEvidenceSchema, NamedSkillMethodEvide
   ProviderArtifactReferenceSchema, type Project, type ProviderDescriptor, type NamedSkillMethodEvidence, type NamedSkillMethodEvidenceReference,
   type NamedSkillMethodAssessment, type NamedSkillMethodSample, type AgentRunRecord, type AgentContextManifest, type ProviderBinding } from "@cimiloop/protocol/v2";
 import { requestDigest } from "@cimiloop/kernel";
-import { replayFixedMethodTranscript, verifyFixedMethodSdkEffects, parseGatewayJson } from "@cimiloop/runtime-adapter";
+import { replayFixedMethodTranscript, verifyFixedMethodSdkEffects, parseGatewayJson, openPublicNamedMethodOriginals,
+  type GatewayCreditPolicy, type GatewayCreditConversationOriginalOptions } from "@cimiloop/runtime-adapter";
 import { LocalSkillMethodInputs, type LocalSkillMethodPlan, type LocalSkillMethodQualificationPort } from "./skill-methods-local.js";
 
 const same = (a: unknown, b: unknown) => isDeepStrictEqual(JSON.parse(JSON.stringify(a)), JSON.parse(JSON.stringify(b)));
@@ -36,6 +37,34 @@ export interface NamedSkillMethodExecutionAdmission {
   // resource scope and full permission intersection; a reservation is no grant.
   admitCurrent(project: Project, record: AgentRunRecord, context: AgentContextManifest, binding: ProviderBinding,
     descriptor: ProviderDescriptor, plan: LocalSkillMethodPlan, assessment: NamedSkillMethodAssessment): void;
+}
+
+// Trusted composition supplies paths/policies, never serialized evaluation
+// results. This concrete reader proves public model bytes only; SDK/Native
+// custody, real account billing and upstream harness behavior remain unproven.
+export class LocalPublicNamedMethodOriginals implements NamedSkillMethodOriginalsPort {
+  private readonly inputs: LocalSkillMethodInputs;
+  private readonly ledgers: ReadonlyMap<string, { path: string; policy: GatewayCreditPolicy; options: GatewayCreditConversationOriginalOptions }>;
+  constructor(repositoryPath: string, dataDirectory: string, ledgers: { invocation_key: string; path: string; policy: GatewayCreditPolicy; options: GatewayCreditConversationOriginalOptions }[]) {
+    this.inputs = new LocalSkillMethodInputs(repositoryPath, dataDirectory);
+    if (new Set(ledgers.map(ledger => ledger.invocation_key)).size !== ledgers.length) throw new Error("Named method original ledger repeated");
+    this.ledgers = new Map(ledgers.map(ledger => [ledger.invocation_key, structuredClone(ledger)]));
+  }
+  verify(project: Project, input: OriginalInput) {
+    const { descriptor, sample, plan } = input, location = this.ledgers.get(sample.invocation_key);
+    if (!location || location.options.conversation_original_cache.operation_key !== sample.invocation_key) throw new Error("Named method original ledger unavailable");
+    if (!same(plan, this.inputs.read(project, descriptor, { ...sample, method_name: input.evidence.method_name }))) throw new Error("Named method original input changed");
+    const bytes = this.inputs.packages.content.readContent(sample.transcript_ref);
+    if (bytes.length > 4 * 1024 * 1024) throw new Error("Named method original transcript limit");
+    const transcript = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(bytes), 4 * 1024 * 1024);
+    const originals = openPublicNamedMethodOriginals(location.path, location.policy, location.options);
+    try {
+      const conversations = originals.verify(plan.profile, plan.files, transcript, plan.prompt);
+      return { origin: conversations.origin, conversations, checks: { runtime_custody: "inconclusive" as const, independent_context: "inconclusive" as const,
+        provider_dependencies: "inconclusive" as const, permission_intersection: "inconclusive" as const, cost_accounting_and_cap: "inconclusive" as const,
+        invocation_recovery: "inconclusive" as const, behavior: "inconclusive" as const, harness: {} } };
+    } finally { originals.close(); }
+  }
 }
 
 export class LocalNamedSkillMethodAssessment {

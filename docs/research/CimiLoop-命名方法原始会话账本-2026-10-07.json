@@ -1,0 +1,1669 @@
+{
+  "format": "cimiloop/named-method-originals-verification/1.0.0",
+  "decision": "D-218",
+  "date": "2026-10-07",
+  "base_commit": "699e59ae01d86597b0265c6d5b2a07054f13340f",
+  "scope": "Opt-in format-4 public conversation input/request/HTTP response custody, atomic completion and actual read-only original verification connected to named-method assessment",
+  "goal_complete": false,
+  "formal_execution_enabled": false,
+  "production_agent_host_connected": false,
+  "production_skill_host_connected": false,
+  "public_original_conversation_ledger_implemented": true,
+  "concrete_public_original_reader_connected": true,
+  "actual_method_behavior_evaluated": false,
+  "production_original_runtime_model_tool_account_verifier_connected": false,
+  "pre_plan_clarification_implemented": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "path": ".cimiloop/named-method-originals-v1-21/regression-final.json",
+      "bytes": 132039,
+      "sha256": "4abb3815c600eb966e2e8b9b2b6fe9876ccbc935aff10f899de593bdd27d2c1d",
+      "files": 13,
+      "tests": 349,
+      "passed": 349,
+      "failed": 0,
+      "fresh_full_affected_pass": true,
+      "complete_repository_suite": false,
+      "files_at_validation": [
+        {
+          "name": "tests/scenarios/named-skill-method-assessment.test.ts",
+          "tests": 14
+        },
+        {
+          "name": "runtime-adapter/test/fixed-method-replay.test.ts",
+          "tests": 23
+        },
+        {
+          "name": "runtime-adapter/test/fixed-method.test.ts",
+          "tests": 17
+        },
+        {
+          "name": "runtime-adapter/test/gateway-conversation-bridge.test.ts",
+          "tests": 8
+        },
+        {
+          "name": "runtime-adapter/test/gateway-conversation-cache.test.ts",
+          "tests": 25
+        },
+        {
+          "name": "runtime-adapter/test/gateway-conversation-client.test.ts",
+          "tests": 38
+        },
+        {
+          "name": "runtime-adapter/test/gateway-conversation-host.test.ts",
+          "tests": 23
+        },
+        {
+          "name": "runtime-adapter/test/gateway-conversation-originals.test.ts",
+          "tests": 15
+        },
+        {
+          "name": "runtime-adapter/test/gateway-conversation.test.ts",
+          "tests": 90
+        },
+        {
+          "name": "runtime-adapter/test/gateway-credit-cache.test.ts",
+          "tests": 17
+        },
+        {
+          "name": "runtime-adapter/test/gateway-credit.test.ts",
+          "tests": 23
+        },
+        {
+          "name": "runtime-adapter/test/gateway-host.test.ts",
+          "tests": 17
+        },
+        {
+          "name": "runtime-adapter/test/gateway-http.test.ts",
+          "tests": 39
+        }
+      ]
+    },
+    "preliminary_reports": [
+      {
+        "path": ".cimiloop/named-method-originals-v1-21/initial.json",
+        "bytes": 6692,
+        "sha256": "b90578d798c0ef0fec9cf4c6cd56d2cad41ce1c3ff571041faafae4ada389a01",
+        "tests": 15,
+        "passed": 15,
+        "failed": 0
+      },
+      {
+        "path": ".cimiloop/named-method-originals-v1-21/regression.json",
+        "bytes": 132013,
+        "sha256": "0b9edf41f4b81e89d24c1da0f1afd4456a675bcec94820a1c43104456ac73127",
+        "tests": 349,
+        "passed": 349,
+        "failed": 0
+      }
+    ],
+    "final_actual_upstream": {
+      "path": ".cimiloop/named-method-originals-v1-21/upstream-final.json",
+      "bytes": 59470,
+      "sha256": "340b2139f2afe0ddcd5b29dabf646949f3e02385e6bed6fe896bc6fb1317fdf3",
+      "cases": 3,
+      "original_exchanges": 17,
+      "sdk_runs_in_final_cases": 3,
+      "records": [
+        {
+          "name": "matt-clarification",
+          "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+          "source_digest": {
+            "algorithm": "sha256",
+            "value": "f59f753f16a25d089441a5f8fca3e8c209fe8b84e1c5f19a316e73decc42aed2"
+          },
+          "method_name": "grill-me",
+          "invocation_key": "matt_clarification_d218_final",
+          "resources": 4,
+          "original_replay_equal": true,
+          "readonly_archive_unchanged": true,
+          "raw_originals": {
+            "origin": "public_fixture",
+            "operation_key": "matt_clarification_d218_final",
+            "profile_digest": "571e617377026ac82dcbd2ff6eb0ab6d7638bcb075b4c612fb7a220668cbc3a6",
+            "receipts": [
+              {
+                "request_id": "00abb7b8-d53b-4107-bc9b-0d0bfed57a53",
+                "input_digest": "d52d630816745eda2be97d69bfe12e4b954b317c83d8a45c9a12374a4ab050be",
+                "credit_request_digest": "b14f9b18101212d1b341ee132b3a1273b9fb057023f3b9ba2b770b42ef215ddf",
+                "response_digest": "92b6ec5396904c6e99207502518c9e02709cab2451747ec85a0ae77b0f139f2b",
+                "request_bytes": 10750,
+                "response_bytes": 633,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "00abb7b8-d53b-4107-bc9b-0d0bfed57a53",
+                  "request_digest": "b14f9b18101212d1b341ee132b3a1273b9fb057023f3b9ba2b770b42ef215ddf",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "92b6ec5396904c6e99207502518c9e02709cab2451747ec85a0ae77b0f139f2b",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "e58da95b-32d4-4515-b792-0de60b6c2747",
+                "input_digest": "0ec45d38e3bb0b126b13df606f451a090ab92745e55dbd1bf7459dcff856cb8c",
+                "credit_request_digest": "ffa752539379069661952ba3e7f37ee00662188f9079349e6a4528e0200f00cd",
+                "response_digest": "9c87d0e5d22f37b5c9aea049ff82d656297195eccef34ea8d825105c48837c44",
+                "request_bytes": 11299,
+                "response_bytes": 633,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "e58da95b-32d4-4515-b792-0de60b6c2747",
+                  "request_digest": "ffa752539379069661952ba3e7f37ee00662188f9079349e6a4528e0200f00cd",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "9c87d0e5d22f37b5c9aea049ff82d656297195eccef34ea8d825105c48837c44",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "df3fbc3c-af63-4f79-91da-56a60d714c44",
+                "input_digest": "e18f1e7ed6145774b3032f1cba58e2c7c12a7a8b51b652acef736de488e12a84",
+                "credit_request_digest": "cfa6edb3be57db768d380ac77241b97fbee85fddf1485df5a9052498183d926d",
+                "response_digest": "02b6ac6f293496959fb6011c2fe8999f36e41c4e12acae080cdd13c0be8202ab",
+                "request_bytes": 13780,
+                "response_bytes": 651,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "df3fbc3c-af63-4f79-91da-56a60d714c44",
+                  "request_digest": "cfa6edb3be57db768d380ac77241b97fbee85fddf1485df5a9052498183d926d",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "02b6ac6f293496959fb6011c2fe8999f36e41c4e12acae080cdd13c0be8202ab",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "6da26c7d-5e92-4400-80bf-0f5a043a9de6",
+                "input_digest": "779aa19337764271454218cb23fe281be97c96814b7bfe09f7592fea98471260",
+                "credit_request_digest": "f703eb02b2abc8fb16c03d8c4331e1f04d00f6895893155b33659826c564baa7",
+                "response_digest": "65d3540b863f2d34597221c5738212027619280a5106c90b3327ea5596be3472",
+                "request_bytes": 14746,
+                "response_bytes": 649,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "6da26c7d-5e92-4400-80bf-0f5a043a9de6",
+                  "request_digest": "f703eb02b2abc8fb16c03d8c4331e1f04d00f6895893155b33659826c564baa7",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "65d3540b863f2d34597221c5738212027619280a5106c90b3327ea5596be3472",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "73696bab-bba4-4018-a1c2-656c82312a09",
+                "input_digest": "5d2441e6c42f317d30578c5b5a0e016b1afcb511e21fc680463863ab7cad2352",
+                "credit_request_digest": "7dac8800e0a08ad7403aa3e35811595642ee36c5b050eb6fdff666e18028d606",
+                "response_digest": "42217f1856deac68c851a41293865dc940ffd736c3a9325a8e572f0d2c099512",
+                "request_bytes": 15346,
+                "response_bytes": 602,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "73696bab-bba4-4018-a1c2-656c82312a09",
+                  "request_digest": "7dac8800e0a08ad7403aa3e35811595642ee36c5b050eb6fdff666e18028d606",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "42217f1856deac68c851a41293865dc940ffd736c3a9325a8e572f0d2c099512",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              }
+            ],
+            "raw_conversations_verified": true,
+            "actual_cost_known": false,
+            "formal_execution_enabled": false
+          },
+          "method_contract": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "method_contract",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-6461-7378-848e-e2895ad5c809"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "063d267bb8006732ec13ea10cbdc54f331b385741979de1233ad80ea094abd9d"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-6461-7378-848e-e2895ad5c809"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "grill-me",
+            "purpose": "clarification",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "0a0283d79de8661ce38de9a187bd059312f7d793592c15be8247118623b36b07",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "0a0283d79de8661ce38de9a187bd059312f7d793592c15be8247118623b36b07"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "2f7a85773aef310cf616d42db048b0347d72b02d1f19cd240e1ab67f6d89d5cc"
+            },
+            "outcome": "ALLOW",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "no_original_host": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-6461-7378-848e-e2895ad5c809"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "063d267bb8006732ec13ea10cbdc54f331b385741979de1233ad80ea094abd9d"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-6461-7378-848e-e2895ad5c809"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "grill-me",
+            "purpose": "clarification",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "0a0283d79de8661ce38de9a187bd059312f7d793592c15be8247118623b36b07",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "0a0283d79de8661ce38de9a187bd059312f7d793592c15be8247118623b36b07"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "e1b9dad884709fb96b4be46a80ba6db5effe8540fde5865f1908006755fbaeb5"
+            },
+            "outcome": "NEED_MORE_EVIDENCE",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_explicit_invocation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_human_interview",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_invoke_skills",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_subagent_delegation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "public_origin": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-6461-7378-848e-e2895ad5c809"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "063d267bb8006732ec13ea10cbdc54f331b385741979de1233ad80ea094abd9d"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-6461-7378-848e-e2895ad5c809"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "grill-me",
+            "purpose": "clarification",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "0a0283d79de8661ce38de9a187bd059312f7d793592c15be8247118623b36b07",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "0a0283d79de8661ce38de9a187bd059312f7d793592c15be8247118623b36b07"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "e6912414a8a2da800206edb84d36fc610a4dae21d07f85dbad4d3172f46b0627"
+            },
+            "outcome": "DENY",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "failed"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_explicit_invocation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_human_interview",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_invoke_skills",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_subagent_delegation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "native_resources_disposed": true,
+          "actual_credentials_read": 0,
+          "external_model_requests": 0,
+          "actual_method_behavior_evaluated": false,
+          "formal_execution_enabled": false,
+          "note": "Actual SDK/native public reads and full HTTP bodies verified. Runtime pin is a constructed scope marker. Protected production SDK/model/tool/account custody and declared harness behavior remain missing.",
+          "artifacts": [
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/result.json",
+              "bytes": 7329,
+              "sha256": "a0fcda31326775b18de50e8ab36e26c834b6b2eccd07b92abff8edaee351297c"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/fixed-method-proof.json",
+              "bytes": 4061,
+              "sha256": "5b54d8e86eab3425f081d660177d452ff1e0555ad1727c160e694579b7cd4713"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/fixed-method-transcript.json",
+              "bytes": 78433,
+              "sha256": "5dbcbdd7bc5538b4bb8b2d9ae60c305c61fa9d8805d381c7f496ddf6a235bd49"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/stdout.raw",
+              "bytes": 16038,
+              "sha256": "07349d8c6c74a4b0a47c3d46ed60c2c9d3097d23196a93fbe4a562f74519721a"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/stderr.raw",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/native-proof.json",
+              "bytes": 115,
+              "sha256": "f9ae429448d8da48f0c9953cf7c3086cd892f78f8e3c1274d4d323a75764eaba"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/native-ownership.json",
+              "bytes": 1182,
+              "sha256": "a69840d59ef3274c646dd72333aa3dc6412782a5579a4cacbbfa3fa85a445362"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/probe-owner.json",
+              "bytes": 838,
+              "sha256": "0401b4af00e650366f89a69d31ef8a7812343f88174b9a88907b4d1f0893ed00"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/execution-policy-proof.json",
+              "bytes": 288,
+              "sha256": "ba85a4cc7df588cb970060c41920bea24beace6a46c4c4f8eb1b0f1d3287e028"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/conversation-host-proof.json",
+              "bytes": 2131,
+              "sha256": "b4ca7253804fc7e5cab22ae46941ecb90ca9ce19c1516b45424ccfdce1e28274"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/conversation-transport-proof.json",
+              "bytes": 1612,
+              "sha256": "2977e8ddbe2b4db08d39230daa11fca22da520b268e75dee4d93ea6a8de28cb7"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_clarification_d218_final/credit.sqlite",
+              "bytes": 245760,
+              "sha256": "6879bb1d926b390f8cc0c391585b589eaf6ca91b7f97d09e386e810907108d53"
+            }
+          ]
+        },
+        {
+          "name": "matt-review",
+          "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+          "source_digest": {
+            "algorithm": "sha256",
+            "value": "2b4521ccb3592cad05254884918e3556f67d9b72b7bf9715da0124e607d6dccc"
+          },
+          "method_name": "code-review",
+          "invocation_key": "matt_review_d218_final",
+          "resources": 5,
+          "original_replay_equal": true,
+          "readonly_archive_unchanged": true,
+          "raw_originals": {
+            "origin": "public_fixture",
+            "operation_key": "matt_review_d218_final",
+            "profile_digest": "48e202456c1bc978a0dd0a66703139343c04a5dc36187762de8643c9ee3bc8ba",
+            "receipts": [
+              {
+                "request_id": "a6f480d3-b7e6-4ea2-9026-de3a77238e8e",
+                "input_digest": "40ed2e08b4fd355cd13b706ea3f9838ee761cf9ebf7cf4fb49925dfc6e3f6c71",
+                "credit_request_digest": "5037485101c957f045c20fa2f624c3668efcc845c0d3dc5bb6e560ee82e58368",
+                "response_digest": "b26e37ac3ccdfbd7edd6627a893595b9c8591464d699f6337d171f8361766136",
+                "request_bytes": 11051,
+                "response_bytes": 636,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "a6f480d3-b7e6-4ea2-9026-de3a77238e8e",
+                  "request_digest": "5037485101c957f045c20fa2f624c3668efcc845c0d3dc5bb6e560ee82e58368",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "b26e37ac3ccdfbd7edd6627a893595b9c8591464d699f6337d171f8361766136",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "75620c77-880a-45b1-a2be-5cf464d78398",
+                "input_digest": "afd6464c47a2c953cbd39a572ba278603280cbeb80d98a364626d8b913764ea5",
+                "credit_request_digest": "a60d2f2979920f5f3ca2069aac258d0bc4f86bb4b76e1de8f7cd07e1931085f5",
+                "response_digest": "0525377056340489e06e5ed0fe035aac5bf8f650f3030b21494328eda0f4e535",
+                "request_bytes": 18449,
+                "response_bytes": 651,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "75620c77-880a-45b1-a2be-5cf464d78398",
+                  "request_digest": "a60d2f2979920f5f3ca2069aac258d0bc4f86bb4b76e1de8f7cd07e1931085f5",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "0525377056340489e06e5ed0fe035aac5bf8f650f3030b21494328eda0f4e535",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "892aee88-f8c5-4265-b5c8-dc570af30f74",
+                "input_digest": "3645ab35780091b7abc997cd4c010ebbd356824fc0235771c39f1bb555581b88",
+                "credit_request_digest": "e061966c9403d836c9eb124dde2a813d21c452b4e402182d64c720c22a40815c",
+                "response_digest": "158261320bec86394d7d0492d339191c4ded300127f57732ee0a0aee0cd59aad",
+                "request_bytes": 19806,
+                "response_bytes": 649,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "892aee88-f8c5-4265-b5c8-dc570af30f74",
+                  "request_digest": "e061966c9403d836c9eb124dde2a813d21c452b4e402182d64c720c22a40815c",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "158261320bec86394d7d0492d339191c4ded300127f57732ee0a0aee0cd59aad",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "91d4c684-87e6-47af-9706-b7eb4c27a1bb",
+                "input_digest": "41e765b76f216295f701139e791084f864bc8c6c2c1a8dea96f781c299963550",
+                "credit_request_digest": "c2d01cbfb4b9bc15485d0a1807f270940e38ff0f6693c506fc72158877e2e2b7",
+                "response_digest": "3d08d074a4ee776fcecb57c49fc9d607326f80b9a8b5ace7c4656374a3da5d39",
+                "request_bytes": 20783,
+                "response_bytes": 717,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "91d4c684-87e6-47af-9706-b7eb4c27a1bb",
+                  "request_digest": "c2d01cbfb4b9bc15485d0a1807f270940e38ff0f6693c506fc72158877e2e2b7",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "3d08d074a4ee776fcecb57c49fc9d607326f80b9a8b5ace7c4656374a3da5d39",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "2cf3e3a1-da9b-4252-9cad-6b3f06275b19",
+                "input_digest": "270b25ab0eeee8e87f54fd3520067e9a4a5743953bf5f996ac86720dab7f85c1",
+                "credit_request_digest": "d4c88e29751c544ece966d59a2b9c95993670031ef742f385f9d9fda7f945263",
+                "response_digest": "0e06007d36c4177c9232e309172c451a6bcb29b761ee18ac8c781cbb4c865231",
+                "request_bytes": 21357,
+                "response_bytes": 659,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "2cf3e3a1-da9b-4252-9cad-6b3f06275b19",
+                  "request_digest": "d4c88e29751c544ece966d59a2b9c95993670031ef742f385f9d9fda7f945263",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "0e06007d36c4177c9232e309172c451a6bcb29b761ee18ac8c781cbb4c865231",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "d5832a09-0598-417f-8212-9c50458d1e0c",
+                "input_digest": "7a609f7fe5fe32e572422129b74430ea200b99111233c88c523c3cc1c715ef17",
+                "credit_request_digest": "d70e93be01165a6a60c26853239b65a168a91400063d6da74fb2d4a0e2a1019a",
+                "response_digest": "af7ede7f3c8926f6c1abc7a12828c6ce78d11e7896fdac1652b7dbbebe3e39ab",
+                "request_bytes": 22263,
+                "response_bytes": 595,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "d5832a09-0598-417f-8212-9c50458d1e0c",
+                  "request_digest": "d70e93be01165a6a60c26853239b65a168a91400063d6da74fb2d4a0e2a1019a",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "af7ede7f3c8926f6c1abc7a12828c6ce78d11e7896fdac1652b7dbbebe3e39ab",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              }
+            ],
+            "raw_conversations_verified": true,
+            "actual_cost_known": false,
+            "formal_execution_enabled": false
+          },
+          "method_contract": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "method_contract",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "243f2f875e2e6b9b421c016518f0ea1763247d3cfc1e578bef1028fce21c7fc2"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "code-review",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "791d7c0108b7c7baa0882d83d62b6ff912e21cdaaf4ebc5a64c3e19d7a058b77",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "791d7c0108b7c7baa0882d83d62b6ff912e21cdaaf4ebc5a64c3e19d7a058b77"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "beca13461070356d6e02c1cc1bb4c02ea05f955450b409af4bdaa17f22a9448b"
+            },
+            "outcome": "ALLOW",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "no_original_host": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "243f2f875e2e6b9b421c016518f0ea1763247d3cfc1e578bef1028fce21c7fc2"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "code-review",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "791d7c0108b7c7baa0882d83d62b6ff912e21cdaaf4ebc5a64c3e19d7a058b77",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "791d7c0108b7c7baa0882d83d62b6ff912e21cdaaf4ebc5a64c3e19d7a058b77"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "d6e7087e91e41a43885fdf5d8ac5a48484a7d9550d8f4f7f0a5960ef7dd86b52"
+            },
+            "outcome": "NEED_MORE_EVIDENCE",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_fixed_git_diff",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_project_issue_tracker",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_subagent_delegation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "public_origin": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "243f2f875e2e6b9b421c016518f0ea1763247d3cfc1e578bef1028fce21c7fc2"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "code-review",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "791d7c0108b7c7baa0882d83d62b6ff912e21cdaaf4ebc5a64c3e19d7a058b77",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "791d7c0108b7c7baa0882d83d62b6ff912e21cdaaf4ebc5a64c3e19d7a058b77"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "30104045d0922ff0b4b31b75c9671acd3a5082db3afb27d5cea5fab4f45fe402"
+            },
+            "outcome": "DENY",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "failed"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_fixed_git_diff",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_project_issue_tracker",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_subagent_delegation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "native_resources_disposed": true,
+          "actual_credentials_read": 0,
+          "external_model_requests": 0,
+          "actual_method_behavior_evaluated": false,
+          "formal_execution_enabled": false,
+          "note": "Actual SDK/native public reads and full HTTP bodies verified. Runtime pin is a constructed scope marker. Protected production SDK/model/tool/account custody and declared harness behavior remain missing.",
+          "artifacts": [
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/result.json",
+              "bytes": 7947,
+              "sha256": "ea1d8741666a6806dde239a2ab715a0f682a89c1a6263d8f14cebc17846b605b"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/fixed-method-proof.json",
+              "bytes": 5002,
+              "sha256": "93041c5f91f12c5dcf219e04cfd744422cf8936995fe84b3e1690bece55dd4ed"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/fixed-method-transcript.json",
+              "bytes": 128044,
+              "sha256": "04cfc2ef9eb92e7d74afef5fd59fbe6610d7a908d74c9e6e82887954baeae239"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/stdout.raw",
+              "bytes": 30982,
+              "sha256": "12b8b19c601863b19a1a10d96e7626c1944e49ab68f5cba1d931a3d396a627d0"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/stderr.raw",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/native-proof.json",
+              "bytes": 115,
+              "sha256": "c4c69f429c3223938a7b61e22b75bf1513748adad32a8d4421a0142f0b8832d2"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/native-ownership.json",
+              "bytes": 1175,
+              "sha256": "e3e8abeab6b2490401eb46c69e5b3afbc39aef1ce5ba4beddfaadb11410baf8b"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/probe-owner.json",
+              "bytes": 831,
+              "sha256": "70ebfee3e632536cb255f3427db465f04715949d79f68609662eeab78551dbbc"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/execution-policy-proof.json",
+              "bytes": 281,
+              "sha256": "2720182bdc0e5e3b79c5a669552c8f8a56b48cecb2b304f5bc3b8eb3d885c3c6"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/conversation-host-proof.json",
+              "bytes": 2310,
+              "sha256": "e3f3960d3733d07a07a52780a40bd7f5b8ddb09a39a846f6face1e98f8e3a261"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/conversation-transport-proof.json",
+              "bytes": 1798,
+              "sha256": "7a326a346107f7655f95a82fd46bce8aaf9953328d2f04d06224dc51b01838da"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/matt_review_d218_final/credit.sqlite",
+              "bytes": 360448,
+              "sha256": "e332ec0d85ecd950464852178e1813c8f193eb970d25789e75c58efa0c06d579"
+            }
+          ]
+        },
+        {
+          "name": "superpowers-verification",
+          "commit": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+          "source_digest": {
+            "algorithm": "sha256",
+            "value": "ca2e6b828d23532ebc5646d89a83f2162106b95bbc3b90606ab41d332c8c9a11"
+          },
+          "method_name": "verification-before-completion",
+          "invocation_key": "superpowers_verification_d218_final",
+          "resources": 5,
+          "original_replay_equal": true,
+          "readonly_archive_unchanged": true,
+          "raw_originals": {
+            "origin": "public_fixture",
+            "operation_key": "superpowers_verification_d218_final",
+            "profile_digest": "93c3540c65cb0ad105c08afe6a197e3531c1fffb260dd2650fe32994ad531930",
+            "receipts": [
+              {
+                "request_id": "c938148c-4f0b-4d42-b015-7138a01b7d79",
+                "input_digest": "4d591169c9fb5a1003fbfd2535b5e13675abdbc86a47f149132d63126db0f210",
+                "credit_request_digest": "968104ecfdb981851a12442ae18051bffeff98d4361e74ce1d2e429056e771a8",
+                "response_digest": "bf4822a735568a1b2fe903f84cae8d9efe2a1ebcf137d893a30736b01801ff5b",
+                "request_bytes": 11121,
+                "response_bytes": 655,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "c938148c-4f0b-4d42-b015-7138a01b7d79",
+                  "request_digest": "968104ecfdb981851a12442ae18051bffeff98d4361e74ce1d2e429056e771a8",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "bf4822a735568a1b2fe903f84cae8d9efe2a1ebcf137d893a30736b01801ff5b",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "0c8e6418-ee66-47f8-8873-5991fd2196c1",
+                "input_digest": "aa58294f7dfb02e582eb282d60cb7f02127e4ba413f925d5690b3ec65e49ee1d",
+                "credit_request_digest": "87dcebbfd53f22fc2adb6b80b49fe1d437231d6c52bb6443ec783957c82863d2",
+                "response_digest": "67be6252459737d3f7825355623b7a5e57bec0ec8a8a29b27946253fe46b58ce",
+                "request_bytes": 15835,
+                "response_bytes": 651,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "0c8e6418-ee66-47f8-8873-5991fd2196c1",
+                  "request_digest": "87dcebbfd53f22fc2adb6b80b49fe1d437231d6c52bb6443ec783957c82863d2",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "67be6252459737d3f7825355623b7a5e57bec0ec8a8a29b27946253fe46b58ce",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "e1489e65-1112-4fb0-b29b-b7de6e8093fc",
+                "input_digest": "5e5b2f947cf44ea10f5fd72b63893f22989757f1c9a2afbb34111d8066bce723",
+                "credit_request_digest": "247b14ff2f7ea181d897e4f403bac23614789f5d2cfd1e8af879ff6f202a35f6",
+                "response_digest": "0a92fc3000704d678a4f230927ee3bc331de8390af2d2b252be581a79ed000d3",
+                "request_bytes": 17224,
+                "response_bytes": 649,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "e1489e65-1112-4fb0-b29b-b7de6e8093fc",
+                  "request_digest": "247b14ff2f7ea181d897e4f403bac23614789f5d2cfd1e8af879ff6f202a35f6",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "0a92fc3000704d678a4f230927ee3bc331de8390af2d2b252be581a79ed000d3",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "f8440172-4223-4e66-8498-0ec6d442ad55",
+                "input_digest": "3f72b68a680c4fa8f9f7b56c2db951e4634898a3e011aa0229dc621b6c7880ff",
+                "credit_request_digest": "38648c92481452683e75dbbee02ea9946e112c90987c17b38ef3f05eba35169a",
+                "response_digest": "d6158a163018c8b92703957594ae73ea1c9a8163d8eb37df9ad26c4dc05ebd3c",
+                "request_bytes": 18201,
+                "response_bytes": 717,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "f8440172-4223-4e66-8498-0ec6d442ad55",
+                  "request_digest": "38648c92481452683e75dbbee02ea9946e112c90987c17b38ef3f05eba35169a",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "d6158a163018c8b92703957594ae73ea1c9a8163d8eb37df9ad26c4dc05ebd3c",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "88219aff-b16d-447b-a03c-e0ce79c5d378",
+                "input_digest": "73ae6ba58bdeb8d8ef64d0befb1c073b2130c60f012b228dcd77edd27fc42d42",
+                "credit_request_digest": "91f6ed1aa2e0e9f8ecce6dbf5f84ef3b807ac1d123b6c3ac240ae34a5255355a",
+                "response_digest": "6a177c1df2fde83fbb24bdd2c894cac38d39f32c29fbac47caaaa662bc41dce4",
+                "request_bytes": 18775,
+                "response_bytes": 659,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "88219aff-b16d-447b-a03c-e0ce79c5d378",
+                  "request_digest": "91f6ed1aa2e0e9f8ecce6dbf5f84ef3b807ac1d123b6c3ac240ae34a5255355a",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "6a177c1df2fde83fbb24bdd2c894cac38d39f32c29fbac47caaaa662bc41dce4",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              },
+              {
+                "request_id": "c1cda240-76d7-422a-a210-5f3c7970a4bb",
+                "input_digest": "0971c77ab9318e2539a22bb833c04de02703c86bf8ddbdbb59dff8af7389553b",
+                "credit_request_digest": "fa20f3da76c18e6456ca367dca03c4b40eeb8dc0101a144ed5403ea71625980d",
+                "response_digest": "cb0d370d349031604b1a0b20e5b0b16bccbf5bafc7f5c9bafefcde2773b13a26",
+                "request_bytes": 19681,
+                "response_bytes": 595,
+                "receipt": {
+                  "format": "cimiloop/gateway-credit-receipt/1.0.0",
+                  "scope": "credit_budget_rehearsal",
+                  "unit": "ZHIPU_CODING_PLAN_CREDIT",
+                  "request_id": "c1cda240-76d7-422a-a210-5f3c7970a4bb",
+                  "request_digest": "fa20f3da76c18e6456ca367dca03c4b40eeb8dc0101a144ed5403ea71625980d",
+                  "held_micro_units": 46000000,
+                  "rate_digest": "227016aa3017a77e802164039b17d186692b7cdbe8638807af43ed4653ab4346",
+                  "response_digest": "cb0d370d349031604b1a0b20e5b0b16bccbf5bafc7f5c9bafefcde2773b13a26",
+                  "input_tokens": 4,
+                  "output_tokens": 3,
+                  "actual_cost_known": false,
+                  "admission_ready": false
+                }
+              }
+            ],
+            "raw_conversations_verified": true,
+            "actual_cost_known": false,
+            "formal_execution_enabled": false
+          },
+          "method_contract": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "method_contract",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "e6c03ab4e770a0bb8789621506e2b64f51396a9523273c611510c065cdc7cbc8"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "verification-before-completion",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "ea29fe6eb29e04e69825817e0339c5329f48b1b2cf56325232370386d9a9a9c8",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "ea29fe6eb29e04e69825817e0339c5329f48b1b2cf56325232370386d9a9a9c8"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "0eece8c918c469fcd06443d4e593062c2963ced27a51a3097e84bda439856f1b"
+            },
+            "outcome": "ALLOW",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "no_original_host": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "e6c03ab4e770a0bb8789621506e2b64f51396a9523273c611510c065cdc7cbc8"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "verification-before-completion",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "ea29fe6eb29e04e69825817e0339c5329f48b1b2cf56325232370386d9a9a9c8",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "ea29fe6eb29e04e69825817e0339c5329f48b1b2cf56325232370386d9a9a9c8"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "8b52f8d6005bca557db4a3077797fd373c77a0ebef05b6abc8db162c12fd330d"
+            },
+            "outcome": "NEED_MORE_EVIDENCE",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_fresh_check_output",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "public_origin": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "e6c03ab4e770a0bb8789621506e2b64f51396a9523273c611510c065cdc7cbc8"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "verification-before-completion",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "ea29fe6eb29e04e69825817e0339c5329f48b1b2cf56325232370386d9a9a9c8",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "ea29fe6eb29e04e69825817e0339c5329f48b1b2cf56325232370386d9a9a9c8"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "03e5eafcdcce8538aabbbf783253fd51dc3a893135424f9429b05ce6c4596b74"
+            },
+            "outcome": "DENY",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "failed"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_fresh_check_output",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "native_resources_disposed": true,
+          "actual_credentials_read": 0,
+          "external_model_requests": 0,
+          "actual_method_behavior_evaluated": false,
+          "formal_execution_enabled": false,
+          "note": "Actual SDK/native public reads and full HTTP bodies verified. Runtime pin is a constructed scope marker. Protected production SDK/model/tool/account custody and declared harness behavior remain missing.",
+          "artifacts": [
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/result.json",
+              "bytes": 8100,
+              "sha256": "8f9bbc30e64ace07e16a084535e754a1d55c31c8d4099317377e6f9881af2b7c"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/fixed-method-proof.json",
+              "bytes": 5072,
+              "sha256": "966ae0fd19a0e4dc476c1ae754f36f18f8ba095299e1f43e559d5bd7aa547022"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/fixed-method-transcript.json",
+              "bytes": 115109,
+              "sha256": "a0ade7c183aba61ede6862bc9a7b6696482ac24915be53aff56b8e8346003552"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/stdout.raw",
+              "bytes": 25023,
+              "sha256": "2f983421c2672d1373f906353b91ba40137bd1913ef42ab18d7a774df6730b09"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/stderr.raw",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/native-proof.json",
+              "bytes": 115,
+              "sha256": "e2ac2a6fe6a680c50f0a044240df431573d0df3751ea0bafcadda37c7f9d923e"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/native-ownership.json",
+              "bytes": 1187,
+              "sha256": "a5f480c6cc43703f1ad982cb5055471e37a45c0fc9cfaca07d52ee348e409d42"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/probe-owner.json",
+              "bytes": 844,
+              "sha256": "9e7d572fe45043e2ea8eebda6f29d72bb9035f041ffaae98315a5d07a3ffdec6"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/execution-policy-proof.json",
+              "bytes": 294,
+              "sha256": "4e648ed33b12adca578b824c17a41d3f9d5eaf6573421e6135575e3ba4d10ead"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/conversation-host-proof.json",
+              "bytes": 2322,
+              "sha256": "5b9a02299e313c7f3bfae7e63be9e31c92f41dbcb949a63329d5642f5a02c59f"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/conversation-transport-proof.json",
+              "bytes": 1811,
+              "sha256": "c071b91730116c506bf072857770b0115fa8f794c1e04319237bd248a83982c5"
+            },
+            {
+              "path": ".cimiloop/named-method-originals-v1-21/upstream-evidence/superpowers_verification_d218_final/credit.sqlite",
+              "bytes": 331776,
+              "sha256": "baba026afff83c000de3398cbe073b6e537d1739526190bfbba1d94ea04479ef"
+            }
+          ]
+        }
+      ],
+      "preliminary_three_public_cases": {
+        "path": ".cimiloop/named-method-originals-v1-21/upstream.json",
+        "bytes": 57467,
+        "sha256": "e9607fc218cd560a55d4a6489ccdb4add4d404f46a964b0a59975a180a6e54d7"
+      },
+      "note": "Three preliminary upstream public cases are retained. After tightening the read-only format selector and distinguishing HTTP input and credit-request digests, rebuilt and freshly reran all 13 affected files plus three upstream public cases. Each affected regression also runs its existing public SDK bridge fixture. No charged model or real Key was used."
+    },
+    "crash_recovery": {
+      "actual_windows_process_exits": [
+        "response_validated",
+        "raw_response_updated",
+        "cache_response_inserted",
+        "completion_committed"
+      ],
+      "os_owner_identity_verified": true,
+      "uncompleted_remain_unknown": true,
+      "completed_replay_from_original": true,
+      "additional_http_requests": 0
+    },
+    "protocol": {
+      "path": ".cimiloop/named-method-originals-v1-21/schema-audit.json",
+      "bytes": 123,
+      "sha256": "70d7047d3472aaf388f920c9e5e20604e0304c1b9db641a38b67f88e503a884f",
+      "existing_schemas": 239,
+      "changed": 0,
+      "added": 0,
+      "schema_export_required": false
+    },
+    "markdown_links": {
+      "path": ".cimiloop/named-method-originals-v1-21/links.json",
+      "bytes": 49,
+      "sha256": "595f35d2419aa0dbdb2c9af9b349195b5e9bef791236c57354c4b8aea5316e6a",
+      "files": 9,
+      "links": 271,
+      "broken": []
+    },
+    "databases": {
+      "gateway_public_cache_format": 4,
+      "old_gateway_formats_unchanged": [
+        1,
+        2,
+        3
+      ],
+      "native_format": 10,
+      "native_layout_changed": false,
+      "migration_added": false,
+      "user_database_upgraded": false
+    }
+  },
+  "boundaries": {
+    "original_bytes": "HTTP response body bytes only, received after strict TLS/HTTP framing and JSON/SSE validation. Does not archive raw HTTP headers or a TLS attestation.",
+    "source": "Public host key and public_fixture origin are fixed in trusted code. Complete public bytes never establish real model source or account/behavior authority.",
+    "custody": "Immutable SQL rows, schema checks and content digests reject ordinary corruption and enforce the ledger API. They do not protect against a same-permission local actor replacing the entire database. Production SDK/native/IPC/model/tool/account custody remains missing.",
+    "capacity": "Bounded logical input/body/cache bytes and pending original response windows, including Unknown. No physical SQLite/WAL or workspace hard quota claim.",
+    "qualifications": "Actual fixed-source SDK/native resource reads and original public HTTP bodies pass method_contract. Controlled assessment denies public origin; remaining context, dependency, permission, billing, recovery, behavior and harness facts are inconclusive.",
+    "constructed": "Scenario tests register real local Git/content/SQLite candidates. Positive external-model controlled callbacks and constructed transcript/native fixtures remain test data, not real account proof.",
+    "old_rules": "Builtin skill-provider-assessment/1.0.0, actual failure counterevidence, Task Binding refusal and default production execution closure remain unchanged."
+  },
+  "remaining_acceptance": [
+    "Implement protected original SDK/IPC/model/tool/account/billing proof verification and production Agent/Skill effects hosts with current dispatch and cache replay admission.",
+    "Connect actual controlled Runtime/Task qualification, Provider catalog readiness and original durable effect claims.",
+    "Implement controlled Human clarification rounds and linked candidates before confirmed Plan/Task, without fabricated Task records.",
+    "Complete real fixed diff/issue review, declared Human/delegation/command/verifier dependencies, proposal/evidence projection and Matt/Superpowers behavior/default selection.",
+    "Connect actual workspace effects and tool authority/journal to IPC/OpenCode, preserve original operation recovery and Unknown reconciliation.",
+    "Complete physical filesystem hard quota, actual model/tool entitlement and input/thinking/output bounds, protected unique account ledger, approved credit/cash budget and invoice reconciliation.",
+    "Finish formal workbench execute/status/recovery and ordinary real Change through ReadyForDelivery S1 acceptance."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/runtime-adapter/src/gateway-credit.ts",
+      "bytes": 49041,
+      "sha256": "f92e02c0ea525c30e58b0ef593928d1fb14e312a6f0b6d653cdae3c6d89f1c3c"
+    },
+    {
+      "path": "packages/runtime-adapter/src/gateway-http.ts",
+      "bytes": 17935,
+      "sha256": "d5e8c0cebd65fd9f0d484c566d3ef89c3e4beaac1a3ab072199cbfe8034f95fb"
+    },
+    {
+      "path": "packages/runtime-adapter/src/gateway-host.ts",
+      "bytes": 12221,
+      "sha256": "c3e9decaa2a5d033492ff9511c273a8e96c0de29e46aad6f4b472918ca45ceab"
+    },
+    {
+      "path": "packages/runtime-adapter/src/gateway-conversation-bridge.ts",
+      "bytes": 14584,
+      "sha256": "2853cd9b62c54e7620762d8365934e21d9143fa9919747084111a4444a55198b"
+    },
+    {
+      "path": "packages/runtime-adapter/src/gateway-conversation-probe.ts",
+      "bytes": 27196,
+      "sha256": "42f70e7c02d45f34f3a892721c2c3a285f0a186d334b4de2d1d4d065c8295650"
+    },
+    {
+      "path": "packages/runtime-adapter/src/fixed-method-replay.ts",
+      "bytes": 7923,
+      "sha256": "e09f0d03c1a5b649bdf48009b074edb45e4302cb73b6a989210b0b54705c0f9e"
+    },
+    {
+      "path": "packages/runtime-adapter/src/named-method-originals.ts",
+      "bytes": 2895,
+      "sha256": "36029762bb8d2ebac2cafc418c8c5b355308879e7098f73c8b2c80a04ff3244d"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 1576,
+      "sha256": "18a3cf539081356c91c18dad31b6d030996ed443b0d6b6d75aa9f6c3db8ba031"
+    },
+    {
+      "path": "packages/local-app/src/skill-method-assessment-local.ts",
+      "bytes": 13449,
+      "sha256": "f0b97218978ad182c89b810e83b35cfeb02a6a93b60e62d46afed0469f387f72"
+    },
+    {
+      "path": "packages/local-app/src/index.ts",
+      "bytes": 1173,
+      "sha256": "8d1d322ff07f1704d173efb772e6a626933096e597846d5469aecf4e58dc0e76"
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-conversation-originals.test.ts",
+      "bytes": 17267,
+      "sha256": "538f3e339a42b9c79aa190b6b2ae1626b61c91080ae52592720cb296051b4a47"
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-host-worker.mjs",
+      "bytes": 2727,
+      "sha256": "5526959bf5d70bf4c48577d6d98d7c416a8ad2d522539ae36b1d229bfdac2a69"
+    },
+    {
+      "path": "tests/fixtures/named-method-transcript.ts",
+      "bytes": 4553,
+      "sha256": "aa8606bda44405459c5ce9449bdacaed6d738d5f7dc3fe83e1f0abb7fc7e03b4"
+    },
+    {
+      "path": "tests/scenarios/named-skill-method-assessment.test.ts",
+      "bytes": 17471,
+      "sha256": "8447f0068c3db9673363a038fabb50bc78f2e7b99a227ad1bb884b774f11e85f"
+    }
+  ],
+  "evidence_availability": "Ignored local reports, full original fixture ledgers and final upstream artifacts are retained with exact paths/bytes/SHA-256. No SQLite database or raw execution artifact is committed; source/tests/docs/research record are committed."
+}

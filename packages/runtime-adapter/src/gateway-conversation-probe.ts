@@ -10,9 +10,9 @@ import { bytesAt, digest, directory, atomicJson, readJson, RuntimeAdapterError }
 import { buildWindowsLauncher, isolatedEnvironment, pinBinary } from "./native.js";
 import { defaultExecutionPolicy } from "./execution-policy.js";
 import { GatewayNetworkBoundary, DEDICATED_GATEWAY_PATH } from "./gateway-network.js";
-import { GatewayCreditLedger, GATEWAY_CONVERSATION_CACHE_SLOT_BYTES, type GatewayCreditPolicy } from "./gateway-credit.js";
+import { GatewayCreditLedger, GATEWAY_CONVERSATION_CACHE_SLOT_BYTES, GATEWAY_CONVERSATION_ORIGINAL_SLOT_BYTES, type GatewayCreditPolicy } from "./gateway-credit.js";
 import { creditHostDependencies } from "./gateway-credit-owner.js";
-import { GatewayConversationHostRehearsal, GATEWAY_HOST_REHEARSAL_KEY } from "./gateway-host.js";
+import { GatewayConversationHostRehearsal, GatewayConversationOriginalHostRehearsal, GATEWAY_HOST_REHEARSAL_KEY } from "./gateway-host.js";
 import { PublicConversationBridge } from "./gateway-conversation-bridge.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { removePrivateDirectory } from "./private-cleanup.js";
@@ -140,8 +140,9 @@ const runConversationProbe = async (options: { root: string; binary: string; max
     const policy: GatewayCreditPolicy = { format: "cimiloop/gateway-credit-rehearsal/1.0.0", scope: "credit_budget_rehearsal", account_scope_digest: digest("public conversation probe " + nonce).value,
       unit: "ZHIPU_CODING_PLAN_CREDIT", model: "glm-5.3", maximum_micro_units: 368000000 };
     ledger = new GatewayCreditLedger(join(path, "conversation", "credit.sqlite"), policy, await creditHostDependencies(launcher, { now: () => Date.parse("2026-10-05T00:00:00Z") }),
-      { conversation_cache: { maximum_entries: 8, maximum_bytes: 8 * GATEWAY_CONVERSATION_CACHE_SLOT_BYTES } }); ledger.registerBudget("public_probe", policy.maximum_micro_units);
-    host = new GatewayConversationHostRehearsal({ ledger, boundary }); bridge = new PublicConversationBridge({ path, nonce, operationKey, launcher, binary: pinned.path, policyDigest, ledger, host, ...(method?.skill_profile ? { skillProfile: method.skill_profile } : {}), ...(methodReadPaths ? { methodReadPaths } : {}),
+      namedContext ? { conversation_original_cache: { maximum_entries: 8, maximum_bytes: 8 * GATEWAY_CONVERSATION_ORIGINAL_SLOT_BYTES, operation_key: operationKey,
+        profile_digest: digest(JSON.stringify(namedContext.profile)).value } } : { conversation_cache: { maximum_entries: 8, maximum_bytes: 8 * GATEWAY_CONVERSATION_CACHE_SLOT_BYTES } }); ledger.registerBudget("public_probe", policy.maximum_micro_units);
+    host = namedContext ? new GatewayConversationOriginalHostRehearsal({ ledger, boundary }) : new GatewayConversationHostRehearsal({ ledger, boundary }); bridge = new PublicConversationBridge({ path, nonce, operationKey, launcher, binary: pinned.path, policyDigest, ledger, host, ...(method?.skill_profile ? { skillProfile: method.skill_profile } : {}), ...(methodReadPaths ? { methodReadPaths } : {}),
       ...(namedContext ? { fixedMethod: { profile: namedContext.profile, files: namedContext.files } } : {}) });
     const loader = method ? skillLoaderConfiguration(method, workspace) : { permission: { "*": "deny", read: "allow" } }, permission = loader.permission;
     if (fixedRead && "skill" in permission) permission.skill = { "*": "deny" };

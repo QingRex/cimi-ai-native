@@ -5,7 +5,9 @@ import { basename, dirname, join, resolve } from "node:path";
 import { afterEach, beforeEach, expect, it } from "vitest";
 import { createInternalId, compileValidator, NamedSkillMethodAssessmentSchema, type SkillImportSpec, type NamedSkillMethodEvidence,
   type NamedSkillMethodSample, type ProviderDescriptor, type AgentRunRecord, type AgentContextManifest, type ProviderBinding } from "../../packages/protocol/src/v2/index.js";
-import { LocalNamedSkillMethodAssessment, type NamedSkillMethodOriginalsPort, type ContentReference } from "../../packages/local-app/src/index.js";
+import { LocalNamedSkillMethodAssessment, LocalPublicNamedMethodOriginals, type NamedSkillMethodOriginalsPort, type ContentReference } from "../../packages/local-app/src/index.js";
+import { GatewayCreditLedger, GATEWAY_CONVERSATION_ORIGINAL_SLOT_BYTES, type GatewayCreditPolicy } from "../../packages/runtime-adapter/src/gateway-credit.js";
+import { prepareGatewayConversation } from "../../packages/runtime-adapter/src/gateway-conversation.js";
 import { requestDigest } from "../../packages/kernel/src/index.js";
 import { createFlowProject, flowTime, flowSuccess } from "../fixtures/flow-project.js";
 import { constructedNamedTranscript } from "../fixtures/named-method-transcript.js";
@@ -64,6 +66,28 @@ it("retains positive public fixture reads as negative real-model evidence", () =
   evidence.samples.push(sample()); const ref = evidenceRef();
   const result = assessor.evaluate(f.project, descriptor, ref, "controlled_execution", constructedOriginals(r => { r.origin = "public_fixture"; }));
   expect(result.outcome).toBe("DENY"); expect(result.assessments).toContainEqual({ key: "sample_1_real_model", result: "failed" });
+});
+it("reads an actual format-4 local ledger and never accepts its public bytes as real model qualification", () => {
+  const original = evidence.samples[0]!, plan = assessor.inputs.read(f.project, descriptor, { ...original, method_name: "entry" });
+  const constructed = constructedNamedTranscript(plan.profile, plan.files, { purpose: "clarification", questions: [], unresolved: [] }, plan.prompt);
+  evidence.samples[0] = { ...original, transcript_ref: artifact(constructed.transcript, "transcript.json"), stdout_ref: artifact(constructed.stdout, "stdout.raw"), native_proof_ref: artifact(constructed.native, "native-proof.json") };
+  const policy: GatewayCreditPolicy = { format: "cimiloop/gateway-credit-rehearsal/1.0.0", scope: "credit_budget_rehearsal", account_scope_digest: requestDigest("public local original account"),
+    model: "glm-5.3", unit: "ZHIPU_CODING_PLAN_CREDIT", maximum_micro_units: 368000000 };
+  const options = { conversation_original_cache: { operation_key: original.invocation_key, profile_digest: constructed.transcript.profile_digest.value, maximum_bytes: 8 * GATEWAY_CONVERSATION_ORIGINAL_SLOT_BYTES, maximum_entries: 8 } };
+  const path = join(root, "original.sqlite"), ledger = new GatewayCreditLedger(path, policy, { identity: { pid: process.pid, creation_ticks: "1", image: process.execPath }, now: () => Date.parse("2026-10-05T00:00:00Z") }, options);
+  try { ledger.registerBudget("public", policy.maximum_micro_units);
+    constructed.gateway_inputs.forEach((input, i) => { const { prepared } = prepareGatewayConversation(input), permit = ledger.reserveConversationOriginal({ request_id: prepared.request_id,
+      budget_key: "public", input_digest: prepared.input_digest, input_tokens: prepared.input_tokens, output_tokens: prepared.output_tokens }, input).permit!;
+      ledger.dispatch(permit); ledger.completeConversationOriginal(permit, constructed.transcript.exchanges[i]!.upstream_response as any, constructed.raw_responses[i]!); });
+  } finally { ledger.close(); }
+  const originals = new LocalPublicNamedMethodOriginals(root, root, [{ invocation_key: original.invocation_key, path, policy, options }]), events = f.store.listEvents();
+  const assessment = assessor.evaluate(f.project, descriptor, evidenceRef(), "controlled_execution", originals);
+  expect(assessment.outcome).toBe("DENY"); expect(assessment.assessments).toContainEqual({ key: "sample_0_real_model", result: "failed" });
+  expect(assessment.assessments).toContainEqual({ key: "sample_0_cost_accounting_and_cap", result: "inconclusive" }); expect(f.store.listEvents()).toEqual(events);
+  const fake = structuredClone(constructed.transcript); (fake.exchanges[0]!.upstream_response as any).response_digest = "0".repeat(64); (fake.exchanges[0]!.mapped_response as any).response_digest = "0".repeat(64);
+  evidence.samples[0]!.transcript_ref = artifact(fake, "transcript.json");
+  expect(assessor.evaluate(f.project, descriptor, evidenceRef()).outcome).toBe("ALLOW");
+  expect(() => assessor.evaluate(f.project, descriptor, evidenceRef(), "controlled_execution", originals)).toThrow("named_method_original_exchange_unproven");
 });
 it.each(["cost_accounting_and_cap", "invocation_recovery", "behavior", "runtime_custody", "independent_context", "provider_dependencies", "permission_intersection"] as const)("keeps missing %s proof inconclusive", key => {
   evidence.samples.push(sample()); const result = assessor.evaluate(f.project, descriptor, evidenceRef(), "controlled_execution", constructedOriginals(r => { r.checks[key] = "inconclusive"; }));

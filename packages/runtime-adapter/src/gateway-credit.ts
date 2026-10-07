@@ -1,10 +1,12 @@
 import { DatabaseSync, type SQLOutputValue } from "node:sqlite";
 import { randomUUID } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import { dirname, isAbsolute } from "node:path";
 import { assertOrdinaryPath, directory, digest, RuntimeAdapterError } from "./files.js";
 import { CODING_PLAN_RATE_OBSERVATION, estimateCodingPlanCredits } from "./gateway-billing.js";
 import { parseCachedGatewayHttpResponse, type GatewayHttpResponse } from "./gateway-http.js";
 import { GATEWAY_CONVERSATION_CONTRACT_BYTES, parseGatewayJson, parseGatewayConversationCacheContract, parseCachedGatewayConversationResponse,
+  prepareGatewayConversation, parseGatewayConversation, createGatewayConversationCacheContract,
   type GatewayConversationCacheContract, type GatewayConversationResponse } from "./gateway-conversation.js";
 
 const sha = /^[a-f0-9]{64}$/, uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/, key = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/;
@@ -25,6 +27,22 @@ export const GATEWAY_CREDIT_CACHE_ENTRY_BYTES = 270336;
 export interface GatewayCreditCacheOptions { response_cache: { maximum_bytes: number; maximum_entries: number } }
 export interface GatewayCreditConversationCacheOptions { conversation_cache: { maximum_bytes: number; maximum_entries: number } }
 export const GATEWAY_CONVERSATION_CACHE_SLOT_BYTES = GATEWAY_CREDIT_CACHE_ENTRY_BYTES + GATEWAY_CONVERSATION_CONTRACT_BYTES;
+// Format 4 is explicitly opt-in: unlike format 3 it retains full public fixture
+// conversations, including prompts/reasoning. It never accepts a real API key.
+export const GATEWAY_CONVERSATION_ORIGINAL_INPUT_BYTES = 98304, GATEWAY_CONVERSATION_ORIGINAL_RESPONSE_BYTES = 262144;
+export const GATEWAY_CONVERSATION_ORIGINAL_SLOT_BYTES = GATEWAY_CONVERSATION_CACHE_SLOT_BYTES + GATEWAY_CONVERSATION_ORIGINAL_INPUT_BYTES + 65536 + GATEWAY_CONVERSATION_ORIGINAL_RESPONSE_BYTES;
+export interface GatewayCreditConversationOriginalOptions { conversation_original_cache: {
+  maximum_bytes: number; maximum_entries: number; operation_key: string; profile_digest: string;
+} }
+const publicOriginalKey = "CIMILOOP_HTTP_PUBLIC_FIXTURE_KEY";
+const originalReadOnly = Symbol("original-read-only");
+const same = (a: unknown, b: unknown) => isDeepStrictEqual(JSON.parse(JSON.stringify(a)), JSON.parse(JSON.stringify(b)));
+export interface PublicConversationOriginal {
+  origin: "public_fixture"; operation_key: string; profile_digest: string;
+  request: GatewayCreditRequest; state: "reserved" | "dispatching" | "completed" | "unknown";
+  input: unknown; request_body: Buffer; response_body: Buffer | null;
+  response: GatewayConversationResponse | null; receipt: CreditReceipt | null;
+}
 type CachedResponse = GatewayHttpResponse | GatewayConversationResponse;
 type Claim<Response> = { permit: CreditReservation; replay?: never; cached_response?: never } | { replay: CreditReceipt; permit?: never; cached_response?: Response };
 export interface CreditReceipt extends CreditReservation {
@@ -57,12 +75,27 @@ const cacheDdl = [
   `CREATE TABLE credit_responses (request_id TEXT PRIMARY KEY REFERENCES credit_requests(request_id), response TEXT NOT NULL, response_digest TEXT NOT NULL) STRICT`
 ];
 const conversationDdl = [`CREATE TABLE credit_conversation_contracts (request_id TEXT PRIMARY KEY REFERENCES credit_requests(request_id), contract TEXT NOT NULL, contract_digest TEXT NOT NULL) STRICT`];
+const originalDdl = [
+  `CREATE TABLE credit_conversation_originals (request_id TEXT PRIMARY KEY REFERENCES credit_requests(request_id), input TEXT NOT NULL, input_digest TEXT NOT NULL, request_body BLOB NOT NULL, response_body BLOB) STRICT`,
+  `CREATE TRIGGER credit_originals_no_delete BEFORE DELETE ON credit_conversation_originals BEGIN SELECT RAISE(ABORT,'credit_original_immutable'); END`,
+  `CREATE TRIGGER credit_originals_once BEFORE UPDATE ON credit_conversation_originals WHEN NEW.request_id IS NOT OLD.request_id OR NEW.input IS NOT OLD.input OR NEW.input_digest IS NOT OLD.input_digest OR NEW.request_body IS NOT OLD.request_body OR OLD.response_body IS NOT NULL OR NEW.response_body IS NULL BEGIN SELECT RAISE(ABORT,'credit_original_immutable'); END`
+];
 const requestFrom = (row: Row): GatewayCreditRequest => ({ request_id: String(row.request_id), budget_key: String(row.budget_key), input_digest: String(row.input_digest), input_tokens: Number(row.input_tokens), output_tokens: Number(row.output_tokens) });
 const validRequest = (value: unknown): value is GatewayCreditRequest => exact(value, ["request_id", "budget_key", "input_digest", "input_tokens", "output_tokens"]) &&
   typeof value.request_id === "string" && uuid.test(value.request_id) && typeof value.budget_key === "string" && key.test(value.budget_key) && typeof value.input_digest === "string" && sha.test(value.input_digest) &&
   integer(value.input_tokens, 0, 1048576) && integer(value.output_tokens, 0, 131072) && value.input_tokens + value.output_tokens > 0;
 const requestDigest = (request: GatewayCreditRequest) => digest(JSON.stringify({ request_id: request.request_id, budget_key: request.budget_key,
   input_digest: request.input_digest, input_tokens: request.input_tokens, output_tokens: request.output_tokens })).value;
+function originalRequest(raw: unknown) {
+  const prepared = prepareGatewayConversation(raw), wire = parseGatewayJson(prepared.body.toString()) as Record<string, unknown>;
+  if (prepared.body.includes(Buffer.from(publicOriginalKey))) fail("gateway_credential_in_request");
+  for (const message of wire.messages as { tool_calls?: { function: { arguments: string } }[] }[]) for (const call of message.tool_calls ?? [])
+    if (JSON.stringify(parseGatewayJson(call.function.arguments)).includes(publicOriginalKey)) fail("gateway_credential_in_request");
+  const input = { request_id: prepared.prepared.request_id, messages: wire.messages, tools: wire.tools ?? [], response_mode: prepared.prepared.response_mode,
+    input_tokens: prepared.prepared.input_tokens, max_output_tokens: prepared.prepared.output_tokens };
+  const json = JSON.stringify(input); if (Buffer.byteLength(json) > GATEWAY_CONVERSATION_ORIGINAL_INPUT_BYTES) fail("credit_original_input_limit");
+  return { input, json, ...prepared, contract: createGatewayConversationCacheContract(prepared.prepared, prepared.tools, prepared.prior_call_ids) };
+}
 const rateFrom = (row: Row) => {
   const value: unknown = JSON.parse(String(row.rate));
   if (!exact(value, Object.keys(CODING_PLAN_RATE_OBSERVATION)) || value.format !== CODING_PLAN_RATE_OBSERVATION.format || value.provider !== "zhipuai-coding-plan" || value.model !== "glm-5.3" ||
@@ -87,7 +120,7 @@ const receiptFrom = (row: Row): CreditReceipt => {
 // A separate, unapproved credit rehearsal store. It never opens a credential,
 // connects a socket, grants provider admission or converts credits into cash.
 export class GatewayCreditLedger {
-  readonly storageFormat: 1 | 2 | 3;
+  readonly storageFormat: 1 | 2 | 3 | 4;
   private readonly db: DatabaseSync;
   private readonly policy: Readonly<GatewayCreditPolicy>;
   private readonly policyJson: string;
@@ -98,27 +131,41 @@ export class GatewayCreditLedger {
   private closed = false;
   private readonly cachePolicy: Readonly<{ maximum_bytes: number; maximum_entries: number }> | undefined;
   private readonly cachePolicyJson: string | undefined;
-  constructor(path: string, policy: GatewayCreditPolicy, dependencies: Dependencies, options?: GatewayCreditCacheOptions | GatewayCreditConversationCacheOptions) {
+  private readonly originalPins: Readonly<{ operation_key: string; profile_digest: string }> | undefined;
+  private readonly readOnly: boolean;
+  static openPublicOriginalsReadOnly(path: string, policy: GatewayCreditPolicy, options: GatewayCreditConversationOriginalOptions): GatewayCreditLedger {
+    if (!exact(options, ["conversation_original_cache"])) fail("credit_conversation_originals_unavailable");
+    return new GatewayCreditLedger(path, policy, { identity: { pid: process.pid, creation_ticks: "1", image: process.execPath } }, options, originalReadOnly);
+  }
+  constructor(path: string, policy: GatewayCreditPolicy, dependencies: Dependencies, options?: GatewayCreditCacheOptions | GatewayCreditConversationCacheOptions | GatewayCreditConversationOriginalOptions, readOnlyToken?: symbol) {
+    this.readOnly = readOnlyToken === originalReadOnly;
     if (!exact(policy, ["format", "scope", "account_scope_digest", "unit", "model", "maximum_micro_units"]) || policy.format !== "cimiloop/gateway-credit-rehearsal/1.0.0" || policy.scope !== "credit_budget_rehearsal" ||
       policy.unit !== unit || policy.model !== "glm-5.3" || typeof policy.account_scope_digest !== "string" || !sha.test(policy.account_scope_digest) || !ceiling(policy.maximum_micro_units) || !validIdentity(dependencies.identity) || dependencies.identity.pid !== process.pid) fail("invalid_credit_rehearsal_policy");
     let cache: Record<string, unknown> | undefined;
     if (options !== undefined) {
       if (exact(options, ["response_cache"])) { this.storageFormat = 2; cache = options.response_cache as Record<string, unknown>; }
       else if (exact(options, ["conversation_cache"])) { this.storageFormat = 3; cache = options.conversation_cache as Record<string, unknown>; }
+      else if (exact(options, ["conversation_original_cache"])) { this.storageFormat = 4; cache = options.conversation_original_cache as unknown as Record<string, unknown>; }
       else fail("invalid_credit_response_cache_policy");
-      if (!exact(cache, ["maximum_bytes", "maximum_entries"]) || !integer(cache.maximum_bytes, this.storageFormat === 3 ? GATEWAY_CONVERSATION_CACHE_SLOT_BYTES : GATEWAY_CREDIT_CACHE_ENTRY_BYTES, 16777216) ||
+      if (!exact(cache, ["maximum_bytes", "maximum_entries", ...(this.storageFormat === 4 ? ["operation_key", "profile_digest"] : [])]) ||
+        this.storageFormat === 4 && (typeof cache.operation_key !== "string" || !key.test(cache.operation_key) || typeof cache.profile_digest !== "string" || !sha.test(cache.profile_digest)) ||
+        !integer(cache.maximum_bytes, this.storageFormat === 4 ? GATEWAY_CONVERSATION_ORIGINAL_SLOT_BYTES : this.storageFormat === 3 ? GATEWAY_CONVERSATION_CACHE_SLOT_BYTES : GATEWAY_CREDIT_CACHE_ENTRY_BYTES, 16777216) ||
         !integer(cache.maximum_entries, 1, 4096)) fail("invalid_credit_response_cache_policy");
     } else this.storageFormat = 1;
     this.cachePolicy = cache ? Object.freeze({ maximum_bytes: cache.maximum_bytes as number, maximum_entries: cache.maximum_entries as number }) : undefined;
-    this.cachePolicyJson = this.cachePolicy ? JSON.stringify({ format: this.storageFormat === 3 ? "cimiloop/conversation-response-cache/1.0.0" : "cimiloop/credit-response-cache/1.0.0",
-      scope: "credit_budget_rehearsal", maximum_entry_bytes: GATEWAY_CREDIT_CACHE_ENTRY_BYTES, ...(this.storageFormat === 3 ? { maximum_contract_bytes: GATEWAY_CONVERSATION_CONTRACT_BYTES } : {}), ...this.cachePolicy }) : undefined;
+    this.originalPins = this.storageFormat === 4 ? Object.freeze({ operation_key: cache!.operation_key as string, profile_digest: cache!.profile_digest as string }) : undefined;
+    this.cachePolicyJson = this.cachePolicy ? JSON.stringify({ format: this.storageFormat === 4 ? "cimiloop/public-conversation-original-cache/1.0.0" : this.storageFormat === 3 ? "cimiloop/conversation-response-cache/1.0.0" : "cimiloop/credit-response-cache/1.0.0",
+      scope: "credit_budget_rehearsal", maximum_entry_bytes: GATEWAY_CREDIT_CACHE_ENTRY_BYTES, ...(this.storageFormat >= 3 ? { maximum_contract_bytes: GATEWAY_CONVERSATION_CONTRACT_BYTES } : {}),
+      ...(this.originalPins ? { origin: "public_fixture", ...this.originalPins, maximum_input_bytes: GATEWAY_CONVERSATION_ORIGINAL_INPUT_BYTES, maximum_request_bytes: 65536,
+        maximum_response_bytes: GATEWAY_CONVERSATION_ORIGINAL_RESPONSE_BYTES } : {}), ...this.cachePolicy }) : undefined;
     this.policy = Object.freeze({ ...policy }); this.identity = Object.freeze({ ...dependencies.identity }); this.dependencies = { ...dependencies };
     this.policyJson = JSON.stringify({ format: policy.format, scope: policy.scope, account_scope_digest: policy.account_scope_digest, unit: policy.unit, model: policy.model, maximum_micro_units: policy.maximum_micro_units });
-    path = assertOrdinaryPath(path); directory(dirname(path));
+    path = assertOrdinaryPath(path); if (!this.readOnly) directory(dirname(path));
     for (const suffix of ["-wal", "-shm", "-journal"]) assertOrdinaryPath(path + suffix);
-    this.db = new DatabaseSync(path, { timeout: 5000 });
+    this.db = new DatabaseSync(path, { timeout: 5000, readOnly: this.readOnly });
     try {
-      this.checkFormat(); this.db.exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON;");
+      if (this.readOnly && this.checkFormat() !== "owned") fail("credit_ledger_format_unavailable");
+      this.checkFormat(); this.db.exec(this.readOnly ? "PRAGMA foreign_keys=ON" : "PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA foreign_keys=ON;");
       this.transaction(() => {
         const created = this.checkFormat() === "empty";
         if (created) { for (const sql of this.schema()) this.db.exec(sql); this.db.exec(`PRAGMA application_id=${applicationId}; PRAGMA user_version=${this.storageFormat};`); }
@@ -140,7 +187,7 @@ export class GatewayCreditLedger {
       });
     } catch (error) { this.db.close(); throw error; }
   }
-  private schema(): string[] { return [...ddl, ...(this.cachePolicy ? cacheDdl : []), ...(this.storageFormat === 3 ? conversationDdl : [])]; }
+  private schema(): string[] { return [...ddl, ...(this.cachePolicy ? cacheDdl : []), ...(this.storageFormat >= 3 ? conversationDdl : []), ...(this.storageFormat === 4 ? originalDdl : [])]; }
   private checkFormat(): "empty" | "owned" {
     const app = this.db.prepare("PRAGMA application_id").get()!.application_id, version = this.db.prepare("PRAGMA user_version").get()!.user_version;
     const schema = this.db.prepare("SELECT sql FROM sqlite_schema WHERE sql IS NOT NULL ORDER BY sql").all().map(row => String(row.sql));
@@ -150,7 +197,7 @@ export class GatewayCreditLedger {
   }
   private transaction<T>(body: () => T): T {
     if (this.closed) fail("credit_ledger_closed");
-    this.db.exec("BEGIN IMMEDIATE");
+    this.db.exec(this.readOnly ? "BEGIN" : "BEGIN IMMEDIATE");
     try { const result = body(); this.db.exec("COMMIT"); return result; } catch (error) { this.db.exec("ROLLBACK"); throw error; }
   }
   private validate(): void {
@@ -180,7 +227,7 @@ export class GatewayCreditLedger {
         if (policies.length !== 1 || policies[0]!.policy !== this.cachePolicyJson || policies[0]!.policy_digest !== digest(this.cachePolicyJson!).value) fail("credit_ledger_corrupt");
         const responses = this.db.prepare("SELECT * FROM credit_responses").all(); let bytes = 0;
         const requests = new Map(rows.map(row => [row.request_id, row]));
-        if (this.storageFormat === 3) {
+        if (this.storageFormat >= 3) {
           const contracts = this.db.prepare("SELECT * FROM credit_conversation_contracts").all();
           if (contracts.length !== rows.length) fail("credit_ledger_corrupt");
           for (const stored of contracts) { const row = requests.get(stored.request_id); if (!row) fail("credit_ledger_corrupt"); this.conversationContract(row, stored); bytes += Buffer.byteLength(String(stored.contract)); }
@@ -188,7 +235,12 @@ export class GatewayCreditLedger {
         if (responses.length !== rows.filter(row => row.state === "completed").length) fail("credit_ledger_corrupt");
         for (const cached of responses) { const row = requests.get(cached.request_id); if (!row || row.state !== "completed") fail("credit_ledger_corrupt"); this.cachedResponse(row, cached); bytes += Buffer.byteLength(String(cached.response)); }
         const pending = rows.filter(row => row.state === "reserved" || row.state === "dispatching").length;
-        if (bytes + pending * GATEWAY_CREDIT_CACHE_ENTRY_BYTES > this.cachePolicy.maximum_bytes || (this.storageFormat === 3 ? rows.length : responses.length + pending) > this.cachePolicy.maximum_entries) fail("credit_ledger_corrupt");
+        if (this.storageFormat === 4) {
+          const originals = this.db.prepare("SELECT * FROM credit_conversation_originals").all(); if (originals.length !== rows.length) fail("credit_ledger_corrupt");
+          for (const stored of originals) { const row = requests.get(stored.request_id); if (!row) fail("credit_ledger_corrupt"); this.originalConversation(row, stored); }
+          bytes += this.originalStorageBytes();
+        }
+        if (bytes + pending * GATEWAY_CREDIT_CACHE_ENTRY_BYTES > this.cachePolicy.maximum_bytes || (this.storageFormat >= 3 ? rows.length : responses.length + pending) > this.cachePolicy.maximum_entries) fail("credit_ledger_corrupt");
       }
     } catch (error) { if (error instanceof RuntimeAdapterError) throw error; fail("credit_ledger_corrupt"); }
   }
@@ -204,7 +256,7 @@ export class GatewayCreditLedger {
     });
   }
   reserve(input: GatewayCreditRequest): Claim<GatewayHttpResponse> {
-    if (this.storageFormat === 3) fail("credit_conversation_cache_required");
+    if (this.storageFormat >= 3) fail("credit_conversation_cache_required");
     return this.reserveCore(input) as Claim<GatewayHttpResponse>;
   }
   reserveConversation(input: GatewayCreditRequest, value: GatewayConversationCacheContract): Claim<GatewayConversationResponse> {
@@ -214,7 +266,14 @@ export class GatewayCreditLedger {
     if (contract.request_id !== input.request_id || contract.input_digest !== input.input_digest || contract.input_tokens !== input.input_tokens || contract.output_tokens !== input.output_tokens) fail("credit_conversation_contract_conflict");
     return this.reserveCore(input, contract) as Claim<GatewayConversationResponse>;
   }
-  private reserveCore(input: GatewayCreditRequest, contract?: GatewayConversationCacheContract): Claim<CachedResponse> {
+  reserveConversationOriginal(input: GatewayCreditRequest, raw: unknown): Claim<GatewayConversationResponse> {
+    if (this.storageFormat !== 4) fail("credit_conversation_originals_unavailable");
+    const original = originalRequest(raw), contract = original.contract;
+    if (!validRequest(input) || contract.request_id !== input.request_id || contract.input_digest !== input.input_digest ||
+      contract.input_tokens !== input.input_tokens || contract.output_tokens !== input.output_tokens) fail("credit_conversation_contract_conflict");
+    return this.reserveCore(input, contract, original) as Claim<GatewayConversationResponse>;
+  }
+  private reserveCore(input: GatewayCreditRequest, contract?: GatewayConversationCacheContract, original?: ReturnType<typeof originalRequest>): Claim<CachedResponse> {
     if (!validRequest(input)) fail("invalid_credit_request");
     const request = { ...input }, hash = requestDigest(request);
     return this.transaction(() => {
@@ -222,6 +281,7 @@ export class GatewayCreditLedger {
       if (existing) {
         if (existing.request_digest !== hash) fail("credit_request_id_conflict");
         if (contract && JSON.stringify(this.conversationContract(existing)) !== JSON.stringify(contract)) fail("credit_conversation_contract_conflict");
+        if (original && !same(this.originalConversation(existing).input, original.input)) fail("credit_conversation_original_conflict");
         if (existing.state === "completed") return { replay: receiptFrom(existing), ...(this.cachePolicy ? { cached_response: this.cachedResponse(existing) } : {}) };
         fail("credit_request_outcome_unproven");
       }
@@ -235,9 +295,10 @@ export class GatewayCreditLedger {
       if (this.cachePolicy) {
         const cached = this.db.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(length(CAST(response AS BLOB))),0) AS bytes FROM credit_responses").get()!;
         const pending = Number(this.db.prepare("SELECT COUNT(*) AS count FROM credit_requests WHERE state IN ('reserved','dispatching')").get()!.count) + 1;
-        const stored = this.storageFormat === 3 ? this.db.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(length(CAST(contract AS BLOB))),0) AS bytes FROM credit_conversation_contracts").get()! : undefined;
+        const stored = this.storageFormat >= 3 ? this.db.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(length(CAST(contract AS BLOB))),0) AS bytes FROM credit_conversation_contracts").get()! : undefined;
         const entries = stored ? Number(stored.count) + 1 : Number(cached.count) + pending;
-        const bytes = Number(cached.bytes) + Number(stored?.bytes ?? 0) + (contract ? Buffer.byteLength(JSON.stringify(contract)) : 0) + pending * GATEWAY_CREDIT_CACHE_ENTRY_BYTES;
+        const bytes = Number(cached.bytes) + Number(stored?.bytes ?? 0) + (contract ? Buffer.byteLength(JSON.stringify(contract)) : 0) + pending * GATEWAY_CREDIT_CACHE_ENTRY_BYTES +
+          (original ? this.originalStorageBytes() + Buffer.byteLength(original.json) + original.body.length + GATEWAY_CONVERSATION_ORIGINAL_RESPONSE_BYTES : 0);
         if (entries > this.cachePolicy.maximum_entries || bytes > this.cachePolicy.maximum_bytes) fail("credit_response_cache_exhausted");
       }
       const identity = JSON.stringify(this.identity);
@@ -245,6 +306,7 @@ export class GatewayCreditLedger {
       this.db.prepare("INSERT INTO credit_requests(request_id,budget_key,owner_nonce,input_digest,request_digest,input_tokens,output_tokens,held,rate,rate_digest,reserved_at,state) VALUES(?,?,?,?,?,?,?,?,?,?,?,'reserved')")
         .run(request.request_id, request.budget_key, this.owner, request.input_digest, hash, request.input_tokens, request.output_tokens, held, JSON.stringify(CODING_PLAN_RATE_OBSERVATION), estimate.rate_digest.value, new Date(now).toISOString());
       if (contract) { const json = JSON.stringify(contract); this.db.prepare("INSERT INTO credit_conversation_contracts VALUES(?,?,?)").run(request.request_id, json, digest(json).value); }
+      if (original) this.db.prepare("INSERT INTO credit_conversation_originals VALUES(?,?,?,?,NULL)").run(request.request_id, original.json, digest(original.json).value, original.body);
       const permit = Object.freeze({ request_id: request.request_id, request_digest: hash, held_micro_units: held }); this.permits.set(permit, request.request_id); return { permit };
     });
   }
@@ -273,15 +335,49 @@ export class GatewayCreditLedger {
   private cachedResponse(row: Row, cached = this.db.prepare("SELECT * FROM credit_responses WHERE request_id=?").get(row.request_id!)): CachedResponse {
     try {
       if (!cached || Buffer.byteLength(String(cached.response)) > GATEWAY_CREDIT_CACHE_ENTRY_BYTES || digest(String(cached.response)).value !== cached.response_digest) fail("credit_ledger_corrupt");
-      const response = this.storageFormat === 3 ? parseCachedGatewayConversationResponse(parseGatewayJson(String(cached.response), GATEWAY_CREDIT_CACHE_ENTRY_BYTES), this.conversationContract(row)) : parseCachedGatewayHttpResponse(JSON.parse(String(cached.response))), receipt = receiptFrom(row);
+      const response = this.storageFormat >= 3 ? parseCachedGatewayConversationResponse(parseGatewayJson(String(cached.response), GATEWAY_CREDIT_CACHE_ENTRY_BYTES), this.conversationContract(row)) : parseCachedGatewayHttpResponse(JSON.parse(String(cached.response))), receipt = receiptFrom(row);
       if (response.request_id !== row.request_id || response.input_digest !== row.input_digest || response.response_digest !== receipt.response_digest ||
         response.usage.input_tokens !== receipt.input_tokens || response.usage.output_tokens !== receipt.output_tokens) fail("credit_ledger_corrupt");
       return response;
     } catch { fail("credit_ledger_corrupt"); }
   }
+  private originalStorageBytes(): number {
+    const stored = this.db.prepare("SELECT COALESCE(SUM(length(CAST(input AS BLOB))+length(request_body)+COALESCE(length(response_body),?)),0) AS bytes FROM credit_conversation_originals")
+      .get(GATEWAY_CONVERSATION_ORIGINAL_RESPONSE_BYTES)!;
+    return Number(stored.bytes);
+  }
+  private originalConversation(row: Row, stored = this.db.prepare("SELECT * FROM credit_conversation_originals WHERE request_id=?").get(row.request_id!)): PublicConversationOriginal {
+    try {
+      if (!stored || !this.originalPins || typeof stored.input !== "string" || digest(stored.input).value !== stored.input_digest ||
+        !(stored.request_body instanceof Uint8Array)) fail("credit_ledger_corrupt");
+      const original = originalRequest(parseGatewayJson(stored.input, GATEWAY_CONVERSATION_ORIGINAL_INPUT_BYTES));
+      if (original.json !== stored.input || !original.body.equals(Buffer.from(stored.request_body)) || original.prepared.request_id !== row.request_id ||
+        original.prepared.input_digest !== row.input_digest || original.prepared.input_tokens !== row.input_tokens || original.prepared.output_tokens !== row.output_tokens ||
+        !same(original.contract, this.conversationContract(row))) fail("credit_ledger_corrupt");
+      let response: GatewayConversationResponse | null = null, receipt: CreditReceipt | null = null, responseBody: Buffer | null = null;
+      if (row.state === "completed") {
+        if (!(stored.response_body instanceof Uint8Array) || stored.response_body.length > GATEWAY_CONVERSATION_ORIGINAL_RESPONSE_BYTES) fail("credit_ledger_corrupt");
+        responseBody = Buffer.from(stored.response_body);
+        response = parseGatewayConversation(responseBody, original.prepared, original.tools, original.prior_call_ids, publicOriginalKey);
+        if (!same(response, this.cachedResponse(row))) fail("credit_ledger_corrupt"); receipt = receiptFrom(row);
+      } else if (stored.response_body !== null) fail("credit_ledger_corrupt");
+      return { origin: "public_fixture", ...this.originalPins, request: requestFrom(row), state: row.state as PublicConversationOriginal["state"],
+        input: original.input, request_body: Buffer.from(original.body), response_body: responseBody, response, receipt };
+    } catch { fail("credit_ledger_corrupt"); }
+  }
+  // One transaction covers the complete operation, not a series of separately
+  // trusted imported receipts. Returned byte arrays are independent copies.
+  readConversationOriginals(): PublicConversationOriginal[] {
+    if (this.storageFormat !== 4) fail("credit_conversation_originals_unavailable");
+    return this.transaction(() => { this.validate(); return this.db.prepare("SELECT * FROM credit_requests ORDER BY request_id").all().map(row => this.originalConversation(row)); });
+  }
+  conversationOriginalContext(): { origin: "public_fixture"; operation_key: string; profile_digest: string } {
+    if (!this.originalPins) fail("credit_conversation_originals_unavailable");
+    return this.transaction(() => { this.validate(); return { origin: "public_fixture", ...this.originalPins! }; });
+  }
   completeCached(permit: CreditReservation, input: GatewayHttpResponse, checkpoint?: () => void): CreditReceipt {
     if (!this.cachePolicy) fail("credit_response_cache_unavailable");
-    if (this.storageFormat === 3) fail("credit_conversation_cache_required");
+    if (this.storageFormat >= 3) fail("credit_conversation_cache_required");
     const response = parseCachedGatewayHttpResponse(input);
     if (Buffer.byteLength(JSON.stringify(response)) > GATEWAY_CREDIT_CACHE_ENTRY_BYTES) fail("credit_response_cache_entry_limit");
     return this.finishCompletion(permit, { response_digest: response.response_digest, input_tokens: response.usage.input_tokens, output_tokens: response.usage.output_tokens }, response, checkpoint);
@@ -291,18 +387,30 @@ export class GatewayCreditLedger {
     const response = this.transaction(() => { this.validate(); return parseCachedGatewayConversationResponse(input, this.conversationContract(this.owned(permit))); });
     return this.finishCompletion(permit, { response_digest: response.response_digest, input_tokens: response.usage.input_tokens, output_tokens: response.usage.output_tokens }, response, checkpoint);
   }
+  completeConversationOriginal(permit: CreditReservation, input: GatewayConversationResponse, bytes: Uint8Array, checkpoint?: () => void): CreditReceipt {
+    if (this.storageFormat !== 4) fail("credit_conversation_originals_unavailable");
+    if (!(bytes instanceof Uint8Array) || bytes.length > GATEWAY_CONVERSATION_ORIGINAL_RESPONSE_BYTES) fail("credit_original_response_limit");
+    const raw = Buffer.from(bytes);
+    const response = this.transaction(() => {
+      this.validate(); const row = this.owned(permit), original = this.originalConversation(row), prepared = originalRequest(original.input);
+      const parsed = parseGatewayConversation(raw, prepared.prepared, prepared.tools, prepared.prior_call_ids, publicOriginalKey);
+      if (!same(parsed, input)) fail("credit_conversation_original_conflict"); return parsed;
+    });
+    return this.finishCompletion(permit, { response_digest: response.response_digest, input_tokens: response.usage.input_tokens, output_tokens: response.usage.output_tokens }, response, checkpoint, raw);
+  }
   complete(permit: CreditReservation, input: { response_digest: string; input_tokens: number; output_tokens: number }): CreditReceipt {
     if (this.cachePolicy) fail("credit_response_cache_required");
     return this.finishCompletion(permit, input);
   }
-  private finishCompletion(permit: CreditReservation, input: { response_digest: string; input_tokens: number; output_tokens: number }, response?: CachedResponse, checkpoint?: () => void): CreditReceipt {
+  private finishCompletion(permit: CreditReservation, input: { response_digest: string; input_tokens: number; output_tokens: number }, response?: CachedResponse, checkpoint?: () => void, originalBytes?: Buffer): CreditReceipt {
     if (!exact(input, ["response_digest", "input_tokens", "output_tokens"]) || typeof input.response_digest !== "string" || !sha.test(input.response_digest) || !integer(input.input_tokens, 0, 1048576) || !integer(input.output_tokens, 0, 131072)) fail("invalid_credit_completion");
     const outcome = this.transaction(() => {
       this.validate(); const row = this.owned(permit);
       if (response && (response.request_id !== row.request_id || response.input_digest !== row.input_digest)) fail("credit_cached_response_conflict");
       if (row.state === "completed") {
         const receipt = receiptFrom(row); if (receipt.response_digest !== input.response_digest || receipt.input_tokens !== input.input_tokens || receipt.output_tokens !== input.output_tokens ||
-          response && JSON.stringify(this.cachedResponse(row)) !== JSON.stringify(response)) fail("credit_completion_conflict"); return receipt;
+          response && JSON.stringify(this.cachedResponse(row)) !== JSON.stringify(response) ||
+          originalBytes && !this.originalConversation(row).response_body?.equals(originalBytes)) fail("credit_completion_conflict"); return receipt;
       }
       if (row.state !== "dispatching") fail("credit_completion_unproven");
       if (input.input_tokens > Number(row.input_tokens) || input.output_tokens > Number(row.output_tokens)) {
@@ -313,6 +421,7 @@ export class GatewayCreditLedger {
         response_digest: input.response_digest, input_tokens: input.input_tokens, output_tokens: input.output_tokens, actual_cost_known: false, admission_ready: false });
       const serialized = JSON.stringify(receipt);
       checkpoint?.();
+      if (originalBytes) this.db.prepare("UPDATE credit_conversation_originals SET response_body=? WHERE request_id=?").run(originalBytes, permit.request_id);
       if (response) { const cached = JSON.stringify(response); this.db.prepare("INSERT INTO credit_responses VALUES(?,?,?)").run(permit.request_id, cached, digest(cached).value); }
       this.db.prepare("UPDATE credit_requests SET state='completed',receipt=?,receipt_digest=? WHERE request_id=?").run(serialized, digest(serialized).value, permit.request_id);
       this.validate(); checkpoint?.(); return receipt;
@@ -328,14 +437,17 @@ export class GatewayCreditLedger {
       if (blockAccount && row.state !== "completed") this.db.exec("UPDATE credit_account SET blocked=1");
     });
   }
-  cacheSnapshot(): { storage_format: 2 | 3; entries: number; stored_bytes: number; pending_reserved_bytes: number; maximum_entries: number; maximum_bytes: number; contract_entries?: number; contract_bytes?: number } {
+  cacheSnapshot(): { storage_format: 2 | 3 | 4; entries: number; stored_bytes: number; pending_reserved_bytes: number; maximum_entries: number; maximum_bytes: number; contract_entries?: number; contract_bytes?: number; original_entries?: number; original_bytes?: number } {
     if (!this.cachePolicy) fail("credit_response_cache_unavailable");
     return this.transaction(() => {
       this.validate(); const row = this.db.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(length(CAST(response AS BLOB))),0) AS bytes FROM credit_responses").get()!;
       const pending = Number(this.db.prepare("SELECT COUNT(*) AS count FROM credit_requests WHERE state IN ('reserved','dispatching')").get()!.count);
-      const contracts = this.storageFormat === 3 ? this.db.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(length(CAST(contract AS BLOB))),0) AS bytes FROM credit_conversation_contracts").get()! : undefined;
-      return { storage_format: this.storageFormat as 2 | 3, entries: Number(row.count), stored_bytes: Number(row.bytes) + Number(contracts?.bytes ?? 0), pending_reserved_bytes: pending * GATEWAY_CREDIT_CACHE_ENTRY_BYTES, ...this.cachePolicy!,
-        ...(contracts ? { contract_entries: Number(contracts.count), contract_bytes: Number(contracts.bytes) } : {}) };
+      const contracts = this.storageFormat >= 3 ? this.db.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(length(CAST(contract AS BLOB))),0) AS bytes FROM credit_conversation_contracts").get()! : undefined;
+      const originals = this.storageFormat === 4 ? this.db.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(length(CAST(input AS BLOB))+length(request_body)+COALESCE(length(response_body),0)),0) AS bytes,COUNT(*)-COUNT(response_body) AS pending FROM credit_conversation_originals").get()! : undefined;
+      return { storage_format: this.storageFormat as 2 | 3 | 4, entries: Number(row.count), stored_bytes: Number(row.bytes) + Number(contracts?.bytes ?? 0) + Number(originals?.bytes ?? 0),
+        pending_reserved_bytes: pending * GATEWAY_CREDIT_CACHE_ENTRY_BYTES + Number(originals?.pending ?? 0) * GATEWAY_CONVERSATION_ORIGINAL_RESPONSE_BYTES, ...this.cachePolicy!,
+        ...(contracts ? { contract_entries: Number(contracts.count), contract_bytes: Number(contracts.bytes) } : {}),
+        ...(originals ? { original_entries: Number(originals.count), original_bytes: Number(originals.bytes) } : {}) };
     });
   }
   async reconcileOwners(): Promise<{ reconciled_requests: number; active_owners: number; unknown_owners: number; verified_ended_owners: number }> {
@@ -368,6 +480,7 @@ export class GatewayCreditLedger {
   }
   close(): void {
     if (this.closed) return;
+    if (this.readOnly) { this.closed = true; this.db.close(); return; }
     try { this.transaction(() => { this.validate(); this.db.prepare("UPDATE credit_requests SET state='unknown',reason='credit_owner_closed' WHERE owner_nonce=? AND state IN ('reserved','dispatching')").run(this.owner); }); }
     finally { this.closed = true; this.db.close(); }
   }

@@ -12,4 +12,6 @@ export { runPublicGatewayNetworkProbe, parseRuntimeGatewayNetworkProbe } from ".
 export { runGatewayCreditProbe, parseRuntimeGatewayCreditProbe } from "./gateway-credit-probe.js";
 export { validateFixedMethodContext } from "./fixed-method.js";
 export { replayFixedMethodTranscript, verifyFixedMethodSdkEffects } from "./fixed-method-replay.js";
+export { openPublicNamedMethodOriginals } from "./named-method-originals.js";
+export type { GatewayCreditPolicy, GatewayCreditConversationOriginalOptions, CreditReceipt } from "./gateway-credit.js";
 export { parseGatewayJson } from "./gateway-conversation.js";
