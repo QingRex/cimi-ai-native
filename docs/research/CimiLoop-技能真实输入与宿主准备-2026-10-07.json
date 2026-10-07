@@ -1,0 +1,403 @@
+{
+  "format": "cimiloop/local-skill-method-input-verification/1.0.0",
+  "decision": "D-216",
+  "date": "2026-10-07",
+  "base_commit": "eeb2b2196f71b9ceb195e861a8cac6800b8e5669",
+  "scope": "Read actual fixed Git package/schema/input/review artifacts; complete bounded resources and harness requirements; trusted Native prepare composition and original invocation input re-read",
+  "goal_complete": false,
+  "formal_execution_enabled": false,
+  "production_agent_host_connected": false,
+  "production_skill_host_connected": false,
+  "actual_method_qualification_verifier_implemented": false,
+  "actual_named_method_qualification_rule_implemented": false,
+  "actual_skill_behavior_evaluated": false,
+  "pre_plan_clarification_implemented": false,
+  "actual_sdk_invocations": 0,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "files": 8,
+      "tests": 101,
+      "passed": 101,
+      "failed": 0,
+      "complete_repository_suite": false,
+      "note": "8 affected files ran: 100/101 initially passed. Strict original Native record parsing rejected a fixture using a generic method key. The fixture alone was changed to a Kernel-style InternalId; the 7 directly affected cases then passed. Unchanged production files and the other 7 files retain the prior pass; no fresh whole-repository pass is claimed.",
+      "original": {
+        "path": ".cimiloop/skill-method-inputs-v1-21/regression.json",
+        "bytes": 44668,
+        "sha256": "a036929a2995bae03eecef2e83e80e5fb68f210e997ca8adc526416579770973",
+        "files": 8,
+        "tests": 101,
+        "passed": 100,
+        "failed": 1
+      },
+      "final_direct_retest": {
+        "path": ".cimiloop/skill-method-inputs-v1-21/retest.json",
+        "bytes": 3930,
+        "sha256": "1d9f9e0729bcf9cc8de21564db9d793cfff8775b9bb27cc055ab9287a951c1f8",
+        "files": 1,
+        "tests": 7,
+        "passed": 7,
+        "failed": 0
+      },
+      "files_at_validation": [
+        {
+          "name": "tests/scenarios/skill-method-inputs.test.ts",
+          "tests": 7
+        },
+        {
+          "name": "tests/scenarios/skill-package-cli.test.ts",
+          "tests": 3
+        },
+        {
+          "name": "tests/scenarios/skill-provider-assessment.test.ts",
+          "tests": 20
+        },
+        {
+          "name": "protocol/test/schema.test.ts",
+          "tests": 6
+        },
+        {
+          "name": "runtime-adapter/test/fixed-method.test.ts",
+          "tests": 17
+        },
+        {
+          "name": "skill-adapter/test/package.test.ts",
+          "tests": 28
+        },
+        {
+          "name": "store-sqlite/test/agent-runs.test.ts",
+          "tests": 11
+        },
+        {
+          "name": "store-sqlite/test/skill-invocations.test.ts",
+          "tests": 9
+        }
+      ]
+    },
+    "schemas": {
+      "baseline": 234,
+      "unchanged": 234,
+      "changed": [],
+      "source_changed": false,
+      "export_not_required": true,
+      "sha256": "9674fac9192f8e3d5904a3044bbf571eef48e02ef3635eaeb64300dd46944d91",
+      "artifact": {
+        "path": ".cimiloop/skill-method-inputs-v1-21/schema-audit.json",
+        "bytes": 197,
+        "sha256": "4b27cd4f79df833dc23a4274f69e44a54c29d410375d00521ab87a007be28ebf"
+      },
+      "note": "No protocol source or generated schema changes. Existing 234 schema contents match HEAD; no export or checkout-byte restoration was necessary."
+    },
+    "database": {
+      "format": 10,
+      "layout_changed": false,
+      "migration_added": false,
+      "user_database_upgraded": false
+    },
+    "actual_upstream_input_preparation": {
+      "path": ".cimiloop/skill-method-inputs-v1-21/upstream-inputs.json",
+      "bytes": 8144,
+      "sha256": "ab892e591e607f05cb12159072974b431568c9b41dd03328dfbbf513d4bf044c",
+      "records": [
+        {
+          "name": "matt-clarification",
+          "method_name": "grill-me",
+          "source": {
+            "path": ".cimiloop/skill-v1-21/matt-clarification.package.json",
+            "bytes": 9717,
+            "sha256": "f59f753f16a25d089441a5f8fca3e8c209fe8b84e1c5f19a316e73decc42aed2"
+          },
+          "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+          "input_ref": {
+            "provider": "local_content",
+            "resource_type": "skill_method_input",
+            "locator": "a6f93ec3024835a65db9c609635ddf33a1476e735de57829ac74956a3832bb22",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "a6f93ec3024835a65db9c609635ddf33a1476e735de57829ac74956a3832bb22"
+            }
+          },
+          "request_digest": {
+            "algorithm": "sha256",
+            "value": "60461d46b4af952cac158fa9308d280f9f5868734ea45abe3992fd219062b099"
+          },
+          "profile_digest": {
+            "algorithm": "sha256",
+            "value": "d4fb37486a38b6a8403dfdaae502daa9faff66e3b6234c96d065fe674c9f31ad"
+          },
+          "resources": [
+            {
+              "path": "skill-request.json",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "524d3045c0c84250e6002a2cf545e56b1e96524c238e43ff877e06b1c164bab5"
+              },
+              "kind": "request"
+            },
+            {
+              "path": "skill-input.json",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "ce89343df3c513a1607f89cf1166ac3976fb0950c3f3771e77034a3792e9cda7"
+              },
+              "kind": "input"
+            },
+            {
+              "path": "skill-source/grill-me/SKILL.md",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "caaf8b8de1684f96e26b28f3c29189db5c89cce4b73e1c93d86164f66ef88637"
+              },
+              "kind": "definition"
+            },
+            {
+              "path": "skill-source/grilling/SKILL.md",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2"
+              },
+              "kind": "definition"
+            }
+          ],
+          "harness_requirements": [
+            "explicit_invocation",
+            "human_interview",
+            "invoke_skills",
+            "subagent_delegation"
+          ],
+          "re_read_equal": true,
+          "default_qualification_rejected": true,
+          "actual_skill_behavior_evaluated": false,
+          "actual_sdk_invocations": 0,
+          "actual_credentials_read": 0,
+          "external_model_requests": 0,
+          "formal_execution_enabled": false
+        },
+        {
+          "name": "matt-review",
+          "method_name": "code-review",
+          "source": {
+            "path": ".cimiloop/skill-v1-21/matt-review.package.json",
+            "bytes": 15262,
+            "sha256": "2b4521ccb3592cad05254884918e3556f67d9b72b7bf9715da0124e607d6dccc"
+          },
+          "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+          "input_ref": {
+            "provider": "local_content",
+            "resource_type": "skill_method_input",
+            "locator": "fe47071384bc918519826ddf8c78efcf62b66b1418b2313843362a647882c579",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "fe47071384bc918519826ddf8c78efcf62b66b1418b2313843362a647882c579"
+            }
+          },
+          "request_digest": {
+            "algorithm": "sha256",
+            "value": "adb4f3a7fecdb67cbd47d15905f25a4480bd2e581b310a78f98f1c735ab720e8"
+          },
+          "profile_digest": {
+            "algorithm": "sha256",
+            "value": "08e374ea2939983b7d2ab190c12e79fed440ed6e867ea5c270ec8605a1f4aa9b"
+          },
+          "resources": [
+            {
+              "path": "skill-request.json",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "c1f2405f6bf7fa2a2c0a3fd7eb156b6efe677a7cfa42476d52f55dacd5627643"
+              },
+              "kind": "request"
+            },
+            {
+              "path": "skill-input.json",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "9c51d4951972ffb56064cf804293f84075aab715269230c3c2d2b8d0d398b391"
+              },
+              "kind": "input"
+            },
+            {
+              "path": "skill-artifacts/596ae2abda93969ebc9c6e0fe0bf50e2a7174cb48901976a6730d71de0250d54.txt",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "596ae2abda93969ebc9c6e0fe0bf50e2a7174cb48901976a6730d71de0250d54"
+              },
+              "kind": "artifact"
+            },
+            {
+              "path": "skill-artifacts/index.json",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "1527703fc2523f1a396095647eda01c554d0f40af0bb7301cc24730180358171"
+              },
+              "kind": "artifact_index"
+            },
+            {
+              "path": "skill-source/code-review/SKILL.md",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "47f4e52c21694def9c7c11cbfbf891ca35eac7a93e395797515be3c8a409ae50"
+              },
+              "kind": "definition"
+            }
+          ],
+          "harness_requirements": [
+            "fixed_git_diff",
+            "project_issue_tracker",
+            "subagent_delegation",
+            "independent_context"
+          ],
+          "re_read_equal": true,
+          "default_qualification_rejected": true,
+          "actual_skill_behavior_evaluated": false,
+          "actual_sdk_invocations": 0,
+          "actual_credentials_read": 0,
+          "external_model_requests": 0,
+          "formal_execution_enabled": false
+        },
+        {
+          "name": "superpowers-verification",
+          "method_name": "verification-before-completion",
+          "source": {
+            "path": ".cimiloop/skill-v1-21/superpowers-verification.package.json",
+            "bytes": 148767,
+            "sha256": "ca2e6b828d23532ebc5646d89a83f2162106b95bbc3b90606ab41d332c8c9a11"
+          },
+          "commit": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+          "input_ref": {
+            "provider": "local_content",
+            "resource_type": "skill_method_input",
+            "locator": "fe47071384bc918519826ddf8c78efcf62b66b1418b2313843362a647882c579",
+            "digest": {
+              "algorithm": "sha256",
+              "value": "fe47071384bc918519826ddf8c78efcf62b66b1418b2313843362a647882c579"
+            }
+          },
+          "request_digest": {
+            "algorithm": "sha256",
+            "value": "ff59f1332472da10a9d8b9e0e0663439cf90707bd6f9149e189aae7a77409d45"
+          },
+          "profile_digest": {
+            "algorithm": "sha256",
+            "value": "e1ed8da10612f5fc7d96c0024048fb01cc65447e44f7974aa70f0c8ab9ea38ef"
+          },
+          "resources": [
+            {
+              "path": "skill-request.json",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "5da0158a73adf5ad1c08c66f6d1b7e104664f806e02ae15f7c0c08242f6e202e"
+              },
+              "kind": "request"
+            },
+            {
+              "path": "skill-input.json",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "9c51d4951972ffb56064cf804293f84075aab715269230c3c2d2b8d0d398b391"
+              },
+              "kind": "input"
+            },
+            {
+              "path": "skill-artifacts/596ae2abda93969ebc9c6e0fe0bf50e2a7174cb48901976a6730d71de0250d54.txt",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "596ae2abda93969ebc9c6e0fe0bf50e2a7174cb48901976a6730d71de0250d54"
+              },
+              "kind": "artifact"
+            },
+            {
+              "path": "skill-artifacts/index.json",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "1527703fc2523f1a396095647eda01c554d0f40af0bb7301cc24730180358171"
+              },
+              "kind": "artifact_index"
+            },
+            {
+              "path": "skill-source/verification-before-completion/SKILL.md",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3"
+              },
+              "kind": "definition"
+            }
+          ],
+          "harness_requirements": [
+            "fresh_check_output",
+            "independent_context"
+          ],
+          "re_read_equal": true,
+          "default_qualification_rejected": true,
+          "actual_skill_behavior_evaluated": false,
+          "actual_sdk_invocations": 0,
+          "actual_credentials_read": 0,
+          "external_model_requests": 0,
+          "formal_execution_enabled": false
+        }
+      ]
+    }
+  },
+  "verified_cases": [
+    "Actual local Git and immutable content prove package source and complete declarative dependency closure; Native candidate Descriptor is registered through the real Kernel/SQLite.",
+    "Actual input/package/schema tampering, malformed UTF-8, wrong entry and unsupported/digestless review artifacts fail before qualification.",
+    "Fixed artifact bytes and declared resources are verified against SDK read limits; scripts/agent configs remain unexecuted source data.",
+    "Native prepare validates parent Run/Context and original Context digest, fixed Binding/source/contracts, execution scope and independent read-only purpose.",
+    "Missing trusted qualification rejects by default; copies isolate host mutations and bytes are re-read after qualification.",
+    "The Kernel prepare signature uses the original native Descriptor lookup and rejects absent or changed lookup identities.",
+    "Original SkillInvocation schema/full reservation digest/request/package/schema are re-verified without starting a new operation."
+  ],
+  "constructed_boundary": {
+    "native_inputs": "Positive prepare cases use constructed Agent/Runtime/Task Binding and Context/Run facts; they are not real controlled execution qualification.",
+    "qualification": "Trusted in-process constructed qualification callback only. The component reads and hashes its reference but does not implement actual qualification semantics or accept a serialized ALLOW/verified flag as authority.",
+    "upstream": "Archived actual D-210 Git packages and current schema bytes are re-read. Review materials are public fixed verification fixtures; no actual business method/SDK/model/ledger executed.",
+    "effects": "Preparation has no dispatch, attempt allocation, Task/Gate mutation, Human round, evaluator session, original SDK/tool/billing proof reader or production workbench execution.",
+    "qualification_rule": "Existing skill-provider-assessment/1.0.0 and builtin Skill-tool failure evidence unchanged; fixed resource preparation is not named-method qualification."
+  },
+  "remaining_acceptance": [
+    "Implement explicit versioned named-method qualification and a production verifier with real original package/schema/SDK/model/tool/billing evidence.",
+    "Connect actual controlled Runtime/Task qualification and production Agent/Skill hosts; revalidate live WorkItem/Provider/budget before dispatch and effect replay.",
+    "Retain real Human clarification rounds and candidates before confirmed Plan/Task through controlled Native authorization/context.",
+    "Complete real fixed diff/issue review, declared delegation/command/verification capabilities, candidate/evidence projection and Matt/Superpowers behavior comparison/default choices.",
+    "Connect real workspace effects, tool authority/journal, IPC/OpenCode, original-operation recovery and Unknown reconciliation.",
+    "Complete physical filesystem hard quota, actual model/tool entitlement and input/thinking/output caps, protected unique account ledger, approved cash/credit budget and invoice reconciliation.",
+    "Complete formal workbench execution/status/recovery and ordinary real Change through ReadyForDelivery S1 acceptance."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/local-app/src/skill-methods-local.ts",
+      "bytes": 9995,
+      "sha256": "4913a911764846f1bbe7e1cc90c4ac55a8e0cfb2ce202af5c904c563782f01bf"
+    },
+    {
+      "path": "packages/local-app/src/index.ts",
+      "bytes": 929,
+      "sha256": "3bd61bfb75b80b65e396bf68ee99f4fce125cfc36de22038a16fd5f89f010baa"
+    },
+    {
+      "path": "packages/kernel/src/index.ts",
+      "bytes": 488,
+      "sha256": "672a4484ce04e69c86610ea5001241c8dd1532ee726bd4f5135211ec8cc3d975"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 1214,
+      "sha256": "d987d83bcbb0d86f1671c0c35d87986c591bc793417e4a89b4c4634d4df260b8"
+    },
+    {
+      "path": "tests/scenarios/skill-method-inputs.test.ts",
+      "bytes": 17610,
+      "sha256": "2e5181d0eda6b36866097092d6efa0d85d608088ce091b994959ad1d9c80e601"
+    }
+  ],
+  "evidence_availability": "Ignored local reports are retained in this checkout and identified by exact bytes/SHA-256. Tests and source are committed. Constructed admission and actual preparation success do not authorize production execution."
+}

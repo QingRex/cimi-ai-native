@@ -10,3 +10,4 @@ export { runSyntheticGatewayProbe, parseRuntimeGatewayProbe } from "./gateway-pr
 export { runOpenCodeGatewayBridgeProbe, parseRuntimeGatewayBridgeProbe } from "./gateway-bridge-probe.js";
 export { runPublicGatewayNetworkProbe, parseRuntimeGatewayNetworkProbe } from "./gateway-network-probe.js";
 export { runGatewayCreditProbe, parseRuntimeGatewayCreditProbe } from "./gateway-credit-probe.js";
+export { validateFixedMethodContext } from "./fixed-method.js";

@@ -1,5 +1,7 @@
 # CimiLoop
 
+2026-10-07 D-216 已接通技能实际包 / Schema / 输入 / 评审资料读取、固定资源准备及原预约输入复核，并提供原生调用准备接口。准备不执行方法；默认缺少可信方法资格核验器时拒绝正式准备。三个固定上游包的实际准备已核对，真实资格 / 宿主与完整 S1 仍待完成，见[技能真实输入与宿主准备](docs/implementation/CimiLoop-技能真实输入与宿主准备-v0.1.md)。
+
 2026-10-07 D-215 已接通原生 SkillInvocation 预约、结果与 Human 核对，固定父 Agent Run、来源 / 包 / Schema 和原调用键；未结清的子调用阻止父 Run 结清，费用由父 Run 统一累计。CLI 核对与工作台事实展示已接入，数据库布局仍为格式 10。生产方法宿主、真实行为与 Plan / Task 创建前的澄清入口仍待完成，见[技能调用记录与核对](docs/implementation/CimiLoop-SkillInvocation原生记录与核对-v0.1.md)。
 
 2026-10-07 D-214新增原生Agent Context / Run / 结果严格分支，固定Runtime、Skill Binding和宿主准入凭据；预约 / 接续重新核验，未知费用及冲突保留至Human核对。格式10支持显式1–9迁移，保留格式9 Skill治理与原Human运行历史，未升级用户库。生产宿主、实际Task批准、SkillInvocation及完整S1仍待接通，见[Agent上下文与运行固定关系](docs/implementation/CimiLoop-Agent上下文与运行固定关系-v0.1.md)。

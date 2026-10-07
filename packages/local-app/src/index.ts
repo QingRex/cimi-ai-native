@@ -10,3 +10,5 @@ export type { ContentReference } from "./evidence-local.js";
 export { LocalRunVerifier } from "./runs-local.js";
 export { LocalProviderVerifier } from "./providers-local.js";
 export { LocalSkillPackageStore } from "./skills-local.js";
+export { LocalSkillMethodInputs } from "./skill-methods-local.js";
+export type { LocalSkillMethodPlan, LocalSkillMethodQualificationPort } from "./skill-methods-local.js";
