@@ -1,5 +1,7 @@
 # CimiLoop Agent 工作区工具宿主与原始恢复 v0.1
 
+> D-223 续批已提供独立 Windows 原进程 IPC，见[通道与验证边界](CimiLoop-Agent工作区原进程IPC-v0.1.md)。本页保留 D-222 文件宿主及原资源验证范围。
+
 日期：2026-10-07。D-222 延续 [Agent 实时工具授权](CimiLoop-Agent运行实时工具授权-v0.1.md)，将独立查询接入真实工作区文件效果及原调用恢复。生产 Runtime 准入、认证 IPC / OpenCode、固定检查命令、真实模型 / 费用与完整 S1 仍待完成。
 
 ## 固定原生 Agent 身份

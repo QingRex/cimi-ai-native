@@ -73,3 +73,21 @@ export const buildWindowsWorkspaceBroker = async (root: string): Promise<{ path:
   const expected = readJson(metadata) as { digest?: { value?: string } }, actual = digest(bytesAt(output));
   if (actual.value !== expected.digest?.value) throw new RuntimeAdapterError("workspace_broker_digest_changed"); return { path: output, digest: actual };
 };
+
+// Independent original-Agent file IPC; the frozen public probe controller and
+// its installation ACLs do not gain a path to workspace effects.
+export const buildWindowsAgentWorkspaceTransport = async (root: string): Promise<{ path: string; digest: ReturnType<typeof digest> }> => {
+  if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_agent_ipc_required");
+  const source = fileURLToPath(new URL("../native/AgentWorkspaceTransport.cs", import.meta.url));
+  const build = directory(join(root, "tools", "agent-workspace-ipc-" + digest(bytesAt(source)).value)), output = join(build, "AgentWorkspaceTransport.exe"), metadata = join(build, "build.json");
+  if (!existsSync(output) || !existsSync(metadata)) {
+    const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe"), candidate = join(build, `${randomUUID()}.exe`);
+    if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
+    try { await execute(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment() }); }
+    catch { throw new RuntimeAdapterError("agent_ipc_build_failed"); }
+    renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
+  }
+  const expected = readJson(metadata) as { digest?: { value?: string } };
+  if (expected.digest?.value !== digest(bytesAt(output)).value) throw new RuntimeAdapterError("agent_ipc_binary_changed");
+  return { path: output, digest: digest(bytesAt(output)) };
+};

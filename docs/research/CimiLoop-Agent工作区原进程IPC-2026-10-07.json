@@ -1,0 +1,297 @@
+{
+  "format": "cimiloop/agent-workspace-ipc-verification/1.0.0",
+  "decision": "D-223",
+  "date": "2026-10-07",
+  "base_commit": "1c217a9626be591089b7b13689c98a410e46bddd",
+  "scope": "Original native process-authenticated Agent file IPC, immutable original scope installation, shared file journal, reply-loss replay and original peer exit",
+  "goal_complete": false,
+  "original_agent_workspace_file_ipc_implemented": true,
+  "actual_windows_original_peer_file_ipc_validated": true,
+  "actual_separate_supervisor_peer_validated": true,
+  "actual_completed_effect_reply_loss_replayed": true,
+  "actual_peer_exit_original_outcomes_validated": true,
+  "production_agent_host_connected": false,
+  "actual_opencode_workspace_tool_consumer_connected": false,
+  "actual_appcontainer_agent_ipc_positive_validated": false,
+  "formal_agent_execution_enabled": false,
+  "protected_original_sdk_tool_account_custody_complete": false,
+  "run_checks_host_implemented": false,
+  "actual_method_behavior_evaluated": false,
+  "pre_plan_clarification_implemented": false,
+  "approved_billing_admission_complete": false,
+  "complete_original_resource_cleanup_implemented": false,
+  "physical_filesystem_hard_quota_implemented": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "files": 12,
+      "tests": 113,
+      "passed": 113,
+      "failed": 0,
+      "pending": 0,
+      "complete_repository_suite": false,
+      "report": {
+        "path": ".cimiloop/agent-ipc-v1-09/final.json",
+        "bytes": 49338,
+        "sha256": "3e38d3714eab86f088f382cc83f50e21c482dd375f2664ac592c95c77f6bc86b",
+        "files": 12,
+        "tests": 113,
+        "passed": 113,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "source_snapshot": {
+      "path": ".cimiloop/agent-ipc-v1-09/sources.json",
+      "bytes": 1776,
+      "sha256": "a5883f59aa4a313adb979a306821fd9806d89ef72b3023e8b144bfe396b92afb"
+    },
+    "schemas": {
+      "total": 242,
+      "unchanged": 242,
+      "added": 0,
+      "changed": 0,
+      "writes": 0,
+      "protocol_status_clean": true,
+      "comparison": "exact text normalized CRLF to LF",
+      "report": {
+        "path": ".cimiloop/agent-ipc-v1-09/schemas.json",
+        "bytes": 169,
+        "sha256": "52d7e737e80eae7189cf390bf18e6c874bb1e47b5d2372759a7b7ed1fc1cd69e"
+      }
+    },
+    "documentation": {
+      "files": 9,
+      "links": 281,
+      "broken": [],
+      "report": {
+        "path": ".cimiloop/agent-ipc-v1-09/links.json",
+        "bytes": 49,
+        "sha256": "a746d3902e5d9165df6f1561d2d00fd5a309e791b6e82e207e2ed0b2e280f207"
+      },
+      "pending_report_links_only": false
+    },
+    "commit_baseline": {
+      "files": 814,
+      "bytes": 55690745,
+      "problems": []
+    },
+    "preliminary": {
+      "reports": [
+        {
+          "path": ".cimiloop/agent-ipc-v1-09/focused.json",
+          "bytes": 6141,
+          "sha256": "857c397c521e62382efd20e501e274ddc2dcd301a72edd1f3697d21d01300d12",
+          "files": 1,
+          "tests": 6,
+          "passed": 1,
+          "failed": 5,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/agent-ipc-v1-09/focused-2.json",
+          "bytes": 8424,
+          "sha256": "212a75b16408fe219ad5e309315675e4dbf08f4dbb72527f3fe122d98f347447",
+          "files": 2,
+          "tests": 16,
+          "passed": 13,
+          "failed": 3,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/agent-ipc-v1-09/focused-3.json",
+          "bytes": 7711,
+          "sha256": "46f6ed66e9cdca95b40a180a50bdd2a51b6784929901a1ba43a3028caf83ba56",
+          "files": 2,
+          "tests": 16,
+          "passed": 15,
+          "failed": 1,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/agent-ipc-v1-09/focused-4.json",
+          "bytes": 8121,
+          "sha256": "cefc7335787e513751e27f0da17021f80715bfac69cb86225978d9cfe963f76d",
+          "files": 2,
+          "tests": 18,
+          "passed": 17,
+          "failed": 1,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/agent-ipc-v1-09/negative-fix.json",
+          "bytes": 4493,
+          "sha256": "33d4163ff24374be5c5b8cf7c697f3cfeef79707899e02d64cd72e8716fe023f",
+          "files": 1,
+          "tests": 8,
+          "passed": 0,
+          "failed": 1,
+          "pending": 7,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/agent-ipc-v1-09/negative-diagnostic.json",
+          "bytes": 4738,
+          "sha256": "bddc45bcc3a057607427904645fb86119e54323e848adb42743b63ffac4be709",
+          "files": 1,
+          "tests": 8,
+          "passed": 0,
+          "failed": 1,
+          "pending": 7,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/agent-ipc-v1-09/negative-fixed.json",
+          "bytes": 4061,
+          "sha256": "e88292e8ab04cc54741e10d2e88245d20020ffe580714c6f415c8ac78e000997",
+          "files": 1,
+          "tests": 8,
+          "passed": 1,
+          "failed": 0,
+          "pending": 7,
+          "success": true
+        },
+        {
+          "path": ".cimiloop/agent-ipc-v1-09/broad-initial.json",
+          "bytes": 50048,
+          "sha256": "cac1c190d2439900bcd24a5bdb110af5c53889361660a371baa9f5b2ca25f3b0",
+          "files": 12,
+          "tests": 112,
+          "passed": 111,
+          "failed": 1,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/agent-ipc-v1-09/repair-focused.json",
+          "bytes": 9011,
+          "sha256": "cb4405bdd28091a5039403476d79f49dab5760ea10dff042a3adc3f010cbc0a8",
+          "files": 2,
+          "tests": 21,
+          "passed": 21,
+          "failed": 0,
+          "pending": 0,
+          "success": true
+        }
+      ],
+      "broad_initial_source_snapshot": {
+        "path": ".cimiloop/agent-ipc-v1-09/broad-initial-sources.json",
+        "bytes": 1599,
+        "sha256": "982f8ab61a8063fdc3c5f885e388476e652affee4fb13c9de67660a2b7fc0f7b"
+      },
+      "repairs": "Initial default run failed to compile the native controller (old C# definite-assignment) and exposed fixture host close omissions; fixed both. Strict JSON produces null-prototype records, so compare validated fixed identity fields after normalization. Rebuild local package imports before composition regressions. Foreign scope replies retain the original scope and the client must refuse them. Raw hostile test socket needed to collect a complete length-prefixed response before Windows EPIPE; zero-byte EPIPE is checked against the exact native rejection and zero claims. Initial broad 112 tests had 111 passed and one historic public module recovery failure: fixed 200ms delay was insufficient for actual native resource disposal. Replaced it with bounded fresh original-owner/resource proof observation, retaining the guarded recovery criterion. Also copy original scope/process pins before asynchronous build/start, with a mutation/substitution regression. Intermediate targeted skipped cases are not final acceptance. Final affected regression includes every new scenario with no skips."
+    },
+    "retained_failed_test_directories": {
+      "status": "retained",
+      "automatic_approval_review": "rejected",
+      "reason": "blocked by policy",
+      "paths": [
+        "C:/Users/chaol/AppData/Local/Temp/cimiloop-agent-ipc-n2B9S0",
+        "C:/Users/chaol/AppData/Local/Temp/cimiloop-agent-ipc-uSrsEJ"
+      ],
+      "scope": "Own initial failed-build test fixtures only; read-only confirmation found ordinary directories. The rejected recursive cleanup was not retried through another mechanism."
+    }
+  },
+  "implemented": {
+    "composition": "Original Native Agent service installs one channel and rechecks original scope before consumption. Trusted composition supplies owned supervisor ChildProcess and original protected supervisor/runtime PID, creation ticks and image. Original scope/process records are copied before asynchronous build/start; later mutation cannot substitute them. Actual peer may differ from supervisor. No identity, Caller, binding, admission, verifier, endpoint or command is selected by a runtime file frame.",
+    "native": "Independent source/binary-pinned controller retains original host/supervisor/runtime process handles, verifies startup identities and OS named-pipe client PID, and checks held processes active before reading, forwarding and replying. DACL has only host user, SYSTEM and OS-derived original AppContainer SID, with first instance, remote rejection, low label and non-inherited handle. No public probe format or controller was changed.",
+    "forwarding": "Bounded original bytes, hash and fixed identity travel through host-owned stdio. Strict duplicate-key/UTF-8/extra-key/frame/path validation builds an original WorkspaceToolInvocation. Exact current D-222 authority and one durable original Human/Agent file journal own reservation, effect, receipt, conflict and Unknown.",
+    "client": "Fixed bounded client checks complete request/scope/call identity, frozen receipt/native contracts and content digest. It never automatically retries reply loss or creates a new call ID. A client reply is projection only, not Run result, billing, Skill qualification or admission.",
+    "close": "Original supervisor ChildProcess exit or held OS peer/owner exit tears down the pipe and closes/joins the owned file host. After original preparation remains not_started; after durable dispatch without completion remains Unknown.",
+    "reply_loss": "Actual socket drop after original request still permits original host completion. Original durable receipt survives pipe I/O failure. Trusted fresh original host and channel explicitly replay same call ID/input/current authority without a second write, native event or budget settlement."
+  },
+  "validation": {
+    "actual_windows": "9 actual temporary Git/SQLite and Windows pipe/file scenarios cover original read/edit/replay/conflict, another actual host PID/foreign and malformed frames, revocation, substituted creation time, asynchronous original input mutation/substitution, separate original supervisor/runtime and OS peer exit with supervisor alive, actual completed effect/socket reply loss/original receipt replay, and original peer exit after preparation and dispatch.",
+    "contracts": "10 scope/client contract tests include exact fixed arguments, executable/extra/oversize/protected input refusal, fragmented completed and denied replies, six forged response variants and lost reply without automatic retry. Positive receipt contract data is explicitly constructed.",
+    "qualification": "Positive Native Agent admission and live host proofs remain controlled constructed inputs. Actual positive IPC peer(s) are ordinary Node processes with null AppContainer SID, not actual production OpenCode/sandbox/model/billing or method qualification.",
+    "appcontainer": "OS token-derived SID support is implemented. This batch has no actual positive original-Agent AppContainer pipe consumer or cross-container acceptance for the new channel. Old public sandbox IPC regression does not substitute for it."
+  },
+  "unchanged": {
+    "protocol_schemas": 242,
+    "native_database_format": 10,
+    "workspace_tool_journal_format": "cimiloop/workspace-tool-journal/1.0.0",
+    "workspace_tool_receipt_format": "cimiloop/workspace-tool-receipt/1.0.0",
+    "workspace_tool_journal_user_version": 1,
+    "public_probe_native_controller": "unchanged",
+    "public_probe_transport_formats": "unchanged",
+    "human_cli_workbench_entry": "unchanged",
+    "workspace_tool_receipt_formal_agent_execution_enabled": false
+  },
+  "boundaries": {
+    "formal": "No default production verifier, actual OpenCode custom-tool registration, real model/fee request or task_execution qualification is installed. Current qualification remains denied without protected authentic proofs.",
+    "custody": "Trusted supervisor/runtime identity input must originate in original protected startup records. Original native pipe and file facts are not a complete protected SDK/tool/account ledger. Scope digest and reply checks do not independently confer model, sandbox, billing or method admission.",
+    "recovery": "One ephemeral channel has bounded in-memory attempts and no second effect cache. I/O failure may terminate that channel. Fresh channel creation and same original call replay are explicit trusted host actions. Tool Unknown and unproven resources remain unchanged; complete cleanup and physical disk quotas are pending."
+  },
+  "remaining_acceptance": [
+    "Connect actual fixed OpenCode tools and protected original SDK/startup ownership to this channel; validate actual original AppContainer positive and cross-container boundaries; add fixed check-command host.",
+    "Complete production model/tool/Coding Plan and service-side input/thinking/output bounds, protected unique account ledger, approved cash/credit budget, billing, physical quota and full original resource registration/recovery.",
+    "Implement Human/Matt clarification before confirmed Plan/Task, actual independent fixed diff/issue harness and fresh Superpowers checks, genuine method behavior and candidate/evidence projection.",
+    "Connect formal workbench execute/status/stop/recovery and run ordinary genuine approved Agent Change with independent review, actual Skill/effect evidence and interruption/resumption through ReadyForDelivery; finish full S1 regressions."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/local-app/src/agent-workspace-tools-local.ts",
+      "bytes": 4665,
+      "sha256": "a09d4af0f5d12a1fe1334e8e8ec9edef9b40b3fafecdd6136b6d35fe037bbc1c"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 2603,
+      "sha256": "7f40a93e706b7bd979617650bca33afabc6f109cb9ed82a4ecbfa1e479c9ef0d"
+    },
+    {
+      "path": "packages/runtime-adapter/src/native.ts",
+      "bytes": 7638,
+      "sha256": "1afaabcbb53ef1b2004a1ce15b273ca7e1e3e3f593e253bdc003fbd237003af5"
+    },
+    {
+      "path": "packages/runtime-adapter/native/AgentWorkspaceTransport.cs",
+      "bytes": 13004,
+      "sha256": "e95848d42ba44e2379a658fecd71294a9f34d8d8d95cb6fcb879366c278b3e3c"
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-workspace-ipc.ts",
+      "bytes": 12612,
+      "sha256": "7235618c21db25ee407819cc79f083de512a3d871ae3db1c53a179547a9429cc"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-workspace-ipc-peer.mjs",
+      "bytes": 1734,
+      "sha256": "7c215ebcf45c7d5dcb010545529c00b3243b857e0e8334fa8123056f922f632f"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+      "bytes": 7639,
+      "sha256": "81c479dd2fdd41dad3c07a7c7defe1e6651f680c9c4014c6107efc273cebbc15"
+    },
+    {
+      "path": "packages/runtime-adapter/test/ipc-transport.test.ts",
+      "bytes": 13864,
+      "sha256": "459e403d78fac8c04c80e503ea377b9037145f790a617e3c1309448a0c1d6322"
+    },
+    {
+      "path": "packages/runtime-adapter/transport/agent-workspace-ipc-client.mjs",
+      "bytes": 8666,
+      "sha256": "9451302f92a21222dbf0c2e01c50db9f4f9d7009fa15d307e7a956d1af2f6568"
+    },
+    {
+      "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+      "bytes": 16918,
+      "sha256": "48e109ca18776fc033a0a912543536bba8d4e2bbad3eb8446587abbc2a543d44"
+    }
+  ]
+}

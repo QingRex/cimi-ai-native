@@ -1,6 +1,6 @@
 # CimiLoop 整体能力架构 v0.1
 
-> 2026-10-07 D-219–D-222：Human / Agent 已具独立当前授权及真实工作区文件宿主，共用原效果账本与暂存资源恢复；默认生产 Agent 准入仍未接通。认证 IPC / OpenCode、固定检查命令、SDK / 费用 / 物理配额与完整 S1 待完成；原生格式 10、242 Schema 和工具账本保持。见[Agent 文件效果与恢复边界](../implementation/CimiLoop-Agent工作区工具宿主与原始恢复-v0.1.md)。
+> 2026-10-07 D-219–D-223：Human / Agent 独立当前授权、真实文件宿主及原资源恢复已接通；新增 Windows 原进程 Agent 文件 IPC，共用原效果账本。实际 OpenCode / AppContainer 工具消费、固定检查命令、生产资格 / SDK / 费用 / 配额与完整 S1 待完成；格式 10、242 Schema 和原工具账本保持。见[原进程 IPC 及验证边界](../implementation/CimiLoop-Agent工作区原进程IPC-v0.1.md)。
 
 > 当前规则：2026-10-03 V1 实施基线。字段、命令、错误、迁移和任务统一以[可执行设计与实施计划](../implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准；本节给出本专项的当前职责。文档更新不代表功能已经实现。
 

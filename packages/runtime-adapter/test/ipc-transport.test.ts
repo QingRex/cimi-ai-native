@@ -93,7 +93,11 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("actual W
     const event = readFileSync(join(path, "stdout.raw"), "utf8").split(/\r?\n/).find(line => line.includes("ipc.module_canary"))!;
     expect(JSON.parse(event)).toMatchObject({ readable: true, write_denied: true, directory_write_denied: true });
     expect(digest(readFileSync(join(path, "sandbox", "transport", "provider.mjs")))).toEqual(ipcProbeModule().digest);
-    await delay(200); expect(await recoverProbeOperation(root, key)).toMatchObject({ outcome: "recovered", cleanup: { resources_disposed: true } });
+    // Runtime exit can precede native Job/Profile/module-ACE disposal. Require
+    // fresh guarded owner/resource proof instead of assuming a fixed delay.
+    let recovery = await recoverProbeOperation(root, key); const deadline = Date.now() + 8000;
+    while (recovery.outcome !== "recovered" && Date.now() < deadline) { await delay(100); recovery = await recoverProbeOperation(root, key); }
+    expect(recovery, `Owned module recovery: ${recovery.outcome}/${recovery.reason}`).toMatchObject({ outcome: "recovered", cleanup: { resources_disposed: true } });
   }, 30000);
   it("rejects another host process before reading a frame and refuses another AppContainer SID", async () => {
     const { adapter, key, path } = await start("hold", false, 20000); await until(() => observation(path).accepted_requests === 1);

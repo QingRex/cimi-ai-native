@@ -1,8 +1,10 @@
 import { resolve } from "node:path";
+import type { ChildProcess } from "node:child_process";
 import { isDeepStrictEqual } from "node:util";
 import { callerMatchesActor, type CallerContext } from "@cimiloop/kernel";
-import { openAgentWorkspaceToolHost, parseAgentWorkspaceToolScope, parseWorkspaceToolInvocation, type AgentWorkspaceToolScope } from "@cimiloop/runtime-adapter";
+import { AgentWorkspaceToolIpc, openAgentWorkspaceToolHost, parseAgentWorkspaceToolScope, parseWorkspaceToolInvocation, type AgentWorkspaceToolScope } from "@cimiloop/runtime-adapter";
 import type { LocalProject } from "./project.js";
+import type { AgentWorkspaceIpcEndpoint } from "@cimiloop/runtime-adapter";
 export type AgentWorkspaceToolLocalContext = Pick<LocalProject, "location"> & {
   caller: Extract<CallerContext, { kind: "agent" }>;
   store: Pick<LocalProject["store"], "getProject" | "getActor" | "getRun" | "getRuntimeRecord">;
@@ -23,6 +25,7 @@ const originalScope = (local: AgentWorkspaceToolLocalContext, runId: string): Ag
 // Trusted Agent composition only. CLI/workbench Human initialization never
 // selects this caller or installs the required live qualification/custody port.
 export class LocalAgentWorkspaceToolService {
+  private ipc?: Promise<AgentWorkspaceToolIpc>;
   private constructor(private readonly local: AgentWorkspaceToolLocalContext, private readonly scope: AgentWorkspaceToolScope,
     private readonly execution: Awaited<ReturnType<typeof openAgentWorkspaceToolHost>>) {}
   static async open(local: AgentWorkspaceToolLocalContext, runId: string): Promise<LocalAgentWorkspaceToolService> {
@@ -36,5 +39,11 @@ export class LocalAgentWorkspaceToolService {
     return this.execution.host.execute(input);
   }
   recover() { return this.execution.host.recover(); }
-  close() { return this.execution.host.close(); }
+  openIpc(supervisor: ChildProcess, originalSupervisor: AgentWorkspaceIpcEndpoint["supervisor"], originalPeer: AgentWorkspaceIpcEndpoint["peer"]) {
+    if (this.ipc) return Promise.reject(Error("Agent workspace IPC original peer already installed"));
+    if (!isDeepStrictEqual(originalScope(this.local, this.scope.run_id), this.scope)) return Promise.reject(Error("Agent workspace original scope changed"));
+    this.ipc = AgentWorkspaceToolIpc.open({ toolsDirectory: this.local.location.dataDirectory, scope: this.scope, supervisor, originalSupervisor, originalPeer,
+      execute: input => this.execute(input), cancel: () => this.execution.host.close() }); return this.ipc;
+  }
+  async close() { const channel = await this.ipc?.catch(() => undefined); await channel?.close(); await this.execution.host.close(); }
 }
