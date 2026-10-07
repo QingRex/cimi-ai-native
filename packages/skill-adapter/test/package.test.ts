@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createInternalId, type SkillImportSpec } from "@cimiloop/protocol/v2";
-import { packageGitSkill, verifySkillPackageBytes, parseSkillMethodInput, parseSkillMethodOutput, skillRegistration, skillInvocationPlan } from "../src/index.js";
+import { packageGitSkill, verifySkillPackageBytes, parseSkillMethodInput, parseSkillMethodOutput, skillRegistration, skillInvocationPlan, fixedMethodInvocationPlan } from "../src/index.js";
 
 describe("fixed Git skill packages and method outputs", () => {
   let root: string, spec: SkillImportSpec;
@@ -59,6 +59,19 @@ describe("fixed Git skill packages and method outputs", () => {
     expect(verify(result.package).source_digest).toEqual(result.source_digest);
     write("commit-message.txt", "x".repeat(300000)); git("commit", "--amend", "-F", join(root, "commit-message.txt")); spec.commit_id = git("rev-parse", "HEAD");
     expect(packed).toThrow("Skill commit limit");
+  });
+  it("pins explicit named requests, dependency names and every declarative resource without trusting a modified inspection", () => {
+    const verified = packed(), request = { format: "cimiloop/named-skill-method/1.0.0", invocation_key: "explicit_method", method_name: "grill-me", source_digest: verified.source_digest,
+      input: { purpose: "clarification", requirement: "Fixed", background: "Context", constraints: [] } };
+    const result = fixedMethodInvocationPlan(verified, request);
+    expect(result.profile.modules).toEqual([{ name: "grill-me", definition_path: "skill-source/grill-me/SKILL.md", dependencies: ["grilling"] }, { name: "grilling", definition_path: "skill-source/grilling/SKILL.md", dependencies: [] }]);
+    expect(result.profile.resources.map(resource => resource.path)).toContain("skill-source/grilling/references/format.md");
+    expect(result.profile.resources.map(resource => resource.path)).not.toContain("skill-source/grilling/scripts/untrusted.sh");
+    expect(JSON.parse(result.files[0]!.content)).toEqual(request); expect(result.prompt).toContain("invoke_skill");
+    expect(() => fixedMethodInvocationPlan(verified, { ...request, method_name: "grilling" })).toThrow("Fixed method request source or capability mismatch");
+    expect(() => fixedMethodInvocationPlan(verified, { ...request, source_digest: { algorithm: "sha256", value: "0".repeat(64) } })).toThrow();
+    const altered = structuredClone(verified); altered.package.files[0]!.content_base64 = Buffer.from("altered").toString("base64");
+    expect(() => fixedMethodInvocationPlan(altered, request)).toThrow();
   });
   it("rejects changed file bytes even when their content hash and size are recomputed", () => {
     const pkg = structuredClone(packed().package), file = pkg.files.find(item => item.path.endsWith("format.md"))!;

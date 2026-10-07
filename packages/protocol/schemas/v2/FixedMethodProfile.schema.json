@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "FixedMethodProfile.v2",
+  "type": "object",
+  "required": [
+    "format",
+    "invocation_key",
+    "source_digest",
+    "request_digest",
+    "entry_name",
+    "modules",
+    "resources"
+  ],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "cimiloop/fixed-method-adapter/1.0.0"
+    },
+    "invocation_key": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+    },
+    "source_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "request_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "entry_name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 64
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "dependencies",
+          "definition_path"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "maxLength": 64
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "maxLength": 64
+            },
+            "maxItems": 32,
+            "uniqueItems": true
+          },
+          "definition_path": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*(?:/[a-zA-Z0-9_-][a-zA-Z0-9_.-]*)*$",
+            "maxLength": 240
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 32
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "digest",
+          "kind"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*(?:/[a-zA-Z0-9_-][a-zA-Z0-9_.-]*)*$",
+            "maxLength": 240
+          },
+          "digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "request"
+              },
+              {
+                "type": "string",
+                "const": "input"
+              },
+              {
+                "type": "string",
+                "const": "definition"
+              },
+              {
+                "type": "string",
+                "const": "reference"
+              },
+              {
+                "type": "string",
+                "const": "artifact"
+              },
+              {
+                "type": "string",
+                "const": "artifact_index"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 3,
+      "maxItems": 32
+    }
+  },
+  "additionalProperties": false
+}

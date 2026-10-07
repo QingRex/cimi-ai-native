@@ -1,2 +1,4 @@
 # Skill schema references pin exact bytes across Windows and Unix checkouts.
 packages/protocol/schemas/v2/Skill*.schema.json text eol=lf
+packages/protocol/schemas/v2/FixedMethod*.schema.json text eol=lf
+packages/protocol/schemas/v2/NamedSkillMethod*.schema.json text eol=lf

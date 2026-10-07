@@ -1,0 +1,492 @@
+{
+  "format": "cimiloop/named-method-mapping-verification/1.0.0",
+  "decision": "D-213",
+  "date": "2026-10-07",
+  "base_commit": "79803c1",
+  "scope": "versioned named calls, complete fixed resources, explicit IPC projection and original-invocation replay with actual pinned OpenCode read effects; synthetic replies only",
+  "goal_complete": false,
+  "formal_execution_enabled": false,
+  "actual_skill_behavior_evaluated": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": "passed",
+    "affected_regression": {
+      "files": 10,
+      "tests": 158,
+      "passed": 158,
+      "failed": 0
+    },
+    "schemas": {
+      "baseline": 206,
+      "unchanged": 206,
+      "changed": [],
+      "added": [
+        "packages/protocol/schemas/v2/FixedMethodObservation.schema.json",
+        "packages/protocol/schemas/v2/FixedMethodProfile.schema.json",
+        "packages/protocol/schemas/v2/FixedMethodProjection.schema.json",
+        "packages/protocol/schemas/v2/NamedSkillMethodRequest.schema.json"
+      ]
+    },
+    "database": "unchanged format 9; existing Skill and Runtime qualification rules unchanged",
+    "delivery": {
+      "files": 9,
+      "links": 224,
+      "broken": [],
+      "baseline": {
+        "files": 715,
+        "bytes": 52378239,
+        "problems": []
+      }
+    }
+  },
+  "observations": [
+    {
+      "name": "matt-clarification",
+      "source_digest": {
+        "algorithm": "sha256",
+        "value": "f59f753f16a25d089441a5f8fca3e8c209fe8b84e1c5f19a316e73decc42aed2"
+      },
+      "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+      "method_name": "grill-me",
+      "operation_key": "matt_clarification_d213",
+      "request_digest": {
+        "algorithm": "sha256",
+        "value": "e5ddb45fabf302fc54633337a6c26499faabd3c23fd7fa07ef707f5013bb41e0"
+      },
+      "profile_digest": {
+        "algorithm": "sha256",
+        "value": "dfa92b669879b944482abe77575f14f5e0315dad352e779e3e4bbeb62e7dbe4e"
+      },
+      "resource_count": 4,
+      "observed_calls": 4,
+      "named_modules": [
+        "grill-me",
+        "grilling"
+      ],
+      "outcome": "Passed",
+      "adapter_status": "Succeeded",
+      "original_replay_verified": true,
+      "method_read_verified": true,
+      "skill_loader_verified": false,
+      "builtin_skill_qualified": false,
+      "behavior_qualified": false,
+      "formal_execution_enabled": false,
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "upstream_requests": 5,
+      "private_state_removed": true,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/result.json",
+          "bytes": 7228,
+          "sha256": "1a81bec4a354dddd8c3282459cb6ac537e6bf29f3b894a883b48cd0b0a98da2b"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/fixed-method-proof.json",
+          "bytes": 4055,
+          "sha256": "d969e1050542b49fafab6388af4245f5cf66d4a9884989b2acfad71dd936f662"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/named-invocation-owner.json",
+          "bytes": 277,
+          "sha256": "583788fe0a01752d60eb528f06ac08c3b77353c07e63af633700f06712906e38"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/named-invocation-replay.json",
+          "bytes": 1543,
+          "sha256": "1733fa5773a3b2a8e85d602755c70ccfeee301dcf6c9ee8a73280e8047302b1d"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/stdout.raw",
+          "bytes": 15972,
+          "sha256": "8c05901ac433e5ef40cc380d9fe6de572ace0b4452f07b1114dc807181d64915"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/native-proof.json",
+          "bytes": 115,
+          "sha256": "ea6a9d87304aa9c1b9da5c688e0fe72dcdff058fe307a199a9728f0246b6b714"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/native-ownership.json",
+          "bytes": 1104,
+          "sha256": "0f7a060c85eb386f7ab89c73401b42670d2740c9f300021ff7de325e40c32024"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/execution-policy-proof.json",
+          "bytes": 282,
+          "sha256": "2dcfd6b878f30ea218a08dc902c85d274fd9e73b1a181d3acf09721039389e34"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/conversation-host-proof.json",
+          "bytes": 2078,
+          "sha256": "56bf98bb4300760bcda77ff159ef6b4ca4c06da63bf2ac892a283195806d3694"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_clarification_d213/conversation-transport-proof.json",
+          "bytes": 1606,
+          "sha256": "2aef5939f3de51ff9b3b527e9ff2e930d7900dc6f3a6a6a3e7615e7d8c7f2026"
+        }
+      ]
+    },
+    {
+      "name": "matt-review",
+      "source_digest": {
+        "algorithm": "sha256",
+        "value": "2b4521ccb3592cad05254884918e3556f67d9b72b7bf9715da0124e607d6dccc"
+      },
+      "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+      "method_name": "code-review",
+      "operation_key": "matt_review_d213",
+      "request_digest": {
+        "algorithm": "sha256",
+        "value": "7708b1d8d210c821bb90af673ca185bf4511f7e046aa71f20580462396e007ba"
+      },
+      "profile_digest": {
+        "algorithm": "sha256",
+        "value": "896f6550ad09003368e3ef9a23fe77ba190159779a6b3a875d14ea586590ca5a"
+      },
+      "resource_count": 5,
+      "observed_calls": 5,
+      "named_modules": [
+        "code-review"
+      ],
+      "outcome": "Passed",
+      "adapter_status": "Succeeded",
+      "original_replay_verified": true,
+      "method_read_verified": true,
+      "skill_loader_verified": false,
+      "builtin_skill_qualified": false,
+      "behavior_qualified": false,
+      "formal_execution_enabled": false,
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "upstream_requests": 6,
+      "private_state_removed": true,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/result.json",
+          "bytes": 7845,
+          "sha256": "794093c24f2b27c5dc515501f0c7a8079ec72c077feb69be26971fe5904e3754"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/fixed-method-proof.json",
+          "bytes": 4996,
+          "sha256": "aea23249e6c59acd6bd444213a39c19dc98b389c14ef6c9750f3c0b950018ee3"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/named-invocation-owner.json",
+          "bytes": 277,
+          "sha256": "41e40ebec7699c58284f152c77c63c69fb194fc6450429a5966d556de049851b"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/named-invocation-replay.json",
+          "bytes": 1543,
+          "sha256": "00c1e66ee808f0012019115be403bcce99b7df852e75597faf307b93c9f81f4d"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/stdout.raw",
+          "bytes": 31323,
+          "sha256": "b7b601520d116cc366ca0affab601e72f64c4e3a9af9b733e44ae34a2700b364"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/native-proof.json",
+          "bytes": 115,
+          "sha256": "148220c9fa317ed943d5cee9d24bb9a9772d631b5f61dc6e30c9bc859bfbd388"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/native-ownership.json",
+          "bytes": 1096,
+          "sha256": "2161f499c9abf0fec171fedf3e5bdd6c112926cc1de7a54fe6e26a9d47ed17c2"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/execution-policy-proof.json",
+          "bytes": 275,
+          "sha256": "0976cd105ea311394a862263117c473e4568536793deb817e562cf2e517299bc"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/conversation-host-proof.json",
+          "bytes": 2256,
+          "sha256": "c71916752e16dadd1755e720d02d818f2184754464e0eeb3cef33ffb185dc05a"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/matt_review_d213/conversation-transport-proof.json",
+          "bytes": 1792,
+          "sha256": "09ed76d1ea75b60f6012f5a083efc83dba516686acf5a095cf455bc67cd64f65"
+        }
+      ]
+    },
+    {
+      "name": "superpowers-verification",
+      "source_digest": {
+        "algorithm": "sha256",
+        "value": "ca2e6b828d23532ebc5646d89a83f2162106b95bbc3b90606ab41d332c8c9a11"
+      },
+      "commit": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+      "method_name": "verification-before-completion",
+      "operation_key": "superpowers_verification_d213",
+      "request_digest": {
+        "algorithm": "sha256",
+        "value": "2b0bba50af2c6812ed8ac669dfd1b9327d790c78344777640782ef424699b80f"
+      },
+      "profile_digest": {
+        "algorithm": "sha256",
+        "value": "3ae5bcfff75200ab82782454fbedeaf1064680af04d041a3846973b7e92d22e1"
+      },
+      "resource_count": 5,
+      "observed_calls": 5,
+      "named_modules": [
+        "verification-before-completion"
+      ],
+      "outcome": "Passed",
+      "adapter_status": "Succeeded",
+      "original_replay_verified": true,
+      "method_read_verified": true,
+      "skill_loader_verified": false,
+      "builtin_skill_qualified": false,
+      "behavior_qualified": false,
+      "formal_execution_enabled": false,
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "upstream_requests": 6,
+      "private_state_removed": true,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/result.json",
+          "bytes": 7999,
+          "sha256": "8addeecc68d2b5793639b0f591094eb8783daa00ccf761f15915522ffa95864a"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/fixed-method-proof.json",
+          "bytes": 5066,
+          "sha256": "a366cf09bb1a2428ad698577ec0c5ffac8df4d59102c6869e28bd4dda919347a"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/named-invocation-owner.json",
+          "bytes": 277,
+          "sha256": "c3dabc81181db1dd931ba5c8e4b8e8fc602f367495128fa69b7bcfd4dd7a8d84"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/named-invocation-replay.json",
+          "bytes": 1543,
+          "sha256": "e205fe28e80bac1a1354631791a6a692ed603cd047c0d6f3fd840c182aaebd40"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/stdout.raw",
+          "bytes": 25364,
+          "sha256": "e6d96b128df0de7de5c9840df0845a95aba84b064d5f667d1a9269fc6a7a7286"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/native-proof.json",
+          "bytes": 115,
+          "sha256": "4e5a305e7cf1df86324b9a001e2039f467b79568a1904d80fa152cc11df092ae"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/native-ownership.json",
+          "bytes": 1109,
+          "sha256": "135ce8a61285c843a057510f01a026a5f8bca3f37bd3e970d50e6791f6f487b4"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/execution-policy-proof.json",
+          "bytes": 288,
+          "sha256": "23b41266c986e56ade68c2e5753a18dde0c20fd33b5438599c5c4df03f133f0d"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/conversation-host-proof.json",
+          "bytes": 2269,
+          "sha256": "d07a1bde28e348e75606e187b81d761a0201837088cc9ea5c200c1b71b805a09"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/upstream-evidence/superpowers_verification_d213/conversation-transport-proof.json",
+          "bytes": 1805,
+          "sha256": "d21260f846a81af9123e6c95c5d73828057deaa10ef00a5c928c6498e7e3595e"
+        }
+      ]
+    }
+  ],
+  "initial_native_counterevidence": [
+    {
+      "nonce": "1196bfbc-c7d3-46c4-9129-c63eb6ab8480",
+      "outcome": "Failed",
+      "adapter_status": "Unknown",
+      "transport_failure": null,
+      "credentials_read": 0,
+      "external_model_requests": 0,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/1196bfbc-c7d3-46c4-9129-c63eb6ab8480/result.json",
+          "bytes": 5193,
+          "sha256": "dedcfa099ddebf4be0008424058d0d7d13e1f1a12f13949227efc2e999bf6987"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/1196bfbc-c7d3-46c4-9129-c63eb6ab8480/fixed-method-proof.json",
+          "bytes": 1256,
+          "sha256": "933a0e5bcea663e57443619bede8f48963dab7cc354a0065a3afd431bb55f8d9"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/1196bfbc-c7d3-46c4-9129-c63eb6ab8480/stdout.raw",
+          "bytes": 268,
+          "sha256": "ef1a6e336c579959e11e80596864b974338de9bb818222821b21112e5649a9cb"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/1196bfbc-c7d3-46c4-9129-c63eb6ab8480/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/1196bfbc-c7d3-46c4-9129-c63eb6ab8480/native-proof.json",
+          "bytes": 115,
+          "sha256": "25621e5f1f76c5b47eb854d71fbb12a9364f12ab80426548e52fce5c7e38aa75"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/1196bfbc-c7d3-46c4-9129-c63eb6ab8480/native-ownership.json",
+          "bytes": 1112,
+          "sha256": "665a22d1ec30681edab87b00f298cef3e492e1910f026e56f7d3bc0812c6bbba"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/1196bfbc-c7d3-46c4-9129-c63eb6ab8480/execution-policy-proof.json",
+          "bytes": 279,
+          "sha256": "c84a419914c91a7cf23e052c41638a33101a634b9b89ac8070cf8476aa8e01a7"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/1196bfbc-c7d3-46c4-9129-c63eb6ab8480/conversation-host-proof.json",
+          "bytes": 1323,
+          "sha256": "81916fb390579de0a3ef2a7da90fad68933e46557239b6f3c45ca0133efd6de1"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/1196bfbc-c7d3-46c4-9129-c63eb6ab8480/conversation-transport-proof.json",
+          "bytes": 740,
+          "sha256": "4fdd41e67dce1e745954e5ed8b9d5cf6549c87ac54158ab6972d525eabbf68ca"
+        }
+      ]
+    },
+    {
+      "nonce": "595be7e4-6e89-4aca-ac92-68c52b472982",
+      "outcome": "Failed",
+      "adapter_status": "Unknown",
+      "transport_failure": "conversation_reply_identity_unproven",
+      "credentials_read": 0,
+      "external_model_requests": 0,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/595be7e4-6e89-4aca-ac92-68c52b472982/result.json",
+          "bytes": 5223,
+          "sha256": "8876b77b023a43cb6fda78cc38a36565e65feac05d134daeb4579703689fef9e"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/595be7e4-6e89-4aca-ac92-68c52b472982/fixed-method-proof.json",
+          "bytes": 1256,
+          "sha256": "b17c319ca04b6fdf752ba63897727d7f89b01802085fc02ace259f166889b162"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/595be7e4-6e89-4aca-ac92-68c52b472982/stdout.raw",
+          "bytes": 272,
+          "sha256": "e602223771e4a087040ebfb58cafb962b8595da7af317511f28df19f096beac5"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/595be7e4-6e89-4aca-ac92-68c52b472982/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/595be7e4-6e89-4aca-ac92-68c52b472982/native-proof.json",
+          "bytes": 114,
+          "sha256": "490e66daa25db299d4ffa5d4a65a88944d3863344f18c1146bc355d15ce383a5"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/595be7e4-6e89-4aca-ac92-68c52b472982/native-ownership.json",
+          "bytes": 1112,
+          "sha256": "e80bfefa33d3d8a567c69526985d134edb7597cae676cec35a5f426426e106d5"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/595be7e4-6e89-4aca-ac92-68c52b472982/execution-policy-proof.json",
+          "bytes": 278,
+          "sha256": "3b32eaf8248665df166f8da0701bd3345f92cc2af2af87507ccfd9fe3ed6bb2d"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/595be7e4-6e89-4aca-ac92-68c52b472982/conversation-host-proof.json",
+          "bytes": 1323,
+          "sha256": "af19fd6afafa1e9b94a7abbd95b4d3619a205fd5bf25821ac802306c2b1f2824"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-named/initial-counterevidence/595be7e4-6e89-4aca-ac92-68c52b472982/conversation-transport-proof.json",
+          "bytes": 772,
+          "sha256": "26e086d51de044b748f75db5d5bad480b90d6c8eb44a430263e4e8e757f35106"
+        }
+      ]
+    }
+  ],
+  "initial_failures": [
+    "Prototype comparison incorrectly distinguished safe null-prototype JSON from ordinary JSON; fixed at semantic comparison boundary.",
+    "A new UUID format was not configured in the existing validator; replaced by the established bounded UUID pattern.",
+    "First actual SDK consumer rejected mixed request and receipt identity, retaining Unknown; explicit projection and pinned transport validation added.",
+    "The native transport initially refused the extra projection field; added an explicit method profile branch while preserving the old branch."
+  ],
+  "evidence": [
+    {
+      "path": ".cimiloop/skill-v1-21-named/regression-final.json",
+      "bytes": 60247,
+      "sha256": "0bad54290a506a0328a5838d47fe5601a2ca9e57ca627c507ba39ac89affb8f2"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-named/actual-named-result.json",
+      "bytes": 11919,
+      "sha256": "38bd2ee2f379fc5fe9690c06c43923bcb8c993f3ed7bf0220d17ca1cbba41f79"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-named/schema-audit.json",
+      "bytes": 356,
+      "sha256": "3d2197a19fdcdcab9a58dbc23bfd561a2bb1741b084c42b8728158bf518f99b0"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-named/native-target-initial.json",
+      "bytes": 3937,
+      "sha256": "6d11a96ae991cec8943b1c07f0a238cf1e90e6d5a1b4038bbf9157d88ce77662"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-named/native-projection.json",
+      "bytes": 3794,
+      "sha256": "8c967c1dee3e7c2e6831a5bac03dbaa3fae00561608390fe6f66cbbeb0794116"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-named/native-method-framing.json",
+      "bytes": 3524,
+      "sha256": "42a440954fc232cab532711e87e8d615cd78266d4aeb1a4aa58c680023353c54"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-named/native-method-fixed.json",
+      "bytes": 2741,
+      "sha256": "fe2770709870c5518bed59a05754a5bc66f2abbdf14d12eb98ce1c30bbd6113e"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-named/contract-target.json",
+      "bytes": 6267,
+      "sha256": "2274abe7b3247cdcce32da5b881991510110cc71d1771a4ece863bd9877ff579"
+    }
+  ],
+  "limitations": [
+    "Adapter Succeeded and native rehearsal Passed do not prove real model behavior, builtin Skill completion or formal execution admission.",
+    "The public host permits one read per resource, no actual commands or delegation, at most seven resources and eight upstream requests; larger or truncated resources are rejected.",
+    "Existing Skill Provider assessment does not qualify this new projection; formal Native records, fixed Context/Run bindings and a versioned qualification rule remain pending.",
+    "Human clarification rounds, independent actual review, required harness abilities, Matt/Superpowers comparison, Runtime admission and the complete S1 ordinary Change remain pending."
+  ],
+  "sources": [
+    "https://github.com/anomalyco/opencode/blob/v1.18.34/packages/opencode/src/tool/read.ts"
+  ]
+}

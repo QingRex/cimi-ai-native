@@ -154,3 +154,5 @@ npx pnpm@12.4.2 --filter @cimiloop/demo-web dev
 M0 已补齐 CLI 机器输出 Schema、JSON Schema 制品同步与全量注册、共享 Store Port 契约，以及事务回滚、幂等重放、双客户端 Revision 竞争、响应丢失恢复、数据库重开与 Outbox Lease 恢复测试，并已在 Node.js 24.15.0 + pnpm 12.4.2 基线上完成复验。M0 现已冻结；原 M1 的约定、计划、风险、决定和知识影响进入 S1 当前任务。M0 实现边界见 [M0 实施架构](docs/implementation/2026-09-19-cimiloop-m0实施架构-v0.1.md)。
 
 2026-10-07 D-212验证固定方法读取适配：三个上游包的全部声明定义经实际OpenCode只读效果核对通过，保持无网络与单进程隔离；仍为合成读取演练，不是内置Skill成功或完整方法调用。见[适配验证](docs/implementation/CimiLoop-固定方法读取适配验证-v0.1.md)。
+
+2026-10-07 D-213实现版本化命名方法请求、完整固定资源、显式IPC投影及原调用重放；三个固定上游包经实际OpenCode读取核对通过，保持无网络和单进程隔离。合成回复尚不证明真实方法行为，未批准技能资格或正式Task执行。见[命名调用与效果映射](docs/implementation/CimiLoop-命名方法调用与效果映射-v0.1.md)。下一步接正式Context / Run的固定Binding、调用与结果，并完成真实宿主 / 行为评测及Runtime的权限、效果、费用与恢复准入。

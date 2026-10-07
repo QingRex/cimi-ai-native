@@ -294,7 +294,7 @@ partial class AppContainer {
       argvStart+=2;
     }
     ownedNetworkMode=networkMode; SaveOwnership();
-    string ipcOperation=null,gatewayPolicy=null,conversationPolicy=null;
+    string ipcOperation=null,gatewayPolicy=null,conversationPolicy=null,conversationMethodProfile=null;
     if(args.Length>argvStart+1&&args[argvStart]=="--ipc-probe") {
       if(!policySupplied||networkMode!="deny_all"||ownershipPath==null) return 2;
       ipcOperation=args[argvStart+1]; argvStart+=2;
@@ -302,6 +302,10 @@ partial class AppContainer {
     else if(args.Length>argvStart+2&&args[argvStart]=="--ipc-gateway") {
       if(!policySupplied||networkMode!="deny_all"||ownershipPath==null) return 2;
       ipcOperation=args[argvStart+1]; gatewayPolicy=args[argvStart+2]; argvStart+=3;
+    }
+    else if(args.Length>argvStart+3&&args[argvStart]=="--ipc-conversation-method") {
+      if(!policySupplied||networkMode!="deny_all"||ownershipPath==null||args[1]!="read") return 2;
+      ipcOperation=args[argvStart+1]; conversationPolicy=args[argvStart+2]; conversationMethodProfile=args[argvStart+3]; argvStart+=4;
     }
     else if(args.Length>argvStart+2&&args[argvStart]=="--ipc-conversation") {
       if(!policySupplied||networkMode!="deny_all"||ownershipPath==null||args[1]!="read") return 2;
@@ -323,7 +327,7 @@ partial class AppContainer {
         ownedTransportGranted=Directory.Exists(transport); ownedTransportWriteAttributes=ownedTransportGranted; SaveOwnership();
         if(ownedTransportGranted) Grant(transport,principal,FileSystemRights.ReadAndExecute|FileSystemRights.WriteAttributes,true,true);
         ipcPipe=new ProbePipe(ownershipNonce,ipcOperation,principal,root,Path.GetFullPath(args[5]));
-        if(conversationPolicy!=null) ipcPipe.EnableConversation(root,ownershipNonce,conversationPolicy);
+        if(conversationPolicy!=null) ipcPipe.EnableConversation(root,ownershipNonce,conversationPolicy,conversationMethodProfile);
         if(gatewayPolicy!=null) {
           ipcPipe.EnableGateway(root,ownershipNonce,gatewayPolicy);
           if(args.Length>argvStart&&args[argvStart]=="--gateway-client") Environment.SetEnvironmentVariable("CIMILOOP_GATEWAY_PRIVATE_CANARY",Path.Combine(Path.GetDirectoryName(root),"gateway","private-canary.json"));

@@ -1,14 +1,16 @@
-import { mkdtempSync, existsSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { expect, it } from "vitest";
-import { runOpenCodeSkillLoaderProbe, runOpenCodeFixedMethodReadProbe } from "../src/gateway-conversation-probe.js";
+import { runOpenCodeSkillLoaderProbe, runOpenCodeFixedMethodReadProbe, runOpenCodeNamedMethodProbe } from "../src/gateway-conversation-probe.js";
 import { PublicConversationBridge } from "../src/gateway-conversation-bridge.js";
 import type { GatewayCreditLedger } from "../src/gateway-credit.js";
 import type { GatewayConversationHostRehearsal } from "../src/gateway-host.js";
 import { randomUUID } from "node:crypto";
 import { digest, readJson } from "../src/files.js";
 import type { ProbeOperationInput } from "../src/operations.js";
+import { fixedMethodFixture } from "./fixed-method-fixture.js";
+import type { FixedMethodObservation } from "@cimiloop/protocol/v2";
 
 it.runIf(process.platform === "win32" && process.arch === "x64")("retains actual OpenCode 1.18.34 Skill loading counterevidence under the subprocess boundary without claiming successful behavior", async () => {
   const root = mkdtempSync(join(tmpdir(), "cimiloop-skill-loader-test-")), binary = join(process.env.APPDATA!, "npm", "node_modules", "opencode-ai", "bin", "opencode.exe");
@@ -34,6 +36,35 @@ it.runIf(process.platform === "win32" && process.arch === "x64")("retains actual
     }
   }
 }, 60000);
+
+it.runIf(process.platform === "win32" && process.arch === "x64")("maps named entry, dependency, request and reference reads to actual SDK call IDs and replays the original invocation without another process", async () => {
+  const root = mkdtempSync(join(tmpdir(), "cimiloop-named-method-test-")), binary = join(process.env.APPDATA!, "npm", "node_modules", "opencode-ai", "bin", "opencode.exe"), fixture = fixedMethodFixture();
+  let result: Awaited<ReturnType<typeof runOpenCodeNamedMethodProbe>> | undefined;
+  try {
+    result = await runOpenCodeNamedMethodProbe({ root, binary, input: fixture.operation });
+    expect(result).toMatchObject({ outcome: "Passed", method_read_verified: true, skill_loader_verified: false, rehearsal_kind: "synthetic_named_method", formal_execution_enabled: false, actual_credentials_read: 0, external_model_requests: 0, private_state_removed: true, operation_key: fixture.request.invocation_key });
+    const proof = readJson(join(result.path, "fixed-method-proof.json")) as FixedMethodObservation;
+    expect(proof).toMatchObject({ status: "Succeeded", request_digest: fixture.profile.request_digest, builtin_skill_qualified: false, behavior_qualified: false, formal_execution_enabled: false });
+    expect(proof.calls).toHaveLength(fixture.files.length); expect(proof.calls.every(call => call.status === "observed" && !!call.output_digest)).toBe(true);
+    expect(proof.calls.filter(call => call.function_name === "invoke_skill").map(call => call.argument)).toEqual(["entry", "dependency"]);
+    const raw = readFileSync(join(result.path, "stdout.raw"), "utf8"), before = digest(raw);
+    for (const call of proof.calls) expect(raw).toContain(`"callID":"${call.call_id}"`);
+    expect(raw).not.toContain('"tool":"skill"'); expect(result.host.budget).toMatchObject({ completed: 6, unknown: 0 });
+    expect(await runOpenCodeNamedMethodProbe({ root, binary, input: fixture.operation })).toEqual(result);
+    expect(digest(readFileSync(join(result.path, "stdout.raw")))).toEqual(before);
+    await expect(runOpenCodeNamedMethodProbe({ root, binary, input: { ...fixture.operation, prompt: "Conflicting method operation" } })).rejects.toThrow("named_method_original_evidence_conflict");
+    writeFileSync(join(result.path, "stdout.raw"), raw + "tampered");
+    await expect(runOpenCodeNamedMethodProbe({ root, binary, input: fixture.operation })).rejects.toThrow("named_method_original_evidence_conflict");
+    writeFileSync(join(result.path, "stdout.raw"), raw);
+    rmSync(join(result.path, "named-invocation-replay.json"));
+    await expect(runOpenCodeNamedMethodProbe({ root, binary, input: fixture.operation })).rejects.toThrow("named_method_original_completion_unproven");
+    expect(digest(readFileSync(join(result.path, "stdout.raw")))).toEqual(before);
+  } finally {
+    if (result?.outcome === "Passed" && (readJson(join(result.path, "native-ownership.json")) as { resources_disposed: boolean }).resources_disposed) {
+      if (dirname(root) !== resolve(tmpdir()) || !basename(root).startsWith("cimiloop-named-method-test-")) throw new Error("Unsafe named method cleanup"); rmSync(root, { recursive: true, force: true });
+    }
+  }
+}, 90000);
 
 it.each(["../secret", "public.txt", "skill-source/undeclared/SKILL.md"])("refuses undeclared method read path %s before creating bridge artifacts", path => {
   const root = join(tmpdir(), "cimiloop-method-path-" + randomUUID());

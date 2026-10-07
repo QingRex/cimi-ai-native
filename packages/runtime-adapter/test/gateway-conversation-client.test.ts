@@ -8,6 +8,7 @@ import { prepareGatewayConversation, parseGatewayConversation } from "../src/gat
 const client = await import(new URL("../transport/opencode-conversation-probe.mjs", import.meta.url).href) as {
   conversationJson: (value: string) => unknown; conversationMessages: (value: unknown) => Record<string, unknown>[]; conversationTools: (value: unknown) => Record<string, unknown>[];
   exchangeConversationFrame: (pipe: string, request: Record<string, unknown>, signal?: AbortSignal) => Promise<Record<string, unknown>>;
+  validateConversationReply: (reply: unknown, request: unknown, requestDigest: string, fixedMethod?: unknown) => unknown;
   createCimiConversationProbe: (options: Record<string, unknown>) => { languageModel: (name: string) => { doGenerate: (input: Record<string, unknown>) => Promise<Record<string, unknown>>; doStream: (input: Record<string, unknown>) => Promise<{ stream: ReadableStream<Record<string, unknown>> }> } };
 };
 const sdkTool = () => ({ type: "function", name: "read", description: "Public read fixture", inputSchema: { type: "object", properties: { filePath: { type: "string" } }, required: ["filePath"], additionalProperties: false } });
@@ -58,6 +59,22 @@ const fixture = async (mode = "valid") => {
   return { pipe, requests, connections: () => connections, close: () => new Promise<void>(resolve => server.close(() => resolve())) };
 };
 describe("independent tool IPC consumer", () => {
+  it("retains the upstream receipt and checks the explicit method projection against the pinned binding and SDK reply", () => {
+    const r = request(), bytes = Buffer.from(JSON.stringify(r)), value = reply(r, bytes, true), fixedMethod = { format: "cimiloop/fixed-method-transport/1.0.0", invocation_key: "fixture", source_digest: "a".repeat(64), request_digest: "b".repeat(64), profile_digest: "c".repeat(64) };
+    const upstreamDigest = "d".repeat(64), projection = { format: "cimiloop/fixed-method-projection/1.0.0", invocation_key: "fixture",
+      source_digest: { algorithm: "sha256", value: fixedMethod.source_digest }, request_digest: { algorithm: "sha256", value: fixedMethod.request_digest }, profile_digest: { algorithm: "sha256", value: fixedMethod.profile_digest },
+      sdk_input_digest: { algorithm: "sha256", value: value.response.input_digest }, upstream_input_digest: { algorithm: "sha256", value: upstreamDigest },
+      upstream_response_digest: { algorithm: "sha256", value: value.response.response_digest }, mapped_response_digest: digest(JSON.stringify(value.response)) };
+    const named = { ...value, method_projection: projection, receipt: { ...value.receipt, request_digest: digest(JSON.stringify({ request_id: r.request_id, budget_key: "public_probe", input_digest: upstreamDigest, input_tokens: r.input_tokens, output_tokens: r.max_output_tokens })).value } };
+    expect(client.validateConversationReply(named, r, digest(bytes).value, fixedMethod)).toEqual(named);
+    expect(() => client.validateConversationReply(named, r, digest(bytes).value)).toThrow("conversation_response_mismatch");
+    expect(() => client.validateConversationReply(value, r, digest(bytes).value, fixedMethod)).toThrow("conversation_method_projection_mismatch");
+    expect(() => client.validateConversationReply({ ...named, receipt: value.receipt }, r, digest(bytes).value, fixedMethod)).toThrow("conversation_response_mismatch");
+    for (const field of ["source_digest", "request_digest", "profile_digest", "sdk_input_digest", "upstream_response_digest", "mapped_response_digest"] as const) {
+      expect(() => client.validateConversationReply({ ...named, method_projection: { ...projection, [field]: { algorithm: "sha256", value: "e".repeat(64) } } }, r, digest(bytes).value, fixedMethod)).toThrow("conversation_method_projection_mismatch");
+    }
+    expect(() => client.validateConversationReply({ ...named, method_projection: { ...projection, formal_execution_enabled: true } }, r, digest(bytes).value, fixedMethod)).toThrow();
+  });
   it("accepts fragmented replies only after terminal EOF and binds the actual wire digest and receipt", async () => {
     const f = await fixture(); try { expect(await client.exchangeConversationFrame(f.pipe, request())).toMatchObject({ outcome: "completed", response: { finish_reason: "tool_calls", tool_execution_authorized: false }, receipt: { held_micro_units: 46000000 } }); } finally { await f.close(); }
   });

@@ -98,3 +98,5 @@ Draft、IntentReady、Executing、ReadyForDelivery、Completed、Terminated 表�
 2026-10-07 D-211已接通Skill专用原生证据、评测及固定Runtime的探针Binding，格式9支持显式1–8迁移；三个固定上游包的实际OpenCode加载均保留子进程受限失败证据。真实技能方法、正式Context / Run与V1-22行为对照仍待完成，S1未退出。见[实现与兼容缺项](docs/implementation/CimiLoop-技能证据评测与Runtime绑定-v0.1.md)。下一步实现不依赖任意子进程的固定技能加载适配及真实澄清 / 独立评审宿主，同时继续正式Runtime权限、效果、费用与恢复准入。
 
 2026-10-07 D-212验证固定方法读取适配：三个上游包的全部声明定义经实际OpenCode只读效果核对通过，保持无网络与单进程隔离；仍为合成读取演练，不是内置Skill成功或完整方法调用。见[适配验证](docs/implementation/CimiLoop-固定方法读取适配验证-v0.1.md)。
+
+2026-10-07 D-213实现版本化命名方法请求、完整固定资源、显式IPC投影及原调用重放；三个固定上游包经实际OpenCode读取核对通过，保持无网络和单进程隔离。合成回复尚不证明真实方法行为，未批准技能资格或正式Task执行。见[命名调用与效果映射](docs/implementation/CimiLoop-命名方法调用与效果映射-v0.1.md)。下一步接正式Context / Run的固定Binding、调用与结果，并完成真实宿主 / 行为评测及Runtime的权限、效果、费用与恢复准入。

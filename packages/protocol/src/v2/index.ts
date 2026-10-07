@@ -20,6 +20,7 @@ import * as providerAssessment from "./provider-assessment.js";
 import * as toolAuthority from "./tool-authority.js";
 import * as skills from "./skills.js";
 import * as skillProbe from "./skill-probe.js";
+import * as fixedMethod from "./fixed-method.js";
 import { Type, type TSchema } from "typebox";
 
 export * from "../ids.js";
@@ -46,12 +47,16 @@ export * from "./provider-assessment.js";
 export * from "./tool-authority.js";
 export * from "./skills.js";
 export * from "./skill-probe.js";
+export * from "./fixed-method.js";
 
 export const protocolSchemas: Readonly<Record<string, TSchema>> = {
   SkillImportSpec: skills.SkillImportSpecSchema, SkillPackage: skills.SkillPackageSchema,
   SkillPackageReference: skills.SkillPackageReferenceSchema,
   SkillPackageInspectionResult: skills.SkillPackageInspectionResultSchema,
   SkillMethodInput: skills.SkillMethodInputSchema, SkillMethodOutput: skills.SkillMethodOutputSchema,
+  NamedSkillMethodRequest: fixedMethod.NamedSkillMethodRequestSchema, FixedMethodProfile: fixedMethod.FixedMethodProfileSchema,
+  FixedMethodObservation: fixedMethod.FixedMethodObservationSchema,
+  FixedMethodProjection: fixedMethod.FixedMethodProjectionSchema,
   ToolAuthorityRequest: toolAuthority.ToolAuthorityRequestSchema,
   ToolAuthorityAssessment: toolAuthority.ToolAuthorityAssessmentSchema,
   RuntimeGatewayNetworkProbeResult: gatewayNetwork.RuntimeGatewayNetworkProbeResultSchema,

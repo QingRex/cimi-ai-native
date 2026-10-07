@@ -124,14 +124,24 @@ export function conversationTools(input) {
 export const conversationWireDigest = request => sha(JSON.stringify({ model: "glm-5.3", request_id: request.request_id, messages: request.messages,
   max_tokens: request.max_output_tokens, stream: request.response_mode === "sse", n: 1,
   ...(request.tools.length ? { tools: request.tools, tool_choice: "auto", tool_stream: request.response_mode === "sse" } : {}) }));
-export function validateConversationReply(value, request, requestDigest) {
-  if (!fields(value, ["format", "scope", "operation_key", "request_id", "request_digest", "policy_digest", "outcome", "response", "receipt", "reason", "replay", "formal_execution_enabled"]) ||
+export function validateConversationReply(value, request, requestDigest, fixedMethod) {
+  if (!fields(value, ["format", "scope", "operation_key", "request_id", "request_digest", "policy_digest", "outcome", "response", "receipt", "reason", "replay", "formal_execution_enabled"], fixedMethod ? ["method_projection"] : []) ||
     value.format !== "cimiloop/model-conversation-reply/1.0.0" || value.scope !== "isolated_conversation_rehearsal" || value.operation_key !== request.operation_key || value.request_id !== request.request_id ||
     value.request_digest !== requestDigest || value.policy_digest !== request.policy_digest || typeof value.replay !== "boolean" || value.formal_execution_enabled !== false) deny("conversation_response_mismatch");
   if (value.outcome === "denied") {
     if (value.response !== null || value.receipt !== null || typeof value.reason !== "string" || !/^[a-z_]{1,96}$/.test(value.reason)) deny("conversation_response_mismatch"); deny(value.reason);
   }
   const r = value.response, receipt = value.receipt, usage = r?.usage;
+  let creditInputDigest = r?.input_digest;
+  if (fixedMethod) {
+    const p = value.method_projection, d = value => fields(value, ["algorithm", "value"]) && value.algorithm === "sha256" && hash(value.value);
+    if (!fields(fixedMethod, ["format", "invocation_key", "source_digest", "request_digest", "profile_digest"]) || fixedMethod.format !== "cimiloop/fixed-method-transport/1.0.0" || fixedMethod.invocation_key !== request.operation_key ||
+      !fields(p, ["format", "invocation_key", "source_digest", "request_digest", "profile_digest", "sdk_input_digest", "upstream_input_digest", "mapped_response_digest", "upstream_response_digest"]) || p.format !== "cimiloop/fixed-method-projection/1.0.0" || p.invocation_key !== request.operation_key ||
+      ["source_digest", "request_digest", "profile_digest"].some(key => !hash(fixedMethod[key]) || !d(p[key]) || p[key].value !== fixedMethod[key]) ||
+      ["sdk_input_digest", "upstream_input_digest", "mapped_response_digest", "upstream_response_digest"].some(key => !d(p[key])) ||
+      p.sdk_input_digest.value !== conversationWireDigest(request) || p.mapped_response_digest.value !== sha(JSON.stringify(r)) || p.upstream_response_digest.value !== r?.response_digest) deny("conversation_method_projection_mismatch");
+    creditInputDigest = p.upstream_input_digest.value;
+  }
   if (value.outcome !== "completed" || value.reason !== null || !fields(r, ["profile", "request_id", "input_digest", "response_digest", "text", "tool_calls", "finish_reason", "usage", "thinking_usage_verified", "actual_cost_known", "billing_admission_ready", "tool_execution_authorized"]) ||
     r.profile !== "cimiloop/gateway-conversation/1.0.0" || r.request_id !== request.request_id || r.input_digest !== conversationWireDigest(request) || !hash(r.response_digest) ||
     r.text !== null && typeof r.text !== "string" || !Array.isArray(r.tool_calls) || r.tool_calls.length > 32 || !["stop", "length", "tool_calls"].includes(r.finish_reason) ||
@@ -139,7 +149,7 @@ export function validateConversationReply(value, request, requestDigest) {
     !fields(usage, ["input_tokens", "output_tokens", "total_tokens"]) || !integer(usage.input_tokens, request.input_tokens) || !integer(usage.output_tokens, request.max_output_tokens) || usage.total_tokens !== usage.input_tokens + usage.output_tokens ||
     !fields(receipt, ["format", "scope", "unit", "request_id", "request_digest", "held_micro_units", "rate_digest", "response_digest", "input_tokens", "output_tokens", "actual_cost_known", "admission_ready"]) ||
     receipt.format !== "cimiloop/gateway-credit-receipt/1.0.0" || receipt.scope !== "credit_budget_rehearsal" || receipt.unit !== "ZHIPU_CODING_PLAN_CREDIT" || receipt.request_id !== request.request_id ||
-    receipt.request_digest !== sha(JSON.stringify({ request_id: request.request_id, budget_key: "public_probe", input_digest: r.input_digest, input_tokens: request.input_tokens, output_tokens: request.max_output_tokens })) ||
+    receipt.request_digest !== sha(JSON.stringify({ request_id: request.request_id, budget_key: "public_probe", input_digest: creditInputDigest, input_tokens: request.input_tokens, output_tokens: request.max_output_tokens })) ||
     !hash(receipt.rate_digest) || receipt.response_digest !== r.response_digest || receipt.input_tokens !== usage.input_tokens || receipt.output_tokens !== usage.output_tokens ||
     receipt.held_micro_units !== Math.ceil((request.input_tokens * 690 + request.max_output_tokens * 2400) / 1000000) * 1000000 || receipt.actual_cost_known !== false || receipt.admission_ready !== false) deny("conversation_response_mismatch");
   const ids = new Set(request.messages.flatMap(m => (m.tool_calls ?? []).map(call => call.id)));
@@ -151,12 +161,13 @@ export function validateConversationReply(value, request, requestDigest) {
   if (r.finish_reason === "tool_calls" ? !r.tool_calls.length : r.tool_calls.length || r.text === null) deny("conversation_response_mismatch");
   return value;
 }
-export function exchangeConversationFrame(pipe, request, signal) {
+export function exchangeConversationFrame(pipe, request, signal, fixedMethod) {
   return new Promise((resolve, reject) => {
     let payload; try { payload = Buffer.from(serialized(request)); } catch { reject(new Error("conversation_request_denied")); return; }
     if (payload.length > conversationRequestBytes || signal?.aborted) { reject(new Error("conversation_request_denied")); return; }
     // Bind later validation to the detached bytes, not a caller's mutable object.
     request = JSON.parse(payload.toString("utf8"));
+    try { if (fixedMethod !== undefined) fixedMethod = jsonData(fixedMethod); } catch { reject(new Error("conversation_configuration_invalid")); return; }
     const requestDigest = sha(payload); let socket, retry, buffered = Buffer.alloc(0), settled = false, sent = false;
     const finish = (error, value) => {
       if (settled) return; settled = true; clearTimeout(timer); clearTimeout(retry); signal?.removeEventListener("abort", aborted); socket?.destroy();
@@ -165,7 +176,7 @@ export function exchangeConversationFrame(pipe, request, signal) {
     const timer = setTimeout(() => finish(new Error("conversation_pipe_deadline_exhausted")), 15000), aborted = () => finish(new Error("conversation_aborted"));
     const ended = () => {
       if (buffered.length < 4 || buffered.length !== buffered.readUInt32LE() + 4) { finish(new Error("conversation_pipe_response_incomplete")); return; }
-      try { const value = conversationJson(new TextDecoder("utf-8", { fatal: true }).decode(buffered.subarray(4))); finish(undefined, validateConversationReply(value, request, requestDigest)); }
+      try { const value = conversationJson(new TextDecoder("utf-8", { fatal: true }).decode(buffered.subarray(4))); finish(undefined, validateConversationReply(value, request, requestDigest, fixedMethod)); }
       catch (error) { finish(new Error(typeof error?.message === "string" && /^[a-z_]{1,96}$/.test(error.message) ? error.message : "conversation_response_mismatch")); }
     };
     signal?.addEventListener("abort", aborted, { once: true });
@@ -194,12 +205,15 @@ export function exchangeConversationFrame(pipe, request, signal) {
 export function createCimiConversationProbe(options) {
   const pipe = process.env.CIMILOOP_IPC_PIPE;
   if (!pipe?.startsWith("\\\\.\\pipe\\CimiLoop.") || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(options.operationKey) || !hash(options.policyDigest)) deny("conversation_configuration_invalid");
+  const fixedMethod = options.fixedMethod === undefined ? undefined : Object.freeze(jsonData(options.fixedMethod));
+  if (fixedMethod && (!fields(fixedMethod, ["format", "invocation_key", "source_digest", "request_digest", "profile_digest"]) || fixedMethod.format !== "cimiloop/fixed-method-transport/1.0.0" ||
+    fixedMethod.invocation_key !== options.operationKey || ["source_digest", "request_digest", "profile_digest"].some(key => !hash(fixedMethod[key])))) deny("conversation_configuration_invalid");
   const invoke = async (input, responseMode) => {
     if (input.toolChoice !== undefined && (!fields(input.toolChoice, ["type"]) || input.toolChoice.type !== "auto") || input.responseFormat?.type === "json" || input.includeRawChunks) deny("conversation_options_denied");
     const output = input.maxOutputTokens ?? 128; if (!Number.isSafeInteger(output) || output < 1) deny("conversation_output_limit_invalid");
     const request = { format: "cimiloop/model-conversation-request/1.0.0", request_id: randomUUID(), operation_key: options.operationKey, model_id: "cimiloop-public-tools", policy_digest: options.policyDigest,
       messages: conversationMessages(input.prompt), tools: conversationTools(input.tools), response_mode: responseMode, input_tokens: 65536, max_output_tokens: Math.min(output, 128) };
-    return (await exchangeConversationFrame(pipe, request, input.abortSignal)).response;
+    return (await exchangeConversationFrame(pipe, request, input.abortSignal, fixedMethod)).response;
   };
   const usage = r => ({ inputTokens: { total: r.usage.input_tokens, noCache: undefined, cacheRead: undefined, cacheWrite: undefined }, outputTokens: { total: r.usage.output_tokens, text: undefined, reasoning: undefined } });
   const finishReason = r => ({ unified: r.finish_reason === "tool_calls" ? "tool-calls" : r.finish_reason, raw: r.finish_reason });

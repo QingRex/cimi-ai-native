@@ -10,18 +10,23 @@ using System.IO.Pipes;
 partial class AppContainer {
   partial class ProbePipe {
     bool conversationEnabled=false;
-    string conversationRoot,conversationNonce,conversationPolicy,conversationProof;
-    public void EnableConversation(string root,string nonce,string policy) {
+    string conversationRoot,conversationNonce,conversationPolicy,conversationProof,conversationMethodProfile;
+    public void EnableConversation(string root,string nonce,string policy,string methodProfile=null) {
       if(policy==null||policy.Length!=64||policy.Trim("0123456789abcdef".ToCharArray()).Length!=0) throw new Exception("Invalid conversation policy");
+      if(methodProfile!=null&&(methodProfile.Length!=64||methodProfile.Trim("0123456789abcdef".ToCharArray()).Length!=0)) throw new Exception("Invalid method profile");
       conversationRoot=Path.Combine(Path.GetDirectoryName(root),"conversation"); Ordinary(conversationRoot);
-      conversationNonce=nonce; conversationPolicy=policy; conversationProof=Path.Combine(Path.GetDirectoryName(root),"conversation-transport-proof.json"); conversationEnabled=true;
+      conversationNonce=nonce; conversationPolicy=policy; conversationMethodProfile=methodProfile; conversationProof=Path.Combine(Path.GetDirectoryName(root),"conversation-transport-proof.json"); conversationEnabled=true;
     }
     void ConversationSave(string phase) {
-      lock(gate) Atomic(conversationProof,IpcJson().Serialize(new {
+      lock(gate) {
+        string serialized=IpcJson().Serialize(new {
         format="cimiloop/conversation-transport-proof/1.0.0",scope="isolated_conversation_rehearsal",operation_key=operation,phase=phase,
         transport="windows_named_pipe",runtime_pid=expected["pid"],client_identity_enforcement="pid_creation_image",remote_clients_rejected=true,
         policy_digest=conversationPolicy,request_limit_bytes=65536,response_limit_bytes=294912,accepted_requests=accepted,attempts=attempts,
-        failure_reason=failure,external_model_requests=0,formal_execution_enabled=false }));
+        failure_reason=failure,external_model_requests=0,formal_execution_enabled=false });
+        if(conversationMethodProfile!=null) { var value=IpcJson().Deserialize<Dictionary<string,object>>(serialized); value["method_profile_digest"]=conversationMethodProfile; serialized=IpcJson().Serialize(value); }
+        Atomic(conversationProof,serialized);
+      }
     }
     bool ConversationRequestValid(Dictionary<string,object> request,out Guid id) {
       id=Guid.Empty;
@@ -43,11 +48,25 @@ partial class AppContainer {
           var reply=IpcJson(393216).Deserialize<Dictionary<string,object>>(File.ReadAllText(output,new UTF8Encoding(false,true)));
           if(reply==null||reply.Count!=3||reply["format"] as string!="cimiloop/ipc-conversation-reply/1.0.0"||reply["nonce"] as string!=conversationNonce||!(reply["reply"] is Dictionary<string,object>)) throw new InvalidDataException("conversation_reply_identity_unproven");
           var value=(Dictionary<string,object>)reply["reply"];
-          if(value.Count!=12||value["format"] as string!="cimiloop/model-conversation-reply/1.0.0"||value["scope"] as string!="isolated_conversation_rehearsal"||
+          bool methodReply=conversationMethodProfile!=null&&value.ContainsKey("outcome")&&value["outcome"] as string=="completed";
+          if(value.Count!=(methodReply?13:12)||value["format"] as string!="cimiloop/model-conversation-reply/1.0.0"||value["scope"] as string!="isolated_conversation_rehearsal"||
             value["operation_key"] as string!=operation||value["request_id"] as string!=id||value["request_digest"] as string!=hash||value["policy_digest"] as string!=conversationPolicy||
             !(value["formal_execution_enabled"] is bool)||(bool)value["formal_execution_enabled"]||!(value["replay"] is bool)||
             !((value["outcome"] as string=="completed"&&value["response"] is Dictionary<string,object>&&value["receipt"] is Dictionary<string,object>&&value["reason"]==null)||
               (value["outcome"] as string=="denied"&&value["response"]==null&&value["receipt"]==null&&value["reason"] is string))) throw new InvalidDataException("conversation_reply_identity_unproven");
+          if(methodReply) {
+            if(!value.ContainsKey("method_projection")||!(value["method_projection"] is Dictionary<string,object>)) throw new InvalidDataException("conversation_method_projection_unproven");
+            var projection=(Dictionary<string,object>)value["method_projection"];
+            if(projection.Count!=9||!projection.ContainsKey("format")||projection["format"] as string!="cimiloop/fixed-method-projection/1.0.0"||
+              !projection.ContainsKey("invocation_key")||projection["invocation_key"] as string!=operation) throw new InvalidDataException("conversation_method_projection_unproven");
+            foreach(string field in new string[] { "source_digest","request_digest","profile_digest","sdk_input_digest","upstream_input_digest","mapped_response_digest","upstream_response_digest" }) {
+              if(!projection.ContainsKey(field)||!(projection[field] is Dictionary<string,object>)) throw new InvalidDataException("conversation_method_projection_unproven");
+              var checksum=(Dictionary<string,object>)projection[field];
+              if(checksum.Count!=2||!checksum.ContainsKey("algorithm")||checksum["algorithm"] as string!="sha256"||!checksum.ContainsKey("value")||!(checksum["value"] is string)) throw new InvalidDataException("conversation_method_projection_unproven");
+              string hashValue=(string)checksum["value"];
+              if(hashValue.Length!=64||hashValue.Trim("0123456789abcdef".ToCharArray()).Length!=0||(field=="profile_digest"&&hashValue!=conversationMethodProfile)) throw new InvalidDataException("conversation_method_projection_unproven");
+            }
+          }
           return value;
         }
         Thread.Sleep(20);
