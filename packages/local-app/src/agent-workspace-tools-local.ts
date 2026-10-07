@@ -39,10 +39,10 @@ export class LocalAgentWorkspaceToolService {
     return this.execution.host.execute(input);
   }
   recover() { return this.execution.host.recover(); }
-  openIpc(supervisor: ChildProcess, originalSupervisor: AgentWorkspaceIpcEndpoint["supervisor"], originalPeer: AgentWorkspaceIpcEndpoint["peer"]) {
+  openIpc(supervisor: ChildProcess, originalSupervisor: AgentWorkspaceIpcEndpoint["supervisor"], originalPeer: AgentWorkspaceIpcEndpoint["peer"], options: { nonce?: string } = {}) {
     if (this.ipc) return Promise.reject(Error("Agent workspace IPC original peer already installed"));
     if (!isDeepStrictEqual(originalScope(this.local, this.scope.run_id), this.scope)) return Promise.reject(Error("Agent workspace original scope changed"));
-    this.ipc = AgentWorkspaceToolIpc.open({ toolsDirectory: this.local.location.dataDirectory, scope: this.scope, supervisor, originalSupervisor, originalPeer,
+    this.ipc = AgentWorkspaceToolIpc.open({ toolsDirectory: this.local.location.dataDirectory, scope: this.scope, supervisor, originalSupervisor, originalPeer, ...(options.nonce !== undefined ? { nonce: options.nonce } : {}),
       execute: input => this.execute(input), cancel: () => this.execution.host.close() }); return this.ipc;
   }
   async close() { const channel = await this.ipc?.catch(() => undefined); await channel?.close(); await this.execution.host.close(); }

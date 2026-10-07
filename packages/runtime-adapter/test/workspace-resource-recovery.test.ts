@@ -19,6 +19,46 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("actual o
   const remove = (root: string) => { if (!resolve(root).startsWith(resolve(tmpdir()) + sep + "cimiloop-workspace-resource-")) throw Error("Unsafe cleanup"); rmSync(root, { recursive: true, force: true }); };
   beforeAll(async () => { tools = mkdtempSync(join(tmpdir(), "cimiloop-workspace-resource-tools-")); owners = await creditHostDependencies(await buildWindowsLauncher(tools)); });
   afterAll(() => remove(tools)); afterEach(() => { while (roots.length) remove(roots.pop()!); });
+  it("proves an exited original process absent while its kernel handle is retained and its image is unavailable", async () => {
+    const launcher = await buildWindowsLauncher(tools), literal = (value: string) => "'" + value.replaceAll("'", "''") + "'";
+    const script = `
+Add-Type -TypeDefinition @'
+using System; using System.Text; using System.Runtime.InteropServices;
+public static class RetainedImage {
+ [DllImport("kernel32.dll", SetLastError=true)] static extern bool QueryFullProcessImageName(IntPtr handle, uint flags, StringBuilder path, ref int size);
+ public static bool Available(IntPtr handle) { var path=new StringBuilder(32768); int size=path.Capacity; return QueryFullProcessImageName(handle,0,path,ref size); }
+}
+'@
+$start = New-Object System.Diagnostics.ProcessStartInfo
+$start.FileName = ${literal(process.execPath)}
+$start.Arguments = '-e "setTimeout(() => {}, 30000)"'
+$start.UseShellExecute = $false
+$start.CreateNoWindow = $true
+$owned = [System.Diagnostics.Process]::Start($start)
+try {
+ $retained = $owned.Handle
+ $identityJson = & ${literal(launcher)} --identity $owned.Id
+ $identity = $identityJson | ConvertFrom-Json
+ # Windows PowerShell 5 removes unescaped JSON quotes in native argv.
+ $quotedIdentity = $identityJson.Replace([string][char]34, ([string][char]92 + [char]34))
+ $active = (& ${literal(launcher)} --inspect-identity $quotedIdentity) | ConvertFrom-Json
+ $wrong = $identity.PSObject.Copy()
+ $wrong.image = ${literal(join(tools, "other-original.exe"))}
+ $quotedWrong = ($wrong | ConvertTo-Json -Compress).Replace([string][char]34, ([string][char]92 + [char]34))
+ $mismatch = (& ${literal(launcher)} --inspect-identity $quotedWrong) | ConvertFrom-Json
+ $owned.Kill()
+ $owned.WaitForExit()
+ $imageAvailable = [RetainedImage]::Available($retained)
+ $ended = (& ${literal(launcher)} --inspect-identity $quotedIdentity) | ConvertFrom-Json
+ @{ active=$active.state; mismatch=$mismatch.state; ended=$ended.state; image_available=$imageAvailable } | ConvertTo-Json -Compress
+} finally {
+ if (!$owned.HasExited) { $owned.Kill(); $owned.WaitForExit() }
+ $owned.Dispose()
+}`;
+    const result = await promisify(execFile)(join(process.env.SystemRoot ?? "C:\\Windows", "System32", "WindowsPowerShell", "v1.0", "powershell.exe"),
+      ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], { windowsHide: true, timeout: 45000 });
+    expect(JSON.parse(result.stdout.trim())).toEqual({ active: "active", mismatch: "unknown", ended: "absent", image_available: false });
+  });
   const setup = async () => {
     const root = mkdtempSync(join(tmpdir(), "cimiloop-workspace-resource-")); roots.push(root); writeFileSync(join(root, "query.ts"), "original resource\n");
     const files = await WindowsWorkspaceFileBroker.open(root, tools), input = { format: "cimiloop/workspace-tool-invocation/1.0.0", project_id: createInternalId(), run_id: createInternalId(),

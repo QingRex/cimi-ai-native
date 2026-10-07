@@ -1,0 +1,292 @@
+{
+  "format": "cimiloop/opencode-workspace-consumer-verification/1.0.0",
+  "decision": "D-224",
+  "date": "2026-10-07",
+  "validation_completed_local_date": "2026-10-08",
+  "timezone": "Asia/Shanghai",
+  "base_commit": "7f101fef5af6b7407aadb5a4aabe663c73ec9bce",
+  "scope": "Actual pinned OpenCode custom file tools in an original suspended Windows AppContainer, host-authenticated file IPC and shared original ledger; constructed model responses and Agent qualification only",
+  "goal_complete": false,
+  "s1_complete": false,
+  "actual_opencode_workspace_tool_consumer_connected": true,
+  "actual_appcontainer_agent_ipc_positive_validated": true,
+  "actual_cross_appcontainer_sid_denial_validated": true,
+  "original_sdk_call_identity_consumed": true,
+  "original_channel_installed_before_runtime_resume": true,
+  "production_agent_host_connected": false,
+  "formal_agent_execution_enabled": false,
+  "synthetic_model_responses": true,
+  "positive_agent_qualification_constructed": true,
+  "protected_original_sdk_tool_account_custody_complete": false,
+  "run_checks_host_implemented": false,
+  "actual_method_behavior_evaluated": false,
+  "pre_plan_clarification_implemented": false,
+  "approved_billing_admission_complete": false,
+  "complete_original_resource_cleanup_implemented": false,
+  "physical_filesystem_hard_quota_implemented": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "path": ".cimiloop/opencode-workspace-v1-09/final-2.json",
+      "bytes": 66994,
+      "sha256": "a7bd28ce83ea1bdea8305b53bf59d3e09fb45fe5278525e651cac26fe84d1d8c",
+      "files": 17,
+      "tests": 154,
+      "passed": 154,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "complete_repository_suite": false,
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "source_snapshot": {
+      "path": ".cimiloop/opencode-workspace-v1-09/sources.json",
+      "bytes": 2345,
+      "sha256": "2ed702bf8c3abba88d94f3c590cb60391a6060f1cb4cd641b767fc48b7d5d030"
+    },
+    "preliminary": {
+      "reports": [
+        {
+          "path": ".cimiloop/opencode-workspace-v1-09/first.json",
+          "bytes": 2630,
+          "sha256": "82721ce3d7e4d91d7bdccb6f99e826cd26f147bb30b0502ea6a7e799311c151c",
+          "files": 1,
+          "tests": 3,
+          "passed": 0,
+          "failed": 1,
+          "pending": 2,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/opencode-workspace-v1-09/second.json",
+          "bytes": 2629,
+          "sha256": "234f986b0cf4d221fbaa0d4be926a0d93749c2231b2ae24b3da39ebf1fa356bf",
+          "files": 1,
+          "tests": 3,
+          "passed": 0,
+          "failed": 1,
+          "pending": 2,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/opencode-workspace-v1-09/third.json",
+          "bytes": 3444,
+          "sha256": "2c01bb5397a40e5f7f9dfeb4d92d9d4c1d9c9987bf018905dc620c42e8f31cca",
+          "files": 2,
+          "tests": 6,
+          "passed": 4,
+          "failed": 0,
+          "pending": 2,
+          "success": true
+        },
+        {
+          "path": ".cimiloop/opencode-workspace-v1-09/focused.json",
+          "bytes": 3506,
+          "sha256": "3000b8f66ab94eb9cc7ca1a84a76e2ff116f45d5b5111527c978c6286cdf8db2",
+          "files": 2,
+          "tests": 6,
+          "passed": 6,
+          "failed": 0,
+          "pending": 0,
+          "success": true
+        },
+        {
+          "path": ".cimiloop/opencode-workspace-v1-09/focused-final.json",
+          "bytes": 5997,
+          "sha256": "c9ceb956caf0abe38140dd8544fe980383066308b9c7653eb6651d66152811e1",
+          "files": 2,
+          "tests": 7,
+          "passed": 4,
+          "failed": 3,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/opencode-workspace-v1-09/boundary-fix.json",
+          "bytes": 2368,
+          "sha256": "89879baed7666f604dd16abc8ff3cc7751b38dc91116c4b8a3ede5c423cfa25b",
+          "files": 1,
+          "tests": 4,
+          "passed": 1,
+          "failed": 0,
+          "pending": 3,
+          "success": true
+        },
+        {
+          "path": ".cimiloop/opencode-workspace-v1-09/final.json",
+          "bytes": 59173,
+          "sha256": "c253c2e75a638cedb983d30d2ec859149762803a6c526a2a44ab656a5ebdb4f9",
+          "files": 14,
+          "tests": 121,
+          "passed": 110,
+          "failed": 11,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/opencode-workspace-v1-09/owner-fix.json",
+          "bytes": 5380,
+          "sha256": "cb5566eb89a4c035f60f555be4ae5e996be9e45f9526ee1312cf0ec4c84d2858",
+          "files": 1,
+          "tests": 10,
+          "passed": 9,
+          "failed": 1,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/opencode-workspace-v1-09/retained-owner-fix.json",
+          "bytes": 4636,
+          "sha256": "59eb210fd62a545d4a2e03cff9938fdea70be9cb925f0f1a4911b07f67c02444",
+          "files": 1,
+          "tests": 10,
+          "passed": 1,
+          "failed": 0,
+          "pending": 9,
+          "success": true
+        }
+      ],
+      "failures_preserved": true,
+      "final_initial_failure": "14 files / 121 tests: 110 passed, 11 original process-exit/recovery failures. Diagnostic retained exited process had matching creation ticks, WaitForSingleObject=0, QueryFullProcessImageName error 31. Initial retained-handle fixture failed due to Windows PowerShell 5 native argv JSON quote stripping; escaped fixed fixture passed."
+    },
+    "schemas": {
+      "total": 242,
+      "unchanged": 242,
+      "added": 0,
+      "changed": 0,
+      "writes": 0,
+      "protocol_status_clean": true,
+      "original_public_transport_sources_unchanged": 3,
+      "original_process_exit_observation_corrected": true,
+      "comparison": "exact text normalized CRLF to LF"
+    },
+    "documentation": {
+      "files": 9,
+      "links": 283,
+      "broken": []
+    },
+    "commit_baseline": {
+      "files": 822,
+      "problems": []
+    }
+  },
+  "implemented": {
+    "tools": "Two fixed dependency-free legacy-schema custom tools cimi_read/cimi_replace. Stable SDK identity derives from original sessionID/messageID/callID; missing or model-selected IDs denied. Copy original arguments and abort signal before permission await. Original current host authority and shared original file journal decide effect/replay; outputs cannot finish Native Run/Task or settle budget.",
+    "sandbox": "Distinct entry point creates original Runtime suspended with atomic Job assignment, no network capability, active process limit 1 and 2GiB Job memory limit. Original owner/peer/supervisor handles and OS token SID authenticate IPC installation before original nonce resume. Runtime stdin is NUL; fixed config/module content protected, offline dependency policy; EOF/owner exit/deadline terminate owned Job. Normal cleanup proves original peer ended before original ACL/drive/profile removal.",
+    "composition": "Synthetic-only bounded rehearsal stages fixed source/binary, original startup/cleanup outside sandbox, original stdout/stderr references and fixed tool projection. No credential, URL, production model, arbitrary command/plugin or qualification source accepted.",
+    "original_process_exit_fix": "InspectIdentity compares original creation ticks on held queried process, then checks signalled handle before image lookup. A retained terminated kernel object may lack an image but remains proven absent. Active processes must still match original image; unobservable identity or wait failure stays unknown. No longer timeout or presumed absence."
+  },
+  "validation": {
+    "actual_runtime": "Actual installed OpenCode 1.18.34, pinned binary SHA-256 5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e. Original SDK read/replace cross actual authenticated AppContainer IPC to Git/SQLite and shared ledger; caller revocation and ungranted path deny; different actual sandbox SID denied by OS; protected outside file/module/directory writes and child process creation denied. Failed channel installation never resumes Runtime and normal cleanup is proved.",
+    "contracts": "Invalid nonce refused before touching launch/scope/authority/files. Fixed SDK args reject extra IDs, getters, invalid types and oversize bytes; mutation during permission wait cannot substitute call. Permission denial and aborted SDK call do not contact host.",
+    "recovery": "Actual retained original Node process handle test covers active exact identity, active image mismatch unknown and exited image unavailable absent. Previous original Human/Agent prepared/dispatch, crash recovery, original private inode and substitution protections pass in final affected regression.",
+    "qualification": "Constructed model responses and positive Agent admission only. Real OS/runtime/SDK/file effects do not prove production model, Coding Plan eligibility, account ownership, fee enforcement, method behavior or S1 exit."
+  },
+  "unchanged": {
+    "protocol_schemas": 242,
+    "native_database_format": 10,
+    "workspace_tool_journal_format": "cimiloop/workspace-tool-journal/1.0.0",
+    "workspace_tool_receipt_format": "cimiloop/workspace-tool-receipt/1.0.0",
+    "workspace_tool_journal_user_version": 1,
+    "public_probe_transport_sources_unchanged": 3,
+    "public_main_parameters_and_persisted_formats": "unchanged",
+    "historical_source_addressed_binaries_and_operation_records": "not overwritten"
+  },
+  "changed": {
+    "public_controller_source": "AppContainer.cs original process exit observation order corrected; newly compiled source/binary digests change",
+    "private_rehearsal_formats": [
+      "cimiloop/agent-workspace-sandbox-config/1.0.0",
+      "cimiloop/agent-workspace-resume/1.0.0",
+      "cimiloop/agent-workspace-sandbox/1.0.0",
+      "cimiloop/opencode-workspace-rehearsal/1.0.0",
+      "cimiloop/opencode-workspace-output/1.0.0"
+    ]
+  },
+  "boundaries": {
+    "runtime": "Production admission stays closed. Fixed command checks, full SDK/tool/account custody, genuine model/plan/service-side token limits, approved budgets and billing remain pending.",
+    "resources": "This independent rehearsal implements normal original cleanup; complete crash resource registration/recovery and physical filesystem hard quota remain pending. In-memory pipe/channel is not another durable effect authority.",
+    "methods": "Actual named method host, pre-Plan/pre-Task Human/Matt clarification, independent full diff/issue harness, fresh Superpowers verification and real method comparison remain pending."
+  },
+  "remaining_acceptance": [
+    "V1-09: formal Task Agent start/query/cancel/collect, fixed check commands, production SDK/tool/account custody, actual model/plan limits and approved fee/billing, physical quota and full original resource recovery.",
+    "V1-21: actual fixed Skill method inputs/outputs and Human/Matt clarification before Plan/Task.",
+    "V1-22: actual independent full diff/issue/harness review, fresh Superpowers verification and evidenced provider choice.",
+    "V1-10: workbench formal Agent execute/status/stop/original recovery.",
+    "V1-11: genuine ordinary AI Change with independent review and actual Skill/effect evidence, interruption/resumption to ReadyForDelivery and full S1 acceptance."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/runtime-adapter/native/AppContainer.cs",
+      "bytes": 38216,
+      "sha256": "4593006a9622ed8cdb5b7175d10a439e54e0ae36f991ac9a1b4fed5ab999e79a"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-resource-recovery.test.ts",
+      "bytes": 10481,
+      "sha256": "e5e3cdef517cbd8a15e865331bd3d4255834e328096fd0a554ecb422b05de991"
+    },
+    {
+      "path": "packages/local-app/src/agent-workspace-tools-local.ts",
+      "bytes": 4765,
+      "sha256": "21c70a3174411de9a3edb280384ed6a4082f856625477aefab0c857e0d8028ff"
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-workspace-ipc.ts",
+      "bytes": 12984,
+      "sha256": "9d363062ae9626540f8c906c4281da20c9a993828624f37e1d55251890d4d00f"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 2690,
+      "sha256": "b6260f4f3d702f18804bd0b474ba45cc21518afea0608b35576f7b5357eb00d8"
+    },
+    {
+      "path": "packages/runtime-adapter/src/native.ts",
+      "bytes": 9520,
+      "sha256": "1c3871cf9409a65164a9e9fdf7d57fa2e0e271723c062c916ca052162f7ffadb"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+      "bytes": 7935,
+      "sha256": "f31de6246da62d2c742ff89197340c993d6ebc55da8475e83c6765b470aee078"
+    },
+    {
+      "path": "packages/runtime-adapter/native/AgentWorkspaceSandbox.cs",
+      "bytes": 13022,
+      "sha256": "8a2a038ba1482ff05575f1512b0007d579493ead53ac935639bd0dd902d79e7f"
+    },
+    {
+      "path": "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+      "bytes": 11239,
+      "sha256": "ced5374e76661c2ec0eec1f620df3cc1ff9f6e468eeec05e2a6f8779e240f945"
+    },
+    {
+      "path": "packages/runtime-adapter/transport/opencode-workspace-tools.js",
+      "bytes": 3793,
+      "sha256": "d4f54a7dee81c2f3b18c26d451acd33bd0b55ec056ee12050ea5a7f4a9ac0357"
+    },
+    {
+      "path": "packages/runtime-adapter/transport/opencode-workspace-provider-fixture.mjs",
+      "bytes": 3920,
+      "sha256": "e8a4b444c35aa5deb35c47440a54f059bd0b330f7314a9910f7eedf7d0359019"
+    },
+    {
+      "path": "packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+      "bytes": 5341,
+      "sha256": "0bc1c07ee6f8671196b87275d0fb9e90ba84f858c0170e20955c66176be7fdaf"
+    },
+    {
+      "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+      "bytes": 9843,
+      "sha256": "48af4e1502510501e0c6a9d2a571509da68b7a1deaa95996d72c108c79866a18"
+    }
+  ]
+}

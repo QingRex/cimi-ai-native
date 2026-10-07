@@ -28,6 +28,9 @@ export function agentWorkspaceIpcInvocation(scope: AgentWorkspaceToolScope, raw:
 }
 interface Options {
   toolsDirectory: string; scope: AgentWorkspaceToolScope; supervisor: ChildProcess; originalSupervisor: CreditProcessIdentity; originalPeer: CreditProcessIdentity;
+  // Trusted suspended-start composition chooses this before creating the peer.
+  // It grants no authority; FIRST_PIPE_INSTANCE and original OS identity remain required.
+  nonce?: string;
   execute: (input: WorkspaceToolInvocation) => Promise<{ receipt: WorkspaceToolReceipt; replay: boolean }>;
   cancel: () => Promise<void>;
 }
@@ -36,7 +39,7 @@ export interface AgentWorkspaceIpcEndpoint { pipe: string; scope_digest: string;
 // Held original process handles and the pipe's OS client PID establish the peer.
 export class AgentWorkspaceToolIpc {
   private readonly child: ChildProcessWithoutNullStreams;
-  private readonly nonce = randomUUID();
+  private readonly nonce: string;
   private readonly scope: AgentWorkspaceToolScope;
   private readonly ready: Promise<AgentWorkspaceIpcEndpoint>;
   private readonly ended: Promise<void>;
@@ -48,6 +51,7 @@ export class AgentWorkspaceToolIpc {
   private failure: string | null = null;
   private readonly peerEnded = () => { void this.close(); };
   private constructor(private readonly options: Options, binary: string) {
+    this.nonce = options.nonce ?? randomUUID();
     this.scope = parseAgentWorkspaceToolScope(options.scope);
     this.child = spawn(binary, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
     let readyResolve!: (value: AgentWorkspaceIpcEndpoint) => void, readyReject!: (error: unknown) => void;
@@ -99,6 +103,7 @@ export class AgentWorkspaceToolIpc {
       peer: options.originalPeer, supervisor: options.originalSupervisor, owner_pid: process.pid }) + "\n");
   }
   static async open(options: Options): Promise<AgentWorkspaceToolIpc> {
+    if (options.nonce !== undefined && !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(options.nonce)) fail("agent_ipc_nonce_invalid");
     const scope = parseAgentWorkspaceToolScope(options.scope), originalPeer = copyToolJson(options.originalPeer), originalSupervisor = copyToolJson(options.originalSupervisor);
     if (!validWorkspaceWorkerIdentity(originalPeer) || originalPeer.pid === process.pid || !validWorkspaceWorkerIdentity(originalSupervisor) ||
       originalSupervisor.pid !== options.supervisor.pid || options.supervisor.pid === process.pid || options.supervisor.exitCode !== null ||

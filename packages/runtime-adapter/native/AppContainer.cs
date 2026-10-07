@@ -69,8 +69,14 @@ partial class AppContainer {
     if(handle==IntPtr.Zero) return Marshal.GetLastWin32Error()==87?"absent":"unknown";
     try {
       if(Creation(handle)!=(string)identity["creation_ticks"]) return "absent";
+      // A retained kernel process object remains queryable after exit, while its
+      // image query can fail. A signalled handle with the original creation time
+      // proves that original process ended; query the image only while active.
+      uint state=WaitForSingleObject(handle,0);
+      if(state==0) return "absent";
+      if(state!=0x102) return "unknown";
       if(!String.Equals(Path.GetFullPath(Image(handle)),Path.GetFullPath((string)identity["image"]),StringComparison.OrdinalIgnoreCase)) return "unknown";
-      uint state=WaitForSingleObject(handle,0); return state==0?"absent":state==0x102?"active":"unknown";
+      return "active";
     } finally { CloseHandle(handle); }
   }
   static void SaveOwnership() {

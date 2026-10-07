@@ -2,7 +2,7 @@ import { createServer } from "node:net";
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
-import { agentWorkspaceIpcInvocation, agentWorkspaceIpcScopeDigest } from "../src/agent-workspace-ipc.js";
+import { AgentWorkspaceToolIpc, agentWorkspaceIpcInvocation, agentWorkspaceIpcScopeDigest } from "../src/agent-workspace-ipc.js";
 import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.js";
 import { digest } from "../src/files.js";
 const moduleUrl = new URL("../transport/agent-workspace-ipc-client.mjs", import.meta.url).href;
@@ -15,6 +15,9 @@ const scope = () => parseAgentWorkspaceToolScope({ project_id: createInternalId(
   host_admission_ref: { provider: "local_content", resource_type: "agent_host_admission", locator: digest("admission").value, digest: digest("admission") } });
 const frame = (scopeDigest = digest("constructed scope").value) => ({ format: "cimiloop/agent-workspace-tool-request/1.0.0", scope_digest: scopeDigest, call_id: "original_call", tool: "read_file", path: "src/query.ts", expected_digest: digest("constructed read\n").value });
 describe("fixed original Agent file frames", () => {
+  it("rejects an invalid suspended-start nonce before accessing source, scope, processes or the filesystem", async () => {
+    await expect(AgentWorkspaceToolIpc.open({ nonce: "foreign", toolsDirectory: "unused" } as any)).rejects.toThrow("agent_ipc_nonce_invalid");
+  });
   it("installs original authority pins and only accepts bounded exact file arguments", () => {
     const original = scope(), request = frame(agentWorkspaceIpcScopeDigest(original)), input = agentWorkspaceIpcInvocation(original, request);
     expect(input).toMatchObject({ project_id: original.project_id, run_id: original.run_id, operation_key: original.operation_key, executor_actor_id: original.executor_actor_id, context_digest: original.context_digest });

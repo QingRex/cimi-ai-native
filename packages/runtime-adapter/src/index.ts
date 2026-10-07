@@ -25,3 +25,4 @@ export { parseAgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 export type { AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 export { AgentWorkspaceToolIpc, agentWorkspaceIpcScopeDigest, agentWorkspaceIpcInvocation } from "./agent-workspace-ipc.js";
 export type { AgentWorkspaceIpcEndpoint } from "./agent-workspace-ipc.js";
+export { runOpenCodeWorkspaceToolRehearsal } from "./opencode-workspace-rehearsal.js";

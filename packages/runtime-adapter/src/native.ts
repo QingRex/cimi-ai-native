@@ -91,3 +91,21 @@ export const buildWindowsAgentWorkspaceTransport = async (root: string): Promise
   if (expected.digest?.value !== digest(bytesAt(output)).value) throw new RuntimeAdapterError("agent_ipc_binary_changed");
   return { path: output, digest: digest(bytesAt(output)) };
 };
+
+// Distinct suspended-start rehearsal entry point; public Main and persisted
+// recovery formats remain separate from this private composition.
+export const buildWindowsAgentWorkspaceSandbox = async (root: string): Promise<{ path: string; digest: ReturnType<typeof digest> }> => {
+  if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_agent_sandbox_required");
+  const sources = ["AppContainer.cs", "IpcTransport.cs", "GatewayTransport.cs", "ConversationTransport.cs", "AgentWorkspaceSandbox.cs"].map(name => fileURLToPath(new URL(`../native/${name}`, import.meta.url)));
+  const build = directory(join(root, "tools", "agent-workspace-sandbox-" + digest(Buffer.concat(sources.map(path => bytesAt(path)))).value));
+  const output = join(build, "AgentWorkspaceSandbox.exe"), metadata = join(build, "build.json");
+  if (!existsSync(output) || !existsSync(metadata)) {
+    const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe"), candidate = join(build, `${randomUUID()}.exe`);
+    if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
+    try { await execute(compiler, ["/nologo", "/target:exe", "/main:AgentWorkspaceSandbox", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, ...sources], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment() }); }
+    catch { throw new RuntimeAdapterError("agent_sandbox_build_failed"); }
+    renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
+  }
+  const expected = readJson(metadata) as { digest?: { value?: string } }, actual = digest(bytesAt(output));
+  if (expected.digest?.value !== actual.value) throw new RuntimeAdapterError("agent_sandbox_binary_changed"); return { path: output, digest: actual };
+};

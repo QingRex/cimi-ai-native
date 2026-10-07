@@ -1,6 +1,6 @@
 # CimiLoop 领域语言
 
-2026-10-07 D-219–D-223：Human / Agent 独立当前授权、真实文件宿主及原资源恢复已接通；新增 Windows 原进程 Agent 文件 IPC，共用原效果账本。实际 OpenCode / AppContainer 工具消费、固定检查命令、生产资格 / SDK / 费用 / 配额与完整 S1 待完成；格式 10、242 Schema 和原工具账本保持。见[原进程 IPC 及验证边界](docs/implementation/CimiLoop-Agent工作区原进程IPC-v0.1.md)。
+2026-10-07 D-219–D-224：独立 Human / Agent 授权、真实文件效果和原账本 / 恢复已实现；实际 OpenCode 1.18.34 / AppContainer 已消费固定文件工具，先暂停核对原进程并安装 IPC，再放行。正向资格 / 模型回复仍为构造输入；固定检查、生产 SDK / 费用 / 配额、真实方法、工作台 Agent 及完整 S1 待完成。242 Schema / 格式 10 保持，见[真实工具消费与剩余任务](docs/implementation/CimiLoop-OpenCode工作区工具真实消费-v0.1.md)。
 
 2026-10-07 D-218：命名演练新增独立格式 4 原请求 / 响应正文账本，实际只读读取器复核每个交换与完成回执。公共模拟来源得到受控资格 DENY，不能批准真实方法或 Task；生产原账本 / 宿主及完整 S1 仍待完成。原生数据库格式 10 保持，见[会话账本与边界](docs/implementation/CimiLoop-命名方法原始会话账本-v0.1.md)。
 
