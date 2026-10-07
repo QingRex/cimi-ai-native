@@ -1,0 +1,195 @@
+{
+  "format": "cimiloop/agent-workspace-startup-verification/1.0.0",
+  "decision": "D-226",
+  "date": "2026-10-08",
+  "base_commit": "6956f97c5cbfd2fe4e5c07f68be9301df2070dbf",
+  "goal_complete": false,
+  "s1_complete": false,
+  "production_agent_execution_enabled": false,
+  "actual_original_control_identity_before_resource_mutation": true,
+  "actual_preparation_intent_journal_implemented": true,
+  "actual_create_to_identity_gap_recovery_validated": true,
+  "actual_original_resource_recovery_same_logon_validated": true,
+  "cross_logon_session_recovery_implemented": false,
+  "legacy_missing_registration_recovered": false,
+  "complete_runtime_recovery_implemented": false,
+  "full_approved_billing_admission_implemented": false,
+  "sdk_check_tools_connected": false,
+  "protected_production_custody_complete": false,
+  "positive_agent_admission_constructed": true,
+  "tool_rehearsal_model_responses_constructed": true,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "path": ".cimiloop/agent-startup-v1-09/final.json",
+      "bytes": 66847,
+      "sha256": "5befdb014a63b05a4b6f937863b0e62e92e640bb952906aece467022b6c98ab2",
+      "files": 16,
+      "tests": 140,
+      "passed": 140,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "complete_repository_suite": false,
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "source_snapshot": {
+      "path": ".cimiloop/agent-startup-v1-09/sources.json",
+      "bytes": 1267,
+      "sha256": "ec803ad038a015543daed433f07d510212e103f1916224c6960dd4cca5462085"
+    },
+    "preliminary_reports": [
+      {
+        "path": ".cimiloop/agent-startup-v1-09/original-opencode.json",
+        "bytes": 2448,
+        "sha256": "bc6fb7533b4315c37c5ae35f5139d1b057388ba6df8a0cdea9911e699c173f24",
+        "files": 1,
+        "tests": 4,
+        "passed": 4,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      {
+        "path": ".cimiloop/agent-startup-v1-09/fault-focused.json",
+        "bytes": 4145,
+        "sha256": "e3b265b513e3072a962fcae4b00483ad3f5259e0a8758434eae901a0e3178fe7",
+        "files": 1,
+        "tests": 8,
+        "passed": 8,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      {
+        "path": ".cimiloop/agent-startup-v1-09/focused-final.json",
+        "bytes": 6098,
+        "sha256": "1187862d0a1a69f0f7397e1347e204a3430158887fbb645ffa8bb237ab703f45",
+        "files": 2,
+        "tests": 12,
+        "passed": 12,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      }
+    ],
+    "preliminary_scope": "original-opencode/fault-focused preceded final Windows user/session/logon pins and concurrent recovery refinement. focused-final validates the refined 12 focused scenarios; final is the broader unchanged-source regression.",
+    "schemas": {
+      "total": 242,
+      "unchanged": 242,
+      "added": 0,
+      "changed": 0,
+      "protocol_status_clean": true,
+      "public_native_sources_unchanged": 4,
+      "comparison": "exact text normalized CRLF to LF"
+    },
+    "documentation": {
+      "files": 10,
+      "links": 293,
+      "broken": []
+    },
+    "commit_baseline": {
+      "files": 833,
+      "problems": []
+    }
+  },
+  "implemented": {
+    "original_controller": "Actual held-OS identity query before config dispatch; original private launcher manifest pins nonce, owner, actual supervisor PID/creation/image and native binary digest. Native remains blocked on config before any profile/ACL/mapping effects.",
+    "preparation": "Native source writes original resource journal before profile mutation, including exact config/scope digest, owner/controller identities, original user SID/session/token AuthenticationId, profile absence check, fixed profile/job name and resource intents. Fixed phases registered/profile_intent/grants_intent/granted/mapped/process_create_intent/runtime_created require host acknowledgement, current original owner and finite deadline. Runtime stdin remains NUL and model frames cannot select phases.",
+    "job": "Original named Job is exclusive, atomic on CreateProcess, single-process, 2GiB memory and kill-on-last-handle-close. Actual runtime_created checkpoint precedes saving child identity; orphan recovery queries the original Job and refuses nonzero/unknown activity. Recovery only queries and never terminates a discovered job.",
+    "recovery": "Strict original root/operation/Scope, original config digest, launcher binary/build metadata and resource identity verification before calling original fixed controller. Original current user/session/logon must match. Original owner/native/runtime active or unknown blocks mutation. Mapping must target exact original sandbox. Removes only exact original SID ACLs/profile, persists disposal only after successful native operations. Original-operation mutex handles contention and idempotent replay; already-disposed recovery does not observe or touch a reused old drive letter.",
+    "no_completion": "No Runtime/model/tool retry, Task/Run completion, budget settlement or Gate approval. Every resource recovery result retains completion_proven:false. Startup/channel failures retain original bounded stdout/stderr and explicitly incomplete diagnostics."
+  },
+  "actual_validation": {
+    "fault_stages": [
+      "registered",
+      "grants_intent",
+      "granted",
+      "mapped",
+      "process_create_intent",
+      "runtime_created"
+    ],
+    "injection": "Actual owned Node worker launches original native sandbox and pauses at actual preparation acknowledgement. Holds original controller OS handle, verifies its PID creation/image, kills/waits exactly that process and then actually exits73. No synthetic process identity or cleanup receipt substitutes for original effects.",
+    "physical": "Read-only OS probe verifies original profile registry mapping, five actual ACL paths, original DOS target and Job accounting. Six actual death stages recover original resources and concurrent/idempotent calls; original repository, Native reserved Run and SQLite event/usage stay unchanged.",
+    "other_cases": "Actual current owners block recovery; preparation-hook rejection keeps Runtime unresumed and cleans native resources with incomplete raw diagnostic. Independently created owned foreign DOS mapping remains after corrupted original mapping refusal and valid original cleanup. Corrupt Scope, launcher digest and missing original registration deny; mismatched logon record returns Unknown. Cross-user/logon behavior is guarded but not an actual OS cross-session acceptance test.",
+    "sdk": "Four original actual OpenCode/AppContainer custom file-tool scenarios still pass. Tool runtime/model responses and positive admission remain constructed, not production qualification."
+  },
+  "unchanged": {
+    "protocol_schemas": 242,
+    "native_database_format": 10,
+    "workspace_tool_journal_format": "cimiloop/workspace-tool-journal/1.0.0",
+    "workspace_tool_receipt_format": "cimiloop/workspace-tool-receipt/1.0.0",
+    "public_native_control_sources_unchanged": 4,
+    "default_human_cli_workbench_agent_entry": "not installed"
+  },
+  "private_formats": {
+    "launcher": "cimiloop/agent-workspace-launcher/1.0.0",
+    "resources": "cimiloop/agent-workspace-resources/1.0.0",
+    "preparation": "cimiloop/agent-workspace-preparation/1.0.0",
+    "continue": "cimiloop/agent-workspace-prepare-continue/1.0.0"
+  },
+  "boundaries": {
+    "legacy": "D225 historical startup failed before suspended proof and lacks original controller/resource registration. Its original root/SID ACL, Y: mapping and Profile remain retained/unproven. New source does not fabricate retrospective identity or claim the historical root cause/cleanup fixed.",
+    "sessions": "Windows DOS device namespace is pinned to actual original AuthenticationId; Local jobs to original session. Different original user/logon/session refuses recovery with Unknown rather than treating another namespace absence as disposal. Cross-logon/reboot recovery supervision remains required.",
+    "runtime": "Private trusted rehearsal composition, not installed formal Agent lifecycle. Complete production SDK/tool/account custody, actual model/service input/thinking/output bounds, approved budgets/billing, physical quota and history/combined nested Run limits remain required.",
+    "external": "User confirmed Zhipu provider. Exact approved model/plan and cash/credit ceiling remain missing. No credential read or external model request in this batch."
+  },
+  "remaining_acceptance": [
+    "V1-09: connect original SDK cimi_check and pinned formal catalog/Context admission; formal SDK/tool/account custody and lifecycle, approved actual model/plan/service bounds/fees/billing, physical quotas/history retention and complete resource recovery.",
+    "V1-21: actual Skill host and Human/Matt clarification before Plan/Task.",
+    "V1-22: actual independent complete diff/issue/harness review, fresh Superpowers verification and behavior comparison.",
+    "V1-10: formal workbench Agent execute/status/stop/original recovery.",
+    "V1-11: genuine ordinary Change with independent review/interruption/resumption to ReadyForDelivery, full S1 acceptance and user testing guide."
+  ],
+  "primary_sources": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-createjobobjectw",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_basic_accounting_information",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-token_statistics",
+    "https://learn.microsoft.com/en-us/windows/win32/fileio/defining-an-ms-dos-device-name"
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/runtime-adapter/native/AgentWorkspaceSandbox.cs",
+      "bytes": 28265,
+      "sha256": "f114258d1f5228d62b369ba5aad892b5fed5e56b8acb9112529b8111d4ab2f74"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 3012,
+      "sha256": "b1b73303c91b80ca203d2f9dcbad1aee22f09f109a0d1825896e77a1166804ab"
+    },
+    {
+      "path": "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+      "bytes": 14887,
+      "sha256": "2759a7d0b95a8d44231a87eefc70a27e6cf189a5012c9e3f5c8ccb9ccb564739"
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts",
+      "bytes": 6556,
+      "sha256": "263ea9a5ab0e7c2f57d91b879e7d653961db03e87719e83a4ae06146cacdd9ea"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-startup-os-probe.ps1",
+      "bytes": 6521,
+      "sha256": "bd967012ac4c7159564b4fd049c7f18a350586957cd14ddcde8ef81dd84dd5ea"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-workspace-startup-worker.mjs",
+      "bytes": 2042,
+      "sha256": "afcb29c6918592be44c516db75dd6ad327d8f9acbe8c639300d7d7bfd9ba8935"
+    },
+    {
+      "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+      "bytes": 11134,
+      "sha256": "efbddb540919b34317bcb75fa74a54812cd8ac6141e98cea69332d9b804e668c"
+    }
+  ]
+}

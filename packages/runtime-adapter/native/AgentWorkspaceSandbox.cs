@@ -11,12 +11,53 @@ using System.Security.Principal;
 using System.Threading;
 
 class AgentWorkspaceSandbox {
-  static int Main() { return AppContainer.LaunchAgentWorkspace(); }
+  static int Main(string[] args) {
+    if(args.Length==0) return AppContainer.LaunchAgentWorkspace();
+    if(args.Length==2&&args[0]=="--recover") return AppContainer.RecoverAgentWorkspace(args[1]);
+    return 12;
+  }
 }
 partial class AppContainer {
+  [StructLayout(LayoutKind.Sequential)] struct AgentAccounting { public long user,kernel,periodUser,periodKernel; public uint faults,total,active,terminated; }
+  [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr OpenJobObject(uint access,bool inherit,string name);
+  [DllImport("kernel32.dll",EntryPoint="CreateJobObjectW",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr AgentCreateJob(IntPtr attributes,string name);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern bool QueryInformationJobObject(IntPtr job,int kind,out AgentAccounting data,int length,IntPtr returned);
+  [DllImport("advapi32.dll",EntryPoint="GetTokenInformation",SetLastError=true)] static extern bool AgentTokenInformation(IntPtr token,int kind,IntPtr data,int length,out int returned);
   [StructLayout(LayoutKind.Sequential)] struct AgentSA { public int length; public IntPtr descriptor; [MarshalAs(UnmanagedType.Bool)] public bool inherit; }
   [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr CreateFile(string path,uint access,uint share,ref AgentSA security,uint creation,uint flags,IntPtr template);
   static volatile bool agentParentEnded;
+  static Dictionary<string,object> agentResources;
+  static string agentResourcePath;
+  static string AgentHash(string value) { using(var hash=System.Security.Cryptography.SHA256.Create()) return BitConverter.ToString(hash.ComputeHash(new UTF8Encoding(false,true).GetBytes(value))).Replace("-","").ToLowerInvariant(); }
+  static string AgentLogon() {
+    using(var identity=WindowsIdentity.GetCurrent()) {
+      IntPtr data=Marshal.AllocHGlobal(256); try { int required; Check(AgentTokenInformation(identity.Token,10,data,256,out required)); if(required<16||required>256) throw new InvalidDataException(); return unchecked((ulong)Marshal.ReadInt64(data,8)).ToString("x16"); }
+      finally { Marshal.FreeHGlobal(data); }
+    }
+  }
+  static void AgentResourceSave() { Atomic(agentResourcePath,serializer.Serialize(agentResources)); }
+  static void AgentCheckpoint(string phase,IntPtr owner) {
+    agentResources["phase"]=phase; AgentResourceSave();
+    Console.WriteLine(serializer.Serialize(new { format="cimiloop/agent-workspace-preparation/1.0.0",nonce=agentResources["nonce"],phase=phase,supervisor=agentResources["supervisor"] })); Console.Out.Flush();
+    string line=null; var input=new Thread(delegate() { try { line=AgentLine(2048); } catch { } }); input.IsBackground=true; input.Start();
+    var watch=Stopwatch.StartNew(); while(!input.Join(25)) if(watch.ElapsedMilliseconds>=10000||WaitForSingleObject(owner,0)!=258) throw new InvalidDataException();
+    var reply=serializer.Deserialize<Dictionary<string,object>>(line); AgentKeys(reply,"format","nonce","phase");
+    if(reply["format"] as string!="cimiloop/agent-workspace-prepare-continue/1.0.0"||reply["nonce"] as string!=(string)agentResources["nonce"]||reply["phase"] as string!=phase||WaitForSingleObject(owner,0)!=258) throw new InvalidDataException();
+  }
+  static string AgentMap(string root) {
+    using(var mutex=new Mutex(false,"Local\\CimiLoop.DriveAllocation")) {
+      bool locked=false; try {
+        try { locked=mutex.WaitOne(5000); } catch(AbandonedMutexException) { locked=true; }
+        if(!locked) throw new InvalidDataException();
+        for(char letter='Z';letter>='F';letter--) {
+          string name=letter+":"; if(QueryDosDevice(name,new StringBuilder(4096),4096)!=0) continue;
+          agentResources["mapping"]=name; AgentResourceSave(); // Original intent precedes the mapping.
+          Check(DefineDosDevice(1|8,name,"\\??\\"+root)); return name;
+        }
+        throw new InvalidDataException();
+      } finally { if(locked) mutex.ReleaseMutex(); }
+    }
+  }
   static string AgentLine(int maximum) {
     var input=Console.OpenStandardInput(); using(var bytes=new MemoryStream()) {
       while(true) { int value=input.ReadByte(); if(value<0) return null; if(value==10) break; if(bytes.Length>=maximum) throw new InvalidDataException(); bytes.WriteByte((byte)value); }
@@ -26,12 +67,113 @@ partial class AppContainer {
   static void AgentKeys(Dictionary<string,object> value,params string[] keys) {
     if(value==null||value.Count!=keys.Length) throw new InvalidDataException(); foreach(string key in keys) if(!value.ContainsKey(key)) throw new InvalidDataException();
   }
+  static bool AgentSameIdentity(Dictionary<string,object> left,Dictionary<string,object> right) {
+    AgentKeys(left,"pid","creation_ticks","image"); AgentKeys(right,"pid","creation_ticks","image");
+    return Convert.ToInt32(left["pid"])==Convert.ToInt32(right["pid"])&&left["creation_ticks"] as string==right["creation_ticks"] as string&&String.Equals(left["image"] as string,right["image"] as string,StringComparison.OrdinalIgnoreCase);
+  }
+  static bool AgentProfileAbsent(string profile) {
+    IntPtr sid; int hr=DeriveAppContainerSidFromAppContainerName(profile,out sid); if(hr!=0) Marshal.ThrowExceptionForHR(hr);
+    try { using(var key=Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Mappings\"+new SecurityIdentifier(sid).Value)) return key==null; }
+    finally { FreeSid(sid); }
+  }
+  internal static int RecoverAgentWorkspace(string operation) {
+    string outcome="unknown",reason="agent_resources_unproven"; bool disposed=false; IntPtr originalJob=IntPtr.Zero;
+    try {
+      operation=Path.GetFullPath(operation); Ordinary(operation);
+      string configPath=Path.Combine(operation,"original-config.json"); Ordinary(configPath); string rawConfig=File.ReadAllText(configPath);
+      var config=ObjectAt(configPath); var launch=ObjectAt(Path.Combine(operation,"original-launcher.json")); var ledger=ObjectAt(Path.Combine(operation,"agent-sandbox-resources.json"));
+      AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options");
+      AgentKeys(launch,"format","nonce","owner","supervisor","launcher_path","launcher_digest");
+      AgentKeys(ledger,"format","nonce","root","binary","profile","scope_digest","config_digest","owner","supervisor","runtime","mapping","job_name","job_assignment","phase","profile_intent","profile_was_absent","grants_intent","resources_disposed","user_sid","session_id","logon_luid");
+      Guid guid; if(!Guid.TryParseExact(config["nonce"] as string,"D",out guid)) throw new InvalidDataException();
+      string nonce=guid.ToString("D"),root=Path.Combine(operation,"sandbox"),binary=Path.GetFullPath((string)config["binary"]),profile="CimiLoop.AgentWorkspace."+guid.ToString("N");
+      Ordinary(root); Ordinary(binary);
+      if(config["format"] as string!="cimiloop/agent-workspace-sandbox-config/1.0.0"||config["root"] as string!=root||
+        launch["format"] as string!="cimiloop/agent-workspace-launcher/1.0.0"||launch["nonce"] as string!=nonce||
+        ledger["format"] as string!="cimiloop/agent-workspace-resources/1.0.0"||ledger["nonce"] as string!=nonce||ledger["root"] as string!=root||ledger["binary"] as string!=binary||
+        ledger["profile"] as string!=profile||ledger["scope_digest"] as string!=config["scope_digest"] as string||ledger["config_digest"] as string!=AgentHash(rawConfig)||
+        ledger["job_name"] as string!="Local\\"+profile||ledger["job_assignment"] as string!="atomic_on_create"||
+        !(ledger["profile_intent"] is bool)||!(ledger["profile_was_absent"] is bool)||!(ledger["grants_intent"] is bool)||!(ledger["resources_disposed"] is bool)||
+        !AgentSameIdentity((Dictionary<string,object>)ledger["owner"],(Dictionary<string,object>)config["owner"])||
+        !AgentSameIdentity((Dictionary<string,object>)launch["owner"],(Dictionary<string,object>)config["owner"])||
+        !AgentSameIdentity((Dictionary<string,object>)launch["supervisor"],(Dictionary<string,object>)ledger["supervisor"])) throw new InvalidDataException();
+      string launcher=(string)launch["launcher_path"];
+      if(!String.Equals(Image(Process.GetCurrentProcess().Handle),launcher,StringComparison.OrdinalIgnoreCase)||
+        !String.Equals((string)((Dictionary<string,object>)ledger["supervisor"])["image"],launcher,StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
+      using(var hash=System.Security.Cryptography.SHA256.Create()) {
+        string value=BitConverter.ToString(hash.ComputeHash(File.ReadAllBytes(launcher))).Replace("-","").ToLowerInvariant();
+        if(value!=launch["launcher_digest"] as string) throw new InvalidDataException();
+      }
+      // DOS devices are scoped to the original logon; Local jobs to its session.
+      // Another logon/session must not mistake its empty namespace for disposal.
+      if(ledger["user_sid"] as string!=WindowsIdentity.GetCurrent().User.Value||ledger["logon_luid"] as string!=AgentLogon()||
+        !(ledger["session_id"] is int)||(int)ledger["session_id"]!=Process.GetCurrentProcess().SessionId) { reason="agent_original_logon_mismatch"; throw new InvalidDataException(); }
+      using(var mutex=new Mutex(false,"Local\\CimiLoop.AgentRecovery."+guid.ToString("N"))) {
+        bool locked=false; try {
+          try { locked=mutex.WaitOne(5000); } catch(AbandonedMutexException) { locked=true; }
+          if(!locked) throw new InvalidDataException();
+          // Reload under the original-operation recovery lock.
+          var fresh=ObjectAt(Path.Combine(operation,"agent-sandbox-resources.json"));
+          if(serializer.Serialize(fresh)!=serializer.Serialize(ledger)) {
+            var expected=new Dictionary<string,object>(ledger); expected["resources_disposed"]=true; expected["phase"]="recovered";
+            if(serializer.Serialize(fresh)!=serializer.Serialize(expected)) throw new InvalidDataException(); ledger=fresh;
+          }
+          if((bool)ledger["resources_disposed"]) { disposed=true; outcome="recovered"; reason="agent_resources_already_disposed"; }
+          else {
+            string ownerState=InspectIdentity((Dictionary<string,object>)ledger["owner"]),nativeState=InspectIdentity((Dictionary<string,object>)ledger["supervisor"]);
+            var runtime=ledger["runtime"] as Dictionary<string,object>; string runtimeState=InspectIdentity(runtime);
+            if(runtime!=null&&!String.Equals((string)runtime["image"],binary,StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
+            if(ownerState=="active"||nativeState=="active"||runtimeState=="active") { outcome="active"; reason="agent_owned_process_active"; }
+            else if(ownerState!="absent"||nativeState!="absent"||runtimeState!="absent") reason="agent_original_identity_unproven";
+            else {
+              // Query only: never terminate a job discovered through recovery.
+              // Holding it while inspecting closes the create/identity gap.
+              originalJob=OpenJobObject(4,false,(string)ledger["job_name"]);
+              if(originalJob==IntPtr.Zero&&Marshal.GetLastWin32Error()!=2) throw new InvalidDataException();
+              AgentAccounting accounting=new AgentAccounting();
+              if(originalJob!=IntPtr.Zero&&!QueryInformationJobObject(originalJob,1,out accounting,Marshal.SizeOf(typeof(AgentAccounting)),IntPtr.Zero)) throw new InvalidDataException();
+              if(accounting.active!=0) { outcome="active"; reason="agent_original_job_active"; }
+              else {
+                string mapping=ledger["mapping"] as string;
+                if(mapping!=null) {
+                  if(mapping.Length!=2||mapping[0]<'F'||mapping[0]>'Z'||mapping[1]!=':') throw new InvalidDataException();
+                  var target=new StringBuilder(4096); uint found=QueryDosDevice(mapping,target,4096);
+                  if(found!=0) { if(target.ToString()!="\\??\\"+root) { reason="agent_original_mapping_mismatch"; throw new InvalidDataException(); } Check(DefineDosDevice(1|2|4|8,mapping,"\\??\\"+root)); }
+                  else if(Marshal.GetLastWin32Error()!=2) throw new InvalidDataException();
+                }
+                if((bool)ledger["profile_intent"]) {
+                  if(!(bool)ledger["profile_was_absent"]) throw new InvalidDataException();
+                  IntPtr sid; int hr=DeriveAppContainerSidFromAppContainerName(profile,out sid); if(hr!=0) Marshal.ThrowExceptionForHR(hr);
+                  try {
+                    var principal=new SecurityIdentifier(sid);
+                    if((bool)ledger["grants_intent"]) {
+                      RemoveGrant(root,principal,FileSystemRights.ReadAttributes|FileSystemRights.Traverse,true,false);
+                      RemoveGrant(Path.Combine(root,"workspace"),principal,FileSystemRights.ReadAndExecute,true,true);
+                      RemoveGrant(Path.Combine(root,"state"),principal,FileSystemRights.Modify,true,true);
+                      RemoveGrant(Path.Combine(root,"config"),principal,FileSystemRights.ReadAndExecute|FileSystemRights.WriteAttributes,true,true);
+                      RemoveGrant(binary,principal,FileSystemRights.ReadAndExecute,false,false);
+                    }
+                    int deleted=DeleteAppContainerProfile(profile); if(deleted!=0&&deleted!=unchecked((int)0x80070002)&&deleted!=unchecked((int)0x80070003)) Marshal.ThrowExceptionForHR(deleted);
+                  } finally { FreeSid(sid); }
+                }
+                ledger["resources_disposed"]=true; ledger["phase"]="recovered"; Atomic(Path.Combine(operation,"agent-sandbox-resources.json"),serializer.Serialize(ledger));
+                disposed=true; outcome="recovered"; reason="agent_original_resources_disposed";
+              }
+            }
+          }
+        } finally { if(locked) mutex.ReleaseMutex(); }
+      }
+    } catch { }
+    finally { if(originalJob!=IntPtr.Zero) CloseHandle(originalJob); }
+    Console.WriteLine(serializer.Serialize(new { outcome=outcome,reason=reason,resources_disposed=disposed,completion_proven=false }));
+    return outcome=="unknown"?12:0;
+  }
   internal static int LaunchAgentWorkspace() {
     Console.OutputEncoding=new UTF8Encoding(false);
     string root=null,binary=null,profile=null,mapping=null,nonce=null; IntPtr sid=IntPtr.Zero,list=IntPtr.Zero,capsMemory=IntPtr.Zero,handles=IntPtr.Zero,job=IntPtr.Zero,jobList=IntPtr.Zero,owner=IntPtr.Zero,nul=IntPtr.Zero;
-    PROCESSINFO process=new PROCESSINFO(); bool started=false; int exit=12; string reason="agent_sandbox_unavailable"; var cleanupErrors=new List<string>();
+    PROCESSINFO process=new PROCESSINFO(); bool started=false,profileCreated=false; int exit=12; string reason="agent_sandbox_unavailable"; var cleanupErrors=new List<string>();
     try {
-      var config=serializer.Deserialize<Dictionary<string,object>>(AgentLine(32768));
+      string originalConfig=AgentLine(32768); var config=serializer.Deserialize<Dictionary<string,object>>(originalConfig);
       AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options");
       Guid guid,pipeGuid;
       if(config["format"] as string!="cimiloop/agent-workspace-sandbox-config/1.0.0"||!Guid.TryParseExact(config["nonce"] as string,"D",out guid)||
@@ -44,14 +186,29 @@ partial class AppContainer {
         !String.Equals(Image(owner),(string)originalOwner["image"],StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
       int elapsed=Convert.ToInt32(config["elapsed_ms"]); if(elapsed<1000||elapsed>180000) throw new InvalidDataException();
       var options=(Dictionary<string,object>)config["provider_options"]; AgentKeys(options,"path","expectedDigest","replacement");
-      profile="CimiLoop.AgentWorkspace."+guid.ToString("N"); int hr=CreateAppContainerProfile(profile,profile,"CimiLoop fixed workspace tool rehearsal",IntPtr.Zero,0,out sid); if(hr!=0) Marshal.ThrowExceptionForHR(hr);
+      profile="CimiLoop.AgentWorkspace."+guid.ToString("N");
+      agentResourcePath=Path.Combine(Path.GetDirectoryName(root),"agent-sandbox-resources.json");
+      agentResources=new Dictionary<string,object> {
+        {"format","cimiloop/agent-workspace-resources/1.0.0"},{"nonce",nonce},{"root",root},{"binary",binary},{"profile",profile},
+        {"scope_digest",config["scope_digest"]},{"config_digest",AgentHash(originalConfig)},{"owner",originalOwner},
+        {"supervisor",Identity(Process.GetCurrentProcess().Id)},{"runtime",null},{"mapping",null},
+        {"job_name","Local\\"+profile},{"job_assignment","atomic_on_create"},{"phase","registered"},
+        {"profile_intent",false},{"profile_was_absent",AgentProfileAbsent(profile)},{"grants_intent",false},{"resources_disposed",false},
+        {"user_sid",WindowsIdentity.GetCurrent().User.Value},{"session_id",Process.GetCurrentProcess().SessionId},{"logon_luid",AgentLogon()}
+      };
+      AgentCheckpoint("registered",owner);
+      if(!(bool)agentResources["profile_was_absent"]) throw new InvalidDataException();
+      agentResources["profile_intent"]=true; AgentCheckpoint("profile_intent",owner);
+      int hr=CreateAppContainerProfile(profile,profile,"CimiLoop fixed workspace tool rehearsal",IntPtr.Zero,0,out sid); if(hr!=0) Marshal.ThrowExceptionForHR(hr); profileCreated=true;
       var principal=new SecurityIdentifier(sid);
+      agentResources["grants_intent"]=true; AgentCheckpoint("grants_intent",owner);
       Grant(root,principal,FileSystemRights.ReadAttributes|FileSystemRights.Traverse,true,false);
       Grant(workspace,principal,FileSystemRights.ReadAndExecute,true,true); Grant(state,principal,FileSystemRights.Modify,true,true);
       // Bun requires WriteAttributes on module directories; file content and
       // directory entry writes remain denied. No installed global binary ACE.
       Grant(modules,principal,FileSystemRights.ReadAndExecute|FileSystemRights.WriteAttributes,true,true); Grant(binary,principal,FileSystemRights.ReadAndExecute,false,false);
-      mapping=Map(root); string privateState=mapping+"\\state";
+      AgentCheckpoint("granted",owner);
+      mapping=AgentMap(root); AgentCheckpoint("mapped",owner); string privateState=mapping+"\\state";
       foreach(string name in new string[] {"TEMP","TMP","USERPROFILE","HOME","OPENCODE_TEST_HOME"}) Environment.SetEnvironmentVariable(name,privateState);
       Environment.SetEnvironmentVariable("APPDATA",privateState+"\\AppData\\Roaming"); Environment.SetEnvironmentVariable("LOCALAPPDATA",privateState+"\\AppData\\Local");
       foreach(string name in new string[] {"DATA","CONFIG","CACHE","STATE"}) Environment.SetEnvironmentVariable("XDG_"+name+"_HOME",privateState+"\\"+name.ToLower());
@@ -77,10 +234,15 @@ partial class AppContainer {
       var startup=new STARTUPINFOEX(); startup.info.cb=Marshal.SizeOf(typeof(STARTUPINFOEX)); startup.attributes=list; startup.info.flags=0x100; startup.info.input=nul; startup.info.output=GetStdHandle(-11); startup.info.error=GetStdHandle(-12);
       handles=Marshal.AllocHGlobal(IntPtr.Size*3); Marshal.WriteIntPtr(handles,0,nul); Marshal.WriteIntPtr(handles,IntPtr.Size,startup.info.output); Marshal.WriteIntPtr(handles,IntPtr.Size*2,startup.info.error);
       Check(UpdateProcThreadAttribute(list,0,new IntPtr(0x20002),handles,new IntPtr(IntPtr.Size*3),IntPtr.Zero,IntPtr.Zero));
-      job=CreateJobObject(IntPtr.Zero,null); Check(job!=IntPtr.Zero); var limits=new JOBLIMIT(); limits.basic.flags=0x2000|0x8|0x200; limits.basic.active=1; limits.jobMem=new UIntPtr(2147483648UL); Check(SetInformationJobObject(job,9,ref limits,Marshal.SizeOf(typeof(JOBLIMIT))));
+      job=AgentCreateJob(IntPtr.Zero,(string)agentResources["job_name"]); int jobError=Marshal.GetLastWin32Error(); Check(job!=IntPtr.Zero); if(jobError==183) throw new InvalidDataException();
+      var limits=new JOBLIMIT(); limits.basic.flags=0x2000|0x8|0x200; limits.basic.active=1; limits.jobMem=new UIntPtr(2147483648UL); Check(SetInformationJobObject(job,9,ref limits,Marshal.SizeOf(typeof(JOBLIMIT))));
       jobList=Marshal.AllocHGlobal(IntPtr.Size); Marshal.WriteIntPtr(jobList,job); Check(UpdateProcThreadAttribute(list,0,new IntPtr(0x2000d),jobList,new IntPtr(IntPtr.Size),IntPtr.Zero,IntPtr.Zero));
       var command=new StringBuilder(Quote(binary)); foreach(string arg in new string[] {"run","--pure","--format","json","--model","cimiloop-workspace-fixture/workspace-fixture","--agent","cimi","Execute the fixed workspace tool rehearsal."}) command.Append(" ").Append(Quote(arg));
+      AgentCheckpoint("process_create_intent",owner);
       Check(CreateProcess(binary,command,IntPtr.Zero,IntPtr.Zero,true,0x80000|0x08000000|0x4,IntPtr.Zero,mapping+"\\workspace",ref startup,out process)); started=true;
+      AgentCheckpoint("runtime_created",owner);
+      agentResources["runtime"]=new Dictionary<string,object> { {"pid",process.pid},{"creation_ticks",Creation(process.process)},{"image",Image(process.process)} };
+      agentResources["phase"]="suspended"; AgentResourceSave();
       string originalProof=serializer.Serialize(new { format="cimiloop/agent-workspace-sandbox/1.0.0",phase="suspended",nonce=nonce,
         supervisor=Identity(Process.GetCurrentProcess().Id),peer=Identity(process.pid),appcontainer_sid=principal.Value,network_capability_sids=new string[0],active_process_limit=1 });
       Atomic(Path.Combine(Path.GetDirectoryName(root),"agent-sandbox-original.json"),originalProof);
@@ -89,6 +251,7 @@ partial class AppContainer {
       var watch=Stopwatch.StartNew(); while(!resumeWorker.Join(50)) if(watch.ElapsedMilliseconds>10000||WaitForSingleObject(owner,0)!=258) throw new InvalidDataException();
       var release=serializer.Deserialize<Dictionary<string,object>>(resume); AgentKeys(release,"format","nonce"); if(release["format"] as string!="cimiloop/agent-workspace-resume/1.0.0"||release["nonce"] as string!=nonce) throw new InvalidDataException();
       if(WaitForSingleObject(owner,0)!=258) throw new InvalidDataException(); Check(ResumeThread(process.thread)!=0xffffffff);
+      agentResources["phase"]="running"; AgentResourceSave();
       var inputWatcher=new Thread(delegate() { try { AgentLine(1024); } catch { } finally { agentParentEnded=true; } }); inputWatcher.IsBackground=true; inputWatcher.Start();
       watch.Restart(); while(WaitForSingleObject(process.process,50)==258) {
         if(agentParentEnded||WaitForSingleObject(owner,0)!=258||watch.ElapsedMilliseconds>=elapsed) { reason=watch.ElapsedMilliseconds>=elapsed?"agent_sandbox_timeout":"agent_sandbox_parent_ended"; Check(TerminateJobObject(job,125)); Check(WaitForSingleObject(process.process,5000)==0); break; }
@@ -101,7 +264,8 @@ partial class AppContainer {
       if(list!=IntPtr.Zero) { DeleteProcThreadAttributeList(list); Marshal.FreeHGlobal(list); } if(capsMemory!=IntPtr.Zero) Marshal.FreeHGlobal(capsMemory); if(handles!=IntPtr.Zero) Marshal.FreeHGlobal(handles); if(jobList!=IntPtr.Zero) Marshal.FreeHGlobal(jobList);
       if(mapping!=null&&!DefineDosDevice(1|2|4|8,mapping,"\\??\\"+root)) cleanupErrors.Add("drive");
       for(int i=grants.Count-1;i>=0;i--) { var grant=grants[i]; try { RemoveGrant(grant.path,new SecurityIdentifier(sid),grant.rule.FileSystemRights,grant.directory,grant.rule.InheritanceFlags!=InheritanceFlags.None); } catch { cleanupErrors.Add("acl"); } }
-      if(sid!=IntPtr.Zero) { FreeSid(sid); if(DeleteAppContainerProfile(profile)!=0) cleanupErrors.Add("profile"); }
+      if(sid!=IntPtr.Zero) FreeSid(sid); if(profileCreated&&DeleteAppContainerProfile(profile)!=0) cleanupErrors.Add("profile");
+      if(agentResources!=null) { try { agentResources["phase"]="ended"; agentResources["resources_disposed"]=cleanupErrors.Count==0; AgentResourceSave(); } catch { cleanupErrors.Add("resource_proof"); } }
       string disposal=serializer.Serialize(new { format="cimiloop/agent-workspace-sandbox/1.0.0",phase="ended",nonce=nonce,reason=reason,exit_code=exit,resources_disposed=cleanupErrors.Count==0,cleanup_errors=cleanupErrors.ToArray(),formal_agent_execution_enabled=false });
       if(root!=null) { try { Atomic(Path.Combine(Path.GetDirectoryName(root),"agent-sandbox-cleanup.json"),disposal); } catch { cleanupErrors.Add("proof"); } }
       Console.WriteLine(disposal); Console.Out.Flush();
