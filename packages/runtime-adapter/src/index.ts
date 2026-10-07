@@ -20,3 +20,6 @@ export type { WorkspaceToolInvocation, WorkspaceFileIdentity, WorkspaceNativePre
 export { WorkspaceToolHost, openWorkspaceToolHost, readWorkspaceToolRunFacts } from "./workspace-tool-host.js";
 export type { WorkspaceToolPhase } from "./workspace-tool-host.js";
 export type { WorkspaceToolPolicy, WorkspaceToolReceipt } from "./workspace-tool-journal.js";
+export { AgentWorkspaceToolHost, openAgentWorkspaceToolHost } from "./agent-workspace-tool-host.js";
+export { parseAgentWorkspaceToolScope } from "./agent-workspace-authority.js";
+export type { AgentWorkspaceToolScope } from "./agent-workspace-authority.js";

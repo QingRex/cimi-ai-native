@@ -1,6 +1,6 @@
 # CimiLoop
 
-2026-10-07 D-219–D-221：真实 Human 工作区工具及原暂存恢复已实现；新增独立 Agent 实时工具授权查询，重新核对原 Run / Binding、当前权限与可信宿主证明。默认 Agent 宿主仍未接通，IPC / OpenCode、检查命令、费用 / 硬配额与完整 S1 待完成；原生格式 10 保持，239 个原 Schema 保持并新增 3 个。见[当前授权与边界](docs/implementation/CimiLoop-Agent运行实时工具授权-v0.1.md)。
+2026-10-07 D-219–D-222：Human / Agent 已具独立当前授权及真实工作区文件宿主，共用原效果账本与暂存资源恢复；默认生产 Agent 准入仍未接通。认证 IPC / OpenCode、固定检查命令、SDK / 费用 / 物理配额与完整 S1 待完成；原生格式 10、242 Schema 和工具账本保持。见[Agent 文件效果与恢复边界](docs/implementation/CimiLoop-Agent工作区工具宿主与原始恢复-v0.1.md)。
 
 2026-10-07 D-218 已接通命名演练的原请求 / HTTP 响应正文账本与实际只读核验，补齐回复摘要的字节复核。公共来源仍不能通过真实执行资格；生产宿主、费用准入及完整 S1 尚未完成，见[命名方法原始会话账本](docs/implementation/CimiLoop-命名方法原始会话账本-v0.1.md)。
 

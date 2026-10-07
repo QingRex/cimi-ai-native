@@ -73,7 +73,9 @@ const markerAt = (path: string, projectId: string, repositoryPathDigest: string)
     value.project_id !== projectId || value.repository_path_digest !== repositoryPathDigest || typeof value.journal_policy_digest !== "string" || !/^[a-f0-9]{64}$/.test(value.journal_policy_digest)) throw new RuntimeAdapterError("workspace_tool_anchor_unproven");
   return value.journal_policy_digest;
 };
-export async function openWorkspaceToolHost(options: { repositoryPath: string; dataDirectory: string; projectId: string; assess: Options["assess"]; phase?: Options["phase"] }) {
+// Shared original project resources. Human and Agent hosts cannot choose a
+// second journal to evade an in-flight/Unknown path, file identity or slot.
+export async function openWorkspaceToolResources(options: { repositoryPath: string; dataDirectory: string; projectId: string }) {
   const paths = location(options.dataDirectory, options.projectId), files = await WindowsWorkspaceFileBroker.open(options.repositoryPath, options.dataDirectory);
   const repository_path_digest = digest(files.repositoryPath.toLowerCase()).value;
   const policy = { format: "cimiloop/workspace-tool-journal/1.0.0" as const, scope: "authorized_workspace" as const, project_id: options.projectId,
@@ -84,9 +86,14 @@ export async function openWorkspaceToolHost(options: { repositoryPath: string; d
   const journal = new WorkspaceToolJournal(paths.journal, policy, { ...owners, reclaimStaging: (proof, owner) => files.reclaimStaging(proof, owner) });
   try {
     if (!existsSync(paths.marker)) atomicJson(paths.marker, { format: "cimiloop/workspace-tool-anchor/1.0.0", project_id: options.projectId, repository_path_digest, journal_policy_digest: digest(JSON.stringify(policy)).value });
-    const host = new WorkspaceToolHost({ journal, files, assess: options.assess, ...(options.phase ? { phase: options.phase } : {}) });
-    return { host, journal, policy };
+    return { files, journal, policy };
   } catch (error) { journal.close(); throw error; }
+}
+export async function openWorkspaceToolHost(options: { repositoryPath: string; dataDirectory: string; projectId: string; assess: Options["assess"]; phase?: Options["phase"] }) {
+  const resources = await openWorkspaceToolResources(options);
+  try { const host = new WorkspaceToolHost({ ...resources, assess: options.assess, ...(options.phase ? { phase: options.phase } : {}) });
+    return { host, journal: resources.journal, policy: resources.policy };
+  } catch (error) { resources.journal.close(); throw error; }
 }
 // Missing an established anchor/journal is an error, never an empty successful
 // ledger. Reads do not require current WorkItem permission or authorize effects.

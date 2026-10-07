@@ -9,7 +9,8 @@ import type { ContentReference } from "../../packages/local-app/src/evidence-loc
 // directly for testing this future host contract. They cannot be produced by the
 // current qualification commands, and prove no live model/OS/billing admission.
 export const createAgentRunProject = (directory: string, scope: "task_execution" | "isolated_provider_probe" = "task_execution", cost: number | undefined = 100,
-  runtimeResources: v2.ExternalReference[] = [{ provider: "cimiloop_workspace", resource_type: "repository_path", locator: "src/query.ts", version: "1.0.0" }]) => {
+  runtimeResources: v2.ExternalReference[] = [{ provider: "cimiloop_workspace", resource_type: "repository_path", locator: "src/query.ts", version: "1.0.0" }],
+  runtimeActions: v2.WorkItem["allowed_actions"] = ["read_files"]) => {
   const f = createRunProject(directory);
   const metadata = () => ({ schema_version: v2.SCHEMA_VERSION, id: v2.createInternalId(), project_id: f.project.id, created_at: flowTime, producer_actor_id: f.actor.id });
   const content = <T extends ContentReference["resource_type"]>(value: unknown, kind: T) => f.runPort.content.storeContent(Buffer.from(JSON.stringify(value)), kind);
@@ -17,7 +18,7 @@ export const createAgentRunProject = (directory: string, scope: "task_execution"
     const registered = flowSuccess(f.kernel.execute(f.projectCommand("RegisterProvider", { provider_kind: kind, name: `constructed-${kind}`, version: "1.0.0",
       source_ref: { provider: "fixture", resource_type: "unexecuted", locator: `constructed-${kind}`, version: "1.0.0", digest: contentDigest(kind) },
       capabilities: [{ capability_id: kind === "runtime" ? "runtime.execute" : "verification.review", version: "1.0.0" }], dependencies: [],
-      required_permissions: { actions: kind === "runtime" ? ["read_files"] : [], resources: kind === "runtime" ? runtimeResources : [], environment_ids: [], network_hosts: [] },
+      required_permissions: { actions: kind === "runtime" ? runtimeActions : [], resources: kind === "runtime" ? runtimeResources : [], environment_ids: [], network_hosts: [] },
       input_schema_ref: { schema_id: "constructed-input", digest: contentDigest("input") }, output_schema_ref: { schema_id: "constructed-output", digest: contentDigest("output") } })));
     if (registered.command_type !== "RegisterProvider") throw new Error("Descriptor expected");
     const descriptor = registered.data.descriptor, descriptor_ref = { object_type: "provider_descriptor" as const, id: descriptor.id }, descriptor_digest = contentDigest(descriptor);
@@ -59,7 +60,11 @@ export const createAgentRunProject = (directory: string, scope: "task_execution"
   const runPort = Object.assign(f.runPort, { agent: agentPort });
   const caller = { kind: "agent" as const, project_id: f.project.id, actor_id: agent.id, provider_identity_ref: identity };
   const kernel = new CimiLoopKernel({ store: f.store, caller, now: () => flowTime, runVerifier: runPort });
-  const source = f.capture(), item = f.authorize(3, cost, ["src/query.ts"], agent.id);
+  const source = f.capture(), work = flowSuccess(f.kernel.execute(f.taskCommand("CreateWorkItem", f.task().id, { definition_ref: f.task().definition_ref,
+    executor_ref: { object_type: "actor", id: agent.id }, allowed_actions: runtimeActions, allowed_resources: ["src/query.ts"],
+    budget: { max_attempts: 3, max_elapsed_ms: 60_000, ...(cost ? { max_cost: { currency: "USD", amount_micros: cost } } : {}) },
+    stop_conditions: ["任务边界改变即停止"], reason: "有界构造 Agent 运行测试" }, f.actor.id, "technical_owner")));
+  if (work.command_type !== "CreateWorkItem") throw Error("WorkItem expected"); const item = work.data.work_item;
   const command = (kind: string, type: "task" | "work_item" | "run", id: string, payload: unknown) => ({ ...f.command(kind, type, id, payload, "executor", agent.id), source: { origin: "agent", producer: "constructed-host" } });
   const prepareCommand = (bindings: v2.AgentRunBindings = pins) => command("PrepareRunContext", "work_item", item.id, { source_snapshot_ref: { object_type: "source_snapshot", id: source.id }, ...bindings });
   const prepare = () => { const result = flowSuccess(kernel.execute(prepareCommand())); if (result.command_type !== "PrepareRunContext" || !("runtime_binding" in result.data.context)) throw new Error("Agent context expected"); return { ...result.data, context: result.data.context }; };

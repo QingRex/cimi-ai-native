@@ -8,6 +8,7 @@ import { parseGatewayJson } from "./gateway-conversation.js";
 import { assertOrdinaryPath, directory, digest, RuntimeAdapterError } from "./files.js";
 import type { CreditProcessIdentity, CreditOwnerState } from "./gateway-credit.js";
 import type { ToolAuthorityRequest } from "@cimiloop/protocol/v2";
+import { agentWorkspaceToolAuthorityRequest, parseAgentToolAssessment, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 
 const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join(",") === [...keys].sort().join(",");
 const sha = /^[a-f0-9]{64}$/, domainId = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -131,7 +132,19 @@ export class WorkspaceToolJournal {
   assertWorkspace(scopeDigest: string): void { this.transaction(() => { this.validate(); if (scopeDigest !== this.policy.scope_digest) fail("workspace_tool_scope_mismatch"); }); }
   claim(raw: unknown, assessment: unknown): { permit: WorkspaceToolPermit; replay?: never } | { replay: WorkspaceToolReceipt; permit?: never } {
     const input = parseWorkspaceToolInvocation(raw), authority = parseToolAssessment(assessment, workspaceToolAuthorityRequest(input));
-    if (input.project_id !== this.policy.project_id || authority.decision !== "ALLOW") fail("workspace_tool_authority_denied"); const inputDigest = hash(input), basis = authority.authority.basis_digest.value;
+    if (authority.decision !== "ALLOW") fail("workspace_tool_authority_denied");
+    return this.claimAuthorized(input, authority.authority.basis_digest.value);
+  }
+  claimAgent(raw: unknown, scope: AgentWorkspaceToolScope, assessment: unknown): { permit: WorkspaceToolPermit; replay?: never } | { replay: WorkspaceToolReceipt; permit?: never } {
+    const input = parseWorkspaceToolInvocation(raw), authority = parseAgentToolAssessment(assessment, agentWorkspaceToolAuthorityRequest(scope, input));
+    if (authority.decision !== "ALLOW") fail("workspace_tool_authority_denied");
+    return this.claimAuthorized(input, authority.authority.basis_digest.value);
+  }
+  // Both independently verified entrances own the same durable effect barriers.
+  // No Human assessment is fabricated for an Agent. The Context digest already
+  // pins the original Agent Binding/admission; this receipt is a file fact only.
+  private claimAuthorized(input: WorkspaceToolInvocation, basis: string): { permit: WorkspaceToolPermit; replay?: never } | { replay: WorkspaceToolReceipt; permit?: never } {
+    if (input.project_id !== this.policy.project_id) fail("workspace_tool_authority_denied"); const inputDigest = hash(input);
     return this.transaction(() => { this.validate(); const row = this.db.prepare("SELECT * FROM workspace_tool_calls WHERE run_id=? AND call_id=?").get(input.run_id, input.call_id);
       if (row) { if (row.input_digest !== inputDigest || row.basis_digest !== basis) fail("workspace_tool_call_conflict");
         if (row.state === "completed") return { replay: this.receipt(row, input) }; fail(row.state === "not_started" ? "workspace_tool_not_started" : "workspace_tool_outcome_unproven"); }

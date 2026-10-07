@@ -1,0 +1,208 @@
+{
+  "format": "cimiloop/agent-workspace-tool-host-verification/1.0.0",
+  "decision": "D-222",
+  "date": "2026-10-07",
+  "base_commit": "b5efdf986339744b6f4e1847624a1b2541708a19",
+  "scope": "Trusted original Native Agent workspace file host, independent current authority, shared original Human/Agent effect journal and actual Windows original owner/staging recovery",
+  "goal_complete": false,
+  "agent_workspace_tool_host_implemented": true,
+  "independent_agent_current_authority_consumed": true,
+  "shared_original_workspace_effect_barriers": true,
+  "actual_agent_workspace_files_validated": true,
+  "actual_agent_double_owner_recovery_validated": true,
+  "production_agent_host_connected": false,
+  "formal_agent_execution_enabled": false,
+  "workspace_tool_ipc_opencode_connected": false,
+  "run_checks_host_implemented": false,
+  "production_skill_host_connected": false,
+  "actual_method_behavior_evaluated": false,
+  "pre_plan_clarification_implemented": false,
+  "approved_billing_admission_complete": false,
+  "complete_original_resource_cleanup_implemented": false,
+  "physical_filesystem_hard_quota_implemented": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "files": 14,
+      "tests": 140,
+      "passed": 140,
+      "failed": 0,
+      "pending": 0,
+      "complete_repository_suite": false,
+      "report": {
+        "path": ".cimiloop/agent-workspace-v1-09/final.json",
+        "bytes": 64764,
+        "sha256": "517d26203e460294e8943a7df9c4a0ef850b0a53adbb3500f2c0628a329725b2",
+        "files": 14,
+        "tests": 140,
+        "passed": 140,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "preliminary": {
+      "initial": {
+        "path": ".cimiloop/agent-workspace-v1-09/initial.json",
+        "bytes": 9617,
+        "sha256": "1117b63add1ec2bba82a4cf4d9df61639fb2809494982316ccafcbd5fbf650bd",
+        "files": 2,
+        "tests": 10,
+        "passed": 7,
+        "failed": 3,
+        "pending": 0,
+        "success": false
+      },
+      "focused": {
+        "path": ".cimiloop/agent-workspace-v1-09/focused.json",
+        "bytes": 9716,
+        "sha256": "04933aa29b551f857de7fca0edea57700ba58816f50c79d7179243a8b6a8e1d7",
+        "files": 3,
+        "tests": 19,
+        "passed": 19,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "source_snapshot": {
+        "path": ".cimiloop/agent-workspace-v1-09/sources.json",
+        "bytes": 1937,
+        "sha256": "77ddde5be3511069f675d760c7a2a5565af5e6d2b9004de63224546f7df24f22"
+      },
+      "initial_failure_repair": "Two actual recovery cases had already deleted original resources and preserved outcomes, but replay failed with call_conflict because the constructed child host Digest omitted the epoch used by the recovery host. Unified the fixed constructed configuration. One parser test expected the Agent scope error but JSON copy produced a generic invalid-contract code; normalized errors for that entry and added original admission matching. Focused 19 tests and final affected regression rerun all cases without skips."
+    },
+    "schemas": {
+      "total": 242,
+      "unchanged": 242,
+      "changed": 0,
+      "added": 0,
+      "writes": 0,
+      "protocol_status_clean": true,
+      "comparison": "exact text normalized CRLF to LF",
+      "report": {
+        "path": ".cimiloop/agent-workspace-v1-09/schemas.json",
+        "bytes": 169,
+        "sha256": "2e4801769b5ae265f35618c538e81100c5faa6aa8b4375e5075952f25697cdea"
+      }
+    },
+    "documentation": {
+      "files": 9,
+      "links": 280,
+      "broken": [],
+      "report": {
+        "path": ".cimiloop/agent-workspace-v1-09/links.json",
+        "bytes": 49,
+        "sha256": "3c8ce37369b8b97672fc16d69e195dcc5f99c443b40a035cd028f7be5ad4ab24"
+      },
+      "pending_report_links_only": false
+    },
+    "commit_baseline": {
+      "files": 806,
+      "bytes": 55602518,
+      "problems": []
+    }
+  },
+  "implemented": {
+    "composition": "LocalAgentWorkspaceToolService reads original Native project/Run/AgentRunRecord/AgentContext/Actor and matches trusted Agent Caller. Original Runtime/Skill/admission pins are installed once, copied and re-read before each execution. Existing Human CLI/workbench initialization stays unchanged.",
+    "contracts": "Tool frames retain the strict original workspace invocation. Runtime frames cannot add caller, scope, binding, verifier or admission fields. Independent Agent assessment requires the exact full current request and matching original host_admission_ref; executable objects, Human assessments, foreign pins and denial are rejected.",
+    "current": "AgentWorkspaceToolHost queries the actual installed Kernel at claim, pre-prepare, post-native-prepare, post-durable-dispatch/pre-effect and replay. Current basis changes stop the original operation. Missing production host proof or a Human Kernel denies before claiming an effect.",
+    "files": "Uses the original Windows handle/file-ID/root/content/worker-bound broker with bounded reads/replacements. The complete original input, authority basis, own Node identity, native preparation, dispatch and completion remain immutable in the fixed project journal.",
+    "shared": "claimAgent and frozen Human claim validate separate assessment contracts then enter one private claim implementation. Both share original Run/path/file-ID/Unknown barriers and permanent capacity. No Human authority is fabricated or converted for an Agent.",
+    "recovery": "Actual own Node/native termination after preparation or dispatch reopens original records. Both owners must be proven absent; native original-ID deletion removes recorded private staging and repeated recovery sees absence. Undispatched remains not_started, dispatched stays Unknown and blocks parent settlement."
+  },
+  "actual_validation": {
+    "original_authority": "2 explicitly constructed contract/journal tests cover fixed copied scope, executable/extra/foreign inputs, full request/admission matching, separate Human versus Agent assessment and one shared Unknown barrier. They do not qualify a real host.",
+    "windows_agent_files": "8 actual temporary Git/SQLite/Windows scenarios cover Agent read/edit/replay, Native event/usage preservation, changed same-call input rejection, missing live proof/Human Kernel refusal, original identity/extra input rejection, two revocation points, changing live host proof and two forced native+Node exits with exact original staging removal/repeated absence and preserved parent Unknown.",
+    "fixture_qualification": "All positive Agent Native admission/current-check cases use constructed controlled ALLOW/host proof; synthetic Run result fees remain domain fixtures. Genuine Windows file/process effects do not imply actual production Runtime/model/billing qualification.",
+    "regression": "Final affected scope includes independent Agent host, legacy Human workspace host/journal, actual staging recovery, Human/Agent Native runs/tool authority, SkillInvocation, fixed skill inputs, Run CLI and workbench server/frontend."
+  },
+  "unchanged": {
+    "native_database_format": 10,
+    "protocol_schemas": 242,
+    "workspace_tool_journal_format": "cimiloop/workspace-tool-journal/1.0.0",
+    "workspace_tool_journal_user_version": 1,
+    "workspace_tool_receipt_format": "cimiloop/workspace-tool-receipt/1.0.0",
+    "workspace_tool_receipt_formal_agent_execution_enabled": false,
+    "human_authority_contract": "unchanged"
+  },
+  "boundaries": {
+    "formal": "This batch provides a trusted Agent file composition component, not a default production Runtime host, task_execution qualification approval, authenticated IPC/OpenCode consumer or actual Agent SDK/billing result proof. Default composition and incomplete qualification remain denied.",
+    "receipt": "The frozen receipt is an original file-effect fact, with global formal execution flag false. It does not become Human authority, complete AgentRunObservation, Skill qualification or Task/Gate conclusion.",
+    "scope": "The original Agent Context digest pins Binding/admission; original input and current assessment basis are retained in the shared ledger. Full protected SDK/tool/account custody, unique protected account billing and actual model/token caps still require the production Run host.",
+    "cleanup": "Only originally recorded private staging with absent proven owners is deleted. Pre-proof residue/unproven/substituted resources and physical filesystem/SQLite/WAL quotas remain incomplete."
+  },
+  "remaining_acceptance": [
+    "Connect authenticated IPC/OpenCode consumption to the fixed original Agent file host and add fixed check-command execution; complete protected original SDK/tool/account custody.",
+    "Complete production Runtime/Task model/tool qualification, service-side input/thinking/output bounds, protected unique account ledger, approved cash/credit budget, actual billing, physical disk quotas and full original resource registration/recovery.",
+    "Provide Human/Matt clarification before confirmed Plan/Task.",
+    "Complete independent Matt fixed diff/issue review and harness, fresh Superpowers checks, actual method behavior/default selection and candidate/evidence projection.",
+    "Connect formal workbench execute/status/stop/recovery.",
+    "Run an ordinary genuine Change through approved Agent work, independent review, real Skill/effect evidence, interruption/resumption and ReadyForDelivery; complete full S1 regressions."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/local-app/src/agent-workspace-tools-local.ts",
+      "bytes": 3696,
+      "sha256": "f4f0430495cbd1f4cef07d9337db2f68fee63292842ad83a1c5f46eb78d77086"
+    },
+    {
+      "path": "packages/local-app/src/index.ts",
+      "bytes": 1493,
+      "sha256": "531e3f96e681b8336da4dcab0270d579bb9def6fd39224a8338dfc79eeabeaf7"
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-workspace-authority.ts",
+      "bytes": 2845,
+      "sha256": "13cd47b5c3ef4d30b67bc091a016c7486b39c91956116e923fcac4beb3e9c4a7"
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-workspace-tool-host.ts",
+      "bytes": 5117,
+      "sha256": "57924ee012a9263f8555598a069869aa6002e72603417c11f6d145cb12a276a8"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 2403,
+      "sha256": "0ab5ccc9b6934d7051366710551ef097f30b5267939da811b53a624fff47a662"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-tool-host.ts",
+      "bytes": 9154,
+      "sha256": "54194659fd0d839d9e34e68a8ce38b8ebe35b8bf2753e029443e362cd21e533f"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-tool-journal.ts",
+      "bytes": 25136,
+      "sha256": "6ec05bb6ffd4a33e5bf92c8b9530d212b2da863b876781c767b0022cdf287e3d"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-workspace-authority.test.ts",
+      "bytes": 7976,
+      "sha256": "8eafce8fc0615a31ef28b18b7b9ec149aedd1b851aed729db27d304443e0bc03"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-workspace-tool-host-worker.mjs",
+      "bytes": 2343,
+      "sha256": "6ee37265625955b36d059860460b025db79b23128786b7d346cad47692bce9cd"
+    },
+    {
+      "path": "tests/fixtures/agent-run-project.ts",
+      "bytes": 11547,
+      "sha256": "7a887be3b0eb535c91fbe1afe61e99aa3f0334d17b76e23c7901bdcbb32e8e8e"
+    },
+    {
+      "path": "tests/scenarios/agent-workspace-tool-runtime.test.ts",
+      "bytes": 12037,
+      "sha256": "866d30c8a37457ab6d3980ea2e0e2de4b6d28e92fa8ebf60a09264f3f00ce37e"
+    }
+  ]
+}
