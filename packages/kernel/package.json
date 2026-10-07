@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@cimiloop/protocol": "workspace:*",
+    "@cimiloop/skill-adapter": "workspace:*",
     "@cimiloop/store": "workspace:*"
   }
 }

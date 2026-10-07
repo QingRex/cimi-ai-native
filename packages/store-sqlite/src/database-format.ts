@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { m0Schema } from "./v1/project-store.js";
 
-export const CURRENT_DATABASE_FORMAT = 8;
+export const CURRENT_DATABASE_FORMAT = 9;
 export class MigrationError extends Error {
   constructor(readonly code: "MIGRATION_REQUIRED" | "MIGRATION_UNSAFE" | "DATABASE_TOO_NEW", message: string, options?: ErrorOptions) {
     super(message, options); this.name = "MigrationError";
@@ -81,7 +81,7 @@ export const installWriteGuards = (db: DatabaseSync): void => {
   }
 };
 export const initializeCurrentDatabase = (db: DatabaseSync): void => {
-  initializeDatabase(db, 8);
+  initializeDatabase(db, 9);
 };
 // Frozen layout for validating earlier format 2 sources; not used by ordinary opening.
 export const initializeFormat2Database = (db: DatabaseSync): void => { initializeDatabase(db, 2); };
@@ -90,6 +90,21 @@ export const initializeFormat4Database = (db: DatabaseSync): void => { initializ
 export const initializeFormat5Database = (db: DatabaseSync): void => { initializeDatabase(db, 5); };
 export const initializeFormat6Database = (db: DatabaseSync): void => { initializeDatabase(db, 6); };
 export const initializeFormat7Database = (db: DatabaseSync): void => { initializeDatabase(db, 7); };
+export const initializeFormat8Database = (db: DatabaseSync): void => { initializeDatabase(db, 8); };
+export const installSkillAssessmentGuard = (db: DatabaseSync): void => {
+  db.exec(`CREATE TRIGGER guard_provider_assessment_kind_insert BEFORE INSERT ON provider_assessment_records
+    WHEN (NEW.object_type = 'evidence' AND (
+      (json_extract(NEW.payload_json, '$.purpose') = 'provider_probe' AND
+       (SELECT json_extract(payload_json, '$.provider_kind') FROM immutable_records WHERE id = NEW.descriptor_id) = 'runtime') OR
+      (json_extract(NEW.payload_json, '$.purpose') = 'skill_probe' AND
+       (SELECT json_extract(payload_json, '$.provider_kind') FROM immutable_records WHERE id = NEW.descriptor_id) = 'skill')) IS NOT 1) OR
+      (NEW.object_type = 'evaluation' AND (
+      (json_extract(NEW.payload_json, '$.rule_version') = 'provider-assessment/1.0.0' AND
+       (SELECT json_extract(payload_json, '$.provider_kind') FROM immutable_records WHERE id = NEW.descriptor_id) = 'runtime') OR
+      (json_extract(NEW.payload_json, '$.rule_version') = 'skill-provider-assessment/1.0.0' AND
+       (SELECT json_extract(payload_json, '$.provider_kind') FROM immutable_records WHERE id = NEW.descriptor_id) = 'skill')) IS NOT 1)
+    BEGIN SELECT RAISE(ABORT, 'provider assessment kind mismatch'); END;`);
+};
 export const installProviderAssessmentSchema = (db: DatabaseSync): void => {
   db.exec(`CREATE TABLE provider_assessment_records (
     id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(id), descriptor_id TEXT NOT NULL REFERENCES immutable_records(id),
@@ -117,7 +132,7 @@ export const installRuntimeSchema = (db: DatabaseSync): void => {
     CREATE TRIGGER immutable_run_records_update BEFORE UPDATE ON run_records BEGIN SELECT RAISE(ABORT, 'immutable record'); END;
     CREATE TRIGGER immutable_run_records_delete BEFORE DELETE ON run_records BEGIN SELECT RAISE(ABORT, 'immutable record'); END;`);
 };
-const initializeDatabase = (db: DatabaseSync, format: 2 | 3 | 4 | 5 | 6 | 7 | 8): void => {
+const initializeDatabase = (db: DatabaseSync, format: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): void => {
   db.exec("BEGIN IMMEDIATE");
   try {
     db.exec(m0Schema.replace(/CREATE TABLE IF NOT EXISTS outbox_messages \([\s\S]*?\) STRICT;/, outboxSchema)
@@ -130,6 +145,7 @@ const initializeDatabase = (db: DatabaseSync, format: 2 | 3 | 4 | 5 | 6 | 7 | 8)
     if (format >= 6) installVerificationSchema(db);
     if (format >= 7) installRuntimeSchema(db);
     if (format >= 8) installProviderAssessmentSchema(db);
+    if (format >= 9) installSkillAssessmentGuard(db);
     db.prepare("INSERT INTO schema_migrations(version, applied_at) VALUES (?, ?)").run(format, new Date().toISOString());
     db.exec("COMMIT");
   } catch (error) { db.exec("ROLLBACK"); throw error; }

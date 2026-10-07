@@ -1,6 +1,8 @@
 # CimiLoop Provider证据、评测与受限绑定 v0.1
 
-2026-10-04，V1-09续批，决策D-195。本批接通Project作用域的原生Evidence / Evaluation和Human批准的合成探针Binding。真实智谱探针已完成实际CLI导入、两类评测与受限批准；Task执行绑定仍被拒绝，Agent Run及完整A9未完成。当前数据库格式8、协议2.0.0；只升级临时测试样本，没有升级用户库。
+2026-10-04，V1-09续批，决策D-195。本批接通Project作用域的原生Evidence / Evaluation和Human批准的合成探针Binding。真实智谱探针已完成实际CLI导入、两类评测与受限批准；Task执行绑定仍被拒绝，Agent Run及完整A9未完成。该批数据库格式8、协议2.0.0；只升级临时测试样本，没有升级用户库。
+
+2026-10-07 D-211：[技能证据、评测与Runtime绑定](CimiLoop-技能证据评测与Runtime绑定-v0.1.md)增加技能严格分支及格式9显式1–8迁移，冻结本批Runtime记录形状。本文保留Runtime操作入口和历史实测依据；正式执行仍未启用。
 
 后续D-198已完成无网络Capability下的OpenCode 1.18.34合成IPC传输：准确AppContainer SID / 实际PID与创建身份核对、帧限额及重放校验、内容只读模块兼容、取消 / 原生崩溃与归属恢复验证均接通。外部模型请求和实际Key读取0，HTTPS主机 / 路径 / 模型强制限制与持久预算预留 / 可靠计费仍待实现，controlled_execution、正式Task绑定及Agent Run不提升。 见[Runtime IPC传输](CimiLoop-RuntimeIPC传输-v0.1.md)；合成transport-probe结果不能替代原RuntimeProbeResult或真实模型契约证据。
 

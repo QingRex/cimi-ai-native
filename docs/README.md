@@ -4,7 +4,9 @@
 
 ## 快速理解
 
-2026-10-07 D-210：[技能包固定来源与候选登记](implementation/CimiLoop-技能包固定来源与候选登记-v0.1.md)记录实际 Matt / Superpowers commit、完整模块 / 许可、离线 Git 证明、严格方法 IO 及原生 CLI 登记。V1-21 第一阶段已实现；技能评测、Binding 和真实调用仍待完成，未选择默认 Provider。
+2026-10-07 D-211已接通Skill专用原生证据、评测及固定Runtime的探针Binding，格式9支持显式1–8迁移；三个固定上游包的实际OpenCode加载均保留子进程受限失败证据。真实技能方法、正式Context / Run与V1-22行为对照仍待完成，S1未退出。见[技能证据、评测与Runtime绑定](implementation/CimiLoop-技能证据评测与Runtime绑定-v0.1.md)。
+
+2026-10-07 D-210：[技能包固定来源与候选登记](implementation/CimiLoop-技能包固定来源与候选登记-v0.1.md)记录实际 Matt / Superpowers commit、完整模块 / 许可、离线 Git 证明、严格方法 IO 及原生 CLI 登记。V1-21 第一阶段已实现；D-210当时的技能评测及探针Binding由D-211继续实现，真实方法调用仍待完成，未选择默认 Provider。
 
 2026-10-07 D-209：[本地工作台与共享应用服务](implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md)已实现人工操作阶段，连接真实 Kernel / SQLite，复用 CLI 项目及身份装配。包含启动、页面能力、本地会话、原请求恢复及验证记录；正式 Agent、技能和 S1 全链路仍待完成。
 

@@ -49,6 +49,15 @@ describe("runtime probe contract", () => {
     for (const key of ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "OPENCODE_SERVER_PASSWORD", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NODE_OPTIONS"]) expect(environment).not.toHaveProperty(key);
     expect(environment.OPENCODE_DISABLE_PROJECT_CONFIG).toBe("true");
   });
+  it("requires a read-only fixed skill loader profile and limits loading to named modules", () => {
+    const skill: ProbeOperationInput = { ...input("method"), skill_profile: { version: "cimiloop/skill-method/1.0.0", source_digest: digest("fixed skill"), skill_names: ["fixed-method"], purpose: "clarification" },
+      files: [{ path: "skill-source/fixed-method/SKILL.md", content: "---\nname: fixed-method\ndescription: Fixed\n---\nFixed method" }] };
+    expect(() => validateOperationInput(skill)).not.toThrow();
+    expect(() => validateOperationInput({ ...skill, mode: "write" })).toThrow("invalid_skill_probe_profile");
+    expect(() => validateOperationInput({ ...skill, files: [{ path: "input.txt", content: "no skill" }] })).toThrow("invalid_skill_probe_profile");
+    expect(() => validateOperationInput({ ...skill, files: [...skill.files, { path: "skill-source/undeclared/SKILL.md", content: "undeclared" }] })).toThrow("invalid_skill_probe_profile");
+    const { skill_profile: _profile, ...unprofiled } = skill; expect(() => validateOperationInput(unprofiled)).toThrow("skill_probe_profile_required");
+  });
   it("machine results reject self-reported Human identity and known cost", () => {
     const result = { schema_version: "2.0.0", scope: "isolated_provider_probe", operation_key: "test", input_digest: digest("input"),
       status: "Unknown", cancel_requested: false, observed_at: new Date().toISOString(), reason: "unknown", raw_refs: [], outputs: [], usage: { cost_known: false } };

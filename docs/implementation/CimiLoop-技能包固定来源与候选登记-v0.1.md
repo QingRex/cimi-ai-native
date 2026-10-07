@@ -4,6 +4,8 @@
 
 `packages/skill-adapter` 从固定 Git 对象读取完整模块目录和许可证，生成内容寻址技能包。`packages/local-app` 保存和复核包，CLI 通过原有 `RegisterProvider` 登记 `skill` 候选。任务、决定、权限及 Gate 继续由 Kernel 管理。
 
+> 后续进度：D-211已接通[技能证据、评测与Runtime绑定](CimiLoop-技能证据评测与Runtime绑定-v0.1.md)及格式9显式迁移，保留三个上游包实际加载失败。本文D-210验证和当时格式8保持为历史依据；真实方法调用尚未完成。
+
 ## 固定来源与完整模块
 
 严格 `SkillImportSpec` 指定 HTTPS 仓库地址、完整 commit、入口路径、模块依赖图、许可证、包装版本、能力、外部 Provider 依赖、权限需求、宿主需求及依赖审查说明。拒绝带账号、密码、查询或片段的地址；导入仅接受已经取得指定 commit 的本地 Git 仓库，不自动下载。

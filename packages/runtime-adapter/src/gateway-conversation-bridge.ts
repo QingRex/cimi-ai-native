@@ -7,12 +7,13 @@ import { nativeControl } from "./native.js";
 import { GatewayConversationHostRehearsal } from "./gateway-host.js";
 import type { GatewayCreditLedger } from "./gateway-credit.js";
 import { parseGatewayJson, prepareGatewayConversation } from "./gateway-conversation.js";
+import { compileValidator, SkillRuntimeProfileSchema, type SkillRuntimeProfile } from "@cimiloop/protocol/v2";
 
 export const CONVERSATION_IPC_REQUEST_BYTES = 65536, CONVERSATION_IPC_REPLY_BYTES = 294912;
 const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join(",") === [...keys].sort().join(",");
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
 interface Identity { pid: number; creation_ticks: string; image: string }
-interface Context { path: string; nonce: string; operationKey: string; launcher: string; binary: string; policyDigest: string; ledger: GatewayCreditLedger; host: GatewayConversationHostRehearsal }
+interface Context { path: string; nonce: string; operationKey: string; launcher: string; binary: string; policyDigest: string; ledger: GatewayCreditLedger; host: GatewayConversationHostRehearsal; skillProfile?: SkillRuntimeProfile }
 // Only the trusted public probe runner constructs this bridge. It is not wired
 // into operation admission or the CLI, and cannot construct a real-key host.
 export class PublicConversationBridge {
@@ -30,7 +31,9 @@ export class PublicConversationBridge {
   private readonly ended = () => this.abort.abort();
   constructor(context: Context) {
     if (context.ledger.storageFormat !== 3 || !/^[a-f0-9]{64}$/.test(context.policyDigest) || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(context.nonce) || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(context.operationKey)) fail("conversation_bridge_profile_invalid");
-    this.context = Object.freeze({ ...context });
+    const profile = context.skillProfile && compileValidator<SkillRuntimeProfile>(SkillRuntimeProfileSchema)(structuredClone(context.skillProfile));
+    if (profile) { if (profile.skill_names.length > 3) fail("conversation_bridge_profile_invalid"); Object.freeze(profile.skill_names); Object.freeze(profile.source_digest); Object.freeze(profile); }
+    this.context = Object.freeze({ ...context, ...(profile ? { skillProfile: profile } : {}) });
     directory(join(context.path, "conversation", "requests")); directory(join(context.path, "conversation", "responses"));
   }
   start(child: ChildProcess): void {
@@ -66,13 +69,15 @@ export class PublicConversationBridge {
         frame.input_tokens !== 65536 || !Number.isSafeInteger(frame.max_output_tokens) || Number(frame.max_output_tokens) < 1 || Number(frame.max_output_tokens) > 128) fail("conversation_frame_denied");
       const input = { request_id: frame.request_id, messages: frame.messages, tools: frame.tools, response_mode: frame.response_mode, input_tokens: frame.input_tokens, max_output_tokens: frame.max_output_tokens };
       const prepared = prepareGatewayConversation(input);
-      // Runtime schemas do not grant filesystem authority. This fixed probe
-      // allows only the read tool; proposed paths are checked separately below.
-      if (!prepared.tools.length || prepared.tools.some(tool => tool.function.name !== "read")) fail("conversation_fixture_tools_denied");
+      // Trusted synthetic profiles only; tool names and proposed arguments are
+      // checked independently. The original public read profile is unchanged.
+      if (!prepared.tools.length || prepared.tools.some(tool => tool.function.name !== "read" && !(c.skillProfile && tool.function.name === "skill"))) fail("conversation_fixture_tools_denied");
       const result = await c.host.execute(input, "public_probe", this.abort.signal);
       for (const call of result.response.tool_calls) {
         const args = parseGatewayJson(call.function.arguments, 16384);
-        if (call.function.name !== "read" || !exact(args, ["filePath"]) || args.filePath !== ownership.mapping + "\\workspace\\public.txt") fail("conversation_fixture_path_denied");
+        if (c.skillProfile && call.function.name === "skill") {
+          if (!exact(args, ["name"]) || !c.skillProfile.skill_names.includes(String(args.name))) fail("conversation_fixture_skill_denied");
+        } else if (call.function.name !== "read" || !exact(args, ["filePath"]) || args.filePath !== ownership.mapping + "\\workspace\\public.txt") fail("conversation_fixture_path_denied");
       }
       response = result.response; receipt = result.receipt; replay = result.replay;
     } catch (error) { reason = error instanceof RuntimeAdapterError && /^[a-z_]{1,96}$/.test(error.reason) ? error.reason : "conversation_frame_denied"; }

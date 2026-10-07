@@ -58,7 +58,7 @@ node apps/cli/dist/bin.js --json --project-dir '<项目路径>' inspect provider
 
 register支持`--command-id`和`--expected-revision`，后者指向Project。JSON与文本走同一Kernel写入 / 读取服务。坏文件或协议字段退出2，缺少对象退出3，角色、依赖、版本及CAS冲突退出1；重复同command_id的已成功命令返回原回执。文本输出明确显示candidate和未启用原因。
 
-D-193当批复用既有immutable_records表，数据库保持格式7、协议2.0.0，未新增迁移。D-195当前格式8增加独立Provider评测表，旧格式1–7须显式迁移，操作见[数据库迁移与恢复](CimiLoop-M0数据库迁移与恢复-v0.1.md)。未升级用户项目库，冻结v1保持。
+D-193当批复用既有immutable_records表，数据库保持格式7、协议2.0.0，未新增迁移。D-195的格式8增加独立Provider评测表；D-211当前格式9增加技能种类守卫，旧格式1–8须显式迁移，操作见[数据库迁移与恢复](CimiLoop-M0数据库迁移与恢复-v0.1.md)。未升级用户项目库，冻结v1保持。
 
 ## 5. 验证与后续
 

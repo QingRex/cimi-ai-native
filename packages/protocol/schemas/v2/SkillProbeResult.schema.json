@@ -1,0 +1,451 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "SkillProbeResult.v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope",
+    "kind",
+    "observed_at",
+    "descriptor_ref",
+    "descriptor_digest",
+    "capability",
+    "runtime_binding_ref",
+    "runtime_binding_digest",
+    "calls",
+    "formal_execution_enabled"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "scope": {
+      "type": "string",
+      "const": "isolated_provider_probe"
+    },
+    "kind": {
+      "type": "string",
+      "const": "skill_invocation_probe"
+    },
+    "observed_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
+    "descriptor_ref": {
+      "type": "object",
+      "required": [
+        "object_type",
+        "id"
+      ],
+      "properties": {
+        "object_type": {
+          "type": "string",
+          "const": "provider_descriptor"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "descriptor_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "capability": {
+      "type": "object",
+      "required": [
+        "capability_id",
+        "version"
+      ],
+      "properties": {
+        "capability_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime_binding_ref": {
+      "type": "object",
+      "required": [
+        "object_type",
+        "id"
+      ],
+      "properties": {
+        "object_type": {
+          "type": "string",
+          "const": "provider_binding"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime_binding_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "input_ref",
+          "request_ref",
+          "operation"
+        ],
+        "properties": {
+          "input_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator",
+              "digest",
+              "version"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "const": "local_content"
+              },
+              "resource_type": {
+                "type": "string",
+                "const": "provider_probe_artifact"
+              },
+              "locator": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              }
+            },
+            "additionalProperties": false
+          },
+          "request_ref": {
+            "type": "object",
+            "required": [
+              "provider",
+              "resource_type",
+              "locator",
+              "digest",
+              "version"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "const": "local_content"
+              },
+              "resource_type": {
+                "type": "string",
+                "const": "provider_probe_artifact"
+              },
+              "locator": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              }
+            },
+            "additionalProperties": false
+          },
+          "operation": {
+            "type": "object",
+            "required": [
+              "schema_version",
+              "scope",
+              "operation_key",
+              "input_digest",
+              "status",
+              "cancel_requested",
+              "observed_at",
+              "reason",
+              "raw_refs",
+              "outputs",
+              "usage"
+            ],
+            "properties": {
+              "schema_version": {
+                "type": "string",
+                "const": "2.0.0"
+              },
+              "scope": {
+                "type": "string",
+                "const": "isolated_provider_probe"
+              },
+              "operation_key": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+              },
+              "input_digest": {
+                "type": "object",
+                "required": [
+                  "algorithm",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "const": "sha256"
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "status": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "Reserved"
+                  },
+                  {
+                    "type": "string",
+                    "const": "Running"
+                  },
+                  {
+                    "type": "string",
+                    "const": "Succeeded"
+                  },
+                  {
+                    "type": "string",
+                    "const": "Failed"
+                  },
+                  {
+                    "type": "string",
+                    "const": "Cancelled"
+                  },
+                  {
+                    "type": "string",
+                    "const": "Unknown"
+                  },
+                  {
+                    "type": "string",
+                    "const": "NotStarted"
+                  }
+                ]
+              },
+              "cancel_requested": {
+                "type": "boolean"
+              },
+              "observed_at": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+              },
+              "session_id": {
+                "type": "string",
+                "pattern": "^ses_[a-zA-Z0-9]+$"
+              },
+              "exit_code": {
+                "type": "integer"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "raw_refs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "provider",
+                    "resource_type",
+                    "locator"
+                  ],
+                  "properties": {
+                    "provider": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "resource_type": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "locator": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "digest": {
+                      "type": "object",
+                      "required": [
+                        "algorithm",
+                        "value"
+                      ],
+                      "properties": {
+                        "algorithm": {
+                          "type": "string",
+                          "const": "sha256"
+                        },
+                        "value": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "outputs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "provider",
+                    "resource_type",
+                    "locator"
+                  ],
+                  "properties": {
+                    "provider": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "resource_type": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "locator": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "digest": {
+                      "type": "object",
+                      "required": [
+                        "algorithm",
+                        "value"
+                      ],
+                      "properties": {
+                        "algorithm": {
+                          "type": "string",
+                          "const": "sha256"
+                        },
+                        "value": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "usage": {
+                "type": "object",
+                "required": [
+                  "cost_known"
+                ],
+                "properties": {
+                  "cost_known": {
+                    "type": "boolean",
+                    "const": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 4
+    },
+    "formal_execution_enabled": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}

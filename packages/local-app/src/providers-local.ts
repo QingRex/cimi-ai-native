@@ -3,9 +3,11 @@ import { lstatSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { verifySkillPackageBytes, assertSkillDescriptor } from "@cimiloop/skill-adapter";
+import { parseSkillMethodInput } from "@cimiloop/skill-adapter";
+import { validateOperationRequest, type OperationRequest } from "@cimiloop/runtime-adapter";
 import type { ProviderVerifierPort } from "@cimiloop/kernel";
-import { compileValidator, RuntimeProbeResultSchema, ProviderArtifactReferenceSchema, type ExternalReference,
-  type ProviderDescriptor, type ProviderProbeReference, type ProviderArtifactReference, type RuntimeProbeResult, type Project, SkillPackageReferenceSchema, type SkillPackageReference } from "@cimiloop/protocol/v2";
+import { compileValidator, RuntimeProbeResultSchema, SkillProbeResultSchema, ProviderArtifactReferenceSchema, type ExternalReference,
+  type ProviderDescriptor, type ProviderProbeReference, type ProviderArtifactReference, type RuntimeProbeResult, type Project, SkillPackageReferenceSchema, type SkillPackageReference, type SkillProbeResult } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 
 const parseProbe = compileValidator<RuntimeProbeResult>(RuntimeProbeResultSchema);
@@ -43,10 +45,20 @@ export class LocalProviderVerifier implements ProviderVerifierPort {
     const root = fileURLToPath(new URL("../../../packages/protocol/schemas/v2/", import.meta.url));
     return digest(ordinaryFile(join(root, `${schemaId}.schema.json`), 1024 * 1024));
   }
-  readProbe(project: Project, ref: ProviderProbeReference) { this.#project(project); return parseProbe(JSON.parse(this.content.readContent(ref).toString("utf8"))); }
+  readSkillPackage(project: Project, descriptor: ProviderDescriptor) {
+    this.#project(project); const { version: _version, ...raw } = descriptor.source_ref;
+    return this.content.readContent(compileValidator<SkillPackageReference>(SkillPackageReferenceSchema)(raw));
+  }
+  validateSkillRequest(project: Project, request: unknown) { this.#project(project); validateOperationRequest(request as OperationRequest); }
+  readProbe(project: Project, ref: ProviderProbeReference) {
+    this.#project(project); const raw: unknown = JSON.parse(this.content.readContent(ref).toString("utf8"));
+    return raw && typeof raw === "object" && "kind" in raw && raw.kind === "skill_invocation_probe" ? compileValidator(SkillProbeResultSchema)(raw) : parseProbe(raw);
+  }
   readArtifact(project: Project, ref: ExternalReference) { this.#project(project); return this.content.readContent(parseArtifact(ref)); }
   importProbe(snapshotFile: string, artifactRoot: string): ProviderProbeReference {
-    const probe = parseProbe(JSON.parse(ordinaryFile(snapshotFile, 1024 * 1024).toString("utf8")));
+    const raw: unknown = JSON.parse(ordinaryFile(snapshotFile, 1024 * 1024).toString("utf8"));
+    if (raw && typeof raw === "object" && "kind" in raw && raw.kind === "skill_invocation_probe") return this.importSkillProbe(raw, artifactRoot);
+    const probe = parseProbe(raw);
     const root = resolve(artifactRoot); if (!lstatSync(root).isDirectory() || lstatSync(root).isSymbolicLink()) throw new Error("Unsafe probe artifact root");
     let count = 0;
     const copy = (ref: ExternalReference): ExternalReference => {
@@ -60,6 +72,25 @@ export class LocalProviderVerifier implements ProviderVerifierPort {
     probe.evidence_refs = probe.evidence_refs.map(copy);
     for (const boundary of probe.boundaries) boundary.raw_refs = boundary.raw_refs.map(copy);
     for (const operation of probe.model_operations) { operation.raw_refs = operation.raw_refs.map(copy); operation.outputs = operation.outputs.map(copy); }
+    return this.content.storeContent(Buffer.from(JSON.stringify(probe)), "provider_probe_snapshot");
+  }
+  importSkillProbe(raw: unknown, artifactRoot: string): ProviderProbeReference {
+    const probe = compileValidator<SkillProbeResult>(SkillProbeResultSchema)(raw), root = resolve(artifactRoot);
+    if (!lstatSync(root).isDirectory() || lstatSync(root).isSymbolicLink()) throw new Error("Unsafe skill artifact root");
+    let count = 0;
+    const copy = (ref: ExternalReference) => {
+      const value = parseArtifact(ref); if (++count > 64) throw new Error("Skill artifact limit");
+      if (!/^[0-9a-f]{64}$/.test(value.locator) || value.digest.value !== value.locator) throw new Error("Fixed skill artifact locator required");
+      const bytes = ordinaryFile(join(root, value.locator), 2 * 1024 * 1024);
+      if (digest(bytes).value !== value.digest.value) throw new Error("Skill artifact digest mismatch");
+      this.content.storeContent(bytes, "provider_probe_artifact"); return value;
+    };
+    for (const call of probe.calls) {
+      copy(call.input_ref); copy(call.request_ref);
+      const input = parseSkillMethodInput(JSON.parse(ordinaryFile(join(root, call.input_ref.locator), 384 * 1024).toString("utf8")));
+      if (input.purpose === "review") input.artifact_refs.forEach(copy);
+      call.operation.raw_refs.forEach(copy); call.operation.outputs.forEach(copy);
+    }
     return this.content.storeContent(Buffer.from(JSON.stringify(probe)), "provider_probe_snapshot");
   }
 }

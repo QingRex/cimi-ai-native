@@ -53,7 +53,7 @@ provider.command("list").description("读取一致的Provider目录、摘要及A
 for (const [name, kind] of [["record-evidence", "RecordProviderEvidence"], ["evaluate", "EvaluateProvider"], ["bind", "RegisterProviderBinding"]] as const) {
   const entry = provider.command(name).requiredOption("--file <json>", "严格Provider作用域输入；不能用Task验收或自报准入")
     .option("--expected-revision <revision>", "期望Project Revision");
-  if (kind === "RecordProviderEvidence") entry.option("--probe-file <json>", "实际Runtime探针快照，核对并导入原始字节")
+  if (kind === "RecordProviderEvidence") entry.option("--probe-file <json>", "固定Runtime探针或Skill调用观测快照，核对并导入原始字节")
     .option("--artifact-root <path>", "原始引用可读取的显式根目录；缺省当前项目目录");
   entry.action((options, command) => providerMutation(kind, { ...globals(command), ...options }));
 }

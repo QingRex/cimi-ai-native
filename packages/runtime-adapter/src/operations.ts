@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, writeFileSync, readdirSync, lstatSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { compileValidator, RuntimeOperationResultSchema, RuntimeDiskLimitsSchema, type RuntimeDiskLimits, type RuntimeExecutionPolicy, type RuntimeOperationResult, type ExternalReference, type Digest } from "@cimiloop/protocol/v2";
+import { compileValidator, RuntimeOperationResultSchema, RuntimeDiskLimitsSchema, SkillRuntimeProfileSchema, type SkillRuntimeProfile, type RuntimeDiskLimits, type RuntimeExecutionPolicy, type RuntimeOperationResult, type ExternalReference, type Digest } from "@cimiloop/protocol/v2";
 import { digest, directory, atomicJson, readJson, bytesAt, rawReference, RuntimeAdapterError, assertOrdinaryPath } from "./files.js";
 import { isolatedEnvironment } from "./native.js";
 import { validateModelConnection, type DedicatedModelConnection } from "./connection.js";
@@ -20,6 +20,7 @@ export interface ProbeOperationInput {
   max_elapsed_ms: number;
   disk_limits?: RuntimeDiskLimits;
   execution_policy?: RuntimeExecutionPolicy;
+  skill_profile?: SkillRuntimeProfile;
 }
 export interface ProbeDriver {
   launcher: string; binary: string; binary_digest: Digest;
@@ -53,7 +54,7 @@ export const diskLimitsFor = (input: ProbeOperationInput): RuntimeDiskLimits => 
 };
 const ordinaryRelativePath = /^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*(?:\/[a-zA-Z0-9_-][a-zA-Z0-9_.-]*)*$/;
 export const validateOperationInput = (input: ProbeOperationInput, frozenLimits?: RuntimeDiskLimits): void => {
-  if (Object.keys(input).filter(key => !["disk_limits", "execution_policy"].includes(key)).sort().join(",") !== "files,max_elapsed_ms,mode,operation_key,prompt,scope" ||
+  if (Object.keys(input).filter(key => !["disk_limits", "execution_policy", "skill_profile"].includes(key)).sort().join(",") !== "files,max_elapsed_ms,mode,operation_key,prompt,scope" ||
     input.scope !== "isolated_provider_probe" || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(input.operation_key) || !["write", "read"].includes(input.mode) ||
     !Number.isSafeInteger(input.max_elapsed_ms) || input.max_elapsed_ms < 100 || input.max_elapsed_ms > 180_000 || typeof input.prompt !== "string" || !input.prompt || input.prompt.length > 16_000 ||
     !Array.isArray(input.files) || input.files.length < 1 || input.files.length > 32 || new Set(input.files.map(file => file.path.toLowerCase())).size !== input.files.length) throw new RuntimeAdapterError("invalid_probe_input");
@@ -61,12 +62,23 @@ export const validateOperationInput = (input: ProbeOperationInput, frozenLimits?
     file.path.split("/").some(part => /^(?:con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\.|$)/i.test(part) || part.endsWith(".")) ||
     typeof file.content !== "string" || Buffer.byteLength(file.content) > 256 * 1024) throw new RuntimeAdapterError("invalid_probe_file");
   if (input.execution_policy !== undefined) requireSupportedExecutionPolicy(input.execution_policy);
+  if (input.skill_profile !== undefined) {
+    const profile = compileValidator<SkillRuntimeProfile>(SkillRuntimeProfileSchema)(input.skill_profile);
+    if (input.mode !== "read" || profile.skill_names.some(name => !input.files.some(file => file.path === `skill-source/${name}/SKILL.md`)) ||
+      input.files.some(file => file.path.startsWith("skill-source/") && !profile.skill_names.includes(file.path.split("/")[1]!))) throw new RuntimeAdapterError("invalid_skill_probe_profile");
+  } else if (input.files.some(file => file.path.startsWith("skill-source/"))) throw new RuntimeAdapterError("skill_probe_profile_required");
   let limits: RuntimeDiskLimits;
   try { limits = parseLimits(frozenLimits ?? diskLimitsFor(input)); } catch { throw new RuntimeAdapterError("invalid_disk_limits"); }
   const entries = new Set(input.files.flatMap(file => file.path.split("/").map((_, i, parts) => parts.slice(0, i + 1).join("/"))));
   if (limits.max_file_bytes > limits.max_sandbox_bytes || entries.size + 2 > limits.max_sandbox_entries ||
     input.files.some(file => Buffer.byteLength(file.content) > limits.max_file_bytes) ||
     input.files.reduce((sum, file) => sum + Buffer.byteLength(file.content), 0) > limits.max_sandbox_bytes) throw new RuntimeAdapterError("probe_input_disk_limit_exceeded");
+};
+export const skillLoaderConfiguration = (input: ProbeOperationInput, workspace: string) => {
+  validateOperationInput(input);
+  const permission = { "*": "deny", read: "allow", ...(input.mode === "write" ? { edit: "allow" } : {}),
+    ...(input.skill_profile ? { skill: { "*": "deny", ...Object.fromEntries(input.skill_profile.skill_names.map(name => [name, "allow"])) } } : {}) };
+  return { permission, ...(input.skill_profile ? { skills: { paths: [join(workspace, "skill-source")], urls: [] } } : {}) };
 };
 export const validateOperationRequest = (request: OperationRequest): void => {
   validateOperationInput(request.input, request.effective_disk_limits);

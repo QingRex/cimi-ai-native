@@ -2391,206 +2391,450 @@
           "minimum": 1
         },
         "payload": {
-          "type": "object",
-          "required": [
-            "descriptor_ref",
-            "descriptor_digest",
-            "evaluation_ref",
-            "input_digest",
-            "binding_scope",
-            "capability",
-            "effective_permissions"
-          ],
-          "properties": {
-            "descriptor_ref": {
+          "anyOf": [
+            {
               "type": "object",
               "required": [
-                "object_type",
-                "id"
+                "descriptor_ref",
+                "descriptor_digest",
+                "evaluation_ref",
+                "input_digest",
+                "binding_scope",
+                "capability",
+                "effective_permissions"
               ],
               "properties": {
-                "object_type": {
-                  "type": "string",
-                  "const": "provider_descriptor"
-                },
-                "id": {
-                  "type": "string",
-                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-                }
-              },
-              "additionalProperties": false
-            },
-            "descriptor_digest": {
-              "type": "object",
-              "required": [
-                "algorithm",
-                "value"
-              ],
-              "properties": {
-                "algorithm": {
-                  "type": "string",
-                  "const": "sha256"
-                },
-                "value": {
-                  "type": "string",
-                  "pattern": "^[0-9a-f]{64}$"
-                }
-              },
-              "additionalProperties": false
-            },
-            "evaluation_ref": {
-              "type": "object",
-              "required": [
-                "object_type",
-                "id"
-              ],
-              "properties": {
-                "object_type": {
-                  "type": "string",
-                  "const": "evaluation"
-                },
-                "id": {
-                  "type": "string",
-                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-                }
-              },
-              "additionalProperties": false
-            },
-            "input_digest": {
-              "type": "object",
-              "required": [
-                "algorithm",
-                "value"
-              ],
-              "properties": {
-                "algorithm": {
-                  "type": "string",
-                  "const": "sha256"
-                },
-                "value": {
-                  "type": "string",
-                  "pattern": "^[0-9a-f]{64}$"
-                }
-              },
-              "additionalProperties": false
-            },
-            "binding_scope": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "const": "isolated_provider_probe"
-                },
-                {
-                  "type": "string",
-                  "const": "task_execution"
-                }
-              ]
-            },
-            "capability": {
-              "type": "object",
-              "required": [
-                "capability_id",
-                "version"
-              ],
-              "properties": {
-                "capability_id": {
-                  "type": "string",
-                  "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
-                },
-                "version": {
-                  "type": "string",
-                  "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
-                }
-              },
-              "additionalProperties": false
-            },
-            "effective_permissions": {
-              "type": "object",
-              "required": [
-                "actions",
-                "resources",
-                "environment_ids",
-                "network_hosts"
-              ],
-              "properties": {
-                "actions": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "minLength": 1
+                "descriptor_ref": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "provider_descriptor"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
                   },
-                  "uniqueItems": true
+                  "additionalProperties": false
                 },
-                "resources": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "provider",
-                      "resource_type",
-                      "locator"
-                    ],
-                    "properties": {
-                      "provider": {
+                "descriptor_digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "evaluation_ref": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "evaluation"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "input_digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "binding_scope": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "const": "isolated_provider_probe"
+                    },
+                    {
+                      "type": "string",
+                      "const": "task_execution"
+                    }
+                  ]
+                },
+                "capability": {
+                  "type": "object",
+                  "required": [
+                    "capability_id",
+                    "version"
+                  ],
+                  "properties": {
+                    "capability_id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
+                    },
+                    "version": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "effective_permissions": {
+                  "type": "object",
+                  "required": [
+                    "actions",
+                    "resources",
+                    "environment_ids",
+                    "network_hosts"
+                  ],
+                  "properties": {
+                    "actions": {
+                      "type": "array",
+                      "items": {
                         "type": "string",
                         "minLength": 1
                       },
-                      "resource_type": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "locator": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "version": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "digest": {
+                      "uniqueItems": true
+                    },
+                    "resources": {
+                      "type": "array",
+                      "items": {
                         "type": "object",
                         "required": [
-                          "algorithm",
-                          "value"
+                          "provider",
+                          "resource_type",
+                          "locator"
                         ],
                         "properties": {
-                          "algorithm": {
+                          "provider": {
                             "type": "string",
-                            "const": "sha256"
+                            "minLength": 1
                           },
-                          "value": {
+                          "resource_type": {
                             "type": "string",
-                            "pattern": "^[0-9a-f]{64}$"
+                            "minLength": 1
+                          },
+                          "locator": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "version": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "digest": {
+                            "type": "object",
+                            "required": [
+                              "algorithm",
+                              "value"
+                            ],
+                            "properties": {
+                              "algorithm": {
+                                "type": "string",
+                                "const": "sha256"
+                              },
+                              "value": {
+                                "type": "string",
+                                "pattern": "^[0-9a-f]{64}$"
+                              }
+                            },
+                            "additionalProperties": false
                           }
                         },
                         "additionalProperties": false
-                      }
+                      },
+                      "uniqueItems": true
                     },
-                    "additionalProperties": false
+                    "environment_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      },
+                      "uniqueItems": true
+                    },
+                    "network_hosts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    }
                   },
-                  "uniqueItems": true
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "descriptor_ref",
+                "descriptor_digest",
+                "evaluation_ref",
+                "input_digest",
+                "binding_scope",
+                "capability",
+                "effective_permissions",
+                "runtime_binding_ref",
+                "runtime_binding_digest"
+              ],
+              "properties": {
+                "descriptor_ref": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "provider_descriptor"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
                 },
-                "environment_ids": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "descriptor_digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
                   },
-                  "uniqueItems": true
+                  "additionalProperties": false
                 },
-                "network_hosts": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "minLength": 1
+                "evaluation_ref": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "evaluation"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
                   },
-                  "uniqueItems": true
+                  "additionalProperties": false
+                },
+                "input_digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "binding_scope": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "const": "isolated_provider_probe"
+                    },
+                    {
+                      "type": "string",
+                      "const": "task_execution"
+                    }
+                  ]
+                },
+                "capability": {
+                  "type": "object",
+                  "required": [
+                    "capability_id",
+                    "version"
+                  ],
+                  "properties": {
+                    "capability_id": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
+                    },
+                    "version": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "effective_permissions": {
+                  "type": "object",
+                  "required": [
+                    "actions",
+                    "resources",
+                    "environment_ids",
+                    "network_hosts"
+                  ],
+                  "properties": {
+                    "actions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "resources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "provider",
+                          "resource_type",
+                          "locator"
+                        ],
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "resource_type": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "locator": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "version": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "digest": {
+                            "type": "object",
+                            "required": [
+                              "algorithm",
+                              "value"
+                            ],
+                            "properties": {
+                              "algorithm": {
+                                "type": "string",
+                                "const": "sha256"
+                              },
+                              "value": {
+                                "type": "string",
+                                "pattern": "^[0-9a-f]{64}$"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "uniqueItems": true
+                    },
+                    "environment_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      },
+                      "uniqueItems": true
+                    },
+                    "network_hosts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "runtime_binding_ref": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "provider_binding"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "runtime_binding_digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "additionalProperties": false
             }
-          },
-          "additionalProperties": false
+          ]
         }
       },
       "additionalProperties": false

@@ -261,6 +261,9 @@ importers:
       '@cimiloop/protocol':
         specifier: workspace:*
         version: link:../protocol
+      '@cimiloop/skill-adapter':
+        specifier: workspace:*
+        version: link:../skill-adapter
       '@cimiloop/store':
         specifier: workspace:*
         version: link:../store
@@ -273,6 +276,9 @@ importers:
       '@cimiloop/protocol':
         specifier: workspace:*
         version: link:../protocol
+      '@cimiloop/runtime-adapter':
+        specifier: workspace:*
+        version: link:../runtime-adapter
       '@cimiloop/skill-adapter':
         specifier: workspace:*
         version: link:../skill-adapter

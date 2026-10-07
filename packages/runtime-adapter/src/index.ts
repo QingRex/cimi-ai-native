@@ -1,5 +1,5 @@
-export { IsolatedProbeAdapter, normalizeOpenCode, validateOperationInput, parseRuntimeOperation, openProbeOperation } from "./operations.js";
-export type { ProbeOperationInput, ProbeDriver, NativeProof } from "./operations.js";
+export { IsolatedProbeAdapter, normalizeOpenCode, validateOperationInput, validateOperationRequest, parseRuntimeOperation, openProbeOperation } from "./operations.js";
+export type { ProbeOperationInput, ProbeDriver, NativeProof, OperationRequest } from "./operations.js";
 export { runOpenCodeProbe, parseRuntimeProbe } from "./probe.js";
 export { RuntimeAdapterError } from "./files.js";
 export { recoverProbeOperation, parseRuntimeRecovery } from "./recovery.js";

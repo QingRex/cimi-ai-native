@@ -4,11 +4,13 @@ CimiLoop 是一个面向 AI-Native 软件研发的 Runtime-neutral Harness（运
 
 ## 当前状态
 
-2026-10-07 D-210 已接通技能包固定来源、离线 Git 证明核验及原生候选登记。三个真实 Matt / Superpowers 包已通过临时项目 CLI 导入和核对；严格方法输入输出已定义，许可与完整模块依赖保留。见[技能包固定来源与候选登记](docs/implementation/CimiLoop-技能包固定来源与候选登记-v0.1.md)。V1-21 的证据、评测、绑定和实际调用仍待完成，V1-22 尚无行为评测或默认 Provider 结论。
+2026-10-07 D-211已接通Skill专用原生证据、评测及固定Runtime的探针Binding，格式9支持显式1–8迁移；三个固定上游包的实际OpenCode加载均保留子进程受限失败证据。真实技能方法、正式Context / Run与V1-22行为对照仍待完成，S1未退出。见[技能证据、评测与Runtime绑定](docs/implementation/CimiLoop-技能证据评测与Runtime绑定-v0.1.md)。
+
+2026-10-07 D-210 已接通技能包固定来源、离线 Git 证明核验及原生候选登记。三个真实 Matt / Superpowers 包已通过临时项目 CLI 导入和核对；严格方法输入输出已定义，许可与完整模块依赖保留。见[技能包固定来源与候选登记](docs/implementation/CimiLoop-技能包固定来源与候选登记-v0.1.md)。D-210当时的后续证据、评测和绑定已由D-211接通探针阶段，实际调用仍待完成，V1-22 尚无行为评测或默认 Provider 结论。
 
 2026-10-07 D-209 已实现连接原生 Kernel / SQLite 的本地工作台人工操作阶段：CLI 与页面共享项目及身份装配，需求池、目标版本、约定 / 计划决定、任务事实与交接已接通；本地会话、来源校验和响应丢失后的原请求核对通过验证。操作见[本地工作台与共享应用服务](docs/implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md)。正式 Agent 执行、技能接入及 S1 全链路验收仍待完成。
 
-当前开发入口是[CimiLoop V1可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)。S1–S4共23项任务，OpenSpec试点可选，技能Provider及Matt / Superpowers试点进入S1。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。格式8支持显式1–7升级并保留历史、任务、授权、运行和回执；没有升级用户现有数据库。
+当前开发入口是[CimiLoop V1可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)。S1–S4共23项任务，OpenSpec试点可选，技能Provider及Matt / Superpowers试点进入S1。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。格式9支持显式1–8升级并保留历史、任务、授权、运行和回执；没有升级用户现有数据库。
 
 V1-09实施中：独立探针Adapter与Windows AppContainer / Job隔离已实现，OpenCode已更新1.18.34并固定摘要。专用智谱`zhipuai-coding-plan/glm-5.3`已完成真实合成文件修改及新只读会话独立验收，双模式权限探针通过；Key以Windows DPAPI加密保存在仓库外。前批Zen免费接口403保留为历史事实。原生Provider评测及探针范围Binding已接通；新合成操作的资源归属、恢复清理及磁盘 / 日志超限停止已由D-196实现；Task绑定、Agent Run及网络 / 费用 / 文件系统硬配额和完整恢复验收仍待完成。操作与实测证据见[Runtime探针与隔离](docs/implementation/CimiLoop-Runtime探针与隔离-v0.1.md)。合成探针不修改Task、原生Run或Gate，正式Agent执行尚未启用。
 

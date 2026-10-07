@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "SkillRuntimeProfile.v2",
+  "type": "object",
+  "required": [
+    "version",
+    "source_digest",
+    "skill_names",
+    "purpose"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "cimiloop/skill-method/1.0.0"
+    },
+    "source_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "skill_names": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        "maxLength": 64
+      },
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true
+    },
+    "purpose": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "clarification"
+        },
+        {
+          "type": "string",
+          "const": "review"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

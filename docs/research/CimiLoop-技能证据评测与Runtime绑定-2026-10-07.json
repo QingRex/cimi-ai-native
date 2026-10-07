@@ -1,0 +1,384 @@
+{
+  "format": "cimiloop/skill-provider-integration-verification/1.0.0",
+  "decision": "D-211",
+  "date": "2026-10-07",
+  "base_commit": "8c912f1",
+  "scope": "native Skill Provider qualification records and isolated fixed Runtime probe approval; explicit database format 9 migration; actual pinned loader counterevidence",
+  "goal_complete": false,
+  "formal_execution_enabled": false,
+  "user_database_upgraded": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "actual_skill_behavior_evaluated": false,
+  "default_provider_selected": false,
+  "checks": {
+    "schemas": {
+      "baseline": 199,
+      "unchanged": 188,
+      "changed": [
+        "packages/protocol/schemas/v2/AnyCommand.schema.json",
+        "packages/protocol/schemas/v2/CommandResult.schema.json",
+        "packages/protocol/schemas/v2/CommandSuccess.schema.json",
+        "packages/protocol/schemas/v2/Evaluation.schema.json",
+        "packages/protocol/schemas/v2/EventEnvelope.schema.json",
+        "packages/protocol/schemas/v2/Evidence.schema.json",
+        "packages/protocol/schemas/v2/MigrationReport.schema.json",
+        "packages/protocol/schemas/v2/ObjectShowResult.schema.json",
+        "packages/protocol/schemas/v2/ProviderEvaluation.schema.json",
+        "packages/protocol/schemas/v2/ProviderEvidence.schema.json",
+        "packages/protocol/schemas/v2/RegisterProviderBindingCommand.schema.json"
+      ],
+      "added": [
+        "RuntimeProviderEvaluation.schema.json",
+        "RuntimeProviderEvidence.schema.json",
+        "SkillInvocationSample.schema.json",
+        "SkillProbeResult.schema.json",
+        "SkillProviderEvaluation.schema.json",
+        "SkillProviderEvidence.schema.json",
+        "SkillRuntimeProfile.schema.json"
+      ],
+      "frozen_v1_unchanged": true,
+      "frozen_runtime_evidence_and_evaluation_shapes": true,
+      "existing_io_checkout_bytes_restored": true
+    },
+    "initial_full_run": {
+      "files": 58,
+      "tests": 832,
+      "passed": 830,
+      "failed": 2,
+      "success": false,
+      "failed_files": [
+        "tests/scenarios/skill-provider-assessment.test.ts"
+      ],
+      "duration_seconds": 1265.75
+    },
+    "final_skill_retest": {
+      "files": 1,
+      "tests": 20,
+      "passed": 20,
+      "failed": 0,
+      "includes_added_model_identity_case": true
+    },
+    "full_native_regression": {
+      "files": 58,
+      "tests": 833,
+      "passed": 833,
+      "pending": 0,
+      "failed": 0,
+      "method": "Initial full repository run plus complete retest of the only affected Skill file after fixes; original reports preserved.",
+      "runtime": "Node.js 24.15.0 + pnpm 12.4.2",
+      "workers": 1
+    },
+    "documentation": {
+      "files": 12,
+      "links": 242,
+      "broken": []
+    },
+    "repository_baseline": {
+      "files": 702,
+      "bytes": 52221769,
+      "problems": []
+    }
+  },
+  "actual_loader_observations": [
+    {
+      "name": "matt-clarification",
+      "source_digest": {
+        "algorithm": "sha256",
+        "value": "f59f753f16a25d089441a5f8fca3e8c209fe8b84e1c5f19a316e73decc42aed2"
+      },
+      "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+      "modules": [
+        "grill-me",
+        "grilling"
+      ],
+      "operation_key": "conversation_d284d79abda74f9d9c7fb29ec167ceb6",
+      "outcome": "Failed",
+      "loader_failure": "skill_tool_subprocess_denied",
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false,
+      "behavior_evaluation": false,
+      "skill_loader_verified": false,
+      "upstream_requests": 1,
+      "private_state_removed": true,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_d284d79abda74f9d9c7fb29ec167ceb6/result.json",
+          "bytes": 4564,
+          "sha256": "129bfed611d8b4c521648d5a4ad5756644e90109be5bdeb22c869f41b33b94ba"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_d284d79abda74f9d9c7fb29ec167ceb6/stdout.raw",
+          "bytes": 1609,
+          "sha256": "48294dee8ae4c24b7a7bd60bac6ce30aca41174e4240842bc11707417007112d"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_d284d79abda74f9d9c7fb29ec167ceb6/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_d284d79abda74f9d9c7fb29ec167ceb6/native-proof.json",
+          "bytes": 115,
+          "sha256": "c9f61b558392ab5e7fa1a109230631ce26d7ffc7341fad2a41db3ce1bebde671"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_d284d79abda74f9d9c7fb29ec167ceb6/native-ownership.json",
+          "bytes": 1141,
+          "sha256": "675285006873999c704d162a0b20937aec32fda7b99d1182d4778e46e969ce5c"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_d284d79abda74f9d9c7fb29ec167ceb6/execution-policy-proof.json",
+          "bytes": 304,
+          "sha256": "0fb2303448e3d1f23a95ab5ac3a69c9ee74a8f4dea1c56cae2d75e63b2447932"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_d284d79abda74f9d9c7fb29ec167ceb6/conversation-host-proof.json",
+          "bytes": 1559,
+          "sha256": "60a3a185945ec98e5c637cb82583d9631dd7f422b011b3f6e962a92c7088348b"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_d284d79abda74f9d9c7fb29ec167ceb6/conversation-transport-proof.json",
+          "bytes": 958,
+          "sha256": "e3058c8831cc86db7944fd59c4c685516f53b1a8868f223ccbad57120f6becef"
+        }
+      ]
+    },
+    {
+      "name": "matt-review",
+      "source_digest": {
+        "algorithm": "sha256",
+        "value": "2b4521ccb3592cad05254884918e3556f67d9b72b7bf9715da0124e607d6dccc"
+      },
+      "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+      "modules": [
+        "code-review"
+      ],
+      "operation_key": "conversation_5dd415113f5145e7a9f60bfaae1e2954",
+      "outcome": "Failed",
+      "loader_failure": "skill_tool_subprocess_denied",
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false,
+      "behavior_evaluation": false,
+      "skill_loader_verified": false,
+      "upstream_requests": 1,
+      "private_state_removed": true,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_5dd415113f5145e7a9f60bfaae1e2954/result.json",
+          "bytes": 4543,
+          "sha256": "16e9d47904de0650a48fb66f2903952c02b53c7bdf90938eeb7e98c9a99fd079"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_5dd415113f5145e7a9f60bfaae1e2954/stdout.raw",
+          "bytes": 1611,
+          "sha256": "e3c5830acfbebf90da7e5dc13ee571deab8a9b3e9dea7a56e9bf903649afbaba"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_5dd415113f5145e7a9f60bfaae1e2954/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_5dd415113f5145e7a9f60bfaae1e2954/native-proof.json",
+          "bytes": 114,
+          "sha256": "74f27c5229259551e83d77ee02ec21e5e2fd66f162c7169656cda3f0c5affa7c"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_5dd415113f5145e7a9f60bfaae1e2954/native-ownership.json",
+          "bytes": 1140,
+          "sha256": "834d0122a845e71456077f3bb743e38daf04c86e5fa07bc73ea7caac0ffb683f"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_5dd415113f5145e7a9f60bfaae1e2954/execution-policy-proof.json",
+          "bytes": 303,
+          "sha256": "40277a26bde17dca75d82bb8f692f9c3d2f560b1a8ba7cd0395bd784a26c09d7"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_5dd415113f5145e7a9f60bfaae1e2954/conversation-host-proof.json",
+          "bytes": 1558,
+          "sha256": "8c1a9a3c515bd8f0353d7d765a69c4da1105f3af3060bd12702fc7e42a10e914"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_5dd415113f5145e7a9f60bfaae1e2954/conversation-transport-proof.json",
+          "bytes": 955,
+          "sha256": "f7411066d2fe455676e02dc2ae873c7afb4597e22c838ba5c40bd60fc5d68704"
+        }
+      ]
+    },
+    {
+      "name": "superpowers-verification",
+      "source_digest": {
+        "algorithm": "sha256",
+        "value": "ca2e6b828d23532ebc5646d89a83f2162106b95bbc3b90606ab41d332c8c9a11"
+      },
+      "commit": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+      "modules": [
+        "verification-before-completion"
+      ],
+      "operation_key": "conversation_70e403727fe5419899bac4787a1285f3",
+      "outcome": "Failed",
+      "loader_failure": "skill_tool_subprocess_denied",
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false,
+      "behavior_evaluation": false,
+      "skill_loader_verified": false,
+      "upstream_requests": 1,
+      "private_state_removed": true,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_70e403727fe5419899bac4787a1285f3/result.json",
+          "bytes": 4569,
+          "sha256": "0df710507d38084c4091ab4c8644048d061e01caa2793db77101ddeac85dc72a"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_70e403727fe5419899bac4787a1285f3/stdout.raw",
+          "bytes": 1631,
+          "sha256": "b2c2be8869591dc4def950a1a6c65e9a5c44bb440acd9028db5e3a39e4c2ab44"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_70e403727fe5419899bac4787a1285f3/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_70e403727fe5419899bac4787a1285f3/native-proof.json",
+          "bytes": 115,
+          "sha256": "80d513a9c4c4ac4af0e199f27374d3cc70896baffa3c0f7101608cb84219bac7"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_70e403727fe5419899bac4787a1285f3/native-ownership.json",
+          "bytes": 1142,
+          "sha256": "558db10ace9928e982fdc8c48bbeed3d30d5b94465cea2e24fe3b34328fea296"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_70e403727fe5419899bac4787a1285f3/execution-policy-proof.json",
+          "bytes": 304,
+          "sha256": "07f19d72ba5f8d27c6487b8eef987030fbc73cd6fbbe98eccdb9e3d7f7e9855b"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_70e403727fe5419899bac4787a1285f3/conversation-host-proof.json",
+          "bytes": 1560,
+          "sha256": "94d989a4502878f7621e93bc5b311f7e9e8d8788b198a1bd2ff0d3f0b480829e"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-evidence/conversation_70e403727fe5419899bac4787a1285f3/conversation-transport-proof.json",
+          "bytes": 958,
+          "sha256": "22aa1d42ad1c1319512a9b4d2c415fde94c89349e215c5abdeef2d56a617602b"
+        }
+      ]
+    }
+  ],
+  "earlier_attempts": [
+    {
+      "operation_key": "conversation_d088f27478a34811a4ba19633764957c",
+      "outcome": "Failed",
+      "native_reason": "disk_observation_unavailable",
+      "external_model_requests": 0,
+      "actual_credentials_read": 0,
+      "overwritten": false,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-loader/matt-clarification/conversation-probes/conversation_d088f27478a34811a4ba19633764957c/result.json",
+          "bytes": 3644,
+          "sha256": "5618c8dc79a15c4ada96d444282694f35b3577613156d140ebd60e2413653e40"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-loader/matt-clarification/conversation-probes/conversation_d088f27478a34811a4ba19633764957c/stdout.raw",
+          "bytes": 95,
+          "sha256": "a6f6d88914e5de8930816452b521f4f6b6c72a3af94dd91707ebab5ccfd9a3b4"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-loader/matt-clarification/conversation-probes/conversation_d088f27478a34811a4ba19633764957c/native-proof.json",
+          "bytes": 138,
+          "sha256": "61ce3406067a07c7ecf3e1a41113d10db1e19c273a0d323f5ccda6698b26063d"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-native/upstream-loader/matt-clarification/conversation-probes/conversation_d088f27478a34811a4ba19633764957c/native-ownership.json",
+          "bytes": 1274,
+          "sha256": "d8ca3fe67d4ad1bf657625eaa5ed485a0a2631f713a161d5da09c9fd0b8aaf9e"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "OpenCode 1.18.34 builtin Skill tool requires a ripgrep subprocess; fixed packages fail under the existing subprocess boundary.",
+    "Governance unit fixtures use constructed raw observations; technical ALLOW in tests is not actual method behavior or production admission.",
+    "Native SkillInvocationRecord and formal Context/Run pins, full Human clarification and independent review harness, controlled execution and V1-22 behavior comparison remain pending.",
+    "Agent binding, actual workspace effects, permission intersection, protected unique account ledger, approved cost limits and bill reconciliation, full recovery and physical quota remain pending before S1."
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/anomalyco/opencode/blob/v1.18.34/packages/opencode/src/tool/skill.ts",
+      "supports": "fixed-version builtin Skill implementation invokes Ripgrep.find"
+    },
+    {
+      "url": "https://opencode.ai/v2/docs/migrate-v1/",
+      "supports": "V1 skills object differs from V2 array"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cimiloop/skill-v1-21-native/check.log",
+      "bytes": 79,
+      "sha256": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-native/final-check.log",
+      "bytes": 79,
+      "sha256": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-native/schema-audit.json",
+      "bytes": 1203,
+      "sha256": "2c394c24db823e2479ea6c4980d837f6f2a5a4f29f13b21304da7f8d03ba3ef8"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-native/actual-loader.log",
+      "bytes": 464,
+      "sha256": "65e71e742e6ff3c5f84dd7c2f5dd855d40767542e5fccc49c87fbd57ca5f02b9"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-native/actual-loader-result.json",
+      "bytes": 8795,
+      "sha256": "d3a56012562e0cc8bbebe2265a94d0c0be307af885a46d2a83833c374474ffd1"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-native/full-test.log",
+      "bytes": 35501,
+      "sha256": "d8e998df7d6e8ae33579aa19d3c8a45fae8824fb949d1213dacd57366bd83298"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-native/full-test.json",
+      "bytes": 328908,
+      "sha256": "934845b8982d347420580b374c9fdbec504e37b327531dfc39d775b2cd11ec43"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-native/final-skill-test.log",
+      "bytes": 2490,
+      "sha256": "36101fe011072b00ea0ec02036303cc962ee1d23823cfed1ef33332c0f84a8da"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-native/final-skill-test.json",
+      "bytes": 9749,
+      "sha256": "217b762d7a1638c6592a1c62608217528c305d55b921913a22406d11e13e8d35"
+    }
+  ],
+  "repaired_observations": [
+    {
+      "issue": "Initial full run began before the final synthetic conversation alias classification fix",
+      "repair": "Explicitly exclude the conversation rehearsal model alias and rerun the complete affected Skill file."
+    },
+    {
+      "issue": "New import test fixture did not create its target data directory",
+      "repair": "Create the owned temporary target directory; preserve the real host requirement."
+    },
+    {
+      "issue": "Runtime method request lacked a non-empty model identity check",
+      "repair": "Reject empty model identity before recording native evidence; additional negative case passed."
+    }
+  ]
+}

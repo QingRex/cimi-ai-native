@@ -19,6 +19,7 @@ import * as gatewayCredit from "./runtime-gateway-credit.js";
 import * as providerAssessment from "./provider-assessment.js";
 import * as toolAuthority from "./tool-authority.js";
 import * as skills from "./skills.js";
+import * as skillProbe from "./skill-probe.js";
 import { Type, type TSchema } from "typebox";
 
 export * from "../ids.js";
@@ -44,6 +45,7 @@ export * from "./runtime-gateway-credit.js";
 export * from "./provider-assessment.js";
 export * from "./tool-authority.js";
 export * from "./skills.js";
+export * from "./skill-probe.js";
 
 export const protocolSchemas: Readonly<Record<string, TSchema>> = {
   SkillImportSpec: skills.SkillImportSpecSchema, SkillPackage: skills.SkillPackageSchema,
@@ -77,6 +79,9 @@ export const protocolSchemas: Readonly<Record<string, TSchema>> = {
   RegisterProviderBindingCommand: commands.RegisterProviderBindingCommandSchema,
   ApprovedProviderBinding: providers.ApprovedProviderBindingSchema,
   ProviderEvidence: providerAssessment.ProviderEvidenceSchema, ProviderEvaluation: providerAssessment.ProviderEvaluationSchema,
+  RuntimeProviderEvidence: providerAssessment.RuntimeProviderEvidenceSchema, SkillProviderEvidence: providerAssessment.SkillProviderEvidenceSchema,
+  RuntimeProviderEvaluation: providerAssessment.RuntimeProviderEvaluationSchema, SkillProviderEvaluation: providerAssessment.SkillProviderEvaluationSchema,
+  SkillRuntimeProfile: skillProbe.SkillRuntimeProfileSchema, SkillInvocationSample: skillProbe.SkillInvocationSampleSchema, SkillProbeResult: skillProbe.SkillProbeResultSchema,
   ProviderProbeReference: providerAssessment.ProviderProbeReferenceSchema, ProviderArtifactReference: providerAssessment.ProviderArtifactReferenceSchema,
   InitializeProjectCommand: commands.InitializeProjectCommandSchema, CreateChangeCommand: commands.CreateChangeCommandSchema,
   PauseChangeCommand: commands.PauseChangeCommandSchema, ResumeChangeCommand: commands.ResumeChangeCommandSchema,

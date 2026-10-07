@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
-import { compileValidator, RuntimeProbeResultSchema, SCHEMA_VERSION, type AnyCommand, type ProviderDescriptor,
+import { compileValidator, RuntimeProbeResultSchema, SkillProbeResultSchema, ProviderEvidenceSchema, SCHEMA_VERSION, type AnyCommand, type ProviderDescriptor,
   type ProviderEvidence, type ProviderEvaluation, type ProviderProbeReference, type RuntimeProbeResult, type ExternalReference,
-  type Digest, type Project, type InternalId, type DomainError, type CommandSuccess, type ProviderBinding } from "@cimiloop/protocol/v2";
+  type Digest, type Project, type InternalId, type DomainError, type CommandSuccess, type ProviderBinding, type SkillProbeResult } from "@cimiloop/protocol/v2";
 import type { ProviderReader, StoreTransaction } from "@cimiloop/store";
 import { resolveAssignment } from "./authorization.js";
 import { contentDigest, IntentFailure } from "./intent.js";
+import { assessSkillProvider, readSkillSample, skillRuntimeBinding, skillAssessmentRule } from "./skill-assessment.js";
 
 // Trusted host IO only. Commands cannot supply verified flags or install a port.
 export interface ProviderVerifierPort {
@@ -12,6 +13,8 @@ export interface ProviderVerifierPort {
   readArtifact(project: Project, ref: ExternalReference): Uint8Array;
   sourceDigest(project: Project, descriptor: ProviderDescriptor): Digest;
   schemaDigest(schemaId: string): Digest;
+  readSkillPackage?(project: Project, descriptor: ProviderDescriptor): Uint8Array;
+  validateSkillRequest?(project: Project, request: unknown): void;
 }
 type Command = Extract<AnyCommand, { command_type: "RecordProviderEvidence" | "EvaluateProvider" | "RegisterProviderBinding" }>;
 type Context = { project: Project; actorId: InternalId; now: string; id: () => InternalId };
@@ -22,7 +25,7 @@ const rule = "provider-assessment/1.0.0" as const;
 const allRefs = (probe: RuntimeProbeResult) => [...probe.evidence_refs, ...probe.boundaries.flatMap(b => b.raw_refs), ...probe.model_operations.flatMap(o => [...o.raw_refs, ...o.outputs])];
 const readSample = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence) => {
   const probe = parseProbe(port.readProbe(project, evidence.raw_result_ref));
-  if (!same(probe.provider.binary_digest, descriptor.source_ref.digest) || probe.provider.version !== descriptor.version ||
+  if (evidence.purpose !== "provider_probe" || !same(probe.provider.binary_digest, descriptor.source_ref.digest) || probe.provider.version !== descriptor.version ||
     probe.provider.version !== descriptor.source_ref.version || descriptor.provider_kind !== "runtime" || descriptor.name.toLowerCase() !== probe.provider.name) throw new Error("Probe source mismatch");
   if (!same(port.sourceDigest(project, descriptor), descriptor.source_ref.digest) ||
     !same(port.schemaDigest(descriptor.input_schema_ref.schema_id), descriptor.input_schema_ref.digest) ||
@@ -72,7 +75,18 @@ const readSample = (port: ProviderVerifierPort, project: Project, descriptor: Pr
     (events(review.raw_refs, "stdout.raw").filter(e => e.type === "text").at(-1)?.part as { text?: string } | undefined)?.text?.trim() === "PROBE_ACCEPT";
   return { probe, values };
 };
-export const assessProvider = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence[], profile: ProviderEvaluation["profile"]) => {
+const verifySkillRuntime = (port: ProviderVerifierPort, reader: ProviderReader, project: Project, binding: ProviderBinding) => {
+  const descriptor = reader.getProviderDescriptor(binding.descriptor_ref.id)!, evaluation = reader.getProviderEvaluation(binding.approval!.evaluation_ref.id)!;
+  const evidence = evaluation.evidence_refs.map(ref => reader.getProviderEvidence(ref.id));
+  if (evidence.some(value => !value)) throw new Error("Runtime probe evidence missing");
+  const computed = assessProvider(port, project, descriptor, evidence as ProviderEvidence[], evaluation.profile, reader);
+  if (!same(computed, { input_digest: evaluation.input_digest, outcome: evaluation.outcome, reasons: evaluation.reasons, assessments: evaluation.assessments })) throw new Error("Runtime qualification changed");
+};
+export const assessProvider = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence[], profile: ProviderEvaluation["profile"], reader?: ProviderReader): Pick<ProviderEvaluation, "input_digest" | "outcome" | "reasons" | "assessments"> => {
+  if (descriptor.provider_kind === "skill") {
+    if (!reader) throw new Error("Native Skill binding reader required");
+    return assessSkillProvider(port, reader, project, descriptor, evidence, profile, binding => verifySkillRuntime(port, reader, project, binding));
+  }
   const checks: ProviderEvaluation["assessments"] = [];
   const samples = evidence.map(e => readSample(port, project, descriptor, e));
   for (const key of ["version", "boundary_write", "boundary_read", "real_edit", "independent_review"]) checks.push({ key,
@@ -92,7 +106,7 @@ export const assessProvider = (port: ProviderVerifierPort, project: Project, des
 export const providerEvaluationStatus = (reader: ProviderReader, descriptor: ProviderDescriptor, evaluation: ProviderEvaluation | undefined): string[] => {
   if (!evaluation || evaluation.purpose !== "provider_assessment" || evaluation.project_id !== descriptor.project_id ||
     evaluation.descriptor_ref.id !== descriptor.id || !same(evaluation.descriptor_digest, contentDigest(descriptor))) return ["PROVIDER_EVALUATION_NOT_FOUND_OR_STALE"];
-  if (evaluation.rule_version !== rule) return ["PROVIDER_ASSESSMENT_RULE_UNSUPPORTED"];
+  if (evaluation.rule_version !== (descriptor.provider_kind === "skill" ? skillAssessmentRule : rule)) return ["PROVIDER_ASSESSMENT_RULE_UNSUPPORTED"];
   if (evaluation.evidence_refs.some(ref => { const e = reader.getProviderEvidence(ref.id); return !e || e.project_id !== descriptor.project_id || e.descriptor_ref.id !== descriptor.id || !same(e.descriptor_digest, contentDigest(descriptor)); })) return ["PROVIDER_PROBE_EVIDENCE_NOT_FOUND_OR_STALE"];
   return evaluation.outcome === "ALLOW" ? [] : ["PROVIDER_NOT_EVALUATED", ...evaluation.reasons];
 };
@@ -109,13 +123,16 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
   const metadata = { schema_version: SCHEMA_VERSION, id: context.id(), project_id: context.project.id, created_at: context.now, producer_actor_id: context.actorId };
   let event_type: string, record: { evidence: ProviderEvidence } | { evaluation: ProviderEvaluation } | { binding: ProviderBinding };
   if (command.command_type === "RecordProviderEvidence") {
-    let probe: RuntimeProbeResult;
-    try { probe = parseProbe(port.readProbe(context.project, command.payload.raw_result_ref)); }
+    let probe: { observed_at: string };
+    try { probe = compileValidator(descriptor.provider_kind === "skill" ? SkillProbeResultSchema : RuntimeProbeResultSchema)(port.readProbe(context.project, command.payload.raw_result_ref)) as { observed_at: string }; }
     catch { return fail("PROVIDER_OUTPUT_INVALID", "Provider 原始探针不可核对"); }
-    if (Date.parse(probe.observed_at) > Date.parse(context.now)) fail("PROVIDER_OUTPUT_INVALID", "探针观测不能来自未来");
-    const evidence: ProviderEvidence = { ...metadata, purpose: "provider_probe", descriptor_ref: command.payload.descriptor_ref,
-      descriptor_digest: command.payload.descriptor_digest, origin: "local_probe_observation", raw_result_ref: command.payload.raw_result_ref, observed_at: probe.observed_at };
-    try { readSample(port, context.project, descriptor, evidence); }
+    if (!Number.isFinite(Date.parse(probe.observed_at)) || Date.parse(probe.observed_at) > Date.parse(context.now)) fail("PROVIDER_OUTPUT_INVALID", "探针观测必须是有效的既有时间");
+    const evidence = compileValidator<ProviderEvidence>(ProviderEvidenceSchema)({ ...metadata, purpose: descriptor.provider_kind === "skill" ? "skill_probe" : "provider_probe", descriptor_ref: command.payload.descriptor_ref,
+      descriptor_digest: command.payload.descriptor_digest, origin: descriptor.provider_kind === "skill" ? "local_skill_observation" : "local_probe_observation", raw_result_ref: command.payload.raw_result_ref, observed_at: probe.observed_at });
+    try {
+      if (descriptor.provider_kind === "skill") readSkillSample(port, tx, context.project, descriptor, evidence, binding => verifySkillRuntime(port, tx, context.project, binding));
+      else readSample(port, context.project, descriptor, evidence);
+    }
     catch { return fail("PROVIDER_OUTPUT_INVALID", "Provider 来源、Schema 或原始字节不匹配"); }
     tx.insertProviderEvidence(evidence); event_type = "ProviderEvidenceRecorded"; record = { evidence };
   } else {
@@ -127,11 +144,11 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
     const profile = command.command_type === "EvaluateProvider" ? command.payload.profile : evaluation?.profile;
     if (!profile) return fail("PROVIDER_NOT_EVALUATED", "未找到正式 Provider 评测");
     let computed: ReturnType<typeof assessProvider>;
-    try { computed = assessProvider(port, context.project, descriptor, records, profile); }
+    try { computed = assessProvider(port, context.project, descriptor, records, profile, tx); }
     catch { return fail("PROVIDER_OUTPUT_INVALID", "Provider 原始来源或证据已失效"); }
     if (command.command_type === "EvaluateProvider") {
       const value: ProviderEvaluation = { ...metadata, purpose: "provider_assessment", descriptor_ref: command.payload.descriptor_ref,
-        descriptor_digest: command.payload.descriptor_digest, profile, rule_version: rule, evidence_refs: evidenceRefs, ...computed };
+        descriptor_digest: command.payload.descriptor_digest, profile, rule_version: descriptor.provider_kind === "skill" ? skillAssessmentRule : rule, evidence_refs: evidenceRefs, ...computed };
       tx.insertProviderEvaluation(value); event_type = "ProviderEvaluated"; record = { evaluation: value };
     } else {
       if (!evaluation || providerEvaluationStatus(tx, descriptor, evaluation).length || !same(computed, { input_digest: evaluation.input_digest,
@@ -140,12 +157,23 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
       if (!descriptor.capabilities.some(c => same(c, command.payload.capability))) fail("CAPABILITY_UNAVAILABLE", "Provider 未声明该能力");
       if (!same(descriptor.required_permissions, command.payload.effective_permissions)) fail("CAPABILITY_PERMISSION_DENIED", "探针绑定须精确保持声明权限；不能扩权或伪称落实上层授权交集");
       if (descriptor.dependencies.length) fail("DEPENDENCY_UNSATISFIED", "本批 Runtime 探针不支持依赖装配");
+      let runtimeBinding: ProviderBinding | undefined;
+      if (descriptor.provider_kind === "skill") {
+        if (!("runtime_binding_ref" in command.payload)) return fail("CAPABILITY_UNAVAILABLE", "技能批准须固定实际 Runtime Binding");
+        try { runtimeBinding = skillRuntimeBinding(tx, context.project, command.payload); }
+        catch { return fail("PROVIDER_BINDING_STALE", "技能 Runtime Binding 不可核对"); }
+        for (const value of records) {
+          const observed = compileValidator<SkillProbeResult>(SkillProbeResultSchema)(port.readProbe(context.project, value.raw_result_ref));
+          if (observed.runtime_binding_ref.id !== runtimeBinding.id || !same(observed.runtime_binding_digest, contentDigest(runtimeBinding)) || !same(observed.capability, command.payload.capability)) return fail("PROVIDER_BINDING_STALE", "技能评测与请求 Binding 或能力不一致");
+        }
+      } else if ("runtime_binding_ref" in command.payload) return fail("PROVIDER_BINDING_STALE", "Runtime 探针批准不能携带技能装配字段");
       const assignment = resolveAssignment(tx.listAssignments(context.actorId), { projectId: context.project.id, actorId: context.actorId,
         role: "project_owner", scope: { kind: "project", id: context.project.id }, now: context.now });
       if (!assignment) return fail("ROLE_NOT_ASSIGNED", "批准需要当前 Human Project Owner 指派");
       const binding: ProviderBinding = { ...metadata, descriptor_ref: command.payload.descriptor_ref, descriptor_digest: command.payload.descriptor_digest,
         capability: command.payload.capability, resolved_dependencies: [], input_schema_ref: descriptor.input_schema_ref, output_schema_ref: descriptor.output_schema_ref,
         effective_permissions: command.payload.effective_permissions, probe_evidence_refs: evidenceRefs,
+        ...(runtimeBinding ? { runtime_binding_ref: { object_type: "provider_binding" as const, id: runtimeBinding.id } } : {}),
         approval: { assignment_ref: { object_type: "assignment", id: assignment.id }, evaluation_ref: command.payload.evaluation_ref,
           input_digest: computed.input_digest, binding_scope: command.payload.binding_scope } };
       tx.insertProviderBinding(binding); event_type = "ProviderBindingRegistered"; record = { binding };

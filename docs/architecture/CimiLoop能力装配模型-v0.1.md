@@ -370,3 +370,5 @@ V1 不承诺：
 本模型采用“Capability Requirement → Policy 约束解析 → 不可变 Capability Binding → Provider Invocation → 协议事实提升”的装配链。能力实现可以替换，但每次运行使用的实现、权限和结果来源必须被固定并可追溯。
 
 上述语义已经确认。后续 Skill、Tool、Model、Runtime 与 Adapter 的具体选型和开源项目映射，只能作为 Provider 接入，不得反向改变能力需求、权限、绑定和状态权威语义。
+
+2026-10-07 D-211已实现[技能专用证据、评测及固定Runtime的探针Binding](../implementation/CimiLoop-技能证据评测与Runtime绑定-v0.1.md)，保留旧Runtime和Human运行协议；当前格式9提供显式迁移。锁定OpenCode内置Skill工具依赖ripgrep子进程，三个固定包在当前隔离下加载失败，已保存实际反证。技能技术治理代码已接通，真实方法资格、正式Context / Run调用、行为对照及默认选择尚未成立。下一步固定并验证隔离内加载适配及完整澄清 / 评审宿主。

@@ -32,12 +32,12 @@ const fixture = (professional = false) => {
 };
 describe("explicit format 6 to 7 migration", () => {
   it.each([false, true])("preserves native evidence, task satisfaction, integration and professional=%s history", async professional => {
-    const f = fixture(professional), before = snapshot(f.path); expect(f.runner.check()).toMatchObject({ from_format: 6, to_format: 8, counts: { verification_records: expect.any(Number) } }); expect(snapshot(f.path)).toEqual(before);
+    const f = fixture(professional), before = snapshot(f.path); expect(f.runner.check()).toMatchObject({ from_format: 6, to_format: 9, counts: { verification_records: expect.any(Number) } }); expect(snapshot(f.path)).toEqual(before);
     const report = await f.runner.apply({ actorId: f.actor.id, now: flowTime }); expect(snapshot(report.backup_path!)).toEqual(before);
     const after = snapshot(f.path); for (const name of ["projects", "actors", "changes", "assignments", "intent_records", "execution_objects", "execution_records", "verification_records", "command_receipts", "outbox_messages"]) expect(after.tables[name]).toEqual(before.tables[name]);
-    expect(after.tables.run_objects).toEqual([]); expect(after.tables.run_records).toEqual([]); expect(readDatabaseFormat(f.path)).toBe(8);
+    expect(after.tables.run_objects).toEqual([]); expect(after.tables.run_records).toEqual([]); expect(readDatabaseFormat(f.path)).toBe(9);
     const store = new SqliteProjectStore(f.path); stores.push(store); expect(store.getChange(f.change.id)?.lifecycle_state).toBe("ReadyForDelivery"); expect(store.listRuns(f.change.id)).toEqual([]);
-    expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 8, to_format: 8, migration_required: false });
+    expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 9, to_format: 9, migration_required: false });
   }, 45_000);
   it.each(["backup_complete", "state_converted", "schema_installed", "before_commit"] as const)("rolls back every fact at %s", async stage => {
     const f = fixture(), before = snapshot(f.path); await expect(f.runner.apply({ actorId: f.actor.id, onStage: current => { if (current === stage) throw new Error("fault"); } })).rejects.toMatchObject({ code: "MIGRATION_UNSAFE" });

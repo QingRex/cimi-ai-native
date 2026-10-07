@@ -2,7 +2,7 @@
 
 CimiLoop 以项目、目标版本、需求、缺陷和任务组织日常研发协作。这里记录已确认的术语含义；需求与缺陷从录入、澄清到交付具有同一个业务身份。
 
-2026-10-05 当前V1字段、状态、命令和任务以[可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。V1-09实施中：独立探针Adapter、Windows隔离、OpenCode 1.18.34固定来源、候选登记及专用智谱连接已实现；真实合成修改和新只读会话独立验收通过，凭据保存在仓库外DPAPI文件，Zen403保留为历史。最新原生Provider Evidence / Evaluation已接通，技术契约ALLOW并批准isolated_provider_probe Binding；受控执行仍为NEED_MORE_EVIDENCE，Task执行绑定被拒绝。详见[Provider证据、评测与受限绑定](docs/implementation/CimiLoop-Provider证据评测与受限绑定-v0.1.md)。当前数据库格式8，支持显式1–7升级，未升级用户库；合成探针及Provider批准不改变Task、Run或Gate，D-196已实现新合成操作的持久归属、恢复清理及资源超限停止，见[Runtime恢复与资源限额](docs/implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)。完整A9及Agent Run仍待网络主机、费用、文件系统硬上限和完整恢复验收。本文术语更新不代表完整功能已经实现。
+2026-10-05 当前V1字段、状态、命令和任务以[可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。V1-09实施中：独立探针Adapter、Windows隔离、OpenCode 1.18.34固定来源、候选登记及专用智谱连接已实现；真实合成修改和新只读会话独立验收通过，凭据保存在仓库外DPAPI文件，Zen403保留为历史。最新原生Provider Evidence / Evaluation已接通，技术契约ALLOW并批准isolated_provider_probe Binding；受控执行仍为NEED_MORE_EVIDENCE，Task执行绑定被拒绝。详见[Provider证据、评测与受限绑定](docs/implementation/CimiLoop-Provider证据评测与受限绑定-v0.1.md)。当前数据库格式9，支持显式1–8升级，未升级用户库；合成探针及Provider批准不改变Task、Run或Gate，D-196已实现新合成操作的持久归属、恢复清理及资源超限停止，见[Runtime恢复与资源限额](docs/implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)。完整A9及Agent Run仍待网络主机、费用、文件系统硬上限和完整恢复验收。本文术语更新不代表完整功能已经实现。
 
 D-208已实现原生Human Run实时工具权限查询及独立公开文件执行账本：固定WorkItem / Context / 原操作身份，执行和缓存重放前重新核对授权；公开读取 / 替换保存完成回执，确认原宿主退出后将未dispatch预约归为not_started、已dispatch未完成保留Unknown。四处实际Windows宿主退出和双宿主一槽位争用通过，工具事实不推进原生Task / Run。正式工作区效果、IPC / OpenCode接入该账本及Agent运行仍待验收。 见[WorkItem工具授权与执行账本](docs/implementation/CimiLoop-WorkItem工具授权与执行账本-v0.1.md)。下一步建立正式工作区的宿主文件 / 命令能力约束和可验证效果身份，将实时授权与工具账本接入IPC / OpenCode消费，并把工具Unknown纳入原生Run接续核对；继续完成整体受控恢复和物理硬配额。实际套餐 / 工具资格、服务端输入及思考输出上界、受保护的唯一账户Ledger、批准的现金 / 积分预算和账单核对仍待落实。
 
@@ -94,3 +94,5 @@ Draft、IntentReady、Executing、ReadyForDelivery、Completed、Terminated 表�
 
 **交接 / 接续**：
 保存实际代码、未提交差异、证据、未解决事项、有效约定及授权、剩余预算和下一步；接续时重新核对，新会话不重置已有用量。
+
+2026-10-07 D-211已接通Skill专用原生证据、评测及固定Runtime的探针Binding，格式9支持显式1–8迁移；三个固定上游包的实际OpenCode加载均保留子进程受限失败证据。真实技能方法、正式Context / Run与V1-22行为对照仍待完成，S1未退出。见[实现与兼容缺项](docs/implementation/CimiLoop-技能证据评测与Runtime绑定-v0.1.md)。下一步实现不依赖任意子进程的固定技能加载适配及真实澄清 / 独立评审宿主，同时继续正式Runtime权限、效果、费用与恢复准入。

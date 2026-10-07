@@ -766,70 +766,115 @@
       ]
     },
     {
-      "type": "object",
-      "required": [
-        "schema_version",
-        "id",
-        "project_id",
-        "created_at",
-        "producer_actor_id",
-        "purpose",
-        "descriptor_ref",
-        "descriptor_digest",
-        "profile",
-        "rule_version",
-        "input_digest",
-        "evidence_refs",
-        "outcome",
-        "reasons",
-        "assessments"
-      ],
-      "properties": {
-        "schema_version": {
-          "type": "string",
-          "const": "2.0.0"
-        },
-        "id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "project_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "created_at": {
-          "type": "string",
-          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
-        },
-        "producer_actor_id": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "source_ref": {
+      "anyOf": [
+        {
           "type": "object",
           "required": [
-            "provider",
-            "resource_type",
-            "locator"
+            "schema_version",
+            "id",
+            "project_id",
+            "created_at",
+            "producer_actor_id",
+            "purpose",
+            "descriptor_ref",
+            "descriptor_digest",
+            "profile",
+            "rule_version",
+            "input_digest",
+            "evidence_refs",
+            "outcome",
+            "reasons",
+            "assessments"
           ],
           "properties": {
-            "provider": {
+            "schema_version": {
               "type": "string",
-              "minLength": 1
+              "const": "2.0.0"
             },
-            "resource_type": {
+            "id": {
               "type": "string",
-              "minLength": 1
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
-            "locator": {
+            "project_id": {
               "type": "string",
-              "minLength": 1
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
-            "version": {
+            "created_at": {
               "type": "string",
-              "minLength": 1
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
             },
-            "digest": {
+            "producer_actor_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "source_ref": {
+              "type": "object",
+              "required": [
+                "provider",
+                "resource_type",
+                "locator"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "resource_type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "locator": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "version": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "purpose": {
+              "type": "string",
+              "const": "provider_assessment"
+            },
+            "descriptor_ref": {
+              "type": "object",
+              "required": [
+                "object_type",
+                "id"
+              ],
+              "properties": {
+                "object_type": {
+                  "type": "string",
+                  "const": "provider_descriptor"
+                },
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "descriptor_digest": {
               "type": "object",
               "required": [
                 "algorithm",
@@ -846,193 +891,421 @@
                 }
               },
               "additionalProperties": false
+            },
+            "profile": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "technical_contract"
+                },
+                {
+                  "type": "string",
+                  "const": "controlled_execution"
+                }
+              ]
+            },
+            "rule_version": {
+              "type": "string",
+              "const": "provider-assessment/1.0.0"
+            },
+            "input_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "evidence"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "outcome": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "ALLOW"
+                },
+                {
+                  "type": "string",
+                  "const": "NEED_MORE_EVIDENCE"
+                },
+                {
+                  "type": "string",
+                  "const": "REQUIRE_HUMAN"
+                },
+                {
+                  "type": "string",
+                  "const": "DENY"
+                }
+              ]
+            },
+            "reasons": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "assessments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "result",
+                  "evidence_refs"
+                ],
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "result": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "supports"
+                      },
+                      {
+                        "type": "string",
+                        "const": "refutes"
+                      },
+                      {
+                        "type": "string",
+                        "const": "inconclusive"
+                      }
+                    ]
+                  },
+                  "evidence_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "object_type",
+                        "id"
+                      ],
+                      "properties": {
+                        "object_type": {
+                          "type": "string",
+                          "const": "evidence"
+                        },
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "uniqueItems": true
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
             }
           },
           "additionalProperties": false
         },
-        "purpose": {
-          "type": "string",
-          "const": "provider_assessment"
-        },
-        "descriptor_ref": {
+        {
           "type": "object",
           "required": [
-            "object_type",
-            "id"
+            "schema_version",
+            "id",
+            "project_id",
+            "created_at",
+            "producer_actor_id",
+            "purpose",
+            "descriptor_ref",
+            "descriptor_digest",
+            "profile",
+            "rule_version",
+            "input_digest",
+            "evidence_refs",
+            "outcome",
+            "reasons",
+            "assessments"
           ],
           "properties": {
-            "object_type": {
+            "schema_version": {
               "type": "string",
-              "const": "provider_descriptor"
+              "const": "2.0.0"
             },
             "id": {
               "type": "string",
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          },
-          "additionalProperties": false
-        },
-        "descriptor_digest": {
-          "type": "object",
-          "required": [
-            "algorithm",
-            "value"
-          ],
-          "properties": {
-            "algorithm": {
-              "type": "string",
-              "const": "sha256"
             },
-            "value": {
+            "project_id": {
               "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            }
-          },
-          "additionalProperties": false
-        },
-        "profile": {
-          "anyOf": [
-            {
-              "type": "string",
-              "const": "technical_contract"
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
-            {
+            "created_at": {
               "type": "string",
-              "const": "controlled_execution"
-            }
-          ]
-        },
-        "rule_version": {
-          "type": "string",
-          "const": "provider-assessment/1.0.0"
-        },
-        "input_digest": {
-          "type": "object",
-          "required": [
-            "algorithm",
-            "value"
-          ],
-          "properties": {
-            "algorithm": {
-              "type": "string",
-              "const": "sha256"
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
             },
-            "value": {
+            "producer_actor_id": {
               "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            }
-          },
-          "additionalProperties": false
-        },
-        "evidence_refs": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "object_type",
-              "id"
-            ],
-            "properties": {
-              "object_type": {
-                "type": "string",
-                "const": "evidence"
-              },
-              "id": {
-                "type": "string",
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-              }
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
-            "additionalProperties": false
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "outcome": {
-          "anyOf": [
-            {
-              "type": "string",
-              "const": "ALLOW"
-            },
-            {
-              "type": "string",
-              "const": "NEED_MORE_EVIDENCE"
-            },
-            {
-              "type": "string",
-              "const": "REQUIRE_HUMAN"
-            },
-            {
-              "type": "string",
-              "const": "DENY"
-            }
-          ]
-        },
-        "reasons": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "assessments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "key",
-              "result",
-              "evidence_refs"
-            ],
-            "properties": {
-              "key": {
-                "type": "string",
-                "minLength": 1
-              },
-              "result": {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "const": "supports"
-                  },
-                  {
-                    "type": "string",
-                    "const": "refutes"
-                  },
-                  {
-                    "type": "string",
-                    "const": "inconclusive"
-                  }
-                ]
-              },
-              "evidence_refs": {
-                "type": "array",
-                "items": {
+            "source_ref": {
+              "type": "object",
+              "required": [
+                "provider",
+                "resource_type",
+                "locator"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "resource_type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "locator": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "version": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "digest": {
                   "type": "object",
                   "required": [
-                    "object_type",
-                    "id"
+                    "algorithm",
+                    "value"
                   ],
                   "properties": {
-                    "object_type": {
+                    "algorithm": {
                       "type": "string",
-                      "const": "evidence"
+                      "const": "sha256"
                     },
-                    "id": {
+                    "value": {
                       "type": "string",
-                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      "pattern": "^[0-9a-f]{64}$"
                     }
                   },
                   "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "purpose": {
+              "type": "string",
+              "const": "provider_assessment"
+            },
+            "descriptor_ref": {
+              "type": "object",
+              "required": [
+                "object_type",
+                "id"
+              ],
+              "properties": {
+                "object_type": {
+                  "type": "string",
+                  "const": "provider_descriptor"
                 },
-                "uniqueItems": true
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "descriptor_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "profile": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "technical_contract"
+                },
+                {
+                  "type": "string",
+                  "const": "controlled_execution"
+                }
+              ]
+            },
+            "rule_version": {
+              "type": "string",
+              "const": "skill-provider-assessment/1.0.0"
+            },
+            "input_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "object_type",
+                  "id"
+                ],
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "evidence"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "outcome": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "ALLOW"
+                },
+                {
+                  "type": "string",
+                  "const": "NEED_MORE_EVIDENCE"
+                },
+                {
+                  "type": "string",
+                  "const": "REQUIRE_HUMAN"
+                },
+                {
+                  "type": "string",
+                  "const": "DENY"
+                }
+              ]
+            },
+            "reasons": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
               }
             },
-            "additionalProperties": false
+            "assessments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "key",
+                  "result",
+                  "evidence_refs"
+                ],
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "result": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "supports"
+                      },
+                      {
+                        "type": "string",
+                        "const": "refutes"
+                      },
+                      {
+                        "type": "string",
+                        "const": "inconclusive"
+                      }
+                    ]
+                  },
+                  "evidence_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "object_type",
+                        "id"
+                      ],
+                      "properties": {
+                        "object_type": {
+                          "type": "string",
+                          "const": "evidence"
+                        },
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "uniqueItems": true
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            }
           },
-          "minItems": 1
+          "additionalProperties": false
         }
-      },
-      "additionalProperties": false
+      ]
     }
   ]
 }

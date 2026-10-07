@@ -16,7 +16,7 @@ export const OutboxMessageSchema = Type.Object({
 export const MigrationReportSchema = Type.Object({
   schema_version: Type.Literal(SCHEMA_VERSION), ok: Type.Literal(true),
   mode: Type.Union([Type.Literal("check"), Type.Literal("apply")]),
-  from_format: Type.Integer({ minimum: 1 }), to_format: Type.Union([Type.Literal(2), Type.Literal(3), Type.Literal(4), Type.Literal(5), Type.Literal(6), Type.Literal(7), Type.Literal(8)]),
+  from_format: Type.Integer({ minimum: 1 }), to_format: Type.Union([Type.Literal(2), Type.Literal(3), Type.Literal(4), Type.Literal(5), Type.Literal(6), Type.Literal(7), Type.Literal(8), Type.Literal(9)]),
   migration_required: Type.Boolean(),
   counts: Type.Record(Type.String(), Type.Integer({ minimum: 0 })),
   backup_path: Type.Optional(NonEmptyStringSchema), backup_digest: Type.Optional(DigestSchema),

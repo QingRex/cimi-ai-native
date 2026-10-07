@@ -4,7 +4,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { bytesAt, readJson, directory, digest, atomicJson, RuntimeAdapterError, assertOrdinaryPath } from "./files.js";
 import { isolatedEnvironment, nativeControl } from "./native.js";
-import { validateOperationRequest, diskLimitsFor, isIpcProbeDriver, type OperationRequest } from "./operations.js";
+import { validateOperationRequest, diskLimitsFor, isIpcProbeDriver, skillLoaderConfiguration, type OperationRequest } from "./operations.js";
 import { readDedicatedApiKey, modelEndpoint, CredentialOutputGuard, validateModelConnection } from "./connection.js";
 import { removePrivateDirectory } from "./private-cleanup.js";
 import { HostGatewayBridge, isGatewayProbeDriver } from "./gateway-bridge.js";
@@ -47,10 +47,10 @@ export const supervise = async (path: string): Promise<void> => {
       const target = join(directory(join(sandbox, "transport")), "provider.mjs"); copyFileSync(request.driver.transport_module.path, target);
       if (digest(bytesAt(target)).value !== request.driver.transport_module.digest.value) throw new RuntimeAdapterError("ipc_probe_module_changed");
     }
-    const permission = { "*": "deny", read: "allow", ...(request.input.mode === "write" ? { edit: "allow" } : {}) };
+    const loader = skillLoaderConfiguration(request.input, workspace), permission = loader.permission;
     const gateway = isGatewayProbeDriver(request.driver), ipc = isIpcProbeDriver(request.driver), provider = gateway ? "cimiloop-gateway" : "cimiloop-transport";
     if (gateway) gatewayBridge = await HostGatewayBridge.create(path, request);
-    const config = { autoupdate: false, share: "disabled", snapshot: false, enabled_providers: [gateway ? provider : ipc ? "cimiloop-transport" : connection?.provider ?? "opencode"], permission,
+    const config = { autoupdate: false, share: "disabled", snapshot: false, enabled_providers: [gateway ? provider : ipc ? "cimiloop-transport" : connection?.provider ?? "opencode"], ...loader,
       ...(gateway ? { model: request.driver.model, small_model: request.driver.model,
         provider: { [provider]: { npm: "file:///CIMILOOP_TRANSPORT/provider.mjs", options: { operationKey: request.input.operation_key },
           models: { "cimiloop-synthetic-text": { name: "Synthetic host HTTPS gateway", limit: { context: 16384, output: 128 }, tool_call: false } } } } } : {}),

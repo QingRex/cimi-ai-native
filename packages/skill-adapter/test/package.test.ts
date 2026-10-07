@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createInternalId, type SkillImportSpec } from "@cimiloop/protocol/v2";
-import { packageGitSkill, verifySkillPackageBytes, parseSkillMethodInput, parseSkillMethodOutput, skillRegistration } from "../src/index.js";
+import { packageGitSkill, verifySkillPackageBytes, parseSkillMethodInput, parseSkillMethodOutput, skillRegistration, skillInvocationPlan } from "../src/index.js";
 
 describe("fixed Git skill packages and method outputs", () => {
   let root: string, spec: SkillImportSpec;
@@ -41,6 +41,17 @@ describe("fixed Git skill packages and method outputs", () => {
     const old = packed(); write("skills/grilling/SKILL.md", "dirty and invalid metadata\n");
     expect(packed().source_digest).toEqual(old.source_digest);
     git("add", "."); git("commit", "-m", "move HEAD"); expect(packed().source_digest).toEqual(old.source_digest);
+  });
+  it("loads only fixed declarative modules and requires the exact review artifact bytes", () => {
+    const verified = packed(), clarification = skillInvocationPlan(verified, { purpose: "clarification", requirement: "Fixed", background: "Context", constraints: [] });
+    expect(clarification.profile.skill_names).toEqual(["grill-me", "grilling"]);
+    expect(clarification.files.map(file => file.path)).toContain("skill-source/grilling/references/format.md");
+    expect(clarification.files.some(file => file.path.includes("scripts/") || file.path.includes("agents/"))).toBe(false);
+    const bytes = Buffer.from("fixed diff"), ref = { provider: "local_content", resource_type: "provider_probe_artifact", locator: createHash("sha256").update(bytes).digest("hex"), digest: { algorithm: "sha256" as const, value: createHash("sha256").update(bytes).digest("hex") } };
+    const input = { purpose: "review", goal: "Review", spec: "Spec", standards: "Standards", artifact_refs: [ref] };
+    expect(() => skillInvocationPlan(verified, input)).toThrow("Fixed skill artifact missing");
+    expect(() => skillInvocationPlan(verified, input, [{ ref, bytes: Buffer.from("changed") }])).toThrow("Fixed skill artifact required");
+    expect(skillInvocationPlan(verified, input, [{ ref, bytes }]).files.map(file => file.path)).toContain(`skill-artifacts/${ref.digest.value}.txt`);
   });
   it("accepts bounded large upstream commit messages and rejects oversized commits before copying", () => {
     write("commit-message.txt", "x".repeat(104000)); git("commit", "--amend", "-F", join(root, "commit-message.txt")); spec.commit_id = git("rev-parse", "HEAD");

@@ -4,8 +4,8 @@ import { basename, dirname, join, relative, resolve } from "node:path";
 import { backup, DatabaseSync } from "node:sqlite";
 import * as v1 from "@cimiloop/protocol/v1";
 import * as v2 from "@cimiloop/protocol/v2";
-import { additionalSchema, installPlanningSchema, installIntentSchema, installExecutionSchema, installVerificationSchema, installRuntimeSchema, installProviderAssessmentSchema, installWriteGuards, MigrationError, outboxSchema, readDatabaseFormat, readFormat, CURRENT_DATABASE_FORMAT } from "./database-format.js";
-import { validateFormat2, validateFormat3, validateFormat4, validateFormat5, validateFormat6, validateFormat7 } from "./format2-preflight.js";
+import { additionalSchema, installPlanningSchema, installIntentSchema, installExecutionSchema, installVerificationSchema, installRuntimeSchema, installProviderAssessmentSchema, installSkillAssessmentGuard, installWriteGuards, MigrationError, outboxSchema, readDatabaseFormat, readFormat, CURRENT_DATABASE_FORMAT } from "./database-format.js";
+import { validateFormat2, validateFormat3, validateFormat4, validateFormat5, validateFormat6, validateFormat7, validateFormat8 } from "./format2-preflight.js";
 import { m0Schema } from "./v1/project-store.js";
 
 type Row = Record<string, unknown>;
@@ -183,7 +183,7 @@ export class MigrationRunner {
     try {
       db.exec("BEGIN");
       const format = readFormat(db);
-      const counts = format === 1 ? validateM0(db, new Date().toISOString()).counts : format === 2 ? validateFormat2(db, new Date().toISOString()).counts : format === 3 ? validateFormat3(db, new Date().toISOString()).counts : format === 4 ? validateFormat4(db, new Date().toISOString()).counts : format === 5 ? validateFormat5(db, new Date().toISOString()).counts : format === 6 ? validateFormat6(db, new Date().toISOString()).counts : format === 7 ? validateFormat7(db, new Date().toISOString()).counts : {};
+      const counts = format === 1 ? validateM0(db, new Date().toISOString()).counts : format === 2 ? validateFormat2(db, new Date().toISOString()).counts : format === 3 ? validateFormat3(db, new Date().toISOString()).counts : format === 4 ? validateFormat4(db, new Date().toISOString()).counts : format === 5 ? validateFormat5(db, new Date().toISOString()).counts : format === 6 ? validateFormat6(db, new Date().toISOString()).counts : format === 7 ? validateFormat7(db, new Date().toISOString()).counts : format === 8 ? validateFormat8(db, new Date().toISOString()).counts : {};
       return v2.parseMigrationReport({ schema_version: v2.SCHEMA_VERSION, ok: true, mode: "check", from_format: format,
         to_format: CURRENT_DATABASE_FORMAT, migration_required: format !== CURRENT_DATABASE_FORMAT, counts });
     } catch (error) { if (error instanceof MigrationError) throw error; throw new MigrationError("MIGRATION_UNSAFE", "旧格式预检查失败：数据不符合已知协议", { cause: error }); }
@@ -205,7 +205,7 @@ export class MigrationRunner {
       if (format === CURRENT_DATABASE_FORMAT) return v2.parseMigrationReport({ schema_version: v2.SCHEMA_VERSION, ok: true, mode: "apply", from_format: format, to_format: CURRENT_DATABASE_FORMAT, migration_required: false, counts: {} });
       // Keep this write lock throughout validation, backup and commit. Separate read connection backs up the pre-upgrade snapshot.
       db.exec("BEGIN IMMEDIATE");
-      const now = options.now ?? new Date().toISOString(), preflight = format === 1 ? validateM0(db, now) : format === 2 ? validateFormat2(db, now) : format === 3 ? validateFormat3(db, now) : format === 4 ? validateFormat4(db, now) : format === 5 ? validateFormat5(db, now) : format === 6 ? validateFormat6(db, now) : validateFormat7(db, now);
+      const now = options.now ?? new Date().toISOString(), preflight = format === 1 ? validateM0(db, now) : format === 2 ? validateFormat2(db, now) : format === 3 ? validateFormat3(db, now) : format === 4 ? validateFormat4(db, now) : format === 5 ? validateFormat5(db, now) : format === 6 ? validateFormat6(db, now) : format === 7 ? validateFormat7(db, now) : validateFormat8(db, now);
       const authorizedActors = "authorizedActors" in preflight ? preflight.authorizedActors : [preflight.actor.id];
       if (!authorizedActors.includes(options.actorId)) unsafe("迁移操作者必须是现有有效 Human Project Owner");
       const migrationId = v2.createInternalId(), backupDirectory = join(dirname(sourcePath), "backups", migrationId);
@@ -222,7 +222,7 @@ export class MigrationRunner {
       }
       const backupDigest = digest(readFileSync(backupPath));
       const backupDb = new DatabaseSync(backupPath, { readOnly: true });
-      try { if (format === 1) validateM0(backupDb, now); else if (format === 2) validateFormat2(backupDb, now); else if (format === 3) validateFormat3(backupDb, now); else if (format === 4) validateFormat4(backupDb, now); else if (format === 5) validateFormat5(backupDb, now); else if (format === 6) validateFormat6(backupDb, now); else validateFormat7(backupDb, now); } finally { backupDb.close(); }
+      try { if (format === 1) validateM0(backupDb, now); else if (format === 2) validateFormat2(backupDb, now); else if (format === 3) validateFormat3(backupDb, now); else if (format === 4) validateFormat4(backupDb, now); else if (format === 5) validateFormat5(backupDb, now); else if (format === 6) validateFormat6(backupDb, now); else if (format === 7) validateFormat7(backupDb, now); else validateFormat8(backupDb, now); } finally { backupDb.close(); }
       const manifest = { migration_id: migrationId, from_format: format, to_format: CURRENT_DATABASE_FORMAT, created_at: now, database: { path: "project.db", digest: backupDigest }, files };
       writeFileSync(join(backupDirectory, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, { flag: "wx" });
       options.onStage?.("backup_complete");
@@ -270,7 +270,8 @@ export class MigrationRunner {
       if (format < 5) { installExecutionSchema(db); db.prepare("INSERT INTO schema_migrations(version, applied_at) VALUES (5, ?)").run(now); }
       if (format < 6) { installVerificationSchema(db); db.prepare("INSERT INTO schema_migrations(version, applied_at) VALUES (6, ?)").run(now); }
       if (format < 7) { installRuntimeSchema(db); db.prepare("INSERT INTO schema_migrations(version, applied_at) VALUES (7, ?)").run(now); }
-      installProviderAssessmentSchema(db);
+      if (format < 8) { installProviderAssessmentSchema(db); db.prepare("INSERT INTO schema_migrations(version, applied_at) VALUES (8, ?)").run(now); }
+      installSkillAssessmentGuard(db);
       db.prepare("INSERT INTO schema_migrations(version, applied_at) VALUES (?, ?)").run(CURRENT_DATABASE_FORMAT, now);
       options.onStage?.("schema_installed");
       if (db.prepare("PRAGMA integrity_check").get()?.integrity_check !== "ok" || db.prepare("PRAGMA foreign_key_check").all().length) unsafe("升级后的数据库完整性检查失败");

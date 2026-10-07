@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import * as v2 from "@cimiloop/protocol/v2";
 import { parseVersionedCommandResult, parseVersionedRecord } from "@cimiloop/protocol";
-import { initializeFormat2Database, initializeFormat3Database, initializeFormat4Database, initializeFormat5Database, initializeFormat6Database, initializeFormat7Database, MigrationError } from "./database-format.js";
+import { initializeFormat2Database, initializeFormat3Database, initializeFormat4Database, initializeFormat5Database, initializeFormat6Database, initializeFormat7Database, initializeFormat8Database, MigrationError } from "./database-format.js";
 
 type Row = Record<string, unknown>;
 const unsafe = (message: string): never => { throw new MigrationError("MIGRATION_UNSAFE", message); };
@@ -22,9 +22,10 @@ export const validateFormat4 = (db: DatabaseSync, now: string) => validateGovern
 export const validateFormat5 = (db: DatabaseSync, now: string) => validateGovernanceFormat(db, now, 5);
 export const validateFormat6 = (db: DatabaseSync, now: string) => validateGovernanceFormat(db, now, 6);
 export const validateFormat7 = (db: DatabaseSync, now: string) => validateGovernanceFormat(db, now, 7);
-const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 | 4 | 5 | 6 | 7) => {
+export const validateFormat8 = (db: DatabaseSync, now: string) => validateGovernanceFormat(db, now, 8);
+const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 | 4 | 5 | 6 | 7 | 8) => {
   const reference = new DatabaseSync(":memory:");
-  try { (format === 2 ? initializeFormat2Database : format === 3 ? initializeFormat3Database : format === 4 ? initializeFormat4Database : format === 5 ? initializeFormat5Database : format === 6 ? initializeFormat6Database : initializeFormat7Database)(reference); if (canonical(signature(db)) !== canonical(signature(reference))) unsafe(`格式${format}表、索引或触发器不匹配`); }
+  try { (format === 2 ? initializeFormat2Database : format === 3 ? initializeFormat3Database : format === 4 ? initializeFormat4Database : format === 5 ? initializeFormat5Database : format === 6 ? initializeFormat6Database : format === 7 ? initializeFormat7Database : initializeFormat8Database)(reference); if (canonical(signature(db)) !== canonical(signature(reference))) unsafe(`格式${format}表、索引或触发器不匹配`); }
   finally { reference.close(); }
   if (db.prepare("PRAGMA integrity_check").get()?.integrity_check !== "ok" || db.prepare("PRAGMA foreign_key_check").all().length) unsafe("格式2完整性检查失败");
   const projects = rows(db, "projects"); if (projects.length !== 1) unsafe("格式2迁移须有唯一 Project");
@@ -103,6 +104,7 @@ const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 |
   }
   const runtimeCommands: Record<string, string> = { RunContextPrepared: "PrepareRunContext", RunReserved: "ReserveRun", RunObserved: "RecordRunObservation",
     RunReconciled: "ReconcileRun", RunCancellationRequested: "CancelRun", HandoffSaved: "SaveHandoff", ResumptionChecked: "CheckResumption" };
+  if (format >= 8) Object.assign(runtimeCommands, { ProviderEvidenceRecorded: "RecordProviderEvidence", ProviderEvaluated: "EvaluateProvider", ProviderBindingRegistered: "RegisterProviderBinding" });
   const runtimeKeys: Record<string, v2.RuntimeRecordType> = { workspace: "workspace_snapshot", context: "context_manifest", record: "run_record", observation: "run_observation", handoff: "handoff_record", resumption: "resumption_record" };
   const runObjects = new Map<string, v2.Run>(), runtimeRecords = new Map<string, { kind: v2.RuntimeRecordType; value: v2.RuntimeRecords[v2.RuntimeRecordType] }>();
   if (format >= 7) {
@@ -213,7 +215,7 @@ const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 |
       if (value.project_id !== project.id || value.producer_actor_id !== event.actor_id || value.created_at !== event.occurred_at || !changes.has(String(value.change_id)) || verificationFacts.has(String(value.id)) || canonical(value) !== canonical(receipt!.data[key])) unsafe("验证事实与事件/回执来源不符");
       verificationFacts.set(String(value.id), { kind, value });
     }
-    if (runtimeCommands[event.event_type]) {
+    if (runtimeCommands[event.event_type] && !event.event_type.startsWith("Provider")) {
       const payload = event.payload as Row;
       if (canonical(payload) !== canonical(receipt!.data)) unsafe("运行事件与原始回执不一致");
       for (const [key, kind] of Object.entries(runtimeKeys)) if (payload[key]) rememberRuntime(kind, payload[key] as Row, event);
@@ -373,7 +375,41 @@ const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 |
     if (record.project_id !== project.id || !actors.has(record.producer_actor_id)) unsafe("Provider 元数据引用无效");
     const registrations = [...events.values()].filter(e => e.event_type === "ProviderRegistered" && e.payload.descriptor.id === record.id);
     if (registrations.length && (registrations.length !== 1 || registrations[0]!.event_type !== "ProviderRegistered" || canonical(registrations[0]!.payload.descriptor) !== canonical(record))) unsafe("Provider 候选与登记事件不一致");
-    if ("approval" in record) unsafe("旧格式不能包含新的 Provider 批准事实");
+    if (format < 8 && "approval" in record) unsafe("旧格式不能包含新的 Provider 批准事实");
+  }
+  if (format >= 8) {
+    const descriptors = new Map(rows(db, "immutable_records").filter(row => row.object_type === "provider_descriptor").map(row => {
+      const value = v2.parseProviderDescriptor(json(row)); return [value.id, value] as const;
+    }));
+    const digest = (value: unknown) => ({ algorithm: "sha256", value: createHash("sha256").update(canonical(value)).digest("hex") });
+    const evidence = new Map<string, v2.ProviderEvidence>(), evaluations = new Map<string, v2.ProviderEvaluation>();
+    for (const row of rows(db, "provider_assessment_records")) {
+      const value = row.object_type === "evidence" ? v2.compileValidator<v2.ProviderEvidence>(v2.RuntimeProviderEvidenceSchema)(json(row)) : v2.compileValidator<v2.ProviderEvaluation>(v2.RuntimeProviderEvaluationSchema)(json(row));
+      match(row, value, ["id", "project_id", "producer_actor_id"]); const descriptor = descriptors.get(value.descriptor_ref.id);
+      if (row.descriptor_id !== value.descriptor_ref.id || !descriptor || descriptor.provider_kind !== "runtime" || value.project_id !== project.id || actors.get(value.producer_actor_id)?.actor_type !== "human" ||
+        canonical(value.descriptor_digest) !== canonical(digest(descriptor))) unsafe("格式8Provider证据作用域或摘要无效");
+      const matches = [...events.values()].filter(event => event.event_type === (row.object_type === "evidence" ? "ProviderEvidenceRecorded" : "ProviderEvaluated") &&
+        (event.event_type === "ProviderEvidenceRecorded" ? event.payload.evidence.id : event.event_type === "ProviderEvaluated" ? event.payload.evaluation.id : "") === value.id);
+      if (matches.length !== 1 || canonical(matches[0]!.payload) !== canonical(row.object_type === "evidence" ? { evidence: value } : { evaluation: value })) unsafe("格式8Provider记录缺少准确事件");
+      if (row.object_type === "evidence") evidence.set(value.id, value as v2.ProviderEvidence); else evaluations.set(value.id, value as v2.ProviderEvaluation);
+    }
+    for (const value of evaluations.values()) if (value.evidence_refs.some(ref => {
+      const observation = evidence.get(ref.id); return !observation || observation.descriptor_ref.id !== value.descriptor_ref.id || canonical(observation.descriptor_digest) !== canonical(value.descriptor_digest);
+    })) unsafe("格式8Provider评测缺少对应证据");
+    for (const row of rows(db, "immutable_records").filter(row => row.object_type === "provider_binding")) {
+      const binding = v2.parseProviderBinding(json(row)); if (!binding.approval) continue;
+      const descriptor = descriptors.get(binding.descriptor_ref.id), evaluation = evaluations.get(binding.approval.evaluation_ref.id);
+      const assignment = assignments.find(value => value.id === binding.approval!.assignment_ref.id);
+      if (!descriptor || descriptor.provider_kind !== "runtime" || binding.runtime_binding_ref || binding.approval.binding_scope !== "isolated_provider_probe" ||
+        canonical(binding.descriptor_digest) !== canonical(digest(descriptor)) || !evaluation || evaluation.descriptor_ref.id !== descriptor.id || evaluation.profile !== "technical_contract" || evaluation.outcome !== "ALLOW" ||
+        canonical(evaluation.input_digest) !== canonical(binding.approval.input_digest) || canonical(evaluation.evidence_refs) !== canonical(binding.probe_evidence_refs) ||
+        !assignment || assignment.actor_id !== binding.producer_actor_id || assignment.role_key !== "project_owner" || assignment.scope.kind !== "project" || assignment.scope.id !== project.id ||
+        Date.parse(assignment.created_at) > Date.parse(binding.created_at) || (assignment.ended_at && Date.parse(assignment.ended_at) <= Date.parse(binding.created_at))) unsafe("格式8Provider批准依据无效");
+      const matching = [...events.values()].filter(event => event.event_type === "ProviderBindingRegistered" && event.payload.binding.id === binding.id);
+      if (matching.length !== 1 || canonical(matching[0]!.payload) !== canonical({ binding })) unsafe("格式8Provider批准缺少准确事件");
+    }
+    const recordCount = rows(db, "provider_assessment_records").length;
+    if ([...events.values()].filter(event => ["ProviderEvidenceRecorded", "ProviderEvaluated"].includes(event.event_type)).length !== recordCount) unsafe("格式8Provider事件缺少原生记录");
   }
   for (const row of rows(db, "migration_runs")) {
     const manifest = JSON.parse(String(row.manifest_json)) as { migration_id: string; from_format: number; to_format: number; database: { digest: string } };
@@ -398,7 +434,7 @@ const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 |
     effectEvents.add(message.event_id);
   }
   if ([...events.values()].some(event => event.event_type !== "ProjectMigrated" && !effectEvents.has(event.event_id))) unsafe("业务事件缺少同事务 Outbox 效果");
-  const counts = Object.fromEntries(["projects", "actors", "roles", "assignments", "changes", "transition_records", "event_ledger", "command_receipts", "outbox_messages", "immutable_records", ...(format >= 3 ? ["project_settings_versions", "target_versions"] : []), ...(format >= 4 ? ["intent_records"] : []), ...(format >= 5 ? ["execution_objects", "execution_records"] : []), ...(format >= 6 ? ["verification_records"] : []), ...(format >= 7 ? ["run_objects", "run_records"] : [])]
+  const counts = Object.fromEntries(["projects", "actors", "roles", "assignments", "changes", "transition_records", "event_ledger", "command_receipts", "outbox_messages", "immutable_records", ...(format >= 3 ? ["project_settings_versions", "target_versions"] : []), ...(format >= 4 ? ["intent_records"] : []), ...(format >= 5 ? ["execution_objects", "execution_records"] : []), ...(format >= 6 ? ["verification_records"] : []), ...(format >= 7 ? ["run_objects", "run_records"] : []), ...(format >= 8 ? ["provider_assessment_records"] : [])]
     .map(table => [table, rows(db, table).length]));
   return { project, authorizedActors, mutable: [], counts };
 };

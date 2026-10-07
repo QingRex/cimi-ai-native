@@ -36,13 +36,13 @@ const fixture = (active = false) => {
 it.each([false, true])("explicitly migrates format 7 with active=%s native run, usage and recovery history without changing old facts", async active => {
   const f = fixture(active), before = snapshot(f.path);
   expect(() => new SqliteProjectStore(f.path)).toThrow(expect.objectContaining({ code: "MIGRATION_REQUIRED" }));
-  expect(f.runner.check()).toMatchObject({ from_format: 7, to_format: 8, counts: { run_objects: 1, run_records: expect.any(Number) } }); expect(snapshot(f.path)).toEqual(before);
+  expect(f.runner.check()).toMatchObject({ from_format: 7, to_format: 9, counts: { run_objects: 1, run_records: expect.any(Number) } }); expect(snapshot(f.path)).toEqual(before);
   const report = await f.runner.apply({ actorId: f.actor.id, now: flowTime }); expect(snapshot(report.backup_path!)).toEqual(before);
   const after = snapshot(f.path);
   for (const name of ["projects", "actors", "assignments", "changes", "intent_records", "execution_objects", "execution_records", "verification_records", "run_objects", "run_records", "immutable_records", "command_receipts", "outbox_messages"]) expect(after.tables[name]).toEqual(before.tables[name]);
-  expect(after.tables.provider_assessment_records).toEqual([]); expect(readDatabaseFormat(f.path)).toBe(8);
+  expect(after.tables.provider_assessment_records).toEqual([]); expect(readDatabaseFormat(f.path)).toBe(9);
   const store = new SqliteProjectStore(f.path); stores.push(store); expect(store.getExecutionObject("task", f.task.id)).toEqual(f.task); expect(store.getRun(f.run!.id)).toEqual(f.run);
-  expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 8, to_format: 8, migration_required: false });
+  expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 9, to_format: 9, migration_required: false });
 }, 45_000);
 
 it.each(["backup_complete", "state_converted", "schema_installed", "before_commit"] as const)("rolls back format 7 history and schema at %s", async stage => {

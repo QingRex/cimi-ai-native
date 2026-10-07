@@ -8,6 +8,7 @@
   "include": ["src/**/*.ts"],
   "references": [
     { "path": "../protocol" },
+    { "path": "../skill-adapter" },
     { "path": "../store" }
   ]
 }
