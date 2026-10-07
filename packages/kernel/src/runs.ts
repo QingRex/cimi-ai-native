@@ -47,6 +47,9 @@ export interface RunVerifierPort {
   workspaceIsCurrent(project: Project, snapshot: WorkspaceSnapshot): boolean;
   readRunResult(project: Project, reference: RunObservation["raw_result_ref"]): unknown;
   agent?: AgentRunVerifierPort;
+  // Trusted original tool journal, queried even for Human reconciliation. Tool
+  // effects cannot be erased by an imported successful/not_started run report.
+  tools?: { facts(project: Project, record: RunRecord): { invocations: number; unresolved: number; has_effect: boolean } };
 }
 export type RunCommand = Extract<AnyCommand, { command_type: "PrepareRunContext" | "ReserveRun" | "RecordRunObservation" | "ReconcileRun" | "CancelRun" | "SaveHandoff" | "CheckResumption" }>;
 interface Mutation { event_type: string; aggregate: CommandSuccess["aggregate"]; revision: number; data: CommandSuccess["data"]; payload: Record<string, unknown> }
@@ -246,6 +249,15 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
   if (raw!.run_id !== original.id || raw!.operation_key !== record!.operation_key || raw!.producer_actor_id !== context.actorId || !equal(raw!.input_digest, record!.input_digest) ||
     !Number.isFinite(Date.parse(raw!.observed_at)) || new Date(raw!.observed_at).toISOString() !== (raw!.observed_at.length === 20 ? raw!.observed_at.replace("Z", ".000Z") : raw!.observed_at) || Date.parse(raw!.observed_at) < Date.parse(record!.reserved_at) || Date.parse(raw!.observed_at) > Date.parse(context.now) ||
     (raw!.usage.cost_known && (raw!.usage.currency ?? record!.cost_currency) !== record!.cost_currency)) fail(command, "BASELINE_MISMATCH", "运行报告身份、时间、输入或币种不符");
+  if (host?.tools) {
+    let tools: ReturnType<NonNullable<RunVerifierPort["tools"]>["facts"]>;
+    try { tools = host.tools.facts(context.project, structuredClone(record!));
+      if (!Number.isSafeInteger(tools.invocations) || tools.invocations < 0 || tools.invocations > 4096 || !Number.isSafeInteger(tools.unresolved) || tools.unresolved < 0 ||
+        tools.unresolved > tools.invocations || typeof tools.has_effect !== "boolean" || tools.has_effect && tools.invocations === 0) throw new Error("Invalid original tool facts");
+    } catch { fail(command, "EVIDENCE_MISSING", "原工具执行账本缺失、损坏或归属不符"); }
+    if (!['running', 'unknown'].includes(raw!.status) && tools!.unresolved) fail(command, "RECOVERY_CONDITIONS_UNMET", "原工具调用尚未结清，不能结清父运行");
+    if (raw!.status === "not_started" && tools!.has_effect) fail(command, "RECOVERY_CONDITIONS_UNMET", "已有工具调用效果，不能返还未启动次数");
+  }
   const prior = tx.listRuntimeRecords("run_observation", currentTask.change_id).filter(o => o.run_ref.id === original.id), latest = original.latest_observation_ref ? tx.getRuntimeRecord("run_observation", original.latest_observation_ref.id) : undefined;
   if (record!.run_kind === "agent") {
     const skills = runSkillInvocationFacts(tx, original);

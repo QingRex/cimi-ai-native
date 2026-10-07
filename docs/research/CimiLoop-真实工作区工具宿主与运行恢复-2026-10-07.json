@@ -1,0 +1,351 @@
+{
+  "format": "cimiloop/workspace-tool-runtime-verification/1.0.0",
+  "decision": "D-219",
+  "date": "2026-10-07",
+  "base_commit": "bdf0a20a05577e15786fc927e60728d355f2c823",
+  "scope": "Actual Windows NTFS existing-file read/replace, trusted local Human composition, durable native file/process identity and parent Run original tool-ledger settlement guards",
+  "goal_complete": false,
+  "authorized_workspace_file_host_implemented": true,
+  "actual_native_file_and_worker_identity_persisted": true,
+  "trusted_local_human_entry_connected": true,
+  "default_original_tool_reader_connected": true,
+  "parent_run_settlement_guard_connected": true,
+  "formal_agent_execution_enabled": false,
+  "production_agent_host_connected": false,
+  "workspace_tool_ipc_opencode_connected": false,
+  "run_checks_host_implemented": false,
+  "production_skill_host_connected": false,
+  "actual_method_behavior_evaluated": false,
+  "pre_plan_clarification_implemented": false,
+  "physical_filesystem_hard_quota_implemented": false,
+  "approved_billing_admission_complete": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "files": 12,
+      "tests": 165,
+      "passed": 165,
+      "failed": 0,
+      "pending": 0,
+      "complete_repository_suite": false,
+      "reports": [
+        {
+          "path": ".cimiloop/workspace-tools-v1-09/final.json",
+          "bytes": 70981,
+          "sha256": "3d9efc0b17f75c8ef7da7f5e834156a2c3aa148b2aff0d2d43861ad5fe794442",
+          "files": 12,
+          "tests": 165,
+          "passed": 165,
+          "failed": 0
+        }
+      ],
+      "source_bytes_unchanged_during_final_report": true,
+      "fresh_full_affected_pass": true,
+      "files_at_validation": [
+        {
+          "name": "tests/scenarios/run-cli.test.ts",
+          "tests": 1
+        },
+        {
+          "name": "tests/scenarios/skill-method-inputs.test.ts",
+          "tests": 7
+        },
+        {
+          "name": "tests/scenarios/workspace-tool-runtime.test.ts",
+          "tests": 14
+        },
+        {
+          "name": "apps/workbench/test/frontend.test.ts",
+          "tests": 3
+        },
+        {
+          "name": "apps/workbench/test/server.test.ts",
+          "tests": 15
+        },
+        {
+          "name": "packages/runtime-adapter/test/tool-host.test.ts",
+          "tests": 36
+        },
+        {
+          "name": "packages/runtime-adapter/test/workspace-files.test.ts",
+          "tests": 28
+        },
+        {
+          "name": "packages/runtime-adapter/test/workspace-tool-journal.test.ts",
+          "tests": 6
+        },
+        {
+          "name": "packages/store-sqlite/test/agent-runs.test.ts",
+          "tests": 11
+        },
+        {
+          "name": "packages/store-sqlite/test/runs.test.ts",
+          "tests": 19
+        },
+        {
+          "name": "packages/store-sqlite/test/skill-invocations.test.ts",
+          "tests": 9
+        },
+        {
+          "name": "packages/store-sqlite/test/tool-authority.test.ts",
+          "tests": 16
+        }
+      ]
+    },
+    "preliminary_reports": [
+      {
+        "path": ".cimiloop/workspace-tools-v1-09/native-initial.json",
+        "bytes": 18503,
+        "sha256": "b20acbb994288a105c5638184c0b6fe218695641d6d20137a681b38bb77679af",
+        "tests": 24,
+        "passed": 20,
+        "failed": 4,
+        "success": false
+      },
+      {
+        "path": ".cimiloop/workspace-tools-v1-09/initial.json",
+        "bytes": 16523,
+        "sha256": "5420430368590ee0c0b0de34823ab140b88a6f595ccb11a6538054d2a8beff18",
+        "tests": 38,
+        "passed": 38,
+        "failed": 0,
+        "success": true
+      },
+      {
+        "path": ".cimiloop/workspace-tools-v1-09/focused.json",
+        "bytes": 18812,
+        "sha256": "c1d81f1e9c507ccaa08da28680c740b51645d91585654c11147e5cce2c35df3a",
+        "tests": 43,
+        "passed": 43,
+        "failed": 0,
+        "success": true
+      },
+      {
+        "path": ".cimiloop/workspace-tools-v1-09/regression.json",
+        "bytes": 50393,
+        "sha256": "7a9f4af93ced7da4fc25ad8708ef7cf2d148e5ce75e56f92b439965abc8082a9",
+        "tests": 117,
+        "passed": 117,
+        "failed": 0,
+        "success": true
+      },
+      {
+        "path": ".cimiloop/workspace-tools-v1-09/atomic-focused.json",
+        "bytes": 13995,
+        "sha256": "dab5d1a2d207df19575b0fa0214af0a0d2711fedde3247cfb96f5515878056f4",
+        "tests": 33,
+        "passed": 33,
+        "failed": 0,
+        "success": true
+      },
+      {
+        "path": ".cimiloop/workspace-tools-v1-09/atomic-acl.json",
+        "bytes": 14465,
+        "sha256": "f26420e228f653f9e7842c3b0a5cef297c9b1a5be927fb4643adc4db362405a0",
+        "tests": 34,
+        "passed": 34,
+        "failed": 0,
+        "success": true
+      }
+    ],
+    "preliminary_source_snapshot": {
+      "path": ".cimiloop/workspace-tools-v1-09/sources-before-atomic.json",
+      "bytes": 2394,
+      "sha256": "6f5d08e3263f21521e4bbee578a4d83a2cdaa0a5a98b844895597e0b4b0e7056"
+    },
+    "hardlink_counterexample": {
+      "creation_allowed_while_original_handle_held": true,
+      "unsafe_in_place_effect_not_performed": true,
+      "original_helper_exit": 1,
+      "failed_assertion": "A hardlink can be introduced while the native file handle is held",
+      "exact_reproduction_helper": {
+        "path": ".cimiloop/workspace-tools-v1-09/held-hardlink.mjs",
+        "bytes": 2218,
+        "sha256": "9de75afa71532b97cc7dce1ccbcd32e2f9634134457fea7cb75d625b25cb9ad7"
+      },
+      "batch_oplock_did_not_block_new_hardlink": true,
+      "note": "The original helper stopped before commit and joined its owned native process. Failure established that deny-write/delete sharing is insufficient to reject new aliases; it did not execute a write through the alias. Prototype oplock/rename helpers are retained as rejected investigation, not production verification."
+    },
+    "actual_windows_files": {
+      "tests": 28,
+      "native_broker_executed": true,
+      "cases": [
+        "read plain/BOM/empty/control UTF-8",
+        "fsync/readback host-private candidate then replace authorized pathname",
+        "old/new inode identity pinned before dispatch; original opened inode data unchanged",
+        "protected target DACL preserved and staged ACL protected before content",
+        "opaque one-shot and immutable nested file/worker identity",
+        "ancestor rename and competing ordinary data writes denied",
+        "prepared target rename or new hardlink rejected",
+        "hardlink/junction/root replacement denied",
+        "preimage mismatch/invalid UTF-8/oversize denied",
+        "metadata/device/stream/traversal paths denied",
+        "owned process cancellation without worktree effect"
+      ]
+    },
+    "actual_git_kernel_runtime": {
+      "tests": 14,
+      "real_git_worktrees": true,
+      "actual_kernel_workitem_context_run": true,
+      "native_human_executor_only": true,
+      "native_domain_events_not_advanced_by_tools": true,
+      "actual_windows_host_exits": [
+        "reserved_committed",
+        "native_prepared",
+        "dispatch_committed",
+        "effect_completed",
+        "before_completion_update",
+        "completion_committed"
+      ],
+      "original_host_and_native_worker_os_identity_observed": true,
+      "absent_reserved_becomes_not_started": true,
+      "missing_dispatched_completion_remains_unknown": true,
+      "completed_replays_once": true,
+      "actual_two_host_contention": true,
+      "revoked_dispatch_and_cache_publication_rejected": true,
+      "missing_or_corrupt_established_original_ledger_rejected": true,
+      "successful_failed_cancelled_and_reconciled_parent_settlement_blocked_for_unresolved_tools": true,
+      "parent_not_started_refund_rejected_after_effect": true
+    },
+    "journal_constructed_seams": {
+      "tests": 6,
+      "actual_native_execution": false,
+      "note": "Constructed authorization and process observations test opaque permits, both-owner absence, original and replacement native file-identity barriers across different Run/path aliases even after lost install receipt, permanent logical slot reservation and readonly original Run/project pins. These seams do not prove NTFS Unicode behavior or real Agent/account authorization."
+    },
+    "databases": {
+      "native_format": 10,
+      "native_layout_changed": false,
+      "migration_added": false,
+      "workspace_tool_format": 1,
+      "workspace_application_id": "0x43494d57",
+      "previous_public_tool_format_unchanged": 1,
+      "user_database_upgraded": false
+    },
+    "baseline": {
+      "path": ".cimiloop/workspace-tools-v1-09/baseline.json",
+      "bytes": 58,
+      "sha256": "da14c5522f1e0ca9c2f71fa160ebea74a81dda6954e83c0ab46cf269aa18c67c"
+    },
+    "protocol": {
+      "path": ".cimiloop/workspace-tools-v1-09/schemas.json",
+      "bytes": 117,
+      "sha256": "96919bbef631d8a951c7de319e40cd2753c8de9c4156e496e213c9570d2553e9",
+      "total": 239,
+      "unchanged": 239,
+      "changed": 0,
+      "added": 0,
+      "protocol_status_clean": true,
+      "writes": 0,
+      "schema_export_required": false
+    },
+    "markdown_links": {
+      "path": ".cimiloop/workspace-tools-v1-09/links.json",
+      "bytes": 49,
+      "sha256": "32c1670aafd7ae0d227625bc8df9c1b40e1230f785eabda682b30e2cf879eb9a",
+      "files": 9,
+      "links": 272,
+      "broken": []
+    }
+  },
+  "boundaries": {
+    "workspace": "Windows x64 fixed local NTFS only; existing UTF-8 files <=16384 bytes. Native holds root/ancestor/target handles, rejects reparse/existing-hardlink/device/metadata paths and verifies original SHA plus volume/file index. Replacement never writes original inode data: it protects and fills a host-private candidate, fsyncs/readbacks it, then uses ReplaceFile and verifies the pre-recorded new ID. This is a trusted file effect capability, not whole-workspace sandbox or disk quota.",
+    "authority": "Actual trusted local Human Kernel query on claim, pre-prepare, pre-dispatch, pre-commit and cached publication. Agent requests are still denied; no imported flag or selected path/actor/fresh ledger grants effects.",
+    "custody": "Project-fixed SQLite policy anchor, exact schema/digests and immutable records prevent journal API substitution and ordinary corruption. Same-permission local Human replacement/removal of the complete private ledger/anchor is outside this protection; production custody remains missing.",
+    "recovery": "Original Node host and prepared native worker must both be observed absent. Unknown identity remains held. Dispatched missing completion is Unknown even when file contents match. No auto replay effect, success inference, parent settlement or counter refund.",
+    "filesystem_concurrency": "Preimage/identity checks and ReplaceFile are separate operations, not OS digest compare-and-swap. Shared byte-range locks do not block existing memory-mapped writes. Same-permission Human interference in worktree/private staging is outside the protected Runtime boundary; production ownership/custody remains required. Graceful cancellation closes input and joins native cleanup; forced deadline termination may leave private staging residue, whose full original-resource cleanup remains unimplemented.",
+    "capacity": "128 permanent calls, four 114688-byte bounded records per call =458752 bytes; default 58720256 bytes (56MiB) logical content. Unknown/not_started retain slots. SQLite/WAL physical disk quota is not implemented.",
+    "observation": "Default LocalRunVerifier reads original project ledger and validates original RunRecord operation/executor/context. Optional custom host ports must also install this trusted reader; this batch does not supply production Agent admission.",
+    "tests": "Actual native/Git scenarios use owned temporary repositories and real Native Human commands. No user source/project DB is modified through the broker. Constructed journal seams are separately identified.",
+    "first_failure": "Four initial read assertions hashed the raw test object property order instead of the normalized host input. Fixed the assertion and ensured owned native handles are discarded on assertion failure. Initial 20/24 pass and cleanup error report is retained, not rewritten.",
+    "transport": "Native stdout must have complete bounded frames and a verified process exit. Added rejection state for invalid/trailing output after an already-resolved frame; normal native paths and cancellation are tested, malformed broker output is not separately injected."
+  },
+  "remaining_acceptance": [
+    "Connect original workspace tool identity/authority/journal to authenticated IPC/OpenCode and production Agent dispatch/cache replay, plus constrained fresh verification commands and original effect recovery.",
+    "Complete controlled Runtime/Task qualification, Task Binding, Provider catalog readiness and protected original SDK/IPC/model/tool/account/invoice custody.",
+    "Finish production named Skill methods, full Matt Human interviews/delegation/issue tracker and independent fixed diff/issue review, Superpowers fresh checks, complete harness/dependencies and candidate/evidence projection; behavior/default selection remains.",
+    "Implement actual Draft/IntentReady Human clarification before confirmed Plan/Task without fabricated Task records.",
+    "Complete physical filesystem hard quota, actual model/tool entitlement and enforced input/thinking/output caps, protected unique account ledger, approved cash/credit budget and actual billing reconciliation.",
+    "Finish formal workbench execute/status/recovery and ordinary real Change through Human approval, Agent, independent review, actual skills, interruption/resumption and ReadyForDelivery S1 acceptance."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/kernel/src/runs.ts",
+      "bytes": 39303,
+      "sha256": "4bda427f57cad775af2f3ab7d9f1d296f12e645ebaf4dd80f28bf5e248daac3c"
+    },
+    {
+      "path": "packages/local-app/src/index.ts",
+      "bytes": 1322,
+      "sha256": "cf1095440dae33a38adf43418873015e91bc47f1942ad8d3c9d6a14293baf277"
+    },
+    {
+      "path": "packages/local-app/src/runs-local.ts",
+      "bytes": 7615,
+      "sha256": "87908d6e42a40c422bbfcb3f6cbcee45b47278cd168aac7ae7f0a8f2f913619f"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 2119,
+      "sha256": "d711232fc66b1b3756c7080ec8ce14d193791e5be1069ad90386fa46be9f0972"
+    },
+    {
+      "path": "packages/runtime-adapter/src/native.ts",
+      "bytes": 5955,
+      "sha256": "bde7f2f28ceea139af4ac9b9808bf6f92c1726165ea1c01fb5207f13e09b3730"
+    },
+    {
+      "path": "packages/local-app/src/workspace-tools-local.ts",
+      "bytes": 2364,
+      "sha256": "37124cd646de786ec297db33a88bbb5bbb1edbe1915b23cda5ca93e595f149de"
+    },
+    {
+      "path": "packages/runtime-adapter/native/WorkspaceFiles.cs",
+      "bytes": 15365,
+      "sha256": "6d7a3f58b27796ad7680c297840bb848866765ca32fc63f3f2b843685fd18df6"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-files.ts",
+      "bytes": 13752,
+      "sha256": "b627818cc1e46e759fd65537955ef7a388366a093372030c779f8c63cd890c66"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-tool-host.ts",
+      "bytes": 8130,
+      "sha256": "cd1cb5b9ba756aa5cd1ffaad2de05ac9c1329a905fb435aae66e3a7998b5c4d1"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-tool-journal.ts",
+      "bytes": 21967,
+      "sha256": "9846eaef3e959035083e88cf70466855c35a1df2191b1c20c4166f2704ccbfec"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-files.test.ts",
+      "bytes": 10244,
+      "sha256": "d64b14a9b621a8db989bf88a364f63122217e5ecce22a7e2f2fe5f1a11d4adb5"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-tool-host-worker.mjs",
+      "bytes": 2205,
+      "sha256": "2d47619fcabcacd5da81fabb039c62458cad1ba5a181689cec8b250876884a3e"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-tool-journal.test.ts",
+      "bytes": 8669,
+      "sha256": "bb868f4584d4c778565c6ed719e061cd291521c336ca51e9862feb7ce8ee5dfe"
+    },
+    {
+      "path": "tests/scenarios/workspace-tool-runtime.test.ts",
+      "bytes": 13189,
+      "sha256": "9e654f9ccb36b5e05cdd3db6a4e5935b932a053dbdbc1b9466aeda3d285c176d"
+    }
+  ],
+  "evidence_availability": "Ignored exact JSON reports and validation artifacts retained locally; no binary, SQLite/raw transcript, credential or output log is committed. Actual scenarios clean owned temp Git worktrees after verification."
+}

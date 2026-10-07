@@ -1,5 +1,7 @@
 # CimiLoop
 
+2026-10-07 D-219 已实现真实 Windows 工作区文件句柄、原工具效果账本及父 Run 结清核验；本地受信 Human 服务可调用。正式 Agent 授权、IPC / OpenCode、检查命令、费用 / 硬配额及完整 S1 仍待完成，原生格式 10 保持。见[工具宿主与恢复](docs/implementation/CimiLoop-真实工作区工具宿主与运行恢复-v0.1.md)。
+
 2026-10-07 D-218 已接通命名演练的原请求 / HTTP 响应正文账本与实际只读核验，补齐回复摘要的字节复核。公共来源仍不能通过真实执行资格；生产宿主、费用准入及完整 S1 尚未完成，见[命名方法原始会话账本](docs/implementation/CimiLoop-命名方法原始会话账本-v0.1.md)。
 
 2026-10-07 D-217 已实现独立命名方法资格规则、原始对话 / SDK 效果重放与本地资格准备组合器。读取契约通过不能代替真实模型、费用、harness 或正式执行准入；生产宿主和完整 S1 仍待完成，见[命名方法资格与效果重放](docs/implementation/CimiLoop-命名方法资格规则与原始效果重放-v0.1.md)。
@@ -30,7 +32,7 @@ V1-09续批已接通`provider register / list`、原生Provider元数据详情�
 
 D-196已接通[Runtime恢复与资源限额](docs/implementation/CimiLoop-Runtime恢复与资源限额-v0.1.md)：实际Windows中断 / 超限与CLI恢复已验证，原运行Unknown不因资源清理而变成成功，同键不重启。日志在写入前限长，沙箱总量采用采样后停止，完整硬配额尚未验收。
 
-D-208已实现原生Human Run实时工具权限查询及独立公开文件执行账本：固定WorkItem / Context / 原操作身份，执行和缓存重放前重新核对授权；公开读取 / 替换保存完成回执，确认原宿主退出后将未dispatch预约归为not_started、已dispatch未完成保留Unknown。四处实际Windows宿主退出和双宿主一槽位争用通过，工具事实不推进原生Task / Run。正式工作区效果、IPC / OpenCode接入该账本及Agent运行仍待验收。 见[WorkItem工具授权与执行账本](docs/implementation/CimiLoop-WorkItem工具授权与执行账本-v0.1.md)。下一步建立正式工作区的宿主文件 / 命令能力约束和可验证效果身份，将实时授权与工具账本接入IPC / OpenCode消费，并把工具Unknown纳入原生Run接续核对；继续完成整体受控恢复和物理硬配额。实际套餐 / 工具资格、服务端输入及思考输出上界、受保护的唯一账户Ledger、批准的现金 / 积分预算和账单核对仍待落实。
+D-208阶段记录（真实文件宿主续批见顶部D-219）：D-208已实现原生Human Run实时工具权限查询及独立公开文件执行账本：固定WorkItem / Context / 原操作身份，执行和缓存重放前重新核对授权；公开读取 / 替换保存完成回执，确认原宿主退出后将未dispatch预约归为not_started、已dispatch未完成保留Unknown。四处实际Windows宿主退出和双宿主一槽位争用通过，工具事实不推进原生Task / Run。正式工作区效果、IPC / OpenCode接入该账本及Agent运行仍待验收。 见[WorkItem工具授权与执行账本](docs/implementation/CimiLoop-WorkItem工具授权与执行账本-v0.1.md)。下一步建立正式工作区的宿主文件 / 命令能力约束和可验证效果身份，将实时授权与工具账本接入IPC / OpenCode消费，并把工具Unknown纳入原生Run接续核对；继续完成整体受控恢复和物理硬配额。实际套餐 / 工具资格、服务端输入及思考输出上界、受保护的唯一账户Ledger、批准的现金 / 积分预算和账单核对仍待落实。
 
 已实现操作见[任务、授权与预算](docs/implementation/CimiLoop任务授权与预算-v0.1.md)、[证据、评价与安全集成](docs/implementation/CimiLoop证据评价与安全集成-v0.1.md)、[运行预约与交接恢复](docs/implementation/CimiLoop运行预约与交接恢复-v0.1.md)及[CLI动作、查询与诊断](docs/implementation/CimiLoop-CLI动作查询与诊断-v0.1.md)。
 

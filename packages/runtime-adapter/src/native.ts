@@ -56,3 +56,20 @@ export const pinBinary = (root: string, binary: string): { path: string; digest:
   if (digest(bytesAt(target, 512 * 1024 * 1024)).value !== binaryDigest.value) throw new RuntimeAdapterError("runtime_binary_digest_changed");
   return { path: target, digest: binaryDigest };
 };
+// Separate broker binary: it does not change the pinned AppContainer controller
+// or grant the Runtime access to a host filesystem effect executable.
+export const buildWindowsWorkspaceBroker = async (root: string): Promise<{ path: string; digest: ReturnType<typeof digest> }> => {
+  if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_workspace_broker_required");
+  const source = fileURLToPath(new URL("../native/WorkspaceFiles.cs", import.meta.url));
+  const build = directory(join(root, "tools", "workspace-" + digest(bytesAt(source)).value));
+  const output = join(build, "WorkspaceFiles.exe"), metadata = join(build, "build.json");
+  if (!existsSync(output) || !existsSync(metadata)) {
+    const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe"), candidate = join(build, `${randomUUID()}.exe`);
+    if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
+    try { await execute(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment() }); }
+    catch { throw new RuntimeAdapterError("workspace_broker_build_failed"); }
+    renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
+  }
+  const expected = readJson(metadata) as { digest?: { value?: string } }, actual = digest(bytesAt(output));
+  if (actual.value !== expected.digest?.value) throw new RuntimeAdapterError("workspace_broker_digest_changed"); return { path: output, digest: actual };
+};

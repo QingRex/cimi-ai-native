@@ -15,3 +15,8 @@ export { replayFixedMethodTranscript, verifyFixedMethodSdkEffects } from "./fixe
 export { openPublicNamedMethodOriginals } from "./named-method-originals.js";
 export type { GatewayCreditPolicy, GatewayCreditConversationOriginalOptions, CreditReceipt } from "./gateway-credit.js";
 export { parseGatewayJson } from "./gateway-conversation.js";
+export { WindowsWorkspaceFileBroker, parseWorkspaceToolInvocation } from "./workspace-files.js";
+export type { WorkspaceToolInvocation, WorkspaceFileIdentity, WorkspaceNativePreparation, WorkspaceNativeCompletion, PreparedWorkspaceEffect } from "./workspace-files.js";
+export { WorkspaceToolHost, openWorkspaceToolHost, readWorkspaceToolRunFacts } from "./workspace-tool-host.js";
+export type { WorkspaceToolPhase } from "./workspace-tool-host.js";
+export type { WorkspaceToolPolicy, WorkspaceToolReceipt } from "./workspace-tool-journal.js";
