@@ -12,7 +12,8 @@ import { TaskSchema, TaskDefinitionRecordSchema, WorkItemSchema, StandingAuthori
   AuthorizationRevocationRecordSchema, WorkItemAuthorizationRecordSchema } from "./execution.js";
 import { SourceSnapshotSchema, EvidenceSchema, PolicySnapshotSchema, RequirementSetRecordSchema, EvaluationContextSchema,
   EvaluationSchema, TaskSatisfactionRecordSchema, IntegrationReadinessRecordSchema } from "./verification.js";
-import { RunSchema, WorkspaceSnapshotSchema, ContextManifestSchema, RunRecordSchema, RunObservationSchema, HandoffRecordSchema, ResumptionRecordSchema } from "./runs.js";
+import { RunSchema, WorkspaceSnapshotSchema, ContextManifestSchema, RunRecordSchema, RunObservationSchema, HandoffRecordSchema, ResumptionRecordSchema,
+  SkillInvocationSchema, SkillInvocationObservationSchema } from "./runs.js";
 import { ProviderCandidateDescriptorSchema, ApprovedProviderBindingSchema } from "./providers.js";
 import { ProviderEvidenceSchema, ProviderEvaluationSchema } from "./provider-assessment.js";
 
@@ -119,7 +120,10 @@ const eventEnvelopeSchema = Type.Union([
   executionEventSchema("RunReconciled", "run", Type.Object({ task: TaskSchema, work_item: WorkItemSchema, run: RunSchema, workspace: WorkspaceSnapshotSchema, observation: RunObservationSchema }, { additionalProperties: false })),
   executionEventSchema("RunCancellationRequested", "run", Type.Object({ task: TaskSchema, run: RunSchema, reason: NonEmptyStringSchema }, { additionalProperties: false })),
   executionEventSchema("HandoffSaved", "work_item", Type.Object({ workspace: WorkspaceSnapshotSchema, handoff: HandoffRecordSchema }, { additionalProperties: false })),
-  executionEventSchema("ResumptionChecked", "work_item", Type.Object({ resumption: ResumptionRecordSchema }, { additionalProperties: false }))
+  executionEventSchema("ResumptionChecked", "work_item", Type.Object({ resumption: ResumptionRecordSchema }, { additionalProperties: false })),
+  executionEventSchema("SkillInvocationReserved", "run", Type.Object({ run: RunSchema, invocation: SkillInvocationSchema }, { additionalProperties: false })),
+  executionEventSchema("SkillInvocationObserved", "run", Type.Object({ run: RunSchema, task: TaskSchema, observation: SkillInvocationObservationSchema }, { additionalProperties: false })),
+  executionEventSchema("SkillInvocationReconciled", "run", Type.Object({ run: RunSchema, task: TaskSchema, observation: SkillInvocationObservationSchema }, { additionalProperties: false }))
 ]);
 // Name the static event union so declarations do not duplicate its full structure
 // in every command result. Runtime JSON Schema remains the complete strict union.
@@ -237,10 +241,15 @@ const runtimeSuccessUnionSchema = Type.Union([
   executionSuccessSchema("SaveHandoff", "work_item", Type.Object({ workspace: WorkspaceSnapshotSchema, handoff: HandoffRecordSchema }, { additionalProperties: false })),
   executionSuccessSchema("CheckResumption", "work_item", Type.Object({ resumption: ResumptionRecordSchema }, { additionalProperties: false }))
 ]);
+const skillInvocationSuccessUnionSchema = Type.Union([
+  executionSuccessSchema("ReserveSkillInvocation", "run", Type.Object({ run: RunSchema, invocation: SkillInvocationSchema }, { additionalProperties: false })),
+  executionSuccessSchema("RecordSkillInvocationObservation", "run", Type.Object({ run: RunSchema, task: TaskSchema, observation: SkillInvocationObservationSchema }, { additionalProperties: false })),
+  executionSuccessSchema("ReconcileSkillInvocation", "run", Type.Object({ run: RunSchema, task: TaskSchema, observation: SkillInvocationObservationSchema }, { additionalProperties: false }))
+]);
 type BaseCommandSuccess = Static<typeof baseSuccessUnionSchema>;
-export type CommandSuccess = BaseCommandSuccess | Static<typeof governanceSuccessUnionSchema> | Static<typeof flowSuccessUnionSchema> | Static<typeof intentSuccessUnionSchema> | Static<typeof executionSuccessUnionSchema> | Static<typeof verificationSuccessUnionSchema> | Static<typeof runtimeSuccessUnionSchema>;
+export type CommandSuccess = BaseCommandSuccess | Static<typeof governanceSuccessUnionSchema> | Static<typeof flowSuccessUnionSchema> | Static<typeof intentSuccessUnionSchema> | Static<typeof executionSuccessUnionSchema> | Static<typeof verificationSuccessUnionSchema> | Static<typeof runtimeSuccessUnionSchema> | Static<typeof skillInvocationSuccessUnionSchema>;
 // Naming the three static unions bounds declarations without duplicating protocol types.
-export const CommandSuccessSchema = Type.Unsafe<CommandSuccess>({ ...Type.Union([...baseSuccessUnionSchema.anyOf, ...governanceSuccessUnionSchema.anyOf, ...flowSuccessUnionSchema.anyOf, ...intentSuccessUnionSchema.anyOf, ...executionSuccessUnionSchema.anyOf, ...verificationSuccessUnionSchema.anyOf, ...runtimeSuccessUnionSchema.anyOf]), $defs: { EventEnvelope: EventEnvelopeSchema } });
+export const CommandSuccessSchema = Type.Unsafe<CommandSuccess>({ ...Type.Union([...baseSuccessUnionSchema.anyOf, ...governanceSuccessUnionSchema.anyOf, ...flowSuccessUnionSchema.anyOf, ...intentSuccessUnionSchema.anyOf, ...executionSuccessUnionSchema.anyOf, ...verificationSuccessUnionSchema.anyOf, ...runtimeSuccessUnionSchema.anyOf, ...skillInvocationSuccessUnionSchema.anyOf]), $defs: { EventEnvelope: EventEnvelopeSchema } });
 export const CommandResultSchema = Type.Unsafe<CommandResult>({ ...Type.Union([CommandSuccessSchema, DomainErrorSchema]), $defs: { EventEnvelope: EventEnvelopeSchema } });
 export const ErrorResultSchema = Type.Object({
   schema_version: Type.Literal(SCHEMA_VERSION), ok: Type.Literal(false), error: DomainErrorSchema

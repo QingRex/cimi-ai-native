@@ -22,7 +22,7 @@ import {
   intentRecordSchemas, type IntentRecordType, type IntentRecords,
   executionObjectSchemas, executionRecordSchemas, type ExecutionObjectType, type ExecutionObjects, type ExecutionRecordType, type ExecutionRecords,
   verificationRecordSchemas, type VerificationRecordType, type VerificationRecords,
-  RunSchema, runtimeRecordSchemas, type Run, type RuntimeRecordType, type RuntimeRecords
+  RunSchema, runtimeRecordSchemas, type Run, type RuntimeRecordType, type RuntimeRecords, type SkillInvocation, type SkillInvocationObservation
 } from "@cimiloop/protocol/v2";
 import {
   StoreConflictError,
@@ -95,6 +95,23 @@ class SqliteTransaction implements StoreTransaction {
   insertRuntimeRecord<K extends RuntimeRecordType>(kind: K, input: RuntimeRecords[K]): void {
     const value = compileValidator<RuntimeRecords[K]>(runtimeRecordSchemas[kind])(input);
     if (this.getActor(value.producer_actor_id)?.project_id !== value.project_id || this.getChange(value.change_id)?.project_id !== value.project_id || this.getExecutionObject("task", value.task_id)?.change_id !== value.change_id || this.getExecutionObject("work_item", value.work_item_ref.id)?.task_id !== value.task_id) throw new StoreConflictError("Run record scope mismatch");
+    if (kind === "skill_invocation") {
+      const invocation = value as SkillInvocation, run = this.getRun(invocation.run_ref.id), record = run ? this.getRuntimeRecord("run_record", run.record_ref.id) : undefined;
+      const pinEquals = (a: SkillInvocation["skill_binding"], b: SkillInvocation["skill_binding"]) => a.binding_ref.id === b.binding_ref.id && a.digest.value === b.digest.value;
+      if (!record || record.run_kind !== "agent" || record.project_id !== invocation.project_id || record.change_id !== invocation.change_id || record.task_id !== invocation.task_id ||
+        record.work_item_ref.id !== invocation.work_item_ref.id || record.operation_key !== invocation.run_operation_key || record.context_ref.id !== invocation.context_ref.id ||
+        record.executor_ref.id !== invocation.executor_ref.id || invocation.producer_actor_id !== invocation.executor_ref.id || invocation.request.invocation_key !== invocation.invocation_key ||
+        !pinEquals(record.runtime_binding, invocation.runtime_binding) || !record.skill_bindings.some(pin => pinEquals(pin, invocation.skill_binding)) || record.host_admission_ref.locator !== invocation.host_admission_ref.locator ||
+        ["definition_ref", "contract_ref", "plan_ref"].some(key => { const field = key as "definition_ref"; return record[field].id !== invocation[field].id || record[field].domain_version !== invocation[field].domain_version; })) throw new StoreConflictError("Skill invocation parent binding mismatch");
+      if (this.database.prepare("SELECT 1 FROM run_records WHERE object_type = 'skill_invocation' AND json_extract(payload_json, '$.invocation_key') = ?").get(invocation.invocation_key)) throw new StoreConflictError("Skill invocation operation already reserved");
+    }
+    if (kind === "skill_invocation_observation") {
+      const observation = value as SkillInvocationObservation, invocation = this.getRuntimeRecord("skill_invocation", observation.invocation_ref.id), report = observation.report;
+      if (!invocation || invocation.project_id !== observation.project_id || invocation.change_id !== observation.change_id || invocation.task_id !== observation.task_id || invocation.work_item_ref.id !== observation.work_item_ref.id ||
+        report.invocation_ref.id !== invocation.id || report.invocation_key !== invocation.invocation_key || report.run_ref.id !== invocation.run_ref.id || report.run_operation_key !== invocation.run_operation_key ||
+        report.input_digest.value !== invocation.input_digest.value || report.producer_actor_id !== observation.producer_actor_id ||
+        ["definition_ref", "contract_ref", "plan_ref"].some(key => { const field = key as "definition_ref"; return invocation[field].id !== observation[field].id || invocation[field].domain_version !== observation[field].domain_version; })) throw new StoreConflictError("Skill observation original invocation mismatch");
+    }
     this.database.prepare("INSERT INTO run_records VALUES (?, ?, ?, ?, ?, ?)").run(value.id, value.project_id, value.change_id, value.producer_actor_id, kind, json(value));
   }
 

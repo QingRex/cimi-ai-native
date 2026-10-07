@@ -50,6 +50,13 @@ export * from "./skill-probe.js";
 export * from "./fixed-method.js";
 
 export const protocolSchemas: Readonly<Record<string, TSchema>> = {
+  SkillMethodInputReference: runs.SkillMethodInputReferenceSchema, SkillMethodQualificationReference: runs.SkillMethodQualificationReferenceSchema,
+  SkillInvocationRawReference: runs.SkillInvocationRawReferenceSchema, SkillInvocationProofReference: runs.SkillInvocationProofReferenceSchema,
+  SkillInvocationPreparation: runs.SkillInvocationPreparationSchema, SkillInvocation: runs.SkillInvocationSchema,
+  RawSkillInvocationObservation: runs.RawSkillInvocationObservationSchema, SkillInvocationObservation: runs.SkillInvocationObservationSchema,
+  ReserveSkillInvocationCommand: commands.ReserveSkillInvocationCommandSchema,
+  RecordSkillInvocationObservationCommand: commands.RecordSkillInvocationObservationCommandSchema,
+  ReconcileSkillInvocationCommand: commands.ReconcileSkillInvocationCommandSchema,
   RunBindingPin: runs.RunBindingPinSchema, AgentRunBindings: runs.AgentRunBindingsSchema,
   HumanContextManifest: runs.HumanContextManifestSchema, AgentContextManifest: runs.AgentContextManifestSchema,
   HumanRunRecord: runs.HumanRunRecordSchema, AgentRunRecord: runs.AgentRunRecordSchema,

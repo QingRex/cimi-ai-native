@@ -170,6 +170,11 @@ const taskPanel = (task, data) => {
     result.lastChild.replaceChildren(node("summary", {}, "保存交接说明"), paragraph("实际工作区、累计用量和固定依据由 Kernel 采集并核对。"), handoffForm);
   }
   const handoffs = data.runs.handoffs.filter(value => value.task_id === task.id);
+  for (const invocation of (data.runs.skill_invocations ?? []).filter(value => value.task_id === task.id)) {
+    const observations = (data.runs.skill_observations ?? []).filter(value => value.invocation_ref.id === invocation.id);
+    result.append(panel(`技能调用 · ${invocation.request.method_name}`, paragraph(`已记录 ${observations.length} 项观测。费用在父运行中累计核对。`),
+      details("固定调用与结果", { invocation, observations })));
+  }
   for (const handoff of handoffs) result.append(panel("已保存交接", facts([["接续者", actorName(handoff.next_actor_ref.id)], ["下一步", handoff.next_action]]),
     paragraph(`已完成：${handoff.completed.join("；") || "暂无"}`), paragraph(`待处理：${handoff.unresolved.join("；") || "暂无"}`), details("固定交接记录", handoff)));
   return result;

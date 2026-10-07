@@ -554,22 +554,23 @@ export const showExecution = (mode: "task" | "work_item" | "authorization", chan
   } finally { context.store.close(); }
 };
 export type VerificationCommandType = "CaptureSourceSnapshot" | "RecordEvidence" | "PrepareTaskEvaluation" | "EvaluateTask" | "SatisfyTask" | "EvaluateIntegration" | "MarkReadyForIntegration";
-export type RunCommandType = "PrepareRunContext" | "ReserveRun" | "RecordRunObservation" | "ReconcileRun" | "CancelRun" | "SaveHandoff" | "CheckResumption";
+export type RunCommandType = "PrepareRunContext" | "ReserveRun" | "RecordRunObservation" | "ReconcileRun" | "CancelRun" | "SaveHandoff" | "CheckResumption" | "RecordSkillInvocationObservation" | "ReconcileSkillInvocation";
 export const runMutation = (kind: RunCommandType, id: string, options: GovernanceOptions & { file: string; rawFile?: string }): void => {
   const context = openProject(options);
   try {
-    const project = context.store.getProject()!, objectType = kind === "ReserveRun" ? "task" : ["RecordRunObservation", "ReconcileRun", "CancelRun"].includes(kind) ? "run" : "work_item";
+    const project = context.store.getProject()!, objectType = kind === "ReserveRun" ? "task" : ["RecordRunObservation", "ReconcileRun", "CancelRun", "RecordSkillInvocationObservation", "ReconcileSkillInvocation"].includes(kind) ? "run" : "work_item";
     const object = objectType === "run" ? context.store.getRun(id) : context.store.getExecutionObject(objectType, id);
     if (!object) return targetNotFound(objectType, id);
     const payload: Record<string, unknown> = readJsonObject(options.file);
     if ((kind === "RecordRunObservation" || kind === "ReconcileRun") && options.rawFile) payload.raw_result_ref = importInputFile(options.rawFile, () => new LocalEvidenceVerifier(context.location.repositoryPath, context.location.dataDirectory).importRawResult(resolve(options.rawFile!), "manual_run"));
+    if ((kind === "RecordSkillInvocationObservation" || kind === "ReconcileSkillInvocation") && options.rawFile) payload.raw_result_ref = importInputFile(options.rawFile, () => new LocalEvidenceVerifier(context.location.repositoryPath, context.location.dataDirectory).importRawResult(resolve(options.rawFile!), "skill_invocation_report"));
     const receipt = options.commandId ? context.store.transaction(tx => tx.getCommandReceipt(options.commandId!))?.result : undefined;
     const old = receipt && "command_type" in receipt && receipt.command_type === kind ? receipt : undefined;
-    const increment = ["ReserveRun", "RecordRunObservation", "ReconcileRun", "CancelRun"].includes(kind) ? 1 : 0;
+    const increment = ["ReserveRun", "RecordRunObservation", "ReconcileRun", "CancelRun", "RecordSkillInvocationObservation", "ReconcileSkillInvocation"].includes(kind) ? 1 : 0;
     const revision = options.expectedRevision ? Number(options.expectedRevision) : old ? old.revision - increment : object.revision;
     const ids = commandIdentity(options);
     const result = context.kernel.execute({ schema_version: SCHEMA_VERSION, command_id: ids.commandId, correlation_id: ids.correlationId, requested_at: now(), source: source(context.location.repositoryPath),
-      command_type: kind, project_id: project.id, actor_id: context.instance.actor_id, acting_role: options.actingRole ?? (kind === "ReconcileRun" ? "technical_owner" : "executor"),
+      command_type: kind, project_id: project.id, actor_id: context.instance.actor_id, acting_role: options.actingRole ?? (["ReconcileRun", "RecordSkillInvocationObservation", "ReconcileSkillInvocation"].includes(kind) ? "technical_owner" : "executor"),
       target: { object_type: objectType, id: object.id }, expected_revision: revision, payload });
     if (isDomainError(result)) return outputError(result, Boolean(options.json));
     if (options.json) return outputJson(result, parseVersionedCommandResult);
@@ -593,6 +594,8 @@ export const showRuns = (change: string, options: GlobalOptions): void => {
     for (const item of result.observations) stdout.write(`观测 ${item.id}\t${item.applicability}\t${item.resulting_status}\tRun ${item.run_ref.id}\n`);
     for (const item of result.handoffs) stdout.write(`交接 ${item.id}\t接续者 ${item.next_actor_ref.id}\n已完成：${item.completed.join("；")}\n待处理：${item.unresolved.join("；")}\n下一步：${item.next_action}\n`);
     for (const item of result.resumptions) stdout.write(`接续核验 ${item.id}\t交接 ${item.handoff_ref.id}\t${item.input_digest.value}\n`);
+    for (const item of result.skill_invocations ?? []) stdout.write(`技能调用 ${item.id}\t${item.request.method_name}\tRun ${item.run_ref.id}\t操作键 ${item.invocation_key}\n`);
+    for (const item of result.skill_observations ?? []) stdout.write(`技能观测 ${item.id}\t${item.applicability}\t${item.resulting_status}\t调用 ${item.invocation_ref.id}\n`);
   } finally { context.store.close(); }
 };
 export const verificationMutation = (kind: VerificationCommandType, id: string, options: GovernanceOptions & { file: string; rawFile?: string }): void => {

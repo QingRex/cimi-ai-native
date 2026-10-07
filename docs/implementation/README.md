@@ -1,5 +1,7 @@
 # CimiLoop 实施设计
 
+2026-10-07 D-215：[SkillInvocation 原生记录与核对](CimiLoop-SkillInvocation原生记录与核对-v0.1.md)与[验证记录](../research/CimiLoop-SkillInvocation原生记录与核对-2026-10-07.json)。预约、原操作观测、Unknown / 费用 / 迟到核对及 CLI / 工作台事实展示已接通；生产宿主和创建 Plan / Task 前的澄清仍待完成。数据库布局保持格式 10。
+
 本目录承接领域架构，记录工程决策、接口、兼容迁移和开发任务。当前开发入口是 [V1 可执行设计与实施计划](CimiLoop-V1可执行设计与实施计划-v0.1.md)；M0–M5 保留为既有实现记录和历史设计。实施规则不能绕过 Kernel 权威及当前协议边界。
 
 ## 当前阶段

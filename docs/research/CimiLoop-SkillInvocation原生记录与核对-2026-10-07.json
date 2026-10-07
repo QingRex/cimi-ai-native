@@ -1,0 +1,260 @@
+{
+  "format": "cimiloop/native-skill-invocation-verification/1.0.0",
+  "decision": "D-215",
+  "date": "2026-10-07",
+  "base_commit": "ac9ef87376d08f8f17b551688c2546a552d0dcac",
+  "scope": "Native reservation, immutable observation/reconciliation, fixed parent Agent Run and method contracts, original-key recovery, parent settlement/billing guards, CLI reconciliation and workbench fact display",
+  "goal_complete": false,
+  "formal_execution_enabled": false,
+  "production_agent_host_connected": false,
+  "production_skill_host_connected": false,
+  "native_skill_invocation_domain_implemented": true,
+  "actual_skill_behavior_evaluated": false,
+  "pre_plan_clarification_implemented": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2",
+      "note": "Final build/typecheck after review-input digest enforcement and positive fixed-reference findings coverage."
+    },
+    "schema_export": {
+      "command": "pnpm schema:export",
+      "status": "passed"
+    },
+    "schemas": {
+      "baseline": 223,
+      "unchanged": 199,
+      "changed": [
+        "packages/protocol/schemas/v2/AnyCommand.schema.json",
+        "packages/protocol/schemas/v2/CommandDiagnostic.schema.json",
+        "packages/protocol/schemas/v2/CommandResult.schema.json",
+        "packages/protocol/schemas/v2/CommandSuccess.schema.json",
+        "packages/protocol/schemas/v2/DecisionRequest.schema.json",
+        "packages/protocol/schemas/v2/DomainError.schema.json",
+        "packages/protocol/schemas/v2/ErrorResult.schema.json",
+        "packages/protocol/schemas/v2/EventEnvelope.schema.json",
+        "packages/protocol/schemas/v2/ExecutionShowResult.schema.json",
+        "packages/protocol/schemas/v2/InspectableObjectType.schema.json",
+        "packages/protocol/schemas/v2/IntentShowResult.schema.json",
+        "packages/protocol/schemas/v2/LifecycleTransitionRecord.schema.json",
+        "packages/protocol/schemas/v2/ObjectShowResult.schema.json",
+        "packages/protocol/schemas/v2/ObjectType.schema.json",
+        "packages/protocol/schemas/v2/OutboxMessage.schema.json",
+        "packages/protocol/schemas/v2/PlanBody.schema.json",
+        "packages/protocol/schemas/v2/PlanProposal.schema.json",
+        "packages/protocol/schemas/v2/PlanVersion.schema.json",
+        "packages/protocol/schemas/v2/ResumeChangeCommand.schema.json",
+        "packages/protocol/schemas/v2/RunShowResult.schema.json",
+        "packages/protocol/schemas/v2/SubmitPlanProposalCommand.schema.json",
+        "packages/protocol/schemas/v2/TaskDefinition.schema.json",
+        "packages/protocol/schemas/v2/TaskDefinitionRecord.schema.json",
+        "packages/protocol/schemas/v2/TypedReference.schema.json"
+      ],
+      "added": [
+        "packages/protocol/schemas/v2/RawSkillInvocationObservation.schema.json",
+        "packages/protocol/schemas/v2/ReconcileSkillInvocationCommand.schema.json",
+        "packages/protocol/schemas/v2/RecordSkillInvocationObservationCommand.schema.json",
+        "packages/protocol/schemas/v2/ReserveSkillInvocationCommand.schema.json",
+        "packages/protocol/schemas/v2/SkillInvocation.schema.json",
+        "packages/protocol/schemas/v2/SkillInvocationObservation.schema.json",
+        "packages/protocol/schemas/v2/SkillInvocationPreparation.schema.json",
+        "packages/protocol/schemas/v2/SkillInvocationProofReference.schema.json",
+        "packages/protocol/schemas/v2/SkillInvocationRawReference.schema.json",
+        "packages/protocol/schemas/v2/SkillMethodInputReference.schema.json",
+        "packages/protocol/schemas/v2/SkillMethodQualificationReference.schema.json"
+      ],
+      "frozen": [
+        "HumanContextManifest",
+        "HumanRunRecord",
+        "RawHumanRunObservation",
+        "HumanRunObservation",
+        "AgentContextManifest",
+        "AgentRunRecord",
+        "RawAgentRunObservation",
+        "AgentRunObservation",
+        "SkillMethodInput",
+        "SkillMethodOutput",
+        "NamedSkillMethodRequest",
+        "FixedMethodProfile",
+        "SkillPackage"
+      ],
+      "restored": true,
+      "artifact": {
+        "path": ".cimiloop/skill-invocation-v1-21/schema-audit.json",
+        "bytes": 2840,
+        "sha256": "b7c63fb52f12a0321f3bc1fa37726443885f90fcc021333dd34d4dc8ed5849bc"
+      },
+      "note": "13 Human/Agent/method/package contracts match pre-change bodies. Unchanged schema checkout bytes restored after all test processes completed."
+    },
+    "reports": [
+      {
+        "path": ".cimiloop/skill-invocation-v1-21/initial-tests.json",
+        "bytes": 6237,
+        "sha256": "a2793ce8e05135e1554f69476f99f963da5717ee9b680cc367644d9e82dc2a89",
+        "files": 2,
+        "tests": 11,
+        "passed": 11,
+        "failed": 0
+      },
+      {
+        "path": ".cimiloop/skill-invocation-v1-21/regression.json",
+        "bytes": 56424,
+        "sha256": "e6ea6f754d612ce27dc1516ea44cf29f6dabc846f756f44d28881f12560b8c92",
+        "files": 15,
+        "tests": 133,
+        "passed": 133,
+        "failed": 0
+      },
+      {
+        "path": ".cimiloop/skill-invocation-v1-21/retest.json",
+        "bytes": 6712,
+        "sha256": "f325cde89e619d723d0bae66b424eda239db547712d700912d5b3ed15597bb94",
+        "files": 2,
+        "tests": 12,
+        "passed": 12,
+        "failed": 0
+      }
+    ],
+    "effective_latest_affected_coverage": {
+      "files": 15,
+      "tests": 133,
+      "passed": 133,
+      "failed": 0,
+      "complete_repository_suite": false,
+      "note": "15 affected files passed; after final review-input digest tightening, the 2 directly affected files passed again. No new complete-repository-suite pass is claimed."
+    },
+    "database": {
+      "format": 10,
+      "sqlite_layout_changed": false,
+      "new_records_use_existing_immutable_run_records": true,
+      "old_formats_7_to_9_use_explicit_frozen_human_kind_set": true,
+      "user_database_upgraded": false
+    }
+  },
+  "verified_domain_cases": [
+    "Native assigns invocation key before effects; exact command replay/reopen preserves original reservation and one parent attempt.",
+    "Missing host/qualification, unfixed Binding, changed source/schema and undigested review artifacts fail without Native mutation.",
+    "Unknown effect/cost blocks parent settlement and fresh invocation; Human reconciliation requires all original unresolved observations even after authorization revocation.",
+    "Strict successful output matches purpose and fixed review references; wrong operation/currency, missing proofs and Task/Gate authority fields fail.",
+    "Conflicting successful outputs remain Unknown and require Human coverage.",
+    "Late original effects after not-started proof reopen the parent; original invocation/run keys are retained and parent reconciliation reverses attempt credit.",
+    "Reservation and unknown-observation event faults roll back immutable facts, parent Run/Task revisions and command receipts atomically.",
+    "Store rejects duplicate original keys and changed parent pins; original records cannot be updated or deleted.",
+    "Parent billing cannot be below cumulative known child billing and is charged once to Task, without automatic Task satisfaction or Gate advancement."
+  ],
+  "constructed_fixture_boundary": {
+    "provider_qualification": "Directly inserted constructed controlled ALLOW/task_execution Binding facts inherited from the D-214 fixture; real assessment/approval remains incomplete.",
+    "method_host": "Trusted in-process fake method qualification and proof reader; fake package reference is not backed by real Git package bytes. Only Native record/data/transaction behavior is verified.",
+    "actual_effects": "No actual SDK/model invocation or real method behavior in this batch.",
+    "billing": "Same-currency Native ledger semantics only; no actual Coding Plan credits, account entitlement, per-call limit or invoice qualification.",
+    "frontend": "Existing real HTTP/SQLite frontend regressions passed; rendering code exposes Native invocation history. No ordinary real Agent Change or production Skill record was rendered/accepted."
+  },
+  "remaining_acceptance": [
+    "Connect real controlled Runtime/Task qualification and production Agent/Skill hosts.",
+    "Add explicit named-method qualification and re-read actual package/schema/input/output/proof bytes before real execution and reconciliation.",
+    "Revalidate live WorkItem/Provider/budget authority before actual dispatch and effect replay; Native command replay is not fresh execution permission.",
+    "Implement a controlled clarification authorization/context before confirmed Plan/Task, retaining real Human rounds and candidate relationships.",
+    "Complete real fixed diff/issue independent review, candidate/evidence projection, declared delegation/command/verification hosts and Matt/Superpowers behavioral comparison/default choices.",
+    "Connect real workspace effects, live tool authority/journal and IPC/OpenCode; prove original-operation recovery without restarting unknown effects.",
+    "Complete physical filesystem hard quota, real model/tool plan entitlement, input/thinking/output caps, protected unique account ledger, approved cash/credit budget and invoice reconciliation.",
+    "Complete formal workbench execution/status/recovery and an ordinary real Change through ReadyForDelivery S1 acceptance."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/kernel/src/skill-invocations.ts",
+      "bytes": 16021,
+      "sha256": "e04d619fb7f15e13376db41bc2d0e7b0ff1823d1db6da7d44348c9752ea1d0ba"
+    },
+    {
+      "path": "packages/kernel/src/skill-invocation-facts.ts",
+      "bytes": 2204,
+      "sha256": "e6f7751cf19e252ce345465e8ddf97976e4912b9bee8b55e0b69c04d9fe4f362"
+    },
+    {
+      "path": "packages/kernel/src/runs.ts",
+      "bytes": 38041,
+      "sha256": "a9cb5f50f5b18317ba7baee6d1aa989776a1e4f141390ad22ba01f6c72ae4007"
+    },
+    {
+      "path": "packages/kernel/src/kernel.ts",
+      "bytes": 48122,
+      "sha256": "1a0ead08b9b8eff18b133b0007abe5b3dc625156bd8513b1f0c46a467ed8d250"
+    },
+    {
+      "path": "packages/protocol/src/v2/runs.ts",
+      "bytes": 16820,
+      "sha256": "adcd99a03aa444cb3af4e1b335b5251fcc6f44b480cc3b8b9a9c46e14ad68b3d"
+    },
+    {
+      "path": "packages/protocol/src/v2/commands.ts",
+      "bytes": 20367,
+      "sha256": "b533f0e4adc47fb32dcb965dc01419a9952d4d81ffa86f34bc6a13999f8fd422"
+    },
+    {
+      "path": "packages/protocol/src/v2/common.ts",
+      "bytes": 6402,
+      "sha256": "1b8874816689b996c8d69e129b56f331fb1726fbcaf5212d408eb3f9515deb58"
+    },
+    {
+      "path": "packages/protocol/src/v2/results.ts",
+      "bytes": 31561,
+      "sha256": "fda213ea45bf4258f567d750fba5784079812eafec714b53a9b1a380ec9a9a64"
+    },
+    {
+      "path": "packages/store-sqlite/src/project-store.ts",
+      "bytes": 49129,
+      "sha256": "7e70dfbd936d27b807cfef7b2e3102f155998e094b062fc296b2e08b4c6f5e49"
+    },
+    {
+      "path": "packages/store-sqlite/src/format2-preflight.ts",
+      "bytes": 48114,
+      "sha256": "4569a703de4782535f43b467fcbedf9f04176e076b38e9cee474936eec3d052f"
+    },
+    {
+      "path": "packages/local-app/src/evidence-local.ts",
+      "bytes": 8427,
+      "sha256": "b0b1dce3d0775d9a129171ecf09e15554fb616ff8874b2fdb869e72bf5cf0ff9"
+    },
+    {
+      "path": "packages/local-app/src/project.ts",
+      "bytes": 4876,
+      "sha256": "42fe0461c5c3dfb3d9dc30b2513688303819de4156023dcea8e25074966746ab"
+    },
+    {
+      "path": "apps/cli/src/commands.ts",
+      "bytes": 56851,
+      "sha256": "57b161ba15e815b1a111aab48078d36c4a118f568ec2fb88121e995e79924d68"
+    },
+    {
+      "path": "apps/cli/src/bin.ts",
+      "bytes": 26404,
+      "sha256": "423931de5ee3fa5ce5f40d643be1c2634a3829b35fe4be3171dc07c18829c704"
+    },
+    {
+      "path": "apps/workbench/public/app.js",
+      "bytes": 27776,
+      "sha256": "f4dcb940e230b8e7af88f14fde1adf4eaeaaaacc34a92fe7c7bfaf2c089585f6"
+    },
+    {
+      "path": "packages/store-sqlite/test/skill-invocations.test.ts",
+      "bytes": 14306,
+      "sha256": "0e748c9770400121919355824e7ac9f26833328a52cfba7ffa0a31d26628a59d"
+    },
+    {
+      "path": "packages/protocol/test/skill-invocations.test.ts",
+      "bytes": 3199,
+      "sha256": "587c3601a00036bad4849846043a35304ef196c0ba761dbba2b80b2050f54b9a"
+    },
+    {
+      "path": "tests/fixtures/skill-invocation-project.ts",
+      "bytes": 6939,
+      "sha256": "d73da3e771293c84328e001cde3d5710016c91716d2182023a96429a08f8d544"
+    }
+  ],
+  "evidence_availability": "Ignored local reports under .cimiloop are retained in this checkout and identified by byte size/SHA-256 here. Domain tests and fixtures are committed. Constructed report success does not qualify production execution."
+}

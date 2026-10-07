@@ -37,6 +37,7 @@ import { VerificationShowResultSchema, type VerificationShowResult } from "@cimi
 import { executeVerification, type EvidenceVerifierPort } from "./verification.js";
 import { executeReview } from "./review.js";
 import { executeRun, verifyChangeResumption, type RunVerifierPort } from "./runs.js";
+import { executeSkillInvocation } from "./skill-invocations.js";
 import { RunShowResultSchema, type RunShowResult } from "@cimiloop/protocol/v2";
 import { professionalAction, professionalRequestCurrent, applicableInvalidations } from "./review-facts.js";
 import { commandDiagnostic, queryObject, supportedQueryType } from "./queries.js";
@@ -330,7 +331,8 @@ export class CimiLoopKernel {
         if (!change) return domainError(this.#id(), "CHANGE_NOT_FOUND", "未找到Change", "not_found");
         return { schema_version: SCHEMA_VERSION, ok: true as const, runs: reader.listRuns(change.id), workspaces: reader.listRuntimeRecords("workspace_snapshot", change.id),
           contexts: reader.listRuntimeRecords("context_manifest", change.id), records: reader.listRuntimeRecords("run_record", change.id), observations: reader.listRuntimeRecords("run_observation", change.id),
-          handoffs: reader.listRuntimeRecords("handoff_record", change.id), resumptions: reader.listRuntimeRecords("resumption_record", change.id) };
+          handoffs: reader.listRuntimeRecords("handoff_record", change.id), resumptions: reader.listRuntimeRecords("resumption_record", change.id),
+          skill_invocations: reader.listRuntimeRecords("skill_invocation", change.id), skill_observations: reader.listRuntimeRecords("skill_invocation_observation", change.id) };
       });
       if ("code" in snapshot.value) return snapshot.value;
       return compileValidator<RunShowResult>(RunShowResultSchema)({ ...snapshot.value, as_of_event_sequence: snapshot.as_of_event_sequence });
@@ -375,6 +377,13 @@ export class CimiLoopKernel {
   #dispatch(transaction: StoreTransaction, command: AnyCommand, legacy: boolean): CurrentKernelResult {
     if (command.expected_input_digest !== undefined && !["RecordDecision", "ConfirmContract", "ConfirmPlan", "ReserveRun", "CheckResumption"].includes(command.command_type)) return domainError(command.correlation_id, "CAPABILITY_UNAVAILABLE", "该命令尚未支持输入摘要条件", "validation");
     switch (command.command_type) {
+      case "ReserveSkillInvocation": case "RecordSkillInvocationObservation": case "ReconcileSkillInvocation": {
+        const project = transaction.getProject(command.project_id);
+        if (!project) return domainError(command.correlation_id, "PROJECT_NOT_FOUND", "未找到Project", "not_found");
+        const now = this.#now(), mutation = executeSkillInvocation(transaction, command, { project, actorId: command.actor_id, now, id: this.#id }, this.#runVerifier);
+        const event = this.#appendEvent(transaction, { ...mutation, project_id: project.id, aggregate_revision: mutation.revision, actor_id: command.actor_id, command, occurred_at: now });
+        return this.#success(command, mutation.aggregate, mutation.revision, [event], mutation.data);
+      }
       case "RegisterProvider": {
         const loaded = this.#requireProjectActor(transaction, command);
         if ("code" in loaded) return loaded;

@@ -9,3 +9,4 @@ packages/protocol/schemas/v2/Human*.schema.json text eol=lf
 packages/protocol/schemas/v2/RawAgentRunObservation.schema.json text eol=lf
 packages/protocol/schemas/v2/RawHumanRunObservation.schema.json text eol=lf
 packages/protocol/schemas/v2/RunBindingPin.schema.json text eol=lf
+packages/protocol/schemas/v2/RawSkillInvocationObservation.schema.json text eol=lf

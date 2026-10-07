@@ -108,6 +108,14 @@
     },
     {
       "type": "string",
+      "const": "skill_invocation"
+    },
+    {
+      "type": "string",
+      "const": "skill_invocation_observation"
+    },
+    {
+      "type": "string",
       "const": "evidence"
     },
     {

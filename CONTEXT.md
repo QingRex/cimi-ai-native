@@ -1,5 +1,7 @@
 # CimiLoop 领域语言
 
+2026-10-07 D-215 已接通原生 SkillInvocation 预约、观测与 Human 核对，并关联父 Agent Run；Unknown、费用与迟到效果保留至父 / 子完整核对，结果不自动满足 Task 或 Gate。格式 10 布局保持。生产方法宿主、真实方法资格及创建 Plan / Task 前的澄清入口仍待接通，见[技能调用记录与核对](docs/implementation/CimiLoop-SkillInvocation原生记录与核对-v0.1.md)。
+
 2026-10-07 D-214新增原生Agent Context / Run / 结果严格分支，固定Runtime、Skill Binding和宿主准入凭据；预约 / 接续重新核验，未知费用及冲突保留至Human核对。格式10支持显式1–9迁移，保留格式9 Skill治理与原Human运行历史，未升级用户库。生产宿主、实际Task批准、SkillInvocation及完整S1仍待接通，见[Agent上下文与运行固定关系](docs/implementation/CimiLoop-Agent上下文与运行固定关系-v0.1.md)。
 
 CimiLoop 以项目、目标版本、需求、缺陷和任务组织日常研发协作。这里记录已确认的术语含义；需求与缺陷从录入、澄清到交付具有同一个业务身份。

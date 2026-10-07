@@ -270,7 +270,7 @@ for (const [name, kind] of [["capture-source", "CaptureSourceSnapshot"], ["recor
   command.action((id, options, command) => verificationMutation(kind, id, { ...globals(command), ...options }));
 }
 verification.command("show <change>").action((id, _options, command) => showVerification(id, globals(command)));
-const runs = program.command("run").description("Human 运行预约、原始观测、取消核对与工作区交接");
+const runs = program.command("run").description("Human 运行预约、原始观测、技能结果核对与工作区交接");
 for (const [name, kind] of [["prepare-context", "PrepareRunContext"], ["reserve", "ReserveRun"], ["observe", "RecordRunObservation"], ["reconcile", "ReconcileRun"], ["cancel", "CancelRun"], ["handoff", "SaveHandoff"], ["check-resumption", "CheckResumption"]] as const) {
   const command = runs.command(`${name} <target>`).requiredOption("--file <json>", "严格命令 payload JSON；预约用 Task ID，观测/核对/取消用 Run ID，其余用 WorkItem ID")
     .option("--expected-revision <revision>", "目标 Revision");
@@ -278,6 +278,13 @@ for (const [name, kind] of [["prepare-context", "PrepareRunContext"], ["reserve"
   command.action((id, options, command) => runMutation(kind, id, { ...globals(command), ...options }));
 }
 runs.command("show <change>").action((id, _options, command) => showRuns(id, globals(command)));
+for (const [name, kind] of [["skill-observe", "RecordSkillInvocationObservation"], ["skill-reconcile", "ReconcileSkillInvocation"]] as const) {
+  runs.command(`${name} <run-id>`).description("Human 技术责任核对原技能调用；须接通可信技能结果宿主")
+    .requiredOption("--file <json>", "严格 payload，包含 invocation_ref 和原始结果引用")
+    .option("--raw-file <json>", "导入带原调用与证明引用的技能报告")
+    .option("--expected-revision <revision>", "父 Run Revision")
+    .action((id, options, command) => runMutation(kind, id, { ...globals(command), ...options }));
+}
 
 program
   .command("migrate")

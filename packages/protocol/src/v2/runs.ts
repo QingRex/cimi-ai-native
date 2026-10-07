@@ -1,6 +1,9 @@
 import { Type, type Static } from "typebox";
 import { DigestSchema, InternalIdSchema, ProjectMutableMetadata, RecordMetadata, UtcTimestampSchema, referenceSchema, versionedReferenceSchema } from "./common.js";
 import { TaskUsageSchema } from "./execution.js";
+import { NamedSkillMethodRequestSchema } from "./fixed-method.js";
+import { SkillMethodOutputSchema, SkillPackageReferenceSchema } from "./skills.js";
+import { CapabilityReferenceSchema, SchemaReferenceSchema } from "./providers.js";
 const count = Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER });
 const text = Type.String({ minLength: 1, maxLength: 4000 });
 const oid = Type.String({ pattern: "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" });
@@ -68,6 +71,37 @@ const usage = Type.Union([
   Type.Object({ cost_known: Type.Literal(true), cost_micros: count, currency: Type.Optional(Type.String({ pattern: "^[A-Z]{3}$" })) }, { additionalProperties: false }),
   Type.Object({ cost_known: Type.Literal(false) }, { additionalProperties: false })
 ]);
+export const SkillMethodInputReferenceSchema = contentReferenceSchema("skill_method_input");
+export const SkillMethodQualificationReferenceSchema = contentReferenceSchema("skill_method_qualification");
+export const SkillInvocationRawReferenceSchema = contentReferenceSchema("skill_invocation_report");
+export const SkillInvocationProofReferenceSchema = contentReferenceSchema("skill_invocation_proof");
+export const SkillInvocationPreparationSchema = Type.Object({ request: NamedSkillMethodRequestSchema,
+  package_ref: SkillPackageReferenceSchema, input_schema_ref: SchemaReferenceSchema, output_schema_ref: SchemaReferenceSchema,
+  method_qualification_ref: SkillMethodQualificationReferenceSchema }, { additionalProperties: false });
+export type SkillInvocationPreparation = Static<typeof SkillInvocationPreparationSchema>;
+export const SkillInvocationSchema = Type.Object({ ...common, run_ref: referenceSchema("run"), run_operation_key: InternalIdSchema,
+  invocation_key: InternalIdSchema, context_ref: referenceSchema("context_manifest"), executor_ref: referenceSchema("actor"),
+  runtime_binding: RunBindingPinSchema, skill_binding: RunBindingPinSchema, host_admission_ref: AgentHostAdmissionReferenceSchema,
+  capability: CapabilityReferenceSchema, input_ref: SkillMethodInputReferenceSchema,
+  ...SkillInvocationPreparationSchema.properties, input_digest: DigestSchema }, { additionalProperties: false });
+export type SkillInvocation = Static<typeof SkillInvocationSchema>;
+const skillReportFields = { format: Type.Literal("cimiloop/skill-invocation/1.0.0"), invocation_ref: referenceSchema("skill_invocation"),
+  invocation_key: InternalIdSchema, run_ref: referenceSchema("run"), run_operation_key: InternalIdSchema,
+  producer_actor_id: InternalIdSchema, input_digest: DigestSchema, observed_at: UtcTimestampSchema,
+  basis: Type.Union([Type.Literal("direct_observation"), Type.Literal("reconciliation")]), usage,
+  result_proof_ref: SkillInvocationProofReferenceSchema,
+  resolves_observation_refs: Type.Array(referenceSchema("skill_invocation_observation"), { uniqueItems: true, maxItems: 256 }) };
+export const RawSkillInvocationObservationSchema = Type.Union([
+  Type.Object({ ...skillReportFields, status: Type.Literal("succeeded"), output: SkillMethodOutputSchema }, { additionalProperties: false }),
+  Type.Object({ ...skillReportFields, status: Type.Union([Type.Literal("running"), Type.Literal("failed"), Type.Literal("cancelled"),
+    Type.Literal("unknown"), Type.Literal("not_started")]) }, { additionalProperties: false })
+]);
+export type RawSkillInvocationObservation = Static<typeof RawSkillInvocationObservationSchema>;
+export const SkillInvocationObservationSchema = Type.Object({ ...common, invocation_ref: referenceSchema("skill_invocation"),
+  raw_result_ref: SkillInvocationRawReferenceSchema, report: RawSkillInvocationObservationSchema,
+  received_at: UtcTimestampSchema, applicability: Type.Union([Type.Literal("current"), Type.Literal("late"), Type.Literal("conflicting")]),
+  resulting_status: RunStatusSchema }, { additionalProperties: false });
+export type SkillInvocationObservation = Static<typeof SkillInvocationObservationSchema>;
 const rawRunObservationSchema = Type.Object({ format: Type.Literal("cimiloop/manual-run/1.0.0"), run_id: InternalIdSchema, operation_key: InternalIdSchema,
   producer_actor_id: InternalIdSchema, observed_at: UtcTimestampSchema, input_digest: DigestSchema,
   basis: Type.Union([Type.Literal("direct_observation"), Type.Literal("reconciliation")]), status: RunObservationStatusSchema, usage,
@@ -101,14 +135,17 @@ const resumptionRecordSchema = Type.Object({ ...common, handoff_ref: referenceSc
 export type ResumptionRecord = Static<typeof resumptionRecordSchema>;
 export const ResumptionRecordSchema = Type.Unsafe<ResumptionRecord>(resumptionRecordSchema);
 export const runtimeRecordSchemas = { workspace_snapshot: WorkspaceSnapshotSchema, context_manifest: ContextManifestSchema, run_record: RunRecordSchema,
-  run_observation: RunObservationSchema, handoff_record: HandoffRecordSchema, resumption_record: ResumptionRecordSchema };
+  run_observation: RunObservationSchema, handoff_record: HandoffRecordSchema, resumption_record: ResumptionRecordSchema,
+  skill_invocation: SkillInvocationSchema, skill_invocation_observation: SkillInvocationObservationSchema };
 // Format 7–9 contain only the original Human run shapes.
-export const humanRuntimeRecordSchemas = { ...runtimeRecordSchemas, context_manifest: HumanContextManifestSchema,
-  run_record: HumanRunRecordSchema, run_observation: HumanRunObservationSchema };
-export type RuntimeRecords = { workspace_snapshot: WorkspaceSnapshot; context_manifest: ContextManifest; run_record: RunRecord; run_observation: RunObservation; handoff_record: HandoffRecord; resumption_record: ResumptionRecord };
+export const humanRuntimeRecordSchemas = { workspace_snapshot: WorkspaceSnapshotSchema, context_manifest: HumanContextManifestSchema,
+  run_record: HumanRunRecordSchema, run_observation: HumanRunObservationSchema, handoff_record: HandoffRecordSchema, resumption_record: ResumptionRecordSchema };
+export type RuntimeRecords = { workspace_snapshot: WorkspaceSnapshot; context_manifest: ContextManifest; run_record: RunRecord; run_observation: RunObservation; handoff_record: HandoffRecord; resumption_record: ResumptionRecord;
+  skill_invocation: SkillInvocation; skill_invocation_observation: SkillInvocationObservation };
 export type RuntimeRecordType = keyof RuntimeRecords;
 const runShowResultSchema = Type.Object({ schema_version: Type.Literal("2.0.0"), ok: Type.Literal(true), runs: Type.Array(RunSchema),
   workspaces: Type.Array(WorkspaceSnapshotSchema), contexts: Type.Array(ContextManifestSchema), records: Type.Array(RunRecordSchema), observations: Type.Array(RunObservationSchema),
-  handoffs: Type.Array(HandoffRecordSchema), resumptions: Type.Array(ResumptionRecordSchema), as_of_event_sequence: count }, { additionalProperties: false });
+  handoffs: Type.Array(HandoffRecordSchema), resumptions: Type.Array(ResumptionRecordSchema), as_of_event_sequence: count,
+  skill_invocations: Type.Optional(Type.Array(SkillInvocationSchema)), skill_observations: Type.Optional(Type.Array(SkillInvocationObservationSchema)) }, { additionalProperties: false });
 export type RunShowResult = Static<typeof runShowResultSchema>;
 export const RunShowResultSchema = Type.Unsafe<RunShowResult>(runShowResultSchema);

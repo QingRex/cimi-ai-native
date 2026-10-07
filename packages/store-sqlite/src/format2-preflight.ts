@@ -116,8 +116,8 @@ const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 |
     }
     for (const row of rows(db, "run_records")) {
       const kind = String(row.object_type) as v2.RuntimeRecordType;
-      if (!Object.hasOwn(v2.runtimeRecordSchemas, kind)) unsafe("未知运行记录");
-      const value = v2.compileValidator<v2.RuntimeRecords[v2.RuntimeRecordType]>(v2.humanRuntimeRecordSchemas[kind])(json(row));
+      if (!Object.hasOwn(v2.humanRuntimeRecordSchemas, kind)) unsafe("旧格式包含未知运行记录");
+      const value = v2.compileValidator<v2.RuntimeRecords[v2.RuntimeRecordType]>(v2.humanRuntimeRecordSchemas[kind as keyof typeof v2.humanRuntimeRecordSchemas])(json(row));
       match(row, value, ["id", "project_id", "change_id", "producer_actor_id"]);
       if (value.project_id !== project.id || !changes.has(value.change_id) || !actors.has(value.producer_actor_id)) unsafe("运行记录作用域无效");
       if ((kind === "context_manifest" || kind === "run_record") && actors.get((value as v2.ContextManifest | v2.RunRecord).executor_ref.id)?.actor_type !== "human" ||

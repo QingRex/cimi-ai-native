@@ -17,6 +17,7 @@ export const ObjectTypeSchema = Type.Union([
   Type.Literal("task"), Type.Literal("standing_authorization"), Type.Literal("standing_authorization_version"),
   Type.Literal("authorization_revocation_record"), Type.Literal("work_item_authorization_record"), Type.Literal("work_item"), Type.Literal("run_record"),
   Type.Literal("run"), Type.Literal("run_observation"), Type.Literal("context_manifest"), Type.Literal("handoff_record"), Type.Literal("resumption_record"), Type.Literal("workspace_snapshot"),
+  Type.Literal("skill_invocation"), Type.Literal("skill_invocation_observation"),
   Type.Literal("evidence"), Type.Literal("evaluation"), Type.Literal("requirement_set_record"),
   Type.Literal("evaluation_context"), Type.Literal("task_satisfaction_record"), Type.Literal("integration_readiness_record"),
   Type.Literal("risk_assessment"), Type.Literal("policy_version"), Type.Literal("policy_snapshot"),

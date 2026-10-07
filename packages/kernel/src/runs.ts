@@ -8,6 +8,8 @@ import { admissionFailure, contentDigest, IntentFailure, type IntentContext } fr
 import { budgetRemaining, executionReadiness, usageDigest, resourceContains } from "./execution.js";
 import { agentBindingStatus } from "./providers.js";
 import { agentRunBindingBlockers } from "./agent-runs.js";
+import { runSkillInvocationFacts } from "./skill-invocation-facts.js";
+import type { SkillInvocation, SkillInvocationPreparation, SkillInvocationObservation, ProviderBinding } from "@cimiloop/protocol/v2";
 
 // A host verifies bytes and captures the real workspace. Commands cannot provide
 // their own verifier. Neither record reservation nor observation launches a runtime.
@@ -18,6 +20,7 @@ export interface AgentRunAdmissionInput extends AgentRunBindings {
   workspace: WorkspaceSnapshot;
 }
 export interface AgentRunVerifierPort {
+  skills?: SkillInvocationVerifierPort;
   // Must re-read Provider qualification/package/schema bytes and verify the live
   // host's permission intersection, physical quota, cost cap and recovery journal.
   // The reference pins those exact inputs/configuration. No production host is
@@ -26,6 +29,15 @@ export interface AgentRunVerifierPort {
   // Verify original operation ownership and raw SDK/tool/native/billing proofs;
   // preserve Unknown when any original effect or cost cannot be reconciled.
   readRunResult(project: Project, record: AgentRunRecord, context: AgentContextManifest, reference: Extract<RunObservation, { report: { format: "cimiloop/agent-run/1.0.0" } }>["raw_result_ref"]): unknown;
+}
+export interface SkillInvocationVerifierPort {
+  // Read exact input/package/schema bytes and the real named-method qualification;
+  // preparing Native records performs no external effect or model invocation.
+  prepare(project: Project, record: AgentRunRecord, context: AgentContextManifest, binding: ProviderBinding,
+    input: { invocation_key: string; method_name: string; input_ref: SkillInvocation["input_ref"] }): SkillInvocationPreparation;
+  // Verify the original invocation ledger and SDK/tool/billing proofs, including
+  // output schema bytes. Unknown is retained when original facts are incomplete.
+  readResult(project: Project, invocation: SkillInvocation, reference: SkillInvocationObservation["raw_result_ref"]): unknown;
 }
 export interface RunVerifierPort {
   sourceDigest(project: Project, commitId: string): Digest;
@@ -235,6 +247,12 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
     !Number.isFinite(Date.parse(raw!.observed_at)) || new Date(raw!.observed_at).toISOString() !== (raw!.observed_at.length === 20 ? raw!.observed_at.replace("Z", ".000Z") : raw!.observed_at) || Date.parse(raw!.observed_at) < Date.parse(record!.reserved_at) || Date.parse(raw!.observed_at) > Date.parse(context.now) ||
     (raw!.usage.cost_known && (raw!.usage.currency ?? record!.cost_currency) !== record!.cost_currency)) fail(command, "BASELINE_MISMATCH", "运行报告身份、时间、输入或币种不符");
   const prior = tx.listRuntimeRecords("run_observation", currentTask.change_id).filter(o => o.run_ref.id === original.id), latest = original.latest_observation_ref ? tx.getRuntimeRecord("run_observation", original.latest_observation_ref.id) : undefined;
+  if (record!.run_kind === "agent") {
+    const skills = runSkillInvocationFacts(tx, original);
+    if (!["running", "unknown"].includes(raw!.status) && skills.unresolved.length) fail(command, "RECOVERY_CONDITIONS_UNMET", "原技能调用尚未结清，不能结清父运行");
+    if (raw!.status === "not_started" && skills.has_effect) fail(command, "RECOVERY_CONDITIONS_UNMET", "已有技能调用效果，不能返还父运行未启动次数");
+    if (raw!.usage.cost_known && raw!.usage.cost_micros < skills.costMicros) fail(command, "BASELINE_MISMATCH", "父运行费用少于已核对的技能调用累计费用");
+  }
   const reconciling = command.command_type === "ReconcileRun";
   if (raw!.basis !== (reconciling ? "reconciliation" : "direct_observation") || (!reconciling && (raw!.status === "not_started" || raw!.resolves_observation_refs.length))) fail(command, "RECOVERY_CONDITIONS_UNMET", "未启动返还及冲突解决须有技术责任核对报告");
   const unresolved = prior.filter(o => o.report.status === "unknown" || !o.report.usage.cost_known || o.applicability === "conflicting");

@@ -39,6 +39,8 @@
     "run_record",
     "run_observation",
     "handoff_record",
-    "resumption_record"
+    "resumption_record",
+    "skill_invocation",
+    "skill_invocation_observation"
   ]
 }

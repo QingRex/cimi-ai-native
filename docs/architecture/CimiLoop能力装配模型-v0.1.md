@@ -1,5 +1,7 @@
 # CimiLoop 能力装配模型 v0.1
 
+2026-10-07 D-215 已实现父 Agent Run 下的原生 SkillInvocation 预约、观测及 Human 核对，固定包 / Schema / Binding / 原调用键，未结清子调用阻止父 Run 结清。生产方法宿主、实际资格 / 行为及 Plan / Task 创建前的澄清仍待接通，见[技能调用记录与核对](../implementation/CimiLoop-SkillInvocation原生记录与核对-v0.1.md)。
+
 2026-10-07 D-214新增原生Agent Context / Run / 结果严格分支，固定Runtime、Skill Binding和宿主准入凭据；预约 / 接续重新核验，未知费用及冲突保留至Human核对。格式10支持显式1–9迁移，保留格式9 Skill治理与原Human运行历史，未升级用户库。生产宿主、实际Task批准、SkillInvocation及完整S1仍待接通，见[Agent上下文与运行固定关系](../implementation/CimiLoop-Agent上下文与运行固定关系-v0.1.md)。
 
 > 当前规则：2026-10-03 V1 实施基线。字段、命令、错误、迁移和任务统一以[可执行设计与实施计划](../implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)为准；本节给出本专项的当前职责。文档更新不代表功能已经实现。

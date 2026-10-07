@@ -7,7 +7,7 @@ import { ActorRegistrationSchema, ResponsibilityRoleSchema, ProjectSettingsSchem
 import { ContractBodySchema, PlanBodySchema, DecisionActionSchema, ProposalReferenceSchema, ProfessionalSubjectReferenceSchema, ProfessionalRawReferenceSchema } from "./intent.js";
 import { StandingAuthorizationBodySchema, ExecutionActionSchema, ExecutionBudgetSchema } from "./execution.js";
 import { RawResultReferenceSchema, DeferredVerificationSchema } from "./verification.js";
-import { AnyRunRawReferenceSchema, AgentRunBindingsSchema } from "./runs.js";
+import { AnyRunRawReferenceSchema, AgentRunBindingsSchema, SkillMethodInputReferenceSchema, SkillInvocationRawReferenceSchema } from "./runs.js";
 import { ProviderRegistrationSchema } from "./providers.js";
 import { RecordProviderEvidencePayloadSchema, EvaluateProviderPayloadSchema, RegisterProviderBindingPayloadSchema } from "./provider-assessment.js";
 
@@ -156,6 +156,12 @@ export const SaveHandoffCommandSchema = runCommand("SaveHandoff", "work_item", T
   evidence_refs: Type.Array(referenceSchema("evidence"), { uniqueItems: true }) }, { additionalProperties: false }));
 export const CheckResumptionCommandSchema = runCommand("CheckResumption", "work_item", Type.Object({ handoff_ref: referenceSchema("handoff_record"),
   context_ref: referenceSchema("context_manifest"), input_digest: DigestSchema }, { additionalProperties: false }));
+export const ReserveSkillInvocationCommandSchema = runCommand("ReserveSkillInvocation", "run", Type.Object({
+  skill_binding_ref: referenceSchema("provider_binding"), method_name: Type.String({ pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$", maxLength: 64 }),
+  input_ref: SkillMethodInputReferenceSchema }, { additionalProperties: false }));
+const skillObservationPayload = Type.Object({ invocation_ref: referenceSchema("skill_invocation"), raw_result_ref: SkillInvocationRawReferenceSchema }, { additionalProperties: false });
+export const RecordSkillInvocationObservationCommandSchema = runCommand("RecordSkillInvocationObservation", "run", skillObservationPayload);
+export const ReconcileSkillInvocationCommandSchema = runCommand("ReconcileSkillInvocation", "run", skillObservationPayload);
 
 export const AnyCommandSchema = Type.Union([
   InitializeProjectCommandSchema, CreateChangeCommandSchema, PauseChangeCommandSchema, ResumeChangeCommandSchema,
@@ -167,7 +173,8 @@ export const AnyCommandSchema = Type.Union([
   PublishStandingAuthorizationCommandSchema, RevokeStandingAuthorizationCommandSchema, CreateWorkItemCommandSchema, RevokeWorkItemCommandSchema,
   CaptureSourceSnapshotCommandSchema, RecordEvidenceCommandSchema, PrepareTaskEvaluationCommandSchema, EvaluateTaskCommandSchema, SatisfyTaskCommandSchema,
   EvaluateIntegrationCommandSchema, MarkReadyForIntegrationCommandSchema,
-  PrepareRunContextCommandSchema, ReserveRunCommandSchema, RecordRunObservationCommandSchema, ReconcileRunCommandSchema, CancelRunCommandSchema, SaveHandoffCommandSchema, CheckResumptionCommandSchema
+  PrepareRunContextCommandSchema, ReserveRunCommandSchema, RecordRunObservationCommandSchema, ReconcileRunCommandSchema, CancelRunCommandSchema, SaveHandoffCommandSchema, CheckResumptionCommandSchema,
+  ReserveSkillInvocationCommandSchema, RecordSkillInvocationObservationCommandSchema, ReconcileSkillInvocationCommandSchema
 ]);
 export type InitializeProjectCommand = Static<typeof InitializeProjectCommandSchema>;
 export type CreateChangeCommand = Static<typeof CreateChangeCommandSchema>;

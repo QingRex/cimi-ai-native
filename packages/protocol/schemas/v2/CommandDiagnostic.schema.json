@@ -144,6 +144,14 @@
             },
             {
               "type": "string",
+              "const": "skill_invocation"
+            },
+            {
+              "type": "string",
+              "const": "skill_invocation_observation"
+            },
+            {
+              "type": "string",
               "const": "evidence"
             },
             {
@@ -395,6 +403,14 @@
                     {
                       "type": "string",
                       "const": "workspace_snapshot"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation_observation"
                     },
                     {
                       "type": "string",
@@ -653,6 +669,14 @@
                     },
                     {
                       "type": "string",
+                      "const": "skill_invocation"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation_observation"
+                    },
+                    {
+                      "type": "string",
                       "const": "evidence"
                     },
                     {
@@ -892,6 +916,14 @@
                     {
                       "type": "string",
                       "const": "workspace_snapshot"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation_observation"
                     },
                     {
                       "type": "string",
@@ -1137,6 +1169,14 @@
                     },
                     {
                       "type": "string",
+                      "const": "skill_invocation"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation_observation"
+                    },
+                    {
+                      "type": "string",
                       "const": "evidence"
                     },
                     {
@@ -1376,6 +1416,14 @@
                     {
                       "type": "string",
                       "const": "workspace_snapshot"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation_observation"
                     },
                     {
                       "type": "string",
@@ -1621,6 +1669,14 @@
                     },
                     {
                       "type": "string",
+                      "const": "skill_invocation"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation_observation"
+                    },
+                    {
+                      "type": "string",
                       "const": "evidence"
                     },
                     {
@@ -1860,6 +1916,14 @@
                     {
                       "type": "string",
                       "const": "workspace_snapshot"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation_observation"
                     },
                     {
                       "type": "string",
@@ -2105,6 +2169,14 @@
                     },
                     {
                       "type": "string",
+                      "const": "skill_invocation"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation_observation"
+                    },
+                    {
+                      "type": "string",
                       "const": "evidence"
                     },
                     {
@@ -2344,6 +2416,14 @@
                     {
                       "type": "string",
                       "const": "workspace_snapshot"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation"
+                    },
+                    {
+                      "type": "string",
+                      "const": "skill_invocation_observation"
                     },
                     {
                       "type": "string",
@@ -2605,6 +2685,14 @@
                   },
                   {
                     "type": "string",
+                    "const": "skill_invocation"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation_observation"
+                  },
+                  {
+                    "type": "string",
                     "const": "evidence"
                   },
                   {
@@ -2860,6 +2948,14 @@
                   },
                   {
                     "type": "string",
+                    "const": "skill_invocation"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation_observation"
+                  },
+                  {
+                    "type": "string",
                     "const": "evidence"
                   },
                   {
@@ -3099,6 +3195,14 @@
                   {
                     "type": "string",
                     "const": "workspace_snapshot"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation_observation"
                   },
                   {
                     "type": "string",
@@ -3344,6 +3448,14 @@
                   },
                   {
                     "type": "string",
+                    "const": "skill_invocation"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation_observation"
+                  },
+                  {
+                    "type": "string",
                     "const": "evidence"
                   },
                   {
@@ -3583,6 +3695,14 @@
                   {
                     "type": "string",
                     "const": "workspace_snapshot"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation_observation"
                   },
                   {
                     "type": "string",
@@ -3828,6 +3948,14 @@
                   },
                   {
                     "type": "string",
+                    "const": "skill_invocation"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation_observation"
+                  },
+                  {
+                    "type": "string",
                     "const": "evidence"
                   },
                   {
@@ -4067,6 +4195,14 @@
                   {
                     "type": "string",
                     "const": "workspace_snapshot"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation_observation"
                   },
                   {
                     "type": "string",
@@ -4312,6 +4448,14 @@
                   },
                   {
                     "type": "string",
+                    "const": "skill_invocation"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation_observation"
+                  },
+                  {
+                    "type": "string",
                     "const": "evidence"
                   },
                   {
@@ -4551,6 +4695,14 @@
                   {
                     "type": "string",
                     "const": "workspace_snapshot"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation"
+                  },
+                  {
+                    "type": "string",
+                    "const": "skill_invocation_observation"
                   },
                   {
                     "type": "string",

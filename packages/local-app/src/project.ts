@@ -48,7 +48,7 @@ export const LOCAL_COMMAND_TYPES = [
   "ConfirmContract", "ConfirmPlan", "StartChange", "InitializePlanTasks", "CreateWorkItem", "RevokeWorkItem",
   "CaptureSourceSnapshot", "PrepareTaskEvaluation", "RecordEvidence", "EvaluateTask", "SatisfyTask",
   "EvaluateIntegration", "MarkReadyForIntegration", "PrepareRunContext", "ReserveRun", "RecordRunObservation",
-  "ReconcileRun", "CancelRun", "SaveHandoff", "CheckResumption"
+  "ReconcileRun", "CancelRun", "SaveHandoff", "CheckResumption", "RecordSkillInvocationObservation", "ReconcileSkillInvocation"
 ] as const;
 
 export interface LocalCommandInput {
