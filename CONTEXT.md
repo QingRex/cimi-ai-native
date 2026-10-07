@@ -1,5 +1,7 @@
 # CimiLoop 领域语言
 
+2026-10-07 D-217：命名方法有独立的读取契约 / 受控资格评测，原始对话与 SDK 读取可重放，本地资格准备核验两次当前授权。读取成功不授予真实模型、费用、harness 或正式 Task 权限；生产原账本 / 方法宿主和完整 S1 待接通。见[命名方法资格与效果重放](docs/implementation/CimiLoop-命名方法资格规则与原始效果重放-v0.1.md)。
+
 2026-10-07 D-216 新增技能实际字节准备组件：固定包 / Schema / 输入 / 评审资料、完整资源与 harness 声明，原生准备核对父 Context / Run / Binding 并要求可信资格核验器。准备及原输入复核不执行效果，不构成真实方法批准。格式 10 与 Protocol 保持，见[实现与边界](docs/implementation/CimiLoop-技能真实输入与宿主准备-v0.1.md)。
 
 2026-10-07 D-215 已接通原生 SkillInvocation 预约、观测与 Human 核对，并关联父 Agent Run；Unknown、费用与迟到效果保留至父 / 子完整核对，结果不自动满足 Task 或 Gate。格式 10 布局保持。生产方法宿主、真实方法资格及创建 Plan / Task 前的澄清入口仍待接通，见[技能调用记录与核对](docs/implementation/CimiLoop-SkillInvocation原生记录与核对-v0.1.md)。

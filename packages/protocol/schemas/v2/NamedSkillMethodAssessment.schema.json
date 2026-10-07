@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "NamedSkillMethodAssessment.v2",
+  "type": "object",
+  "required": [
+    "format",
+    "rule_version",
+    "profile",
+    "project_id",
+    "descriptor_ref",
+    "descriptor_digest",
+    "runtime_binding",
+    "method_name",
+    "purpose",
+    "evidence_ref",
+    "input_digest",
+    "outcome",
+    "assessments",
+    "builtin_skill_qualified",
+    "formal_execution_enabled"
+  ],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "cimiloop/named-skill-method-assessment/1.0.0"
+    },
+    "rule_version": {
+      "type": "string",
+      "const": "named-skill-method-assessment/1.0.0"
+    },
+    "profile": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "method_contract"
+        },
+        {
+          "type": "string",
+          "const": "controlled_execution"
+        }
+      ]
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "descriptor_ref": {
+      "type": "object",
+      "required": [
+        "object_type",
+        "id"
+      ],
+      "properties": {
+        "object_type": {
+          "type": "string",
+          "const": "provider_descriptor"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "descriptor_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime_binding": {
+      "type": "object",
+      "required": [
+        "binding_ref",
+        "digest"
+      ],
+      "properties": {
+        "binding_ref": {
+          "type": "object",
+          "required": [
+            "object_type",
+            "id"
+          ],
+          "properties": {
+            "object_type": {
+              "type": "string",
+              "const": "provider_binding"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "method_name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 64
+    },
+    "purpose": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "clarification"
+        },
+        {
+          "type": "string",
+          "const": "review"
+        }
+      ]
+    },
+    "evidence_ref": {
+      "type": "object",
+      "required": [
+        "provider",
+        "resource_type",
+        "locator",
+        "digest"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "const": "local_content"
+        },
+        "resource_type": {
+          "type": "string",
+          "const": "named_skill_method_evidence"
+        },
+        "locator": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "input_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "outcome": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "ALLOW"
+        },
+        {
+          "type": "string",
+          "const": "DENY"
+        },
+        {
+          "type": "string",
+          "const": "NEED_MORE_EVIDENCE"
+        }
+      ]
+    },
+    "assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "result"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "maxLength": 140
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "passed"
+              },
+              {
+                "type": "string",
+                "const": "failed"
+              },
+              {
+                "type": "string",
+                "const": "inconclusive"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 192
+    },
+    "builtin_skill_qualified": {
+      "type": "boolean",
+      "const": false
+    },
+    "formal_execution_enabled": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}

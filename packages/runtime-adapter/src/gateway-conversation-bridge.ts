@@ -9,7 +9,7 @@ import type { GatewayCreditLedger } from "./gateway-credit.js";
 import { parseGatewayJson, prepareGatewayConversation } from "./gateway-conversation.js";
 import { compileValidator, SkillRuntimeProfileSchema, type SkillRuntimeProfile } from "@cimiloop/protocol/v2";
 import { FixedMethodConversationAdapter } from "./fixed-method.js";
-import type { FixedMethodProfile, FixedMethodProjection } from "@cimiloop/protocol/v2";
+import type { FixedMethodProfile, FixedMethodProjection, FixedMethodTranscript } from "@cimiloop/protocol/v2";
 
 export const CONVERSATION_IPC_REQUEST_BYTES = 65536, CONVERSATION_IPC_REPLY_BYTES = 294912;
 const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join(",") === [...keys].sort().join(",");
@@ -32,6 +32,7 @@ export class PublicConversationBridge {
   private child: ChildProcess | undefined;
   private closePromise: Promise<void> | undefined;
   private readonly fixedMethod: FixedMethodConversationAdapter | undefined;
+  private readonly methodExchanges: FixedMethodTranscript["exchanges"] = [];
   private readonly ended = () => this.abort.abort();
   constructor(context: Context) {
     if (context.ledger.storageFormat !== 3 || !/^[a-f0-9]{64}$/.test(context.policyDigest) || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(context.nonce) || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(context.operationKey)) fail("conversation_bridge_profile_invalid");
@@ -90,6 +91,12 @@ export class PublicConversationBridge {
       const acceptedResponse = projection ? this.fixedMethod!.accept(result.response, projection) : result.response;
       // Persist original named calls and exact SDK effects before publishing them.
       this.saveMethod();
+      if (projection) {
+        this.methodExchanges.push({ sdk_input: structuredClone(projection.sdk), upstream_response: structuredClone(result.response), mapped_response: structuredClone(acceptedResponse) });
+        atomicJson(join(c.path, "fixed-method-transcript.json"), { format: "cimiloop/fixed-method-transcript/1.0.0", invocation_key: c.operationKey,
+          mapping: ownership.mapping, source_digest: this.fixedMethod!.profile.source_digest, request_digest: this.fixedMethod!.profile.request_digest,
+          profile_digest: digest(JSON.stringify(this.fixedMethod!.profile)), exchanges: this.methodExchanges } satisfies FixedMethodTranscript);
+      }
       for (const call of acceptedResponse.tool_calls) {
         const args = parseGatewayJson(call.function.arguments, 16384);
         if (c.skillProfile && !c.methodReadPaths && call.function.name === "skill") {

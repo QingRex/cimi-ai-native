@@ -21,6 +21,7 @@ import * as toolAuthority from "./tool-authority.js";
 import * as skills from "./skills.js";
 import * as skillProbe from "./skill-probe.js";
 import * as fixedMethod from "./fixed-method.js";
+import * as namedMethodAssessment from "./named-method-assessment.js";
 import { Type, type TSchema } from "typebox";
 
 export * from "../ids.js";
@@ -48,8 +49,14 @@ export * from "./tool-authority.js";
 export * from "./skills.js";
 export * from "./skill-probe.js";
 export * from "./fixed-method.js";
+export * from "./named-method-assessment.js";
 
 export const protocolSchemas: Readonly<Record<string, TSchema>> = {
+  FixedMethodTranscript: namedMethodAssessment.FixedMethodTranscriptSchema,
+  NamedSkillMethodSample: namedMethodAssessment.NamedSkillMethodSampleSchema,
+  NamedSkillMethodEvidence: namedMethodAssessment.NamedSkillMethodEvidenceSchema,
+  NamedSkillMethodEvidenceReference: namedMethodAssessment.NamedSkillMethodEvidenceReferenceSchema,
+  NamedSkillMethodAssessment: namedMethodAssessment.NamedSkillMethodAssessmentSchema,
   SkillMethodInputReference: runs.SkillMethodInputReferenceSchema, SkillMethodQualificationReference: runs.SkillMethodQualificationReferenceSchema,
   SkillInvocationRawReference: runs.SkillInvocationRawReferenceSchema, SkillInvocationProofReference: runs.SkillInvocationProofReferenceSchema,
   SkillInvocationPreparation: runs.SkillInvocationPreparationSchema, SkillInvocation: runs.SkillInvocationSchema,

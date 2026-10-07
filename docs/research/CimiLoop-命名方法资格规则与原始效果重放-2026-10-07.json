@@ -1,0 +1,1199 @@
+{
+  "format": "cimiloop/named-method-assessment-verification/1.0.0",
+  "decision": "D-217",
+  "date": "2026-10-07",
+  "base_commit": "26df74f2f851c44f9c7db23036cb1baba444cb5c",
+  "scope": "Separate named-method qualification rule; original full conversation/read mapping and SDK effects replay; local qualification preparation composition",
+  "goal_complete": false,
+  "formal_execution_enabled": false,
+  "production_agent_host_connected": false,
+  "production_skill_host_connected": false,
+  "named_method_assessment_rule_implemented": true,
+  "local_qualification_preparation_composer_implemented": true,
+  "production_original_runtime_model_tool_account_verifier_connected": false,
+  "actual_method_behavior_evaluated": false,
+  "pre_plan_clarification_implemented": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "files": 9,
+      "tests": 125,
+      "passed": 125,
+      "failed": 0,
+      "complete_repository_suite": false,
+      "fresh_all_nine_file_pass": false,
+      "note": "Affected nine-file regression passed 124/125. Reused SDK output was correctly rejected by the earlier Native completion identity check; a fixture expected the later effect mismatch reason. Corrected that assertion and added direct repeated-session/context checks, then reran all 13 cases in that file. Production code remained unchanged. Latest per-file coverage is 125 passed; no fresh all-nine or whole-repository pass is claimed.",
+      "original": {
+        "path": ".cimiloop/named-method-assessment-v1-21/regression.json",
+        "bytes": 47804,
+        "sha256": "35f46970f3409b770e6f76c0aa42f511ed777d6627b9136a99437f4b74e68505",
+        "tests": 125,
+        "passed": 124,
+        "failed": 1
+      },
+      "final_direct_retest": {
+        "path": ".cimiloop/named-method-assessment-v1-21/retest.json",
+        "bytes": 4391,
+        "sha256": "d0f14492a4887bb3d80f655d33c8cf6d36a2e42b46e7ea25b62c58c3756e7ea6",
+        "tests": 13,
+        "passed": 13,
+        "failed": 0
+      },
+      "files_at_validation": [
+        {
+          "name": "tests/scenarios/named-skill-method-assessment.test.ts",
+          "tests": 13
+        },
+        {
+          "name": "tests/scenarios/skill-method-inputs.test.ts",
+          "tests": 7
+        },
+        {
+          "name": "tests/scenarios/skill-provider-assessment.test.ts",
+          "tests": 20
+        },
+        {
+          "name": "protocol/test/schema.test.ts",
+          "tests": 6
+        },
+        {
+          "name": "protocol/test/skill-invocations.test.ts",
+          "tests": 3
+        },
+        {
+          "name": "runtime-adapter/test/fixed-method-replay.test.ts",
+          "tests": 23
+        },
+        {
+          "name": "runtime-adapter/test/fixed-method.test.ts",
+          "tests": 17
+        },
+        {
+          "name": "runtime-adapter/test/gateway-conversation-bridge.test.ts",
+          "tests": 8
+        },
+        {
+          "name": "skill-adapter/test/package.test.ts",
+          "tests": 28
+        }
+      ]
+    },
+    "preliminary_test_reports": [
+      {
+        "path": ".cimiloop/named-method-assessment-v1-21/initial.json",
+        "bytes": 22050,
+        "sha256": "0c6559aeed65134fdba8819b42c369f77663bb650175825ad36bc97bf4da301d",
+        "tests": 31,
+        "passed": 21,
+        "failed": 10
+      },
+      {
+        "path": ".cimiloop/named-method-assessment-v1-21/direct.json",
+        "bytes": 23167,
+        "sha256": "9415df25cdc91ccead3dbb9a7a8df6b59cf5e8fe6d929d05e121bb144c68bbf2",
+        "tests": 31,
+        "passed": 21,
+        "failed": 10
+      }
+    ],
+    "preliminary_repairs": [
+      "Corrected constructed fixture resource order and optional-reference annotation; entry/dependencies are loaded before remaining resources.",
+      "Added missing named_skill_method_evidence to the actual local immutable-content read allowlist.",
+      "Actual pinned SDK evidence required exact Windows JSON-encoded prompt and the exact empty SSE assistant text/null history rendering. Visible text/history changes remain rejected.",
+      "Added explicit independent context, Provider dependency, permission checks, unique Native context and a second current-authority check before returning the qualification."
+    ],
+    "schemas": {
+      "baseline": 234,
+      "unchanged": 234,
+      "changed": [],
+      "added": [
+        "packages/protocol/schemas/v2/FixedMethodTranscript.schema.json",
+        "packages/protocol/schemas/v2/NamedSkillMethodAssessment.schema.json",
+        "packages/protocol/schemas/v2/NamedSkillMethodEvidence.schema.json",
+        "packages/protocol/schemas/v2/NamedSkillMethodEvidenceReference.schema.json",
+        "packages/protocol/schemas/v2/NamedSkillMethodSample.schema.json"
+      ],
+      "total": 239,
+      "unchanged_checkout_bytes_restored": true,
+      "artifact": {
+        "path": ".cimiloop/named-method-assessment-v1-21/schema-audit.json",
+        "bytes": 508,
+        "sha256": "192729c16b93fdb2bf7abfd26eb996bfdc34ac4961f2d29bb3e3e7a1185a6724"
+      },
+      "note": "Five standalone schemas added; all existing 234 schemas retain semantics and original checkout bytes. No Native Provider Evidence/Evaluation branch or format migration was introduced."
+    },
+    "database": {
+      "format": 10,
+      "layout_changed": false,
+      "migration_added": false,
+      "user_database_upgraded": false
+    },
+    "final_actual_upstream_checks": {
+      "path": ".cimiloop/named-method-assessment-v1-21/upstream.json",
+      "bytes": 35474,
+      "sha256": "7d7bbfd33d475201c6eb19da1896e2ed0ba0dd682cb513e855d93af3bb5d4905",
+      "cases": 3,
+      "sdk_runs_in_final_cases": 3,
+      "records": [
+        {
+          "name": "matt-clarification",
+          "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+          "source_digest": {
+            "algorithm": "sha256",
+            "value": "f59f753f16a25d089441a5f8fca3e8c209fe8b84e1c5f19a316e73decc42aed2"
+          },
+          "method_name": "grill-me",
+          "invocation_key": "matt_clarification_d217",
+          "resources": 4,
+          "original_replay_equal": true,
+          "method_contract": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "method_contract",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-6461-7378-848e-e2895ad5c809"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "063d267bb8006732ec13ea10cbdc54f331b385741979de1233ad80ea094abd9d"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-6461-7378-848e-e2895ad5c809"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "grill-me",
+            "purpose": "clarification",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "c5f464b72fc11b4be7e865f8fbbbbb481e81495ab2e245965b6e27855095defe",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "c5f464b72fc11b4be7e865f8fbbbbb481e81495ab2e245965b6e27855095defe"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "df43569e6afa0e2014f585e0a04e5887044914de5530787f1c2d9d3f6351277e"
+            },
+            "outcome": "ALLOW",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "no_original_host": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-6461-7378-848e-e2895ad5c809"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "063d267bb8006732ec13ea10cbdc54f331b385741979de1233ad80ea094abd9d"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-6461-7378-848e-e2895ad5c809"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "grill-me",
+            "purpose": "clarification",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "c5f464b72fc11b4be7e865f8fbbbbb481e81495ab2e245965b6e27855095defe",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "c5f464b72fc11b4be7e865f8fbbbbb481e81495ab2e245965b6e27855095defe"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "035e1723bf6a28504a49a2169919185f70e8c16ac1d92a69d17af5c31e11aa31"
+            },
+            "outcome": "NEED_MORE_EVIDENCE",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_explicit_invocation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_human_interview",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_invoke_skills",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_subagent_delegation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "public_origin": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-6461-7378-848e-e2895ad5c809"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "063d267bb8006732ec13ea10cbdc54f331b385741979de1233ad80ea094abd9d"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-6461-7378-848e-e2895ad5c809"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "grill-me",
+            "purpose": "clarification",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "c5f464b72fc11b4be7e865f8fbbbbb481e81495ab2e245965b6e27855095defe",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "c5f464b72fc11b4be7e865f8fbbbbb481e81495ab2e245965b6e27855095defe"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "8ec2aaf3e16a21ee5e28b0c67704148af2d235ba8cc440cd67d0b45db25f6452"
+            },
+            "outcome": "DENY",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "failed"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_explicit_invocation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_human_interview",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_invoke_skills",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_subagent_delegation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "native_resources_disposed": true,
+          "actual_credentials_read": 0,
+          "external_model_requests": 0,
+          "actual_method_behavior_evaluated": false,
+          "formal_execution_enabled": false,
+          "note": "Runtime pin is a constructed scope marker, never a Native approval. Original model/account/harness custody is not implemented.",
+          "artifacts": [
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/result.json",
+              "bytes": 7246,
+              "sha256": "490d2a910dde19ddf6e1d6ffc62bf390fa8079de2ad9d02cdca0c54a65367709"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/fixed-method-proof.json",
+              "bytes": 4055,
+              "sha256": "657f0a8d67052fb0d31df0c96a305f219239f5bfa1ae9258feb70d8a5558703b"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/fixed-method-transcript.json",
+              "bytes": 78388,
+              "sha256": "1f4f707ca704092b5c96da394bfbcc475d7b58327ae432cc50086b0001276408"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/stdout.raw",
+              "bytes": 16026,
+              "sha256": "642d8e5ca28d9567fbc00a8230b64564a149092bcc092694b9b3b5a9d17d078f"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/stderr.raw",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/native-proof.json",
+              "bytes": 115,
+              "sha256": "ec16ec00ab1b11995db10349fd70ab5122af7638a41a920931173280800d8152"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/native-ownership.json",
+              "bytes": 1179,
+              "sha256": "1ee6074d757e6d45c4a45ac5117f107488b17e8f67315f0bc5a1b6fe6ffc6f75"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/execution-policy-proof.json",
+              "bytes": 282,
+              "sha256": "10b1d8644298b5f31760a7dc823ef01ab4ef7266c8598b67d60727aaf5503f40"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/conversation-host-proof.json",
+              "bytes": 2077,
+              "sha256": "cbd8db7edc1f1ba5e2ef55630785ec75944a268b713cb14c01287138281dc203"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_clarification_d217/conversation-transport-proof.json",
+              "bytes": 1606,
+              "sha256": "f8c08f10eec1182f559bbb617038cb4e43a44afecba8efd2a21a5c8817dc2eca"
+            }
+          ]
+        },
+        {
+          "name": "matt-review",
+          "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+          "source_digest": {
+            "algorithm": "sha256",
+            "value": "2b4521ccb3592cad05254884918e3556f67d9b72b7bf9715da0124e607d6dccc"
+          },
+          "method_name": "code-review",
+          "invocation_key": "matt_review_d217",
+          "resources": 5,
+          "original_replay_equal": true,
+          "method_contract": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "method_contract",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "243f2f875e2e6b9b421c016518f0ea1763247d3cfc1e578bef1028fce21c7fc2"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "code-review",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "c127949240df62780c0019c84e4343baee3f9d5bf84e179a7337aeeb33fd33ea",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "c127949240df62780c0019c84e4343baee3f9d5bf84e179a7337aeeb33fd33ea"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "91ab5ac64e231d04184086003cd31ba125d6feade2cf01bf2e14411d0507f486"
+            },
+            "outcome": "ALLOW",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "no_original_host": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "243f2f875e2e6b9b421c016518f0ea1763247d3cfc1e578bef1028fce21c7fc2"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "code-review",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "c127949240df62780c0019c84e4343baee3f9d5bf84e179a7337aeeb33fd33ea",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "c127949240df62780c0019c84e4343baee3f9d5bf84e179a7337aeeb33fd33ea"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "da98793bb561bcce5d021add9ed010c6db5b3882e680a86c7732d088bd0e03fc"
+            },
+            "outcome": "NEED_MORE_EVIDENCE",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_fixed_git_diff",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_project_issue_tracker",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_subagent_delegation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "public_origin": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "243f2f875e2e6b9b421c016518f0ea1763247d3cfc1e578bef1028fce21c7fc2"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-7d6a-75cf-abcc-cfdabba1d875"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "code-review",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "c127949240df62780c0019c84e4343baee3f9d5bf84e179a7337aeeb33fd33ea",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "c127949240df62780c0019c84e4343baee3f9d5bf84e179a7337aeeb33fd33ea"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "64fcd9d4cf02dcdfd4e5c7c1d42aac4e11e022d51be0cf0c23c86f5c2846bcf6"
+            },
+            "outcome": "DENY",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "failed"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_fixed_git_diff",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_project_issue_tracker",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_subagent_delegation",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "native_resources_disposed": true,
+          "actual_credentials_read": 0,
+          "external_model_requests": 0,
+          "actual_method_behavior_evaluated": false,
+          "formal_execution_enabled": false,
+          "note": "Runtime pin is a constructed scope marker, never a Native approval. Original model/account/harness custody is not implemented.",
+          "artifacts": [
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/result.json",
+              "bytes": 7865,
+              "sha256": "60eb01e28c7a89500ba3117cbb4e742ca5c7189379940b781a84e8354c667bdb"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/fixed-method-proof.json",
+              "bytes": 4996,
+              "sha256": "b10777c433f3b14b6351128d8734b4e6e2ebf7d0c2e20bb89ce32d8627922172"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/fixed-method-transcript.json",
+              "bytes": 127981,
+              "sha256": "48f73dec2e410cbeb174e1d07285752b4f59bd16c38482cddb7f74603519a2ec"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/stdout.raw",
+              "bytes": 30964,
+              "sha256": "c77e1b52c1785c15f924e8ccceb00fabdaf6794b61835c4917be0370c048b04e"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/stderr.raw",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/native-proof.json",
+              "bytes": 115,
+              "sha256": "375fbb00fcdfb81e87fc556652ff317cb896250498c243c87d67f114d76db640"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/native-ownership.json",
+              "bytes": 1173,
+              "sha256": "d2f15e98231b891f31eae7ed541b71ca9d9b37a7ee18ce0bff57e9ad2c2f3c28"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/execution-policy-proof.json",
+              "bytes": 275,
+              "sha256": "0931e370c4f3133914d613b231be027293a48557007cea2f547e091c03096168"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/conversation-host-proof.json",
+              "bytes": 2257,
+              "sha256": "2c6d7cc701af5f1f7c5d6cf9943ff864e81433d612c96d2cb3a6d814fddf3d1c"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/matt_review_d217/conversation-transport-proof.json",
+              "bytes": 1792,
+              "sha256": "acf039bce31dafc428dc89b5f0dbd807e016b170dc58aaafcf97f11941efad63"
+            }
+          ]
+        },
+        {
+          "name": "superpowers-verification",
+          "commit": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+          "source_digest": {
+            "algorithm": "sha256",
+            "value": "ca2e6b828d23532ebc5646d89a83f2162106b95bbc3b90606ab41d332c8c9a11"
+          },
+          "method_name": "verification-before-completion",
+          "invocation_key": "superpowers_verification_d217",
+          "resources": 5,
+          "original_replay_equal": true,
+          "method_contract": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "method_contract",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "e6c03ab4e770a0bb8789621506e2b64f51396a9523273c611510c065cdc7cbc8"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "verification-before-completion",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "dfb1c31f38bd0abbc776705cbe5dab8546628d507d859a16fc30a825a8476f64",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "dfb1c31f38bd0abbc776705cbe5dab8546628d507d859a16fc30a825a8476f64"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "1c410a8b1b8a240afd4fa98d7843877a5802a6c56fc823a2c5933f332c27294c"
+            },
+            "outcome": "ALLOW",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "no_original_host": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "e6c03ab4e770a0bb8789621506e2b64f51396a9523273c611510c065cdc7cbc8"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "verification-before-completion",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "dfb1c31f38bd0abbc776705cbe5dab8546628d507d859a16fc30a825a8476f64",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "dfb1c31f38bd0abbc776705cbe5dab8546628d507d859a16fc30a825a8476f64"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "f115dcb11fb6581ad81e39c9b992ea72dfa883d138d9c4fd26e9659b9571cae6"
+            },
+            "outcome": "NEED_MORE_EVIDENCE",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_fresh_check_output",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "public_origin": {
+            "format": "cimiloop/named-skill-method-assessment/1.0.0",
+            "rule_version": "named-skill-method-assessment/1.0.0",
+            "profile": "controlled_execution",
+            "project_id": "01a11227-55bc-75f7-a487-265aff957160",
+            "descriptor_ref": {
+              "object_type": "provider_descriptor",
+              "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+            },
+            "descriptor_digest": {
+              "algorithm": "sha256",
+              "value": "e6c03ab4e770a0bb8789621506e2b64f51396a9523273c611510c065cdc7cbc8"
+            },
+            "runtime_binding": {
+              "binding_ref": {
+                "object_type": "provider_binding",
+                "id": "01a11227-93a4-72c1-9ddc-7e43b2c8d324"
+              },
+              "digest": {
+                "algorithm": "sha256",
+                "value": "bdddf90d44f3eaa3b356fdf8810b8774d8065c34665c7859bdc4796e6a5b3437"
+              }
+            },
+            "method_name": "verification-before-completion",
+            "purpose": "review",
+            "evidence_ref": {
+              "provider": "local_content",
+              "resource_type": "named_skill_method_evidence",
+              "locator": "dfb1c31f38bd0abbc776705cbe5dab8546628d507d859a16fc30a825a8476f64",
+              "digest": {
+                "algorithm": "sha256",
+                "value": "dfb1c31f38bd0abbc776705cbe5dab8546628d507d859a16fc30a825a8476f64"
+              }
+            },
+            "input_digest": {
+              "algorithm": "sha256",
+              "value": "01a0ab0bf031ffe73532d93f76f39c22b71b0407d7ced01816ab9b29a262cf74"
+            },
+            "outcome": "DENY",
+            "assessments": [
+              {
+                "key": "fixed_source_and_schemas",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_named_read_contract",
+                "result": "passed"
+              },
+              {
+                "key": "sample_0_real_model",
+                "result": "failed"
+              },
+              {
+                "key": "sample_0_runtime_custody",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_provider_dependencies",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_permission_intersection",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_cost_accounting_and_cap",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_invocation_recovery",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_behavior",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_fresh_check_output",
+                "result": "inconclusive"
+              },
+              {
+                "key": "sample_0_harness_independent_context",
+                "result": "inconclusive"
+              },
+              {
+                "key": "independent_samples",
+                "result": "inconclusive"
+              }
+            ],
+            "builtin_skill_qualified": false,
+            "formal_execution_enabled": false
+          },
+          "native_resources_disposed": true,
+          "actual_credentials_read": 0,
+          "external_model_requests": 0,
+          "actual_method_behavior_evaluated": false,
+          "formal_execution_enabled": false,
+          "note": "Runtime pin is a constructed scope marker, never a Native approval. Original model/account/harness custody is not implemented.",
+          "artifacts": [
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/result.json",
+              "bytes": 8018,
+              "sha256": "f0b2b629bdacf09ff89a7b469eaea5d7cf37d170806fdc72f3875a4df5f5b4af"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/fixed-method-proof.json",
+              "bytes": 5066,
+              "sha256": "4f28d76e11f921da50b6f32fafae13343ab7133d133277b9a41da71722f03e33"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/fixed-method-transcript.json",
+              "bytes": 115046,
+              "sha256": "37b1d0f9f2c2a4bf7639d4a0771ef6459c176590533ef9d1c7df141d71377bb0"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/stdout.raw",
+              "bytes": 25005,
+              "sha256": "5fc9943092a02d24a221506501b7a40bac1465874dfc884d31b0ab1537bcfa0b"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/stderr.raw",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/native-proof.json",
+              "bytes": 115,
+              "sha256": "b86879114061f1f8158acd80c13afc91131ac73b0531312f56c7077c8473cff1"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/native-ownership.json",
+              "bytes": 1185,
+              "sha256": "93c525250e127f009f6f1abe17ec0bd9d3d601f4d21f07966f2f01fcfde1bfe0"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/execution-policy-proof.json",
+              "bytes": 288,
+              "sha256": "cb723d6cfc1bb6ddc647c038b3b76d62339ef9ca5f4bae41d8f57e97ecd8f206"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/conversation-host-proof.json",
+              "bytes": 2269,
+              "sha256": "af05b754f77e663bb4512a6684341c7f102279556032f39c6bbce48989f20cd1"
+            },
+            {
+              "path": ".cimiloop/named-method-assessment-v1-21/upstream-evidence/superpowers_verification_d217/conversation-transport-proof.json",
+              "bytes": 1805,
+              "sha256": "b5c65d0c336d55ab59661bdb2b4accdc2fb0652b062ae185399843f39b392135"
+            }
+          ]
+        }
+      ],
+      "preliminary_sdk_rehearsals": 4,
+      "note": "Four preliminary public loader rehearsals completed before assessment errors (content allowlist, exact prompt twice, exact empty-text history) were repaired. Final three complete checks are archived with exact artifact hashes; no external model or credential was used. Regression may also execute existing public SDK rehearsals."
+    }
+  },
+  "constructed_boundary": {
+    "tests": "Local Git/content/SQLite candidate registration is real. Positive controlled qualification uses constructed in-process origin/billing/harness callbacks and direct composition fixtures, not actual model/account proof.",
+    "actual_upstream": "Final actual pinned OpenCode 1.18.34 runs load fixed upstream source through native reads and public synthetic SSE responses. Runtime pin is a constructed scope marker, not Native approved Binding.",
+    "contract": "Imported transcript/native/SDK consistency alone does not establish trusted original custody or external server origin; normalized upstream response digests must be checked against protected original bytes by the future host.",
+    "execution": "Local Human app still has no production Agent/Skill host. Qualification composer cannot approve Runtime/Task Binding or dispatch a method. Serialized ALLOW reports are not authority.",
+    "old_rule": "skill-provider-assessment/1.0.0 builtin Skill loading requirement and actual failure counterevidence remain unchanged."
+  },
+  "remaining_acceptance": [
+    "Implement protected original SDK/IPC/model/tool/account/billing proof verification and production Agent/Skill effects hosts with current dispatch and cache replay admission.",
+    "Connect actual controlled Runtime/Task qualification, Provider catalog readiness and original durable effect claims.",
+    "Implement controlled Human clarification rounds and linked candidates before confirmed Plan/Task, without fabricated Task records.",
+    "Complete real fixed diff/issue review, declared Human/delegation/command/verifier dependencies, proposal/evidence projection and Matt/Superpowers behavior/default selection.",
+    "Connect actual workspace effects and tool authority/journal to IPC/OpenCode, preserve original operation recovery and Unknown reconciliation.",
+    "Complete physical filesystem hard quota, actual model/tool entitlement and input/thinking/output bounds, protected unique account ledger, approved credit/cash budget and invoice reconciliation.",
+    "Finish formal workbench execute/status/recovery and ordinary real Change through ReadyForDelivery S1 acceptance."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/protocol/src/v2/named-method-assessment.ts",
+      "bytes": 3691,
+      "sha256": "06723c05bf4e393e62cdfc0aeab5d94521d028695a63e471ca9f50eaacc9e7d3"
+    },
+    {
+      "path": "packages/protocol/src/v2/index.ts",
+      "bytes": 19594,
+      "sha256": "2dd88c96cafc76f6c86ed8989e1cdd63e1d29b7b12496711126e04ed90f28af8"
+    },
+    {
+      "path": "packages/runtime-adapter/src/fixed-method-replay.ts",
+      "bytes": 7720,
+      "sha256": "f74d0ac8c3589ea3fa70719a4ff900edb41832d0ba50765c2f4981a00668e5cc"
+    },
+    {
+      "path": "packages/runtime-adapter/src/gateway-conversation-bridge.ts",
+      "bytes": 14257,
+      "sha256": "c8c2a3e5325ea967aff213f6b81d2f7e8fc1248c0567f5e9b5ceb6438655c562"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 1377,
+      "sha256": "7aa6849ce6c73bff1900b896f9b1f8bc505e96bf1517037da3238647cb13eb49"
+    },
+    {
+      "path": "packages/local-app/src/skill-method-assessment-local.ts",
+      "bytes": 10838,
+      "sha256": "b9b1a06aab2624287ae702d942a673ef92b9a7281501ddca632889eb55c5ea0d"
+    },
+    {
+      "path": "packages/local-app/src/evidence-local.ts",
+      "bytes": 8529,
+      "sha256": "803ee9da23d5b38f62ad4fc811d2a7328dc4287d608e57fdaa605cfa9b0fa391"
+    },
+    {
+      "path": "packages/local-app/src/index.ts",
+      "bytes": 1140,
+      "sha256": "2c8c09d3aa3fc3504bcae100981651ae74d8f2ce29eeea92be3cabc1d06af13f"
+    },
+    {
+      "path": "packages/runtime-adapter/test/fixed-method-replay.test.ts",
+      "bytes": 4881,
+      "sha256": "f485a3f24b4f15848bd18542187aec6cf89d0123959f81021a526cec37f1a7f0"
+    },
+    {
+      "path": "tests/fixtures/named-method-transcript.ts",
+      "bytes": 4354,
+      "sha256": "fccfd3c35f96f0f269f2c797196ccb8e97ff4df20a10df88a3b657b617480d26"
+    },
+    {
+      "path": "tests/scenarios/named-skill-method-assessment.test.ts",
+      "bytes": 14035,
+      "sha256": "9eb89afb1fdb7e6649f8cc566a2f5b9fc60fdfadba44d32c71473467fb8fe121"
+    }
+  ],
+  "evidence_availability": "Ignored local reports and original final upstream artifacts are retained by exact path/bytes/SHA-256. Source, schemas, tests and this record are committed; full goal remains incomplete."
+}

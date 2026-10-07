@@ -1,5 +1,7 @@
 # CimiLoop 文档导航
 
+2026-10-07 D-217：[命名方法资格规则与原始效果重放](implementation/CimiLoop-命名方法资格规则与原始效果重放-v0.1.md)。新增独立规则、严格对话 / SDK 核验与资格准备组合器；真实原账本 / 方法宿主及 S1 尚未完成。
+
 2026-10-07 D-216：[技能真实输入与宿主准备](implementation/CimiLoop-技能真实输入与宿主准备-v0.1.md)。实际包 / Schema / 输入 / 评审资料读取与原生准备组合接口已实现；可信方法资格判断、实际效果及 S1 仍待接通。
 
 2026-10-07 D-215 已实现父 Agent Run 下的原生技能调用预约、观测与 Human 核对，CLI 和工作台可查询调用事实。生产调用和 Plan / Task 创建前的澄清仍待接通，见[SkillInvocation 记录与核对](implementation/CimiLoop-SkillInvocation原生记录与核对-v0.1.md)。

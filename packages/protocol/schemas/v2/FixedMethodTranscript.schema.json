@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "FixedMethodTranscript.v2",
+  "type": "object",
+  "required": [
+    "format",
+    "invocation_key",
+    "mapping",
+    "source_digest",
+    "request_digest",
+    "profile_digest",
+    "exchanges"
+  ],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "cimiloop/fixed-method-transcript/1.0.0"
+    },
+    "invocation_key": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$"
+    },
+    "mapping": {
+      "type": "string",
+      "pattern": "^[F-Z]:$"
+    },
+    "source_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "request_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "profile_digest": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "exchanges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "sdk_input",
+          "upstream_response",
+          "mapped_response"
+        ],
+        "properties": {
+          "sdk_input": {},
+          "upstream_response": {},
+          "mapped_response": {}
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 33
+    }
+  },
+  "additionalProperties": false
+}

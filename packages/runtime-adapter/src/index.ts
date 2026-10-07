@@ -11,3 +11,5 @@ export { runOpenCodeGatewayBridgeProbe, parseRuntimeGatewayBridgeProbe } from ".
 export { runPublicGatewayNetworkProbe, parseRuntimeGatewayNetworkProbe } from "./gateway-network-probe.js";
 export { runGatewayCreditProbe, parseRuntimeGatewayCreditProbe } from "./gateway-credit-probe.js";
 export { validateFixedMethodContext } from "./fixed-method.js";
+export { replayFixedMethodTranscript, verifyFixedMethodSdkEffects } from "./fixed-method-replay.js";
+export { parseGatewayJson } from "./gateway-conversation.js";
