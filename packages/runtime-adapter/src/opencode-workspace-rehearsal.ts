@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
@@ -102,5 +102,19 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   } finally {
     cancel(); const stop = setTimeout(() => { if (native.exitCode === null && native.signalCode === null) native.kill(); }, 5000);
     await Promise.allSettled([channel?.close(), ended]); clearTimeout(stop); clearTimeout(timer);
+    // Startup/channel failure must retain the original bounded bytes too. These
+    // diagnostics are not completion or resource-disposal proof; missing native
+    // records remain unproven and the owner must retain the original directory.
+    if (!existsSync(join(operation, "stdout.raw"))) writeFileSync(join(operation, "stdout.raw"), Buffer.concat(output), { flag: "wx" });
+    if (!existsSync(join(operation, "stderr.raw"))) writeFileSync(join(operation, "stderr.raw"), Buffer.concat(errors), { flag: "wx" });
+    if (!existsSync(join(operation, "result.json"))) atomicJson(join(operation, "incomplete.json"), {
+      format: "cimiloop/opencode-workspace-incomplete/1.0.0", nonce, original_scope_digest: scopeDigest,
+      native_exit: { code: native.exitCode, signal: native.signalCode }, suspended_observed: !!suspended,
+      original_record_present: existsSync(join(operation, "agent-sandbox-original.json")),
+      cleanup_record_present: existsSync(join(operation, "agent-sandbox-cleanup.json")),
+      total_output_bytes: total, captured_output_bytes: Buffer.concat(output).length + Buffer.concat(errors).length,
+      output_limit_exceeded: outputFailure, completion_proven: false, resource_disposal_proven: false,
+      actual_credentials_read: 0, external_model_requests: 0, formal_agent_execution_enabled: false
+    });
   }
 }

@@ -88,6 +88,12 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("OpenCode
     await expect(runOpenCodeWorkspaceToolRehearsal({ ...f.options, connect: async () => { throw Error("original_channel_unavailable"); } })).rejects.toThrow("original_channel_unavailable");
     expect(readWorkspaceToolRunFacts(f.dataDirectory, f.project, f.reserved.record).invocations).toBe(0);
     const operations = join(f.dataDirectory, "workspace-tool-rehearsals"), operation = join(operations, readdirSync(operations)[0]!);
+    expect(readFileSync(join(operation, "stdout.raw"), "utf8")).toContain('"phase":"suspended"');
+    expect(existsSync(join(operation, "stderr.raw"))).toBe(true);
+    expect(JSON.parse(readFileSync(join(operation, "incomplete.json"), "utf8"))).toMatchObject({
+      suspended_observed: true, original_record_present: true, cleanup_record_present: true,
+      completion_proven: false, resource_disposal_proven: false, actual_credentials_read: 0, external_model_requests: 0
+    });
     expect(JSON.parse(readFileSync(join(operation, "agent-sandbox-cleanup.json"), "utf8"))).toMatchObject({ resources_disposed: true, cleanup_errors: [], formal_agent_execution_enabled: false });
     expect(readFileSync(join(f.root, f.options.path), "utf8")).toBe("export const query = () => 1;\n");
   });

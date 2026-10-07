@@ -8,6 +8,7 @@ import { RuntimeAdapterError, digest, directory, bytesAt, atomicJson, assertOrdi
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { buildWindowsLauncher } from "./native.js";
 import { creditHostDependencies } from "./gateway-credit-owner.js";
+import { AgentWorkspaceCheckHost } from "./workspace-checks.js";
 
 export type WorkspaceToolPhase = "reserved_committed" | "native_prepared" | "dispatch_committed" | "effect_completed" | "completion_committed";
 interface Options {
@@ -98,9 +99,11 @@ export async function openWorkspaceToolHost(options: { repositoryPath: string; d
 // Missing an established anchor/journal is an error, never an empty successful
 // ledger. Reads do not require current WorkItem permission or authorize effects.
 export function readWorkspaceToolRunFacts(dataDirectory: string, project: Project, record: RunRecord) {
+  const checks = AgentWorkspaceCheckHost.readRunFacts(dataDirectory, project, record);
   const paths = location(dataDirectory, project.id), marker = existsSync(paths.marker), journal = existsSync(paths.journal);
-  if (!marker && !journal) return { invocations: 0, unresolved: 0, has_effect: false };
+  if (!marker && !journal) return checks;
   if (!marker || !journal) throw new RuntimeAdapterError("workspace_tool_anchor_missing");
   const repositoryPathDigest = digest(realpathSync(assertOrdinaryPath(project.repository_path)).toLowerCase()).value;
-  return WorkspaceToolJournal.readRunFacts(paths.journal, project.id, repositoryPathDigest, record, markerAt(paths.marker, project.id, repositoryPathDigest));
+  const files = WorkspaceToolJournal.readRunFacts(paths.journal, project.id, repositoryPathDigest, record, markerAt(paths.marker, project.id, repositoryPathDigest));
+  return { invocations: files.invocations + checks.invocations, unresolved: files.unresolved + checks.unresolved, has_effect: files.has_effect || checks.has_effect };
 }

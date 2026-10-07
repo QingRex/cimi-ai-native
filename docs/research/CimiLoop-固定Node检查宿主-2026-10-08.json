@@ -1,0 +1,229 @@
+{
+  "format": "cimiloop/workspace-check-verification/1.0.0",
+  "decision": "D-225",
+  "date": "2026-10-08",
+  "base_commit": "048a98ef110a0818bb4f97ac83c033ed33f8b6d9",
+  "scope": "Fixed actual Node syntax/test commands on broker-captured authorized read-only input snapshots, durable original calls/receipts, shared parent tool facts and original native resource recovery",
+  "goal_complete": false,
+  "s1_complete": false,
+  "actual_fixed_node_check_host_implemented": true,
+  "current_kernel_read_and_run_checks_authority_connected": true,
+  "actual_original_command_replay_validated": true,
+  "actual_original_host_controller_death_resource_recovery_validated": true,
+  "check_unknown_blocks_native_parent_settlement": true,
+  "node_syntax_profile_validated": true,
+  "node_single_process_test_profile_validated": true,
+  "sdk_check_tools_connected": false,
+  "check_catalog_pinned_to_host_admission": false,
+  "production_agent_execution_enabled": false,
+  "positive_agent_qualification_constructed": true,
+  "actual_method_behavior_evaluated": false,
+  "approved_billing_admission_complete": false,
+  "physical_filesystem_hard_quota_implemented": false,
+  "complete_runtime_resource_recovery_implemented": false,
+  "overall_run_preparation_deadline_connected": false,
+  "global_check_history_retention_rotation_implemented": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "path": ".cimiloop/checks-v1-09/final-3.json",
+      "bytes": 62901,
+      "sha256": "c63d0055c298ef08749671ed7b102e64ce6907a0a014625734f343fee3256617",
+      "files": 15,
+      "tests": 132,
+      "passed": 132,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "complete_repository_suite": false,
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "source_snapshot": {
+      "path": ".cimiloop/checks-v1-09/sources.json",
+      "bytes": 1575,
+      "sha256": "d7815440a0b6195e40f889c93411b80ca981d84dfbfb6e90eabefeb0bd27e649"
+    },
+    "preliminary": {
+      "reports": [
+        {
+          "path": ".cimiloop/checks-v1-09/focused.json",
+          "bytes": 4815,
+          "sha256": "6e73dfaf269e15bf8c0afaf7cfdc1ef95bd55d842c41b01a52ff4339ccf61bd6",
+          "files": 1,
+          "tests": 7,
+          "passed": 6,
+          "failed": 1,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/checks-v1-09/focused-2.json",
+          "bytes": 5030,
+          "sha256": "8a1e9b88679cc50c1f79224ac0e8c9da6f5b72fc5bc6b22acbe412f0f4b458dd",
+          "files": 1,
+          "tests": 10,
+          "passed": 10,
+          "failed": 0,
+          "pending": 0,
+          "success": true
+        },
+        {
+          "path": ".cimiloop/checks-v1-09/final.json",
+          "bytes": 58276,
+          "sha256": "3a2765431784813f97d051ebd39fd21e933a7f1e8fb8fd18e755ecdf4dea695a",
+          "files": 15,
+          "tests": 132,
+          "passed": 132,
+          "failed": 0,
+          "pending": 0,
+          "success": true
+        },
+        {
+          "path": ".cimiloop/checks-v1-09/final-2.json",
+          "bytes": 58880,
+          "sha256": "d62f31f22092534dd4ccad514fe76bf45748adc59732beebcbeea61a70b5b99b",
+          "files": 15,
+          "tests": 132,
+          "passed": 131,
+          "failed": 1,
+          "pending": 0,
+          "success": false
+        },
+        {
+          "path": ".cimiloop/checks-v1-09/opencode-startup.json",
+          "bytes": 2456,
+          "sha256": "c060a3cdff521630e13858b1e458bb5b6c7e341b0205b570a1cfa6083fa2c09c",
+          "files": 1,
+          "tests": 4,
+          "passed": 4,
+          "failed": 0,
+          "pending": 0,
+          "success": true
+        }
+      ],
+      "final_initial_source_snapshot": {
+        "path": ".cimiloop/checks-v1-09/sources-initial.json",
+        "bytes": 1213,
+        "sha256": "4838fe4138a5fd8e8b6cac21785d0707d8fc5e04b6bb4896e807bf9edb3b8c27"
+      },
+      "initial_final_not_final_code": "The first broad run preceded the final policy-anchor and stored-source replay integrity refinements. It is retained as preliminary evidence, not final source validation.",
+      "initial_failures": "Initial verbose run: JSON parsing retained null prototypes, causing otherwise equal replay input to conflict; normalized only after strict duplicate-key parsing. Node spawnSync hung in the single-process Windows Job even with its own 500ms timeout; native timeout remained authoritative. One focused assertion used the wrong CommandReceipt failure shape; corrected to original code: RECOVERY_CONDITIONS_UNMET."
+    },
+    "schemas": {
+      "total": 242,
+      "unchanged": 242,
+      "added": 0,
+      "changed": 0,
+      "writes": 0,
+      "protocol_status_clean": true,
+      "public_native_sources_unchanged": 4,
+      "comparison": "exact text normalized CRLF to LF"
+    },
+    "documentation": {
+      "files": 9,
+      "links": 286,
+      "broken": []
+    },
+    "commit_baseline": {
+      "files": 827,
+      "problems": []
+    }
+  },
+  "implemented": {
+    "catalog": "Trusted composition installs exact Node syntax or single-process node:test recipes with pinned source paths/digests and finite elapsed/output limits. Tool frame accepts check_id/call_id only; no executable, argv, shell, cwd, source body, environment or caller selection. Scope and recipes detach before async compilation. Current API is trusted composition only; no original SDK check consumer yet.",
+    "authority": "Actual Kernel assesses every original source read and the run_checks entry against the immutable original Agent Scope. Rechecks before reads, after each original capture, after snapshot and after durable dispatch before native start. Original basis changes/revocation deny; independent read-only Context remains restricted.",
+    "capture": "Actual native file broker pins original root/file handle identity and digest, reads exact UTF-8 bytes and copies bounded sources. Separate native controller launches only the fixed argv in a read-only private workspace with no network capabilities, atomic single-process Job and 2GiB Job memory. Original native startup/policy/ownership/cleanup records stay outside runtime sandbox.",
+    "records": "Original project policy pins root identity/node digest/128 lifetime logical slots. Exclusive slot allocation precedes original operation directory; contender releases only its just-created verified empty slot. Input Scope/call/recipe/policy/current basis digest persists before capture; dispatch persists before native start. Original receipt pins source and raw stdout/stderr digests, actual exit/cleanup and exact capture counts. Fresh current authority, original request, snapshots and original raw records validate replay. No original key retries an unproven command.",
+    "parent": "Local Agent service can install/run trusted checks. Parent readWorkspaceToolRunFacts adds file and check invocation/unresolved/effect counts; check Unknown prevents both Agent observation and Human reconciliation settling parent Run/budget. A checker receipt never completes a Task/Run or approves a Gate.",
+    "recovery": "Trusted original owner PID/creation/image and original native ownership govern resource recovery. Actual owned controller fault injection holds and verifies its OS handle before kill. New host proves original owners ended and invokes source/binary-pinned controller recovery to remove original mapping/ACL/profile; absent original completion remains Unknown and repeat calls never execute again."
+  },
+  "validation": {
+    "retained_original_resource_diagnostic": {
+      "path": ".cimiloop/checks-v1-09/retained-original-os-resources.json",
+      "bytes": 377,
+      "sha256": "7ea034c9e4a67d3edec74e8c537093c3856383b723ed8a44ec48902d66c3651b"
+    },
+    "prior_opencode_startup_failure": "final-2: 131/132 passed; original OpenCode WorkItem revocation case hit workspace_rehearsal_deadline before suspended proof. Retained operation has original-config.json, no startup/cleanup proof, and residual original sandbox SID ACL, original Y: DOS mapping and original Profile registry mapping (read-only nonce-derived SID and exact root query). No matching active owned executable observed; resource disposal is not proven. Raw stdout/stderr were lost in the prior failure path. This batch preserves bounded original raw output and an explicitly incomplete diagnostic on future startup/channel failures; controlled channel failure asserts it. The old root is retained; broad recovery remains pending. A later successful regression does not prove the root failure repaired.",
+    "actual_windows_node": "10 actual Windows scenarios cover original syntax success/failure, native node:test success and snapshot write denial, two original hosts competing/replaying, trusted local service composition, changed recipe conflict, corrupted raw/source replay denial, current WorkItem revocation, dispatch loss, native-bounded spawnSync hang, truncated output and parent block, logical slot refusal, and actual original controller/host death resource recovery.",
+    "qualifier": "Kernel/Git/SQLite/file/Node/OS effects are actual. Positive Native Agent admission and provider bindings remain constructed fixture inputs. No actual model, Skill behavior, account custody, fee enforcement or full S1 admission is proved.",
+    "node_spawn_sync": "Actual spawnSync did not return in the single-process Windows Job, including a requested internal 500ms timeout. Reached-before/no-after stdout and original native timeout/exit124/cleaned resources are asserted. Normal single-process node:test works. This is not labelled proven synchronous child-start error handling, and Job process limit is not relaxed.",
+    "slots": "The full-slot test uses 128 constructed occupied directories, not 128 actual check launches or a physical filesystem hard quota."
+  },
+  "unchanged": {
+    "protocol_schemas": 242,
+    "native_database_format": 10,
+    "workspace_tool_journal_format": "cimiloop/workspace-tool-journal/1.0.0",
+    "workspace_tool_receipt_format": "cimiloop/workspace-tool-receipt/1.0.0",
+    "workspace_tool_journal_user_version": 1,
+    "public_native_control_sources_unchanged": 4,
+    "human_cli_workbench_default_agent_entry": "not installed"
+  },
+  "boundaries": {
+    "commands": "First two Node profiles only; no arbitrary shell, npm/pnpm install or script engine, no inherited model-selected env/args. Binary provenance still needs formal protected admission. Check pass means the installed command actually exited zero; it is not independent semantic review or Gate approval.",
+    "custody": "Check ID directory is trusted composition input but not yet fixed in production admission/Context. Original SDK call ID derivation and authenticated cimi_check transport remain pending; current call_id is supplied by trusted composition. No default production verifier enabled.",
+    "limits": "Native command elapsed/output/memory and logical 128 project-call bounds are implemented. Global preparation/combined nested Run deadlines, complete retention/capacity rotation, physical hard quota and all original runtime resource recovery remain pending.",
+    "external": "User confirmed Zhipu provider. Exact approved model/plan and cash/credit ceiling remain missing; this batch reads no credential and sends no external model request."
+  },
+  "remaining_acceptance": [
+    "V1-09: pin full check catalog to real admission/Context, connect original OpenCode SDK cimi_check, complete protected SDK/tool/account custody and formal lifecycle, actual model/plan/service token bounds/approved budgets/billing, physical quota, history retention and complete recovery.",
+    "V1-21: actual Skill host and Human/Matt clarification before Plan/Task.",
+    "V1-22: actual full independent diff/issue/harness review, fresh Superpowers verification and evidenced behavior comparison.",
+    "V1-10: formal workbench Agent execute/status/stop/original recovery.",
+    "V1-11: genuine ordinary AI Change including independent review/interruption/resumption to ReadyForDelivery, full S1 acceptance and user testing guide."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+      "bytes": 12589,
+      "sha256": "1abb979ed82c08db68137ba18f0436a64a3c21ecaf156017dc152f3f6f28bc7e"
+    },
+    {
+      "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+      "bytes": 10325,
+      "sha256": "ce3a429e6f710230f4faf034e69756f64b497c8df282def779f994d4069d9fe3"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-checks.ts",
+      "bytes": 29699,
+      "sha256": "e1042a15f2e9adb030a5b2d417589bfa6b2d65d87abd05f41e8879783bd9d9e8"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 2917,
+      "sha256": "e600500edcef3a43768c9d1ca841845ed5169b62b71fc555ea47bf7964c54a14"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-tool-host.ts",
+      "bytes": 9434,
+      "sha256": "1dc92f1fe802f75abc9198c73b677c5515d741194c74147f7100d42b38296408"
+    },
+    {
+      "path": "packages/local-app/src/agent-workspace-tools-local.ts",
+      "bytes": 5913,
+      "sha256": "2565badc03629c54dc2484b78800f26ae9cd79d3bb23337a1309f45524d0cf18"
+    },
+    {
+      "path": "tests/fixtures/agent-run-project.ts",
+      "bytes": 11596,
+      "sha256": "fb0114dda9b45e1cbeb765179ca7298df3e83d0f0fe43b39b4695ee38ec6cdbc"
+    },
+    {
+      "path": "tests/scenarios/workspace-check-runtime.test.ts",
+      "bytes": 16681,
+      "sha256": "d53b44f0af5d9b85e0c5083c930845760279436f527691e505708322e44b0248"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-check-host-worker.mjs",
+      "bytes": 2824,
+      "sha256": "89ea176be2f9dd32536b3154860653d164d698676fe08ac9491d33841c5ea393"
+    }
+  ]
+}

@@ -26,3 +26,5 @@ export type { AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 export { AgentWorkspaceToolIpc, agentWorkspaceIpcScopeDigest, agentWorkspaceIpcInvocation } from "./agent-workspace-ipc.js";
 export type { AgentWorkspaceIpcEndpoint } from "./agent-workspace-ipc.js";
 export { runOpenCodeWorkspaceToolRehearsal } from "./opencode-workspace-rehearsal.js";
+export { AgentWorkspaceCheckHost, parseWorkspaceCheckCall, parseWorkspaceCheckRecipe } from "./workspace-checks.js";
+export type { WorkspaceCheckRecipe, WorkspaceCheckCall, WorkspaceCheckReceipt } from "./workspace-checks.js";
