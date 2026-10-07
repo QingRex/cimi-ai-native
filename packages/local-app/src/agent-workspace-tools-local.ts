@@ -3,12 +3,14 @@ import type { ChildProcess } from "node:child_process";
 import { isDeepStrictEqual } from "node:util";
 import { callerMatchesActor, type CallerContext } from "@cimiloop/kernel";
 import { AgentWorkspaceToolIpc, openAgentWorkspaceToolHost, parseAgentWorkspaceToolScope, parseWorkspaceToolInvocation, AgentWorkspaceCheckHost,
-  type WorkspaceCheckRecipe, type AgentWorkspaceToolScope } from "@cimiloop/runtime-adapter";
+  parseGatewayJson, type WorkspaceCheckRecipe, type AgentWorkspaceToolScope } from "@cimiloop/runtime-adapter";
+import { LocalAgentCheckAdmission } from "./agent-check-admission-local.js";
+import { LocalRunVerifier } from "./runs-local.js";
 import type { LocalProject } from "./project.js";
 import type { AgentWorkspaceIpcEndpoint } from "@cimiloop/runtime-adapter";
 export type AgentWorkspaceToolLocalContext = Pick<LocalProject, "location"> & {
   caller: Extract<CallerContext, { kind: "agent" }>;
-  store: Pick<LocalProject["store"], "getProject" | "getActor" | "getRun" | "getRuntimeRecord">;
+  store: Pick<LocalProject["store"], "getProject" | "getActor" | "getRun" | "getRuntimeRecord" | "getExecutionObject" | "getVerificationRecord">;
   kernel: Pick<LocalProject["kernel"], "assessAgentRunTool">;
 };
 const originalScope = (local: AgentWorkspaceToolLocalContext, runId: string): AgentWorkspaceToolScope => {
@@ -28,6 +30,7 @@ const originalScope = (local: AgentWorkspaceToolLocalContext, runId: string): Ag
 export class LocalAgentWorkspaceToolService {
   private ipc?: Promise<AgentWorkspaceToolIpc>;
   private checks?: Promise<AgentWorkspaceCheckHost>;
+  private checkAdmission?: LocalAgentCheckAdmission;
   private constructor(private readonly local: AgentWorkspaceToolLocalContext, private readonly scope: AgentWorkspaceToolScope,
     private readonly execution: Awaited<ReturnType<typeof openAgentWorkspaceToolHost>>) {}
   static async open(local: AgentWorkspaceToolLocalContext, runId: string): Promise<LocalAgentWorkspaceToolService> {
@@ -41,23 +44,50 @@ export class LocalAgentWorkspaceToolService {
     return this.execution.host.execute(input);
   }
   recover() { return this.execution.host.recover(); }
-  installChecks(nodeBinary: string, recipes: WorkspaceCheckRecipe[]) {
+  async installChecks(nodeBinary: string, recipes: WorkspaceCheckRecipe[]) {
     if (this.checks || this.ipc) return Promise.reject(Error("Agent workspace checks already installed or IPC fixed"));
     if (!isDeepStrictEqual(originalScope(this.local, this.scope.run_id), this.scope)) return Promise.reject(Error("Agent workspace original scope changed"));
+    const reader = new LocalRunVerifier(this.local.location.repositoryPath, this.local.location.dataDirectory);
+    const original = parseGatewayJson(reader.content.readContent(this.scope.host_admission_ref).toString("utf8"), 1048576) as Record<string, unknown>;
+    if (original?.format === "cimiloop/agent-check-host-admission/1.0.0") return Promise.reject(Error("Agent original admitted checks required"));
     this.checks = AgentWorkspaceCheckHost.open({ repositoryPath: this.local.location.repositoryPath, dataDirectory: this.local.location.dataDirectory,
       nodeBinary, recipes, scope: this.scope, assess: request => this.local.kernel.assessAgentRunTool(request) });
+    return this.checks.then(() => undefined);
+  }
+  private admittedChecks(admission: LocalAgentCheckAdmission) {
+    if (!isDeepStrictEqual(originalScope(this.local, this.scope.run_id), this.scope)) throw Error("Agent workspace original scope changed");
+    const store = this.local.store, project = store.getProject(), run = store.getRun(this.scope.run_id), record = run && store.getRuntimeRecord("run_record", run.record_ref.id),
+      context = record && store.getRuntimeRecord("context_manifest", record.context_ref.id), task = run && store.getExecutionObject("task", run.task_id),
+      item = run && store.getExecutionObject("work_item", run.work_item_ref.id), source = context && store.getVerificationRecord("source_snapshot", context.source_snapshot_ref.id),
+      workspace = context && store.getRuntimeRecord("workspace_snapshot", context.workspace_snapshot_ref.id);
+    if (!project || !record || record.run_kind !== "agent" || !context || !("runtime_binding" in context) || !task || !item || !source || !workspace) throw Error("Agent original check inputs missing");
+    return admission.forRun(project, { task, work_item: item, source, workspace, runtime_binding: record.runtime_binding, skill_bindings: record.skill_bindings }, record, context, this.scope);
+  }
+  async installAdmittedChecks(admission: LocalAgentCheckAdmission) {
+    if (this.checks || this.ipc) return Promise.reject(Error("Agent workspace checks already installed or IPC fixed"));
+    const installed = this.admittedChecks(admission); this.checkAdmission = admission;
+    this.checks = AgentWorkspaceCheckHost.open({ repositoryPath: this.local.location.repositoryPath, dataDirectory: this.local.location.dataDirectory, nodeBinary: installed.nodeBinary,
+      recipes: installed.recipes, scope: this.scope, assess: request => this.local.kernel.assessAgentRunTool(request) }).then(async host => {
+      try {
+        const original = this.admittedChecks(admission), catalog = host.getCatalog();
+        if (catalog.node_digest !== original.node_digest || catalog.policy_digest !== original.policy_digest || !isDeepStrictEqual(catalog.recipes, original.recipes)) throw Error("Agent installed check catalog changed");
+        return host;
+      } catch (error) { await host.close(); throw error; }
+    });
     return this.checks.then(() => undefined);
   }
   async runChecks(raw: unknown) {
     if (!this.checks) throw Error("Agent workspace checks not installed");
     const host = await this.checks;
     if (!isDeepStrictEqual(originalScope(this.local, this.scope.run_id), this.scope)) throw Error("Agent workspace original scope changed");
+    if (this.checkAdmission) this.admittedChecks(this.checkAdmission);
     return host.execute(raw);
   }
   async getCheckCatalog() {
     if (!this.checks) throw Error("Agent workspace checks not installed");
     const host = await this.checks;
     if (!isDeepStrictEqual(originalScope(this.local, this.scope.run_id), this.scope)) throw Error("Agent workspace original scope changed");
+    if (this.checkAdmission) this.admittedChecks(this.checkAdmission);
     return host.getCatalog();
   }
   openIpc(supervisor: ChildProcess, originalSupervisor: AgentWorkspaceIpcEndpoint["supervisor"], originalPeer: AgentWorkspaceIpcEndpoint["peer"], options: { nonce?: string } = {}) {

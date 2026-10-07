@@ -1,7 +1,8 @@
 export { IsolatedProbeAdapter, normalizeOpenCode, validateOperationInput, validateOperationRequest, parseRuntimeOperation, openProbeOperation } from "./operations.js";
 export type { ProbeOperationInput, ProbeDriver, NativeProof, OperationRequest } from "./operations.js";
 export { runOpenCodeProbe, parseRuntimeProbe } from "./probe.js";
-export { RuntimeAdapterError } from "./files.js";
+export { RuntimeAdapterError, digest } from "./files.js";
+export { copyToolJson } from "./tool-journal.js";
 export { recoverProbeOperation, parseRuntimeRecovery } from "./recovery.js";
 export { parseExecutionPolicy, requireSupportedExecutionPolicy, defaultExecutionPolicy } from "./execution-policy.js";
 export { runOpenCodeTransportProbe, parseRuntimeTransportProbe } from "./transport-probe.js";
@@ -27,5 +28,5 @@ export { AgentWorkspaceToolIpc, agentWorkspaceIpcScopeDigest, agentWorkspaceIpcI
 export type { AgentWorkspaceIpcEndpoint } from "./agent-workspace-ipc.js";
 export { runOpenCodeWorkspaceToolRehearsal } from "./opencode-workspace-rehearsal.js";
 export { recoverOpenCodeWorkspaceToolRehearsal } from "./agent-workspace-sandbox-recovery.js";
-export { AgentWorkspaceCheckHost, parseWorkspaceCheckCall, parseWorkspaceCheckRecipe, parseWorkspaceCheckCatalog } from "./workspace-checks.js";
-export type { WorkspaceCheckRecipe, WorkspaceCheckCall, WorkspaceCheckReceipt, WorkspaceCheckCatalog } from "./workspace-checks.js";
+export { AgentWorkspaceCheckHost, WorkspaceCheckInstallation, parseWorkspaceCheckCall, parseWorkspaceCheckRecipe, parseWorkspaceCheckCatalog, parseWorkspaceCheckTemplate } from "./workspace-checks.js";
+export type { WorkspaceCheckRecipe, WorkspaceCheckCall, WorkspaceCheckReceipt, WorkspaceCheckCatalog, WorkspaceCheckTemplate } from "./workspace-checks.js";

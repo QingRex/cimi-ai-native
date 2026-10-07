@@ -13,26 +13,29 @@ import { parseGatewayJson } from "./gateway-conversation.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { parseWorkspaceCheckCatalog, type WorkspaceCheckCatalog } from "./workspace-checks.js";
 
-interface Options {
+interface SharedOptions {
   root: string; binary: string; scope: AgentWorkspaceToolScope;
-  path: string; expectedDigest: string; replacement: string; maxElapsedMs?: number;
-  checkCatalog?: WorkspaceCheckCatalog; checkId?: string;
+  maxElapsedMs?: number;
   connect: (supervisor: ChildProcess, originalSupervisor: CreditProcessIdentity, originalPeer: CreditProcessIdentity, nonce: string) => Promise<Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close">>;
   prepare?: (original: { phase: string; operation: string; supervisor: CreditProcessIdentity }) => void | Promise<void>;
 }
+type Options = SharedOptions & ({ mode?: "files"; path: string; expectedDigest: string; replacement: string; checkCatalog?: WorkspaceCheckCatalog; checkId?: string } |
+  { mode: "checks"; checkCatalog: WorkspaceCheckCatalog; checkId: string });
 const exact = (raw: unknown, keys: string[]): raw is Record<string, unknown> => !!raw && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw).sort().join(",") === [...keys].sort().join(",");
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
 // No credential, URL, arbitrary provider/plugin, command or model input. This
 // entry point tests actual SDK custom tools against constructed model replies;
 // it cannot produce production admission, Run observation or Skill evidence.
 export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
-  const scope = parseAgentWorkspaceToolScope(options.scope), elapsed = options.maxElapsedMs ?? 45000;
-  if (!Number.isSafeInteger(elapsed) || elapsed < 1000 || elapsed > 180000 || typeof options.path !== "string" || !options.path || options.path.length > 240 ||
-    !/^[a-f0-9]{64}$/.test(options.expectedDigest) || typeof options.replacement !== "string" || !options.replacement.isWellFormed() || Buffer.byteLength(options.replacement) > 16384) fail("workspace_rehearsal_input_invalid");
+  const scope = parseAgentWorkspaceToolScope(options.scope), elapsed = options.maxElapsedMs ?? 45000, checksOnly = options.mode === "checks";
+  if (!Number.isSafeInteger(elapsed) || elapsed < 1000 || elapsed > 180000 || options.mode !== undefined && !["files", "checks"].includes(options.mode)) fail("workspace_rehearsal_input_invalid");
+  if (options.mode !== "checks" && (typeof options.path !== "string" || !options.path || options.path.length > 240 || !/^[a-f0-9]{64}$/.test(options.expectedDigest) ||
+    typeof options.replacement !== "string" || !options.replacement.isWellFormed() || Buffer.byteLength(options.replacement) > 16384)) fail("workspace_rehearsal_input_invalid");
   // Detach original arguments before the asynchronous compilation/launch.
   const checkCatalog = options.checkCatalog === undefined ? undefined : parseWorkspaceCheckCatalog(options.checkCatalog, scope);
-  if ((checkCatalog === undefined) !== (options.checkId === undefined) || checkCatalog && !checkCatalog.recipes.some(recipe => recipe.check_id === options.checkId)) fail("workspace_rehearsal_input_invalid");
-  const providerOptions = { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement, ...(checkCatalog ? { check_id: options.checkId! } : {}) };
+  if (checksOnly && !checkCatalog || (checkCatalog === undefined) !== (options.checkId === undefined) || checkCatalog && !checkCatalog.recipes.some(recipe => recipe.check_id === options.checkId)) fail("workspace_rehearsal_input_invalid");
+  const providerOptions = options.mode === "checks" ? { check_id: options.checkId, check_only: true } :
+    { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement, ...(checkCatalog ? { check_id: options.checkId! } : {}) };
   const binaryPath = options.binary, connect = options.connect, prepare = options.prepare;
   const root = directory(options.root), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root), identityBinary = await buildWindowsLauncher(root), pinned = pinBinary(root, binaryPath);
   const operation = directory(join(root, "workspace-tool-rehearsals", randomUUID())), sandbox = directory(join(operation, "sandbox")), config = directory(join(sandbox, "config"));
@@ -45,7 +48,8 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   }
   const entry = 'import { createOpenCodeWorkspaceTools } from "../opencode-workspace-tools.js";\n' +
     (checkCatalog ? 'import { readFileSync } from "node:fs";\nconst catalog = JSON.parse(readFileSync(new URL("../check-catalog.json", import.meta.url), "utf8"));\n' : '') +
-    'const tools = createOpenCodeWorkspaceTools({ pipe: process.env.CIMILOOP_AGENT_WORKSPACE_PIPE, scope_digest: process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE }' + (checkCatalog ? ', catalog' : '') + ');\nexport const read = tools.read;\nexport const replace = tools.replace;\n' + (checkCatalog ? 'export const check = tools.check;\n' : '');
+    'const tools = createOpenCodeWorkspaceTools({ pipe: process.env.CIMILOOP_AGENT_WORKSPACE_PIPE, scope_digest: process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE }' + (checkCatalog ? ', catalog' : '') + ');\n' +
+    (checksOnly ? '' : 'export const read = tools.read;\nexport const replace = tools.replace;\n') + (checkCatalog ? 'export const check = tools.check;\n' : '');
   writeFileSync(join(tools, "cimi.js"), entry, { flag: "wx" }); modules.push({ name: "tools/cimi.js", digest: digest(entry) });
   writeFileSync(join(config, "package.json"), '{"type":"module","private":true}\n', { flag: "wx" });
   writeFileSync(join(config, ".gitignore"), "node_modules\npackage.json\nbun.lock\nbun.lockb\n.gitignore\n", { flag: "wx" });
@@ -121,7 +125,7 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
     const events = stdout.toString("utf8").split(/\r?\n/).filter(line => line.trim().startsWith("{")).map(line => parseGatewayJson(line, 2 * 1024 * 1024) as Record<string, unknown>);
     const disposal = parseGatewayJson(bytesAt(join(operation, "agent-sandbox-cleanup.json")).toString("utf8"), 32768) as Record<string, unknown>;
     const unchanged = modules.every(module => digest(bytesAt(join(config, module.name))).value === module.digest.value) && digest(bytesAt(pinned.path, 512 * 1024 * 1024)).value === pinned.digest.value;
-    const result = { format: "cimiloop/opencode-workspace-rehearsal/1.0.0", operation, original_scope_digest: scopeDigest, check_catalog_digest: checkCatalog?.catalog_digest ?? null, sandbox: original, modules,
+    const result = { format: "cimiloop/opencode-workspace-rehearsal/1.0.0", operation, mode: checksOnly ? "checks" : "files", original_scope_digest: scopeDigest, check_catalog_digest: checkCatalog?.catalog_digest ?? null, sandbox: original, modules,
       binary_digest: pinned.digest, stdout_ref: rawReference(root, stdout, "workspace_sdk_original"), stderr_ref: rawReference(root, stderr, "workspace_sdk_stderr"),
       native_exit: exit, disposal, channel: channel.snapshot(), events, source_bytes_unchanged: unchanged, output_limit_exceeded: outputFailure,
       synthetic_model_responses: true, actual_credentials_read: 0, external_model_requests: 0, formal_agent_execution_enabled: false };

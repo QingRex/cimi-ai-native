@@ -31,12 +31,12 @@ export function createCimiWorkspaceFixture(options) {
       async doStream(input) {
         if (step === 0) canary(!!options.check_id);
         const tools = (input.tools ?? []).map(value => value.name);
-        const permitted = ["cimi_read", "cimi_replace", ...(options.check_id ? ["cimi_check"] : [])];
+        const permitted = options.check_only ? ["cimi_check"] : ["cimi_read", "cimi_replace", ...(options.check_id ? ["cimi_check"] : [])];
         if (permitted.some(name => !tools.includes(name)) || tools.some(name => ![...permitted, "invalid"].includes(name))) throw Error("workspace_fixture_tools_unproven");
-        const current = step++, call = current < 2 ? { type: "tool-call", toolCallId: `original_${current}`, toolName: current === 0 ? "cimi_read" : "cimi_replace",
+        const current = step++, call = options.check_only ? current === 0 ? { type: "tool-call", toolCallId: "original_0", toolName: "cimi_check", input: JSON.stringify({ check_id: options.check_id }) } : null : current < 2 ? { type: "tool-call", toolCallId: `original_${current}`, toolName: current === 0 ? "cimi_read" : "cimi_replace",
           input: JSON.stringify({ path: options.path, expected_digest: options.expectedDigest, ...(current === 1 ? { replacement_utf8: options.replacement } : {}) }) } : current === 2 && options.check_id ?
           { type: "tool-call", toolCallId: "original_2", toolName: "cimi_check", input: JSON.stringify({ check_id: options.check_id }) } : null;
-        if (current > (options.check_id ? 3 : 2)) throw Error("workspace_fixture_steps_exceeded");
+        if (current > (options.check_only ? 1 : options.check_id ? 3 : 2)) throw Error("workspace_fixture_steps_exceeded");
         return { stream: new ReadableStream({ start(controller) {
           controller.enqueue({ type: "stream-start", warnings: [] });
           if (call) for (const item of [{ type: "tool-input-start", id: call.toolCallId, toolName: call.toolName }, { type: "tool-input-delta", id: call.toolCallId, delta: call.input }, { type: "tool-input-end", id: call.toolCallId }, call]) controller.enqueue(item);

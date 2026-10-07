@@ -1,0 +1,202 @@
+{
+  "format": "cimiloop/check-context-admission-verification/1.0.0",
+  "decision": "D-228",
+  "date": "2026-10-08",
+  "base_commit": "38ee61e3118d9deb44b1aa8f3350aebba385e37d",
+  "goal_complete": false,
+  "s1_complete": false,
+  "production_agent_execution_enabled": false,
+  "context_checks_admission_portion_complete": true,
+  "actual_workspace_input_digests": true,
+  "actual_new_source_commit_and_snapshot_verified": true,
+  "actual_sdk_checks_only_verified": true,
+  "protected_production_custody_complete": false,
+  "complete_runtime_lifecycle_recovery_implemented": false,
+  "physical_quota_complete": false,
+  "full_approved_billing_admission_implemented": false,
+  "positive_agent_admission_constructed": true,
+  "original_full_custody_callbacks_constructed_in_tests": true,
+  "tool_rehearsal_model_responses_constructed": true,
+  "predicted_replacement_bytes_used_for_fresh_check": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "compiled_cli_startup": {
+      "command": "node --no-warnings apps/cli/dist/bin.js --help",
+      "exit_code": 0
+    },
+    "repair_regression": {
+      "path": ".cimiloop/check-admission-v1-09/final.json",
+      "bytes": 15800,
+      "sha256": "0d618b7b8b3174ef1160d6de6517e7ee3776698975d46761cd15e937c62bc3c3",
+      "files": 5,
+      "tests": 32,
+      "passed": 32,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "complete_repository_suite": false,
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "source_snapshot": {
+      "path": ".cimiloop/check-admission-v1-09/sources.json",
+      "bytes": 1785,
+      "sha256": "a9cea71ecfb4934f08fc1b38bc95cfc2262694e86509a54bd7c1eaa6c909f483"
+    },
+    "preliminary_reports": [
+      {
+        "path": ".cimiloop/check-admission-v1-09/focused.json",
+        "bytes": 7378,
+        "sha256": "65e330316993ed0bbc1d219b30b5e8f4e5b5e206002255f1b6082a76286f39a4",
+        "files": 2,
+        "tests": 8,
+        "passed": 5,
+        "failed": 3,
+        "pending": 0,
+        "success": false
+      },
+      {
+        "path": ".cimiloop/check-admission-v1-09/focused-refined.json",
+        "bytes": 4167,
+        "sha256": "dc727d7b414e48964654932ba442c08d51bcce6fb4db9d0adafa794c279637f0",
+        "files": 2,
+        "tests": 8,
+        "passed": 8,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      }
+    ],
+    "broad_initial": {
+      "path": ".cimiloop/check-admission-v1-09/broad-initial.json",
+      "bytes": 78838,
+      "sha256": "21cf32b4e5dd1b7a5bebadb5438fa9bf20059eaa8458ce23c979a40946e57214",
+      "files": 20,
+      "tests": 158,
+      "passed": 155,
+      "failed": 3,
+      "pending": 0,
+      "success": false
+    },
+    "broad_initial_source_snapshot": {
+      "path": ".cimiloop/check-admission-v1-09/sources-initial.json",
+      "bytes": 1785,
+      "sha256": "ee130545588f321eb26bae1a0592a793b3ac97bfed9dc6891d4b14438c49e237"
+    },
+    "preliminary_scope": "First focused run had three incorrect error-shape expectations: Kernel returns DomainError directly, not an ok/error wrapper. Corrected the assertions without weakening production guards. Type checking also corrected test helper name and spread payload. Refined focused run passed eight tests. Frozen broad run covered twenty files and 158 tests, with 155 passing and three failures caused by compiled cross-package source imports. Fixed only import/export plumbing in two source files; preserved initial report. Final five-file 32-test run repeats both failing files, both new admission/template files and workbench server. Other fifteen files passed their initial run; no claim that all 158 were rerun against final source.",
+    "schemas": {
+      "total": 242,
+      "unchanged": 242,
+      "added": 0,
+      "changed": 0,
+      "protocol_status_clean": true,
+      "public_native_sources_unchanged": 4,
+      "comparison": "exact text normalized CRLF to LF"
+    },
+    "documentation": {
+      "files": 10,
+      "links": 300,
+      "broken": []
+    },
+    "commit_baseline": {
+      "files": 842,
+      "problems": []
+    }
+  },
+  "implemented": {
+    "installation": "Scope-free original repository identity, pinned Node and unchanged project policy prepare before Context and Run IDs exist; rechecks bytes and OS root identity. Existing policy and 128 logical slots are not reset.",
+    "context": "Composite content-addressed admission retains required original full Runtime admission. Pins original definitions, permissions, budget, source and actual workspace manifest plus templates. Mutable Task usage/revision and later generated IDs are excluded. Context contains the composite reference; run-scoped catalog follows reservation, avoiding circular hashes.",
+    "inputs": "Trusted fixed harness entry requires a digest. Non-fixed inputs derive digests from original WorkspaceManifest content references, within original WorkItem resources and bounded valid UTF-8. No model-provided future replacement bytes.",
+    "custody": "Required original full admission and current custody callbacks remain authoritative. Original records, templates, Node, policy, Context/Run/Scope are rechecked. No default success port, full Agent host, account admission or result lifecycle is installed.",
+    "tools": "Admitted checks install from original native Run and Context. Manual recipes cannot replace a composite admitted catalog. Original Kernel authority, file host, IPC and cancellation remain; registered check entry and original custody are required.",
+    "sdk": "Checks-only rehearsal stages only cimi_check, without path/replacement inputs. Actual OpenCode and Node run against captured newly committed source; model responses remain constructed and no external model traffic occurs."
+  },
+  "actual_validation": [
+    "Unpredictable actual source edit and Git commit, fresh SourceSnapshot/Context, old Context reservation refused, admission reopened, native Run reserved, actual SDK checks-only passes and original session/message/call identity matches receipt. Run remains Reserved; Task usage and event sequence do not advance.",
+    "Source changes after reservation: admitted catalog unchanged, check records not_started without dispatch or unresolved effect.",
+    "Fixed harness modified: Context preparation refused without new Context/Run/event.",
+    "Original full admission epoch or template changes: reservation refused with INPUT_CHANGED.",
+    "Unregistered check entry, unavailable original custody and Human revocation deny authority, without check invocation.",
+    "Damaged composite content or original project policy refuses access; original bytes restored in test."
+  ],
+  "unchanged": {
+    "protocol_schemas": 242,
+    "native_database_format": 10,
+    "workspace_tool_receipt_format": "cimiloop/workspace-tool-receipt/1.0.0",
+    "workspace_check_receipt_format": "cimiloop/workspace-check-receipt/1.0.0",
+    "public_native_control_sources_unchanged": 4,
+    "default_cli_workbench_formal_agent_entry": "not installed",
+    "independent_readonly_context_permissions": "unchanged"
+  },
+  "boundaries": {
+    "verification": "Fixed self-check is not independent Matt review, actual Skill invocation or fresh Superpowers behavior evidence.",
+    "runtime": "Checks portion only; formal production qualification/custody/result lifecycle, total preparation/nested Run supervision, physical quotas, retained history and complete recovery remain required. Historical missing-registration and cross-logon resources remain Unknown.",
+    "external": "Zhipu Provider confirmed; exact approved model, plan and cash/credit ceiling still missing. No credential access or model request."
+  },
+  "remaining_acceptance": [
+    "V1-09 formal SDK/tool/model/account custody and full Runtime lifecycle; approved model/plan/service bounds/fees/billing, physical quotas/history and complete recovery.",
+    "V1-21 actual Skills and Human/Matt clarification before Plan/Task.",
+    "V1-22 independent complete review, fresh Superpowers verification and actual behavior comparison.",
+    "V1-10 formal workbench Agent execute/status/stop/original recovery.",
+    "V1-11 genuine ordinary Change through independent review/interruption/resumption to ReadyForDelivery, full S1 acceptance and test guide."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/local-app/src/agent-workspace-tools-local.ts",
+      "bytes": 9634,
+      "sha256": "c7996a72304d6e486de63bafba109c2992355643f37e3e4178e7bbff939f162c"
+    },
+    {
+      "path": "packages/local-app/src/index.ts",
+      "bytes": 1649,
+      "sha256": "2bd2983c2a2b780e0093f79f85bb11cc69122d077c33c467b5f502b25e981e77"
+    },
+    {
+      "path": "packages/runtime-adapter/native/AgentWorkspaceSandbox.cs",
+      "bytes": 28988,
+      "sha256": "c1741e6125a7426c3436f3a23074ff9c4fe7ce41374b2333efd88d5dff5b50bd"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 3236,
+      "sha256": "ff211f5a50e4d4e343f807705bbf8036986c1c61adf1c672fb1ad94df75ff0b4"
+    },
+    {
+      "path": "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+      "bytes": 16584,
+      "sha256": "043b6a6b630c1ac93f4adafc06132770ac463b6f148b2cd02d355e6df714bf3c"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-checks.ts",
+      "bytes": 35516,
+      "sha256": "4402cfb88d49e261257fe51483d38a30cbf13e9588796573b3954e6a7842aa98"
+    },
+    {
+      "path": "packages/runtime-adapter/transport/opencode-workspace-provider-fixture.mjs",
+      "bytes": 4782,
+      "sha256": "9f98cadecf0180e2becec8eef6be76c7af8de4ec5fa93f64fb477a3a76267ebb"
+    },
+    {
+      "path": "packages/local-app/src/agent-check-admission-local.ts",
+      "bytes": 12968,
+      "sha256": "0aa5a9c2809db85f3d416105aaf58e6748be4a1d5401037ff2e0686d5e018cfc"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-check-template.test.ts",
+      "bytes": 2047,
+      "sha256": "b0d6a6b93cffd7b855ef3c085f46c281fd22d6397f317d78ad14bf3e2f775a36"
+    },
+    {
+      "path": "tests/scenarios/agent-check-admission-runtime.test.ts",
+      "bytes": 14027,
+      "sha256": "3bcfc5b9086db68f2a3b015bf76c9c65060660a11d02d0feb23264629cd6060e"
+    }
+  ]
+}

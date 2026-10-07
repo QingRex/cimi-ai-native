@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdirSync, writeFileSync, existsSync, readdirSync, realpathSync, unlinkSync, rmdirSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, readdirSync, realpathSync, unlinkSync, rmdirSync, lstatSync } from "node:fs";
 import { dirname, join, basename } from "node:path";
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
@@ -15,6 +15,11 @@ import { directory, bytesAt, digest, atomicJson, RuntimeAdapterError, assertOrdi
 export interface WorkspaceCheckRecipe {
   check_id: string; profile: "node_syntax" | "node_test"; entry: string;
   inputs: { path: string; expected_digest: string }[]; max_elapsed_ms: number; max_output_bytes: number;
+}
+// Fixed digests protect the harness. Other files take their digests from the
+// actual Native Context workspace snapshot, never predicted model edits.
+export interface WorkspaceCheckTemplate extends Omit<WorkspaceCheckRecipe, "inputs"> {
+  inputs: { path: string; expected_digest?: string }[];
 }
 export interface WorkspaceCheckCall { format: "cimiloop/workspace-check-call/1.0.0"; call_id: string; check_id: string }
 export interface WorkspaceCheckCatalog {
@@ -32,6 +37,49 @@ const exact = (value: unknown, keys: string[]): value is Record<string, unknown>
 const id = (value: unknown): value is string => typeof value === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(value);
 const sha = (value: unknown): value is string => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
+const checkPath = (value: unknown): value is string => typeof value === "string" && value.isWellFormed() && !!value && Buffer.byteLength(value) <= 1024 &&
+  !/[\\:%*?\x00-\x1f]/.test(value) && !value.split("/").some(part => !part || part === "." || part === ".." || part !== part.trim() || part.endsWith(".") ||
+    [".git", ".cimiloop"].includes(part.toLowerCase()) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part));
+export function parseWorkspaceCheckTemplate(raw: unknown): WorkspaceCheckTemplate {
+  const value = copyToolJson(raw);
+  if (!exact(value, ["check_id", "profile", "entry", "inputs", "max_elapsed_ms", "max_output_bytes"]) || !id(value.check_id) ||
+    !["node_syntax", "node_test"].includes(String(value.profile)) || !checkPath(value.entry) || !/\.(?:js|mjs|cjs)$/.test(value.entry) ||
+    !Array.isArray(value.inputs) || !value.inputs.length || value.inputs.length > 32 || !Number.isSafeInteger(value.max_elapsed_ms) ||
+    Number(value.max_elapsed_ms) < 100 || Number(value.max_elapsed_ms) > 30000 || !Number.isSafeInteger(value.max_output_bytes) ||
+    Number(value.max_output_bytes) < 1024 || Number(value.max_output_bytes) > 131072) fail("workspace_check_template_invalid");
+  const seen = new Set<string>();
+  for (const source of value.inputs) {
+    if (!exact(source, ["path", ...(source && typeof source === "object" && "expected_digest" in source ? ["expected_digest"] : [])]) ||
+      !checkPath(source.path) || "expected_digest" in source && !sha(source.expected_digest) || seen.has(source.path.toLowerCase())) fail("workspace_check_template_invalid");
+    seen.add(source.path.toLowerCase());
+  }
+  if (!value.inputs.some(source => source.path === value.entry && sha(source.expected_digest))) fail("workspace_check_fixed_entry_required");
+  return value as unknown as WorkspaceCheckTemplate;
+}
+
+// Installation is independent of Run IDs and Context digests. Context admission
+// can pin these original bytes before a Run exists, without recursive hashes.
+export class WorkspaceCheckInstallation {
+  private constructor(readonly files: WindowsWorkspaceFileBroker, readonly node: ReturnType<typeof pinBinary>, readonly root: string,
+    readonly policyDigest: string, private readonly encoded: string, private readonly originalBinary: string, private readonly originalRoot: { dev: string; ino: string }) {}
+  static async open(options: { repositoryPath: string; dataDirectory: string; nodeBinary: string; projectId: string }): Promise<WorkspaceCheckInstallation> {
+    const { repositoryPath, dataDirectory, nodeBinary, projectId } = options;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(projectId)) fail("workspace_check_project_invalid");
+    const files = await WindowsWorkspaceFileBroker.open(repositoryPath, dataDirectory), node = pinBinary(dataDirectory, nodeBinary), root = directory(join(dataDirectory, "workspace-checks", projectId));
+    const policy = { format: "cimiloop/workspace-check-policy/1.0.0", project_id: projectId, repository_path_digest: digest(files.repositoryPath.toLowerCase()).value,
+      root_identity: files.rootIdentity, node_digest: node.digest.value, maximum_calls: 128 }, policyDigest = digest(JSON.stringify(policy)).value, encoded = JSON.stringify({ policy, policy_digest: policyDigest });
+    try { writeFileSync(join(root, "policy.json"), encoded, { flag: "wx" }); }
+    catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "EEXIST")) throw error; }
+    const stat = lstatSync(files.repositoryPath, { bigint: true }), installation = new WorkspaceCheckInstallation(files, node, root, policyDigest, encoded, nodeBinary, { dev: String(stat.dev), ino: String(stat.ino) });
+    installation.verify(); return installation;
+  }
+  verify(): void {
+    const stat = lstatSync(assertOrdinaryPath(this.files.repositoryPath), { bigint: true });
+    if (!stat.isDirectory() || String(stat.dev) !== this.originalRoot.dev || String(stat.ino) !== this.originalRoot.ino ||
+      bytesAt(join(this.root, "policy.json"), 4096).toString("utf8") !== this.encoded || digest(bytesAt(this.node.path, 512 * 1024 * 1024)).value !== this.node.digest.value ||
+      digest(bytesAt(this.originalBinary, 512 * 1024 * 1024)).value !== this.node.digest.value) fail("workspace_check_policy_conflict");
+  }
+}
 export function parseWorkspaceCheckCall(raw: unknown): WorkspaceCheckCall {
   const value = copyToolJson(raw);
   if (!exact(value, ["format", "call_id", "check_id"]) || value.format !== "cimiloop/workspace-check-call/1.0.0" || !id(value.call_id) || !id(value.check_id)) fail("workspace_check_call_invalid");
@@ -87,17 +135,8 @@ export class AgentWorkspaceCheckHost {
     const recipes = raw.recipes.map(value => parseWorkspaceCheckRecipe(value, scope));
     if (new Set(recipes.map(value => value.check_id)).size !== recipes.length) fail("workspace_check_recipe_invalid");
     const options = { ...raw, scope, recipes }, binary = raw.nodeBinary;
-    const files = await WindowsWorkspaceFileBroker.open(options.repositoryPath, options.dataDirectory), launcher = await buildWindowsLauncher(options.dataDirectory);
-    const node = pinBinary(options.dataDirectory, binary), owners = await creditHostDependencies(launcher), launcherDigest = digest(bytesAt(launcher)).value;
-    const root = directory(join(options.dataDirectory, "workspace-checks", scope.project_id));
-    const policy = { format: "cimiloop/workspace-check-policy/1.0.0", project_id: scope.project_id, repository_path_digest: digest(files.repositoryPath.toLowerCase()).value,
-      root_identity: files.rootIdentity, node_digest: node.digest.value, maximum_calls: 128 }, policyDigest = digest(JSON.stringify(policy)).value, marker = join(root, "policy.json");
-    // Publish once with exclusive creation; a competing host cannot overwrite
-    // the original policy or silently choose another executable/workspace.
-    const encoded = JSON.stringify({ policy, policy_digest: policyDigest });
-    try { writeFileSync(marker, encoded, { flag: "wx" }); }
-    catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "EEXIST")) throw error; }
-    if (bytesAt(marker, 4096).toString("utf8") !== encoded) fail("workspace_check_policy_conflict");
+    const installation = await WorkspaceCheckInstallation.open({ repositoryPath: options.repositoryPath, dataDirectory: options.dataDirectory, nodeBinary: binary, projectId: scope.project_id });
+    const { files, node, root, policyDigest } = installation, launcher = await buildWindowsLauncher(options.dataDirectory), owners = await creditHostDependencies(launcher), launcherDigest = digest(bytesAt(launcher)).value;
     return new AgentWorkspaceCheckHost(options, files, launcher, node, owners, root, policyDigest, launcherDigest);
   }
   getCatalog(): WorkspaceCheckCatalog {

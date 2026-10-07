@@ -186,10 +186,13 @@ partial class AppContainer {
         !String.Equals(Image(owner),(string)originalOwner["image"],StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
       int elapsed=Convert.ToInt32(config["elapsed_ms"]); if(elapsed<1000||elapsed>180000) throw new InvalidDataException();
       var options=(Dictionary<string,object>)config["provider_options"];
-      if(options.ContainsKey("check_id")) {
+      bool checksOnly=options.ContainsKey("check_only");
+      if(checksOnly) {
+        AgentKeys(options,"check_id","check_only"); if(!(options["check_only"] is bool)||!(bool)options["check_only"]) throw new InvalidDataException();
+      } else if(options.ContainsKey("check_id")) {
         AgentKeys(options,"path","expectedDigest","replacement","check_id");
-        if(!(options["check_id"] is string)||!System.Text.RegularExpressions.Regex.IsMatch((string)options["check_id"],"^[a-zA-Z0-9_-]{1,128}$")) throw new InvalidDataException();
       } else AgentKeys(options,"path","expectedDigest","replacement");
+      if(options.ContainsKey("check_id")&&(!(options["check_id"] is string)||!System.Text.RegularExpressions.Regex.IsMatch((string)options["check_id"],"^[a-zA-Z0-9_-]{1,128}$"))) throw new InvalidDataException();
       profile="CimiLoop.AgentWorkspace."+guid.ToString("N");
       agentResourcePath=Path.Combine(Path.GetDirectoryName(root),"agent-sandbox-resources.json");
       agentResources=new Dictionary<string,object> {
@@ -223,7 +226,8 @@ partial class AppContainer {
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_PIPE","\\\\.\\pipe\\CimiLoop.AgentWorkspace."+pipeGuid.ToString("D"));
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_SCOPE",(string)config["scope_digest"]);
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_PRIVATE_CANARY",Path.Combine(Path.GetDirectoryName(root),"workspace-private-canary.txt"));
-      var permission=new Dictionary<string,object> { {"*","deny"},{"cimi_read","allow"},{"cimi_replace","allow"} };
+      var permission=new Dictionary<string,object> { {"*","deny"} };
+      if(!checksOnly) { permission.Add("cimi_read","allow"); permission.Add("cimi_replace","allow"); }
       if(options.ContainsKey("check_id")) permission.Add("cimi_check","allow");
       var model=new { name="Constructed workspace tool responses",tool_call=true,limit=new { context=65536,output=512 } };
       var models=new Dictionary<string,object> { {"workspace-fixture",model} };
