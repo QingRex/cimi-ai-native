@@ -1,0 +1,258 @@
+{
+  "format": "cimiloop/fixed-method-read-verification/1.0.0",
+  "decision": "D-212",
+  "date": "2026-10-07",
+  "base_commit": "600fdee",
+  "scope": "fixed method definition reads with real pinned OpenCode SDK read effects; synthetic TLS/IPC responses",
+  "goal_complete": false,
+  "formal_execution_enabled": false,
+  "actual_skill_behavior_evaluated": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": "passed",
+    "affected_regression": {
+      "files": 2,
+      "tests": 13,
+      "passed": 13
+    },
+    "protocol_and_database": "unchanged; database format 9",
+    "delivery": {
+      "files": 8,
+      "links": 213,
+      "broken": [],
+      "baseline": {
+        "files": 704,
+        "bytes": 52248659,
+        "problems": []
+      }
+    }
+  },
+  "observations": [
+    {
+      "name": "matt-clarification",
+      "source_digest": {
+        "algorithm": "sha256",
+        "value": "f59f753f16a25d089441a5f8fca3e8c209fe8b84e1c5f19a316e73decc42aed2"
+      },
+      "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+      "modules": [
+        "grill-me",
+        "grilling"
+      ],
+      "operation_key": "conversation_f27952629af2428990932849cc9b9d4b",
+      "outcome": "Passed",
+      "loader_failure": null,
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false,
+      "behavior_evaluation": false,
+      "skill_loader_verified": false,
+      "method_read_verified": true,
+      "upstream_requests": 3,
+      "private_state_removed": true,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f27952629af2428990932849cc9b9d4b/result.json",
+          "bytes": 5220,
+          "sha256": "fba02dfaf3618083e5a06b3e2bdde9983d31fc643a7fa3932b5f8c33fe30052e"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f27952629af2428990932849cc9b9d4b/stdout.raw",
+          "bytes": 10284,
+          "sha256": "e9aa43d42000ed4f22a63fbd9ded6b36927001577326d76f8e1208fd71628ac6"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f27952629af2428990932849cc9b9d4b/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f27952629af2428990932849cc9b9d4b/native-proof.json",
+          "bytes": 115,
+          "sha256": "d8c001a56ab1109681cb39d5ad6691bf01ee6cadc61296a2afb1657303c86af8"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f27952629af2428990932849cc9b9d4b/native-ownership.json",
+          "bytes": 1141,
+          "sha256": "dc7affc8277e9829bc09e998077cea74db81bb250e33efd7f9c44515080af04f"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f27952629af2428990932849cc9b9d4b/execution-policy-proof.json",
+          "bytes": 304,
+          "sha256": "49ff724950721305482bdc91d52dc4eca5b808445e4692d9590830955a0c3a1a"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f27952629af2428990932849cc9b9d4b/conversation-host-proof.json",
+          "bytes": 1725,
+          "sha256": "d626802b29cf2c0073cad391ecbb303d256f438b2eae69347ace3846f52083a4"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f27952629af2428990932849cc9b9d4b/conversation-transport-proof.json",
+          "bytes": 1151,
+          "sha256": "2a0067512d1e12cb087eb56a8d2833cc3a7fcdb6b5d0c1ecfc8f95c95acc83ff"
+        }
+      ]
+    },
+    {
+      "name": "matt-review",
+      "source_digest": {
+        "algorithm": "sha256",
+        "value": "2b4521ccb3592cad05254884918e3556f67d9b72b7bf9715da0124e607d6dccc"
+      },
+      "commit": "6fd947921b935b7e1e69293a200400f0fdd5c15f",
+      "modules": [
+        "code-review"
+      ],
+      "operation_key": "conversation_f952444a86264b9bb0787e89b1dcee63",
+      "outcome": "Passed",
+      "loader_failure": null,
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false,
+      "behavior_evaluation": false,
+      "skill_loader_verified": false,
+      "method_read_verified": true,
+      "upstream_requests": 2,
+      "private_state_removed": true,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f952444a86264b9bb0787e89b1dcee63/result.json",
+          "bytes": 4671,
+          "sha256": "5aea24368268679c16f79eb1d75adfe4777a4142fbd8b666620ec6be60ef3333"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f952444a86264b9bb0787e89b1dcee63/stdout.raw",
+          "bytes": 17785,
+          "sha256": "12e9159659f4bb16b79d504fe4aea7afec81a690e675529768cae04f86a77cc3"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f952444a86264b9bb0787e89b1dcee63/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f952444a86264b9bb0787e89b1dcee63/native-proof.json",
+          "bytes": 114,
+          "sha256": "495c71268ff75119b467842b02399d8a304fd6f9bb61939eeb58af41f1a41574"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f952444a86264b9bb0787e89b1dcee63/native-ownership.json",
+          "bytes": 1141,
+          "sha256": "79d92041c273c803a6533cfbc29757c3c80048a1086f299912c2975a47c005da"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f952444a86264b9bb0787e89b1dcee63/execution-policy-proof.json",
+          "bytes": 303,
+          "sha256": "5845b1e60202961cb2b29c73ec2684b801dad2b1fc6cea98e4a1c1028b8f7b93"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f952444a86264b9bb0787e89b1dcee63/conversation-host-proof.json",
+          "bytes": 1536,
+          "sha256": "1abfc21b16b18e2b03b095c16e563755ad6e3933ac73c6b2234d5180d80a12d5"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_f952444a86264b9bb0787e89b1dcee63/conversation-transport-proof.json",
+          "bytes": 955,
+          "sha256": "3af7bc4f885cf247ccb898fe8ea1cab5f95540c31849947c1dbb84e5fe698e5f"
+        }
+      ]
+    },
+    {
+      "name": "superpowers-verification",
+      "source_digest": {
+        "algorithm": "sha256",
+        "value": "ca2e6b828d23532ebc5646d89a83f2162106b95bbc3b90606ab41d332c8c9a11"
+      },
+      "commit": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+      "modules": [
+        "verification-before-completion"
+      ],
+      "operation_key": "conversation_1df15024e6c349568445d1ff7e1c083d",
+      "outcome": "Passed",
+      "loader_failure": null,
+      "actual_credentials_read": 0,
+      "external_model_requests": 0,
+      "formal_execution_enabled": false,
+      "behavior_evaluation": false,
+      "skill_loader_verified": false,
+      "method_read_verified": true,
+      "upstream_requests": 2,
+      "private_state_removed": true,
+      "evidence": [
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_1df15024e6c349568445d1ff7e1c083d/result.json",
+          "bytes": 4690,
+          "sha256": "7b57daedf8dc8e8dac63abe2998c6ad0254f3bee247785f386f4bc4eef808cab"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_1df15024e6c349568445d1ff7e1c083d/stdout.raw",
+          "bytes": 11730,
+          "sha256": "5450e4728a0a5c30c2c5b7531ec9d925b480cf9f6385a65b6a063dde9717db47"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_1df15024e6c349568445d1ff7e1c083d/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_1df15024e6c349568445d1ff7e1c083d/native-proof.json",
+          "bytes": 114,
+          "sha256": "bf02fe8fb0dd3b01227d2580dfa151addd8915f698c79fd60fbd36271bb3fe04"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_1df15024e6c349568445d1ff7e1c083d/native-ownership.json",
+          "bytes": 1141,
+          "sha256": "9c518ba6ea107f20f4e9e2e9b3c1598ab0681b0d5c1d618e6f469e53571f318d"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_1df15024e6c349568445d1ff7e1c083d/execution-policy-proof.json",
+          "bytes": 303,
+          "sha256": "5b09a6ab31ae89ecf53cea29cf49119abaa8af270c75140cab93593bda4015bb"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_1df15024e6c349568445d1ff7e1c083d/conversation-host-proof.json",
+          "bytes": 1536,
+          "sha256": "c5fc7694063414f4416fa66dbe923e3994205a080cc6979e65271ce708ad54c1"
+        },
+        {
+          "path": ".cimiloop/skill-v1-21-read/upstream-evidence/conversation_1df15024e6c349568445d1ff7e1c083d/conversation-transport-proof.json",
+          "bytes": 955,
+          "sha256": "17d50b3e5ce259aa4a9e678d7349ac70b2a167a90bdaaf949d0c986864d95fef"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cimiloop/skill-v1-21-read/check.log",
+      "bytes": 79,
+      "sha256": "c55c351e02a8c7e869f1623138143c540d911601f91787902b1b355e30d00508"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-read/test.log",
+      "bytes": 195,
+      "sha256": "8c320f39f0b403637455919644d6d00d66612961cd725eb0a01eb5aa48e9af8a"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-read/actual-read.log",
+      "bytes": 386,
+      "sha256": "4412aa990da772421e695bf20922d4c6c2392bc4f0ca87d8f8fddc31540e8c47"
+    },
+    {
+      "path": ".cimiloop/skill-v1-21-read/actual-read-result.json",
+      "bytes": 8791,
+      "sha256": "8f021481231fc0e64aee099e5ce16306ed3b301c2dff62dd173e26914be008f4"
+    }
+  ],
+  "limitations": [
+    "Read effects are not builtin Skill-tool completion; the existing qualification verifier and D-211 failures remain unchanged.",
+    "Versioned named invocation mapping, adapter provenance, referenced content, permission intersection and recovery remain pending.",
+    "Full Human clarification, independent review, formal Context/Run invocation records, real behavior evaluation and the Runtime/S1 requirements remain pending."
+  ],
+  "sources": [
+    "https://github.com/anomalyco/opencode/blob/v1.18.34/packages/opencode/src/plugin/index.ts",
+    "https://github.com/anomalyco/opencode/blob/v1.18.34/packages/opencode/src/tool/registry.ts"
+  ]
+}

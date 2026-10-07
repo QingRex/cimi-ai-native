@@ -152,3 +152,5 @@ npx pnpm@12.4.2 --filter @cimiloop/demo-web dev
 已有M0项目的操作说明见 [数据库迁移与恢复](docs/implementation/CimiLoop-M0数据库迁移与恢复-v0.1.md)。正常入口只提示迁移，不自动升级实际项目。
 
 M0 已补齐 CLI 机器输出 Schema、JSON Schema 制品同步与全量注册、共享 Store Port 契约，以及事务回滚、幂等重放、双客户端 Revision 竞争、响应丢失恢复、数据库重开与 Outbox Lease 恢复测试，并已在 Node.js 24.15.0 + pnpm 12.4.2 基线上完成复验。M0 现已冻结；原 M1 的约定、计划、风险、决定和知识影响进入 S1 当前任务。M0 实现边界见 [M0 实施架构](docs/implementation/2026-09-19-cimiloop-m0实施架构-v0.1.md)。
+
+2026-10-07 D-212验证固定方法读取适配：三个上游包的全部声明定义经实际OpenCode只读效果核对通过，保持无网络与单进程隔离；仍为合成读取演练，不是内置Skill成功或完整方法调用。见[适配验证](docs/implementation/CimiLoop-固定方法读取适配验证-v0.1.md)。
