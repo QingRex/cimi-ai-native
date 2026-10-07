@@ -64,8 +64,8 @@ test('actual edited query', async () => { await new Promise(done=>setTimeout(don
     expect(digest(readFileSync(binary)).value).toBe("5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e");
     const options = { root: dataDirectory, binary, scope, path: "src/query.ts", expectedDigest: digest(readFileSync(join(root, "src/query.ts"))).value, replacement,
       checkCatalog, checkId: "query_test", maxElapsedMs: 90000,
-      connect: (supervisor: Parameters<typeof service.openIpc>[0], originalSupervisor: Parameters<typeof service.openIpc>[1], originalPeer: Parameters<typeof service.openIpc>[2], nonce: string) =>
-        service.openIpc(supervisor, originalSupervisor, originalPeer, { nonce }) };
+      connect: (supervisor: Parameters<typeof service.openIpc>[0], originalSupervisor: Parameters<typeof service.openIpc>[1], originalPeer: Parameters<typeof service.openIpc>[2], nonce: string, signal?: AbortSignal) =>
+        service.openIpc(supervisor, originalSupervisor, originalPeer, { nonce, signal }) };
     return { ...f, root, reserved, scope, dataDirectory, recipe, service, options, assess };
   }
   it("checks actual edited bytes beyond the old 20-second channel limit and replays the original passed operation once", async () => {

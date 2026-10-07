@@ -39,8 +39,8 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("OpenCode
     const binary = join(process.env.APPDATA!, "npm/node_modules/opencode-ai/node_modules/opencode-windows-x64/bin/opencode.exe");
     expect(digest(readFileSync(binary)).value).toBe("5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e");
     const options = { root: dataDirectory, binary, scope, path: "src/query.ts", expectedDigest: digest(readFileSync(join(root, "src/query.ts"))).value, replacement: "export const query = () => 7;\n",
-      connect: (supervisor: Parameters<typeof service.openIpc>[0], originalSupervisor: Parameters<typeof service.openIpc>[1], originalPeer: Parameters<typeof service.openIpc>[2], nonce: string) =>
-        service.openIpc(supervisor, originalSupervisor, originalPeer, { nonce }) };
+      connect: (supervisor: Parameters<typeof service.openIpc>[0], originalSupervisor: Parameters<typeof service.openIpc>[1], originalPeer: Parameters<typeof service.openIpc>[2], nonce: string, signal?: AbortSignal) =>
+        service.openIpc(supervisor, originalSupervisor, originalPeer, { nonce, signal }) };
     return { ...f, root, reserved, dataDirectory, service, options };
   }
   it("uses real SDK call IDs, an OS-derived AppContainer SID and the same original ledger for read/replace", async () => {

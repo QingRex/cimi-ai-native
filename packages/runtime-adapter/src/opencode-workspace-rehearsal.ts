@@ -12,12 +12,13 @@ import { bytesAt, digest, directory, atomicJson, rawReference, RuntimeAdapterErr
 import { parseGatewayJson } from "./gateway-conversation.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { parseWorkspaceCheckCatalog, type WorkspaceCheckCatalog } from "./workspace-checks.js";
+import { ExecutionLifetime } from "./execution-lifetime.js";
 
 interface SharedOptions {
   root: string; binary: string; scope: AgentWorkspaceToolScope;
-  maxElapsedMs?: number;
-  connect: (supervisor: ChildProcess, originalSupervisor: CreditProcessIdentity, originalPeer: CreditProcessIdentity, nonce: string) => Promise<Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close">>;
-  prepare?: (original: { phase: string; operation: string; supervisor: CreditProcessIdentity }) => void | Promise<void>;
+  maxElapsedMs?: number; signal?: AbortSignal;
+  connect: (supervisor: ChildProcess, originalSupervisor: CreditProcessIdentity, originalPeer: CreditProcessIdentity, nonce: string, signal: AbortSignal) => Promise<Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close">>;
+  prepare?: (original: { phase: string; operation: string; supervisor: CreditProcessIdentity }, signal: AbortSignal) => void | Promise<void>;
 }
 type Options = SharedOptions & ({ mode?: "files"; path: string; expectedDigest: string; replacement: string; checkCatalog?: WorkspaceCheckCatalog; checkId?: string } |
   { mode: "checks"; checkCatalog: WorkspaceCheckCatalog; checkId: string });
@@ -37,7 +38,14 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   const providerOptions = options.mode === "checks" ? { check_id: options.checkId, check_only: true } :
     { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement, ...(checkCatalog ? { check_id: options.checkId! } : {}) };
   const binaryPath = options.binary, connect = options.connect, prepare = options.prepare;
-  const root = directory(options.root), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root), identityBinary = await buildWindowsLauncher(root), pinned = pinBinary(root, binaryPath);
+  const lifetime = new ExecutionLifetime(elapsed, options.signal);
+  try {
+  lifetime.check();
+  const root = directory(options.root), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root, lifetime.signal);
+  lifetime.check();
+  const identityBinary = await buildWindowsLauncher(root, lifetime.signal);
+  lifetime.check();
+  const pinned = pinBinary(root, binaryPath); lifetime.check();
   const operation = directory(join(root, "workspace-tool-rehearsals", randomUUID())), sandbox = directory(join(operation, "sandbox")), config = directory(join(sandbox, "config"));
   directory(join(sandbox, "workspace")); directory(join(sandbox, "state")); const tools = directory(join(config, "tools"));
   const modules = ["agent-workspace-ipc-client.mjs", "opencode-workspace-tools.js", "opencode-workspace-provider-fixture.mjs"].map(name => {
@@ -55,7 +63,8 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   writeFileSync(join(config, ".gitignore"), "node_modules\npackage.json\nbun.lock\nbun.lockb\n.gitignore\n", { flag: "wx" });
   const globalConfig = directory(join(config, "global", "opencode")); writeFileSync(join(globalConfig, ".gitignore"), "node_modules\npackage.json\npackage-lock.json\nbun.lock\n.gitignore\n", { flag: "wx" });
   writeFileSync(join(operation, "workspace-private-canary.txt"), "Synthetic private workspace canary\n", { flag: "wx" });
-  const owner = (await nativeControl(identityBinary, ["--identity", String(process.pid)])).value;
+  const owner = (await nativeControl(identityBinary, ["--identity", String(process.pid)], lifetime.signal)).value;
+  lifetime.check();
   if (!validWorkspaceWorkerIdentity(owner)) fail("workspace_rehearsal_owner_unproven");
   const nonce = randomUUID(), pipeNonce = randomUUID(), scopeDigest = agentWorkspaceIpcScopeDigest(scope);
   const originalConfig = { format: "cimiloop/agent-workspace-sandbox-config/1.0.0", nonce, root: sandbox, binary: pinned.path, owner,
@@ -66,9 +75,11 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   const output: Buffer[] = [], errors: Buffer[] = [];
   const phases = ["registered", "profile_intent", "grants_intent", "granted", "mapped", "process_create_intent", "runtime_created"];
   let preparationCount = 0, originalSupervisor: CreditProcessIdentity | undefined;
+  let resumed = false;
   let resolveReady!: (value: Record<string, unknown>) => void, rejectReady!: (error: unknown) => void;
   const ready = new Promise<Record<string, unknown>>((done, reject) => { resolveReady = done; rejectReady = reject; }); void ready.catch(() => {});
   const cancel = () => native.stdin.end();
+  lifetime.signal.addEventListener("abort", cancel, { once: true });
   const capture = (bytes: Buffer, into: Buffer[]) => { total += bytes.length; if (total > 2 * 1024 * 1024) { outputFailure = true; cancel(); } else into.push(bytes); };
   native.stdout.on("data", (bytes: Buffer) => {
     capture(bytes, output); if (suspended || outputFailure) return; buffer = Buffer.concat([buffer, bytes]);
@@ -81,7 +92,8 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
         if (!exact(value, ["format", "nonce", "phase", "supervisor"]) || value.nonce !== nonce || value.phase !== phases[preparationCount] ||
           !validWorkspaceWorkerIdentity(value.supervisor) || !originalSupervisor || !isDeepStrictEqual({ ...value.supervisor }, { ...originalSupervisor }) || buffer.length) fail("workspace_rehearsal_preparation_unproven");
         const phase = phases[preparationCount++]!;
-        void Promise.resolve().then(() => prepare?.({ phase, operation, supervisor: { ...originalSupervisor! } })).then(() => {
+        void lifetime.wait(Promise.resolve().then(() => { lifetime.check(); return prepare?.({ phase, operation, supervisor: { ...originalSupervisor! } }, lifetime.signal); })).then(() => {
+          lifetime.check();
           if (native.exitCode !== null || native.signalCode !== null || native.stdin.writableEnded) return;
           native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-prepare-continue/1.0.0", nonce, phase }) + "\n");
         }).catch(error => { rejectReady(error); cancel(); });
@@ -100,11 +112,11 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   native.stdin.on("error", () => { rejectReady(new RuntimeAdapterError("workspace_rehearsal_input_closed")); });
   const ended = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>(done => {
     native.once("error", () => { rejectReady(new RuntimeAdapterError("workspace_rehearsal_start_failed")); });
-    native.once("close", (code, signal) => { rejectReady(new RuntimeAdapterError("workspace_rehearsal_ended_before_resume")); done({ code, signal }); });
+    native.once("close", (code, signal) => { rejectReady(new RuntimeAdapterError("workspace_rehearsal_ended_before_resume")); done({ code, signal }); if (!resumed) lifetime.stop("workspace_rehearsal_ended_before_resume"); });
   });
-  const timer = setTimeout(() => { rejectReady(new RuntimeAdapterError("workspace_rehearsal_deadline")); cancel(); }, elapsed + 15000);
   try {
-    const identity = (await nativeControl(identityBinary, ["--identity", String(native.pid)])).value;
+    const identity = (await nativeControl(identityBinary, ["--identity", String(native.pid)], lifetime.signal)).value;
+    lifetime.check();
     if (!validWorkspaceWorkerIdentity(identity) || identity.pid !== native.pid || identity.image.toLowerCase() !== sandboxBinary.path.toLowerCase()) fail("workspace_rehearsal_supervisor_unproven");
     originalSupervisor = { ...identity };
     // The native controller cannot mutate resources until this original held-OS
@@ -112,14 +124,16 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
     atomicJson(join(operation, "original-launcher.json"), { format: "cimiloop/agent-workspace-launcher/1.0.0", nonce,
       owner, supervisor: originalSupervisor, launcher_path: sandboxBinary.path, launcher_digest: sandboxBinary.digest.value });
     native.stdin.write(JSON.stringify(originalConfig) + "\n");
-    const original = await ready;
+    const original = await lifetime.wait(ready);
     if (!isDeepStrictEqual(parseGatewayJson(bytesAt(join(operation, "agent-sandbox-original.json")).toString("utf8"), 32768), original)) fail("workspace_rehearsal_original_unproven");
-    channel = await connect(native, { ...original.supervisor as CreditProcessIdentity }, { ...original.peer as CreditProcessIdentity }, pipeNonce);
+    const connected = await lifetime.wait<NonNullable<typeof channel>>(Promise.resolve().then(() => { lifetime.check(); return connect(native, { ...original.supervisor as CreditProcessIdentity }, { ...original.peer as CreditProcessIdentity }, pipeNonce, lifetime.signal); }), late => late.close());
+    channel = connected;
+    lifetime.check();
     const endpoint = channel.getEndpoint();
     if (endpoint.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${pipeNonce}` || endpoint.scope_digest !== scopeDigest || endpoint.check_catalog_digest !== (checkCatalog?.catalog_digest ?? null) || endpoint.appcontainer_sid !== original.appcontainer_sid ||
       !isDeepStrictEqual(endpoint.peer, { ...original.peer as CreditProcessIdentity }) || !isDeepStrictEqual(endpoint.supervisor, { ...original.supervisor as CreditProcessIdentity })) fail("workspace_rehearsal_channel_unproven");
-    native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-resume/1.0.0", nonce }) + "\n");
-    const exit = await ended; await channel.close();
+    resumed = true; native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-resume/1.0.0", nonce }) + "\n");
+    const exit = await lifetime.wait(ended); await channel.close(); lifetime.check();
     const stdout = Buffer.concat(output), stderr = Buffer.concat(errors);
     writeFileSync(join(operation, "stdout.raw"), stdout, { flag: "wx" }); writeFileSync(join(operation, "stderr.raw"), stderr, { flag: "wx" });
     const events = stdout.toString("utf8").split(/\r?\n/).filter(line => line.trim().startsWith("{")).map(line => parseGatewayJson(line, 2 * 1024 * 1024) as Record<string, unknown>);
@@ -136,7 +150,7 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
     return result;
   } finally {
     cancel(); const stop = setTimeout(() => { if (native.exitCode === null && native.signalCode === null) native.kill(); }, 5000);
-    await Promise.allSettled([channel?.close(), ended]); clearTimeout(stop); clearTimeout(timer);
+    await Promise.allSettled([channel?.close(), ended]); clearTimeout(stop); lifetime.signal.removeEventListener("abort", cancel);
     // Startup/channel failure must retain the original bounded bytes too. These
     // diagnostics are not completion or resource-disposal proof; missing native
     // records remain unproven and the owner must retain the original directory.
@@ -149,7 +163,10 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
       cleanup_record_present: existsSync(join(operation, "agent-sandbox-cleanup.json")),
       total_output_bytes: total, captured_output_bytes: Buffer.concat(output).length + Buffer.concat(errors).length,
       output_limit_exceeded: outputFailure, completion_proven: false, resource_disposal_proven: false,
+      interruption_reason: lifetime.interruptionReason,
       actual_credentials_read: 0, external_model_requests: 0, formal_agent_execution_enabled: false
     });
   }
+  } catch (error) { if (["workspace_rehearsal_aborted", "workspace_rehearsal_deadline"].includes(lifetime.interruptionReason ?? "")) lifetime.check(); throw error; }
+  finally { lifetime.dispose(); }
 }

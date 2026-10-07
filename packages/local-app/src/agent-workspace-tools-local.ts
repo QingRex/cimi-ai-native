@@ -90,14 +90,16 @@ export class LocalAgentWorkspaceToolService {
     if (this.checkAdmission) this.admittedChecks(this.checkAdmission);
     return host.getCatalog();
   }
-  openIpc(supervisor: ChildProcess, originalSupervisor: AgentWorkspaceIpcEndpoint["supervisor"], originalPeer: AgentWorkspaceIpcEndpoint["peer"], options: { nonce?: string } = {}) {
+  openIpc(supervisor: ChildProcess, originalSupervisor: AgentWorkspaceIpcEndpoint["supervisor"], originalPeer: AgentWorkspaceIpcEndpoint["peer"], options: { nonce?: string; signal?: AbortSignal | undefined } = {}) {
+    const { signal, nonce } = options;
+    if (signal?.aborted) return Promise.reject(Error("Agent workspace IPC aborted"));
     if (this.ipc) return Promise.reject(Error("Agent workspace IPC original peer already installed"));
     if (!isDeepStrictEqual(originalScope(this.local, this.scope.run_id), this.scope)) return Promise.reject(Error("Agent workspace original scope changed"));
     const installed = this.checks;
     this.ipc = (async () => {
       const checks = installed ? { catalog: (await installed).getCatalog(), execute: (input: unknown) => this.runChecks(input) } : undefined;
-      return AgentWorkspaceToolIpc.open({ toolsDirectory: this.local.location.dataDirectory, scope: this.scope, supervisor, originalSupervisor, originalPeer, ...(options.nonce !== undefined ? { nonce: options.nonce } : {}),
-        ...(checks ? { checks } : {}), execute: input => this.execute(input), cancel: () => this.closeHosts() });
+      return AgentWorkspaceToolIpc.open({ toolsDirectory: this.local.location.dataDirectory, scope: this.scope, supervisor, originalSupervisor, originalPeer, ...(nonce !== undefined ? { nonce } : {}),
+        signal, ...(checks ? { checks } : {}), execute: input => this.execute(input), cancel: () => this.closeHosts() });
     })(); return this.ipc;
   }
   private async closeHosts() { await Promise.all([this.checks?.then(host => host.close(), () => undefined), this.execution.host.close()]); }

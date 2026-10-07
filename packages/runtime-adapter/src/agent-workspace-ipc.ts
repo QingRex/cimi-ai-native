@@ -41,7 +41,7 @@ interface Options {
   toolsDirectory: string; scope: AgentWorkspaceToolScope; supervisor: ChildProcess; originalSupervisor: CreditProcessIdentity; originalPeer: CreditProcessIdentity;
   // Trusted suspended-start composition chooses this before creating the peer.
   // It grants no authority; FIRST_PIPE_INSTANCE and original OS identity remain required.
-  nonce?: string;
+  nonce?: string; signal?: AbortSignal | undefined;
   execute: (input: WorkspaceToolInvocation) => Promise<{ receipt: WorkspaceToolReceipt; replay: boolean }>;
   checks?: { catalog: WorkspaceCheckCatalog; execute: (input: WorkspaceCheckCall) => Promise<{ receipt: WorkspaceCheckReceipt; replay: boolean }> };
   cancel: () => Promise<void>;
@@ -62,6 +62,7 @@ export class AgentWorkspaceToolIpc {
   private stopped = false;
   private failure: string | null = null;
   private readonly peerEnded = () => { void this.close(); };
+  private readonly aborted = () => { this.failure ??= "agent_ipc_aborted"; void this.close(); };
   private constructor(private readonly options: Options, binary: string) {
     this.nonce = options.nonce ?? randomUUID();
     this.scope = parseAgentWorkspaceToolScope(options.scope);
@@ -112,10 +113,13 @@ export class AgentWorkspaceToolIpc {
       readyReject(new RuntimeAdapterError(this.failure ?? "agent_ipc_peer_ended")); resolve(); void this.close();
     }));
     options.supervisor.once("close", this.peerEnded);
+    options.signal?.addEventListener("abort", this.aborted, { once: true });
+    if (options.signal?.aborted) this.aborted();
     this.child.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-ipc-config/1.0.0", nonce: this.nonce, scope_digest: agentWorkspaceIpcScopeDigest(this.scope),
       check_catalog_digest: options.checks?.catalog.catalog_digest ?? null, peer: options.originalPeer, supervisor: options.originalSupervisor, owner_pid: process.pid }) + "\n");
   }
   static async open(options: Options): Promise<AgentWorkspaceToolIpc> {
+    if (options.signal?.aborted) fail("agent_ipc_aborted");
     if (options.nonce !== undefined && !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(options.nonce)) fail("agent_ipc_nonce_invalid");
     const scope = parseAgentWorkspaceToolScope(options.scope), originalPeer = copyToolJson(options.originalPeer), originalSupervisor = copyToolJson(options.originalSupervisor);
     if (!validWorkspaceWorkerIdentity(originalPeer) || originalPeer.pid === process.pid || !validWorkspaceWorkerIdentity(originalSupervisor) ||
@@ -125,7 +129,9 @@ export class AgentWorkspaceToolIpc {
     // later mutation cannot substitute the admitted scope or captured process.
     const captured: Options = { ...options, scope, originalPeer: { ...originalPeer }, originalSupervisor: { ...originalSupervisor },
       ...(options.checks ? { checks: { catalog: parseWorkspaceCheckCatalog(options.checks.catalog, scope), execute: options.checks.execute } } : {}) };
-    const binary = await buildWindowsAgentWorkspaceTransport(captured.toolsDirectory);
+    const binary = await buildWindowsAgentWorkspaceTransport(captured.toolsDirectory, captured.signal);
+    if (captured.signal?.aborted) fail("agent_ipc_aborted");
+    if (captured.supervisor.exitCode !== null || captured.supervisor.signalCode !== null || captured.supervisor.killed) fail("agent_ipc_peer_unproven");
     if (digest(bytesAt(binary.path)).value !== binary.digest.value) fail("agent_ipc_binary_changed");
     const host = new AgentWorkspaceToolIpc(captured, binary.path);
     try { await host.ready; return host; } catch (error) { await host.close(); throw error; }
@@ -154,7 +160,7 @@ export class AgentWorkspaceToolIpc {
   snapshot() { return { attempts: structuredClone(this.attempts), closed: this.stopped, failure_reason: this.failure, formal_agent_execution_enabled: false as const }; }
   close(): Promise<void> {
     if (!this.closing) {
-      this.stopped = true; this.options.supervisor.removeListener("close", this.peerEnded); this.child.stdin.end();
+      this.stopped = true; this.options.supervisor.removeListener("close", this.peerEnded); this.options.signal?.removeEventListener("abort", this.aborted); this.child.stdin.end();
       this.closing = (async () => { const timer = setTimeout(() => this.child.kill(), 5000);
         try { await this.options.cancel(); } finally { await Promise.allSettled([this.pending, this.ended]); clearTimeout(timer); } })();
     }

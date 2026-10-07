@@ -1,0 +1,212 @@
+{
+  "format": "cimiloop/agent-execution-lifetime-verification/1.0.0",
+  "decision": "D-229",
+  "date": "2026-10-08",
+  "base_commit": "653b6dbc60d800340996d00edfc56c3d7fea59fc",
+  "goal_complete": false,
+  "s1_complete": false,
+  "production_agent_execution_enabled": false,
+  "single_call_preparation_connection_execution_lifetime_implemented": true,
+  "original_persistent_run_elapsed_budget_bound": false,
+  "actual_nested_check_cancel_verified": true,
+  "protected_production_custody_complete": false,
+  "complete_runtime_lifecycle_recovery_implemented": false,
+  "physical_quota_complete": false,
+  "full_approved_billing_admission_implemented": false,
+  "positive_agent_admission_constructed": true,
+  "tool_rehearsal_model_responses_constructed": true,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "compiled_cli_startup": {
+      "command": "node --no-warnings apps/cli/dist/bin.js --help",
+      "exit_code": 0
+    },
+    "broad_initial": {
+      "path": ".cimiloop/lifetime-v1-09/broad-initial.json",
+      "bytes": 31898,
+      "sha256": "fa1bedac19c494b5e8e40848e1c4c73b5e1effd7dbac301b28009f805674a127",
+      "files": 10,
+      "tests": 72,
+      "passed": 71,
+      "failed": 1,
+      "pending": 0,
+      "success": false
+    },
+    "broad_initial_source_snapshot": {
+      "path": ".cimiloop/lifetime-v1-09/sources-initial.json",
+      "bytes": 1765,
+      "sha256": "1ed1209b96ea5b2a5c4f3115a8b1bd6b00aaf74beb7ecf1c94732c80f9978603"
+    },
+    "repair_regression": {
+      "path": ".cimiloop/lifetime-v1-09/final.json",
+      "bytes": 3122,
+      "sha256": "43b98ae6effc09d41c4ae74b6332fc3ddf96e1b42e65bac94c559572065894a8",
+      "files": 1,
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "complete_repository_suite": false,
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "production_source_bytes_unchanged_since_broad_initial": true,
+    "source_snapshot": {
+      "path": ".cimiloop/lifetime-v1-09/sources.json",
+      "bytes": 1765,
+      "sha256": "269bdd402119f512f05596ccd3c2ed87122795cb28a6a4c3f765383177da9d68"
+    },
+    "preliminary_reports": [
+      {
+        "path": ".cimiloop/lifetime-v1-09/focused.json",
+        "bytes": 5128,
+        "sha256": "103fa320184a341e5ed54c229832ad162db3a7da3a0bed713d5e40032a26f682",
+        "files": 2,
+        "tests": 8,
+        "passed": 7,
+        "failed": 1,
+        "pending": 0,
+        "success": false
+      },
+      {
+        "path": ".cimiloop/lifetime-v1-09/focused-refined.json",
+        "bytes": 24946,
+        "sha256": "3ba897c99ebd087fce9a15d5e4d02b9647d970f89654300165d6c06e484843b3",
+        "files": 2,
+        "tests": 9,
+        "passed": 3,
+        "failed": 6,
+        "pending": 0,
+        "success": false
+      },
+      {
+        "path": ".cimiloop/lifetime-v1-09/focused-final.json",
+        "bytes": 4613,
+        "sha256": "8b3838404b0fc1e008876e64517cf21fc92b3c1b53d4a8befcde5e5264ecc828",
+        "files": 2,
+        "tests": 9,
+        "passed": 9,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      }
+    ],
+    "preliminary_scope": "First eight-test focused run passed seven tests. Nested check was denied because original WorkItem only covered query.ts, so SDK completed with a denied tool and watcher never cancelled. Second nine-test run passed three pure lifetime tests; six actual cases failed during WorkItem creation because enlarged WorkItem exceeded unchanged confirmed Plan. Fixture construction failures left stores open until worker exit and teardown reported EPERM; these errors are retained. Updated both fixture confirmed Plan and WorkItem to src/**; production permission checks unchanged. Final focused run passed all nine tests. Preliminary source was not frozen. Frozen broad ten-file 72-test run passed71 with one new-source check scenario exceeding default45-second total budget. That scenario now explicitly passes its existing approved WorkItem60000ms budget; default production deadline and permission rules unchanged. Final rerun covers that entire six-test file; other nine files retain initial passed results and identical production bytes. No claim all72 were rerun against final test source.",
+    "schemas": {
+      "total": 242,
+      "unchanged": 242,
+      "added": 0,
+      "changed": 0,
+      "protocol_status_clean": true,
+      "public_native_sources_unchanged": 4,
+      "comparison": "exact text normalized CRLF to LF"
+    },
+    "documentation": {
+      "files": 8,
+      "links": 294,
+      "broken": []
+    },
+    "commit_baseline": {
+      "files": 847,
+      "problems": []
+    }
+  },
+  "implemented": {
+    "lifetime": "Single monotonic budget starts before asynchronous preparation. Boundary checks and one AbortController cover preparation, connect and original Runtime wait. External cancel/deadline/original controller end preserve first reason; callback cannot extend budget.",
+    "callback": "Host stops waiting on an uncooperative prepare/connect Promise. Same signal supplied to trusted callback; late channel returned after interruption receives close request and cannot resume original Runtime. Late close errors do not prove disposal.",
+    "native": "Signal reaches compiler and original process identity execFile calls. Original native stdin shutdown stops held original Runtime Job. Existing original controller cleanup/identity records remain authoritative; five-second fallback targets only created child handle. Synchronous bounded hashing/copying checks at boundaries, not preemptible OS physical quotas.",
+    "ipc": "Captures nonce/signal before async wait; checks original supervisor live and signal after native IPC build. Abort closes original IPC/file/check hosts. Existing original OS peer and current Kernel authority requirements remain.",
+    "diagnostics": "Cancellation/timeout retains original outputs and incomplete interruption reason. Original SDK reply loss is not completion. Actual failed/cancelled check receipt and disposal remain inspectable; absent complete dispatched receipts remain Unknown and block settlement."
+  },
+  "actual_validation": [
+    "Pre-aborted original call creates no Runtime operation directory, tool effect, Task usage or Native Run transition.",
+    "Mapped original resources with non-returning prepare callback: external abort returns, original native cleanup proves disposal and incomplete diagnostic retained.",
+    "Cached installation, 7000ms total call budget and non-returning mapped preparation: deadline returned within tested 13000ms bound including cleanup grace. Preparation consumes original budget; no resume.",
+    "Suspended original Runtime with non-returning connect: external abort returns, no tool invocation or source edits, native cleanup retained.",
+    "Suspended original Runtime controller ends while connect never returns: specific original-close reason returns without waiting indefinitely.",
+    "Actual OpenCode SDK invokes fixed Node check. Watcher observes original OS runtime identity, cancels same original signal, actual Node receipt failed/cancelled and resources_disposed true. One original effect remains, no Task/Run/usage auto-advance."
+  ],
+  "contract_only": "Three pure lifetime tests validate shared deadline, late resource close request and late rejection consumption. They are not actual model/custody/resource-disposal proof.",
+  "unchanged": {
+    "protocol_schemas": 242,
+    "native_database_format": 10,
+    "workspace_tool_receipt_format": "cimiloop/workspace-tool-receipt/1.0.0",
+    "workspace_check_receipt_format": "cimiloop/workspace-check-receipt/1.0.0",
+    "public_native_control_sources_unchanged": 4,
+    "private_agent_sandbox_source_unchanged": true,
+    "default_cli_workbench_formal_agent_entry": "not installed"
+  },
+  "boundaries": {
+    "runtime": "One trusted composition call only, not formal full Runtime lifecycle. Formal host must bind durable original Run start and remaining WorkItem/Task elapsed budget across owner/process restart; this API must not reset original Run time. Physical quotas, history reclamation, full SDK/model/account custody/result verification and cross-logon recovery remain pending.",
+    "methods": "Actual model reply/Skill/Human-Matt pre-Plan clarification/independent review/Superpowers behavior not proven.",
+    "external": "Zhipu Provider confirmed; approved model/plan/cash-credit ceiling missing. No credentials read or external model requests in this batch.",
+    "historical": "Original legacy missing-registration resources and historical Unknown remain retained; no fabricated retrospective cleanup or completion."
+  },
+  "remaining_acceptance": [
+    "V1-09 full formal lifecycle/admission, SDK/tool/model/account custody, approved model/plan/service bounds/fees/billing, physical quotas/history/full recovery.",
+    "V1-21 actual Skills and Human/Matt clarification before Plan/Task.",
+    "V1-22 independent complete review, fresh Superpowers verification and actual behavior comparison.",
+    "V1-10 formal workbench Agent execute/status/stop/original recovery.",
+    "V1-11 genuine ordinary Change through independent review/interruption/resumption to ReadyForDelivery, full S1 acceptance and test guide."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/local-app/src/agent-workspace-tools-local.ts",
+      "bytes": 9778,
+      "sha256": "d5184e79dcbb1ef97938ed142cf7b681fae217c382486ba6d9ea5a923e2660c5"
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-workspace-ipc.ts",
+      "bytes": 15698,
+      "sha256": "1edec9beb852a7a5aefa633b2bf3d2f1efddf1eb38706916815d0377e14264a8"
+    },
+    {
+      "path": "packages/runtime-adapter/src/native.ts",
+      "bytes": 9724,
+      "sha256": "8c67a28f3fd950f50632c99a4831c5477d016d11e9680e7583cebc7567687200"
+    },
+    {
+      "path": "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+      "bytes": 17657,
+      "sha256": "3d796dfe2493b46e359d360562a9643b52cd14cbb8797cec12750ce76cd07bdd"
+    },
+    {
+      "path": "tests/scenarios/agent-check-admission-runtime.test.ts",
+      "bytes": 14087,
+      "sha256": "fbf041ae46e21f2178a69debeb4777957df964a7dafe7075710bb9cfa603e456"
+    },
+    {
+      "path": "tests/scenarios/opencode-check-runtime.test.ts",
+      "bytes": 10702,
+      "sha256": "b43754599c74e07114827605ed189073cd2f1d380eab284fb00af2b89c7791d5"
+    },
+    {
+      "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+      "bytes": 10355,
+      "sha256": "8f27b427a6018aa7daa18d881a01d8cc3378628215730a9812beb9cf97fbe372"
+    },
+    {
+      "path": "packages/runtime-adapter/src/execution-lifetime.ts",
+      "bytes": 2750,
+      "sha256": "874c8f82a3241e4b1be0f15e2add758b7a0b59999219c03c569f152f4062f25b"
+    },
+    {
+      "path": "packages/runtime-adapter/test/execution-lifetime.test.ts",
+      "bytes": 2308,
+      "sha256": "0961fb1e918a8fe37c84a3e46b130b121619040a346755aea7d3d110fc7329ea"
+    },
+    {
+      "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+      "bytes": 12002,
+      "sha256": "58df50b4f7f4f511704709ff21a29156362437fa1f0f7915c1946a4e12a6d738"
+    }
+  ]
+}

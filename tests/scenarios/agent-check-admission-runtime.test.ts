@@ -76,8 +76,8 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     await expect(manual.installChecks(process.execPath, catalog.recipes)).rejects.toThrow("Agent original admitted checks required");
     const sequence = f.store.asOfEventSequence(), usage = f.task().usage, binary = join(process.env.APPDATA!, "npm/node_modules/opencode-ai/node_modules/opencode-windows-x64/bin/opencode.exe");
     expect(digest(readFileSync(binary)).value).toBe("5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e");
-    const rehearsal = await runOpenCodeWorkspaceToolRehearsal({ root: f.dataDirectory, binary, scope: started.scope, mode: "checks", checkCatalog: catalog, checkId: "query_test",
-      connect: (supervisor, originalSupervisor, peer, nonce) => started.service.openIpc(supervisor, originalSupervisor, peer, { nonce }) });
+    const rehearsal = await runOpenCodeWorkspaceToolRehearsal({ root: f.dataDirectory, binary, scope: started.scope, mode: "checks", checkCatalog: catalog, checkId: "query_test", maxElapsedMs: f.item.budget.max_elapsed_ms,
+      connect: (supervisor, originalSupervisor, peer, nonce, signal) => started.service.openIpc(supervisor, originalSupervisor, peer, { nonce, signal }) });
     const parts = rehearsal.events.filter(event => event.type === "tool_use").map(event => event.part as any); expect(parts.map(part => part.tool)).toEqual(["cimi_check"]);
     const output = JSON.parse(parts[0].state.output); expect(output).toMatchObject({ outcome: "passed", exit_code: 0, check_catalog_digest: catalog.catalog_digest, formal_agent_execution_enabled: false });
     expect(output.call_id).toBe("sdk_" + digest(JSON.stringify([parts[0].sessionID, parts[0].messageID, parts[0].callID])).value);

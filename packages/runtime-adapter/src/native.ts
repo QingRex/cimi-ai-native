@@ -15,9 +15,9 @@ export const isolatedEnvironment = (systemRoot = process.env.SystemRoot ?? "C:\\
   OPENCODE_DISABLE_PROJECT_CONFIG: "true", OPENCODE_DISABLE_EXTERNAL_SKILLS: "true", OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER: "true",
   BUN_RUNTIME_TRANSPILER_CACHE_PATH: "0", DO_NOT_TRACK: "1"
 });
-export const nativeControl = async (launcher: string, args: string[]): Promise<{ value: unknown; bytes: Buffer }> => {
+export const nativeControl = async (launcher: string, args: string[], signal?: AbortSignal): Promise<{ value: unknown; bytes: Buffer }> => {
   try {
-    const result = await execute(launcher, args, { windowsHide: true, timeout: 15_000, maxBuffer: 64 * 1024, env: isolatedEnvironment(), encoding: "buffer" });
+    const result = await execute(launcher, args, { windowsHide: true, timeout: 15_000, maxBuffer: 64 * 1024, env: isolatedEnvironment(), encoding: "buffer", signal });
     return { value: JSON.parse(result.stdout.toString("utf8")), bytes: result.stdout };
   } catch (error) {
     if (error && typeof error === "object" && "stdout" in error && Buffer.isBuffer(error.stdout)) {
@@ -26,7 +26,8 @@ export const nativeControl = async (launcher: string, args: string[]): Promise<{
     throw new RuntimeAdapterError("native_control_unavailable");
   }
 };
-export const buildWindowsLauncher = async (root: string): Promise<string> => {
+export const buildWindowsLauncher = async (root: string, signal?: AbortSignal): Promise<string> => {
+  signal?.throwIfAborted();
   if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_appcontainer_required");
   const source = fileURLToPath(new URL("../native/AppContainer.cs", import.meta.url));
   const transport = fileURLToPath(new URL("../native/IpcTransport.cs", import.meta.url));
@@ -38,7 +39,7 @@ export const buildWindowsLauncher = async (root: string): Promise<string> => {
     const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
     if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
     const candidate = join(build, `${randomUUID()}.exe`);
-    try { await execute(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source, transport, gateway, conversation], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment() }); }
+    try { await execute(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source, transport, gateway, conversation], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment(), signal }); }
     catch { throw new RuntimeAdapterError("native_launcher_build_failed"); }
     renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
   }
@@ -76,14 +77,15 @@ export const buildWindowsWorkspaceBroker = async (root: string): Promise<{ path:
 
 // Independent original-Agent file IPC; the frozen public probe controller and
 // its installation ACLs do not gain a path to workspace effects.
-export const buildWindowsAgentWorkspaceTransport = async (root: string): Promise<{ path: string; digest: ReturnType<typeof digest> }> => {
+export const buildWindowsAgentWorkspaceTransport = async (root: string, signal?: AbortSignal): Promise<{ path: string; digest: ReturnType<typeof digest> }> => {
+  signal?.throwIfAborted();
   if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_agent_ipc_required");
   const source = fileURLToPath(new URL("../native/AgentWorkspaceTransport.cs", import.meta.url));
   const build = directory(join(root, "tools", "agent-workspace-ipc-" + digest(bytesAt(source)).value)), output = join(build, "AgentWorkspaceTransport.exe"), metadata = join(build, "build.json");
   if (!existsSync(output) || !existsSync(metadata)) {
     const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe"), candidate = join(build, `${randomUUID()}.exe`);
     if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
-    try { await execute(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment() }); }
+    try { await execute(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment(), signal }); }
     catch { throw new RuntimeAdapterError("agent_ipc_build_failed"); }
     renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
   }
@@ -94,7 +96,8 @@ export const buildWindowsAgentWorkspaceTransport = async (root: string): Promise
 
 // Distinct suspended-start rehearsal entry point; public Main and persisted
 // recovery formats remain separate from this private composition.
-export const buildWindowsAgentWorkspaceSandbox = async (root: string): Promise<{ path: string; digest: ReturnType<typeof digest> }> => {
+export const buildWindowsAgentWorkspaceSandbox = async (root: string, signal?: AbortSignal): Promise<{ path: string; digest: ReturnType<typeof digest> }> => {
+  signal?.throwIfAborted();
   if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_agent_sandbox_required");
   const sources = ["AppContainer.cs", "IpcTransport.cs", "GatewayTransport.cs", "ConversationTransport.cs", "AgentWorkspaceSandbox.cs"].map(name => fileURLToPath(new URL(`../native/${name}`, import.meta.url)));
   const build = directory(join(root, "tools", "agent-workspace-sandbox-" + digest(Buffer.concat(sources.map(path => bytesAt(path)))).value));
@@ -102,7 +105,7 @@ export const buildWindowsAgentWorkspaceSandbox = async (root: string): Promise<{
   if (!existsSync(output) || !existsSync(metadata)) {
     const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe"), candidate = join(build, `${randomUUID()}.exe`);
     if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
-    try { await execute(compiler, ["/nologo", "/target:exe", "/main:AgentWorkspaceSandbox", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, ...sources], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment() }); }
+    try { await execute(compiler, ["/nologo", "/target:exe", "/main:AgentWorkspaceSandbox", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, ...sources], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment(), signal }); }
     catch { throw new RuntimeAdapterError("agent_sandbox_build_failed"); }
     renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
   }
