@@ -11,10 +11,12 @@ import { buildWindowsAgentWorkspaceSandbox, buildWindowsLauncher, nativeControl,
 import { bytesAt, digest, directory, atomicJson, rawReference, RuntimeAdapterError } from "./files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
+import { parseWorkspaceCheckCatalog, type WorkspaceCheckCatalog } from "./workspace-checks.js";
 
 interface Options {
   root: string; binary: string; scope: AgentWorkspaceToolScope;
   path: string; expectedDigest: string; replacement: string; maxElapsedMs?: number;
+  checkCatalog?: WorkspaceCheckCatalog; checkId?: string;
   connect: (supervisor: ChildProcess, originalSupervisor: CreditProcessIdentity, originalPeer: CreditProcessIdentity, nonce: string) => Promise<Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close">>;
   prepare?: (original: { phase: string; operation: string; supervisor: CreditProcessIdentity }) => void | Promise<void>;
 }
@@ -28,7 +30,9 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   if (!Number.isSafeInteger(elapsed) || elapsed < 1000 || elapsed > 180000 || typeof options.path !== "string" || !options.path || options.path.length > 240 ||
     !/^[a-f0-9]{64}$/.test(options.expectedDigest) || typeof options.replacement !== "string" || !options.replacement.isWellFormed() || Buffer.byteLength(options.replacement) > 16384) fail("workspace_rehearsal_input_invalid");
   // Detach original arguments before the asynchronous compilation/launch.
-  const providerOptions = { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement };
+  const checkCatalog = options.checkCatalog === undefined ? undefined : parseWorkspaceCheckCatalog(options.checkCatalog, scope);
+  if ((checkCatalog === undefined) !== (options.checkId === undefined) || checkCatalog && !checkCatalog.recipes.some(recipe => recipe.check_id === options.checkId)) fail("workspace_rehearsal_input_invalid");
+  const providerOptions = { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement, ...(checkCatalog ? { check_id: options.checkId! } : {}) };
   const binaryPath = options.binary, connect = options.connect, prepare = options.prepare;
   const root = directory(options.root), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root), identityBinary = await buildWindowsLauncher(root), pinned = pinBinary(root, binaryPath);
   const operation = directory(join(root, "workspace-tool-rehearsals", randomUUID())), sandbox = directory(join(operation, "sandbox")), config = directory(join(sandbox, "config"));
@@ -36,7 +40,12 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   const modules = ["agent-workspace-ipc-client.mjs", "opencode-workspace-tools.js", "opencode-workspace-provider-fixture.mjs"].map(name => {
     const bytes = bytesAt(fileURLToPath(new URL(`../transport/${name}`, import.meta.url))); writeFileSync(join(config, name), bytes, { flag: "wx" }); return { name, digest: digest(bytes) };
   });
-  const entry = 'import { createOpenCodeWorkspaceTools } from "../opencode-workspace-tools.js";\nconst tools = createOpenCodeWorkspaceTools({ pipe: process.env.CIMILOOP_AGENT_WORKSPACE_PIPE, scope_digest: process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE });\nexport const read = tools.read;\nexport const replace = tools.replace;\n';
+  if (checkCatalog) {
+    const bytes = JSON.stringify(checkCatalog); writeFileSync(join(config, "check-catalog.json"), bytes, { flag: "wx" }); modules.push({ name: "check-catalog.json", digest: digest(bytes) });
+  }
+  const entry = 'import { createOpenCodeWorkspaceTools } from "../opencode-workspace-tools.js";\n' +
+    (checkCatalog ? 'import { readFileSync } from "node:fs";\nconst catalog = JSON.parse(readFileSync(new URL("../check-catalog.json", import.meta.url), "utf8"));\n' : '') +
+    'const tools = createOpenCodeWorkspaceTools({ pipe: process.env.CIMILOOP_AGENT_WORKSPACE_PIPE, scope_digest: process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE }' + (checkCatalog ? ', catalog' : '') + ');\nexport const read = tools.read;\nexport const replace = tools.replace;\n' + (checkCatalog ? 'export const check = tools.check;\n' : '');
   writeFileSync(join(tools, "cimi.js"), entry, { flag: "wx" }); modules.push({ name: "tools/cimi.js", digest: digest(entry) });
   writeFileSync(join(config, "package.json"), '{"type":"module","private":true}\n', { flag: "wx" });
   writeFileSync(join(config, ".gitignore"), "node_modules\npackage.json\nbun.lock\nbun.lockb\n.gitignore\n", { flag: "wx" });
@@ -103,7 +112,7 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
     if (!isDeepStrictEqual(parseGatewayJson(bytesAt(join(operation, "agent-sandbox-original.json")).toString("utf8"), 32768), original)) fail("workspace_rehearsal_original_unproven");
     channel = await connect(native, { ...original.supervisor as CreditProcessIdentity }, { ...original.peer as CreditProcessIdentity }, pipeNonce);
     const endpoint = channel.getEndpoint();
-    if (endpoint.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${pipeNonce}` || endpoint.scope_digest !== scopeDigest || endpoint.appcontainer_sid !== original.appcontainer_sid ||
+    if (endpoint.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${pipeNonce}` || endpoint.scope_digest !== scopeDigest || endpoint.check_catalog_digest !== (checkCatalog?.catalog_digest ?? null) || endpoint.appcontainer_sid !== original.appcontainer_sid ||
       !isDeepStrictEqual(endpoint.peer, { ...original.peer as CreditProcessIdentity }) || !isDeepStrictEqual(endpoint.supervisor, { ...original.supervisor as CreditProcessIdentity })) fail("workspace_rehearsal_channel_unproven");
     native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-resume/1.0.0", nonce }) + "\n");
     const exit = await ended; await channel.close();
@@ -112,7 +121,7 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
     const events = stdout.toString("utf8").split(/\r?\n/).filter(line => line.trim().startsWith("{")).map(line => parseGatewayJson(line, 2 * 1024 * 1024) as Record<string, unknown>);
     const disposal = parseGatewayJson(bytesAt(join(operation, "agent-sandbox-cleanup.json")).toString("utf8"), 32768) as Record<string, unknown>;
     const unchanged = modules.every(module => digest(bytesAt(join(config, module.name))).value === module.digest.value) && digest(bytesAt(pinned.path, 512 * 1024 * 1024)).value === pinned.digest.value;
-    const result = { format: "cimiloop/opencode-workspace-rehearsal/1.0.0", operation, original_scope_digest: scopeDigest, sandbox: original, modules,
+    const result = { format: "cimiloop/opencode-workspace-rehearsal/1.0.0", operation, original_scope_digest: scopeDigest, check_catalog_digest: checkCatalog?.catalog_digest ?? null, sandbox: original, modules,
       binary_digest: pinned.digest, stdout_ref: rawReference(root, stdout, "workspace_sdk_original"), stderr_ref: rawReference(root, stderr, "workspace_sdk_stderr"),
       native_exit: exit, disposal, channel: channel.snapshot(), events, source_bytes_unchanged: unchanged, output_limit_exceeded: outputFailure,
       synthetic_model_responses: true, actual_credentials_read: 0, external_model_requests: 0, formal_agent_execution_enabled: false };

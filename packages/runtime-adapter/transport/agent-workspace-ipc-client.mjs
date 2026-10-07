@@ -29,6 +29,12 @@ function json(source) {
   visit(0); ws(); if (at !== source.length) throw Error("invalid"); return JSON.parse(source);
 }
 function receiptValid(value, frame) {
+  if (frame.tool === "run_check") return exact(value, ["format", "input_digest", "run_id", "call_id", "profile", "entry", "outcome", "exit_code", "reason", "stdout_digest", "stderr_digest", "source_digest", "formal_agent_execution_enabled"]) &&
+    value.format === "cimiloop/workspace-check-receipt/1.0.0" && typeof value.run_id === "string" && value.call_id === frame.call_id &&
+    [value.input_digest, value.stdout_digest, value.stderr_digest, value.source_digest].every(sha) && value.formal_agent_execution_enabled === false &&
+    ["node_syntax", "node_test"].includes(value.profile) && typeof value.entry === "string" && /\.(?:js|mjs|cjs)$/.test(value.entry) &&
+    Number.isSafeInteger(value.exit_code) && ["exited", "timeout", "cancelled", "output_limit"].includes(value.reason) &&
+    value.outcome === (value.reason === "exited" && value.exit_code === 0 ? "passed" : "failed");
   if (!exact(value, ["format", "scope", "run_id", "call_id", "input_digest", "authority_basis_digest", "native", "formal_agent_execution_enabled"]) ||
     value.format !== "cimiloop/workspace-tool-receipt/1.0.0" || value.scope !== "authorized_workspace" || typeof value.run_id !== "string" || value.call_id !== frame.call_id ||
     !sha(value.input_digest) || !sha(value.authority_basis_digest) || value.formal_agent_execution_enabled !== false) return false;
@@ -45,15 +51,16 @@ export const exchangeAgentWorkspaceToolFrame = (pipe, request, signal) => new Pr
   try {
     payload = Buffer.from(JSON.stringify(request)); frame = json(payload.toString("utf8"));
     if (!/^\\\\\.\\pipe\\CimiLoop\.AgentWorkspace\.[a-f0-9-]{36}$/.test(pipe) || payload.length < 1 || payload.length > maximum || signal?.aborted ||
-      !exact(frame, ["format", "scope_digest", "call_id", "tool", "path", "expected_digest", ...(frame.tool === "replace_file" ? ["replacement_utf8"] : [])]) ||
+      !exact(frame, ["format", "scope_digest", "call_id", "tool", ...(frame.tool === "run_check" ? ["check_id", "check_catalog_digest"] : ["path", "expected_digest", ...(frame.tool === "replace_file" ? ["replacement_utf8"] : [])])]) ||
       frame.format !== "cimiloop/agent-workspace-tool-request/1.0.0" || !sha(frame.scope_digest) || typeof frame.call_id !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(frame.call_id) ||
-      !["read_file", "replace_file"].includes(frame.tool) || typeof frame.path !== "string" || !sha(frame.expected_digest) || frame.tool === "replace_file" &&
-      (typeof frame.replacement_utf8 !== "string" || Buffer.byteLength(frame.replacement_utf8) > 16384)) throw Error("invalid");
+      !(frame.tool === "run_check" ? typeof frame.check_id === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(frame.check_id) && sha(frame.check_catalog_digest) :
+        ["read_file", "replace_file"].includes(frame.tool) && typeof frame.path === "string" && sha(frame.expected_digest) && (frame.tool !== "replace_file" ||
+          typeof frame.replacement_utf8 === "string" && Buffer.byteLength(frame.replacement_utf8) <= 16384))) throw Error("invalid");
   } catch { fail(Error("agent_ipc_request_denied")); return; }
   const requestDigest = hash(payload); let buffered = Buffer.alloc(0), settled = false;
   const socket = createConnection({ path: pipe });
   const finish = (error, value) => { if (settled) return; settled = true; clearTimeout(timer); signal?.removeEventListener("abort", abort); socket.destroy(); if (error) fail(error); else done(value); };
-  const abort = () => finish(Error("agent_ipc_aborted")), timer = setTimeout(() => finish(Error("agent_ipc_timeout")), 22000);
+  const abort = () => finish(Error("agent_ipc_aborted")), timer = setTimeout(() => finish(Error("agent_ipc_timeout")), 125000);
   signal?.addEventListener("abort", abort, { once: true });
   socket.once("connect", () => { const header = Buffer.alloc(4); header.writeUInt32LE(payload.length); socket.write(Buffer.concat([header, payload])); });
   socket.on("data", bytes => {
@@ -80,5 +87,8 @@ export const createAgentWorkspaceToolClient = endpoint => {
   return Object.freeze({ execute: (args, signal) => {
     if (!exact(args, ["call_id", "tool", "path", "expected_digest", ...(args?.tool === "replace_file" ? ["replacement_utf8"] : [])])) return Promise.reject(Error("agent_ipc_request_denied"));
     return exchangeAgentWorkspaceToolFrame(pipe, { ...args, format: "cimiloop/agent-workspace-tool-request/1.0.0", scope_digest: scopeDigest }, signal);
+  }, check: (args, signal) => {
+    if (!exact(args, ["call_id", "check_id", "check_catalog_digest"])) return Promise.reject(Error("agent_ipc_request_denied"));
+    return exchangeAgentWorkspaceToolFrame(pipe, { ...args, tool: "run_check", format: "cimiloop/agent-workspace-tool-request/1.0.0", scope_digest: scopeDigest }, signal);
   } });
 };

@@ -185,7 +185,11 @@ partial class AppContainer {
       owner=OpenProcess(0x1000|0x100000,false,ownerPid); if(owner==IntPtr.Zero||WaitForSingleObject(owner,0)!=258||Creation(owner)!=(string)originalOwner["creation_ticks"]||
         !String.Equals(Image(owner),(string)originalOwner["image"],StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
       int elapsed=Convert.ToInt32(config["elapsed_ms"]); if(elapsed<1000||elapsed>180000) throw new InvalidDataException();
-      var options=(Dictionary<string,object>)config["provider_options"]; AgentKeys(options,"path","expectedDigest","replacement");
+      var options=(Dictionary<string,object>)config["provider_options"];
+      if(options.ContainsKey("check_id")) {
+        AgentKeys(options,"path","expectedDigest","replacement","check_id");
+        if(!(options["check_id"] is string)||!System.Text.RegularExpressions.Regex.IsMatch((string)options["check_id"],"^[a-zA-Z0-9_-]{1,128}$")) throw new InvalidDataException();
+      } else AgentKeys(options,"path","expectedDigest","replacement");
       profile="CimiLoop.AgentWorkspace."+guid.ToString("N");
       agentResourcePath=Path.Combine(Path.GetDirectoryName(root),"agent-sandbox-resources.json");
       agentResources=new Dictionary<string,object> {
@@ -220,6 +224,7 @@ partial class AppContainer {
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_SCOPE",(string)config["scope_digest"]);
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_PRIVATE_CANARY",Path.Combine(Path.GetDirectoryName(root),"workspace-private-canary.txt"));
       var permission=new Dictionary<string,object> { {"*","deny"},{"cimi_read","allow"},{"cimi_replace","allow"} };
+      if(options.ContainsKey("check_id")) permission.Add("cimi_check","allow");
       var model=new { name="Constructed workspace tool responses",tool_call=true,limit=new { context=65536,output=512 } };
       var models=new Dictionary<string,object> { {"workspace-fixture",model} };
       var providers=new Dictionary<string,object> { {"cimiloop-workspace-fixture",new { npm="file:///"+mapping+"/config/opencode-workspace-provider-fixture.mjs",options=options,models=models }} };

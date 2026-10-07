@@ -7,7 +7,7 @@ import { LocalEvidenceVerifier } from "../../apps/cli/src/evidence-local.js";
 import { createIntentProject, contractBody, planBody } from "./intent-project.js";
 import { flowSuccess, flowTime } from "./flow-project.js";
 
-export const createVerificationProject = (directory: string, start = true, withDeferral = false, kind: "requirement" | "bug" = "requirement", high = false) => {
+export const createVerificationProject = (directory: string, start = true, withDeferral = false, kind: "requirement" | "bug" = "requirement", high = false, allowedChanges?: string[]) => {
   const git = (...args: string[]) => execFileSync("git", ["-C", directory, ...args], { encoding: "utf8", windowsHide: true });
   git("init", "--quiet"); git("config", "core.autocrlf", "false"); git("config", "user.name", "Fixture"); git("config", "user.email", "fixture@example.test");
   mkdirSync(join(directory, "src")); writeFileSync(join(directory, "src", "query.ts"), "export const query = () => 1;\n"); git("add", "src/query.ts"); git("commit", "--quiet", "-m", "Fixed source for manual verification");
@@ -30,6 +30,7 @@ export const createVerificationProject = (directory: string, start = true, withD
     flowSuccess(reviewerKernel.execute({ ...f.changeCommand("ConfirmContract", f.store.getChange(change.id)!, f.confirmPayload(request, decision), "requirement_owner"), actor_id: reviewer.id }));
   } else f.prepareContract(change.id, contract);
   const body = planBody(change.id, f.store.getChange(change.id)!.contract_ref!);
+  if (allowedChanges) body.task_definitions[0]!.allowed_changes = [...allowedChanges];
   for (const task of body.task_definitions) { task.verification.method = "人工源码审阅"; task.verification.evidence_requirements = ["原始人工审阅记录"]; }
   if (withDeferral) body.verification_strategy.deferred_checks = [{ acceptance_key: "A1", reason: "生产环境补充检查", arrangement: "发布后按固定方法核对", required_before: "before_change_complete" }];
   const prepareHighPlan = () => {

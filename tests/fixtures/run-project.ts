@@ -6,8 +6,8 @@ import * as v2 from "../../packages/protocol/src/v2/index.js";
 import { createVerificationProject } from "./verification-project.js";
 import { flowSuccess, flowTime } from "./flow-project.js";
 
-export const createRunProject = (directory: string) => {
-  const f = createVerificationProject(directory); let time = flowTime;
+export const createRunProject = (directory: string, allowedChanges?: string[]) => {
+  const f = createVerificationProject(directory, true, false, "requirement", false, allowedChanges); let time = flowTime;
   const runPort = new LocalRunVerifier(directory, dirname(f.path));
   const kernel = new CimiLoopKernel({ store: f.store, caller: f.caller, now: () => time, evidenceVerifier: f.port, runVerifier: runPort });
   const reviewerKernel = new CimiLoopKernel({ store: f.store, caller: { kind: "local_operator", project_id: f.project.id, actor_id: f.reviewer.id }, now: () => time, evidenceVerifier: f.port, runVerifier: runPort });

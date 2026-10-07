@@ -10,8 +10,8 @@ import type { ContentReference } from "../../packages/local-app/src/evidence-loc
 // current qualification commands, and prove no live model/OS/billing admission.
 export const createAgentRunProject = (directory: string, scope: "task_execution" | "isolated_provider_probe" = "task_execution", cost: number | undefined = 100,
   runtimeResources: v2.ExternalReference[] = [{ provider: "cimiloop_workspace", resource_type: "repository_path", locator: "src/query.ts", version: "1.0.0" }],
-  runtimeActions: v2.WorkItem["allowed_actions"] = ["read_files"], workItemResources: string[] = ["src/query.ts"]) => {
-  const f = createRunProject(directory);
+  runtimeActions: v2.WorkItem["allowed_actions"] = ["read_files"], workItemResources: string[] = ["src/query.ts"], allowedChanges?: string[]) => {
+  const f = createRunProject(directory, allowedChanges);
   const metadata = () => ({ schema_version: v2.SCHEMA_VERSION, id: v2.createInternalId(), project_id: f.project.id, created_at: flowTime, producer_actor_id: f.actor.id });
   const content = <T extends ContentReference["resource_type"]>(value: unknown, kind: T) => f.runPort.content.storeContent(Buffer.from(JSON.stringify(value)), kind);
   const seed = (kind: "runtime" | "skill", runtime?: v2.ProviderBinding) => {

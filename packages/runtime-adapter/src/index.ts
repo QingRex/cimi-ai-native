@@ -23,9 +23,9 @@ export type { WorkspaceToolPolicy, WorkspaceToolReceipt } from "./workspace-tool
 export { AgentWorkspaceToolHost, openAgentWorkspaceToolHost } from "./agent-workspace-tool-host.js";
 export { parseAgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 export type { AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
-export { AgentWorkspaceToolIpc, agentWorkspaceIpcScopeDigest, agentWorkspaceIpcInvocation } from "./agent-workspace-ipc.js";
+export { AgentWorkspaceToolIpc, agentWorkspaceIpcScopeDigest, agentWorkspaceIpcInvocation, agentWorkspaceIpcCheckInvocation } from "./agent-workspace-ipc.js";
 export type { AgentWorkspaceIpcEndpoint } from "./agent-workspace-ipc.js";
 export { runOpenCodeWorkspaceToolRehearsal } from "./opencode-workspace-rehearsal.js";
 export { recoverOpenCodeWorkspaceToolRehearsal } from "./agent-workspace-sandbox-recovery.js";
-export { AgentWorkspaceCheckHost, parseWorkspaceCheckCall, parseWorkspaceCheckRecipe } from "./workspace-checks.js";
-export type { WorkspaceCheckRecipe, WorkspaceCheckCall, WorkspaceCheckReceipt } from "./workspace-checks.js";
+export { AgentWorkspaceCheckHost, parseWorkspaceCheckCall, parseWorkspaceCheckRecipe, parseWorkspaceCheckCatalog } from "./workspace-checks.js";
+export type { WorkspaceCheckRecipe, WorkspaceCheckCall, WorkspaceCheckReceipt, WorkspaceCheckCatalog } from "./workspace-checks.js";

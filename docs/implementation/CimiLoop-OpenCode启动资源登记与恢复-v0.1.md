@@ -35,3 +35,5 @@ DOS device 属于原 logon 的命名空间，Local Job 属于原 Windows session
 D-225 保存的历史失败没有原控制器登记和资源账本，不能事后补造原进程证明。该目录及此前确认的映射 / ACL / Profile 继续保留，恢复返回缺少原登记的 Unknown。本批修复新启动链，不把旧失败根因、历史资源或跨 logon 恢复宣称完成。
 
 接续：接入 `cimi_check`、正式检查目录 / 准入、完整 SDK / 工具 / 账户保管链和正式 Runtime 生命周期；完善整体准备 / 嵌套调用期限、物理硬配额、容量 / 历史保留与全恢复。之后完成 Plan / Task 前 Human / Matt 澄清、真实技能方法、独立完整评审及 Superpowers 新鲜验证、工作台正式 Agent 操作和真实普通 Change 到 ReadyForDelivery 的 S1 验收。用户已确认智谱 Provider，具体型号 / 套餐及费用上限仍需明确；目标和 S1 继续保持未完成。
+
+2026-10-08 D-227续批：[原SDK固定检查消费](CimiLoop-OpenCode固定检查工具消费-v0.1.md)已接Scope / Node / 策略固定目录和实际cimi_check / 原进程IPC。正式Context准入 / 实现后新源码验证目录、完整Runtime与保管链 / 费用 / 配额 / 恢复、真实方法 / 工作台及S1仍待完成。

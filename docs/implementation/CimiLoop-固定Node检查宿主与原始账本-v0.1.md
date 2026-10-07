@@ -45,3 +45,5 @@ dispatch 前已确认停止可记录 `not_started`；dispatch 后没有完整原
 继续落实实际智谱型号 / 套餐、服务端输入 / 思考 / 输出限制、批准费用预算、账单、物理配额和完整恢复；完成 Plan / Task 前 Human / Matt 澄清、实际技能方法、独立完整评审与 Superpowers 新鲜验证、工作台操作和真实普通 Change 到 ReadyForDelivery 的 S1 验收。本批不标记 V1-09、S1 或持续目标完成。
 
 2026-10-08 D-226续批：[启动前原资源登记与恢复](CimiLoop-OpenCode启动资源登记与恢复-v0.1.md)已补原控制器登记和同登录逐阶段原资源恢复。缺原登记的历史失败资源仍未确认，不能事后补造证明；跨登录恢复 / 生产宿主及完整S1仍待完成。
+
+2026-10-08 D-227续批：[原SDK固定检查消费](CimiLoop-OpenCode固定检查工具消费-v0.1.md)已接Scope / Node / 策略固定目录和实际cimi_check / 原进程IPC。正式Context准入 / 实现后新源码验证目录、完整Runtime与保管链 / 费用 / 配额 / 恢复、真实方法 / 工作台及S1仍待完成。

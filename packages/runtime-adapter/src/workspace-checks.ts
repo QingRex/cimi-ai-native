@@ -17,6 +17,10 @@ export interface WorkspaceCheckRecipe {
   inputs: { path: string; expected_digest: string }[]; max_elapsed_ms: number; max_output_bytes: number;
 }
 export interface WorkspaceCheckCall { format: "cimiloop/workspace-check-call/1.0.0"; call_id: string; check_id: string }
+export interface WorkspaceCheckCatalog {
+  format: "cimiloop/workspace-check-catalog/1.0.0"; scope_digest: string; node_digest: string; policy_digest: string;
+  recipes: WorkspaceCheckRecipe[]; catalog_digest: string;
+}
 export interface WorkspaceCheckReceipt {
   format: "cimiloop/workspace-check-receipt/1.0.0"; input_digest: string; run_id: string; call_id: string;
   profile: WorkspaceCheckRecipe["profile"]; entry: string; outcome: "passed" | "failed"; exit_code: number;
@@ -51,6 +55,18 @@ export function parseWorkspaceCheckRecipe(raw: unknown, scope: AgentWorkspaceToo
 }
 const scopeFields = (scope: AgentWorkspaceToolScope) => ({ project_id: scope.project_id, run_id: scope.run_id, operation_key: scope.operation_key,
   executor_actor_id: scope.executor_actor_id, context_digest: scope.context_digest });
+export function parseWorkspaceCheckCatalog(raw: unknown, originalScope: AgentWorkspaceToolScope): WorkspaceCheckCatalog {
+  const value = copyToolJson(raw), scope = parseAgentWorkspaceToolScope(originalScope);
+  if (!exact(value, ["format", "scope_digest", "node_digest", "policy_digest", "recipes", "catalog_digest"]) ||
+    value.format !== "cimiloop/workspace-check-catalog/1.0.0" || value.scope_digest !== digest(JSON.stringify(scope)).value ||
+    !sha(value.node_digest) || !sha(value.policy_digest) || !sha(value.catalog_digest) || !Array.isArray(value.recipes) ||
+    !value.recipes.length || value.recipes.length > 16) fail("workspace_check_catalog_invalid");
+  const recipes = value.recipes.map(recipe => parseWorkspaceCheckRecipe(recipe, scope));
+  if (recipes.some((recipe, i) => i > 0 && recipes[i - 1]!.check_id >= recipe.check_id)) fail("workspace_check_catalog_invalid");
+  const body = { format: value.format, scope_digest: value.scope_digest, node_digest: value.node_digest, policy_digest: value.policy_digest, recipes };
+  if (digest(JSON.stringify(body)).value !== value.catalog_digest) fail("workspace_check_catalog_invalid");
+  return { ...body, catalog_digest: value.catalog_digest } as WorkspaceCheckCatalog;
+}
 interface Options {
   repositoryPath: string; dataDirectory: string; nodeBinary: string; scope: AgentWorkspaceToolScope; recipes: WorkspaceCheckRecipe[];
   assess: (request: AgentToolAuthorityRequest) => unknown | Promise<unknown>;
@@ -83,6 +99,13 @@ export class AgentWorkspaceCheckHost {
     catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "EEXIST")) throw error; }
     if (bytesAt(marker, 4096).toString("utf8") !== encoded) fail("workspace_check_policy_conflict");
     return new AgentWorkspaceCheckHost(options, files, launcher, node, owners, root, policyDigest, launcherDigest);
+  }
+  getCatalog(): WorkspaceCheckCatalog {
+    if (this.abort.signal.aborted) fail("workspace_check_host_closed");
+    const body = { format: "cimiloop/workspace-check-catalog/1.0.0" as const, scope_digest: digest(JSON.stringify(this.options.scope)).value,
+      node_digest: this.node.digest.value, policy_digest: this.policyDigest,
+      recipes: structuredClone(this.options.recipes).sort((a, b) => a.check_id < b.check_id ? -1 : a.check_id > b.check_id ? 1 : 0) };
+    return parseWorkspaceCheckCatalog({ ...body, catalog_digest: digest(JSON.stringify(body)).value }, this.options.scope);
   }
   private requests(recipe: WorkspaceCheckRecipe): AgentToolAuthorityRequest[] {
     return [...recipe.inputs.map(value => ({ ...this.options.scope, action: "read_files" as const, resource: value.path })),

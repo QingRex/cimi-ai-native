@@ -9,6 +9,7 @@ import { parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from "./ag
 import { parseWorkspaceToolInvocation, validWorkspaceWorkerIdentity, type WorkspaceToolInvocation } from "./workspace-files.js";
 import type { WorkspaceToolReceipt } from "./workspace-tool-journal.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
+import { parseWorkspaceCheckCatalog, parseWorkspaceCheckCall, type WorkspaceCheckCatalog, type WorkspaceCheckCall, type WorkspaceCheckReceipt } from "./workspace-checks.js";
 
 const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join(",") === [...keys].sort().join(",");
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
@@ -26,15 +27,26 @@ export function agentWorkspaceIpcInvocation(scope: AgentWorkspaceToolScope, raw:
       ...(frame.tool === "replace_file" ? { replacement_utf8: frame.replacement_utf8 } : {}) });
   } catch { fail("agent_ipc_frame_denied"); }
 }
+export function agentWorkspaceIpcCheckInvocation(scope: AgentWorkspaceToolScope, catalog: WorkspaceCheckCatalog, raw: unknown): WorkspaceCheckCall {
+  try {
+    const original = parseWorkspaceCheckCatalog(catalog, scope), frame = copyToolJson(raw);
+    if (!exact(frame, ["format", "scope_digest", "call_id", "tool", "check_id", "check_catalog_digest"]) ||
+      frame.format !== "cimiloop/agent-workspace-tool-request/1.0.0" || frame.scope_digest !== original.scope_digest ||
+      frame.tool !== "run_check" || frame.check_catalog_digest !== original.catalog_digest ||
+      !original.recipes.some(recipe => recipe.check_id === frame.check_id)) fail("agent_ipc_frame_denied");
+    return parseWorkspaceCheckCall({ format: "cimiloop/workspace-check-call/1.0.0", call_id: frame.call_id, check_id: frame.check_id });
+  } catch { fail("agent_ipc_frame_denied"); }
+}
 interface Options {
   toolsDirectory: string; scope: AgentWorkspaceToolScope; supervisor: ChildProcess; originalSupervisor: CreditProcessIdentity; originalPeer: CreditProcessIdentity;
   // Trusted suspended-start composition chooses this before creating the peer.
   // It grants no authority; FIRST_PIPE_INSTANCE and original OS identity remain required.
   nonce?: string;
   execute: (input: WorkspaceToolInvocation) => Promise<{ receipt: WorkspaceToolReceipt; replay: boolean }>;
+  checks?: { catalog: WorkspaceCheckCatalog; execute: (input: WorkspaceCheckCall) => Promise<{ receipt: WorkspaceCheckReceipt; replay: boolean }> };
   cancel: () => Promise<void>;
 }
-export interface AgentWorkspaceIpcEndpoint { pipe: string; scope_digest: string; peer: CreditProcessIdentity; supervisor: CreditProcessIdentity; appcontainer_sid: string | null }
+export interface AgentWorkspaceIpcEndpoint { pipe: string; scope_digest: string; check_catalog_digest: string | null; peer: CreditProcessIdentity; supervisor: CreditProcessIdentity; appcontainer_sid: string | null }
 // Separate native controller, never installed by the public probe or Human CLI.
 // Held original process handles and the pipe's OS client PID establish the peer.
 export class AgentWorkspaceToolIpc {
@@ -68,12 +80,13 @@ export class AgentWorkspaceToolIpc {
           const event = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(line).trim(), 163840) as Record<string, unknown>;
           if (!event || typeof event !== "object" || Array.isArray(event) || event.format !== "cimiloop/agent-workspace-ipc-native/1.0.0") fail("agent_ipc_native_unproven");
           if (event.phase === "ready") {
-            if (this.endpoint || lines !== 1 || !exact(event, ["format", "phase", "nonce", "scope_digest", "pipe", "peer", "supervisor", "appcontainer_sid"]) ||
+            if (this.endpoint || lines !== 1 || !exact(event, ["format", "phase", "nonce", "scope_digest", "check_catalog_digest", "pipe", "peer", "supervisor", "appcontainer_sid"]) ||
+              event.check_catalog_digest !== (options.checks?.catalog.catalog_digest ?? null) ||
               event.nonce !== this.nonce || event.scope_digest !== agentWorkspaceIpcScopeDigest(this.scope) || event.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${this.nonce}` ||
               !validWorkspaceWorkerIdentity(event.peer) || !isDeepStrictEqual({ ...event.peer }, options.originalPeer) ||
               !validWorkspaceWorkerIdentity(event.supervisor) || !isDeepStrictEqual({ ...event.supervisor }, options.originalSupervisor) || event.appcontainer_sid !== null &&
               (typeof event.appcontainer_sid !== "string" || !/^S-1-15-2-(?:[0-9]+-)*[0-9]+$/.test(event.appcontainer_sid))) fail("agent_ipc_native_unproven");
-            this.endpoint = { pipe: event.pipe, scope_digest: event.scope_digest, peer: { ...event.peer }, supervisor: { ...event.supervisor }, appcontainer_sid: event.appcontainer_sid };
+            this.endpoint = { pipe: event.pipe, scope_digest: event.scope_digest, check_catalog_digest: event.check_catalog_digest as string | null, peer: { ...event.peer }, supervisor: { ...event.supervisor }, appcontainer_sid: event.appcontainer_sid };
             clearTimeout(timer); readyResolve(structuredClone(this.endpoint));
           } else if (event.phase === "request") {
             if (!this.endpoint || this.pending || this.stopped || !exact(event, ["format", "phase", "nonce", "scope_digest", "peer", "request_digest", "frame_base64"]) ||
@@ -100,7 +113,7 @@ export class AgentWorkspaceToolIpc {
     }));
     options.supervisor.once("close", this.peerEnded);
     this.child.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-ipc-config/1.0.0", nonce: this.nonce, scope_digest: agentWorkspaceIpcScopeDigest(this.scope),
-      peer: options.originalPeer, supervisor: options.originalSupervisor, owner_pid: process.pid }) + "\n");
+      check_catalog_digest: options.checks?.catalog.catalog_digest ?? null, peer: options.originalPeer, supervisor: options.originalSupervisor, owner_pid: process.pid }) + "\n");
   }
   static async open(options: Options): Promise<AgentWorkspaceToolIpc> {
     if (options.nonce !== undefined && !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(options.nonce)) fail("agent_ipc_nonce_invalid");
@@ -110,17 +123,26 @@ export class AgentWorkspaceToolIpc {
       options.supervisor.signalCode !== null || options.supervisor.killed) fail("agent_ipc_peer_unproven");
     // Copy original protected pins before asynchronous build/start. A caller's
     // later mutation cannot substitute the admitted scope or captured process.
-    const captured: Options = { ...options, scope, originalPeer: { ...originalPeer }, originalSupervisor: { ...originalSupervisor } };
+    const captured: Options = { ...options, scope, originalPeer: { ...originalPeer }, originalSupervisor: { ...originalSupervisor },
+      ...(options.checks ? { checks: { catalog: parseWorkspaceCheckCatalog(options.checks.catalog, scope), execute: options.checks.execute } } : {}) };
     const binary = await buildWindowsAgentWorkspaceTransport(captured.toolsDirectory);
     if (digest(bytesAt(binary.path)).value !== binary.digest.value) fail("agent_ipc_binary_changed");
     const host = new AgentWorkspaceToolIpc(captured, binary.path);
     try { await host.ready; return host; } catch (error) { await host.close(); throw error; }
   }
   private async respond(bytes: Buffer, requestDigest: string) {
-    let receipt: WorkspaceToolReceipt | null = null, replay = false, reason: string | null = null, callId: string | null = null;
+    let receipt: WorkspaceToolReceipt | WorkspaceCheckReceipt | null = null, replay = false, reason: string | null = null, callId: string | null = null;
     try {
-      const input = agentWorkspaceIpcInvocation(this.scope, parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(bytes), TOOL_RECORD_BYTES)); callId = input.call_id;
-      if (this.stopped) fail("agent_ipc_closed"); const result = await this.options.execute(input); receipt = result.receipt; replay = result.replay;
+      const frame = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(bytes), TOOL_RECORD_BYTES) as Record<string, unknown>;
+      if (this.stopped) fail("agent_ipc_closed");
+      if (frame && frame.tool === "run_check") {
+        if (!this.options.checks) fail("agent_ipc_frame_denied");
+        const input = agentWorkspaceIpcCheckInvocation(this.scope, this.options.checks.catalog, frame); callId = input.call_id;
+        const result = await this.options.checks.execute(input); receipt = result.receipt; replay = result.replay;
+      } else {
+        const input = agentWorkspaceIpcInvocation(this.scope, frame); callId = input.call_id;
+        const result = await this.options.execute(input); receipt = result.receipt; replay = result.replay;
+      }
     } catch (error) { reason = error instanceof RuntimeAdapterError && /^[a-z_]{1,96}$/.test(error.reason) ? error.reason : "agent_ipc_frame_denied"; }
     this.attempts.push({ outcome: reason ? "denied" : "completed", reason });
     const reply = Buffer.from(JSON.stringify({ format: "cimiloop/agent-workspace-tool-reply/1.0.0", scope_digest: agentWorkspaceIpcScopeDigest(this.scope), request_digest: requestDigest,

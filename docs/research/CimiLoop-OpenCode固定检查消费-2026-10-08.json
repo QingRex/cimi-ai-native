@@ -1,0 +1,225 @@
+{
+  "format": "cimiloop/opencode-fixed-check-verification/1.0.0",
+  "decision": "D-227",
+  "date": "2026-10-08",
+  "base_commit": "e1802cfe19ba4061446779b105130131a879e9f6",
+  "goal_complete": false,
+  "s1_complete": false,
+  "production_agent_execution_enabled": false,
+  "actual_sdk_check_tools_connected": true,
+  "actual_scope_node_policy_catalog_connected": true,
+  "formal_context_catalog_admission_complete": false,
+  "automatic_post_edit_fresh_catalog_complete": false,
+  "protected_production_custody_complete": false,
+  "complete_runtime_lifecycle_recovery_implemented": false,
+  "physical_quota_complete": false,
+  "full_approved_billing_admission_implemented": false,
+  "positive_agent_admission_constructed": true,
+  "tool_rehearsal_model_responses_constructed": true,
+  "expected_edit_bytes_constructed": true,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "path": ".cimiloop/sdk-check-v1-09/final.json",
+      "bytes": 71125,
+      "sha256": "4ed0939f69fecc2a6c8cbcfbdf12184aac38136c777d717bc09d445768b04ba8",
+      "files": 18,
+      "tests": 150,
+      "passed": 150,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "complete_repository_suite": false,
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "source_snapshot": {
+      "path": ".cimiloop/sdk-check-v1-09/sources.json",
+      "bytes": 2662,
+      "sha256": "d884dd70ef86bb87bb21790e0ed2f649aed3684acf589683a4d020cc8fbad631"
+    },
+    "preliminary_reports": [
+      {
+        "path": ".cimiloop/sdk-check-v1-09/contracts.json",
+        "bytes": 8503,
+        "sha256": "c86c8f38ae99c9a5d2b2003c2811e47a8606acec26e79ddf0e1f02cbf711222b",
+        "files": 3,
+        "tests": 21,
+        "passed": 21,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      {
+        "path": ".cimiloop/sdk-check-v1-09/actual.json",
+        "bytes": 12038,
+        "sha256": "d5965d292edfffeec330df99bbde056f1ef1792f4974361b46ad652e8d8b6d58",
+        "files": 1,
+        "tests": 3,
+        "passed": 0,
+        "failed": 3,
+        "pending": 0,
+        "success": false
+      },
+      {
+        "path": ".cimiloop/sdk-check-v1-09/actual-refined.json",
+        "bytes": 1857,
+        "sha256": "74d5d30cf58ca234d4315fd60b9d0d243d86aad2fb17c3e59331f6c525db4844",
+        "files": 1,
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      }
+    ],
+    "preliminary_scope": "Contract report used constructed replies. First actual report rejected fixture WorkItem scope before Runtime/check dispatch and also showed fixture teardown open-store errors. Refined actual report validated the corrected confirmed-plan scope; final additionally checks original ToolUsePart session/message/call identity against the emitted check call ID.",
+    "fixture_regression": {
+      "path": ".cimiloop/sdk-check-v1-09/fixture-regression.json",
+      "bytes": 22316,
+      "sha256": "dfd6c9bd499af1e788703d593cf6def45be11145d212d799ec08113d7ea45501",
+      "files": 4,
+      "tests": 50,
+      "passed": 50,
+      "failed": 0,
+      "pending": 0,
+      "success": true
+    },
+    "schemas": {
+      "total": 242,
+      "unchanged": 242,
+      "added": 0,
+      "changed": 0,
+      "protocol_status_clean": true,
+      "public_native_sources_unchanged": 4,
+      "comparison": "exact text normalized CRLF to LF"
+    },
+    "documentation": {
+      "files": 10,
+      "links": 296,
+      "broken": []
+    },
+    "commit_baseline": {
+      "files": 837,
+      "problems": []
+    }
+  },
+  "implemented": {
+    "catalog": "Strict detached six-field catalog binds original Scope, pinned Node bytes, original repository policy and sorted fixed recipes, with exact complete digest. Host and SDK parsers reject unknown, executable, reordered/duplicate IDs or modified catalogs. Local trusted composition installs before IPC and rejects installation after original channel is fixed.",
+    "channel": "Original native OS-authenticated pipe ready carries the optional installed catalog digest, matched by trusted host and suspended-start composition. Only exact scope/call/tool/check-ID/catalog-digest crosses a check frame; installed check callback routes to original current-authority host. No model argv/path/source/environment/cwd/limits/actor/provider selection.",
+    "sdk": "Actual pinned OpenCode registry toolCtx session/message/call IDs form stable sdk_SHA256 IDs; check args only enumerate installed IDs. Copies recipes and captures selected recipe/call/abort before permission await. Refused or cancelled permission produces no request. Client validates exact receipt shape and outcome/exit consistency; SDK checks original profile/entry and full input snapshot digest.",
+    "result": "Command failure remains a failed check projection even when the SDK tool transport completed. Full raw/native/capture receipt remains in trusted original host; explicit old-call replay rechecks authority and exact original input, no automatic retry or new ID on lost response. Existing original checks Unknown still blocks parent Run/usage settlement.",
+    "supervision": "Fixed native attempt 120000ms, host reply119000ms and SDK reply125000ms accommodate allowed30000ms commands. Original peer exit closes file and check hosts concurrently; no arbitrary model deadlines. Whole preparation/nested Run supervision still pending."
+  },
+  "actual_validation": {
+    "passed": "Actual SDK reads and replaces query.ts with known constructed fixture bytes, then actual fixed node:test reads copied edited source and waits21000ms before asserting. ToolUsePart original session/message/call exactly derives emitted sdk call ID. Original catalog unchanged and Runtime cannot write its directory file. Raw TAP, recipe, original receipt, native disposal and one-operation explicit replay are checked.",
+    "failed": "Actual Node assertion against a different expected source exits1. SDK tool status completed carries outcome failed/exit1, never passed.",
+    "revoked": "Actual Human RevokeWorkItem after real source edits and before first run_checks authority assessment causes check denial. No check slot or dispatch appears; two prior actual file records remain.",
+    "native_facts": "Constructed positive admission/host port does not advance Reserved Native Run, Task usage, events or Gate from tool success. Retained old startup Unknown is not cleaned or reclassified.",
+    "contract_only": "Constructed pipe replies validate permission/cancel, mutated arguments/catalog, wrong source/entry, forged pass, lost reply and no automatic retry; not proof of actual execution or model behavior."
+  },
+  "unchanged": {
+    "protocol_schemas": 242,
+    "native_database_format": 10,
+    "workspace_tool_receipt_format": "cimiloop/workspace-tool-receipt/1.0.0",
+    "workspace_check_receipt_format": "cimiloop/workspace-check-receipt/1.0.0",
+    "public_native_control_sources_unchanged": 4,
+    "default_cli_workbench_formal_agent_entry": "not installed"
+  },
+  "boundaries": {
+    "source": "Static expected input digests and synthetic expected replacement are installed before rehearsal; arbitrary genuine model edits need actual post-edit capture and a fresh formal verification catalog/Context/Run.",
+    "runtime": "Private trusted composition only. Formal production admission/custody/lifecycle, physical quota/history retention, total preparation/nested Run deadlines and complete cross-logon recovery remain required.",
+    "external": "Zhipu provider confirmed. Exact approved model/plan and cash/credit ceiling remain missing; no credentials accessed and no external model calls in this batch."
+  },
+  "remaining_acceptance": [
+    "V1-09 formal Context catalog admission, actual fresh-source verification composition, formal SDK/tool/account custody/lifecycle, actual model/plan/service bounds/budgets/billing, physical quotas/history/complete recovery.",
+    "V1-21 actual Skill calls and Human/Matt clarification before Plan/Task.",
+    "V1-22 independent complete review, fresh Superpowers verification and actual behavior comparison.",
+    "V1-10 formal workbench Agent execute/status/stop/original recovery.",
+    "V1-11 ordinary genuine Change through independent review/interruption/resumption to ReadyForDelivery, full S1 acceptance and test guide."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/local-app/src/agent-workspace-tools-local.ts",
+      "bytes": 6540,
+      "sha256": "686be69866adbd06c99b2fa14bdcba849acb074190ad5ea4bcd7fb697dfa84b4"
+    },
+    {
+      "path": "packages/runtime-adapter/native/AgentWorkspaceSandbox.cs",
+      "bytes": 28659,
+      "sha256": "58bc1b8973d2a3ceb74411f83e65f0fc4a2eae73caba9db14c0d059a990c76bc"
+    },
+    {
+      "path": "packages/runtime-adapter/native/AgentWorkspaceTransport.cs",
+      "bytes": 13308,
+      "sha256": "c78be3c157b3f34ebffac36d8c018641aca1610ee6f832efe3d718f0d3c7f46e"
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-workspace-ipc.ts",
+      "bytes": 15085,
+      "sha256": "ed404f308c6f0148df4cdddb27cfc0d38187010b1677bbaf15bd48c7fdf0c2f2"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 3097,
+      "sha256": "d2b923ae6bf7dcc0accf5fd314c8a9accf9a3f48d7a6ca2181b78f748e22605e"
+    },
+    {
+      "path": "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+      "bytes": 16074,
+      "sha256": "f7fb53003a6fcaa7fccfe52efa1bf849686468bdec286f5bea7dcacc11f5a19d"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-checks.ts",
+      "bytes": 31748,
+      "sha256": "102c5d7bd4d6b986b53e76ccdd3a83503f65f962bba8ed97533f74e09ce2bc27"
+    },
+    {
+      "path": "packages/runtime-adapter/transport/agent-workspace-ipc-client.mjs",
+      "bytes": 10128,
+      "sha256": "3a5686b656c965889d292c0618a071ced844c905693c6e067ab2c3a8cdb1126e"
+    },
+    {
+      "path": "packages/runtime-adapter/transport/opencode-workspace-provider-fixture.mjs",
+      "bytes": 4546,
+      "sha256": "90ea858f763fc61d5d884b8a692affe1daa3246857f422565bf537209a6a254e"
+    },
+    {
+      "path": "packages/runtime-adapter/transport/opencode-workspace-tools.js",
+      "bytes": 10092,
+      "sha256": "e5570892ceaec25d46f16e081df83098d02cfd2e37965f552f3927a3aa50b715"
+    },
+    {
+      "path": "tests/fixtures/agent-run-project.ts",
+      "bytes": 11639,
+      "sha256": "aef61cdfb9b5a122232ff17f46942c8769d16f38f1ed873d0c1031ce6f28443c"
+    },
+    {
+      "path": "tests/fixtures/run-project.ts",
+      "bytes": 5501,
+      "sha256": "125886cdaef4d57cd8042e6d3e76c59db17f5704d0bb0eeba864b418afec931a"
+    },
+    {
+      "path": "tests/fixtures/verification-project.ts",
+      "bytes": 10496,
+      "sha256": "16a60a428b40ed288ffa6aa876f47ef320e686239b30e9ba6c44e975b921747c"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-check-contract.test.ts",
+      "bytes": 9190,
+      "sha256": "cb2944bd55e751237a570a59399796445ff1b7c06c74b256e579f43288f97a37"
+    },
+    {
+      "path": "tests/scenarios/opencode-check-runtime.test.ts",
+      "bytes": 10672,
+      "sha256": "b9790ad3f50882c8e2ad552756f01d663ec23a65bf33dc35d144f8704732dfe9"
+    }
+  ]
+}
