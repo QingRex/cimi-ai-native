@@ -26,8 +26,8 @@ describe("workspace journal original ownership and effect barriers", () => {
       as_of_event_sequence: 1, formal_agent_execution_enabled: false, decision: "ALLOW", reasons: [], authority });
     const proof = (value = input): WorkspaceNativePreparation => ({ format: "cimiloop/workspace-native/1.0.0", phase: "prepared", nonce: randomUUID(), input_digest: digest(JSON.stringify(value)).value,
       root_identity: { ...policy.root_identity }, file_identity: { volume_serial: "12345678", file_index: "0000000000000002" }, replacement_identity: null, before_digest: value.expected_digest, worker: { ...owner, creation_ticks: "2" } });
-    const path = join(root, "tools.sqlite"), open = (observeOwner?: ConstructorParameters<typeof WorkspaceToolJournal>[2]["observeOwner"]) => {
-      const journal = new WorkspaceToolJournal(path, policy, { identity: owner, ...(observeOwner ? { observeOwner } : {}) }); journals.push(journal); return journal;
+    const path = join(root, "tools.sqlite"), open = (observeOwner?: ConstructorParameters<typeof WorkspaceToolJournal>[2]["observeOwner"], reclaimStaging?: ConstructorParameters<typeof WorkspaceToolJournal>[2]["reclaimStaging"]) => {
+      const journal = new WorkspaceToolJournal(path, policy, { identity: owner, ...(observeOwner ? { observeOwner } : {}), ...(reclaimStaging ? { reclaimStaging } : {}) }); journals.push(journal); return journal;
     };
     const claim = (journal: WorkspaceToolJournal, value = input) => { const result = journal.claim(value, assess(workspaceToolAuthorityRequest(value))); if (!result.permit) throw Error("Expected new permit"); return result.permit; };
     return { input, policy, assess, proof, path, open, claim };
@@ -72,5 +72,34 @@ describe("workspace journal original ownership and effect barriers", () => {
     expect(() => read({ ...record, executor_ref: { id: createInternalId() } })).toThrow("workspace_tool_run_binding_mismatch");
     expect(() => read({ ...record, input_digest: digest("foreign") })).toThrow("workspace_tool_run_binding_mismatch");
     expect(() => read(record, createInternalId())).toThrow("workspace_tool_scope_mismatch"); expect(() => read(record, f.input.project_id, digest("foreign root").value)).toThrow("workspace_tool_scope_mismatch");
+  });
+  it("never calls resource deletion while either original owner is active or unproven", async () => {
+    const f = setup(), first = f.open(), input = parseWorkspaceToolInvocation({ ...f.input, tool: "replace_file", replacement_utf8: "replacement\n" }), permit = f.claim(first, input);
+    first.prepare(permit, { ...f.proof(input), replacement_identity: { volume_serial: "12345678", file_index: "0000000000000003" } }); first.dispatch(permit); first.stop(permit, true); first.close();
+    for (const [host, native] of [["active", "absent"], ["absent", "active"], ["unknown", "absent"], ["absent", "unknown"]] as const) {
+      let calls = 0; const next = f.open(async identity => identity.creation_ticks === "1" ? host : native, async () => { calls++; return "removed"; });
+      const facts = next.facts(), recovered = await next.reclaimResources(); expect(calls).toBe(0); expect(recovered).toMatchObject({ examined: 1, removed: 0, unproven: 0 });
+      expect(recovered.active + recovered.unknown_owners).toBe(1); expect(next.facts()).toEqual(facts); next.close();
+    }
+  });
+  it("keeps Unknown and its permanent slot across removal, repeated absence and failed cleanup", async () => {
+    const f = setup(1), input = parseWorkspaceToolInvocation({ ...f.input, tool: "replace_file", replacement_utf8: "replacement\n" });
+    const statuses = ["removed", "absent", "denied"];
+    const journal = f.open(async () => "absent", async (proof, originalOwner) => {
+      expect(originalOwner).toEqual(owner); proof.replacement_identity!.file_index = "0".repeat(16); originalOwner.image = "modified callback copy";
+      const outcome = statuses.shift(); if (outcome === "denied") throw Error("identity changed"); return outcome as "removed" | "absent";
+    });
+    const permit = f.claim(journal, input); journal.prepare(permit, { ...f.proof(input), replacement_identity: { volume_serial: "12345678", file_index: "0000000000000003" } }); journal.dispatch(permit); journal.stop(permit, true);
+    const facts = journal.facts();
+    for (const expected of [{ removed: 1, unproven: 0 }, { absent: 1, unproven: 0 }, { removed: 0, absent: 0, unproven: 1 }]) {
+      expect(await journal.reclaimResources()).toMatchObject(expected); expect(journal.facts()).toEqual(facts);
+    }
+    expect(() => f.claim(journal, { ...f.input, run_id: createInternalId(), path: "other.ts", call_id: "fresh" })).toThrow("workspace_tool_capacity_exhausted");
+  });
+  it("skips unfinalized preparations and treats read-only resource outcomes separately", async () => {
+    const f = setup(), calls: string[] = [], journal = f.open(async () => "absent", async proof => { calls.push(proof.nonce); return "not_applicable"; });
+    const permit = f.claim(journal); journal.prepare(permit, f.proof()); expect(await journal.reclaimResources()).toMatchObject({ examined: 0 }); expect(calls).toHaveLength(0);
+    journal.stop(permit, false); expect(await journal.reclaimResources()).toMatchObject({ examined: 1, not_applicable: 1, removed: 0 }); expect(journal.facts()).toMatchObject({ unresolved: 0, states: { not_started: 1 } });
+    const wrong = f.open(async () => "absent", async () => "removed"); expect(await wrong.reclaimResources()).toMatchObject({ examined: 1, removed: 0, unproven: 1 });
   });
 });

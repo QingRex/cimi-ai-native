@@ -16,6 +16,7 @@ class WorkspaceFiles {
   [StructLayout(LayoutKind.Sequential)] struct FILETIME { public uint low,high; }
   [StructLayout(LayoutKind.Sequential)] struct FILEINFO { public uint attributes; public FILETIME creation,access,write; public uint volume,sizeHigh,sizeLow,links,indexHigh,indexLow; }
   [StructLayout(LayoutKind.Sequential)] struct OVERLAPPED { public IntPtr Internal,InternalHigh; public uint Offset,OffsetHigh; public IntPtr Event; }
+  [StructLayout(LayoutKind.Sequential)] struct DISPOSITION { public byte deleteFile; }
   [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern SafeFileHandle CreateFile(string path,uint access,uint share,IntPtr security,uint disposition,uint flags,IntPtr template);
   [DllImport("kernel32.dll",SetLastError=true)] static extern bool GetFileInformationByHandle(SafeFileHandle handle,out FILEINFO info);
   [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern uint GetFinalPathNameByHandle(SafeFileHandle handle,StringBuilder path,uint size,uint flags);
@@ -25,6 +26,11 @@ class WorkspaceFiles {
   [DllImport("kernel32.dll",SetLastError=true)] static extern bool GetProcessTimes(IntPtr process,out FILETIME creation,out FILETIME exit,out FILETIME kernel,out FILETIME user);
   [DllImport("kernel32.dll",SetLastError=true)] static extern bool LockFileEx(SafeFileHandle file,uint flags,uint reserved,uint low,uint high,ref OVERLAPPED overlapped);
   [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool ReplaceFile(string target,string replacement,string backup,uint flags,IntPtr exclude,IntPtr reserved);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern bool SetFileInformationByHandle(SafeFileHandle handle,int kind,ref DISPOSITION information,uint size);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr OpenProcess(uint access,bool inherit,int pid);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern bool CloseHandle(IntPtr handle);
+  [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool QueryFullProcessImageName(IntPtr process,uint flags,StringBuilder image,ref int size);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern uint WaitForSingleObject(IntPtr handle,uint milliseconds);
   static readonly JavaScriptSerializer json=new JavaScriptSerializer { MaxJsonLength=262144,RecursionLimit=32 };
   class Denied : Exception { public readonly string reason; public Denied(string value) { reason=value; } }
   static void Require(bool value,string reason) { if(!value) throw new Denied(reason); }
@@ -79,12 +85,66 @@ class WorkspaceFiles {
   static Dictionary<string,object> Worker() { var process=Process.GetCurrentProcess(); FILETIME created,exit,kernel,user;
     Require(GetProcessTimes(process.Handle,out created,out exit,out kernel,out user),"workspace_worker_identity_unproven");
     return new Dictionary<string,object> { {"pid",process.Id},{"creation_ticks",(((ulong)created.high<<32)|created.low).ToString()},{"image",process.MainModule.FileName} }; }
+  static string OwnerState(Dictionary<string,object> owner) {
+    Keys(owner,"pid","creation_ticks","image"); int pid=Convert.ToInt32(owner["pid"]); string ticks=Str(owner,"creation_ticks"),image=Str(owner,"image");
+    Require(pid>0&&Regex.IsMatch(ticks,"^[1-9][0-9]{0,19}$")&&Path.IsPathRooted(image),"workspace_recovery_owner_unproven");
+    var process=OpenProcess(0x1000|0x100000,false,pid);
+    if(process==IntPtr.Zero) return Marshal.GetLastWin32Error()==87?"absent":"unknown";
+    try { FILETIME created,exit,kernel,user;
+      if(!GetProcessTimes(process,out created,out exit,out kernel,out user)) return "unknown";
+      if((((ulong)created.high<<32)|created.low).ToString()!=ticks) return "absent";
+      uint state=WaitForSingleObject(process,0); if(state==0) return "absent"; if(state!=0x102) return "unknown";
+      var actual=new StringBuilder(32768); int size=actual.Capacity;
+      if(!QueryFullProcessImageName(process,0,actual,ref size)||!String.Equals(Path.GetFullPath(actual.ToString()),Path.GetFullPath(image),StringComparison.OrdinalIgnoreCase)) return "unknown";
+      return "active";
+    } finally { CloseHandle(process); }
+  }
+  static void OwnersAbsent(Dictionary<string,object> owner,Dictionary<string,object> worker) {
+    string host=OwnerState(owner),native=OwnerState(worker);
+    Require(host!="active"&&native!="active","workspace_recovery_owner_active");
+    Require(host=="absent"&&native=="absent","workspace_recovery_owner_unproven");
+  }
+  static void Reclaim(Dictionary<string,object> config,string nonce,List<SafeFileHandle> handles) {
+    string root=Str(config,"root"); handles.AddRange(Anchor(root));
+    byte[] bytes=Convert.FromBase64String(Str(config,"preparation_base64")); Require(bytes.Length<=114688,"workspace_frame_limit");
+    var proof=Obj(json.DeserializeObject(new UTF8Encoding(false,true).GetString(bytes)));
+    Keys(proof,"format","phase","nonce","input_digest","root_identity","file_identity","replacement_identity","before_digest","worker");
+    Require(Str(proof,"format")=="cimiloop/workspace-native/1.0.0"&&Str(proof,"phase")=="prepared","workspace_recovery_contract_invalid");
+    string originalNonce=Str(proof,"nonce"); Require(Regex.IsMatch(originalNonce,"^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$"),"workspace_recovery_contract_invalid");
+    var owner=Obj(config["owner"]); var worker=Obj(proof["worker"]); OwnersAbsent(owner,worker);
+    object identity=proof["replacement_identity"]; string status="not_applicable";
+    if(identity!=null) {
+      var expected=Obj(identity); Hex(expected,"volume_serial",8); Hex(expected,"file_index",16); Keys(expected,"volume_serial","file_index");
+      string image=Str(worker,"image"),build=Path.GetDirectoryName(image);
+      Require(String.Equals(Path.GetFullPath(image),image,StringComparison.OrdinalIgnoreCase)&&Path.GetFileName(image)=="WorkspaceFiles.exe"&&
+        String.Equals(Path.GetDirectoryName(build),root,StringComparison.OrdinalIgnoreCase)&&Regex.IsMatch(Path.GetFileName(build),"^workspace-[a-f0-9]{64}$"),"workspace_recovery_scope_denied");
+      // Only the original source-addressed private build directory and nonce
+      // name are eligible. Missing paths are observed; nothing is recreated.
+      var directory=CreateFile(build,0x80,1,IntPtr.Zero,3,0x00200000|0x02000000,IntPtr.Zero);
+      if(directory.IsInvalid) { int error=Marshal.GetLastWin32Error(); directory.Dispose(); Require(error==2||error==3,"workspace_recovery_directory_denied"); status="absent"; }
+      else {
+        handles.Add(directory); Info(directory,true); Require(String.Equals(Final(directory),build,StringComparison.OrdinalIgnoreCase),"workspace_recovery_scope_denied");
+        string target=Path.Combine(build,"workspace-"+originalNonce+".tmp");
+        var file=CreateFile(target,0x10000|0x80,1,IntPtr.Zero,3,0x00200000|0x02000000,IntPtr.Zero);
+        if(file.IsInvalid) { int error=Marshal.GetLastWin32Error(); file.Dispose(); Require(error==2||error==3,"workspace_recovery_file_denied"); status="absent"; }
+        else using(file) {
+          var info=Info(file,false);
+          Require(info.links==1&&SameId(expected,Id(info))&&info.volume==Info(handles[handles.Count-1],true).volume&&
+            String.Equals(Final(file),target,StringComparison.OrdinalIgnoreCase),"workspace_recovery_identity_denied");
+          OwnersAbsent(owner,worker); var disposition=new DISPOSITION { deleteFile=1 };
+          Require(SetFileInformationByHandle(file,4,ref disposition,1),"workspace_recovery_delete_denied"); status="removed";
+        }
+      }
+    }
+    Emit(new { format="cimiloop/workspace-native/1.0.0",phase="reclaimed",nonce=nonce,preparation_digest=Sha(bytes),replacement_identity=identity,status=status });
+  }
   static int Main() {
     Console.OutputEncoding=new UTF8Encoding(false); string nonce=null,candidatePath=null; bool installed=false; var handles=new List<SafeFileHandle>();
     try {
       var config=Obj(json.DeserializeObject(Frame(262144))); string mode=Str(config,"mode");
-      Keys(config,mode=="inspect"?new string[] {"mode","nonce","root"}:new string[] {"mode","nonce","root","root_identity","request_base64"});
+      Keys(config,mode=="inspect"?new string[] {"mode","nonce","root"}:mode=="reclaim"?new string[] {"mode","nonce","root","preparation_base64","owner"}:new string[] {"mode","nonce","root","root_identity","request_base64"});
       nonce=Str(config,"nonce"); Require(Regex.IsMatch(nonce,"^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$"),"workspace_contract_invalid");
+      if(mode=="reclaim") { Reclaim(config,nonce,handles); return 0; }
       string root=Str(config,"root"); handles=Anchor(root); var rootId=Id(Info(handles[handles.Count-1],true));
       if(mode=="inspect") { Emit(new { format="cimiloop/workspace-native/1.0.0",phase="root",nonce=nonce,root_identity=rootId }); return 0; }
       Require(mode=="prepare"&&SameId(Obj(config["root_identity"]),rootId),"workspace_root_identity_changed");

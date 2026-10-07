@@ -1,0 +1,219 @@
+{
+  "format": "cimiloop/workspace-staging-recovery-verification/1.0.0",
+  "decision": "D-220",
+  "date": "2026-10-07",
+  "base_commit": "2bf27887cd721169fe32ea22ec8cb7ef0f8626c6",
+  "scope": "Trusted local Human recovery of original recorded private replacement resources, actual Windows handle deletion and preservation of original tool/parent Run facts",
+  "goal_complete": false,
+  "recorded_private_staging_recovery_implemented": true,
+  "actual_double_owner_observation": true,
+  "native_independent_owner_guard": true,
+  "original_inode_delete_by_handle": true,
+  "production_agent_host_connected": false,
+  "formal_agent_execution_enabled": false,
+  "workspace_tool_ipc_opencode_connected": false,
+  "run_checks_host_implemented": false,
+  "complete_original_resource_cleanup_implemented": false,
+  "physical_filesystem_hard_quota_implemented": false,
+  "production_skill_host_connected": false,
+  "actual_method_behavior_evaluated": false,
+  "pre_plan_clarification_implemented": false,
+  "approved_billing_admission_complete": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "files": 13,
+      "tests": 179,
+      "passed": 179,
+      "failed": 0,
+      "pending": 0,
+      "complete_repository_suite": false,
+      "report": {
+        "path": ".cimiloop/workspace-tools-v1-10/final.json",
+        "bytes": 77176,
+        "sha256": "06d3da349e53e720ed84824770383c1d2ece03bf92bbc39470cdbadfaeac8e78",
+        "files": 13,
+        "tests": 179,
+        "passed": 179,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "preliminary": {
+      "initial": {
+        "path": ".cimiloop/workspace-tools-v1-10/initial.json",
+        "bytes": 9224,
+        "sha256": "05b59d9c7e2a19db4002f6b4f1233cff7c0b19ac0ae4dc533cc997a8346bee67",
+        "files": 2,
+        "tests": 17,
+        "passed": 15,
+        "failed": 2,
+        "pending": 0,
+        "success": false
+      },
+      "focused": {
+        "path": ".cimiloop/workspace-tools-v1-10/focused.json",
+        "bytes": 15571,
+        "sha256": "91db28b0ccbaf2ccfa779fb0f7dceed4b851cbd9d20db0b04a34e4dcdfc6112a",
+        "files": 3,
+        "tests": 33,
+        "passed": 33,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "focused_source_snapshot": {
+        "path": ".cimiloop/workspace-tools-v1-10/focused-sources.json",
+        "bytes": 1795,
+        "sha256": "0a3ec584d3d2285b4f2ee4ceb9b7c399bbeca5dac70dc090f868f73a0c6e6665"
+      },
+      "final_source_snapshot": {
+        "path": ".cimiloop/workspace-tools-v1-10/sources.json",
+        "bytes": 1958,
+        "sha256": "517ea99e9a91efe76c31a576c21b7a6266d6bdf1b2d70dd6bfb67497a0b4038d"
+      },
+      "initial_failure_repair": "15 of 17 initial tests passed. One failure was inability to read the image of a process already signaled as exited; native observation now checks creation/exit before live image. The other was a file rm call on a known empty fixture directory; changed to rmdir. Negative tests await actual original owner absence and assert specific rejection reasons. Reports retained.",
+      "focused_scope": "33 tests passed before adding the distinct source-addressed compiled build case and public outcome type export; final affected regression reruns all affected tests on the fixed 11-file source snapshot."
+    },
+    "schemas": {
+      "total": 239,
+      "unchanged": 239,
+      "changed": 0,
+      "added": 0,
+      "protocol_status_clean": true,
+      "writes": 0,
+      "report": {
+        "path": ".cimiloop/workspace-tools-v1-10/schemas.json",
+        "bytes": 117,
+        "sha256": "96919bbef631d8a951c7de319e40cd2753c8de9c4156e496e213c9570d2553e9"
+      }
+    },
+    "documentation": {
+      "files": 9,
+      "links": 276,
+      "broken": [],
+      "report": {
+        "path": ".cimiloop/workspace-tools-v1-10/links.json",
+        "bytes": 49,
+        "sha256": "bc1c32c466eb7d080934a1b14d8527d995fa4adf080bfe3fc9f0b13cbc1fcf8c"
+      },
+      "pending_report_links_only": false
+    },
+    "commit_baseline": {
+      "files": 789,
+      "bytes": 55475422,
+      "problems": []
+    }
+  },
+  "implemented": {
+    "entry": "WorkspaceToolHost.recover and LocalWorkspaceToolService.recover reuse the fixed original project journal. Legacy reconcileOwners remains state-only.",
+    "original_binding": "Validated immutable original input/owner/preparation/digests; original row re-read after both OS owner observations before calling the trusted cleaner with independent copies.",
+    "deletion": "Pinned current native broker anchors fixed tools ancestors and original workspace-<source SHA> directory, derives only the recorded nonce temporary name, requires an ordinary single-link matching volume/file index and canonical path, rechecks owner absence and sets FileDispositionInfo on the same DELETE/READ_ATTRIBUTES handle.",
+    "result": "removed/absent/not_applicable are resource observations only. Missing paths are not created; resource recovery never writes call state/receipt, refunds slots/budget or adds DomainEvents.",
+    "preservation": "Unknown and original file-ID barriers remain after staging deletion. Current/source-upgraded recovery does not need to execute or read the original executable."
+  },
+  "actual_validation": {
+    "windows_files": "9 actual Windows staging tests: own Node/native forced termination, exact deletion and repeated absence, distinct comment-only compiled source identity with removed original executable, wrong identity/substitution/hardlink/directory/outside scope/wrong root refusal, and active original Node rejection before and after its own native child is killed.",
+    "native_git_kernel": "16 existing and new actual Git/Kernel file/parent Run tests, including two forced native+Node exits after durable native preparation and dispatch. Cleanup preserves original outcomes, parent Unknown guard, usage and event sequence.",
+    "constructed_seams": "9 Journal tests use explicitly constructed authority/owner inputs. New seams verify both-owner holds, copied original data, permanent Unknown capacity, repeated absence, denied cleanup and unfinalized/read-only exclusion. They do not qualify Agent/model/runtime admission.",
+    "regression": "The final 13-file report includes actual file handles, original journal, actual Git/Kernel recovery, old public tool host, Human/Agent Run records, tool authority, SkillInvocation, CLI, workbench server/frontend and method input preparation."
+  },
+  "unchanged": {
+    "native_database_format": 10,
+    "workspace_tool_journal_format": "cimiloop/workspace-tool-journal/1.0.0",
+    "workspace_tool_journal_user_version": 1,
+    "protocol_schemas": 239,
+    "receipt_formal_agent_execution_enabled": false
+  },
+  "boundaries": {
+    "trust": "Only the trusted local Human composition is connected. Runtime input cannot choose the cleaner, original proof, owner observer, filesystem location or arbitrary process. Same-permission Human tampering is outside the protected production custody boundary.",
+    "incomplete_resources": "No proof means no deletion authorization. Pre-proof forced-exit residue, externally renamed/substituted/hardlinked resources and inaccessible/unproven owner/resource identities remain preserved. This does not establish full original-resource cleanup or physical disk quota.",
+    "missing": "absence concerns only the original private path; it does not establish that an earlier worktree effect was not dispatched or executed. No hash-based success inference or automatic Unknown resolution.",
+    "source_variants": "A genuinely compiled second source build differing only by a comment tests cross-build directory recovery. It is not qualification of every historical native version."
+  },
+  "remaining_acceptance": [
+    "Connect actual file effects and current Agent authority to authenticated IPC/OpenCode; retain original Run/tool/SDK custody and add fixed check-command execution.",
+    "Complete production Runtime/Task admission, current Provider catalog/model/tool eligibility, input/thinking/output bounds, protected unique account ledger, approved cash/credit budget and actual billing reconciliation.",
+    "Complete all original resource registration/recovery including pre-proof residue, and enforce physical filesystem/SQLite/WAL quotas. Unknown remains unresolved until authentic effect reconciliation.",
+    "Provide Human clarification before confirmed Plan/Task and the production Matt interview/delegation/issue harness, independent fixed diff/issue review, and fresh Superpowers checks.",
+    "Complete actual method behavior/default-selection qualification, Skill host, candidate/evidence projection and formal workbench execute/status/recovery.",
+    "Run an ordinary actual Change through approved Agent work, independent review, original skill/effect evidence, interruption/resumption and ReadyForDelivery; full S1 remains incomplete."
+  ],
+  "references": [
+    {
+      "title": "SetFileInformationByHandle",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfileinformationbyhandle"
+    },
+    {
+      "title": "FILE_DISPOSITION_INFO",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_disposition_info"
+    }
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/local-app/src/workspace-tools-local.ts",
+      "bytes": 2418,
+      "sha256": "b8761e48932aba3b3081eaa7bbe9f451e9b162e275a10e626a92f571fc7e54b8"
+    },
+    {
+      "path": "packages/runtime-adapter/native/WorkspaceFiles.cs",
+      "bytes": 21017,
+      "sha256": "29297412092e73c007fd86681da6fa61cd695986dcab0c4752fe2f90b5eb1bf3"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "bytes": 2144,
+      "sha256": "2f82e48f66a7cf47d052342cc396d32b5a29c9a54d64c85d4a0eb95aa632bc37"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-files.ts",
+      "bytes": 15534,
+      "sha256": "d39ca66a731f64bc622be2a7728ed2535930b4ef8ab5fcb52abca67e13580d8d"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-tool-host.ts",
+      "bytes": 8666,
+      "sha256": "dc06e0b105b94c4ac8fd48930139c11a46619bd4614d50da3766f5e60bcdb4ff"
+    },
+    {
+      "path": "packages/runtime-adapter/src/workspace-tool-journal.ts",
+      "bytes": 23994,
+      "sha256": "0b4d2e00104d800d8795216e8dbe48dba19952284f9d7a03ce68459e5c83a966"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-tool-host-worker.mjs",
+      "bytes": 2910,
+      "sha256": "63fc7ffd85f7703286c24ccaaee6bd8c089836ee69a7db04213281fcba5eebe8"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-tool-journal.test.ts",
+      "bytes": 12075,
+      "sha256": "d025c2a986a6431c7a726b2ce8982a72153f173b7aab4ac313090f6ebc5601f4"
+    },
+    {
+      "path": "tests/scenarios/workspace-tool-runtime.test.ts",
+      "bytes": 15650,
+      "sha256": "6398e3980f47723894a3fc1a183bd3c361deac2e11c4cfc24cea9090952b66e4"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-resource-recovery.test.ts",
+      "bytes": 7927,
+      "sha256": "356ed1fee56b9b2e3614f36cfaed9a5402eca9a16eb5fb5751386a7a68a9b0aa"
+    },
+    {
+      "path": "packages/runtime-adapter/test/workspace-resource-worker.mjs",
+      "bytes": 2058,
+      "sha256": "8773410d7977833f531c445c6ae843adc9e2935f5801a6eb7d2a01fdb1d3c4db"
+    }
+  ]
+}

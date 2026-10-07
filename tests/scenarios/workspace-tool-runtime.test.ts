@@ -103,6 +103,22 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("actual a
       expect(JSON.parse((await owner).stdout)).toEqual({ state: "completed", replay: false }); expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe(f.input.replacement_utf8);
     } finally { if (!existsSync(join(f.dataDirectory, "race-release.txt"))) writeFileSync(join(f.dataDirectory, "race-release.txt"), "release"); await owner.catch(() => {}); }
   });
+  it.each(["forced_native_prepared", "forced_dispatch"])("recovers original private staging after actual forced termination at %s while preserving Run facts", async phase => {
+    const f = setup(), initial = await open(f); await initial.host.close(); const worker = fileURLToPath(new URL("../../packages/runtime-adapter/test/workspace-tool-host-worker.mjs", import.meta.url));
+    await expect(promisify(execFile)(process.execPath, [worker, f.root, f.dataDirectory, f.path, JSON.stringify(f.caller), JSON.stringify(f.input), phase], { windowsHide: true, timeout: 30000 })).rejects.toMatchObject({ code: 73 });
+    const original = JSON.parse(readFileSync(join(f.dataDirectory, "forced-original.json"), "utf8")), staging = join(dirname(original.preparation.worker.image), "workspace-" + original.preparation.nonce + ".tmp");
+    expect(existsSync(staging)).toBe(true); const execution = await open(f);
+    try { let recovery = await execution.host.recover(), reconciled = recovery.owners.reconciled, removed = recovery.resources.removed; const deadline = Date.now() + 10000;
+      while (existsSync(staging) && Date.now() < deadline) { await delay(25); recovery = await execution.host.recover(); reconciled += recovery.owners.reconciled; removed += recovery.resources.removed; }
+      expect(reconciled).toBe(1); expect(removed).toBe(1); expect(recovery.owners.active + recovery.owners.unknown_owners).toBe(0);
+      expect(recovery.resources.active + recovery.resources.unknown_owners + recovery.resources.unproven).toBe(0); expect(existsSync(staging)).toBe(false);
+      const facts = execution.journal.facts(f.run.id), sequence = f.store.asOfEventSequence(), usage = f.task().usage;
+      expect(facts).toMatchObject(phase === "forced_native_prepared" ? { unresolved: 0, has_effect: false, states: { not_started: 1 } } : { unresolved: 1, has_effect: true, states: { unknown: 1 } });
+      const replay = await execution.host.recover(); expect(replay.resources).toMatchObject({ removed: 0, absent: 1, unproven: 0 }); expect(execution.journal.facts(f.run.id)).toEqual(facts);
+      if (phase === "forced_dispatch") expect(f.reconcile(f.run, "succeeded")).toMatchObject({ code: "RECOVERY_CONDITIONS_UNMET" });
+      expect(f.task().usage).toEqual(usage); expect(f.store.asOfEventSequence()).toBe(sequence); expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
+    } finally { await execution.host.close(); }
+  });
   it("requires original local Human executor identity; a foreign operation or imported flag cannot grant effects", async () => {
     const f = setup(), service = await LocalWorkspaceToolService.open(f.local);
     try { for (const fields of [{ executor_actor_id: f.reviewer.id }, { operation_key: createInternalId() }, { formal_agent_execution_enabled: true }]) expect(() => service.execute({ ...f.input, ...fields })).toThrow();

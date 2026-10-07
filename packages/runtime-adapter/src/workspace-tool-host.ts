@@ -56,6 +56,11 @@ export class WorkspaceToolHost {
   close(): Promise<void> {
     if (!this.closing) { this.abort.abort(); this.closing = Promise.allSettled([...this.pending]).then(() => this.options.journal.close()); } return this.closing;
   }
+  recover() {
+    if (this.abort.signal.aborted) return Promise.reject(new RuntimeAdapterError("workspace_tool_host_closed"));
+    const operation = (async () => { const owners = await this.options.journal.reconcileOwners(); const resources = await this.options.journal.reclaimResources(); return { owners, resources }; })();
+    this.pending.add(operation); void operation.finally(() => this.pending.delete(operation)).catch(() => {}); return operation;
+  }
 }
 const location = (dataDirectory: string, projectId: string) => {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(projectId)) throw new RuntimeAdapterError("workspace_tool_project_invalid");
@@ -76,7 +81,7 @@ export async function openWorkspaceToolHost(options: { repositoryPath: string; d
   if (existsSync(paths.marker) !== existsSync(paths.journal)) throw new RuntimeAdapterError("workspace_tool_anchor_missing");
   if (existsSync(paths.marker) && markerAt(paths.marker, options.projectId, repository_path_digest) !== digest(JSON.stringify(policy)).value) throw new RuntimeAdapterError("workspace_tool_scope_changed");
   directory(paths.root); const launcher = await buildWindowsLauncher(options.dataDirectory), owners = await creditHostDependencies(launcher);
-  const journal = new WorkspaceToolJournal(paths.journal, policy, owners);
+  const journal = new WorkspaceToolJournal(paths.journal, policy, { ...owners, reclaimStaging: (proof, owner) => files.reclaimStaging(proof, owner) });
   try {
     if (!existsSync(paths.marker)) atomicJson(paths.marker, { format: "cimiloop/workspace-tool-anchor/1.0.0", project_id: options.projectId, repository_path_digest, journal_policy_digest: digest(JSON.stringify(policy)).value });
     const host = new WorkspaceToolHost({ journal, files, assess: options.assess, ...(options.phase ? { phase: options.phase } : {}) });

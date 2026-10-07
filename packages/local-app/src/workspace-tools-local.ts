@@ -24,5 +24,6 @@ export class LocalWorkspaceToolService {
     return this.execution.host.execute(input);
   }
   reconcileOwners() { return this.execution.journal.reconcileOwners(); }
+  recover() { return this.execution.host.recover(); }
   close() { return this.execution.host.close(); }
 }

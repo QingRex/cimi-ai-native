@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { copyToolJson, parseToolAssessment, TOOL_RECORD_BYTES } from "./tool-journal.js";
 import { parseWorkspaceToolInvocation, parseWorkspacePreparation, parseWorkspaceCompletion, validWorkspaceFileIdentity, validWorkspaceWorkerIdentity,
-  type WorkspaceToolInvocation, type WorkspaceNativePreparation, type WorkspaceNativeCompletion, type WorkspaceFileIdentity } from "./workspace-files.js";
+  type WorkspaceToolInvocation, type WorkspaceNativePreparation, type WorkspaceNativeCompletion, type WorkspaceFileIdentity, type WorkspaceStagingOutcome } from "./workspace-files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { assertOrdinaryPath, directory, digest, RuntimeAdapterError } from "./files.js";
 import type { CreditProcessIdentity, CreditOwnerState } from "./gateway-credit.js";
@@ -27,7 +27,10 @@ export interface WorkspaceToolReceipt {
   native: WorkspaceNativeCompletion; formal_agent_execution_enabled: false;
 }
 export interface WorkspaceToolPermit { readonly run_id: string; readonly call_id: string; readonly input_digest: string }
-export interface WorkspaceToolOwnerPort { identity: CreditProcessIdentity; observeOwner?: (identity: CreditProcessIdentity) => Promise<CreditOwnerState> }
+export interface WorkspaceToolOwnerPort {
+  identity: CreditProcessIdentity; observeOwner?: (identity: CreditProcessIdentity) => Promise<CreditOwnerState>;
+  reclaimStaging?: (preparation: WorkspaceNativePreparation, owner: CreditProcessIdentity) => Promise<WorkspaceStagingOutcome>;
+}
 type Row = Record<string, SQLOutputValue>;
 type State = "reserved" | "executing" | "completed" | "unknown" | "not_started";
 const ddl = [
@@ -184,6 +187,25 @@ export class WorkspaceToolJournal {
         if (!current || current.owner !== row.owner || current.preparation !== row.preparation || current.state !== row.state) return 0;
         return Number(this.db.prepare("UPDATE workspace_tool_calls SET state=? WHERE run_id=? AND call_id=?").run(row.state === "reserved" ? "not_started" : "unknown", row.run_id!, row.call_id!).changes); });
     }
+    return result;
+  }
+  async reclaimResources() {
+    if (!this.owners.reclaimStaging) fail("workspace_resource_recovery_unavailable");
+    const rows = this.transaction(() => { this.validate(); return this.db.prepare("SELECT * FROM workspace_tool_calls WHERE preparation IS NOT NULL AND state IN ('not_started','unknown','completed')").all(); });
+    const result = { examined: rows.length, removed: 0, absent: 0, not_applicable: 0, active: 0, unknown_owners: 0, unproven: 0 };
+    for (const row of rows) {
+      const input = parseWorkspaceToolInvocation(parseGatewayJson(String(row.input))), proof = this.preparation(row, input), owner = parseGatewayJson(String(row.owner)) as unknown as CreditProcessIdentity;
+      const states = await Promise.all([owner, proof.worker].map(async identity => { try { return await this.owners.observeOwner?.(identity) ?? "unknown"; } catch { return "unknown"; } }));
+      if (states.includes("active")) { result.active++; continue; } if (states.some(state => state !== "absent")) { result.unknown_owners++; continue; }
+      const original = this.transaction(() => { this.validate(); const current = this.db.prepare("SELECT * FROM workspace_tool_calls WHERE run_id=? AND call_id=?").get(row.run_id!, row.call_id!);
+        return !!current && same(current, row); });
+      if (!original) { result.unproven++; continue; }
+      try { const outcome = await this.owners.reclaimStaging(structuredClone(proof), structuredClone(owner));
+        if (!["removed", "absent", "not_applicable"].includes(outcome) || (proof.replacement_identity === null) !== (outcome === "not_applicable")) result.unproven++; else result[outcome]++;
+      } catch { result.unproven++; }
+    }
+    // Resource absence never creates a receipt, changes an outcome or frees a
+    // call slot. A repeated recovery observes absence by the original identity.
     return result;
   }
   close(): void { if (!this.closed) { this.closed = true; this.db.close(); } }

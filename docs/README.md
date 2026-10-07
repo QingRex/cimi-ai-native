@@ -1,6 +1,6 @@
 # CimiLoop 文档导航
 
-2026-10-07 D-219 已实现真实 Windows 工作区文件句柄、原工具效果账本及父 Run 结清核验；本地受信 Human 服务可调用。正式 Agent 授权、IPC / OpenCode、检查命令、费用 / 硬配额及完整 S1 仍待完成，原生格式 10 保持。见[工具宿主与恢复](implementation/CimiLoop-真实工作区工具宿主与运行恢复-v0.1.md)。
+2026-10-07 D-219 / D-220：真实工作区文件效果、父 Run 结清核验及原暂存资源恢复已实现，本地受信 Human 服务可调用。正式 Agent、IPC / OpenCode、检查命令、费用 / 硬配额及完整 S1 待完成；原生格式 10 / 239 Schema 保持。见[暂存恢复与边界](implementation/CimiLoop-工作区暂存资源原始恢复-v0.1.md)。
 
 2026-10-07 D-218：[命名方法原始会话账本](implementation/CimiLoop-命名方法原始会话账本-v0.1.md)。公开命名演练保存原请求 / HTTP 响应正文并实际只读核验；生产原账本 / 方法宿主及 S1 尚未完成。
 

@@ -1,7 +1,7 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { realpathSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { isAbsolute } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { assertOrdinaryPath, bytesAt, digest, RuntimeAdapterError } from "./files.js";
 import { buildWindowsWorkspaceBroker, isolatedEnvironment } from "./native.js";
@@ -79,7 +79,7 @@ class NativeWorkspaceSession {
           const value = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(line).trim(), TOOL_RECORD_BYTES) as Record<string, unknown>;
           if (value.format !== "cimiloop/workspace-native/1.0.0" || value.nonce !== nonce) { reject("workspace_native_identity_unproven"); return; }
           if (value.phase === "denied") { reject(typeof value.reason === "string" && /^workspace_[a-z_]{1,80}$/.test(value.reason) ? value.reason : "workspace_native_unproven"); return; }
-          if (++seen === 1 && ["root", "prepared"].includes(String(value.phase))) firstResolve(value);
+          if (++seen === 1 && ["root", "prepared", "reclaimed"].includes(String(value.phase))) firstResolve(value);
           else if (seen === 2 && value.phase === "completed" && this.commitSent) this.lastResolve(value);
           else { reject("workspace_native_sequence_unproven"); return; }
         } catch { reject("workspace_native_output_unproven"); return; }
@@ -108,12 +108,13 @@ class NativeWorkspaceSession {
   cancel(force = false): void { if (!this.stopped) { this.child.stdin.destroy(); if (force) this.child.kill(); } }
 }
 export interface PreparedWorkspaceEffect { readonly proof: Readonly<WorkspaceNativePreparation> }
+export type WorkspaceStagingOutcome = "removed" | "absent" | "not_applicable";
 export class WindowsWorkspaceFileBroker {
   readonly repositoryPath: string;
   readonly rootIdentity: Readonly<WorkspaceFileIdentity>;
   readonly scopeDigest: string;
   private readonly effects = new WeakMap<PreparedWorkspaceEffect, { session: NativeWorkspaceSession; input: WorkspaceToolInvocation }>();
-  private constructor(root: string, identity: WorkspaceFileIdentity, private readonly binary: Awaited<ReturnType<typeof buildWindowsWorkspaceBroker>>) {
+  private constructor(root: string, identity: WorkspaceFileIdentity, private readonly binary: Awaited<ReturnType<typeof buildWindowsWorkspaceBroker>>, private readonly toolsRoot: string) {
     this.repositoryPath = root; this.rootIdentity = Object.freeze({ ...identity });
     this.scopeDigest = digest(JSON.stringify({ format: "cimiloop/workspace-files/1.0.0", repository_path: root.toLowerCase(), root_identity: identity })).value;
   }
@@ -122,7 +123,7 @@ export class WindowsWorkspaceFileBroker {
     const session = new NativeWorkspaceSession(binary.path, { mode: "inspect", nonce, root }, nonce);
     try { const value = await session.root();
       if (!exact(value, ["format", "phase", "nonce", "root_identity"]) || value.phase !== "root" || !validWorkspaceFileIdentity(value.root_identity)) fail("workspace_root_unproven");
-      return new WindowsWorkspaceFileBroker(root, value.root_identity, binary);
+      return new WindowsWorkspaceFileBroker(root, value.root_identity, binary, realpathSync(assertOrdinaryPath(join(toolsDirectory, "tools"))));
     } finally { session.cancel(); await session.done; }
   }
   async prepare(raw: unknown, signal?: AbortSignal): Promise<PreparedWorkspaceEffect> {
@@ -146,5 +147,23 @@ export class WindowsWorkspaceFileBroker {
   }
   async discard(effect: PreparedWorkspaceEffect): Promise<void> {
     const owned = this.effects.get(effect); if (!owned) return; this.effects.delete(effect); owned.session.cancel(); await owned.session.done;
+  }
+  // Trusted original-journal recovery only. The native broker independently
+  // proves both original owners absent and deletes by the matching file handle.
+  // No worktree path, arbitrary temporary name or inferred completion is used.
+  async reclaimStaging(raw: WorkspaceNativePreparation, owner: CreditProcessIdentity): Promise<WorkspaceStagingOutcome> {
+    const proof = parseWorkspacePreparation(raw);
+    if (!validWorkspaceWorkerIdentity(owner) || !same(proof.root_identity, this.rootIdentity)) fail("workspace_recovery_contract_invalid");
+    if (digest(bytesAt(this.binary.path)).value !== this.binary.digest.value) fail("workspace_broker_digest_changed");
+    const nonce = randomUUID(), serialized = JSON.stringify(proof);
+    const session = new NativeWorkspaceSession(this.binary.path, { mode: "reclaim", nonce, root: this.toolsRoot,
+      preparation_base64: Buffer.from(serialized).toString("base64"), owner }, nonce);
+    try {
+      const value = await session.root();
+      if (!exact(value, ["format", "phase", "nonce", "preparation_digest", "replacement_identity", "status"]) || value.phase !== "reclaimed" ||
+        value.preparation_digest !== digest(serialized).value || !same(value.replacement_identity, proof.replacement_identity) ||
+        !["removed", "absent", "not_applicable"].includes(String(value.status)) || (proof.replacement_identity === null) !== (value.status === "not_applicable")) fail("workspace_recovery_result_unproven");
+      return value.status as WorkspaceStagingOutcome;
+    } finally { session.cancel(); await session.done; }
   }
 }
