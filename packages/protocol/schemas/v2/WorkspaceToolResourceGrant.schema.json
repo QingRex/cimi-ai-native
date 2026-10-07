@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "WorkspaceToolResourceGrant.v2",
+  "type": "object",
+  "required": [
+    "provider",
+    "resource_type",
+    "locator",
+    "version"
+  ],
+  "properties": {
+    "provider": {
+      "type": "string",
+      "const": "cimiloop_workspace"
+    },
+    "resource_type": {
+      "type": "string",
+      "const": "repository_path"
+    },
+    "locator": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "version": {
+      "type": "string",
+      "const": "1.0.0"
+    }
+  },
+  "additionalProperties": false
+}

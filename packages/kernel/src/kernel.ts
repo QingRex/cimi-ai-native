@@ -50,6 +50,8 @@ import { ChangeListResultSchema, ChangeShowResultSchema, GovernanceListResultSch
 import { parseVersionedCommand, UnsupportedSchemaVersionError } from "@cimiloop/protocol";
 import { ToolAuthorityRequestSchema, ToolAuthorityAssessmentSchema, type ToolAuthorityRequest, type ToolAuthorityAssessment } from "@cimiloop/protocol/v2";
 import { assessToolAuthority } from "./tool-authority.js";
+import { AgentToolAuthorityRequestSchema, AgentToolAuthorityAssessmentSchema, type AgentToolAuthorityRequest, type AgentToolAuthorityAssessment } from "@cimiloop/protocol/v2";
+import { assessAgentToolAuthority } from "./agent-tool-authority.js";
 import type * as v1 from "@cimiloop/protocol/v1";
 import type { HistoricalSuccess, HistoricalEvent } from "@cimiloop/store";
 export type KernelResult = HistoricalSuccess | DomainError;
@@ -322,6 +324,15 @@ export class CimiLoopKernel {
       const at = this.#now(), snapshot = this.#store.readSnapshot(reader => assessToolAuthority(reader, request, this.#caller, at));
       return compileValidator<ToolAuthorityAssessment>(ToolAuthorityAssessmentSchema)({ ...snapshot.value, as_of_event_sequence: snapshot.as_of_event_sequence });
     } catch { return domainError(this.#id(), "STORE_FAILURE", "无法读取一致的工具授权事实", "storage", true); }
+  }
+  assessAgentRunTool(input: unknown): AgentToolAuthorityAssessment | DomainError {
+    let request: AgentToolAuthorityRequest;
+    try { request = structuredClone(compileValidator<AgentToolAuthorityRequest>(AgentToolAuthorityRequestSchema)(input)); }
+    catch { return domainError(this.#id(), "PROTOCOL_VALIDATION_FAILED", "Agent 工具权限查询不符合协议", "validation"); }
+    try {
+      const at = this.#now(), snapshot = this.#store.readSnapshot(reader => assessAgentToolAuthority(reader, request, this.#caller, at, this.#runVerifier?.agent));
+      return compileValidator<AgentToolAuthorityAssessment>(AgentToolAuthorityAssessmentSchema)({ ...snapshot.value, as_of_event_sequence: snapshot.as_of_event_sequence });
+    } catch { return domainError(this.#id(), "STORE_FAILURE", "无法读取一致的 Agent 工具授权事实", "storage", true); }
   }
 
   getRuns(idOrKey: string): RunShowResult | DomainError {

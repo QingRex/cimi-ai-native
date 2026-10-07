@@ -1,6 +1,6 @@
 # CimiLoop 领域语言
 
-2026-10-07 D-219 / D-220：真实工作区文件效果、父 Run 结清核验及原暂存资源恢复已实现，本地受信 Human 服务可调用。正式 Agent、IPC / OpenCode、检查命令、费用 / 硬配额及完整 S1 待完成；原生格式 10 / 239 Schema 保持。见[暂存恢复与边界](docs/implementation/CimiLoop-工作区暂存资源原始恢复-v0.1.md)。
+2026-10-07 D-219–D-221：真实 Human 工作区工具及原暂存恢复已实现；新增独立 Agent 实时工具授权查询，重新核对原 Run / Binding、当前权限与可信宿主证明。默认 Agent 宿主仍未接通，IPC / OpenCode、检查命令、费用 / 硬配额与完整 S1 待完成；原生格式 10 保持，239 个原 Schema 保持并新增 3 个。见[当前授权与边界](docs/implementation/CimiLoop-Agent运行实时工具授权-v0.1.md)。
 
 2026-10-07 D-218：命名演练新增独立格式 4 原请求 / 响应正文账本，实际只读读取器复核每个交换与完成回执。公共模拟来源得到受控资格 DENY，不能批准真实方法或 Task；生产原账本 / 宿主及完整 S1 仍待完成。原生数据库格式 10 保持，见[会话账本与边界](docs/implementation/CimiLoop-命名方法原始会话账本-v0.1.md)。
 

@@ -1,5 +1,5 @@
 import { type AgentRunBindings, type Actor, type ProviderBinding, type Project, type WorkItem } from "@cimiloop/protocol/v2";
-import type { StoreTransaction } from "@cimiloop/store";
+import type { ProviderReader, ProjectReader } from "@cimiloop/store";
 import { assignmentIsEffective } from "./authorization.js";
 import { contentDigest } from "./intent.js";
 import { providerEvaluationStatus } from "./provider-assessment.js";
@@ -8,7 +8,7 @@ import { providerBindingIdentity } from "./providers.js";
 const same = (a: unknown, b: unknown) => contentDigest(a).value === contentDigest(b).value;
 // Native metadata is necessary, never sufficient: the trusted host must also
 // re-read qualification bytes and prove the current enforcement configuration.
-export const agentRunBindingBlockers = (tx: StoreTransaction, project: Project, actor: Actor, item: WorkItem, pins: AgentRunBindings, now: string): string[] => {
+export const agentRunBindingBlockers = (tx: ProviderReader & Pick<ProjectReader, "getActor" | "listAssignments">, project: Project, actor: Actor, item: WorkItem, pins: AgentRunBindings, now: string): string[] => {
   const blockers: string[] = [];
   const checked = new Set<string>();
   const binding = (pin: AgentRunBindings["runtime_binding"], kind: "runtime" | "skill"): ProviderBinding | undefined => {

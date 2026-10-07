@@ -1,0 +1,219 @@
+{
+  "format": "cimiloop/agent-tool-authority-verification/1.0.0",
+  "decision": "D-221",
+  "date": "2026-10-07",
+  "base_commit": "1c88a0d300cd18078b1de0c4c368233f3187c72e",
+  "scope": "Independent read-only Agent original Run/tool current-authority query over actual temporary Git/Native records with constructed controlled qualification and constructed trusted host checks",
+  "goal_complete": false,
+  "agent_current_tool_authority_query_implemented": true,
+  "default_agent_tool_query_denies_without_trusted_host": true,
+  "production_agent_host_connected": false,
+  "formal_agent_execution_enabled": false,
+  "agent_workspace_tool_host_connected": false,
+  "workspace_tool_ipc_opencode_connected": false,
+  "run_checks_host_implemented": false,
+  "production_skill_host_connected": false,
+  "actual_method_behavior_evaluated": false,
+  "pre_plan_clarification_implemented": false,
+  "approved_billing_admission_complete": false,
+  "complete_original_resource_cleanup_implemented": false,
+  "physical_filesystem_hard_quota_implemented": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2"
+    },
+    "affected_regression": {
+      "files": 13,
+      "tests": 130,
+      "passed": 130,
+      "failed": 0,
+      "pending": 0,
+      "complete_repository_suite": false,
+      "report": {
+        "path": ".cimiloop/agent-tools-v1-09/final.json",
+        "bytes": 58283,
+        "sha256": "f7fbf602bcb2f03a8381bfd0d98b83742745c1ba5afe1d55ec1a7b15a7977efc",
+        "files": 13,
+        "tests": 130,
+        "passed": 130,
+        "failed": 0,
+        "pending": 0,
+        "success": true
+      },
+      "source_bytes_unchanged_during_final_report": true
+    },
+    "preliminary": {
+      "initial": {
+        "path": ".cimiloop/agent-tools-v1-09/initial.json",
+        "bytes": 29065,
+        "sha256": "11071032576e9c61966e39a78a0fedf421de57411e9903e898d49b572e78fbd1",
+        "files": 2,
+        "tests": 18,
+        "passed": 17,
+        "failed": 1,
+        "pending": 0,
+        "success": false
+      },
+      "repair": {
+        "path": ".cimiloop/agent-tools-v1-09/repair.json",
+        "bytes": 7491,
+        "sha256": "a121ad09f45be7fa13416b354f3129c5a0546c10b0aaf390c6717c4d46c68715",
+        "files": 1,
+        "tests": 15,
+        "passed": 1,
+        "failed": 0,
+        "pending": 14,
+        "success": true
+      },
+      "source_snapshot": {
+        "path": ".cimiloop/agent-tools-v1-09/sources.json",
+        "bytes": 2215,
+        "sha256": "6ef1f250575bcd3780bb1d3fd60649ac5457a3b0160653b407603a79e539f7ea"
+      },
+      "initial_failure_repair": "The approval_ended fixture used an unsupported EndRoleAssignment command and payload. Replaced with EndAssignment and its original assignment revision, after the required priority-arbiter responsibility transfer. The targeted case passed; the final report reruns all 18 new tests without skips."
+    },
+    "schemas": {
+      "total": 242,
+      "unchanged": 239,
+      "changed": 0,
+      "added": 3,
+      "comparison": "exact text normalized CRLF to LF",
+      "added_paths": [
+        "packages/protocol/schemas/v2/AgentToolAuthorityAssessment.schema.json",
+        "packages/protocol/schemas/v2/AgentToolAuthorityRequest.schema.json",
+        "packages/protocol/schemas/v2/WorkspaceToolResourceGrant.schema.json"
+      ],
+      "report": {
+        "path": ".cimiloop/agent-tools-v1-09/schemas.json",
+        "bytes": 370,
+        "sha256": "8c2d7eb54a619c42f28939f85051dd97e1d237726c8c6bda63591f97d152d5f2"
+      }
+    },
+    "documentation": {
+      "files": 9,
+      "links": 277,
+      "broken": [],
+      "report": {
+        "path": ".cimiloop/agent-tools-v1-09/links.json",
+        "bytes": 49,
+        "sha256": "938a1e37081eca756ad187f51a8a3e11108426b626614a9abcc3dd686b597c4b"
+      },
+      "pending_report_links_only": false
+    },
+    "commit_baseline": {
+      "files": 798,
+      "bytes": 55545351,
+      "problems": []
+    }
+  },
+  "implemented": {
+    "entry": "CimiLoopKernel.assessAgentRunTool requires strict independent original Agent request and a trusted Agent Caller. It queries one consistent Native snapshot and emits no events, usage or effects.",
+    "original": "Requires exact original project/change/task/WorkItem/executor/context/source/workspace/baseline/operation and Runtime/Skill Binding/admission pins. Only current Reserved/Running, uncancelled, unreleased, known-cost original Run with positive same-currency reservation may proceed.",
+    "current": "Rechecks current execution scope, dependencies, authorization, owner assignment, time/cumulative budget, task_execution controlled binding and current Provider contract.",
+    "resource": "Intersects one bounded workspace resource with WorkItem and strict versioned Runtime ExternalReference grants; denies unsupported namespaces/versions, wildcard requests, path escapes and metadata at any path layer. Independent read-only Agent context permits only read_files.",
+    "skill": "Unresolved original SkillInvocation blocks parent-only tool requests. Actual skill-scoped identity and method permission transport remain unimplemented.",
+    "host": "Only a trusted synchronous side-effect-free checkToolAuthority callback can supply the current validation Digest. Absent/throwing/malformed callbacks deny. All original input/project facts and returned proof are cloned; a callback cannot mutate assessment inputs through them.",
+    "result": "ALLOW binds original IDs, admission, strict live host_validation_digest and basis_digest. It is a query result requiring fresh checks at preparation, dispatch/execution and replay, not a reusable execution capability."
+  },
+  "actual_validation": {
+    "new_protocol": "3 strict schema tests cover independent Agent pins, rejected Human/imported fields/flags, denied versus allowed proof shapes and resource-grant namespace.",
+    "new_native": "15 tests use actual temporary Git/SQLite records but explicitly constructed controlled ALLOW and trusted host. Cover stable read-only queries, changing live proof, copy isolation, absent/unproven host, identity/pin substitution, cancellation/revocation/elapsed/pause/approval-ended/settled cases, insufficient/unsupported grants, bounded paths and unresolved child invocation.",
+    "regression": "Final 13-file report covers new Agent query, frozen Human authority, Human and Agent Run records, SkillInvocation, v1/v2 artifact synchronization/strict registry, actual fixed skill input preparation and actual Windows Git workspace effects/recovery.",
+    "production": "No real production Agent/model/billing/qualification claim follows from constructed host/ALLOW fixtures. Current default host and qualification commands remain closed to unsupported task_execution."
+  },
+  "unchanged": {
+    "native_database_format": 10,
+    "workspace_tool_journal_format": "cimiloop/workspace-tool-journal/1.0.0",
+    "workspace_tool_journal_user_version": 1,
+    "human_tool_authority_contract": "unchanged",
+    "human_workspace_receipt_formal_agent_execution_enabled": false,
+    "existing_protocol_schemas": 239
+  },
+  "boundaries": {
+    "installation": "No production verifier, Agent workspace composition, authenticated IPC/OpenCode consumer or fixed check executor is installed by this batch. Runtime/import cannot install the verifier.",
+    "trust": "The synchronous verifier is a trusted host port, not a Runtime assertion. Its production implementation must re-read authentic qualification/enforcement/original Run/tool/SDK/account custody; merely returning a digest is insufficient production proof.",
+    "effects": "The independent query neither reserves a tool call nor commits/discards native effects. Frozen Human tool receipts and their journal remain independent. Genuine Agent effect receipts/ledger transport remain to be connected.",
+    "budgets": "Native current reservation/usage checks do not establish actual Coding Plan model/tool eligibility, unique protected account ledger, service-side token bounds, approved cash/credit budget, billing reconciliation or physical filesystem quota."
+  },
+  "remaining_acceptance": [
+    "Connect original Agent identity and live current query to actual workspace effects/ledger, authenticated IPC/OpenCode and fixed check-command execution.",
+    "Complete production Runtime/Task admission, actual model/tool eligibility and token limits, protected unique account ledger, approved cash/credit budget, actual billing and physical disk quotas; complete original resource registration/recovery.",
+    "Provide Human/Matt clarification before confirmed Plan/Task.",
+    "Complete Matt independent fixed diff/issue review and harness, fresh Superpowers checks, actual method behavior/default selection and candidate/evidence projection.",
+    "Connect formal workbench execute/status/stop/recovery.",
+    "Run an ordinary genuine Change through approved Agent work, independent review, real Skill/effect evidence, interruption/resumption and ReadyForDelivery; complete full S1 regressions."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/kernel/src/agent-runs.ts",
+      "bytes": 5214,
+      "sha256": "5641b76bbd5cdb322d00eeda10afdc4c3f92f44d07f460bca199912e70714477"
+    },
+    {
+      "path": "packages/kernel/src/agent-tool-authority.ts",
+      "bytes": 7166,
+      "sha256": "0cbb63c4048bb16737e6f379e5d22a8817726450bd10f8749b997b789cb1a328"
+    },
+    {
+      "path": "packages/kernel/src/index.ts",
+      "bytes": 516,
+      "sha256": "6cd9a095e47e49f336a315c4cd6e62eb22f58dc462da4d4446db943aabcbc9cb"
+    },
+    {
+      "path": "packages/kernel/src/kernel.ts",
+      "bytes": 49246,
+      "sha256": "c9cdc4e74fc8dd389985946253746a3226964f3a3ed159458cc35fd20161d0e2"
+    },
+    {
+      "path": "packages/kernel/src/runs.ts",
+      "bytes": 39967,
+      "sha256": "c8ad4d7ac85ed6854c405a0b76414c16e8230f79618a4cb5cb878de6f5dc3356"
+    },
+    {
+      "path": "packages/protocol/schemas/v2/AgentToolAuthorityAssessment.schema.json",
+      "bytes": 19361,
+      "sha256": "36d598a5529a900c9dc0c5e8e4688023ada02d92ab1897cec77d90b148f513fd"
+    },
+    {
+      "path": "packages/protocol/schemas/v2/AgentToolAuthorityRequest.schema.json",
+      "bytes": 5148,
+      "sha256": "58502913c3ab0319e118636df0d344db06d8e967c785f1d9e9f97d2fa55d71b0"
+    },
+    {
+      "path": "packages/protocol/schemas/v2/WorkspaceToolResourceGrant.schema.json",
+      "bytes": 605,
+      "sha256": "657de3172f22debc513a2b0776d2a6a87876046119a14128ba4e15b8a324346e"
+    },
+    {
+      "path": "packages/protocol/src/v2/agent-tool-authority.ts",
+      "bytes": 2317,
+      "sha256": "fca4db5c33eccd8330454f7a70d5daa1ba76336b52d3d4abe772f9370d08e95e"
+    },
+    {
+      "path": "packages/protocol/src/v2/index.ts",
+      "bytes": 19958,
+      "sha256": "44aeebfe6eb2c174a3558de7f9ddd6100c5cbeb78990d2725acb56d503614330"
+    },
+    {
+      "path": "packages/protocol/test/agent-tool-authority.test.ts",
+      "bytes": 3318,
+      "sha256": "a55b90013b4af2cbde271b50fb77deba8e440cfa13b99e5c1a756f577d4dbe6a"
+    },
+    {
+      "path": "packages/store-sqlite/test/agent-tool-authority.test.ts",
+      "bytes": 9972,
+      "sha256": "98ec1ed737440871e72d70d60fc12fcb5f8aef2d4e9b856db2a73b3c22cd97a4"
+    },
+    {
+      "path": "tests/fixtures/agent-run-project.ts",
+      "bytes": 10908,
+      "sha256": "93298ff06d3934666141466aa990477a9711ce1e6ef35127829c6b19604628f6"
+    }
+  ]
+}

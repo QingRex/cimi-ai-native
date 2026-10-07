@@ -1,0 +1,636 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "AgentToolAuthorityAssessment.v2",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "scope",
+        "request",
+        "assessed_at",
+        "as_of_event_sequence",
+        "decision",
+        "reasons",
+        "authority"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "2.0.0"
+        },
+        "scope": {
+          "type": "string",
+          "const": "agent_run_tool_assessment"
+        },
+        "request": {
+          "type": "object",
+          "required": [
+            "project_id",
+            "run_id",
+            "operation_key",
+            "executor_actor_id",
+            "context_digest",
+            "action",
+            "resource",
+            "runtime_binding",
+            "skill_bindings",
+            "host_admission_ref"
+          ],
+          "properties": {
+            "project_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "operation_key": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "executor_actor_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "context_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "action": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "read_files"
+                },
+                {
+                  "type": "string",
+                  "const": "edit_files"
+                },
+                {
+                  "type": "string",
+                  "const": "run_checks"
+                }
+              ]
+            },
+            "resource": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "runtime_binding": {
+              "type": "object",
+              "required": [
+                "binding_ref",
+                "digest"
+              ],
+              "properties": {
+                "binding_ref": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "provider_binding"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "skill_bindings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "binding_ref",
+                  "digest"
+                ],
+                "properties": {
+                  "binding_ref": {
+                    "type": "object",
+                    "required": [
+                      "object_type",
+                      "id"
+                    ],
+                    "properties": {
+                      "object_type": {
+                        "type": "string",
+                        "const": "provider_binding"
+                      },
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "maxItems": 8,
+              "uniqueItems": true
+            },
+            "host_admission_ref": {
+              "type": "object",
+              "required": [
+                "provider",
+                "resource_type",
+                "locator",
+                "digest"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "const": "local_content"
+                },
+                "resource_type": {
+                  "type": "string",
+                  "const": "agent_host_admission"
+                },
+                "locator": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "assessed_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+        },
+        "as_of_event_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "decision": {
+          "type": "string",
+          "const": "ALLOW"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 0
+        },
+        "authority": {
+          "type": "object",
+          "required": [
+            "change_id",
+            "task_id",
+            "work_item_id",
+            "run_record_id",
+            "context_id",
+            "host_admission_ref",
+            "host_validation_digest",
+            "basis_digest"
+          ],
+          "properties": {
+            "change_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "task_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "work_item_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "run_record_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "context_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "host_admission_ref": {
+              "type": "object",
+              "required": [
+                "provider",
+                "resource_type",
+                "locator",
+                "digest"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "const": "local_content"
+                },
+                "resource_type": {
+                  "type": "string",
+                  "const": "agent_host_admission"
+                },
+                "locator": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "host_validation_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "basis_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "scope",
+        "request",
+        "assessed_at",
+        "as_of_event_sequence",
+        "decision",
+        "authority",
+        "reasons"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "2.0.0"
+        },
+        "scope": {
+          "type": "string",
+          "const": "agent_run_tool_assessment"
+        },
+        "request": {
+          "type": "object",
+          "required": [
+            "project_id",
+            "run_id",
+            "operation_key",
+            "executor_actor_id",
+            "context_digest",
+            "action",
+            "resource",
+            "runtime_binding",
+            "skill_bindings",
+            "host_admission_ref"
+          ],
+          "properties": {
+            "project_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "operation_key": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "executor_actor_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "context_digest": {
+              "type": "object",
+              "required": [
+                "algorithm",
+                "value"
+              ],
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "sha256"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "action": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "read_files"
+                },
+                {
+                  "type": "string",
+                  "const": "edit_files"
+                },
+                {
+                  "type": "string",
+                  "const": "run_checks"
+                }
+              ]
+            },
+            "resource": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "runtime_binding": {
+              "type": "object",
+              "required": [
+                "binding_ref",
+                "digest"
+              ],
+              "properties": {
+                "binding_ref": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "provider_binding"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "skill_bindings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "binding_ref",
+                  "digest"
+                ],
+                "properties": {
+                  "binding_ref": {
+                    "type": "object",
+                    "required": [
+                      "object_type",
+                      "id"
+                    ],
+                    "properties": {
+                      "object_type": {
+                        "type": "string",
+                        "const": "provider_binding"
+                      },
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "maxItems": 8,
+              "uniqueItems": true
+            },
+            "host_admission_ref": {
+              "type": "object",
+              "required": [
+                "provider",
+                "resource_type",
+                "locator",
+                "digest"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "const": "local_content"
+                },
+                "resource_type": {
+                  "type": "string",
+                  "const": "agent_host_admission"
+                },
+                "locator": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "assessed_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+        },
+        "as_of_event_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "decision": {
+          "type": "string",
+          "const": "DENY"
+        },
+        "authority": {
+          "type": "null"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "minItems": 1,
+          "maxItems": 32
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

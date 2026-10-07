@@ -1,7 +1,7 @@
 import { SCHEMA_VERSION, compileValidator, RawHumanRunObservationSchema, RawAgentRunObservationSchema, AgentHostAdmissionReferenceSchema, WorkspaceManifestSchema,
   type AnyCommand, type CommandSuccess, type DomainError, type Project, type SourceSnapshot, type Digest,
   type Task, type WorkItem, type Run, type RunRecord, type ContextManifest, type WorkspaceSnapshot, type WorkspaceManifest,
-  type RawRunObservation, type RunObservation, type HandoffRecord, type ResumptionRecord, type AgentRunBindings, type AgentContextManifest, type AgentRunRecord } from "@cimiloop/protocol/v2";
+  type RawRunObservation, type RunObservation, type HandoffRecord, type ResumptionRecord, type AgentRunBindings, type AgentContextManifest, type AgentRunRecord, type AgentToolAuthorityRequest } from "@cimiloop/protocol/v2";
 import type { StoreTransaction } from "@cimiloop/store";
 import { assignmentIsEffective } from "./authorization.js";
 import { admissionFailure, contentDigest, IntentFailure, type IntentContext } from "./intent.js";
@@ -21,6 +21,11 @@ export interface AgentRunAdmissionInput extends AgentRunBindings {
 }
 export interface AgentRunVerifierPort {
   skills?: SkillInvocationVerifierPort;
+  // Side-effect-free live admission check for one original Agent operation/tool.
+  // Must re-read original host admission, current qualification/enforcement and
+  // run/tool/SDK/account ownership. A model/import cannot install this port.
+  // Absent/unreadable proof denies the query; context admission is not enough.
+  checkToolAuthority?(project: Project, input: AgentRunToolAuthorityInput): Digest;
   // Must re-read Provider qualification/package/schema bytes and verify the live
   // host's permission intersection, physical quota, cost cap and recovery journal.
   // The reference pins those exact inputs/configuration. No production host is
@@ -29,6 +34,10 @@ export interface AgentRunVerifierPort {
   // Verify original operation ownership and raw SDK/tool/native/billing proofs;
   // preserve Unknown when any original effect or cost cannot be reconciled.
   readRunResult(project: Project, record: AgentRunRecord, context: AgentContextManifest, reference: Extract<RunObservation, { report: { format: "cimiloop/agent-run/1.0.0" } }>["raw_result_ref"]): unknown;
+}
+export interface AgentRunToolAuthorityInput extends AgentRunAdmissionInput {
+  request: AgentToolAuthorityRequest; record: AgentRunRecord; context: AgentContextManifest;
+  runtime: ProviderBinding; skills: ProviderBinding[];
 }
 export interface SkillInvocationVerifierPort {
   // Read exact input/package/schema bytes and the real named-method qualification;

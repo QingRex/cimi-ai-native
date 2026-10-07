@@ -8,7 +8,8 @@ import type { ContentReference } from "../../packages/local-app/src/evidence-loc
 // CONSTRUCTED DOMAIN FIXTURE ONLY. Controlled ALLOW facts below are inserted
 // directly for testing this future host contract. They cannot be produced by the
 // current qualification commands, and prove no live model/OS/billing admission.
-export const createAgentRunProject = (directory: string, scope: "task_execution" | "isolated_provider_probe" = "task_execution", cost: number | undefined = 100) => {
+export const createAgentRunProject = (directory: string, scope: "task_execution" | "isolated_provider_probe" = "task_execution", cost: number | undefined = 100,
+  runtimeResources: v2.ExternalReference[] = [{ provider: "cimiloop_workspace", resource_type: "repository_path", locator: "src/query.ts", version: "1.0.0" }]) => {
   const f = createRunProject(directory);
   const metadata = () => ({ schema_version: v2.SCHEMA_VERSION, id: v2.createInternalId(), project_id: f.project.id, created_at: flowTime, producer_actor_id: f.actor.id });
   const content = <T extends ContentReference["resource_type"]>(value: unknown, kind: T) => f.runPort.content.storeContent(Buffer.from(JSON.stringify(value)), kind);
@@ -16,7 +17,7 @@ export const createAgentRunProject = (directory: string, scope: "task_execution"
     const registered = flowSuccess(f.kernel.execute(f.projectCommand("RegisterProvider", { provider_kind: kind, name: `constructed-${kind}`, version: "1.0.0",
       source_ref: { provider: "fixture", resource_type: "unexecuted", locator: `constructed-${kind}`, version: "1.0.0", digest: contentDigest(kind) },
       capabilities: [{ capability_id: kind === "runtime" ? "runtime.execute" : "verification.review", version: "1.0.0" }], dependencies: [],
-      required_permissions: { actions: kind === "runtime" ? ["read_files"] : [], resources: [], environment_ids: [], network_hosts: [] },
+      required_permissions: { actions: kind === "runtime" ? ["read_files"] : [], resources: kind === "runtime" ? runtimeResources : [], environment_ids: [], network_hosts: [] },
       input_schema_ref: { schema_id: "constructed-input", digest: contentDigest("input") }, output_schema_ref: { schema_id: "constructed-output", digest: contentDigest("output") } })));
     if (registered.command_type !== "RegisterProvider") throw new Error("Descriptor expected");
     const descriptor = registered.data.descriptor, descriptor_ref = { object_type: "provider_descriptor" as const, id: descriptor.id }, descriptor_digest = contentDigest(descriptor);

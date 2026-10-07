@@ -18,6 +18,7 @@ import * as gatewayNetwork from "./runtime-gateway-network.js";
 import * as gatewayCredit from "./runtime-gateway-credit.js";
 import * as providerAssessment from "./provider-assessment.js";
 import * as toolAuthority from "./tool-authority.js";
+import * as agentToolAuthority from "./agent-tool-authority.js";
 import * as skills from "./skills.js";
 import * as skillProbe from "./skill-probe.js";
 import * as fixedMethod from "./fixed-method.js";
@@ -46,6 +47,7 @@ export * from "./runtime-gateway-network.js";
 export * from "./runtime-gateway-credit.js";
 export * from "./provider-assessment.js";
 export * from "./tool-authority.js";
+export * from "./agent-tool-authority.js";
 export * from "./skills.js";
 export * from "./skill-probe.js";
 export * from "./fixed-method.js";
@@ -80,6 +82,9 @@ export const protocolSchemas: Readonly<Record<string, TSchema>> = {
   FixedMethodProjection: fixedMethod.FixedMethodProjectionSchema,
   ToolAuthorityRequest: toolAuthority.ToolAuthorityRequestSchema,
   ToolAuthorityAssessment: toolAuthority.ToolAuthorityAssessmentSchema,
+  AgentToolAuthorityRequest: agentToolAuthority.AgentToolAuthorityRequestSchema,
+  AgentToolAuthorityAssessment: agentToolAuthority.AgentToolAuthorityAssessmentSchema,
+  WorkspaceToolResourceGrant: agentToolAuthority.WorkspaceToolResourceGrantSchema,
   RuntimeGatewayNetworkProbeResult: gatewayNetwork.RuntimeGatewayNetworkProbeResultSchema,
   RuntimeGatewayCreditSnapshot: gatewayCredit.RuntimeGatewayCreditSnapshotSchema,
   RuntimeGatewayCreditProbeResult: gatewayCredit.RuntimeGatewayCreditProbeResultSchema,
