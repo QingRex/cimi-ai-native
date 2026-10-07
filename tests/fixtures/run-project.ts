@@ -31,15 +31,15 @@ export const createRunProject = (directory: string) => {
       ...(cost === undefined ? {} : { reserved_cost_micros: cost }), ...(resumption ? { resumption_ref: { object_type: "resumption_record", id: resumption.id } } : {}) }, "executor", wi.executor_ref.id)));
     if (result.command_type !== "ReserveRun") throw new Error("run expected"); return result.data;
   };
-  const raw = (run: v2.Run, status: v2.RawRunObservation["status"], overrides: Partial<v2.RawRunObservation> = {}) => {
+  const raw = (run: v2.Run, status: v2.RawHumanRunObservation["status"], overrides: Partial<v2.RawHumanRunObservation> = {}) => {
     const record = f.store.getRuntimeRecord("run_record", run.record_ref.id)!;
-    const report: v2.RawRunObservation = { format: "cimiloop/manual-run/1.0.0", run_id: run.id, operation_key: record.operation_key, producer_actor_id: f.actor.id, observed_at: time,
+    const report: v2.RawHumanRunObservation = { format: "cimiloop/manual-run/1.0.0", run_id: run.id, operation_key: record.operation_key, producer_actor_id: f.actor.id, observed_at: time,
       input_digest: record.input_digest, basis: "direct_observation", status, usage: { cost_known: true, cost_micros: 0, ...(record.cost_currency ? { currency: record.cost_currency } : {}) }, method: "实际人工核对执行及用量", observation: "测试仅验证运行控制路径", resolves_observation_refs: [], ...overrides };
     const path = join(dirname(f.path), `run-${v2.createInternalId()}.json`); writeFileSync(path, JSON.stringify(report));
     return { report, path, reference: runPort.content.importRawResult(path, "manual_run") };
   };
-  const observe = (run: v2.Run, status: v2.RawRunObservation["status"], overrides: Partial<v2.RawRunObservation> = {}) => kernel.execute(command("RecordRunObservation", "run", run.id, { raw_result_ref: raw(run, status, overrides).reference }));
-  const reconcile = (run: v2.Run, status: v2.RawRunObservation["status"], overrides: Partial<v2.RawRunObservation> = {}) => kernel.execute(command("ReconcileRun", "run", run.id, {
+  const observe = (run: v2.Run, status: v2.RawHumanRunObservation["status"], overrides: Partial<v2.RawHumanRunObservation> = {}) => kernel.execute(command("RecordRunObservation", "run", run.id, { raw_result_ref: raw(run, status, overrides).reference }));
+  const reconcile = (run: v2.Run, status: v2.RawHumanRunObservation["status"], overrides: Partial<v2.RawHumanRunObservation> = {}) => kernel.execute(command("ReconcileRun", "run", run.id, {
     raw_result_ref: raw(run, status, { basis: "reconciliation", resolves_observation_refs: f.store.listRuntimeRecords("run_observation", f.change.id).filter(o => o.run_ref.id === run.id && (o.report.status === "unknown" || !o.report.usage.cost_known || o.applicability === "conflicting")).map(o => ({ object_type: "run_observation", id: o.id })), ...overrides }).reference }, "technical_owner"));
   return { ...f, kernel, reviewerKernel, runPort, command, authorize, prepareContext: prepare, reserve, raw, observe, reconcile, setTime: (value: string) => { time = value; } };
 };

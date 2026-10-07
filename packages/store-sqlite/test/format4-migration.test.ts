@@ -36,7 +36,7 @@ describe("explicit format 3 to 6 migration", () => {
   it("checks read-only, backs up and preserves settings, closed targets, planning, events and exact receipts", async () => {
     const f = fixture(), before = snapshot(f.path);
     expect(() => new SqliteProjectStore(f.path)).toThrow(expect.objectContaining({ code: "MIGRATION_REQUIRED" }));
-    expect(f.runner.check()).toMatchObject({ from_format: 3, to_format: 9, migration_required: true });
+    expect(f.runner.check()).toMatchObject({ from_format: 3, to_format: 10, migration_required: true });
     expect(snapshot(f.path)).toEqual(before); expect(existsSync(join(f.directory, "backups"))).toBe(false);
     const report = await f.runner.apply({ actorId: f.actor.id }); expect(snapshot(report.backup_path!)).toEqual(before);
     const after = snapshot(f.path);
@@ -46,8 +46,8 @@ describe("explicit format 3 to 6 migration", () => {
     expect(store.getSettingsVersion(store.getProject()!.settings_ref!.id)).toHaveProperty("version", 2); expect(store.listTargetVersions()[0]).toMatchObject({ status: "closed", revision: 2 });
     expect(store.getChange(f.receipt.aggregate.id)).toMatchObject({ priority: 8, lifecycle_state: "Draft" });
     expect(store.transaction(tx => tx.getCommandReceipt(f.planning.command_id))!.result).toEqual(f.receipt);
-    expect(store.listEvents().at(-1)).toMatchObject({ event_type: "ProjectMigrated", payload: { from_format: 3, to_format: 9 } });
-    expect(readDatabaseFormat(f.path)).toBe(9); expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 9, to_format: 9, migration_required: false });
+    expect(store.listEvents().at(-1)).toMatchObject({ event_type: "ProjectMigrated", payload: { from_format: 3, to_format: 10 } });
+    expect(readDatabaseFormat(f.path)).toBe(10); expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 10, to_format: 10, migration_required: false });
   }, 15_000); // Full historical validation and backup can exceed 5s alongside Git / CLI scenarios.
 
   it.each(["backup_complete", "state_converted", "schema_installed", "before_commit"] as const)("rolls back %s and retains the complete format 3 backup", async stage => {

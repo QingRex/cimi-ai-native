@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { m0Schema } from "./v1/project-store.js";
 
-export const CURRENT_DATABASE_FORMAT = 9;
+export const CURRENT_DATABASE_FORMAT = 10;
 export class MigrationError extends Error {
   constructor(readonly code: "MIGRATION_REQUIRED" | "MIGRATION_UNSAFE" | "DATABASE_TOO_NEW", message: string, options?: ErrorOptions) {
     super(message, options); this.name = "MigrationError";
@@ -81,7 +81,7 @@ export const installWriteGuards = (db: DatabaseSync): void => {
   }
 };
 export const initializeCurrentDatabase = (db: DatabaseSync): void => {
-  initializeDatabase(db, 9);
+  initializeDatabase(db, 10);
 };
 // Frozen layout for validating earlier format 2 sources; not used by ordinary opening.
 export const initializeFormat2Database = (db: DatabaseSync): void => { initializeDatabase(db, 2); };
@@ -91,6 +91,48 @@ export const initializeFormat5Database = (db: DatabaseSync): void => { initializ
 export const initializeFormat6Database = (db: DatabaseSync): void => { initializeDatabase(db, 6); };
 export const initializeFormat7Database = (db: DatabaseSync): void => { initializeDatabase(db, 7); };
 export const initializeFormat8Database = (db: DatabaseSync): void => { initializeDatabase(db, 8); };
+export const initializeFormat9Database = (db: DatabaseSync): void => { initializeDatabase(db, 9); };
+export const installAgentRunGuard = (db: DatabaseSync): void => {
+  const fieldsMatch = (left: string, leftPrefix: string, right: string, rightPrefix: string, fields: string[]) => fields.map(field =>
+    `json_extract(${left}, '$.${leftPrefix}${field}') IS json_extract(${right}, '$.${rightPrefix}${field}')`).join(" AND ");
+  const pinFields = ["binding_ref.object_type", "binding_ref.id", "digest.algorithm", "digest.value"];
+  const pinsMatch = (left: string, right: string, prefix = "") => `
+    ${fieldsMatch(left, "runtime_binding.", right, `${prefix}runtime_binding.`, pinFields)} AND
+    ${fieldsMatch(left, "host_admission_ref.", right, `${prefix}host_admission_ref.`, ["provider", "resource_type", "locator", "digest.algorithm", "digest.value"])} AND
+    json_array_length(json_extract(${left}, '$.skill_bindings')) IS json_array_length(json_extract(${right}, '$.${prefix}skill_bindings')) AND
+    NOT EXISTS (SELECT 1 FROM json_each(json_extract(${left}, '$.skill_bindings')) a
+      LEFT JOIN json_each(json_extract(${right}, '$.${prefix}skill_bindings')) b ON a.key = b.key
+      WHERE NOT (${fieldsMatch("a.value", "", "b.value", "", pinFields)}))`;
+  // Compare semantic scalar identities. JSON object text changes with key order;
+  // ordered Skill arrays and every digest/reference field still have to match.
+  db.exec(`CREATE TRIGGER guard_agent_run_relations_insert BEFORE INSERT ON run_records
+    WHEN
+      (NEW.object_type = 'context_manifest' AND json_extract(NEW.payload_json, '$.boundary') IN ('agent_scoped','agent_independent_read_only') AND (
+        json_extract(NEW.payload_json, '$.producer_actor_id') IS NOT json_extract(NEW.payload_json, '$.executor_ref.id') OR
+        (SELECT json_extract(payload_json, '$.actor_type') FROM actors WHERE id = json_extract(NEW.payload_json, '$.executor_ref.id') AND json_extract(payload_json, '$.project_id') = NEW.project_id) IS NOT 'agent' OR
+        (SELECT json_extract(payload_json, '$.approval.binding_scope') FROM immutable_records WHERE id = json_extract(NEW.payload_json, '$.runtime_binding.binding_ref.id') AND project_id = NEW.project_id AND object_type = 'provider_binding') IS NOT 'task_execution')) OR
+      (NEW.object_type = 'run_record' AND NOT EXISTS (
+        SELECT 1 FROM run_records c WHERE c.id = json_extract(NEW.payload_json, '$.context_ref.id') AND c.object_type = 'context_manifest'
+          AND c.project_id = NEW.project_id AND c.change_id = NEW.change_id
+          AND json_extract(c.payload_json, '$.task_id') = json_extract(NEW.payload_json, '$.task_id')
+          AND json_extract(c.payload_json, '$.work_item_ref.id') = json_extract(NEW.payload_json, '$.work_item_ref.id')
+          AND json_extract(c.payload_json, '$.executor_ref.id') = json_extract(NEW.payload_json, '$.executor_ref.id')
+          AND ${fieldsMatch("c.payload_json", "", "NEW.payload_json", "", ["input_digest.algorithm", "input_digest.value", "definition_ref.id", "definition_ref.domain_version", "contract_ref.id", "contract_ref.domain_version", "plan_ref.id", "plan_ref.domain_version"])}
+          AND json_extract(c.payload_json, '$.source_snapshot_ref.id') = json_extract(NEW.payload_json, '$.source_snapshot_ref.id')
+          AND json_extract(c.payload_json, '$.workspace_snapshot_ref.id') = json_extract(NEW.payload_json, '$.workspace_before_ref.id')
+          AND ((json_extract(NEW.payload_json, '$.run_kind') = 'human' AND json_extract(c.payload_json, '$.boundary') IN ('manual_scoped','manual_independent_read_only')) OR
+            (json_extract(NEW.payload_json, '$.run_kind') = 'agent' AND json_extract(c.payload_json, '$.boundary') IN ('agent_scoped','agent_independent_read_only')
+              AND ${pinsMatch("c.payload_json", "NEW.payload_json")})))) OR
+      (NEW.object_type = 'run_observation' AND NOT EXISTS (
+        SELECT 1 FROM run_objects r JOIN run_records p ON p.id = json_extract(r.payload_json, '$.record_ref.id') AND p.object_type = 'run_record'
+          WHERE r.id = json_extract(NEW.payload_json, '$.run_ref.id') AND r.project_id = NEW.project_id AND r.change_id = NEW.change_id
+            AND json_extract(p.payload_json, '$.operation_key') = json_extract(NEW.payload_json, '$.report.operation_key')
+            AND ((json_extract(p.payload_json, '$.run_kind') = 'human' AND json_extract(NEW.payload_json, '$.report.format') = 'cimiloop/manual-run/1.0.0' AND json_extract(NEW.payload_json, '$.raw_result_ref.resource_type') = 'manual_run') OR
+              (json_extract(p.payload_json, '$.run_kind') = 'agent' AND json_extract(NEW.payload_json, '$.report.format') = 'cimiloop/agent-run/1.0.0' AND json_extract(NEW.payload_json, '$.raw_result_ref.resource_type') = 'agent_run'
+                AND ${fieldsMatch("p.payload_json", "context_ref.", "NEW.payload_json", "report.context_ref.", ["object_type", "id"])}
+                AND ${pinsMatch("p.payload_json", "NEW.payload_json", "report.")}))))
+    BEGIN SELECT RAISE(ABORT, 'run context or observation binding mismatch'); END;`);
+};
 export const installSkillAssessmentGuard = (db: DatabaseSync): void => {
   db.exec(`CREATE TRIGGER guard_provider_assessment_kind_insert BEFORE INSERT ON provider_assessment_records
     WHEN (NEW.object_type = 'evidence' AND (
@@ -132,7 +174,7 @@ export const installRuntimeSchema = (db: DatabaseSync): void => {
     CREATE TRIGGER immutable_run_records_update BEFORE UPDATE ON run_records BEGIN SELECT RAISE(ABORT, 'immutable record'); END;
     CREATE TRIGGER immutable_run_records_delete BEFORE DELETE ON run_records BEGIN SELECT RAISE(ABORT, 'immutable record'); END;`);
 };
-const initializeDatabase = (db: DatabaseSync, format: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): void => {
+const initializeDatabase = (db: DatabaseSync, format: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10): void => {
   db.exec("BEGIN IMMEDIATE");
   try {
     db.exec(m0Schema.replace(/CREATE TABLE IF NOT EXISTS outbox_messages \([\s\S]*?\) STRICT;/, outboxSchema)
@@ -146,6 +188,7 @@ const initializeDatabase = (db: DatabaseSync, format: 2 | 3 | 4 | 5 | 6 | 7 | 8 
     if (format >= 7) installRuntimeSchema(db);
     if (format >= 8) installProviderAssessmentSchema(db);
     if (format >= 9) installSkillAssessmentGuard(db);
+    if (format >= 10) installAgentRunGuard(db);
     db.prepare("INSERT INTO schema_migrations(version, applied_at) VALUES (?, ?)").run(format, new Date().toISOString());
     db.exec("COMMIT");
   } catch (error) { db.exec("ROLLBACK"); throw error; }

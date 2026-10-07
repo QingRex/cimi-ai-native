@@ -3,9 +3,9 @@ import { execFileSync } from "node:child_process";
 import { constants, closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { EvidenceVerifierPort } from "@cimiloop/kernel";
-import type { Digest, Evidence, Project, SourceSnapshot, Decision, RunObservation, WorkspaceManifest, WorkspaceSnapshot, ProviderProbeReference, ProviderArtifactReference, SkillPackageReference } from "@cimiloop/protocol/v2";
+import type { Digest, Evidence, Project, SourceSnapshot, Decision, RunObservation, HumanRunObservation, AgentContextManifest, RawAgentRunObservation, WorkspaceManifest, WorkspaceSnapshot, ProviderProbeReference, ProviderArtifactReference, SkillPackageReference } from "@cimiloop/protocol/v2";
 type RawReference = Evidence["raw_result_ref"] | NonNullable<Decision["review"]>["raw_result_ref"];
-export type ContentReference = RawReference | RunObservation["raw_result_ref"] | WorkspaceSnapshot["manifest_ref"] | WorkspaceManifest["worktree_diff_ref"] | Extract<WorkspaceManifest["files"][number], { state: "present" }>["content_ref"] | ProviderProbeReference | ProviderArtifactReference | SkillPackageReference;
+export type ContentReference = RawReference | RunObservation["raw_result_ref"] | AgentContextManifest["host_admission_ref"] | RawAgentRunObservation["result_proof_ref"] | WorkspaceSnapshot["manifest_ref"] | WorkspaceManifest["worktree_diff_ref"] | Extract<WorkspaceManifest["files"][number], { state: "present" }>["content_ref"] | ProviderProbeReference | ProviderArtifactReference | SkillPackageReference;
 
 const digest = (bytes: Buffer): Digest => ({ algorithm: "sha256", value: createHash("sha256").update(bytes).digest("hex") });
 const safeOid = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
@@ -53,7 +53,7 @@ export class LocalEvidenceVerifier implements EvidenceVerifierPort {
   }
   importRawResult(path: string): Evidence["raw_result_ref"];
   importRawResult(path: string, resourceType: "manual_review"): NonNullable<Decision["review"]>["raw_result_ref"];
-  importRawResult(path: string, resourceType: "manual_run"): RunObservation["raw_result_ref"];
+  importRawResult(path: string, resourceType: "manual_run"): HumanRunObservation["raw_result_ref"];
   importRawResult(path: string, resourceType: ContentReference["resource_type"] = "manual_evidence"): ContentReference {
     const stat = statSync(path); if (!stat.isFile() || stat.size > 8 * 1024 * 1024) throw new Error("Expected report file of at most 8 MiB");
     return this.storeContent(readFileSync(path), resourceType);
@@ -67,7 +67,7 @@ export class LocalEvidenceVerifier implements EvidenceVerifierPort {
     this.readContent(ref as ContentReference); return ref as Extract<ContentReference, { resource_type: T }>;
   }
   readContent(ref: ContentReference): Buffer {
-    if (!/^[0-9a-f]{64}$/.test(ref.locator) || ref.digest.value !== ref.locator || ref.digest.algorithm !== "sha256" || ref.provider !== "local_content" || !["manual_evidence", "manual_review", "manual_run", "workspace_manifest", "workspace_file", "workspace_diff", "provider_probe_snapshot", "provider_probe_artifact", "skill_package"].includes(ref.resource_type)) throw new Error("Unsupported raw result reference");
+    if (!/^[0-9a-f]{64}$/.test(ref.locator) || ref.digest.value !== ref.locator || ref.digest.algorithm !== "sha256" || ref.provider !== "local_content" || !["manual_evidence", "manual_review", "manual_run", "agent_run", "agent_host_admission", "agent_run_proof", "workspace_manifest", "workspace_file", "workspace_diff", "provider_probe_snapshot", "provider_probe_artifact", "skill_package"].includes(ref.resource_type)) throw new Error("Unsupported raw result reference");
     const objects = this.#objects(), file = join(objects, ref.locator), stat = lstatSync(file);
     if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 8 * 1024 * 1024 || realpathSync(file).toLowerCase() !== join(realpathSync(objects), ref.locator).toLowerCase()) throw new Error("Unsafe raw result path");
     const descriptor = openSync(file, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));

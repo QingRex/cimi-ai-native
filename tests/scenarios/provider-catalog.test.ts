@@ -125,7 +125,7 @@ it("checks pinned binding identities and rejects execution even for matching met
   const wrong = registerAgent(f, { ...providerBindingIdentity({ ...binding, id: v2.createInternalId() }), locator: v2.createInternalId() });
   let view = catalog(f), status = view.agent_bindings.find(a => a.actor_ref.id === agent.id)!;
   expect(status).toMatchObject({ identity_matches_binding: true, execution_enabled: false, binding_ref: { id: binding.id } });
-  expect(status.blockers).toContain("AGENT_RUN_NOT_IMPLEMENTED");
+  expect(status.blockers).toContain("AGENT_HOST_NOT_CONNECTED");
   expect(view.agent_bindings.find(a => a.actor_ref.id === wrong.id)?.blockers).toContain("PROVIDER_BINDING_NOT_FOUND");
   expect(view.binding_checks[0]?.blockers).toContain("PROVIDER_PROBE_EVIDENCE_SCOPE_UNSUPPORTED");
   expect(v2.parseObjectShowResult(f.kernel.getObject("provider_binding", binding.id)).object).toEqual(binding);

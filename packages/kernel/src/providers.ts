@@ -51,7 +51,7 @@ export const agentBindingStatus = (reader: ProviderReader, projectId: string, id
   const owned = binding?.project_id === projectId ? binding : undefined;
   const descriptor = owned ? reader.getProviderDescriptor(owned.descriptor_ref.id) : undefined;
   const matches = !!owned && same(identity, providerBindingIdentity(owned));
-  const blockers = ["AGENT_INGRESS_NOT_IMPLEMENTED", "AGENT_RUN_NOT_IMPLEMENTED"];
+  const blockers = ["AGENT_INGRESS_NOT_IMPLEMENTED", "AGENT_HOST_NOT_CONNECTED"];
   if (!owned) blockers.push("PROVIDER_BINDING_NOT_FOUND");
   else {
     if (!matches) blockers.push("PROVIDER_IDENTITY_MISMATCH");

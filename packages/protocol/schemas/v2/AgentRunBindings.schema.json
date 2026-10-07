@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "AgentRunBindings.v2",
+  "type": "object",
+  "required": [
+    "runtime_binding",
+    "skill_bindings"
+  ],
+  "properties": {
+    "runtime_binding": {
+      "type": "object",
+      "required": [
+        "binding_ref",
+        "digest"
+      ],
+      "properties": {
+        "binding_ref": {
+          "type": "object",
+          "required": [
+            "object_type",
+            "id"
+          ],
+          "properties": {
+            "object_type": {
+              "type": "string",
+              "const": "provider_binding"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "digest": {
+          "type": "object",
+          "required": [
+            "algorithm",
+            "value"
+          ],
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "sha256"
+            },
+            "value": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "skill_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "binding_ref",
+          "digest"
+        ],
+        "properties": {
+          "binding_ref": {
+            "type": "object",
+            "required": [
+              "object_type",
+              "id"
+            ],
+            "properties": {
+              "object_type": {
+                "type": "string",
+                "const": "provider_binding"
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "digest": {
+            "type": "object",
+            "required": [
+              "algorithm",
+              "value"
+            ],
+            "properties": {
+              "algorithm": {
+                "type": "string",
+                "const": "sha256"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "maxItems": 8,
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

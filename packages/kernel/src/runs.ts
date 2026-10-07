@@ -1,15 +1,32 @@
-import { SCHEMA_VERSION, compileValidator, RawRunObservationSchema, WorkspaceManifestSchema,
+import { SCHEMA_VERSION, compileValidator, RawHumanRunObservationSchema, RawAgentRunObservationSchema, AgentHostAdmissionReferenceSchema, WorkspaceManifestSchema,
   type AnyCommand, type CommandSuccess, type DomainError, type Project, type SourceSnapshot, type Digest,
   type Task, type WorkItem, type Run, type RunRecord, type ContextManifest, type WorkspaceSnapshot, type WorkspaceManifest,
-  type RawRunObservation, type RunObservation, type HandoffRecord, type ResumptionRecord } from "@cimiloop/protocol/v2";
+  type RawRunObservation, type RunObservation, type HandoffRecord, type ResumptionRecord, type AgentRunBindings, type AgentContextManifest, type AgentRunRecord } from "@cimiloop/protocol/v2";
 import type { StoreTransaction } from "@cimiloop/store";
 import { assignmentIsEffective } from "./authorization.js";
 import { admissionFailure, contentDigest, IntentFailure, type IntentContext } from "./intent.js";
 import { budgetRemaining, executionReadiness, usageDigest, resourceContains } from "./execution.js";
 import { agentBindingStatus } from "./providers.js";
+import { agentRunBindingBlockers } from "./agent-runs.js";
 
 // A host verifies bytes and captures the real workspace. Commands cannot provide
-// their own verifier. This stage records Human runs; it does not launch a runtime.
+// their own verifier. Neither record reservation nor observation launches a runtime.
+export interface AgentRunAdmissionInput extends AgentRunBindings {
+  task: Task;
+  work_item: WorkItem;
+  source: SourceSnapshot;
+  workspace: WorkspaceSnapshot;
+}
+export interface AgentRunVerifierPort {
+  // Must re-read Provider qualification/package/schema bytes and verify the live
+  // host's permission intersection, physical quota, cost cap and recovery journal.
+  // The reference pins those exact inputs/configuration. No production host is
+  // installed by default; a command cannot assert or provide admission itself.
+  admitContext(project: Project, input: AgentRunAdmissionInput): AgentContextManifest["host_admission_ref"];
+  // Verify original operation ownership and raw SDK/tool/native/billing proofs;
+  // preserve Unknown when any original effect or cost cannot be reconciled.
+  readRunResult(project: Project, record: AgentRunRecord, context: AgentContextManifest, reference: Extract<RunObservation, { report: { format: "cimiloop/agent-run/1.0.0" } }>["raw_result_ref"]): unknown;
+}
 export interface RunVerifierPort {
   sourceDigest(project: Project, commitId: string): Digest;
   sourceIsCurrent(project: Project, snapshot: SourceSnapshot): boolean;
@@ -17,6 +34,7 @@ export interface RunVerifierPort {
   readWorkspace(project: Project, snapshot: WorkspaceSnapshot): WorkspaceManifest;
   workspaceIsCurrent(project: Project, snapshot: WorkspaceSnapshot): boolean;
   readRunResult(project: Project, reference: RunObservation["raw_result_ref"]): unknown;
+  agent?: AgentRunVerifierPort;
 }
 export type RunCommand = Extract<AnyCommand, { command_type: "PrepareRunContext" | "ReserveRun" | "RecordRunObservation" | "ReconcileRun" | "CancelRun" | "SaveHandoff" | "CheckResumption" }>;
 interface Mutation { event_type: string; aggregate: CommandSuccess["aggregate"]; revision: number; data: CommandSuccess["data"]; payload: Record<string, unknown> }
@@ -43,10 +61,10 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
   const wi = item!, currentTask = task!, scope = { kind: "change" as const, id: currentTask.change_id };
   const actualRevision = command.target.object_type === "run" ? run!.revision : command.target.object_type === "task" ? currentTask.revision : wi.revision;
   if (actualRevision !== command.expected_revision) fail(command, "REVISION_CONFLICT", "运行目标已变化");
-  const human = tx.getActor(context.actorId)?.actor_type === "human";
+  const actor = tx.getActor(context.actorId), human = actor?.actor_type === "human";
   const technical = human && command.acting_role === "technical_owner" && tx.listAssignments(context.actorId).some(a => a.project_id === context.project.id && a.role_key === "technical_owner" && assignmentIsEffective(a, context.now) &&
     ((a.scope.kind === "project" && a.scope.id === context.project.id) || (a.scope.kind === scope.kind && a.scope.id === scope.id)));
-  const executor = human && command.acting_role === "executor" && context.actorId === wi.executor_ref.id;
+  const executor = !!actor && (human || actor.actor_type === "agent" && !!host?.agent) && command.acting_role === "executor" && context.actorId === wi.executor_ref.id;
   const requireExecutor = () => {
     if (executor) return;
     const actor = tx.getActor(context.actorId);
@@ -55,7 +73,7 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
       throw new IntentFailure({ schema_version: SCHEMA_VERSION, code: "CAPABILITY_UNAVAILABLE", category: "forbidden", retryable: false,
         message: "Agent 运行尚未满足正式 Provider、可信入口及运行契约", details: { blockers: status.blockers }, correlation_id: command.correlation_id });
     }
-    fail(command, human ? "EXECUTOR_NOT_ALLOWED" : "CAPABILITY_UNAVAILABLE", "本阶段运行须由绑定 Human 执行者发起");
+    fail(command, human ? "EXECUTOR_NOT_ALLOWED" : "CAPABILITY_UNAVAILABLE", "运行须由绑定执行者经可信宿主入口发起");
   };
   const requireRecorder = () => { if (!executor && !technical) fail(command, "ROLE_NOT_ASSIGNED", "需要原执行者或当前 Human 技术责任核对运行事实"); };
   const ready = () => {
@@ -69,6 +87,19 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
     if (currentTask.active_run_ref || tx.listRuns(currentTask.change_id).some(r => r.task_id === currentTask.id && !runIsSettled(r))) fail(command, "RECOVERY_CONDITIONS_UNMET", "前一运行尚未结清");
   };
   const port = () => { if (!host) fail(command, "CAPABILITY_UNAVAILABLE", "宿主尚未接通工作区与运行事实核验"); return host!; };
+  const admitAgent = (pins: AgentRunBindings, source: SourceSnapshot, workspace: WorkspaceSnapshot, expected?: AgentContextManifest["host_admission_ref"]) => {
+    const executorActor = tx.getActor(wi.executor_ref.id);
+    if (!executorActor || !host?.agent) return fail(command, "CAPABILITY_UNAVAILABLE", "正式 Agent 宿主核验入口未接通");
+    const blockers = agentRunBindingBlockers(tx, context.project, executorActor, wi, pins, context.now);
+    if (blockers.length) throw new IntentFailure({ schema_version: SCHEMA_VERSION, code: "CAPABILITY_UNAVAILABLE", category: "forbidden", retryable: false,
+      message: "正式 Agent Binding 或费用约束未满足", details: { blockers }, correlation_id: command.correlation_id });
+    try {
+      const reference = compileValidator<AgentContextManifest["host_admission_ref"]>(AgentHostAdmissionReferenceSchema)(host.agent.admitContext(context.project,
+        structuredClone({ task: currentTask, work_item: wi, source, workspace, runtime_binding: pins.runtime_binding, skill_bindings: pins.skill_bindings })));
+      if (expected && !equal(reference, expected)) fail(command, "INPUT_CHANGED", "正式 Agent 宿主准入凭据已变化");
+      return reference;
+    } catch (error) { if (error instanceof IntentFailure) throw error; return fail(command, "CAPABILITY_UNAVAILABLE", "正式 Agent 宿主或原始资格证据核验失败"); }
+  };
   const sourceFor = (id: string) => {
     const source = tx.getVerificationRecord("source_snapshot", id);
     if (!source || source.project_id !== context.project.id || source.change_id !== currentTask.change_id || source.repository_ref.id !== context.project.id) fail(command, "BASELINE_MISMATCH", "源码快照不属于当前任务需求");
@@ -96,27 +127,42 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
     const source = sourceFor(manifest!.source_snapshot_ref.id);
     try { if (!workspace || workspace.work_item_ref.id !== wi.id || workspace.head_commit_id !== source.commit_id || !equal(workspace.source_snapshot_ref, manifest!.source_snapshot_ref) || !port().workspaceIsCurrent(context.project, workspace)) fail(command, "INPUT_CHANGED", "上下文对应工作区已改变"); }
     catch (error) { if (error instanceof IntentFailure) throw error; fail(command, "EVIDENCE_MISSING", "上下文工作区原始资料不可核验"); }
+    if ("runtime_binding" in manifest!) {
+      if (actor?.actor_type !== "agent") fail(command, "EXECUTOR_NOT_ALLOWED", "Agent 上下文只能由固定 Agent 执行者预约");
+      admitAgent(manifest as AgentContextManifest, source, workspace!, (manifest as AgentContextManifest).host_admission_ref);
+    } else if (!human) fail(command, "INPUT_CHANGED", "Agent 不能使用人工上下文");
     return { manifest: manifest!, workspace: workspace! };
   };
   if (command.command_type === "PrepareRunContext") {
-    ready(); const source = sourceFor(command.payload.source_snapshot_ref.id), workspace = capture(source, true);
+    ready();
+    if (human === ("runtime_binding" in command.payload)) fail(command, "INPUT_CHANGED", "执行者与上下文准备格式不符");
+    const source = sourceFor(command.payload.source_snapshot_ref.id), workspace = capture(source, true);
     const definition = tx.getExecutionRecord("task_definition", currentTask.definition_ref.id)!;
     const body = { ...meta(context, currentTask, wi), source_snapshot_ref: ref("source_snapshot", source.id), workspace_snapshot_ref: ref("workspace_snapshot", workspace.id), executor_ref: wi.executor_ref,
       boundary: definition.body.verification.mode === "independent" ? "manual_independent_read_only" as const : "manual_scoped" as const,
       input_refs: [ref("source_snapshot", source.id), ref("workspace_snapshot", workspace.id), currentTask.contract_ref, currentTask.plan_ref, currentTask.definition_ref], allowed_actions: wi.allowed_actions, allowed_resources: wi.allowed_resources };
-    const manifest: ContextManifest = { ...body, input_digest: runContextDigest(body) };
+    const manifestBody = "runtime_binding" in command.payload ? { ...body,
+      boundary: definition.body.verification.mode === "independent" ? "agent_independent_read_only" as const : "agent_scoped" as const,
+      runtime_binding: command.payload.runtime_binding, skill_bindings: command.payload.skill_bindings,
+      host_admission_ref: admitAgent(command.payload, source, workspace) } : body;
+    const manifest: ContextManifest = { ...manifestBody, input_digest: runContextDigest(manifestBody) };
     tx.insertRuntimeRecord("context_manifest", manifest); return mutation("RunContextPrepared", ref("work_item", wi.id), wi.revision, { workspace, context: manifest });
   }
   if (command.command_type === "ReserveRun") {
     ready(); const { manifest, workspace } = contextFor(command.payload.context_ref.id, command.payload.input_digest);
     const left = budgetRemaining(currentTask, wi.budget, context.now), reserved = command.payload.reserved_cost_micros ?? 0;
     if (wi.budget.max_cost ? command.payload.reserved_cost_micros === undefined || left.cost_micros === null || reserved > left.cost_micros : reserved !== 0) fail(command, "BUDGET_EXCEEDED", "须按剩余同币种预算预约费用");
+    // Until a trusted per-call upper-bound allocator is connected, an Agent run
+    // must reserve the whole remaining approved envelope; zero/partial reserves
+    // cannot promise a ceiling the native task ledger has not actually held.
+    if ("runtime_binding" in manifest && (reserved <= 0 || reserved !== left.cost_micros)) fail(command, "BUDGET_EXCEEDED", "Agent 须预约全部剩余已批准费用上限");
     const latestHandoff = tx.listRuntimeRecords("handoff_record", currentTask.change_id).filter(h => h.task_id === currentTask.id).at(-1);
     if (latestHandoff || command.payload.resumption_ref) {
       const proof = command.payload.resumption_ref ? tx.getRuntimeRecord("resumption_record", command.payload.resumption_ref.id) : undefined;
       if (!proof || proof.work_item_ref.id !== wi.id || proof.handoff_ref.id !== latestHandoff?.id || proof.context_ref.id !== manifest.id || !equal(proof.input_digest, manifest.input_digest) || !equal(proof.usage_digest, usageDigest(tx, currentTask))) fail(command, "RECOVERY_CONDITIONS_UNMET", "交接后的预约须使用最新接续核验与累计用量");
     }
-    const id = context.id(), record: RunRecord = { ...meta(context, currentTask, wi), run_id: id, run_kind: "human", attempt_no: currentTask.usage.attempts_consumed + 1,
+    const id = context.id(), record: RunRecord = { ...meta(context, currentTask, wi), run_id: id,
+      ...("runtime_binding" in manifest ? { run_kind: "agent" as const, runtime_binding: manifest.runtime_binding, skill_bindings: manifest.skill_bindings, host_admission_ref: manifest.host_admission_ref } : { run_kind: "human" as const }), attempt_no: currentTask.usage.attempts_consumed + 1,
       operation_key: context.id(), context_ref: ref("context_manifest", manifest.id), source_snapshot_ref: manifest.source_snapshot_ref, workspace_before_ref: ref("workspace_snapshot", workspace.id), executor_ref: wi.executor_ref,
       reserved_at: context.now, input_digest: manifest.input_digest, reserved_cost_micros: reserved, ...((wi.budget.max_cost?.currency ?? currentTask.usage.cost_currency) ? { cost_currency: (wi.budget.max_cost?.currency ?? currentTask.usage.cost_currency)! } : {}), ...(command.payload.resumption_ref ? { resumption_ref: command.payload.resumption_ref } : {}) };
     const nextRun: Run = { schema_version: SCHEMA_VERSION, id, project_id: context.project.id, change_id: currentTask.change_id, task_id: currentTask.id, work_item_ref: ref("work_item", wi.id), record_ref: ref("run_record", record.id),
@@ -131,7 +177,7 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
     requireRecorder();
     if (!equal(wi.definition_ref, currentTask.definition_ref) || !equal(wi.contract_ref, currentTask.contract_ref) || !equal(wi.plan_ref, currentTask.plan_ref)) fail(command, "BASELINE_MISMATCH", "只能交接当前任务基准");
     const nextActor = tx.getActor(command.payload.next_actor_ref.id);
-    if (nextActor?.project_id !== context.project.id || nextActor.actor_type !== "human") fail(command, "ACTOR_NOT_FOUND", "接续者须为当前项目 Human");
+    if (nextActor?.project_id !== context.project.id || !["human", "agent"].includes(nextActor.actor_type)) fail(command, "ACTOR_NOT_FOUND", "接续者须为当前项目 Human 或 Agent");
     if (command.payload.evidence_refs.some(r => tx.getVerificationRecord("evidence", r.id)?.task_id !== currentTask.id) ||
       (command.payload.run_ref && tx.getRun(command.payload.run_ref.id)?.work_item_ref.id !== wi.id)) fail(command, "BASELINE_MISMATCH", "交接证据或运行引用跨任务");
     const source = sourceFor(command.payload.source_snapshot_ref.id), workspace = capture(source, true);
@@ -170,7 +216,20 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
   if (command.command_type !== "RecordRunObservation" && command.command_type !== "ReconcileRun") fail(command, "INVALID_COMMAND", "未知运行命令");
   if (command.command_type === "ReconcileRun" && !technical) fail(command, "ROLE_NOT_ASSIGNED", "未知或冲突结果须由 Human 技术责任核对");
   let raw: RawRunObservation;
-  try { raw = compileValidator<RawRunObservation>(RawRunObservationSchema)(port().readRunResult(context.project, command.payload.raw_result_ref)); }
+  try {
+    if (record!.run_kind === "agent") {
+      if (command.payload.raw_result_ref.resource_type !== "agent_run" || !host?.agent) throw new Error("Agent result verifier required");
+      const manifest = tx.getRuntimeRecord("context_manifest", record!.context_ref.id);
+      if (!manifest || !("runtime_binding" in manifest) || !equal(record!.runtime_binding, manifest.runtime_binding) || !equal(record!.skill_bindings, manifest.skill_bindings) || !equal(record!.host_admission_ref, manifest.host_admission_ref)) throw new Error("Agent context pins mismatch");
+      // Recording/reconciling past effects remains possible after approval or
+      // WorkItem revocation. It never authorizes a new effect.
+      raw = compileValidator<RawRunObservation>(RawAgentRunObservationSchema)(host.agent.readRunResult(context.project, structuredClone(record!), structuredClone(manifest), command.payload.raw_result_ref));
+      if (raw.format !== "cimiloop/agent-run/1.0.0" || !equal(raw.context_ref, record!.context_ref) || !equal(raw.runtime_binding, record!.runtime_binding) || !equal(raw.skill_bindings, record!.skill_bindings) || !equal(raw.host_admission_ref, record!.host_admission_ref)) throw new Error("Agent report pins mismatch");
+    } else {
+      if (command.payload.raw_result_ref.resource_type !== "manual_run") throw new Error("Human result reference required");
+      raw = compileValidator<RawRunObservation>(RawHumanRunObservationSchema)(port().readRunResult(context.project, command.payload.raw_result_ref));
+    }
+  }
   catch { fail(command, "EVIDENCE_MISSING", "原始运行报告缺失、摘要不符或结构无效"); }
   if (raw!.run_id !== original.id || raw!.operation_key !== record!.operation_key || raw!.producer_actor_id !== context.actorId || !equal(raw!.input_digest, record!.input_digest) ||
     !Number.isFinite(Date.parse(raw!.observed_at)) || new Date(raw!.observed_at).toISOString() !== (raw!.observed_at.length === 20 ? raw!.observed_at.replace("Z", ".000Z") : raw!.observed_at) || Date.parse(raw!.observed_at) < Date.parse(record!.reserved_at) || Date.parse(raw!.observed_at) > Date.parse(context.now) ||
@@ -188,9 +247,9 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
   const conflict = !reconciling && runIsSettled(original) && desired !== original.status && (!late || reversal);
   const status = reconciling ? desired : conflict ? "Unknown" : late ? original.status : runIsSettled(original) && desired === original.status ? original.status : original.status === "Unknown" || original.cancel_requested ? "Unknown" : desired;
   const source = sourceFor(record!.source_snapshot_ref.id), workspace = capture(source, false);
-  const observation: RunObservation = { ...meta(context, currentTask, wi), definition_ref: record!.definition_ref, contract_ref: record!.contract_ref, plan_ref: record!.plan_ref,
+  const observation = { ...meta(context, currentTask, wi), definition_ref: record!.definition_ref, contract_ref: record!.contract_ref, plan_ref: record!.plan_ref,
     run_ref: ref("run", original.id), raw_result_ref: command.payload.raw_result_ref, report: raw!, received_at: context.now,
-    workspace_received_ref: ref("workspace_snapshot", workspace.id), applicability: conflict ? "conflicting" : late ? "late" : workspace.head_commit_id !== source.commit_id || !equal(currentTask.definition_ref, record!.definition_ref) || !equal(currentTask.contract_ref, record!.contract_ref) || !equal(currentTask.plan_ref, record!.plan_ref) ? "stale" : "current", resulting_status: status };
+    workspace_received_ref: ref("workspace_snapshot", workspace.id), applicability: conflict ? "conflicting" : late ? "late" : workspace.head_commit_id !== source.commit_id || !equal(currentTask.definition_ref, record!.definition_ref) || !equal(currentTask.contract_ref, record!.contract_ref) || !equal(currentTask.plan_ref, record!.plan_ref) ? "stale" : "current", resulting_status: status } as RunObservation;
   const charged = raw!.usage.cost_known ? Math.max(original.cost_charged_micros, raw!.usage.cost_micros) : original.cost_charged_micros;
   const release = desired === "NotStarted" && reconciling && !original.reservation_released;
   const nextRun: Run = { ...original, revision: original.revision + 1, updated_at: context.now, status, cost_charged_micros: charged,
@@ -219,6 +278,11 @@ export const verifyChangeResumption = (tx: StoreTransaction, command: Extract<An
       const manifest = tx.getRuntimeRecord("context_manifest", proof.context_ref.id), workspace = tx.getRuntimeRecord("workspace_snapshot", proof.workspace_snapshot_ref.id), handoff = tx.listRuntimeRecords("handoff_record", command.target.id).filter(h => h.task_id === task.id).at(-1);
       const saved = handoff ? tx.getRuntimeRecord("workspace_snapshot", handoff.workspace_snapshot_ref.id) : undefined;
       if (!manifest || !workspace || !saved || handoff?.id !== proof.handoff_ref.id || handoff.next_actor_ref.id !== wi.executor_ref.id || !equal(manifest.input_digest, proof.input_digest) || !equal(runContextDigest(manifest), proof.input_digest) || !equal(saved.state_digest, workspace.state_digest) || !equal(contentDigest(host.readWorkspace(project, saved)), saved.state_digest) || !host.workspaceIsCurrent(project, workspace)) return reject("INPUT_CHANGED", "接续核验的上下文或实际工作区已改变");
+      if ("runtime_binding" in manifest) {
+        const actor = tx.getActor(wi.executor_ref.id), source = tx.getVerificationRecord("source_snapshot", manifest.source_snapshot_ref.id);
+        if (!actor || !source || !host.agent || agentRunBindingBlockers(tx, project, actor, wi, manifest, now).length) return reject("CAPABILITY_UNAVAILABLE", "Agent 接续资格或可信宿主不可用");
+        if (!equal(host.agent.admitContext(project, structuredClone({ task, work_item: wi, source, workspace, runtime_binding: manifest.runtime_binding, skill_bindings: manifest.skill_bindings })), manifest.host_admission_ref)) return reject("INPUT_CHANGED", "Agent 接续的宿主准入凭据已变化");
+      }
     }
     if (!items.length) {
       const sourceRef = refs.find(r => r.object_type === "source_snapshot"), source = sourceRef ? tx.getVerificationRecord("source_snapshot", sourceRef.id) : undefined;

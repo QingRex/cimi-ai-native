@@ -2,6 +2,8 @@
 
 > 日期：2026-10-04。V1-07 的 Human 运行控制路径已接通 Protocol、Store、Kernel 和 CLI。实施入口为 [V1 可执行设计与实施计划](CimiLoop-V1可执行设计与实施计划-v0.1.md)。真实 Agent / Tool Runtime、执行权限隔离及 start/query/cancel/collect 在 V1-09；本阶段不会启动或停止外部进程。
 
+2026-10-07 D-214新增独立Agent Context / Run / 结果固定关系及可信宿主接口，格式10显式迁移保持本页Human严格分支与历史。生产Agent宿主尚未接通，记录预约不启动Provider；新分支和实际验收缺项见[Agent上下文与运行固定关系](CimiLoop-Agent上下文与运行固定关系-v0.1.md)。
+
 ## 事实与运行边界
 
 `PrepareRunContext` 固定当前 Task、WorkItem、Contract、Plan、TaskDefinition、SourceSnapshot 与实际 WorkspaceSnapshot。最小 ContextManifest 包含五类原生输入引用、绑定执行者、允许动作和资源、边界及输入摘要；它不包含执行者完整推理。独立验证仍要求不同 Human 和只读授权。Provider 绑定、附加外部材料装配及自动上下文裁剪留给后续上下文 / Runtime / 技能能力。

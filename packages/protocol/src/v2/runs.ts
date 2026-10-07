@@ -7,6 +7,14 @@ const oid = Type.String({ pattern: "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" });
 export const contentReferenceSchema = <const T extends string>(resourceType: T) => Type.Object({ provider: Type.Literal("local_content"), resource_type: Type.Literal(resourceType),
   locator: Type.String({ pattern: "^[0-9a-f]{64}$" }), digest: DigestSchema }, { additionalProperties: false });
 export const RunRawReferenceSchema = contentReferenceSchema("manual_run");
+export const AgentRunRawReferenceSchema = contentReferenceSchema("agent_run");
+export const AgentHostAdmissionReferenceSchema = contentReferenceSchema("agent_host_admission");
+export const AgentRunProofReferenceSchema = contentReferenceSchema("agent_run_proof");
+export const AnyRunRawReferenceSchema = Type.Union([RunRawReferenceSchema, AgentRunRawReferenceSchema]);
+export const RunBindingPinSchema = Type.Object({ binding_ref: referenceSchema("provider_binding"), digest: DigestSchema }, { additionalProperties: false });
+export const AgentRunBindingsSchema = Type.Object({ runtime_binding: RunBindingPinSchema,
+  skill_bindings: Type.Array(RunBindingPinSchema, { maxItems: 8, uniqueItems: true }) }, { additionalProperties: false });
+export type AgentRunBindings = Static<typeof AgentRunBindingsSchema>;
 export const WorkspaceManifestReferenceSchema = contentReferenceSchema("workspace_manifest");
 export const WorkspaceFileReferenceSchema = contentReferenceSchema("workspace_file");
 export const WorkspaceDiffReferenceSchema = contentReferenceSchema("workspace_diff");
@@ -30,16 +38,27 @@ const contextManifestSchema = Type.Object({ ...common, source_snapshot_ref: refe
   input_refs: Type.Array(Type.Union([referenceSchema("source_snapshot"), referenceSchema("workspace_snapshot"), versionedReferenceSchema("contract_version"), versionedReferenceSchema("plan_version"), versionedReferenceSchema("task_definition")]), { minItems: 5, maxItems: 5, uniqueItems: true }),
   allowed_actions: Type.Array(Type.Union([Type.Literal("read_files"), Type.Literal("edit_files"), Type.Literal("run_checks")]), { minItems: 1, uniqueItems: true }),
   allowed_resources: Type.Array(text, { minItems: 1, uniqueItems: true }), input_digest: DigestSchema }, { additionalProperties: false });
-export type ContextManifest = Static<typeof contextManifestSchema>;
-export const ContextManifestSchema = Type.Unsafe<ContextManifest>(contextManifestSchema);
+export const HumanContextManifestSchema = contextManifestSchema;
+export type HumanContextManifest = Static<typeof HumanContextManifestSchema>;
+export const AgentContextManifestSchema = Type.Object({ ...contextManifestSchema.properties,
+  boundary: Type.Union([Type.Literal("agent_scoped"), Type.Literal("agent_independent_read_only")]),
+  ...AgentRunBindingsSchema.properties, host_admission_ref: AgentHostAdmissionReferenceSchema }, { additionalProperties: false });
+export type AgentContextManifest = Static<typeof AgentContextManifestSchema>;
+export const ContextManifestSchema = Type.Union([HumanContextManifestSchema, AgentContextManifestSchema]);
+export type ContextManifest = Static<typeof ContextManifestSchema>;
 export const RunStatusSchema = Type.Union([Type.Literal("Reserved"), Type.Literal("Running"), Type.Literal("Succeeded"), Type.Literal("Failed"), Type.Literal("Cancelled"), Type.Literal("Unknown"), Type.Literal("NotStarted")]);
 export const RunObservationStatusSchema = Type.Union([Type.Literal("running"), Type.Literal("succeeded"), Type.Literal("failed"), Type.Literal("cancelled"), Type.Literal("unknown"), Type.Literal("not_started")]);
 const runRecordSchema = Type.Object({ ...common, run_id: InternalIdSchema, run_kind: Type.Literal("human"), attempt_no: Type.Integer({ minimum: 1, maximum: Number.MAX_SAFE_INTEGER }),
   operation_key: InternalIdSchema, context_ref: referenceSchema("context_manifest"), source_snapshot_ref: referenceSchema("source_snapshot"), workspace_before_ref: referenceSchema("workspace_snapshot"),
   executor_ref: referenceSchema("actor"), reserved_at: UtcTimestampSchema, input_digest: DigestSchema, reserved_cost_micros: count,
   cost_currency: Type.Optional(Type.String({ pattern: "^[A-Z]{3}$" })), resumption_ref: Type.Optional(referenceSchema("resumption_record")) }, { additionalProperties: false });
-export type RunRecord = Static<typeof runRecordSchema>;
-export const RunRecordSchema = Type.Unsafe<RunRecord>(runRecordSchema);
+export const HumanRunRecordSchema = runRecordSchema;
+export type HumanRunRecord = Static<typeof HumanRunRecordSchema>;
+export const AgentRunRecordSchema = Type.Object({ ...runRecordSchema.properties, run_kind: Type.Literal("agent"),
+  ...AgentRunBindingsSchema.properties, host_admission_ref: AgentHostAdmissionReferenceSchema }, { additionalProperties: false });
+export type AgentRunRecord = Static<typeof AgentRunRecordSchema>;
+export const RunRecordSchema = Type.Union([HumanRunRecordSchema, AgentRunRecordSchema]);
+export type RunRecord = Static<typeof RunRecordSchema>;
 const runSchema = Type.Object({ ...ProjectMutableMetadata, change_id: InternalIdSchema, task_id: InternalIdSchema, work_item_ref: referenceSchema("work_item"),
   record_ref: referenceSchema("run_record"), status: RunStatusSchema, cancel_requested: Type.Boolean(), reservation_released: Type.Boolean(), release_reversed: Type.Optional(Type.Boolean()), cost_charged_micros: count,
   cost_known: Type.Boolean(), latest_observation_ref: Type.Optional(referenceSchema("run_observation")) }, { additionalProperties: false });
@@ -53,13 +72,23 @@ const rawRunObservationSchema = Type.Object({ format: Type.Literal("cimiloop/man
   producer_actor_id: InternalIdSchema, observed_at: UtcTimestampSchema, input_digest: DigestSchema,
   basis: Type.Union([Type.Literal("direct_observation"), Type.Literal("reconciliation")]), status: RunObservationStatusSchema, usage,
   method: text, observation: text, resolves_observation_refs: Type.Array(referenceSchema("run_observation"), { uniqueItems: true }) }, { additionalProperties: false });
-export type RawRunObservation = Static<typeof rawRunObservationSchema>;
-export const RawRunObservationSchema = Type.Unsafe<RawRunObservation>(rawRunObservationSchema);
-const runObservationSchema = Type.Object({ ...common, run_ref: referenceSchema("run"), raw_result_ref: RunRawReferenceSchema, report: RawRunObservationSchema,
+export const RawHumanRunObservationSchema = rawRunObservationSchema;
+export type RawHumanRunObservation = Static<typeof RawHumanRunObservationSchema>;
+export const RawAgentRunObservationSchema = Type.Object({ ...rawRunObservationSchema.properties, format: Type.Literal("cimiloop/agent-run/1.0.0"),
+  context_ref: referenceSchema("context_manifest"), ...AgentRunBindingsSchema.properties,
+  host_admission_ref: AgentHostAdmissionReferenceSchema, result_proof_ref: AgentRunProofReferenceSchema }, { additionalProperties: false });
+export type RawAgentRunObservation = Static<typeof RawAgentRunObservationSchema>;
+export const RawRunObservationSchema = Type.Union([RawHumanRunObservationSchema, RawAgentRunObservationSchema]);
+export type RawRunObservation = Static<typeof RawRunObservationSchema>;
+const runObservationSchema = Type.Object({ ...common, run_ref: referenceSchema("run"), raw_result_ref: RunRawReferenceSchema, report: RawHumanRunObservationSchema,
   received_at: UtcTimestampSchema, workspace_received_ref: referenceSchema("workspace_snapshot"),
   applicability: Type.Union([Type.Literal("current"), Type.Literal("stale"), Type.Literal("late"), Type.Literal("conflicting")]), resulting_status: RunStatusSchema }, { additionalProperties: false });
-export type RunObservation = Static<typeof runObservationSchema>;
-export const RunObservationSchema = Type.Unsafe<RunObservation>(runObservationSchema);
+export const HumanRunObservationSchema = runObservationSchema;
+export type HumanRunObservation = Static<typeof HumanRunObservationSchema>;
+export const AgentRunObservationSchema = Type.Object({ ...runObservationSchema.properties,
+  raw_result_ref: AgentRunRawReferenceSchema, report: RawAgentRunObservationSchema }, { additionalProperties: false });
+export const RunObservationSchema = Type.Union([HumanRunObservationSchema, AgentRunObservationSchema]);
+export type RunObservation = Static<typeof RunObservationSchema>;
 export const RemainingRunBudgetSchema = Type.Object({ attempts: count, elapsed_ms: count, cost_micros: Type.Union([count, Type.Null()]) }, { additionalProperties: false });
 const handoffRecordSchema = Type.Object({ ...common, source_snapshot_ref: referenceSchema("source_snapshot"), workspace_snapshot_ref: referenceSchema("workspace_snapshot"),
   run_ref: Type.Optional(referenceSchema("run")), next_actor_ref: referenceSchema("actor"), completed: Type.Array(text), unresolved: Type.Array(text), next_action: text,
@@ -73,6 +102,9 @@ export type ResumptionRecord = Static<typeof resumptionRecordSchema>;
 export const ResumptionRecordSchema = Type.Unsafe<ResumptionRecord>(resumptionRecordSchema);
 export const runtimeRecordSchemas = { workspace_snapshot: WorkspaceSnapshotSchema, context_manifest: ContextManifestSchema, run_record: RunRecordSchema,
   run_observation: RunObservationSchema, handoff_record: HandoffRecordSchema, resumption_record: ResumptionRecordSchema };
+// Format 7–9 contain only the original Human run shapes.
+export const humanRuntimeRecordSchemas = { ...runtimeRecordSchemas, context_manifest: HumanContextManifestSchema,
+  run_record: HumanRunRecordSchema, run_observation: HumanRunObservationSchema };
 export type RuntimeRecords = { workspace_snapshot: WorkspaceSnapshot; context_manifest: ContextManifest; run_record: RunRecord; run_observation: RunObservation; handoff_record: HandoffRecord; resumption_record: ResumptionRecord };
 export type RuntimeRecordType = keyof RuntimeRecords;
 const runShowResultSchema = Type.Object({ schema_version: Type.Literal("2.0.0"), ok: Type.Literal(true), runs: Type.Array(RunSchema),

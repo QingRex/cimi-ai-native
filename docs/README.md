@@ -1,5 +1,7 @@
 # CimiLoop 文档导航
 
+2026-10-07 D-214新增原生Agent Context / Run / 结果严格分支，固定Runtime、Skill Binding和宿主准入凭据；预约 / 接续重新核验，未知费用及冲突保留至Human核对。格式10支持显式1–9迁移，保留格式9 Skill治理与原Human运行历史，未升级用户库。生产宿主、实际Task批准、SkillInvocation及完整S1仍待接通，见[Agent上下文与运行固定关系](implementation/CimiLoop-Agent上下文与运行固定关系-v0.1.md)。
+
 本页是 AI Native 研发流程、CimiLoop 架构、协议和实施规划的统一入口。第一次了解时，先理解流程，再讨论工具如何承载；准备参与设计或实现时，再按“正式架构”阅读。
 
 ## 快速理解

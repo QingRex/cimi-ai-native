@@ -34,12 +34,12 @@ const fixture = () => {
 
 describe("explicit format 5 to 6 migration", () => {
   it("preserves native task, grant versions, revoked WorkItem and original receipts without inventing evidence", async () => {
-    const f = fixture(), before = snapshot(f.path); expect(f.runner.check()).toMatchObject({ from_format: 5, to_format: 9, counts: { execution_objects: 4, execution_records: 5 } }); expect(snapshot(f.path)).toEqual(before); expect(existsSync(join(f.directory, "backups"))).toBe(false);
+    const f = fixture(), before = snapshot(f.path); expect(f.runner.check()).toMatchObject({ from_format: 5, to_format: 10, counts: { execution_objects: 4, execution_records: 5 } }); expect(snapshot(f.path)).toEqual(before); expect(existsSync(join(f.directory, "backups"))).toBe(false);
     const report = await f.runner.apply({ actorId: f.actor.id }); expect(snapshot(report.backup_path!)).toEqual(before);
     const after = snapshot(f.path); for (const [table, values] of Object.entries(before.tables)) if (!["schema_migrations", "migration_runs", "event_ledger", "project_counters"].includes(table)) expect(after.tables[table]).toEqual(values);
-    expect(after.tables.verification_records).toEqual([]); expect(after.tables.event_ledger!.slice(0, -1)).toEqual(before.tables.event_ledger); expect(readDatabaseFormat(f.path)).toBe(9);
+    expect(after.tables.verification_records).toEqual([]); expect(after.tables.event_ledger!.slice(0, -1)).toEqual(before.tables.event_ledger); expect(readDatabaseFormat(f.path)).toBe(10);
     const store = new SqliteProjectStore(f.path); stores.push(store); expect(new CimiLoopKernel({ store, caller: f.caller }).execute(f.command)).toEqual(f.receipt);
-    expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 9, to_format: 9, migration_required: false });
+    expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 10, to_format: 10, migration_required: false });
   }, 25_000);
   it.each(["backup_complete", "state_converted", "schema_installed", "before_commit"] as const)("rolls back %s and keeps the exact format5 backup", async stage => {
     const f = fixture(), before = snapshot(f.path); await expect(f.runner.apply({ actorId: f.actor.id, onStage: value => { if (value === stage) throw new Error("fault"); } })).rejects.toMatchObject({ code: "MIGRATION_UNSAFE" }); expect(snapshot(f.path)).toEqual(before);

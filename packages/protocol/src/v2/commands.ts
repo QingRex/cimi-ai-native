@@ -7,7 +7,7 @@ import { ActorRegistrationSchema, ResponsibilityRoleSchema, ProjectSettingsSchem
 import { ContractBodySchema, PlanBodySchema, DecisionActionSchema, ProposalReferenceSchema, ProfessionalSubjectReferenceSchema, ProfessionalRawReferenceSchema } from "./intent.js";
 import { StandingAuthorizationBodySchema, ExecutionActionSchema, ExecutionBudgetSchema } from "./execution.js";
 import { RawResultReferenceSchema, DeferredVerificationSchema } from "./verification.js";
-import { RunRawReferenceSchema } from "./runs.js";
+import { AnyRunRawReferenceSchema, AgentRunBindingsSchema } from "./runs.js";
 import { ProviderRegistrationSchema } from "./providers.js";
 import { RecordProviderEvidencePayloadSchema, EvaluateProviderPayloadSchema, RegisterProviderBindingPayloadSchema } from "./provider-assessment.js";
 
@@ -142,11 +142,14 @@ export const MarkReadyForIntegrationCommandSchema = updateChangeCommandSchema("M
 const runCommand = <const T extends string, const O extends "task" | "work_item" | "run", P extends TSchema>(commandType: T, objectType: O, payload: P) => Type.Object({
   ...envelopeFields, ...actorFields, acting_role: Type.Union([Type.Literal("executor"), Type.Literal("technical_owner")]), command_type: Type.Literal(commandType),
   target: referenceSchema(objectType), expected_revision: PositiveIntegerSchema, payload }, { additionalProperties: false });
-export const PrepareRunContextCommandSchema = runCommand("PrepareRunContext", "work_item", Type.Object({ source_snapshot_ref: referenceSchema("source_snapshot") }, { additionalProperties: false }));
+export const PrepareRunContextCommandSchema = runCommand("PrepareRunContext", "work_item", Type.Union([
+  Type.Object({ source_snapshot_ref: referenceSchema("source_snapshot") }, { additionalProperties: false }),
+  Type.Object({ source_snapshot_ref: referenceSchema("source_snapshot"), ...AgentRunBindingsSchema.properties }, { additionalProperties: false })
+]));
 export const ReserveRunCommandSchema = runCommand("ReserveRun", "task", Type.Object({ work_item_ref: referenceSchema("work_item"), context_ref: referenceSchema("context_manifest"),
   input_digest: DigestSchema, reserved_cost_micros: Type.Optional(Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER })), resumption_ref: Type.Optional(referenceSchema("resumption_record")) }, { additionalProperties: false }));
-export const RecordRunObservationCommandSchema = runCommand("RecordRunObservation", "run", Type.Object({ raw_result_ref: RunRawReferenceSchema }, { additionalProperties: false }));
-export const ReconcileRunCommandSchema = runCommand("ReconcileRun", "run", Type.Object({ raw_result_ref: RunRawReferenceSchema }, { additionalProperties: false }));
+export const RecordRunObservationCommandSchema = runCommand("RecordRunObservation", "run", Type.Object({ raw_result_ref: AnyRunRawReferenceSchema }, { additionalProperties: false }));
+export const ReconcileRunCommandSchema = runCommand("ReconcileRun", "run", Type.Object({ raw_result_ref: AnyRunRawReferenceSchema }, { additionalProperties: false }));
 export const CancelRunCommandSchema = runCommand("CancelRun", "run", Type.Object({ reason: NonEmptyStringSchema }, { additionalProperties: false }));
 export const SaveHandoffCommandSchema = runCommand("SaveHandoff", "work_item", Type.Object({ source_snapshot_ref: referenceSchema("source_snapshot"), run_ref: Type.Optional(referenceSchema("run")),
   next_actor_ref: referenceSchema("actor"), completed: Type.Array(NonEmptyStringSchema), unresolved: Type.Array(NonEmptyStringSchema), next_action: NonEmptyStringSchema,

@@ -146,46 +146,92 @@
       ],
       "properties": {
         "raw_result_ref": {
-          "type": "object",
-          "required": [
-            "provider",
-            "resource_type",
-            "locator",
-            "digest"
-          ],
-          "properties": {
-            "provider": {
-              "type": "string",
-              "const": "local_content"
-            },
-            "resource_type": {
-              "type": "string",
-              "const": "manual_run"
-            },
-            "locator": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            },
-            "digest": {
+          "anyOf": [
+            {
               "type": "object",
               "required": [
-                "algorithm",
-                "value"
+                "provider",
+                "resource_type",
+                "locator",
+                "digest"
               ],
               "properties": {
-                "algorithm": {
+                "provider": {
                   "type": "string",
-                  "const": "sha256"
+                  "const": "local_content"
                 },
-                "value": {
+                "resource_type": {
+                  "type": "string",
+                  "const": "manual_run"
+                },
+                "locator": {
                   "type": "string",
                   "pattern": "^[0-9a-f]{64}$"
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "provider",
+                "resource_type",
+                "locator",
+                "digest"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "const": "local_content"
+                },
+                "resource_type": {
+                  "type": "string",
+                  "const": "agent_run"
+                },
+                "locator": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "additionalProperties": false
             }
-          },
-          "additionalProperties": false
+          ]
         }
       },
       "additionalProperties": false

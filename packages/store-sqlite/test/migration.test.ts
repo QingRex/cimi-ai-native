@@ -35,7 +35,7 @@ afterEach(() => {
 describe("M0 to database format 4 migration", () => {
   it("checks without writes and refuses ordinary opening of the old format", () => {
     const f = fixture(), before = snapshot(f.databasePath), runner = new MigrationRunner(f.databasePath);
-    expect(runner.check()).toMatchObject({ mode: "check", from_format: 1, to_format: 9, migration_required: true, counts: { changes: 2, command_receipts: 6 } });
+    expect(runner.check()).toMatchObject({ mode: "check", from_format: 1, to_format: 10, migration_required: true, counts: { changes: 2, command_receipts: 6 } });
     expect(() => new SqliteProjectStore(f.databasePath)).toThrow(expect.objectContaining({ code: "MIGRATION_REQUIRED" }));
     expect(snapshot(f.databasePath)).toEqual(before);
     expect(existsSync(join(f.directory, "backups"))).toBe(false);
@@ -68,8 +68,8 @@ describe("M0 to database format 4 migration", () => {
     expect(after.tables.migration_origins).toHaveLength(6);
     expect(store.transaction(tx => tx.nextChangeDisplayKey(f.project.id))).toBe("CHG-0003");
     expect(() => new M0Store(f.databasePath)).toThrow("DATABASE_TOO_NEW");
-    expect(runner.check()).toMatchObject({ from_format: 9, migration_required: false });
-    expect(await runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 9, migration_required: false });
+    expect(runner.check()).toMatchObject({ from_format: 10, migration_required: false });
+    expect(await runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 10, migration_required: false });
     expect(readdirSync(join(f.directory, "backups"))).toHaveLength(1);
   });
   it("replays every v1 receipt before conversion, without new events or effects, and authorizes new legacy commands", async () => {
@@ -97,7 +97,7 @@ describe("M0 to database format 4 migration", () => {
     expect(existsSync(join(f.directory, ".migration.lock"))).toBe(false);
   });
   it("refuses a newer database without writing its bytes or creating a backup", async () => {
-    const f = fixture(), db = openDb(f.databasePath, false); db.prepare("INSERT INTO schema_migrations VALUES (10, ?)").run(new Date().toISOString());
+    const f = fixture(), db = openDb(f.databasePath, false); db.prepare("INSERT INTO schema_migrations VALUES (11, ?)").run(new Date().toISOString());
     const before = snapshot(f.databasePath), originalHash = hash(f.databasePath);
     expect(() => new SqliteProjectStore(f.databasePath)).toThrow(expect.objectContaining({ code: "DATABASE_TOO_NEW" }));
     expect(() => new MigrationRunner(f.databasePath).check()).toThrow(MigrationError);

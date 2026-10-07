@@ -1,5 +1,7 @@
 # CimiLoop
 
+2026-10-07 D-214新增原生Agent Context / Run / 结果严格分支，固定Runtime、Skill Binding和宿主准入凭据；预约 / 接续重新核验，未知费用及冲突保留至Human核对。格式10支持显式1–9迁移，保留格式9 Skill治理与原Human运行历史，未升级用户库。生产宿主、实际Task批准、SkillInvocation及完整S1仍待接通，见[Agent上下文与运行固定关系](docs/implementation/CimiLoop-Agent上下文与运行固定关系-v0.1.md)。
+
 CimiLoop 是一个面向 AI-Native 软件研发的 Runtime-neutral Harness（运行时中立研发控制框架）。它围绕一个 Change（变更）组织意图、计划、执行、证据、决策与知识更新，让 Claude Code、OpenCode 等 Agent Runtime 在统一协议和治理边界下完成可恢复、可审计、可闭环的研发流程。
 
 ## 当前状态
@@ -10,7 +12,7 @@ CimiLoop 是一个面向 AI-Native 软件研发的 Runtime-neutral Harness（运
 
 2026-10-07 D-209 已实现连接原生 Kernel / SQLite 的本地工作台人工操作阶段：CLI 与页面共享项目及身份装配，需求池、目标版本、约定 / 计划决定、任务事实与交接已接通；本地会话、来源校验和响应丢失后的原请求核对通过验证。操作见[本地工作台与共享应用服务](docs/implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md)。正式 Agent 执行、技能接入及 S1 全链路验收仍待完成。
 
-当前开发入口是[CimiLoop V1可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)。S1–S4共23项任务，OpenSpec试点可选，技能Provider及Matt / Superpowers试点进入S1。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。格式9支持显式1–8升级并保留历史、任务、授权、运行和回执；没有升级用户现有数据库。
+当前开发入口是[CimiLoop V1可执行设计与实施计划](docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md)。S1–S4共23项任务，OpenSpec试点可选，技能Provider及Matt / Superpowers试点进入S1。V1-01–05、V1-06本阶段人工验证与安全集成、V1-07 Human运行控制及V1-08 CLI已完成本阶段实现及联调。格式10支持显式1–9升级并保留历史、任务、授权、运行和回执；没有升级用户现有数据库。
 
 V1-09实施中：独立探针Adapter与Windows AppContainer / Job隔离已实现，OpenCode已更新1.18.34并固定摘要。专用智谱`zhipuai-coding-plan/glm-5.3`已完成真实合成文件修改及新只读会话独立验收，双模式权限探针通过；Key以Windows DPAPI加密保存在仓库外。前批Zen免费接口403保留为历史事实。原生Provider评测及探针范围Binding已接通；新合成操作的资源归属、恢复清理及磁盘 / 日志超限停止已由D-196实现；Task绑定、Agent Run及网络 / 费用 / 文件系统硬配额和完整恢复验收仍待完成。操作与实测证据见[Runtime探针与隔离](docs/implementation/CimiLoop-Runtime探针与隔离-v0.1.md)。合成探针不修改Task、原生Run或Gate，正式Agent执行尚未启用。
 

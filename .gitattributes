@@ -2,3 +2,10 @@
 packages/protocol/schemas/v2/Skill*.schema.json text eol=lf
 packages/protocol/schemas/v2/FixedMethod*.schema.json text eol=lf
 packages/protocol/schemas/v2/NamedSkillMethod*.schema.json text eol=lf
+
+# Agent host proofs and binding shapes have byte-pinned consumers.
+packages/protocol/schemas/v2/Agent*.schema.json text eol=lf
+packages/protocol/schemas/v2/Human*.schema.json text eol=lf
+packages/protocol/schemas/v2/RawAgentRunObservation.schema.json text eol=lf
+packages/protocol/schemas/v2/RawHumanRunObservation.schema.json text eol=lf
+packages/protocol/schemas/v2/RunBindingPin.schema.json text eol=lf

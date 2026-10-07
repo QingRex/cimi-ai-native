@@ -1,0 +1,303 @@
+{
+  "format": "cimiloop/agent-run-binding-verification/1.0.0",
+  "decision": "D-214",
+  "date": "2026-10-07",
+  "base_commit": "4f3d80310602a84ecebe64d03750e1dca46207b5",
+  "scope": "Native Agent Context, Run and observation contracts, fixed Runtime/Skill/host admission, trusted host port and explicit database format 10 migration; constructed domain qualification only",
+  "goal_complete": false,
+  "formal_execution_enabled": false,
+  "production_agent_host_connected": false,
+  "native_skill_invocation_implemented": false,
+  "actual_skill_behavior_evaluated": false,
+  "actual_credentials_read": 0,
+  "external_model_requests": 0,
+  "user_database_upgraded": false,
+  "checks": {
+    "build": {
+      "command": "pnpm check",
+      "status": "passed",
+      "node": "24.15.0",
+      "pnpm": "12.4.2",
+      "note": "Final typecheck/build completed after the SQL scalar-identity correction and both added Agent tests, before final affected regression."
+    },
+    "schema_export": {
+      "command": "pnpm schema:export",
+      "status": "passed"
+    },
+    "schemas": {
+      "baseline": 210,
+      "unchanged": 196,
+      "changed": [
+        "packages/protocol/schemas/v2/AnyCommand.schema.json",
+        "packages/protocol/schemas/v2/CommandResult.schema.json",
+        "packages/protocol/schemas/v2/CommandSuccess.schema.json",
+        "packages/protocol/schemas/v2/ContextManifest.schema.json",
+        "packages/protocol/schemas/v2/EventEnvelope.schema.json",
+        "packages/protocol/schemas/v2/MigrationReport.schema.json",
+        "packages/protocol/schemas/v2/ObjectShowResult.schema.json",
+        "packages/protocol/schemas/v2/PrepareRunContextCommand.schema.json",
+        "packages/protocol/schemas/v2/RawRunObservation.schema.json",
+        "packages/protocol/schemas/v2/ReconcileRunCommand.schema.json",
+        "packages/protocol/schemas/v2/RecordRunObservationCommand.schema.json",
+        "packages/protocol/schemas/v2/RunObservation.schema.json",
+        "packages/protocol/schemas/v2/RunRecord.schema.json",
+        "packages/protocol/schemas/v2/RunShowResult.schema.json"
+      ],
+      "added": [
+        "packages/protocol/schemas/v2/AgentContextManifest.schema.json",
+        "packages/protocol/schemas/v2/AgentHostAdmissionReference.schema.json",
+        "packages/protocol/schemas/v2/AgentRunBindings.schema.json",
+        "packages/protocol/schemas/v2/AgentRunObservation.schema.json",
+        "packages/protocol/schemas/v2/AgentRunProofReference.schema.json",
+        "packages/protocol/schemas/v2/AgentRunRawReference.schema.json",
+        "packages/protocol/schemas/v2/AgentRunRecord.schema.json",
+        "packages/protocol/schemas/v2/HumanContextManifest.schema.json",
+        "packages/protocol/schemas/v2/HumanRunObservation.schema.json",
+        "packages/protocol/schemas/v2/HumanRunRecord.schema.json",
+        "packages/protocol/schemas/v2/RawAgentRunObservation.schema.json",
+        "packages/protocol/schemas/v2/RawHumanRunObservation.schema.json",
+        "packages/protocol/schemas/v2/RunBindingPin.schema.json"
+      ],
+      "human": [
+        {
+          "oldName": "ContextManifest",
+          "newName": "HumanContextManifest",
+          "identical": true
+        },
+        {
+          "oldName": "RunRecord",
+          "newName": "HumanRunRecord",
+          "identical": true
+        },
+        {
+          "oldName": "RawRunObservation",
+          "newName": "RawHumanRunObservation",
+          "identical": true
+        },
+        {
+          "oldName": "RunObservation",
+          "newName": "HumanRunObservation",
+          "identical": true
+        }
+      ],
+      "restored": true,
+      "artifact": {
+        "path": ".cimiloop/agent-run-v1-21/schema-audit.json",
+        "bytes": 2351,
+        "sha256": "d94c74f1017285ac0d787b6e76c70b7df73ec570f960fab43595d43e3b4ee201"
+      },
+      "note": "Unchanged schemas were restored from the index only after all test processes completed; frozen Human bodies equal pre-change bodies."
+    },
+    "regression": [
+      {
+        "path": ".cimiloop/agent-run-v1-21/initial-tests.json",
+        "bytes": 19550,
+        "sha256": "12c3775c5aa027d07ac1f10725b975d1910e23abe145333f1065fe1fed29b8d9",
+        "files": 4,
+        "tests": 44,
+        "passed": 43,
+        "failed": 1,
+        "success": false,
+        "failures": [
+          {
+            "file": "packages/store-sqlite/test/agent-runs.test.ts",
+            "test": "Agent native records with constructed qualification and trusted port rejects missing cost bounds, stale/duplicate/wrong-kind pins and Human-shaped Agent input",
+            "first_message": "AssertionError: expected { schema_version: '2.0.0', …(6) } to match object { code: 'INVALID_COMMAND' }"
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/agent-run-v1-21/protocol-tests.json",
+        "bytes": 1605,
+        "sha256": "a1502ed14b4a01f0cfb5850275b5cd24eab4d8a9f535ee2a8e1f4526be4336b1",
+        "files": 1,
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "success": true,
+        "failures": []
+      },
+      {
+        "path": ".cimiloop/agent-run-v1-21/full-tests.json",
+        "bytes": 347786,
+        "sha256": "f683226ed271a89e16481e764ebbb40a04dc4db330624aebabe171e13b9897fe",
+        "files": 62,
+        "tests": 878,
+        "passed": 875,
+        "failed": 3,
+        "success": false,
+        "failures": [
+          {
+            "file": "packages/runtime-adapter/test/ipc-transport.test.ts",
+            "test": "actual Windows IPC authorization permits Bun-required attribute access while denying source and directory writes",
+            "first_message": "AssertionError: expected { schema_version: '2.0.0', …(8) } to match object { outcome: 'recovered', …(1) }"
+          },
+          {
+            "file": "packages/store-sqlite/test/agent-runs.test.ts",
+            "test": "Agent native records with constructed qualification and trusted port rejects a previously prepared context when its approving owner assignment is ended",
+            "first_message": "Error: {\"schema_version\":\"2.0.0\",\"code\":\"RESPONSIBILITY_HANDOFF_REQUIRED\",\"message\":\"该指派仍承担设置中的协调或裁决责任，请先更新设置完成移交\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":24,\"command_type\":\"EndAssignment\",\"target\":{\"object_type\":\"project\",\"id\":\"01a11412-d982-7287-89d2-0b094a602be5\"},\"expected_revision\":9,\"current\":{\"reference\":{\"object_type\":\"project\",\"id\":\"01a11412-d982-7287-89d2-0b094a602be5\"},\"revision\":9,\"settings_ref\":{\"object_type\":\"project_settings_version\",\"id\":\"01a11412-d99c-7538-af62-9c1bfa02a7bb\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"assignment\",\"id\":\"01a11412-d982-7287-89d2-14c28a40878a\"},\"revision\":1}],\"missing_conditions\":[\"RESPONSIBILITY_HANDOFF_REQUIRED\"]}},\"correlation_id\":\"01a11412-e465-77c2-a8d9-68e816593b4f\"}"
+          },
+          {
+            "file": "packages/store-sqlite/test/migration.test.ts",
+            "test": "M0 to database format 4 migration backs up uncheckpointed WAL and preserves history, counters, states, identities and delivery status",
+            "first_message": "AssertionError: expected { schema_version: '2.0.0', …(6) } to match object { from_format: 9, …(1) }"
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/agent-run-v1-21/retest.json",
+        "bytes": 27626,
+        "sha256": "ce742d9f2d943b749f68d9ba89514a8a0914f5d6de9979b7172af45ed4acdf97",
+        "files": 5,
+        "tests": 67,
+        "passed": 67,
+        "failed": 0,
+        "success": true,
+        "failures": []
+      }
+    ],
+    "effective_latest_coverage": {
+      "files": 62,
+      "tests": 880,
+      "passed": 880,
+      "failed": 0,
+      "full_one_shot_green": false,
+      "unaffected_files_from_full_run": 57,
+      "final_affected_files": 5,
+      "note": "Latest per-file results combine the full run with the final affected rerun, including two additional Agent cases. This is not a second complete-suite pass."
+    },
+    "database": {
+      "from_formats": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "to_format": 10,
+      "protocol_schema_version": "2.0.0",
+      "historical_human_shapes_frozen": true,
+      "existing_state_and_history_preserved": true,
+      "migration_fault_points_tested": [
+        "backup_complete",
+        "state_converted",
+        "schema_installed",
+        "before_commit"
+      ]
+    }
+  },
+  "corrections_and_observations": [
+    {
+      "report": "initial-tests.json",
+      "kind": "test_expectation",
+      "detail": "Duplicate Binding pins correctly failed Protocol validation; corrected the new assertion from INVALID_COMMAND to PROTOCOL_VALIDATION_FAILED."
+    },
+    {
+      "report": "full-tests.json",
+      "kind": "test_fixture",
+      "detail": "Native EndAssignment correctly refused ending the active priority arbiter assignment. The new owner-revocation fixture now grants a replacement owner and updates project settings before ending the original assignment."
+    },
+    {
+      "report": "full-tests.json",
+      "kind": "migration_assertion",
+      "detail": "Two assertions for a no-op migration still expected the former current format 9; updated them to current format 10."
+    },
+    {
+      "report": "full-tests.json",
+      "kind": "ipc_cleanup_not_reproduced",
+      "detail": "The existing Bun-module ACL test did not match recovered/resources_disposed after its fixed 200 ms cleanup wait. Its original failure remains in the full report; the final 12-test IPC file passed. Runtime production and test code were not changed for this observation. Timing is a suspected cause, not a proven diagnosis or bug fix."
+    },
+    {
+      "kind": "sql_semantic_identity",
+      "detail": "SQLite JSON object text equality depends on key order. The new Agent relationship guard compares digest/reference scalar fields and ordered Skill pin arrays; the final rerun includes reordered-key acceptance and altered-pin refusal."
+    }
+  ],
+  "constructed_fixture_boundary": {
+    "controlled_allow": "Directly inserted synthetic ProviderEvidence, ProviderEvaluation and task_execution Binding facts; current production assessment/approval commands cannot create these formal approvals.",
+    "trusted_host": "In-process fake admission and result-proof verifier, bound to Native records. No actual model or physical Runtime qualification is exercised.",
+    "billing": "Native same-currency reservation/settlement only; no Coding Plan credit qualification, account ledger or actual invoice proof.",
+    "production_default": "LocalRunVerifier has no agent port, and formal Task Binding remains refused. Adding record schemas does not enable Agent execution."
+  },
+  "remaining_acceptance": [
+    "Connect a production Agent host and real controlled qualification / Task-scope Binding approval.",
+    "Connect live WorkItem tool authorization and journal to actual workspace file/command effects and IPC/OpenCode.",
+    "Prove original-operation SDK/tool/Native/billing recovery without restarting unknown effects.",
+    "Implement physical filesystem hard quota and real plan/tool eligibility, input/thinking/output caps, protected unique account ledger, approved cash/credit budget and invoice reconciliation.",
+    "Add Native SkillInvocation records and explicit named-method qualification, real Human clarification rounds, fixed diff/issue context and independent review.",
+    "Complete declared delegation/command/verification host capabilities and Matt/Superpowers behavioral comparison/default choices.",
+    "Connect formal execution/status/recovery in the local workbench.",
+    "Validate an ordinary real Change through approved Agent execution, independent evaluation, real Skill records, interrupted resumption and ReadyForDelivery."
+  ],
+  "source_files_at_validation": [
+    {
+      "path": "packages/protocol/src/v2/runs.ts",
+      "bytes": 12958,
+      "sha256": "83dbbd6583ca83ddf5c001fa850b0e865d0f9fc33f2672deb710fc1c9ab2beba"
+    },
+    {
+      "path": "packages/protocol/src/v2/commands.ts",
+      "bytes": 19388,
+      "sha256": "ca0a2d64e2650379ead0c299388110716e968b44161b5b6d51f71b19dadcfdf0"
+    },
+    {
+      "path": "packages/kernel/src/agent-runs.ts",
+      "bytes": 5149,
+      "sha256": "fbcf1347448d8e43b2761d60ccfeeb25ce5e598f3ee38a1845d491b8d2acbf3d"
+    },
+    {
+      "path": "packages/kernel/src/runs.ts",
+      "bytes": 36426,
+      "sha256": "0b255f44dcc9da2bc6bcd6f3a31bd5800e804c2adfa3c6440ebc3572f07d5b90"
+    },
+    {
+      "path": "packages/kernel/src/providers.ts",
+      "bytes": 10214,
+      "sha256": "ce8c475199d0993dacc051ed60b4d39442a9431cb9effddc3b1a5f2a81b58e68"
+    },
+    {
+      "path": "packages/local-app/src/evidence-local.ts",
+      "bytes": 7948,
+      "sha256": "6a24b41a6a54f21896764979c15f7e520ff559898a24bde8d9ac96dc9328702a"
+    },
+    {
+      "path": "packages/store-sqlite/src/database-format.ts",
+      "bytes": 22579,
+      "sha256": "fe6987733dc7fdc6e7e80339a13f7f7cd96aeddbaf66e34384448437c9b7791d"
+    },
+    {
+      "path": "packages/store-sqlite/src/format2-preflight.ts",
+      "bytes": 48049,
+      "sha256": "ffdc2dbee386a0947b317953eff8a2b767d3a1750c9032754686c4cbacc763bf"
+    },
+    {
+      "path": "packages/store-sqlite/src/migration-runner.ts",
+      "bytes": 26265,
+      "sha256": "065649d3b98f5c84ac041c189584c17ddc802e556faa55a72dadc0bd2abab853"
+    },
+    {
+      "path": "packages/protocol/test/agent-runs.test.ts",
+      "bytes": 4597,
+      "sha256": "425b20a511f1d4c9dbfa47cdf60fe0f0d72fea85415538561668e4f4edfd91b7"
+    },
+    {
+      "path": "packages/store-sqlite/test/agent-runs.test.ts",
+      "bytes": 15081,
+      "sha256": "2d4bb401e2edc0f67a0993c8881d74840d51194a48ba655376fe9f4f83a50b5e"
+    },
+    {
+      "path": "packages/store-sqlite/test/format10-migration.test.ts",
+      "bytes": 7112,
+      "sha256": "b172f9422c41e95d8c2bb552ad2f060e4a8d3c0272cb260fd6cc2297399d34ca"
+    },
+    {
+      "path": "tests/fixtures/agent-run-project.ts",
+      "bytes": 10708,
+      "sha256": "849a19c6e4c29de61d21f3dcbb68c3f6a559a7778fc7e3206e06ba27a0dd70a1"
+    }
+  ],
+  "evidence_availability": "Reports and local helpers under .cimiloop are ignored and retained in this checkout; their paths, sizes and SHA-256 are recorded here. Domain fixtures are committed. No ignored raw report is presented as production qualification."
+}

@@ -140,31 +140,161 @@
       "minimum": 1
     },
     "payload": {
-      "type": "object",
-      "required": [
-        "source_snapshot_ref"
-      ],
-      "properties": {
-        "source_snapshot_ref": {
+      "anyOf": [
+        {
           "type": "object",
           "required": [
-            "object_type",
-            "id"
+            "source_snapshot_ref"
           ],
           "properties": {
-            "object_type": {
-              "type": "string",
-              "const": "source_snapshot"
+            "source_snapshot_ref": {
+              "type": "object",
+              "required": [
+                "object_type",
+                "id"
+              ],
+              "properties": {
+                "object_type": {
+                  "type": "string",
+                  "const": "source_snapshot"
+                },
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "source_snapshot_ref",
+            "runtime_binding",
+            "skill_bindings"
+          ],
+          "properties": {
+            "source_snapshot_ref": {
+              "type": "object",
+              "required": [
+                "object_type",
+                "id"
+              ],
+              "properties": {
+                "object_type": {
+                  "type": "string",
+                  "const": "source_snapshot"
+                },
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              },
+              "additionalProperties": false
             },
-            "id": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "runtime_binding": {
+              "type": "object",
+              "required": [
+                "binding_ref",
+                "digest"
+              ],
+              "properties": {
+                "binding_ref": {
+                  "type": "object",
+                  "required": [
+                    "object_type",
+                    "id"
+                  ],
+                  "properties": {
+                    "object_type": {
+                      "type": "string",
+                      "const": "provider_binding"
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "digest": {
+                  "type": "object",
+                  "required": [
+                    "algorithm",
+                    "value"
+                  ],
+                  "properties": {
+                    "algorithm": {
+                      "type": "string",
+                      "const": "sha256"
+                    },
+                    "value": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "skill_bindings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "binding_ref",
+                  "digest"
+                ],
+                "properties": {
+                  "binding_ref": {
+                    "type": "object",
+                    "required": [
+                      "object_type",
+                      "id"
+                    ],
+                    "properties": {
+                      "object_type": {
+                        "type": "string",
+                        "const": "provider_binding"
+                      },
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "digest": {
+                    "type": "object",
+                    "required": [
+                      "algorithm",
+                      "value"
+                    ],
+                    "properties": {
+                      "algorithm": {
+                        "type": "string",
+                        "const": "sha256"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "maxItems": 8,
+              "uniqueItems": true
             }
           },
           "additionalProperties": false
         }
-      },
-      "additionalProperties": false
+      ]
     }
   },
   "additionalProperties": false

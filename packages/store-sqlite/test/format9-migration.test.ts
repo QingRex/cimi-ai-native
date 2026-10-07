@@ -22,14 +22,14 @@ const fixture = () => {
   const command = { ...flowBase(), command_type: "CreateChange", project_id: f.project.id, actor_id: f.actor.id, acting_role: "project_owner", payload: { title: "Preserved native change", kind: "requirement" } }, result = flowSuccess(f.kernel.execute(command));
   const evidence = f.store.listProviderEvidence(), evaluations = f.store.listProviderEvaluations(), bindings = f.store.listProviderBindings(), candidates = f.store.listProviderDescriptors(); f.store.close(); stores.pop();
   const db = new DatabaseSync(f.path);
-  try { db.exec("BEGIN IMMEDIATE; DROP TRIGGER guard_provider_assessment_kind_insert; DELETE FROM schema_migrations;"); db.prepare("INSERT INTO schema_migrations VALUES (8, ?)").run(flowTime); db.exec("COMMIT"); } finally { db.close(); }
+  try { db.exec("BEGIN IMMEDIATE; DROP TRIGGER guard_agent_run_relations_insert; DROP TRIGGER guard_provider_assessment_kind_insert; DELETE FROM schema_migrations;"); db.prepare("INSERT INTO schema_migrations VALUES (8, ?)").run(flowTime); db.exec("COMMIT"); } finally { db.close(); }
   return { ...f, evidence, evaluations, bindings, candidates, command, result, runner: new MigrationRunner(f.path) };
 };
 
 it("explicitly migrates frozen format 8 Runtime qualification and Skill candidates without changing existing facts", async () => {
   const f = fixture(), before = snapshot(f.path);
   expect(() => new SqliteProjectStore(f.path)).toThrow(expect.objectContaining({ code: "MIGRATION_REQUIRED" }));
-  expect(f.runner.check()).toMatchObject({ from_format: 8, to_format: 9, counts: { provider_assessment_records: 2 } }); expect(snapshot(f.path)).toEqual(before);
+  expect(f.runner.check()).toMatchObject({ from_format: 8, to_format: 10, counts: { provider_assessment_records: 2 } }); expect(snapshot(f.path)).toEqual(before);
   const report = await f.runner.apply({ actorId: f.actor.id, now: flowTime }); expect(snapshot(report.backup_path!)).toEqual(before);
   expect(createHash("sha256").update(readFileSync(report.backup_path!)).digest("hex")).toBe(report.backup_digest!.value);
   const manifest = JSON.parse(readFileSync(join(dirname(report.backup_path!), "manifest.json"), "utf8"));
@@ -38,11 +38,11 @@ it("explicitly migrates frozen format 8 Runtime qualification and Skill candidat
   const after = snapshot(f.path);
   for (const name of Object.keys(before.tables).filter(name => !["schema_migrations", "migration_runs", "event_ledger", "project_counters"].includes(name))) expect(after.tables[name], name).toEqual(before.tables[name]);
   expect(after.tables.project_counters).toEqual(before.tables.project_counters!.map(row => ({ ...row, event_sequence: Number(row.event_sequence) + 1 })));
-  expect(after.tables.event_ledger!.slice(0, before.tables.event_ledger!.length)).toEqual(before.tables.event_ledger); expect(readDatabaseFormat(f.path)).toBe(9);
+  expect(after.tables.event_ledger!.slice(0, before.tables.event_ledger!.length)).toEqual(before.tables.event_ledger); expect(readDatabaseFormat(f.path)).toBe(10);
   const store = new SqliteProjectStore(f.path); stores.push(store);
   expect(store.listProviderEvidence()).toEqual(f.evidence); expect(store.listProviderEvaluations()).toEqual(f.evaluations); expect(store.listProviderBindings()).toEqual(f.bindings); expect(store.listProviderDescriptors()).toEqual(f.candidates);
   const kernel = new CimiLoopKernel({ store, caller: f.caller }), saved = snapshot(f.path); expect(kernel.execute(f.command)).toEqual(f.result); expect(snapshot(f.path)).toEqual(saved);
-  expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 9, to_format: 9, migration_required: false });
+  expect(await f.runner.apply({ actorId: f.actor.id })).toMatchObject({ from_format: 10, to_format: 10, migration_required: false });
 }, 45_000);
 
 it.each(["backup_complete", "state_converted", "schema_installed", "before_commit"] as const)("rolls back format 8 facts and schema at %s", async stage => {

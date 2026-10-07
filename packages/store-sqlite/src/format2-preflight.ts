@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import * as v2 from "@cimiloop/protocol/v2";
 import { parseVersionedCommandResult, parseVersionedRecord } from "@cimiloop/protocol";
-import { initializeFormat2Database, initializeFormat3Database, initializeFormat4Database, initializeFormat5Database, initializeFormat6Database, initializeFormat7Database, initializeFormat8Database, MigrationError } from "./database-format.js";
+import { initializeFormat2Database, initializeFormat3Database, initializeFormat4Database, initializeFormat5Database, initializeFormat6Database, initializeFormat7Database, initializeFormat8Database, initializeFormat9Database, MigrationError } from "./database-format.js";
 
 type Row = Record<string, unknown>;
 const unsafe = (message: string): never => { throw new MigrationError("MIGRATION_UNSAFE", message); };
@@ -23,9 +23,10 @@ export const validateFormat5 = (db: DatabaseSync, now: string) => validateGovern
 export const validateFormat6 = (db: DatabaseSync, now: string) => validateGovernanceFormat(db, now, 6);
 export const validateFormat7 = (db: DatabaseSync, now: string) => validateGovernanceFormat(db, now, 7);
 export const validateFormat8 = (db: DatabaseSync, now: string) => validateGovernanceFormat(db, now, 8);
-const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 | 4 | 5 | 6 | 7 | 8) => {
+export const validateFormat9 = (db: DatabaseSync, now: string) => validateGovernanceFormat(db, now, 9);
+const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) => {
   const reference = new DatabaseSync(":memory:");
-  try { (format === 2 ? initializeFormat2Database : format === 3 ? initializeFormat3Database : format === 4 ? initializeFormat4Database : format === 5 ? initializeFormat5Database : format === 6 ? initializeFormat6Database : format === 7 ? initializeFormat7Database : initializeFormat8Database)(reference); if (canonical(signature(db)) !== canonical(signature(reference))) unsafe(`格式${format}表、索引或触发器不匹配`); }
+  try { (format === 2 ? initializeFormat2Database : format === 3 ? initializeFormat3Database : format === 4 ? initializeFormat4Database : format === 5 ? initializeFormat5Database : format === 6 ? initializeFormat6Database : format === 7 ? initializeFormat7Database : format === 8 ? initializeFormat8Database : initializeFormat9Database)(reference); if (canonical(signature(db)) !== canonical(signature(reference))) unsafe(`格式${format}表、索引或触发器不匹配`); }
   finally { reference.close(); }
   if (db.prepare("PRAGMA integrity_check").get()?.integrity_check !== "ok" || db.prepare("PRAGMA foreign_key_check").all().length) unsafe("格式2完整性检查失败");
   const projects = rows(db, "projects"); if (projects.length !== 1) unsafe("格式2迁移须有唯一 Project");
@@ -116,9 +117,11 @@ const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 |
     for (const row of rows(db, "run_records")) {
       const kind = String(row.object_type) as v2.RuntimeRecordType;
       if (!Object.hasOwn(v2.runtimeRecordSchemas, kind)) unsafe("未知运行记录");
-      const value = v2.compileValidator<v2.RuntimeRecords[v2.RuntimeRecordType]>(v2.runtimeRecordSchemas[kind])(json(row));
+      const value = v2.compileValidator<v2.RuntimeRecords[v2.RuntimeRecordType]>(v2.humanRuntimeRecordSchemas[kind])(json(row));
       match(row, value, ["id", "project_id", "change_id", "producer_actor_id"]);
       if (value.project_id !== project.id || !changes.has(value.change_id) || !actors.has(value.producer_actor_id)) unsafe("运行记录作用域无效");
+      if ((kind === "context_manifest" || kind === "run_record") && actors.get((value as v2.ContextManifest | v2.RunRecord).executor_ref.id)?.actor_type !== "human" ||
+        kind === "handoff_record" && actors.get((value as v2.HandoffRecord).next_actor_ref.id)?.actor_type !== "human") unsafe("格式7–9只能包含原Human运行 / 接续身份");
       runtimeRecords.set(value.id, { kind, value });
     }
   }
@@ -384,9 +387,11 @@ const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 |
     const digest = (value: unknown) => ({ algorithm: "sha256", value: createHash("sha256").update(canonical(value)).digest("hex") });
     const evidence = new Map<string, v2.ProviderEvidence>(), evaluations = new Map<string, v2.ProviderEvaluation>();
     for (const row of rows(db, "provider_assessment_records")) {
-      const value = row.object_type === "evidence" ? v2.compileValidator<v2.ProviderEvidence>(v2.RuntimeProviderEvidenceSchema)(json(row)) : v2.compileValidator<v2.ProviderEvaluation>(v2.RuntimeProviderEvaluationSchema)(json(row));
+      const value = row.object_type === "evidence" ? v2.compileValidator<v2.ProviderEvidence>(format >= 9 ? v2.ProviderEvidenceSchema : v2.RuntimeProviderEvidenceSchema)(json(row)) : v2.compileValidator<v2.ProviderEvaluation>(format >= 9 ? v2.ProviderEvaluationSchema : v2.RuntimeProviderEvaluationSchema)(json(row));
       match(row, value, ["id", "project_id", "producer_actor_id"]); const descriptor = descriptors.get(value.descriptor_ref.id);
-      if (row.descriptor_id !== value.descriptor_ref.id || !descriptor || descriptor.provider_kind !== "runtime" || value.project_id !== project.id || actors.get(value.producer_actor_id)?.actor_type !== "human" ||
+      if (row.descriptor_id !== value.descriptor_ref.id || !descriptor || (descriptor.provider_kind !== "runtime" && (format < 9 || descriptor.provider_kind !== "skill")) ||
+        (row.object_type === "evidence" ? (value as v2.ProviderEvidence).purpose !== (descriptor.provider_kind === "skill" ? "skill_probe" : "provider_probe") : (value as v2.ProviderEvaluation).rule_version !== (descriptor.provider_kind === "skill" ? "skill-provider-assessment/1.0.0" : "provider-assessment/1.0.0")) ||
+        value.project_id !== project.id || actors.get(value.producer_actor_id)?.actor_type !== "human" ||
         canonical(value.descriptor_digest) !== canonical(digest(descriptor))) unsafe("格式8Provider证据作用域或摘要无效");
       const matches = [...events.values()].filter(event => event.event_type === (row.object_type === "evidence" ? "ProviderEvidenceRecorded" : "ProviderEvaluated") &&
         (event.event_type === "ProviderEvidenceRecorded" ? event.payload.evidence.id : event.event_type === "ProviderEvaluated" ? event.payload.evaluation.id : "") === value.id);
@@ -400,7 +405,10 @@ const validateGovernanceFormat = (db: DatabaseSync, now: string, format: 2 | 3 |
       const binding = v2.parseProviderBinding(json(row)); if (!binding.approval) continue;
       const descriptor = descriptors.get(binding.descriptor_ref.id), evaluation = evaluations.get(binding.approval.evaluation_ref.id);
       const assignment = assignments.find(value => value.id === binding.approval!.assignment_ref.id);
-      if (!descriptor || descriptor.provider_kind !== "runtime" || binding.runtime_binding_ref || binding.approval.binding_scope !== "isolated_provider_probe" ||
+      const runtimeRow = binding.runtime_binding_ref ? rows(db, "immutable_records").find(value => value.id === binding.runtime_binding_ref!.id && value.object_type === "provider_binding") : undefined;
+      const runtime = runtimeRow ? v2.parseProviderBinding(json(runtimeRow)) : undefined;
+      if (!descriptor || (descriptor.provider_kind === "runtime" ? !!binding.runtime_binding_ref : format < 9 || descriptor.provider_kind !== "skill" ||
+        !runtime || runtime.project_id !== project.id || descriptors.get(runtime.descriptor_ref.id)?.provider_kind !== "runtime" || runtime.approval?.binding_scope !== "isolated_provider_probe") || binding.approval.binding_scope !== "isolated_provider_probe" ||
         canonical(binding.descriptor_digest) !== canonical(digest(descriptor)) || !evaluation || evaluation.descriptor_ref.id !== descriptor.id || evaluation.profile !== "technical_contract" || evaluation.outcome !== "ALLOW" ||
         canonical(evaluation.input_digest) !== canonical(binding.approval.input_digest) || canonical(evaluation.evidence_refs) !== canonical(binding.probe_evidence_refs) ||
         !assignment || assignment.actor_id !== binding.producer_actor_id || assignment.role_key !== "project_owner" || assignment.scope.kind !== "project" || assignment.scope.id !== project.id ||
