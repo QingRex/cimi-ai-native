@@ -14,6 +14,7 @@ import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { parseWorkspaceCheckCatalog, type WorkspaceCheckCatalog } from "./workspace-checks.js";
 import { ExecutionLifetime } from "./execution-lifetime.js";
 import type { AgentRunBudget } from "./agent-run-budget.js";
+import { claimAgentRuntimeOperation, agentRuntimeCancellationRequested } from "./agent-runtime-operation.js";
 
 interface SharedOptions {
   root: string; binary: string; scope: AgentWorkspaceToolScope;
@@ -39,23 +40,36 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   if (checksOnly && !checkCatalog || (checkCatalog === undefined) !== (options.checkId === undefined) || checkCatalog && !checkCatalog.recipes.some(recipe => recipe.check_id === options.checkId)) fail("workspace_rehearsal_input_invalid");
   const providerOptions = options.mode === "checks" ? { check_id: options.checkId, check_only: true } :
     { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement, ...(checkCatalog ? { check_id: options.checkId! } : {}) };
-  const binaryPath = options.binary, connect = options.connect, prepare = options.prepare, externalSignal = options.signal;
+  const binaryPath = options.binary, rootPath = options.root, connect = options.connect, prepare = options.prepare, externalSignal = options.signal;
   const budget = options.runBudget;
   if (budget) { budget.assertScope(scope); elapsed = Math.min(elapsed, await budget.remaining(externalSignal)); }
   if (elapsed < 1000) fail("agent_run_budget_exhausted");
   const lifetime = new ExecutionLifetime(elapsed, externalSignal);
   const stopBudgetWatch = budget?.watch(reason => lifetime.stop(reason));
+  let cancellationWatch: ReturnType<typeof setInterval> | undefined;
   try {
   lifetime.check();
-  const root = directory(options.root), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root, lifetime.signal);
+  const root = directory(rootPath), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root, lifetime.signal);
   lifetime.check();
   const identityBinary = await buildWindowsLauncher(root, lifetime.signal);
   lifetime.check();
   const pinned = pinBinary(root, binaryPath); lifetime.check();
-  const operation = directory(join(root, "workspace-tool-rehearsals", randomUUID())), sandbox = directory(join(operation, "sandbox")), config = directory(join(sandbox, "config"));
+  const originalModules = ["agent-workspace-ipc-client.mjs", "opencode-workspace-tools.js", "opencode-workspace-provider-fixture.mjs"].map(name => {
+    const bytes = bytesAt(fileURLToPath(new URL(`../transport/${name}`, import.meta.url))); return { name, bytes, digest: digest(bytes) };
+  });
+  const owner = (await nativeControl(identityBinary, ["--identity", String(process.pid)], lifetime.signal)).value;
+  lifetime.check(); if (!validWorkspaceWorkerIdentity(owner)) fail("workspace_rehearsal_owner_unproven");
+  budget?.assertScope(scope);
+  const claim = claimAgentRuntimeOperation(root, scope, { purpose: "workspace_rehearsal", mode: checksOnly ? "checks" : "files", binary_digest: pinned.digest,
+    sandbox_digest: sandboxBinary.digest, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
+    provider_options: providerOptions, requested_elapsed_ms: requestedElapsed, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
+  cancellationWatch = setInterval(() => { try { if (agentRuntimeCancellationRequested(root, scope)) lifetime.stop("workspace_rehearsal_cancel_requested"); }
+    catch { lifetime.stop("workspace_rehearsal_claim_unproven"); } }, 100);
+  lifetime.check();
+  const operation = directory(claim.operation), sandbox = directory(join(operation, "sandbox")), config = directory(join(sandbox, "config"));
   directory(join(sandbox, "workspace")); directory(join(sandbox, "state")); const tools = directory(join(config, "tools"));
-  const modules = ["agent-workspace-ipc-client.mjs", "opencode-workspace-tools.js", "opencode-workspace-provider-fixture.mjs"].map(name => {
-    const bytes = bytesAt(fileURLToPath(new URL(`../transport/${name}`, import.meta.url))); writeFileSync(join(config, name), bytes, { flag: "wx" }); return { name, digest: digest(bytes) };
+  const modules = originalModules.map(({ name, bytes, digest }) => {
+    writeFileSync(join(config, name), bytes, { flag: "wx" }); return { name, digest };
   });
   if (checkCatalog) {
     const bytes = JSON.stringify(checkCatalog); writeFileSync(join(config, "check-catalog.json"), bytes, { flag: "wx" }); modules.push({ name: "check-catalog.json", digest: digest(bytes) });
@@ -69,9 +83,6 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   writeFileSync(join(config, ".gitignore"), "node_modules\npackage.json\nbun.lock\nbun.lockb\n.gitignore\n", { flag: "wx" });
   const globalConfig = directory(join(config, "global", "opencode")); writeFileSync(join(globalConfig, ".gitignore"), "node_modules\npackage.json\npackage-lock.json\nbun.lock\n.gitignore\n", { flag: "wx" });
   writeFileSync(join(operation, "workspace-private-canary.txt"), "Synthetic private workspace canary\n", { flag: "wx" });
-  const owner = (await nativeControl(identityBinary, ["--identity", String(process.pid)], lifetime.signal)).value;
-  lifetime.check();
-  if (!validWorkspaceWorkerIdentity(owner)) fail("workspace_rehearsal_owner_unproven");
   const nonce = randomUUID(), pipeNonce = randomUUID(), scopeDigest = agentWorkspaceIpcScopeDigest(scope);
   const originalConfig = { format: "cimiloop/agent-workspace-sandbox-config/2.0.0", nonce, root: sandbox, binary: pinned.path, owner,
     pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null };
@@ -174,5 +185,5 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
     });
   }
   } catch (error) { if (lifetime.interruptionReason && lifetime.interruptionReason !== "workspace_rehearsal_ended_before_resume") lifetime.check(); throw error; }
-  finally { stopBudgetWatch?.(); lifetime.dispose(); }
+  finally { if (cancellationWatch) clearInterval(cancellationWatch); stopBudgetWatch?.(); lifetime.dispose(); }
 }

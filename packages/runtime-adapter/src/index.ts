@@ -34,3 +34,4 @@ export { openWindowsAgentRunClock, parseAgentRunClock } from "./agent-run-clock.
 export type { AgentRunClockReading } from "./agent-run-clock.js";
 export { AgentRunBudget } from "./agent-run-budget.js";
 export type { AgentRunBudgetBasis, AgentRunBudgetPorts } from "./agent-run-budget.js";
+export { queryAgentRuntimeOperation, requestAgentRuntimeCancellation, recoverAgentRuntimeOperation, collectAgentRuntimeOperation } from "./agent-runtime-operation.js";

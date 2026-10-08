@@ -16,7 +16,7 @@ function fail(): never { throw new RuntimeAdapterError("workspace_rehearsal_reco
 const record = (path: string) => copyToolJson(parseGatewayJson(bytesAt(path, 65536).toString("utf8"), 65536));
 // Trusted original-operation composition only; no CLI/workbench default entry.
 // Resource recovery never runs a tool/model or synthesizes Run completion.
-export async function recoverOpenCodeWorkspaceToolRehearsal(raw: { root: string; operation: string; scope: unknown }) {
+export function readOriginalAgentWorkspaceOperation(raw: { root: string; operation: string; scope: unknown }) {
   const scope = parseAgentWorkspaceToolScope(raw.scope), root = assertOrdinaryPath(raw.root), operation = assertOrdinaryPath(raw.operation);
   if (!uuid(basename(operation)) || dirname(operation) !== join(resolve(root), "workspace-tool-rehearsals")) fail();
   const config = record(join(operation, "original-config.json"));
@@ -27,7 +27,7 @@ export async function recoverOpenCodeWorkspaceToolRehearsal(raw: { root: string;
   if (!config || !oldConfig && !newConfig || !uuid(config.nonce) || !uuid(config.pipe_nonce) || config.root !== join(operation, "sandbox") ||
     typeof config.binary !== "string" || !validWorkspaceWorkerIdentity(config.owner) || config.scope_digest !== agentWorkspaceIpcScopeDigest(scope)) fail();
   if (!existsSync(join(operation, "original-launcher.json")) || !existsSync(join(operation, "agent-sandbox-resources.json"))) {
-    return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };
+    return { scope, root, operation, config, launch: null, resources: null };
   }
   const launch = record(join(operation, "original-launcher.json")), resources = record(join(operation, "agent-sandbox-resources.json"));
   if (!exact(launch, ["format", "nonce", "owner", "supervisor", "launcher_path", "launcher_digest"]) ||
@@ -50,7 +50,12 @@ export async function recoverOpenCodeWorkspaceToolRehearsal(raw: { root: string;
     typeof resources.logon_luid !== "string" || !/^[a-f0-9]{16}$/.test(resources.logon_luid) ||
     resources.runtime !== null && (!validWorkspaceWorkerIdentity(resources.runtime) || resources.runtime.image.toLowerCase() !== config.binary.toLowerCase()) ||
     resources.mapping !== null && (typeof resources.mapping !== "string" || !/^[F-Z]:$/.test(resources.mapping))) fail();
-  const result = (await nativeControl(launch.launcher_path, ["--recover", operation])).value;
+  return { scope, root, operation, config, launch, resources };
+}
+export async function recoverOpenCodeWorkspaceToolRehearsal(raw: { root: string; operation: string; scope: unknown }) {
+  const { launch, resources, operation } = readOriginalAgentWorkspaceOperation(raw);
+  if (!launch || !resources) return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };
+  const result = (await nativeControl(launch.launcher_path as string, ["--recover", operation])).value;
   if (!exact(result, ["outcome", "reason", "resources_disposed", "completion_proven"]) || !["recovered", "active", "unknown"].includes(String(result.outcome)) ||
     typeof result.reason !== "string" || !/^agent_[a-z_]{1,96}$/.test(result.reason) || typeof result.resources_disposed !== "boolean" ||
     (result.outcome === "recovered") !== result.resources_disposed || result.completion_proven !== false) fail();

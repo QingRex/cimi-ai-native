@@ -1,0 +1,215 @@
+{
+  "decision": "D-231",
+  "date": "2026-10-08",
+  "base_commit": "a9f570334ead42180621948716e1d9381264c7ba",
+  "scope": "Original Run / operation-key unique claim and private query / cancel request / original byte collection / same-logon resource recovery; full production Runtime and S1 remain incomplete",
+  "engineering": {
+    "typecheck": {
+      "command": "pnpm check",
+      "exit_code": 0
+    },
+    "compiled_cli_help": {
+      "command": "node apps/cli/dist/bin.js --help",
+      "exit_code": 0
+    },
+    "final_sources": [
+      {
+        "path": "packages/local-app/src/index.ts",
+        "bytes": 1803,
+        "sha256": "ffdcd4d5101af5c3e3de0b175649176a210f894b77ffc7a76b5406bf9656b34e"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts",
+        "bytes": 7284,
+        "sha256": "431a55f8beb6f40886c4adaa29c198a194b71a2ca0ed743db5fba480814e8088"
+      },
+      {
+        "path": "packages/runtime-adapter/src/index.ts",
+        "bytes": 3698,
+        "sha256": "3202658f8523004c67864619aa088852539a9790f27a25e88c182c5b172fd56a"
+      },
+      {
+        "path": "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+        "bytes": 19355,
+        "sha256": "40b10f8a95eb87ea19883caa160660590963f53b248db6e8d5cc5bc38410a9b8"
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-operations-local.ts",
+        "bytes": 1676,
+        "sha256": "925e69cbebc4bef191f98d8dac0a0850fe90ad493bc422c8b0e11fe8182af98c"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-operation.ts",
+        "bytes": 13190,
+        "sha256": "e0aa29e3202c9e04cf97d3144c15e3668037facb4bb0c4df209b58e1e65ae12e"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+        "bytes": 5164,
+        "sha256": "5d1e7fe4673b77d420220077a71863690396c21ce064251604630d98ec7add20"
+      },
+      {
+        "path": "tests/scenarios/agent-runtime-operation.test.ts",
+        "bytes": 9585,
+        "sha256": "c3b94c6fdca3e82a09eda1798719f59677feb819dc76653acd447ffcdebb7e51"
+      }
+    ],
+    "preliminary": [
+      {
+        "path": ".cimiloop/original-operation-v1-09/focused.json",
+        "total": 8,
+        "passed": 5,
+        "failed": 3,
+        "success": false,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "failed",
+            "tests": 3
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "tests": 5
+          }
+        ],
+        "failures": [
+          {
+            "test": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+            "message": "Error: agent_runtime_original_unproven\n    at fail (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-runtime-operation.ts:19:49)\n    at queryAgentRuntimeOperation (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-runtime-operation.ts:85:149)\n    at LocalAgentRuntimeOperations.query (D:/Dev/hector/github/cimi-ai-native/packages/local-app/src/agent-runtime-operations-local.ts:11:53)\n    at D:/Dev/hector/github/cimi-ai-native/tests/scenarios/agent-runtime-operation.test.ts:50:28\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          },
+          {
+            "test": "original Runtime lifecycle uses the native Run operation key refuses a second actual host while the original controller is preparing",
+            "message": "Error: agent_runtime_original_unproven\n    at fail (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-runtime-operation.ts:19:49)\n    at queryAgentRuntimeOperation (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-runtime-operation.ts:85:149)\n    at LocalAgentRuntimeOperations.query (D:/Dev/hector/github/cimi-ai-native/packages/local-app/src/agent-runtime-operations-local.ts:11:53)\n    at D:/Dev/hector/github/cimi-ai-native/tests/scenarios/agent-runtime-operation.test.ts:71:28\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          },
+          {
+            "test": "original Runtime lifecycle uses the native Run operation key queries actual running processes and cancels the original SDK wait without domain completion",
+            "message": "Error: promise resolved \"{ …(20) }\" instead of rejecting\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/Dev/hector/github/cimi-ai-native/tests/scenarios/agent-runtime-operation.test.ts:84:11\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/original-operation-v1-09/focused-final.json",
+        "total": 8,
+        "passed": 8,
+        "failed": 0,
+        "success": true,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "tests": 3
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "tests": 5
+          }
+        ],
+        "failures": []
+      }
+    ],
+    "final_affected": {
+      "path": ".cimiloop/original-operation-v1-09/final.json",
+      "total": 33,
+      "passed": 33,
+      "failed": 0,
+      "success": true,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "passed",
+          "tests": 3
+        },
+        {
+          "path": "tests/scenarios/opencode-check-runtime.test.ts",
+          "status": "passed",
+          "tests": 3
+        },
+        {
+          "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+          "status": "passed",
+          "tests": 6
+        },
+        {
+          "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+          "status": "passed",
+          "tests": 8
+        },
+        {
+          "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+          "status": "passed",
+          "tests": 5
+        }
+      ],
+      "failures": []
+    },
+    "audit": {
+      "sources": 8,
+      "schemas": {
+        "total": 242,
+        "unchanged": 242,
+        "added": 0,
+        "changed": 0
+      },
+      "public_native_sources_unchanged": 4,
+      "all_native_sources_unchanged": true,
+      "comparison": "exact text normalized CRLF to LF",
+      "markdown": 8,
+      "links": 300,
+      "broken": [],
+      "baseline": {
+        "files": 861,
+        "bytes": 56150395,
+        "problems": []
+      }
+    }
+  },
+  "actual_effects": {
+    "windows_sdk_scenarios": 3,
+    "scope": [
+      "native original Run and Store records",
+      "actual original PID / creation time / executable identity",
+      "actual isolated OpenCode file tool execution and stopped query",
+      "exact original stdout bytes copied to digest reference",
+      "different actual host duplicate-claim refusal",
+      "prepare-stage cancel and original resource recovery",
+      "actual SDK wait Running query and cancellation"
+    ],
+    "domain_record_usage_unchanged": true
+  },
+  "qualification": {
+    "model_responses": "constructed",
+    "provider_controlled_admission": "constructed",
+    "complete_model_tool_account_custody": "constructed fixture assertion; production proof pending",
+    "formal_agent_execution_enabled": false,
+    "default_cli_workbench_agent_installed": false,
+    "external_model_requests": 0,
+    "model_credential_reads": 0,
+    "user_database_migrations": 0,
+    "schemas": 242,
+    "native_database_format": 10
+  },
+  "limitations": [
+    "Stopped describes original process/resource state, not Task success or settled fees",
+    "Cancellation request is durable intent, not stopped proof; original observation remains required",
+    "Collection may be partial and does not produce RunObservation",
+    "Original missing or damaged claims are retained and cannot restart",
+    "Historical missing registration and cross-logon / cross-boot recovery remain unproven",
+    "Full production SDK/model/tool/account custody and domain result verifier pending",
+    "Exact Zhipu model, plan, service-side bounds and cash/credit cap remain unconfirmed",
+    "Physical quotas and historical capacity remain pending",
+    "Real Skill invocation, Human/Matt clarification before Plan/Task and independent review/fresh verification pending",
+    "Workbench formal Agent and real Change to ReadyForDelivery S1 acceptance pending"
+  ]
+}
