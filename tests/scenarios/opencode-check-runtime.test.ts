@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CimiLoopKernel } from "../../packages/kernel/src/index.js";
 import { contentDigest } from "../../packages/kernel/src/intent.js";
 import { LocalAgentWorkspaceToolService, type AgentWorkspaceToolLocalContext } from "../../packages/local-app/src/index.js";
-import { AgentWorkspaceCheckHost, parseAgentWorkspaceToolScope, readWorkspaceToolRunFacts, runOpenCodeWorkspaceToolRehearsal, type WorkspaceCheckRecipe } from "../../packages/runtime-adapter/src/index.js";
+import { AgentWorkspaceCheckHost, parseAgentWorkspaceToolScope, readWorkspaceToolRunFacts, runOpenCodeWorkspaceToolRehearsal, collectAgentRuntimeOperation, type WorkspaceCheckRecipe } from "../../packages/runtime-adapter/src/index.js";
 import { digest } from "../../packages/runtime-adapter/src/files.js";
 import { createAgentRunProject } from "../fixtures/agent-run-project.js";
 import { flowTime, flowSuccess } from "../fixtures/flow-project.js";
@@ -79,6 +79,8 @@ test('actual edited query', async () => { await new Promise(done=>setTimeout(don
     expect(result.events.find(event => event.event === "cimiloop.workspace_boundary")).toMatchObject({ catalog_write_denied: true });
     expect(result.channel.attempts).toEqual(Array.from({ length: 3 }, () => ({ outcome: "completed", reason: null })));
     expect(result.check_catalog_digest).toBe(f.options.checkCatalog.catalog_digest); expect(result.synthetic_model_responses).toBe(true);
+    const collected = await collectAgentRuntimeOperation(f.dataDirectory, f.scope);
+    expect(collected.ipc).toMatchObject({ status: "Observed", exchanges: 3, unresolved: 0, correlation: { uncorrelated_exchanges: 0, unmatched_sdk_calls: 0, model_account_custody_proven: false } });
     expect(readWorkspaceToolRunFacts(f.dataDirectory, f.project, f.reserved.record)).toEqual({ invocations: 3, unresolved: 0, has_effect: true });
     const host = await AgentWorkspaceCheckHost.open({ repositoryPath: f.root, dataDirectory: f.dataDirectory, nodeBinary: process.execPath, scope: f.scope, recipes: [f.recipe], assess: f.assess });
     try {

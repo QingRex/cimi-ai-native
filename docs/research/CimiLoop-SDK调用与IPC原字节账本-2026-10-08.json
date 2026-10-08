@@ -1,0 +1,355 @@
+{
+  "decision": "D-232",
+  "date": "2026-10-08",
+  "completion_and_handoff_date": "2026-10-09",
+  "base_commit": "fab87368ec474002f3516324a0bc67d952b5e910",
+  "scope": "OS-authenticated original IPC request/reply bytes, exact SDK identity/input/output correlation and original operation collection; full production result verifier, model/account admission and S1 remain incomplete",
+  "engineering": {
+    "typecheck": {
+      "command": "pnpm check",
+      "exit_code": 0
+    },
+    "compiled_cli_help": {
+      "command": "node apps/cli/dist/bin.js --help",
+      "exit_code": 0
+    },
+    "final_sources": [
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-operation.ts",
+        "bytes": 15824,
+        "sha256": "ad24325ff41f399673018b660b66639df7dc4dad02eb9a25b7296a76d05c2d19"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-ipc.ts",
+        "bytes": 16174,
+        "sha256": "3c30a9fc99e9fa0c8a329d4e134a99ebc12ca3ea56d903a22cfc1424fdf2e21a"
+      },
+      {
+        "path": "packages/runtime-adapter/src/index.ts",
+        "bytes": 3818,
+        "sha256": "efd44160a8e0cae4c94c19cbb29dbfd8a089b7a3fd589b0e5718b66abc46c61d"
+      },
+      {
+        "path": "tests/scenarios/agent-runtime-operation.test.ts",
+        "bytes": 11228,
+        "sha256": "1e1b257a0d6c45c4fb0c584811bea666ce47414cabc71438500f423169ec5a14"
+      },
+      {
+        "path": "tests/scenarios/opencode-check-runtime.test.ts",
+        "bytes": 11015,
+        "sha256": "e624464d514020fc730b7041ed03aed490be36f49e4c02554dfa87aaec088029"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-ipc-journal.ts",
+        "bytes": 14145,
+        "sha256": "c53cfc63a3783b192c71dccfe16d2292e209633a5825c459585ead55e9875d81"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+        "bytes": 10031,
+        "sha256": "b143dd1ee2243658722cff3ea95c2e114d4b1d9f1c92d3f09b75844983d355e9"
+      }
+    ],
+    "preliminary": [
+      {
+        "path": ".cimiloop/sdk-ipc-originals-v1-09/focused.json",
+        "sha256": "8078afd5e7e8cd6cca35a116e2e7bf8ac7633290401c465b9593bed7df3b6ee0",
+        "total": 12,
+        "passed": 12,
+        "failed": 0,
+        "pending": 0,
+        "success": true,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "tests": 3
+          },
+          {
+            "path": "tests/scenarios/opencode-check-runtime.test.ts",
+            "status": "passed",
+            "tests": 3
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+            "status": "passed",
+            "tests": 6
+          }
+        ],
+        "failures": []
+      },
+      {
+        "path": ".cimiloop/sdk-ipc-originals-v1-09/final.json",
+        "sha256": "56369d4a8c132bd0d00d68959b1cd2f2dd8e1abc3c2c8eb277b1c5e9388bab73",
+        "total": 58,
+        "passed": 51,
+        "failed": 7,
+        "pending": 0,
+        "success": false,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+            "status": "passed",
+            "tests": 4
+          },
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "tests": 3
+          },
+          {
+            "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+            "status": "failed",
+            "tests": 9
+          },
+          {
+            "path": "tests/scenarios/opencode-check-runtime.test.ts",
+            "status": "passed",
+            "tests": 3
+          },
+          {
+            "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+            "status": "passed",
+            "tests": 6
+          },
+          {
+            "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+            "status": "passed",
+            "tests": 8
+          },
+          {
+            "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+            "status": "passed",
+            "tests": 4
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+            "status": "passed",
+            "tests": 7
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+            "status": "passed",
+            "tests": 11
+          },
+          {
+            "path": "packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+            "status": "passed",
+            "tests": 3
+          }
+        ],
+        "failures": [
+          {
+            "test": "original Agent workspace IPC on Windows authenticates the original peer and reads/edits/replays the same actual file receipt without changing Native facts",
+            "messages": [
+              "Error: agent_ipc_originals_unproven\n    at stop (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:74:77)\n    at Socket.<anonymous> (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:108:27)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Socket.Readable.push (node:internal/streams/readable:394:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+            ]
+          },
+          {
+            "test": "original Agent workspace IPC on Windows rejects another actual process, foreign scope/extra caller fields, duplicate keys, oversize and invalid UTF-8 before file claims",
+            "messages": [
+              "Error: agent_ipc_originals_unproven\n    at stop (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:74:77)\n    at Socket.<anonymous> (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:108:27)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Socket.Readable.push (node:internal/streams/readable:394:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+            ]
+          },
+          {
+            "test": "original Agent workspace IPC on Windows re-reads revocation for IPC replay and never treats a prior file receipt as Run completion",
+            "messages": [
+              "Error: agent_ipc_originals_unproven\n    at stop (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:74:77)\n    at Socket.<anonymous> (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:108:27)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Socket.Readable.push (node:internal/streams/readable:394:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+            ]
+          },
+          {
+            "test": "original Agent workspace IPC on Windows copies original process and scope pins before asynchronous build so later input mutation cannot substitute them",
+            "messages": [
+              "Error: agent_ipc_originals_unproven\n    at stop (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:74:77)\n    at Socket.<anonymous> (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:108:27)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Socket.Readable.push (node:internal/streams/readable:394:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+            ]
+          },
+          {
+            "test": "original Agent workspace IPC on Windows preserves completed original effects after socket reply loss and explicitly replays them through a fresh host without writing again",
+            "messages": [
+              "Error: agent_ipc_originals_unproven\n    at stop (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:74:77)\n    at Socket.<anonymous> (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:108:27)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Socket.Readable.push (node:internal/streams/readable:394:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+            ]
+          },
+          {
+            "test": "original Agent workspace IPC on Windows stops the original file host on peer exit at native_prepared and retains its original outcome",
+            "messages": [
+              "Error: agent_ipc_originals_unproven\n    at stop (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:74:77)\n    at Socket.<anonymous> (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:108:27)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Socket.Readable.push (node:internal/streams/readable:394:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+            ]
+          },
+          {
+            "test": "original Agent workspace IPC on Windows stops the original file host on peer exit at dispatch_committed and retains its original outcome",
+            "messages": [
+              "Error: agent_ipc_originals_unproven\n    at stop (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:74:77)\n    at Socket.<anonymous> (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:108:27)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n    at Socket.Readable.push (node:internal/streams/readable:394:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+            ]
+          }
+        ]
+      }
+    ],
+    "preliminary_broader_sources": [
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-operation.ts",
+        "bytes": 15824,
+        "sha256": "ad24325ff41f399673018b660b66639df7dc4dad02eb9a25b7296a76d05c2d19"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-ipc.ts",
+        "bytes": 16174,
+        "sha256": "3c30a9fc99e9fa0c8a329d4e134a99ebc12ca3ea56d903a22cfc1424fdf2e21a"
+      },
+      {
+        "path": "packages/runtime-adapter/src/index.ts",
+        "bytes": 3818,
+        "sha256": "efd44160a8e0cae4c94c19cbb29dbfd8a089b7a3fd589b0e5718b66abc46c61d"
+      },
+      {
+        "path": "tests/scenarios/agent-runtime-operation.test.ts",
+        "bytes": 11228,
+        "sha256": "1e1b257a0d6c45c4fb0c584811bea666ce47414cabc71438500f423169ec5a14"
+      },
+      {
+        "path": "tests/scenarios/opencode-check-runtime.test.ts",
+        "bytes": 11015,
+        "sha256": "e624464d514020fc730b7041ed03aed490be36f49e4c02554dfa87aaec088029"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-ipc-journal.ts",
+        "bytes": 14093,
+        "sha256": "908ba92f1eeb7dc976f2ad552e341093d3a949edc5434a4a6c57bb6f2574efde"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+        "bytes": 9193,
+        "sha256": "f5970f1cdcbad55a3a1edd56509c3d367e2c5225b9a0565186e90176d8e57588"
+      }
+    ],
+    "regression_fix": {
+      "failed_tests": 7,
+      "reason": "New journal endpoint validator incorrectly required peer PID to differ from supervisor PID; the existing authenticated IPC contract allows one original process to fill both roles",
+      "correction": "Permit the same PID only when the complete recorded worker identities match; original native held-process authentication remains unchanged",
+      "additional_test": "Same PID with exactly matching identity is accepted; inconsistent creation time is rejected",
+      "source_freeze": "Final sources captured after the fix and before the full final regression; source hashes verified by the audit"
+    },
+    "final_command": "pnpm exec vitest run tests/scenarios/agent-run-budget-runtime.test.ts tests/scenarios/agent-runtime-operation.test.ts tests/scenarios/agent-workspace-ipc-runtime.test.ts tests/scenarios/opencode-check-runtime.test.ts tests/scenarios/opencode-lifetime-runtime.test.ts tests/scenarios/opencode-startup-recovery.test.ts tests/scenarios/opencode-workspace-runtime.test.ts packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts packages/runtime-adapter/test/agent-workspace-ipc.test.ts packages/runtime-adapter/test/opencode-workspace-tools.test.ts --maxWorkers=1 --reporter=json --outputFile=.cimiloop/sdk-ipc-originals-v1-09/final-transfer.json",
+    "final": {
+      "path": ".cimiloop/sdk-ipc-originals-v1-09/final-transfer.json",
+      "sha256": "3d0ede634d5bfb52ce2c48e4e970f5d7d3a7afd2b2f2072f6a655977670fa0f5",
+      "total": 59,
+      "passed": 59,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "passed",
+          "tests": 3
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+          "status": "passed",
+          "tests": 9
+        },
+        {
+          "path": "tests/scenarios/opencode-check-runtime.test.ts",
+          "status": "passed",
+          "tests": 3
+        },
+        {
+          "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+          "status": "passed",
+          "tests": 6
+        },
+        {
+          "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+          "status": "passed",
+          "tests": 8
+        },
+        {
+          "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+          "status": "passed",
+          "tests": 8
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+          "status": "passed",
+          "tests": 11
+        },
+        {
+          "path": "packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+          "status": "passed",
+          "tests": 3
+        }
+      ],
+      "failures": []
+    },
+    "audit": {
+      "sources": 7,
+      "schemas": {
+        "total": 242,
+        "unchanged": 242,
+        "added": 0,
+        "changed": 0
+      },
+      "public_native_sources_unchanged": 4,
+      "all_native_sources_unchanged": true,
+      "comparison": "exact text normalized CRLF to LF",
+      "markdown": 9,
+      "links": 309,
+      "broken": [],
+      "baseline": {
+        "files": 866,
+        "bytes": 56225445,
+        "problems": []
+      }
+    },
+    "local_report_transfer": "Raw Vitest JSON and ignored caches remain local; this committed record contains their digests, counts, failure details, final source hashes and commands. Reproduce on the destination machine."
+  },
+  "actual_effects": {
+    "scope": [
+      "Original native ready frame checked before exclusive journal creation",
+      "Exact request bytes and metadata fsynced before the execute callback",
+      "Exact reply bytes and metadata fsynced before pipe send",
+      "Actual isolated OpenCode file tool and fixed Node checks correlated to original SDK session/message/call IDs",
+      "Real pending SDK callback sees the original durable request before any response",
+      "Original operation collector returns request/reply bytes and preserves unproven correlation for truncated SDK output",
+      "Actual cancellation, lifetime, task budget and startup recovery affected regressions"
+    ],
+    "domain_record_usage_unchanged": true,
+    "reply_recorded_does_not_prove_delivery": true
+  },
+  "qualification": {
+    "model_responses": "constructed",
+    "provider_controlled_admission": "constructed",
+    "model_account_custody_proven": false,
+    "native_effect_reverified": false,
+    "formal_agent_execution_enabled": false,
+    "default_cli_workbench_agent_installed": false,
+    "external_model_requests": 0,
+    "model_credential_reads": 0,
+    "user_database_migrations": 0,
+    "schemas": 242,
+    "native_database_format": 10
+  },
+  "limitations": [
+    "Affected regression only; neither full repository testing nor complete S1 acceptance",
+    "Partial records, missing originals and invalid SDK output remain unknown or refused; original bytes are retained",
+    "Journal capacity limits are logical bounds, not physical disk quota enforcement",
+    "Concurrent collection may be partial and does not claim one final atomic snapshot",
+    "SDK/IPC byte correspondence does not independently reverify Native effects or produce domain RunObservation",
+    "Full production model/tool/account custody, formal Runtime admission and result verifier remain pending",
+    "Exact Zhipu model, plan, service-side bounds and cash/credit cap remain unconfirmed; no paid requests authorized",
+    "Billing, physical quotas, historical capacity and complete cross-logon/boot recovery remain pending",
+    "Real skills and clarification before Plan/Task, independent review/fresh verification remain pending",
+    "Workbench formal Agent and real Change to ReadyForDelivery S1 acceptance remain pending",
+    "Old-machine historical Unknown resources and DPAPI CurrentUser credentials are not portable through Git"
+  ]
+}

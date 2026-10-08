@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, readdirSync, existsSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync, readdirSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -6,7 +6,7 @@ import { promisify } from "node:util";
 import { execFile } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LocalAgentRuntimeOperations, LocalAgentWorkspaceToolService } from "../../packages/local-app/src/index.js";
-import { AgentWorkspaceToolIpc, RuntimeAdapterError, runOpenCodeWorkspaceToolRehearsal, parseAgentWorkspaceToolScope } from "../../packages/runtime-adapter/src/index.js";
+import { AgentWorkspaceToolIpc, RuntimeAdapterError, runOpenCodeWorkspaceToolRehearsal, parseAgentWorkspaceToolScope, readAgentWorkspaceIpcOriginals } from "../../packages/runtime-adapter/src/index.js";
 import { digest } from "../../packages/runtime-adapter/src/files.js";
 import { buildWindowsLauncher } from "../../packages/runtime-adapter/src/native.js";
 import { contentDigest } from "../../packages/kernel/src/intent.js";
@@ -51,11 +51,21 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     expect(readFileSync(ledgerPath)).toEqual(before);
     const collected = await f.control.collect(f.reserved.run.id);
     expect(collected).toMatchObject({ domain_observation_produced: false, formal_agent_execution_enabled: false });
+    expect(collected.ipc).toMatchObject({ status: "Observed", exchanges: 2, unresolved: 0, correlation: { uncorrelated_exchanges: 0, unmatched_sdk_calls: 0, model_account_custody_proven: false, native_effect_reverified: false } });
+    expect(collected.artifacts.filter(artifact => artifact.name.startsWith("ipc/")).length).toBe(9);
     const stdout = collected.artifacts.find(artifact => artifact.name === "stdout.raw")!;
     expect(readFileSync(stdout.reference.locator)).toEqual(readFileSync(join(result.operation, "stdout.raw")));
     await expect(runOpenCodeWorkspaceToolRehearsal(f.options)).rejects.toThrow("agent_runtime_already_claimed");
     await expect(runOpenCodeWorkspaceToolRehearsal({ ...f.options, replacement: "different" })).rejects.toThrow("agent_runtime_input_conflict");
     expect(readdirSync(join(f.dataDirectory, "workspace-tool-rehearsals"))).toHaveLength(1);
+    const stdoutPath = join(result.operation, "stdout.raw"), originalStdout = readFileSync(stdoutPath), truncated = Buffer.from('{"type":"tool_use"');
+    try {
+      writeFileSync(stdoutPath, truncated);
+      const partial = await f.control.collect(f.reserved.run.id);
+      expect(partial.ipc).toMatchObject({ correlation: null, correlation_reason: "agent_sdk_original_correlation_unproven" });
+      expect(readFileSync(partial.artifacts.find(artifact => artifact.name === "stdout.raw")!.reference.locator)).toEqual(truncated);
+      expect(partial.domain_observation_produced).toBe(false);
+    } finally { writeFileSync(stdoutPath, originalStdout); }
     expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.task().usage).toEqual(usage); expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
   });
   it("refuses a second actual host while the original controller is preparing", async () => {
@@ -80,13 +90,20 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     let running = false;
     await expect(runOpenCodeWorkspaceToolRehearsal({ ...f.options, connect: (supervisor, originalSupervisor, originalPeer, nonce, signal) => AgentWorkspaceToolIpc.open({
       toolsDirectory: f.dataDirectory, scope: f.options.scope, supervisor, originalSupervisor, originalPeer, nonce, signal,
-      execute: async () => {
-        expect(await f.control.query(f.reserved.run.id)).toMatchObject({ status: "Running", resources_disposed: false, cancellation_requested: false }); running = true;
+      execute: async input => {
+        const active = await f.control.query(f.reserved.run.id);
+        expect(active).toMatchObject({ status: "Running", resources_disposed: false, cancellation_requested: false }); running = true;
+        const config = JSON.parse(readFileSync(join(active.operation, "original-config.json"), "utf8")), originals = readAgentWorkspaceIpcOriginals(f.dataDirectory, f.options.scope, config.pipe_nonce);
+        expect(originals.exchanges).toHaveLength(1);
+        expect(originals.exchanges[0]).toMatchObject({ state: "unknown", request: { call_id: input.call_id }, reply: null });
         f.control.requestCancellation(f.reserved.run.id);
         return new Promise<never>((_done, reject) => { rejectPending = reject; signal.addEventListener("abort", () => reject(new RuntimeAdapterError("original_stop")), { once: true }); if (signal.aborted) reject(new RuntimeAdapterError("original_stop")); });
       }, cancel: async () => { rejectPending?.(new RuntimeAdapterError("original_stop")); }
     }) })).rejects.toThrow("workspace_rehearsal_cancel_requested");
     expect(running).toBe(true); expect(await f.control.query(f.reserved.run.id)).toMatchObject({ status: "Stopped", cancellation_requested: true, resources_disposed: true, completion_proven: false });
+    const originals = await f.control.collect(f.reserved.run.id);
+    expect(originals.ipc.exchanges).toBe(1);
+    expect(originals.ipc.correlation?.model_account_custody_proven).toBe(false);
     expect(f.task().usage).toEqual(usage); expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
     expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
   });

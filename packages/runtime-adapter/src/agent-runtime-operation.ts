@@ -11,6 +11,7 @@ import { copyToolJson } from "./tool-journal.js";
 import { buildWindowsLauncher, nativeControl } from "./native.js";
 import { recoverOpenCodeWorkspaceToolRehearsal, readOriginalAgentWorkspaceOperation } from "./agent-workspace-sandbox-recovery.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
+import { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } from "./agent-workspace-ipc-journal.js";
 
 interface Claim { format: "cimiloop/agent-runtime-operation-claim/1.0.0"; scope: AgentWorkspaceToolScope; input_digest: string; operation_id: string; owner: CreditProcessIdentity; synthetic_model_responses: true; formal_agent_execution_enabled: false }
 const exact = (raw: unknown, keys: string[]): raw is Record<string, unknown> => !!raw && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw).sort().join(",") === [...keys].sort().join(",");
@@ -115,15 +116,39 @@ export async function recoverAgentRuntimeOperation(root: string, rawScope: unkno
 }
 export async function collectAgentRuntimeOperation(root: string, rawScope: unknown) {
   const original = load(root, rawScope), status = await queryAgentRuntimeOperation(root, rawScope), artifacts = [], missing = [];
+  let stdout: Buffer | undefined;
   const files = ["original-config.json", "original-launcher.json", "agent-sandbox-resources.json", "agent-sandbox-original.json", "agent-sandbox-cleanup.json", "stdout.raw", "stderr.raw", "result.json", "incomplete.json"];
   for (const name of files) {
     const path = join(original.operation, name);
     if (!existsSync(path)) { missing.push(name); continue; }
     const bytes = bytesAt(path, 4 * 1024 * 1024);
+    if (name === "stdout.raw") stdout = bytes;
     artifacts.push({ name, reference: rawReference(root, bytes, "agent_runtime_original_bytes", name) });
+  }
+  let ipc: { status: string; reason: string; exchanges: number; unresolved: number; correlation_reason: string; correlation: ReturnType<typeof correlateAgentWorkspaceSdkOriginals> | null } =
+    { status: "Unknown", reason: "agent_ipc_original_registration_missing", exchanges: 0, unresolved: 0, correlation_reason: "agent_sdk_originals_missing", correlation: null };
+  const configPath = join(original.operation, "original-config.json");
+  if (existsSync(configPath)) {
+    const config = read(configPath) as Record<string, unknown>;
+    if (typeof config.pipe_nonce !== "string") fail("agent_runtime_ipc_original_unproven");
+    const originals = readAgentWorkspaceIpcOriginals(root, original.claim.scope, config.pipe_nonce as string);
+    if (originals.header) {
+      const native = read(join(original.operation, "agent-sandbox-original.json")) as Record<string, unknown>, launch = read(join(original.operation, "original-launcher.json")) as Record<string, unknown>;
+      if (native.nonce !== config.nonce || native.phase !== "suspended" || native.appcontainer_sid !== originals.header.endpoint.appcontainer_sid ||
+        !isDeepStrictEqual(native.peer, originals.header.endpoint.peer) || !isDeepStrictEqual(native.supervisor, originals.header.endpoint.supervisor) ||
+        !isDeepStrictEqual(launch.supervisor, originals.header.endpoint.supervisor)) fail("agent_runtime_ipc_original_unproven");
+    }
+    for (const artifact of originals.artifacts) {
+      const bytes = bytesAt(artifact.path, 4 * 1024 * 1024); if (digest(bytes).value !== artifact.digest) fail("agent_runtime_ipc_original_unproven");
+      artifacts.push({ name: "ipc/" + artifact.name, reference: rawReference(root, bytes, "agent_runtime_original_bytes", "ipc/" + artifact.name) });
+    }
+    let correlation: ReturnType<typeof correlateAgentWorkspaceSdkOriginals> | null = null;
+    if (stdout) { try { correlation = correlateAgentWorkspaceSdkOriginals(originals, stdout); } catch { /* Retain bounded raw bytes even if the interrupted SDK stream is incomplete. */ } }
+    ipc = { status: originals.status, reason: originals.reason, exchanges: originals.exchanges.length, unresolved: originals.unresolved, correlation,
+      correlation_reason: correlation && correlation.links.length > 0 && !correlation.uncorrelated_exchanges && !correlation.unmatched_sdk_calls ? "agent_sdk_originals_correlated" : "agent_sdk_original_correlation_unproven" };
   }
   const fresh = load(root, rawScope);
   if (!isDeepStrictEqual(fresh.claim, original.claim)) fail("agent_runtime_claim_changed");
-  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing,
+  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc,
     domain_observation_produced: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: true as const };
 }

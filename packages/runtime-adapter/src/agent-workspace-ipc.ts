@@ -10,6 +10,7 @@ import { parseWorkspaceToolInvocation, validWorkspaceWorkerIdentity, type Worksp
 import type { WorkspaceToolReceipt } from "./workspace-tool-journal.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { parseWorkspaceCheckCatalog, parseWorkspaceCheckCall, type WorkspaceCheckCatalog, type WorkspaceCheckCall, type WorkspaceCheckReceipt } from "./workspace-checks.js";
+import { AgentWorkspaceIpcJournal } from "./agent-workspace-ipc-journal.js";
 
 const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join(",") === [...keys].sort().join(",");
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
@@ -57,13 +58,14 @@ export class AgentWorkspaceToolIpc {
   private readonly ended: Promise<void>;
   private readonly attempts: { outcome: string; reason: string | null }[] = [];
   private endpoint?: AgentWorkspaceIpcEndpoint;
+  private originals?: AgentWorkspaceIpcJournal;
   private pending: Promise<void> | undefined;
   private closing: Promise<void> | undefined;
   private stopped = false;
   private failure: string | null = null;
   private readonly peerEnded = () => { void this.close(); };
   private readonly aborted = () => { this.failure ??= "agent_ipc_aborted"; void this.close(); };
-  private constructor(private readonly options: Options, binary: string) {
+  private constructor(private readonly options: Options, binary: string, binaryDigest: string) {
     this.nonce = options.nonce ?? randomUUID();
     this.scope = parseAgentWorkspaceToolScope(options.scope);
     this.child = spawn(binary, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
@@ -88,6 +90,7 @@ export class AgentWorkspaceToolIpc {
               !validWorkspaceWorkerIdentity(event.supervisor) || !isDeepStrictEqual({ ...event.supervisor }, options.originalSupervisor) || event.appcontainer_sid !== null &&
               (typeof event.appcontainer_sid !== "string" || !/^S-1-15-2-(?:[0-9]+-)*[0-9]+$/.test(event.appcontainer_sid))) fail("agent_ipc_native_unproven");
             this.endpoint = { pipe: event.pipe, scope_digest: event.scope_digest, check_catalog_digest: event.check_catalog_digest as string | null, peer: { ...event.peer }, supervisor: { ...event.supervisor }, appcontainer_sid: event.appcontainer_sid };
+            this.originals = AgentWorkspaceIpcJournal.create(options.toolsDirectory, this.scope, this.endpoint, this.nonce, binaryDigest);
             clearTimeout(timer); readyResolve(structuredClone(this.endpoint));
           } else if (event.phase === "request") {
             if (!this.endpoint || this.pending || this.stopped || !exact(event, ["format", "phase", "nonce", "scope_digest", "peer", "request_digest", "frame_base64"]) ||
@@ -133,10 +136,12 @@ export class AgentWorkspaceToolIpc {
     if (captured.signal?.aborted) fail("agent_ipc_aborted");
     if (captured.supervisor.exitCode !== null || captured.supervisor.signalCode !== null || captured.supervisor.killed) fail("agent_ipc_peer_unproven");
     if (digest(bytesAt(binary.path)).value !== binary.digest.value) fail("agent_ipc_binary_changed");
-    const host = new AgentWorkspaceToolIpc(captured, binary.path);
+    const host = new AgentWorkspaceToolIpc(captured, binary.path, binary.digest.value);
     try { await host.ready; return host; } catch (error) { await host.close(); throw error; }
   }
   private async respond(bytes: Buffer, requestDigest: string) {
+    if (!this.originals) fail("agent_ipc_originals_unproven");
+    const ticket = this.originals.request(bytes, requestDigest);
     let receipt: WorkspaceToolReceipt | WorkspaceCheckReceipt | null = null, replay = false, reason: string | null = null, callId: string | null = null;
     try {
       const frame = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(bytes), TOOL_RECORD_BYTES) as Record<string, unknown>;
@@ -154,6 +159,7 @@ export class AgentWorkspaceToolIpc {
     const reply = Buffer.from(JSON.stringify({ format: "cimiloop/agent-workspace-tool-reply/1.0.0", scope_digest: agentWorkspaceIpcScopeDigest(this.scope), request_digest: requestDigest,
       call_id: callId, outcome: reason ? "denied" : "completed", receipt, replay, reason, formal_agent_execution_enabled: false }));
     if (reply.length > TOOL_RECORD_BYTES) fail("agent_ipc_reply_limit");
+    this.originals.reply(ticket, reply);
     if (!this.stopped) this.child.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-ipc-host/1.0.0", request_digest: requestDigest, reply_base64: reply.toString("base64") }) + "\n");
   }
   getEndpoint(): AgentWorkspaceIpcEndpoint { if (!this.endpoint || this.stopped) fail("agent_ipc_closed"); return structuredClone(this.endpoint); }
