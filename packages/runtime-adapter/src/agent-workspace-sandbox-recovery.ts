@@ -20,8 +20,11 @@ export async function recoverOpenCodeWorkspaceToolRehearsal(raw: { root: string;
   const scope = parseAgentWorkspaceToolScope(raw.scope), root = assertOrdinaryPath(raw.root), operation = assertOrdinaryPath(raw.operation);
   if (!uuid(basename(operation)) || dirname(operation) !== join(resolve(root), "workspace-tool-rehearsals")) fail();
   const config = record(join(operation, "original-config.json"));
-  if (!exact(config, ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options"]) ||
-    config.format !== "cimiloop/agent-workspace-sandbox-config/1.0.0" || !uuid(config.nonce) || !uuid(config.pipe_nonce) || config.root !== join(operation, "sandbox") ||
+  const fields = ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options"];
+  const oldConfig = exact(config, fields) && config.format === "cimiloop/agent-workspace-sandbox-config/1.0.0";
+  const newConfig = exact(config, [...fields, "deadline_uptime_ms"]) && config.format === "cimiloop/agent-workspace-sandbox-config/2.0.0" &&
+    (config.deadline_uptime_ms === null || Number.isSafeInteger(config.deadline_uptime_ms) && Number(config.deadline_uptime_ms) > 0);
+  if (!config || !oldConfig && !newConfig || !uuid(config.nonce) || !uuid(config.pipe_nonce) || config.root !== join(operation, "sandbox") ||
     typeof config.binary !== "string" || !validWorkspaceWorkerIdentity(config.owner) || config.scope_digest !== agentWorkspaceIpcScopeDigest(scope)) fail();
   if (!existsSync(join(operation, "original-launcher.json")) || !existsSync(join(operation, "agent-sandbox-resources.json"))) {
     return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };

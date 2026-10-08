@@ -13,7 +13,7 @@ export type AgentWorkspaceToolLocalContext = Pick<LocalProject, "location"> & {
   store: Pick<LocalProject["store"], "getProject" | "getActor" | "getRun" | "getRuntimeRecord" | "getExecutionObject" | "getVerificationRecord">;
   kernel: Pick<LocalProject["kernel"], "assessAgentRunTool">;
 };
-const originalScope = (local: AgentWorkspaceToolLocalContext, runId: string): AgentWorkspaceToolScope => {
+export const originalAgentWorkspaceScope = (local: AgentWorkspaceToolLocalContext, runId: string): AgentWorkspaceToolScope => {
   const project = local.store.getProject(), run = local.store.getRun(runId), record = run && local.store.getRuntimeRecord("run_record", run.record_ref.id),
     context = record && local.store.getRuntimeRecord("context_manifest", record.context_ref.id), actor = record && local.store.getActor(record.executor_ref.id);
   if (!project || resolve(project.repository_path) !== resolve(local.location.repositoryPath) || !run || !record || record.run_kind !== "agent" || !context || !("runtime_binding" in context) ||
@@ -25,6 +25,7 @@ const originalScope = (local: AgentWorkspaceToolLocalContext, runId: string): Ag
   return parseAgentWorkspaceToolScope({ project_id: project.id, run_id: run.id, operation_key: record.operation_key, executor_actor_id: actor.id, context_digest: record.input_digest,
     runtime_binding: record.runtime_binding, skill_bindings: record.skill_bindings, host_admission_ref: record.host_admission_ref });
 };
+const originalScope = originalAgentWorkspaceScope;
 // Trusted Agent composition only. CLI/workbench Human initialization never
 // selects this caller or installs the required live qualification/custody port.
 export class LocalAgentWorkspaceToolService {

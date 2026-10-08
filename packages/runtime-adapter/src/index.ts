@@ -30,3 +30,7 @@ export { runOpenCodeWorkspaceToolRehearsal } from "./opencode-workspace-rehearsa
 export { recoverOpenCodeWorkspaceToolRehearsal } from "./agent-workspace-sandbox-recovery.js";
 export { AgentWorkspaceCheckHost, WorkspaceCheckInstallation, parseWorkspaceCheckCall, parseWorkspaceCheckRecipe, parseWorkspaceCheckCatalog, parseWorkspaceCheckTemplate } from "./workspace-checks.js";
 export type { WorkspaceCheckRecipe, WorkspaceCheckCall, WorkspaceCheckReceipt, WorkspaceCheckCatalog, WorkspaceCheckTemplate } from "./workspace-checks.js";
+export { openWindowsAgentRunClock, parseAgentRunClock } from "./agent-run-clock.js";
+export type { AgentRunClockReading } from "./agent-run-clock.js";
+export { AgentRunBudget } from "./agent-run-budget.js";
+export type { AgentRunBudgetBasis, AgentRunBudgetPorts } from "./agent-run-budget.js";

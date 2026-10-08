@@ -13,10 +13,11 @@ import { parseGatewayJson } from "./gateway-conversation.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { parseWorkspaceCheckCatalog, type WorkspaceCheckCatalog } from "./workspace-checks.js";
 import { ExecutionLifetime } from "./execution-lifetime.js";
+import type { AgentRunBudget } from "./agent-run-budget.js";
 
 interface SharedOptions {
   root: string; binary: string; scope: AgentWorkspaceToolScope;
-  maxElapsedMs?: number; signal?: AbortSignal;
+  maxElapsedMs?: number; signal?: AbortSignal; runBudget?: Pick<AgentRunBudget, "remaining" | "assertScope" | "watch" | "nativeDeadlineUptimeMs">;
   connect: (supervisor: ChildProcess, originalSupervisor: CreditProcessIdentity, originalPeer: CreditProcessIdentity, nonce: string, signal: AbortSignal) => Promise<Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close">>;
   prepare?: (original: { phase: string; operation: string; supervisor: CreditProcessIdentity }, signal: AbortSignal) => void | Promise<void>;
 }
@@ -28,7 +29,8 @@ function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
 // entry point tests actual SDK custom tools against constructed model replies;
 // it cannot produce production admission, Run observation or Skill evidence.
 export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
-  const scope = parseAgentWorkspaceToolScope(options.scope), elapsed = options.maxElapsedMs ?? 45000, checksOnly = options.mode === "checks";
+  const scope = parseAgentWorkspaceToolScope(options.scope), requestedElapsed = options.maxElapsedMs ?? 45000, checksOnly = options.mode === "checks";
+  let elapsed = requestedElapsed;
   if (!Number.isSafeInteger(elapsed) || elapsed < 1000 || elapsed > 180000 || options.mode !== undefined && !["files", "checks"].includes(options.mode)) fail("workspace_rehearsal_input_invalid");
   if (options.mode !== "checks" && (typeof options.path !== "string" || !options.path || options.path.length > 240 || !/^[a-f0-9]{64}$/.test(options.expectedDigest) ||
     typeof options.replacement !== "string" || !options.replacement.isWellFormed() || Buffer.byteLength(options.replacement) > 16384)) fail("workspace_rehearsal_input_invalid");
@@ -37,8 +39,12 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   if (checksOnly && !checkCatalog || (checkCatalog === undefined) !== (options.checkId === undefined) || checkCatalog && !checkCatalog.recipes.some(recipe => recipe.check_id === options.checkId)) fail("workspace_rehearsal_input_invalid");
   const providerOptions = options.mode === "checks" ? { check_id: options.checkId, check_only: true } :
     { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement, ...(checkCatalog ? { check_id: options.checkId! } : {}) };
-  const binaryPath = options.binary, connect = options.connect, prepare = options.prepare;
-  const lifetime = new ExecutionLifetime(elapsed, options.signal);
+  const binaryPath = options.binary, connect = options.connect, prepare = options.prepare, externalSignal = options.signal;
+  const budget = options.runBudget;
+  if (budget) { budget.assertScope(scope); elapsed = Math.min(elapsed, await budget.remaining(externalSignal)); }
+  if (elapsed < 1000) fail("agent_run_budget_exhausted");
+  const lifetime = new ExecutionLifetime(elapsed, externalSignal);
+  const stopBudgetWatch = budget?.watch(reason => lifetime.stop(reason));
   try {
   lifetime.check();
   const root = directory(options.root), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root, lifetime.signal);
@@ -67,8 +73,8 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   lifetime.check();
   if (!validWorkspaceWorkerIdentity(owner)) fail("workspace_rehearsal_owner_unproven");
   const nonce = randomUUID(), pipeNonce = randomUUID(), scopeDigest = agentWorkspaceIpcScopeDigest(scope);
-  const originalConfig = { format: "cimiloop/agent-workspace-sandbox-config/1.0.0", nonce, root: sandbox, binary: pinned.path, owner,
-    pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions };
+  const originalConfig = { format: "cimiloop/agent-workspace-sandbox-config/2.0.0", nonce, root: sandbox, binary: pinned.path, owner,
+    pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null };
   atomicJson(join(operation, "original-config.json"), originalConfig);
   const native = spawn(sandboxBinary.path, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
   let channel: Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close"> | undefined, buffer = Buffer.alloc(0), total = 0, outputFailure = false, suspended: Record<string, unknown> | undefined;
@@ -167,6 +173,6 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
       actual_credentials_read: 0, external_model_requests: 0, formal_agent_execution_enabled: false
     });
   }
-  } catch (error) { if (["workspace_rehearsal_aborted", "workspace_rehearsal_deadline"].includes(lifetime.interruptionReason ?? "")) lifetime.check(); throw error; }
-  finally { lifetime.dispose(); }
+  } catch (error) { if (lifetime.interruptionReason && lifetime.interruptionReason !== "workspace_rehearsal_ended_before_resume") lifetime.check(); throw error; }
+  finally { stopBudgetWatch?.(); lifetime.dispose(); }
 }

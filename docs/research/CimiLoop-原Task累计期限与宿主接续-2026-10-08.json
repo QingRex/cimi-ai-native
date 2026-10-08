@@ -1,0 +1,401 @@
+{
+  "decision": "D-230",
+  "date": "2026-10-08",
+  "base_commit": "010e2806bfe215687cc79c1694a6f9925ec6b9a5",
+  "scope": "Native Task elapsed-budget binding and same-machine / same-boot host reopening; full production Runtime and S1 remain incomplete",
+  "engineering": {
+    "typecheck": {
+      "command": "pnpm check",
+      "exit_code": 0
+    },
+    "compiled_cli_help": {
+      "command": "node apps/cli/dist/bin.js --help",
+      "exit_code": 0
+    },
+    "final_sources": [
+      {
+        "path": "packages/local-app/src/agent-workspace-tools-local.ts",
+        "bytes": 9850,
+        "sha256": "2d32f9e87c1de14498b71613971f050f7aec2ce451569d6310f4a7546ab38ec4"
+      },
+      {
+        "path": "packages/local-app/src/index.ts",
+        "bytes": 1720,
+        "sha256": "b91c606ae9dbd85ab73c004182b4ea73866de3b527764cf60bd927d2805c5cf3"
+      },
+      {
+        "path": "packages/runtime-adapter/native/AgentWorkspaceSandbox.cs",
+        "bytes": 30218,
+        "sha256": "91a2a85f89012ea222a4dfb83e127cba5ad9e942c4da3364825bd8924e49982f"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts",
+        "bytes": 6908,
+        "sha256": "223e2771bb5ffd4ebcceb8de9814dcc16c857f08f7b1004898f30536910fa422"
+      },
+      {
+        "path": "packages/runtime-adapter/src/index.ts",
+        "bytes": 3530,
+        "sha256": "c3b46e99b061315f1b12a8fc08bceebb044619d85e5b06c97dc24049d89c49b6"
+      },
+      {
+        "path": "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+        "bytes": 18254,
+        "sha256": "ca11912dbcd5b77f327739227c68b9e74bf021993bffa86d90e1b853dc248937"
+      },
+      {
+        "path": "packages/local-app/src/agent-run-budget-local.ts",
+        "bytes": 2446,
+        "sha256": "85a2da4d15c40753abf4b77d94239f5469927430c6c4fcfb9c9d38db7a07b65d"
+      },
+      {
+        "path": "packages/runtime-adapter/native/AgentRunClock.cs",
+        "bytes": 1903,
+        "sha256": "ef03ea56b2e9084a23ea03c2cbc9a74dd6cc431a963a2942897c9a5c53dbe6db"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-run-budget.ts",
+        "bytes": 7735,
+        "sha256": "d2a29ac0dafd4895e93662c1cb940c37d7f93b3960a7bc88301cc27fd9c79198"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-run-clock.ts",
+        "bytes": 3306,
+        "sha256": "3104a5150f3485e2e10ddf0517336a3b80705ff59a2f1ff936f0f7eff3ee3e0b"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-run-budget.test.ts",
+        "bytes": 7399,
+        "sha256": "5e192f7f09306825c6f8cf1285dcda33f877bcaa87331ccd9d95b5cb885d3d23"
+      },
+      {
+        "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+        "bytes": 10471,
+        "sha256": "7e359d7673dadeb344d3d53c6f03f7f4ea272fe17775c25f0dcc744e542d7aa1"
+      }
+    ],
+    "preliminary": [
+      {
+        "path": ".cimiloop/task-clock-v1-09/focused.json",
+        "total": 12,
+        "passed": 10,
+        "failed": 2,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+            "status": "failed",
+            "tests": 3
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-run-budget.test.ts",
+            "status": "passed",
+            "tests": 9
+          }
+        ],
+        "failures": [
+          {
+            "test": "native Task budget and original Windows clock rejects a current native cancellation both on reuse and on reopen",
+            "message": "Error: {\"schema_version\":\"2.0.0\",\"code\":\"PROTOCOL_VALIDATION_FAILED\",\"message\":\"命令不符合 Cimi Change Protocol\",\"category\":\"validation\",\"retryable\":false,\"details\":{\"errors\":[\"/ must NOT have additional properties\",\"/ must NOT have additional properties\",\"/ must NOT have additional properties\",\"/ must NOT have additional properties\",\"/ must NOT have additional properties\",\"/command_type must be equal to constant\",\"/payload must have required property 'name'\",\"/payload must have required property 'repository_kind'\",\"/payload must have required property 'repository_path'\",\"/payload must have required property 'owner_name'\",\"/payload must NOT have additional properties\",\"/ must NOT have additional "
+          },
+          {
+            "test": "native Task budget and original Windows clock stops the original suspended Runtime when native cancellation arrives during hung preparation",
+            "message": "Error: expected [Function] to throw error including 'agent_run_budget_unavailable' but got 'workspace_rehearsal_ended_before_resu…'\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/Dev/hector/git"
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/task-clock-v1-09/focused-final.json",
+        "total": 13,
+        "passed": 12,
+        "failed": 1,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+            "status": "failed",
+            "tests": 4
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-run-budget.test.ts",
+            "status": "passed",
+            "tests": 9
+          }
+        ],
+        "failures": [
+          {
+            "test": "native Task budget and original Windows clock caps a longer new host lifetime at the original native Task deadline",
+            "message": "Error: expected [Function] to throw error matching /workspace_rehearsal_deadline|agent_ru…/ but got 'workspace_rehearsal_ended_before_resu…'\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/Dev/h"
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/task-clock-v1-09/final.json",
+        "total": 29,
+        "passed": 27,
+        "failed": 2,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+            "status": "failed",
+            "tests": 4
+          },
+          {
+            "path": "tests/scenarios/opencode-check-runtime.test.ts",
+            "status": "passed",
+            "tests": 3
+          },
+          {
+            "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+            "status": "passed",
+            "tests": 6
+          },
+          {
+            "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+            "status": "failed",
+            "tests": 4
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-run-budget.test.ts",
+            "status": "passed",
+            "tests": 9
+          },
+          {
+            "path": "packages/runtime-adapter/test/execution-lifetime.test.ts",
+            "status": "passed",
+            "tests": 3
+          }
+        ],
+        "failures": [
+          {
+            "test": "native Task budget and original Windows clock caps a longer new host lifetime at the original native Task deadline",
+            "message": "AssertionError: expected 'sdk_ab8566a84639e01f6cc5cee2ec2236bc2…' to be 'original_0' // Object.is equality\n    at D:/Dev/hector/github/cimi-ai-native/tests/scenarios/agent-run-budget-runtime.test.ts:99:26\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          },
+          {
+            "test": "OpenCode consumes original Agent workspace tools keeps the actual Runtime suspended when channel installation fails and disposes its original resources",
+            "message": "Error: expected [Function] to throw error including 'original_channel_unavailable' but got 'workspace_rehearsal_ended_before_resu…'\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/Dev/hector/git"
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/task-clock-v1-09/final-refined.json",
+        "total": 31,
+        "passed": 29,
+        "failed": 2,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+            "status": "failed",
+            "tests": 4
+          },
+          {
+            "path": "tests/scenarios/opencode-check-runtime.test.ts",
+            "status": "failed",
+            "tests": 3
+          },
+          {
+            "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+            "status": "passed",
+            "tests": 6
+          },
+          {
+            "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+            "status": "passed",
+            "tests": 4
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-run-budget.test.ts",
+            "status": "passed",
+            "tests": 11
+          },
+          {
+            "path": "packages/runtime-adapter/test/execution-lifetime.test.ts",
+            "status": "passed",
+            "tests": 3
+          }
+        ],
+        "failures": [
+          {
+            "test": "native Task budget and original Windows clock caps a longer new host lifetime at the original native Task deadline",
+            "message": "AssertionError: expected 69776 to be less than 65000\n    at D:/Dev/hector/github/cimi-ai-native/tests/scenarios/agent-run-budget-runtime.test.ts:99:114\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          },
+          {
+            "test": "OpenCode consumes fixed original checks checks actual edited bytes beyond the old 20-second channel limit and replays the original passed operation once",
+            "message": "Error: workspace_rehearsal_deadline\n    at ExecutionLifetime.check (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/execution-lifetime.ts:25:28)\n    at runOpenCodeWorkspaceToolRehearsal (D:/Dev/hector/github/cimi-ai-native/packages/runtime-adapter/src/opencode-workspace-rehearsal.ts:176:140)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at D:/Dev/hector/github/cimi-ai-native/tests/scenarios/opencode-check-runtime.test.ts:72:111\n    at file:///D:/Dev/hector/github/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/task-clock-v1-09/contract-final.json",
+        "total": 11,
+        "passed": 11,
+        "failed": 0,
+        "files": [
+          {
+            "path": "packages/runtime-adapter/test/agent-run-budget.test.ts",
+            "status": "passed",
+            "tests": 11
+          }
+        ],
+        "failures": []
+      }
+    ],
+    "broad_final": {
+      "path": ".cimiloop/task-clock-v1-09/native-final.json",
+      "total": 31,
+      "passed": 31,
+      "failed": 0,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "tests/scenarios/opencode-check-runtime.test.ts",
+          "status": "passed",
+          "tests": 3
+        },
+        {
+          "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+          "status": "passed",
+          "tests": 6
+        },
+        {
+          "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-run-budget.test.ts",
+          "status": "passed",
+          "tests": 11
+        },
+        {
+          "path": "packages/runtime-adapter/test/execution-lifetime.test.ts",
+          "status": "passed",
+          "tests": 3
+        }
+      ],
+      "failures": []
+    },
+    "startup_final": {
+      "path": ".cimiloop/task-clock-v1-09/startup-final.json",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "files": [
+        {
+          "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+          "status": "passed",
+          "tests": 8
+        }
+      ],
+      "failures": []
+    },
+    "final_coverage": {
+      "files": 7,
+      "tests": 39,
+      "failed": 0,
+      "entries": [
+        {
+          "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "tests/scenarios/opencode-check-runtime.test.ts",
+          "status": "passed",
+          "tests": 3
+        },
+        {
+          "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+          "status": "passed",
+          "tests": 6
+        },
+        {
+          "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+          "status": "passed",
+          "tests": 4
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-run-budget.test.ts",
+          "status": "passed",
+          "tests": 11
+        },
+        {
+          "path": "packages/runtime-adapter/test/execution-lifetime.test.ts",
+          "status": "passed",
+          "tests": 3
+        },
+        {
+          "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+          "status": "passed",
+          "tests": 8
+        }
+      ],
+      "interpretation": "Six budget / lifetime / SDK files and one startup recovery file separately passed against the same final twelve frozen changed source files. Serial file worker used; no all-repository or parallel-load pass is claimed."
+    },
+    "audit": {
+      "sources": 12,
+      "schemas": {
+        "total": 242,
+        "unchanged": 242,
+        "added": 0,
+        "changed": 0
+      },
+      "public_native_sources_unchanged": 4,
+      "comparison": "exact text normalized CRLF to LF",
+      "markdown": 8,
+      "links": 297,
+      "broken": [],
+      "baseline": {
+        "files": 855,
+        "bytes": 56112533,
+        "problems": []
+      }
+    }
+  },
+  "actual_clock": {
+    "observation": {
+      "format": "cimiloop/agent-run-clock/1.0.0",
+      "utc": "2026-10-08T00:10:48.866Z",
+      "boot_utc": "2026-10-06T15:11:27.500Z",
+      "uptime_ms": 118760843,
+      "machine_digest": "972e5e614fd88b590ea84818e3804354d61dcc3179768b412a71bfbe6d88da4c"
+    },
+    "helper_sha256": "469cf831dfc46ae9ce5eddd2d54d35bd188808950c4d626738cd66be6a6517fc",
+    "source_sha256": "ef03ea56b2e9084a23ea03c2cbc9a74dd6cc431a963a2942897c9a5c53dbe6db",
+    "actual_credentials_read": 0,
+    "external_model_requests": 0,
+    "scope": "read_only_actual_OS_clock; no native Run or qualification is inferred"
+  },
+  "actual_windows_scenarios": [
+    "Native Run reserved with actual UTC; real OS clock and unchanged original Task anchor reopened in independent host process using copied previously verified basis",
+    "Native CancelRun refuses budget reuse and reopening without resetting first_started_at or attempts",
+    "Native cancellation stops mapped Runtime preparation via original lifetime, cleanup checked",
+    "Requested new host lifetime 90000ms capped by native WorkItem cumulative 60000ms; actual SDK request waits in controlled non-effect callback, trusted test host stalled six seconds across expiry, native original process stopped counter checked within original absolute deadline plus 2000ms scheduling bound, Task usage unchanged and expired reopening refused",
+    "Startup recovery original controller/host death, active owner refusal, foreign mapping and corrupt/missing authority checked with versioned private configuration"
+  ],
+  "evidence_boundary": {
+    "provider_qualification": "constructed fixture only",
+    "full_sdk_model_account_custody": "not qualified",
+    "model_responses": "constructed fixture only",
+    "child_scope": "Copied original immutable native budget basis; child independently reads clock/anchor, no child native authorization re-read is claimed",
+    "cleanup": "Temporary test roots removed only after original native resources_disposed proof checked",
+    "actual_credentials_read": 0,
+    "external_model_requests": 0,
+    "formal_agent_execution_enabled": false,
+    "user_database_migrated": false,
+    "protocol_schemas": 242,
+    "database_format": 10
+  },
+  "unresolved": [
+    "Original monotonic clock at native first reservation; initial binding still derives from original UTC, historical monotonic evidence not fabricated",
+    "Cross-boot / cross-login complete recovery and formal execution ownership / lifecycle / result custody",
+    "Exact Zhipu model and plan, cash / credits limit, actual account custody, server bounds and billing reconciliation",
+    "Physical hard quotas and history capacity",
+    "Real Skill and Human/Matt clarification before Plan/Task",
+    "Matt independent review, Superpowers fresh verification and actual behavior comparison",
+    "Workbench formal Agent execute/query/stop/original recovery",
+    "Real ordinary Change to ReadyForDelivery and full S1 acceptance/testing guide"
+  ]
+}
