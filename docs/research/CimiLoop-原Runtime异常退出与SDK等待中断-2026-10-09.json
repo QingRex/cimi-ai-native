@@ -1,0 +1,2074 @@
+{
+  "decision": "D-238",
+  "date": "2026-10-09",
+  "base_commit": "8fbb5c3e9c7ebfbae401513a10bede054d1d3620",
+  "scope": "Abnormally ended resumed original Native controller now stops the same lifetime before channel closure waits on SDK callbacks; no Run restart, source effects, domain completion or cost settlement.",
+  "environment": {
+    "platform": "win32",
+    "architecture": "x64",
+    "node": "v24.19.0",
+    "pnpm": "12.4.2",
+    "opencode": "1.18.34",
+    "opencode_sha256": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e",
+    "git_branch": "main",
+    "origin_main_after_fetch": "e789902379534c6e36ea6ebc14266ed5167b761c",
+    "base_ahead": 5,
+    "base_behind": 0
+  },
+  "engineering": {
+    "before_fix": {
+      "workbench_single": {
+        "path": ".cimiloop/new-host-s1/d238-workbench-diagnostic.json",
+        "sha256": "f9b7ea1b83449f986a713174d22a08a19ac0c5af5a16bddde6bd1124e0345fdf",
+        "boundary": "One actual Workbench case passed; 3 filtered, not full regression and does not erase D237 failures.",
+        "success": true,
+        "total": 4,
+        "passed": 1,
+        "failed": 0,
+        "filtered_or_pending": 3,
+        "duration_seconds": 45.38697998046875,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "cases": [
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+                "status": "skipped",
+                "failures": []
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key refuses a second actual host while the original controller is preparing",
+                "status": "skipped",
+                "failures": []
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key queries actual running processes and cancels the original SDK wait without domain completion",
+                "status": "skipped",
+                "failures": []
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key joins Human Workbench cancellation, collection, Unknown observation and receipt replay to the actual original SDK wait",
+                "status": "passed",
+                "duration_ms": 31822.9801,
+                "failures": []
+              }
+            ],
+            "message": ""
+          }
+        ]
+      },
+      "original_four_case_file": {
+        "path": ".cimiloop/new-host-s1/d238-lifecycle-diagnostic.json",
+        "sha256": "9803922ef4b3a233033e8d97a48d378afcbaffbd3679834d5e7d5ac400a75ae4",
+        "boundary": "4-case original file diagnostic loaded before insertion of fifth case; not final frozen-source validation.",
+        "success": true,
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "filtered_or_pending": 0,
+        "duration_seconds": 149.0651640625,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "cases": [
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+                "status": "passed",
+                "duration_ms": 59799.60609999999,
+                "failures": []
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key refuses a second actual host while the original controller is preparing",
+                "status": "passed",
+                "duration_ms": 18888.774900000004,
+                "failures": []
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key queries actual running processes and cancels the original SDK wait without domain completion",
+                "status": "passed",
+                "duration_ms": 25090.99639999999,
+                "failures": []
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key joins Human Workbench cancellation, collection, Unknown observation and receipt replay to the actual original SDK wait",
+                "status": "passed",
+                "duration_ms": 31384.164000000004,
+                "failures": []
+              }
+            ],
+            "message": ""
+          }
+        ]
+      },
+      "behavior_red": {
+        "path": ".cimiloop/new-host-s1/d238-native-exit-red.json",
+        "sha256": "c6e560d3f51f22443edb2ce3757a9bbf8ba3007b40c61e1496bc10357f73cc76",
+        "boundary": "Actual original controller input end -> Job stop/cleanup. Expected runtime_failed but got deadline; one behavior assertion failure, 4 filtered. Zero artificial process identity/model proof claimed.",
+        "success": false,
+        "total": 5,
+        "passed": 0,
+        "failed": 1,
+        "filtered_or_pending": 4,
+        "duration_seconds": 91.155029296875,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "failed",
+            "cases": [
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+                "status": "skipped",
+                "failures": []
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key refuses a second actual host while the original controller is preparing",
+                "status": "skipped",
+                "failures": []
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key queries actual running processes and cancels the original SDK wait without domain completion",
+                "status": "skipped",
+                "failures": []
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key aborts the original SDK wait immediately when the resumed native controller fails",
+                "status": "failed",
+                "duration_ms": 77233.0293,
+                "failures": [
+                  "Error: expected [Function] to throw error including 'workspace_rehearsal_runtime_failed' but got 'workspace_rehearsal_deadline'\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/cc/cimi-ai-native/tests/scenarios/agent-runtime-operation.test.ts:149:11\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+                ]
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key joins Human Workbench cancellation, collection, Unknown observation and receipt replay to the actual original SDK wait",
+                "status": "skipped",
+                "failures": []
+              }
+            ],
+            "message": ""
+          }
+        ]
+      }
+    },
+    "single_green": {
+      "path": ".cimiloop/new-host-s1/d238-native-exit-green.json",
+      "sha256": "b034afb520da18344d9d84b3e40a88924003a8513b84fdd268d2ce68f73148fa",
+      "boundary": "One actual injected original-controller failure passed after fix, 4 filtered; not full scope.",
+      "success": true,
+      "total": 5,
+      "passed": 1,
+      "failed": 0,
+      "filtered_or_pending": 4,
+      "duration_seconds": 39.28444921875,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "passed",
+          "cases": [
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+              "status": "skipped",
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key refuses a second actual host while the original controller is preparing",
+              "status": "skipped",
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key queries actual running processes and cancels the original SDK wait without domain completion",
+              "status": "skipped",
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key aborts the original SDK wait immediately when the resumed native controller fails",
+              "status": "passed",
+              "duration_ms": 25508.449199999995,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key joins Human Workbench cancellation, collection, Unknown observation and receipt replay to the actual original SDK wait",
+              "status": "skipped",
+              "failures": []
+            }
+          ],
+          "message": ""
+        }
+      ]
+    },
+    "final": {
+      "path": ".cimiloop/new-host-s1/d238-final-regression.json",
+      "sha256": "ab0b5a3fc81e0e7f28f0bf65493ef78351827edd566904c4c6c7f30848d71c33",
+      "boundary": "Fixed-source affected original native exit/lifetime/start/Windows SDK/IPC/checks. No filtered cases are allowed as acceptance; not whole repository or full S1.",
+      "success": false,
+      "total": 39,
+      "passed": 37,
+      "failed": 2,
+      "filtered_or_pending": 0,
+      "duration_seconds": 732.8695063476563,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-check-admission-runtime.test.ts",
+          "status": "failed",
+          "cases": [
+            {
+              "name": "original Context admits fresh fixed checks captures an unpredictable actual edit in a new Context and checks it through original SDK without predicted replacement bytes",
+              "status": "failed",
+              "duration_ms": 59063.9758,
+              "failures": [
+                "Error: workspace_rehearsal_runtime_failed\n    at ExecutionLifetime.check (D:/cc/cimi-ai-native/packages/runtime-adapter/src/execution-lifetime.ts:25:28)\n    at runOpenCodeWorkspaceToolRehearsal (D:/cc/cimi-ai-native/packages/runtime-adapter/src/opencode-workspace-rehearsal.ts:195:140)\n    at D:/cc/cimi-ai-native/tests/scenarios/agent-check-admission-runtime.test.ts:88:23\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+              ]
+            },
+            {
+              "name": "original Context admits fresh fixed checks refuses changed live source after reservation without dispatching or substituting its admitted digest",
+              "status": "passed",
+              "duration_ms": 36165.889299999995,
+              "failures": []
+            },
+            {
+              "name": "original Context admits fresh fixed checks denies a model-changed fixed harness before creating Context or Run",
+              "status": "passed",
+              "duration_ms": 8126.929499999998,
+              "failures": []
+            },
+            {
+              "name": "original Context admits fresh fixed checks pins the whole template and original Runtime admission across reservation",
+              "status": "passed",
+              "duration_ms": 20984.963099999994,
+              "failures": []
+            },
+            {
+              "name": "original Context admits fresh fixed checks rechecks original custody and Human revocation before granting check authority",
+              "status": "passed",
+              "duration_ms": 21426.371199999994,
+              "failures": []
+            },
+            {
+              "name": "original Context admits fresh fixed checks refuses damaged original admission content or installation policy",
+              "status": "passed",
+              "duration_ms": 19224.627700000012,
+              "failures": []
+            }
+          ],
+          "message": ""
+        },
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "passed",
+          "cases": [
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+              "status": "passed",
+              "duration_ms": 57638.648799999995,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key refuses a second actual host while the original controller is preparing",
+              "status": "passed",
+              "duration_ms": 20300.281800000004,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key queries actual running processes and cancels the original SDK wait without domain completion",
+              "status": "passed",
+              "duration_ms": 25720.11050000001,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key aborts the original SDK wait immediately when the resumed native controller fails",
+              "status": "passed",
+              "duration_ms": 23368.905899999998,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key joins Human Workbench cancellation, collection, Unknown observation and receipt replay to the actual original SDK wait",
+              "status": "passed",
+              "duration_ms": 30955.06599999999,
+              "failures": []
+            }
+          ],
+          "message": ""
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+          "status": "passed",
+          "cases": [
+            {
+              "name": "original Agent workspace IPC on Windows authenticates the original peer and reads/edits/replays the same actual file receipt without changing Native facts",
+              "status": "passed",
+              "duration_ms": 14192.2018,
+              "failures": []
+            },
+            {
+              "name": "original Agent workspace IPC on Windows rejects another actual process, foreign scope/extra caller fields, duplicate keys, oversize and invalid UTF-8 before file claims",
+              "status": "passed",
+              "duration_ms": 11761.6097,
+              "failures": []
+            },
+            {
+              "name": "original Agent workspace IPC on Windows re-reads revocation for IPC replay and never treats a prior file receipt as Run completion",
+              "status": "passed",
+              "duration_ms": 12514.9005,
+              "failures": []
+            },
+            {
+              "name": "original Agent workspace IPC on Windows refuses a substituted creation time before starting a pipe or claiming an effect",
+              "status": "passed",
+              "duration_ms": 12305.078499999996,
+              "failures": []
+            },
+            {
+              "name": "original Agent workspace IPC on Windows copies original process and scope pins before asynchronous build so later input mutation cannot substitute them",
+              "status": "passed",
+              "duration_ms": 12343.704400000002,
+              "failures": []
+            },
+            {
+              "name": "original Agent workspace IPC on Windows authenticates a separate original runtime peer and closes on its OS-proven exit while the original supervisor is still active",
+              "status": "passed",
+              "duration_ms": 12235.345500000003,
+              "failures": []
+            },
+            {
+              "name": "original Agent workspace IPC on Windows preserves completed original effects after socket reply loss and explicitly replays them through a fresh host without writing again",
+              "status": "passed",
+              "duration_ms": 12644.733000000007,
+              "failures": []
+            },
+            {
+              "name": "original Agent workspace IPC on Windows stops the original file host on peer exit at native_prepared and retains its original outcome",
+              "status": "passed",
+              "duration_ms": 12359.9384,
+              "failures": []
+            },
+            {
+              "name": "original Agent workspace IPC on Windows stops the original file host on peer exit at dispatch_committed and retains its original outcome",
+              "status": "passed",
+              "duration_ms": 12325.793300000005,
+              "failures": []
+            }
+          ],
+          "message": ""
+        },
+        {
+          "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+          "status": "passed",
+          "cases": [
+            {
+              "name": "original Runtime lifetime covers preparation and nested checks refuses a pre-cancelled operation before allocating Runtime resources",
+              "status": "passed",
+              "duration_ms": 11452.1032,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifetime covers preparation and nested checks cancels an uncooperative preparation callback and disposes the original mapped resources",
+              "status": "passed",
+              "duration_ms": 12505.1398,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifetime covers preparation and nested checks applies the original deadline to preparation without renewing it at Runtime resume",
+              "status": "passed",
+              "duration_ms": 17867.4755,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifetime covers preparation and nested checks stops waiting on a hung IPC installation while preserving the suspended original Runtime",
+              "status": "passed",
+              "duration_ms": 13999.9663,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifetime covers preparation and nested checks cancels an actually started nested Node check through the same original signal",
+              "status": "passed",
+              "duration_ms": 24396.117700000003,
+              "failures": []
+            },
+            {
+              "name": "original Runtime lifetime covers preparation and nested checks returns when the original native controller ends during an uncooperative IPC installation",
+              "status": "passed",
+              "duration_ms": 17446.31199999999,
+              "failures": []
+            }
+          ],
+          "message": ""
+        },
+        {
+          "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+          "status": "failed",
+          "cases": [
+            {
+              "name": "shared original Agent launch assembly assembles Task/Plan/Contract from Kernel records and starts once across concurrent callers and service instances",
+              "status": "passed",
+              "duration_ms": 25403.842900000003,
+              "failures": []
+            },
+            {
+              "name": "shared original Agent launch assembly defaults closed before preparation and refuses Human caller or request-supplied launch material",
+              "status": "passed",
+              "duration_ms": 9446.891199999998,
+              "failures": []
+            },
+            {
+              "name": "shared original Agent launch assembly rechecks Kernel cancellation after asynchronous preparation, disposes staging and produces no start",
+              "status": "passed",
+              "duration_ms": 13732.231899999999,
+              "failures": []
+            },
+            {
+              "name": "shared original Agent launch assembly keeps one original dispatch after response loss and reads it even after cancellation",
+              "status": "failed",
+              "duration_ms": 30432.2437,
+              "failures": [
+                "Error: Test timed out in 15000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2681:43)\n    at Object.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2698:16)\n    at Object.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2471:28)\n    at chain (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1859:14)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:64:3\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2763:52\n    at runWithSuite (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3248:8)\n    at Object.collect (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2763:22)\n    at Object.collect (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2768:51)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+              ]
+            },
+            {
+              "name": "shared original Agent launch assembly retains partial original Native registration and never fills it with another start",
+              "status": "passed",
+              "duration_ms": 10283.734599999996,
+              "failures": []
+            },
+            {
+              "name": "shared original Agent launch assembly preserves dispatch without a Native claim after a lost effect acknowledgement, and never retries launch",
+              "status": "passed",
+              "duration_ms": 22031.9648,
+              "failures": []
+            },
+            {
+              "name": "shared original Agent launch assembly does not treat missing new-host local registration as independent first-start custody",
+              "status": "passed",
+              "duration_ms": 23324.17439999999,
+              "failures": []
+            },
+            {
+              "name": "shared original Agent launch assembly refuses even a positive launch callback when no independent original start ledger is installed",
+              "status": "passed",
+              "duration_ms": 9625.214899999992,
+              "failures": []
+            },
+            {
+              "name": "shared original Agent launch assembly retains global first-start custody when both local dispatch and Native registration disappear",
+              "status": "passed",
+              "duration_ms": 22109.04920000001,
+              "failures": []
+            },
+            {
+              "name": "shared original Agent launch assembly denies before staging when the installed full host custody rejects despite a positive Kernel callback",
+              "status": "passed",
+              "duration_ms": 14054.55859999999,
+              "failures": []
+            }
+          ],
+          "message": ""
+        },
+        {
+          "path": "packages/runtime-adapter/test/execution-lifetime.test.ts",
+          "status": "passed",
+          "cases": [
+            {
+              "name": "one original execution lifetime keeps preparation and later connection inside the same elapsed budget",
+              "status": "passed",
+              "duration_ms": 5.6285000000000025,
+              "failures": []
+            },
+            {
+              "name": "one original execution lifetime stops waiting on cancellation and disposes a late resource without resuming",
+              "status": "passed",
+              "duration_ms": 0.977800000000002,
+              "failures": []
+            },
+            {
+              "name": "one original execution lifetime preserves the first stop cause and consumes a late callback rejection",
+              "status": "passed",
+              "duration_ms": 0.5064000000000135,
+              "failures": []
+            }
+          ],
+          "message": ""
+        }
+      ]
+    },
+    "check_passed": true,
+    "cli_help_passed": true,
+    "frozen_sources": 344,
+    "changed_sources": 0,
+    "source_manifest": [
+      {
+        "path": "apps\\cli\\package.json",
+        "sha256": "cbef6c41fd41f868fce0fca26a466e6a03b159424049bb6a4ca9a0391484491c"
+      },
+      {
+        "path": "apps\\cli\\src\\bin.ts",
+        "sha256": "423931de5ee3fa5ce5f40d643be1c2634a3829b35fe4be3171dc07c18829c704"
+      },
+      {
+        "path": "apps\\cli\\src\\commands.ts",
+        "sha256": "57b161ba15e815b1a111aab48078d36c4a118f568ec2fb88121e995e79924d68"
+      },
+      {
+        "path": "apps\\cli\\src\\evidence-local.ts",
+        "sha256": "3175901244fb9ba8c4c2f700fbf3cad4d9a58ba1bec0c487f0a06f14d290e846"
+      },
+      {
+        "path": "apps\\cli\\src\\input.ts",
+        "sha256": "38802077ca0dcefbd86ee583d7ae274fe1a21bd9b1193316fbc30a9df764c323"
+      },
+      {
+        "path": "apps\\cli\\src\\instance.ts",
+        "sha256": "5336394853eea941f50febfa27c5d0501bd08afe940557149bd05b7b71ea70ad"
+      },
+      {
+        "path": "apps\\cli\\src\\location.ts",
+        "sha256": "3ca752fdff05705e0f7ebad0856c788502d19e33aa73b98bff307885c4131eb3"
+      },
+      {
+        "path": "apps\\cli\\src\\output.ts",
+        "sha256": "d516c6ccbfc854dce19daf0ea93ed51341abba84a3b18d9721682bfac179fa74"
+      },
+      {
+        "path": "apps\\cli\\src\\providers-local.ts",
+        "sha256": "3a5eb4974ba9a47e9140694e44f0002b5a73ac1585ff005b08fb18192c27386e"
+      },
+      {
+        "path": "apps\\cli\\src\\runs-local.ts",
+        "sha256": "3acb31dbe92a6d98ee7e6ca26d219b3ab562190adeb1b10d0ec1752641c95749"
+      },
+      {
+        "path": "apps\\cli\\src\\runtime-probe.ts",
+        "sha256": "e7286cf6b316c48c802ca0566019374ec944970e412319eeff42174075684605"
+      },
+      {
+        "path": "apps\\cli\\test\\output.test.ts",
+        "sha256": "25a0605394171111199ef6da155ebc90a561a83cb340f451f9ddc45c52b9c785"
+      },
+      {
+        "path": "apps\\cli\\tsconfig.json",
+        "sha256": "af8303d561a978bad62793b9eaff4a3f36e148bfe43cbc44347cb4868bf4ed5c"
+      },
+      {
+        "path": "apps\\demo-web\\index.html",
+        "sha256": "e6de0ad71fb459deceb51b899153edb4df610b9f2eb689aedfa1428620038700"
+      },
+      {
+        "path": "apps\\demo-web\\package.json",
+        "sha256": "aa71c21805497e987401ceb6fc30ad84e7caff7f4340a78d3d5727c72757f52e"
+      },
+      {
+        "path": "apps\\demo-web\\src\\demo\\commands.ts",
+        "sha256": "d763ad79eb04fbe311a71ce790bd96e649bed20626866879988acee07960edaa"
+      },
+      {
+        "path": "apps\\demo-web\\src\\demo\\reducer.ts",
+        "sha256": "b13e2acb7f4e2d81c30869ff55a0a987083d913c83558977067d161f0cf3ab84"
+      },
+      {
+        "path": "apps\\demo-web\\src\\demo\\scenario.ts",
+        "sha256": "7a0475fdb0e8a809d49ede62f8863a9a85ff69c76b47bf4a10b5bb61941a154a"
+      },
+      {
+        "path": "apps\\demo-web\\src\\demo\\types.ts",
+        "sha256": "2d9523240754d720077663184bb7cf2acdac32828c0760c5d311c04e78ec4335"
+      },
+      {
+        "path": "apps\\demo-web\\src\\styles\\global.css",
+        "sha256": "9063a88c178d049d671d0bf128e2facf06036f62c6f6145bdf27568c6b09f61c"
+      },
+      {
+        "path": "apps\\demo-web\\src\\styles\\tokens.css",
+        "sha256": "26b06627ff012609cb51622804c3d62082f0c3a0278508072c2f8f665058c5e7"
+      },
+      {
+        "path": "apps\\demo-web\\src\\tests\\reducer.test.ts",
+        "sha256": "a3cc8780c2ed5a8535b6a1ff99b113844d3db8671154a4c5fd816a9439429bae"
+      },
+      {
+        "path": "apps\\demo-web\\src\\tests\\setup.ts",
+        "sha256": "1ce2b8a77e5a528ab398be9ecda76510164f1652ca1dce812f9dacc1529b314a"
+      },
+      {
+        "path": "apps\\demo-web\\src\\vite-env.d.ts",
+        "sha256": "424faf9241dd699dda995b367ed36665732da1e6ec1f33b2fd40394488ecac92"
+      },
+      {
+        "path": "apps\\demo-web\\tsconfig.json",
+        "sha256": "aa152575b4fcc71ebcae7d2c4db08892d9e54dfcca565cdcfcfd83a4172b041a"
+      },
+      {
+        "path": "apps\\demo-web\\vite.config.ts",
+        "sha256": "2044d81760e1fe31926c25bb6fc085929f737f27e3bba80e1844a4ca17cfcaf7"
+      },
+      {
+        "path": "apps\\workbench\\package.json",
+        "sha256": "d7b2b919669de7c3d252e41b8bf97e5fd78d79a254cd63cc4b9a5c6efdb99a21"
+      },
+      {
+        "path": "apps\\workbench\\public\\app.js",
+        "sha256": "0a23dd2083321f1d7e7439d9fe5afd81230adf7a95faa81e3f617df3293d7d06"
+      },
+      {
+        "path": "apps\\workbench\\public\\index.html",
+        "sha256": "540ad7bafa57b1d56b300244b2f9d964e7b50ecd4e3fce4ec31cafecf14db561"
+      },
+      {
+        "path": "apps\\workbench\\public\\style.css",
+        "sha256": "a8ea49c3a729dd2efc559742b536066b1ffc058a111184fdabbb113f016dadf4"
+      },
+      {
+        "path": "apps\\workbench\\src\\bin.ts",
+        "sha256": "1228d0d77c4bb8eba0fafe6a1445434826e54a653edffdab4516ddb505e2077c"
+      },
+      {
+        "path": "apps\\workbench\\src\\server.ts",
+        "sha256": "bfa88d9fe6b1de98b7ea5214bc1859a4fd78214d1134ada8ee3caa6906b5ab61"
+      },
+      {
+        "path": "apps\\workbench\\test\\agent-runtime-control.test.ts",
+        "sha256": "fb667f55b31ae3f1278f03be54a377bb4150d8d693f0a3f75b320ae295f785fc"
+      },
+      {
+        "path": "apps\\workbench\\test\\agent-runtime-frontend.test.ts",
+        "sha256": "aff624c89a8744da52d7e9dedb8fd3f48d3f29ad11e7d938b77ddd75ad1d0a94"
+      },
+      {
+        "path": "apps\\workbench\\test\\frontend.test.ts",
+        "sha256": "e9af0648d4ee003235bfae8afc12aa930ccb8d25801843c95b31d92b92bf703d"
+      },
+      {
+        "path": "apps\\workbench\\test\\server.test.ts",
+        "sha256": "588d146b17ea8bef73977b52adeb169cc686e3c0a314f85f714430ac2bfaa37b"
+      },
+      {
+        "path": "apps\\workbench\\tsconfig.json",
+        "sha256": "09e7d1ed6aad9f9dfdc8aee3b50f21fa9742a0939868f3d5b025d30f48e421f0"
+      },
+      {
+        "path": "package.json",
+        "sha256": "d779267d3e382a5f59daab6f162886e50458ed47caee5982fddf486dbff1cd03"
+      },
+      {
+        "path": "packages\\kernel\\package.json",
+        "sha256": "49d17ba7235399dd4542d7918a30855992add8afb222cc5cd33d162f83eac409"
+      },
+      {
+        "path": "packages\\kernel\\src\\agent-run-authority.ts",
+        "sha256": "2c102c30214f1e6c055741e1bb92f91e120c7c467df6022738f4c0f50178a4d0"
+      },
+      {
+        "path": "packages\\kernel\\src\\agent-run-launch.ts",
+        "sha256": "1befb71ba72dfcf2493b4fce7f245a341be218e1a66fa4b942255ee665bb8bed"
+      },
+      {
+        "path": "packages\\kernel\\src\\agent-runs.ts",
+        "sha256": "674ac7acafdeca93b0ac6e5bfd905ae0bbd9b3c583a0e11c09e16b811ada92d1"
+      },
+      {
+        "path": "packages\\kernel\\src\\agent-tool-authority.ts",
+        "sha256": "d0e7be36386ff7e70618e760480687e4c6841f43c39d89404fa47466b6d6f06e"
+      },
+      {
+        "path": "packages\\kernel\\src\\authorization.ts",
+        "sha256": "67fa949d1330c86cd42c294b47e0d886048643f623b8ed7e8efb37285e92a910"
+      },
+      {
+        "path": "packages\\kernel\\src\\canonical.ts",
+        "sha256": "2f6c5e1dc01af7e46b5643634202630a1ec2809e81e404800241703378897f23"
+      },
+      {
+        "path": "packages\\kernel\\src\\change.ts",
+        "sha256": "743180dc4748bc91b4c3b134c8cf1806aad2dcfebef5e7eb5efd38dac0dd76f8"
+      },
+      {
+        "path": "packages\\kernel\\src\\execution.ts",
+        "sha256": "e2293b1ebec9b1adcbd42accae0c3c2915f39e47b48e193021a9cdbf9f62a34c"
+      },
+      {
+        "path": "packages\\kernel\\src\\flow.ts",
+        "sha256": "66f0c53e6b14967aa99b4c09a16d76e8bf64f84d19d34e810c404d49711ebb37"
+      },
+      {
+        "path": "packages\\kernel\\src\\governance.ts",
+        "sha256": "3c2ed62ef657cf1b60ebe41648e82052af0d912e0f346e029ad93e36fa460342"
+      },
+      {
+        "path": "packages\\kernel\\src\\index.ts",
+        "sha256": "41539f1f3b8d822f5835d3e57a4cce38939451f3e59b4ab676329040d4d063dd"
+      },
+      {
+        "path": "packages\\kernel\\src\\intent.ts",
+        "sha256": "761ea476e9b070e8ff23fd9507b0c6d60d35343d58889239896b52b35506281c"
+      },
+      {
+        "path": "packages\\kernel\\src\\kernel.ts",
+        "sha256": "dc5a30aa3d7aaa7374b9e28049889d49a80551c407c5caa769c447f5df3d2e49"
+      },
+      {
+        "path": "packages\\kernel\\src\\provider-assessment.ts",
+        "sha256": "7a69bacb464b632459194544b8c4ee46b7732f598b27bdade5d37534d5ead38b"
+      },
+      {
+        "path": "packages\\kernel\\src\\providers.ts",
+        "sha256": "532dfda030ee2317dcf79d5d7c02c9790acad197be1f356c00b9daf7cc34b908"
+      },
+      {
+        "path": "packages\\kernel\\src\\queries.ts",
+        "sha256": "f1f1502568b3d63c91096eaa73e3699020b2b831c3549df0f3ccc1785cc19977"
+      },
+      {
+        "path": "packages\\kernel\\src\\review-facts.ts",
+        "sha256": "94864cb7988f7d62e6784f064f616155aab6a7dde04ca32c256df2bda85dd281"
+      },
+      {
+        "path": "packages\\kernel\\src\\review.ts",
+        "sha256": "5275af5898977707449a6575b58e46a63d126da03188457ac7d2b4d3f514edcf"
+      },
+      {
+        "path": "packages\\kernel\\src\\runs.ts",
+        "sha256": "e1bbe7d4b113d992f295d17b6762b803f3dd8ae82a24b3343c8bba94671e5339"
+      },
+      {
+        "path": "packages\\kernel\\src\\skill-assessment.ts",
+        "sha256": "f9664679be9fa0698689764295d3d0d36ebf4ec035c9aafa6681a89fbf134b44"
+      },
+      {
+        "path": "packages\\kernel\\src\\skill-invocation-facts.ts",
+        "sha256": "580fb5139e47c8d217cf07e7feee87b2bc46017e6260b1fc6c5aeb2c8b41d78a"
+      },
+      {
+        "path": "packages\\kernel\\src\\skill-invocations.ts",
+        "sha256": "7beed6cbbb688b0730d72737b4da5a1ff9f18f31a4110eea0850fcac34cef6b3"
+      },
+      {
+        "path": "packages\\kernel\\src\\tool-authority.ts",
+        "sha256": "025d4eeb9b85928b10d2b66e95de8a787149ac9e76d2fb6b3ef45e6b1a575e0d"
+      },
+      {
+        "path": "packages\\kernel\\src\\v1.ts",
+        "sha256": "b1d6016226d5fd2104fae083fc3efa4ddbeb774705fc20dbddcbe235374c0709"
+      },
+      {
+        "path": "packages\\kernel\\src\\v1\\change.ts",
+        "sha256": "e8c5440e03812a8df3ac1eea772db0b9f43f5ba884b7065e3e87ea032ea0712a"
+      },
+      {
+        "path": "packages\\kernel\\src\\v1\\kernel.ts",
+        "sha256": "36e44adfca355b55d7688ad1521dc3e0e9ed28d952baa5f485f0a7f251031764"
+      },
+      {
+        "path": "packages\\kernel\\src\\verification-facts.ts",
+        "sha256": "c258a4ff999afac5a58e6b820c55568a137cec6433e3e423420ca82c030c2ea8"
+      },
+      {
+        "path": "packages\\kernel\\src\\verification.ts",
+        "sha256": "f12e31f1ea30840feeec69fedfc5517b31b3653518f6ec8e753dabe127c401b8"
+      },
+      {
+        "path": "packages\\kernel\\tsconfig.json",
+        "sha256": "05715e6f29e13acaf52934df2c23764f018b297e6723bc4c06c7965b17a47158"
+      },
+      {
+        "path": "packages\\local-app\\package.json",
+        "sha256": "7e79a1f1b7641722b02361a02e43eed5ddff1255934d7a4fd8467b514190113a"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-check-admission-local.ts",
+        "sha256": "8d30395939459d1b2627b9f260884f857c8c948170a670b5d2cd799f3cdc6639"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-run-budget-local.ts",
+        "sha256": "33e644196c263db6a2b8ca137052078201a87a6ea7f9d5ee02b25decbbec599b"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-runtime-control-local.ts",
+        "sha256": "205036c9f838f7a170c870fc986ee851c6abc60364cb90d682b6c04d2ee427b6"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-runtime-observation-local.ts",
+        "sha256": "aefa6ba843441e076c6d50c590fba8e910803480637704adbbff17477e8266a9"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-runtime-operations-local.ts",
+        "sha256": "12812dd341e171f27b98a99cc171a28944e9677a0ff3fd993924c2792fd765c6"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-runtime-start-local.ts",
+        "sha256": "4b6856a7ada5a2ee33dcdd69c636b71dfa9f26706b8911287b78435298c614cf"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-start-custody-local.ts",
+        "sha256": "ba1a9c4832d7cc7750d3bd4eea197e7335fb04614aafbc9d8c7c06f204c658df"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-workspace-tools-local.ts",
+        "sha256": "8a2301b9811b69b6b86253bd8ebd66c6bc3a451c3dc7cf812914c2093eba3cce"
+      },
+      {
+        "path": "packages\\local-app\\src\\errors.ts",
+        "sha256": "fbce533807d48c8902f129faaae3ed0d1044f3395d52d815ad6a113c8f18ae8d"
+      },
+      {
+        "path": "packages\\local-app\\src\\evidence-local.ts",
+        "sha256": "604a819334b52cec2209e0273c7d793b17c2f0505bad9656cb4c1224b5e7daac"
+      },
+      {
+        "path": "packages\\local-app\\src\\index.ts",
+        "sha256": "451d2a73213877d7845d9fed84fd7a8c5787c459419d541a8c8cba407fb62888"
+      },
+      {
+        "path": "packages\\local-app\\src\\instance.ts",
+        "sha256": "7366cf8b96931ab6305104dfc5a6a25e765e58cc50758a26b65eaec124dacebd"
+      },
+      {
+        "path": "packages\\local-app\\src\\location.ts",
+        "sha256": "a65c5d150ef0498f612cdcbd2abfd707e45e06ba39934e2e12257f72e1b3ec20"
+      },
+      {
+        "path": "packages\\local-app\\src\\project.ts",
+        "sha256": "b1b178db5186b78147c4bbd3e1439a0692916d9c69a9c44321680f23a7ee0c7b"
+      },
+      {
+        "path": "packages\\local-app\\src\\providers-local.ts",
+        "sha256": "09b5df5272539df68abf2d342eb712b61897e6e6a5a2d9ed2d3359e96c613358"
+      },
+      {
+        "path": "packages\\local-app\\src\\runs-local.ts",
+        "sha256": "4d6024fa90db43ec10be2822fa58e24ebaf09a2c1303ff4ab620ced2f71c0291"
+      },
+      {
+        "path": "packages\\local-app\\src\\skill-method-assessment-local.ts",
+        "sha256": "3ed433f59054902a0766deea69ea0dd27e12af69979426bd91582609d0718f6e"
+      },
+      {
+        "path": "packages\\local-app\\src\\skill-methods-local.ts",
+        "sha256": "bc2b902fb6233d1e736cfaebfc04c6bbe1080f93ae5888a7c45c6714495c082c"
+      },
+      {
+        "path": "packages\\local-app\\src\\skills-local.ts",
+        "sha256": "d19f90cfca78008256550ad723a658fed1891e2a0cdcef3d84104f0f6cda5a21"
+      },
+      {
+        "path": "packages\\local-app\\src\\workspace-tools-local.ts",
+        "sha256": "6f8315fe931efcfcc21c0ba0e4fedc81a39ac5439fbeaf6f988804afaf7ab0d3"
+      },
+      {
+        "path": "packages\\local-app\\test\\agent-runtime-control-local.test.ts",
+        "sha256": "d41c6b69b3b582344f1beacd99b912e3230402ff174427e05fd64a27e53e9236"
+      },
+      {
+        "path": "packages\\local-app\\test\\agent-runtime-observation-local.test.ts",
+        "sha256": "ee1493b6617ff9bb2eeff8910666ea1f0a58e8591ccd3cc7eb42ce7079d317fa"
+      },
+      {
+        "path": "packages\\local-app\\test\\agent-runtime-start-local.test.ts",
+        "sha256": "4ee6da463c7cdcc3b69a435f5df6e23981684351faa51f8bf21f9f019c39a6ed"
+      },
+      {
+        "path": "packages\\local-app\\tsconfig.json",
+        "sha256": "de11859ea46e80769f9a23fc0b086563ad4f5203d7f9da1d121767ae29aca02e"
+      },
+      {
+        "path": "packages\\protocol\\package.json",
+        "sha256": "40821658df953a84a7f459483a5b36b83c653b499b987768ff92cd701db3a0cb"
+      },
+      {
+        "path": "packages\\protocol\\src\\export-schemas.ts",
+        "sha256": "4b6d1bf4a691c8a459edfb59b7bd5f1ae4d9766f68460b14a704d26e20cc5f85"
+      },
+      {
+        "path": "packages\\protocol\\src\\ids.ts",
+        "sha256": "f35a52eb85c640f23f2c3b112130c165ccd77bf31923cce7f76eef4bc79e65a3"
+      },
+      {
+        "path": "packages\\protocol\\src\\index.ts",
+        "sha256": "7a5b11822736d483d3ede9bbe2dfc8c37c4f6cd90524e1cdaa6d23fb57fe6b09"
+      },
+      {
+        "path": "packages\\protocol\\src\\schemas.ts",
+        "sha256": "b1e5f7f12e1fe29e1141ce6724791e24846feb67c9303785b3ad915586b9b6b9"
+      },
+      {
+        "path": "packages\\protocol\\src\\v1\\index.ts",
+        "sha256": "a9544cdf667b2cb07f94eb375c94f5314f37843d6f08eb28bcbf07ec4ab75020"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\agent-tool-authority.ts",
+        "sha256": "e0737123b8b3d395e693bcc5a2d1660523f764a6ebd86033f03933ae7b337c4f"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\commands.ts",
+        "sha256": "66d6d8759eb4b783f86658d185c928e1e0ab411f055841c37b441de6c19c0012"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\common.ts",
+        "sha256": "bcefd17834f896f5af12dc4a343f98edce750fa461e48d7280e61f7c83c9dceb"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\execution.ts",
+        "sha256": "98e285831384dd3967f7fde42ba7c7848f5d8892cfa35d18cb262030d4ece3f2"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\fixed-method.ts",
+        "sha256": "5ae2d6fb99073e2cf3ec0a736a71a9ac02f3830d012078722d26a8323a79483e"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\governance.ts",
+        "sha256": "7b28111b1376dcb6d8e060090c53162806fd9df301bcf903942248439b22caf1"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\index.ts",
+        "sha256": "44aeebfe6eb2c174a3558de7f9ddd6100c5cbeb78990d2725acb56d503614330"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\intent.ts",
+        "sha256": "373b2c812b3f0eefe8863f760989583e8d26b4fea1c1d9733f1f0e8f8bff33bb"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\named-method-assessment.ts",
+        "sha256": "4e8b7576aff7e98e69309ed51c1a81fba91354b2b5a98b42b8291b68328db1bd"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\objects.ts",
+        "sha256": "8120c4033d6d259ca2e585008b616765d594019660b01a8495629bf0d5564c7c"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\provider-assessment.ts",
+        "sha256": "f17ec370984727dfa7d9665e8b0b6d4a80c3a0e3d42f7485a722afd95431671a"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\providers.ts",
+        "sha256": "be381941ac1ce0af9e0af9e30f9b1268612b3d9b38dc989cb5cef40bdf2d0e82"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\queries.ts",
+        "sha256": "8e4853be187c45b7a012052b995c86faad64af21e3e5c3826a4a9afa6bb88c60"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\results.ts",
+        "sha256": "ddd1245b7fb571479ec96ac003728690ace12d2034c8fe6cb8a5be34dfd09dec"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\runs.ts",
+        "sha256": "63c562a63a949a31195e05f678048e277c38c47c103e0f1aec132421918fb890"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\runtime-gateway-bridge.ts",
+        "sha256": "5128b014108bba6aa49001a2391abaf54075cfefc100c65d2526c19aca1c8b60"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\runtime-gateway-credit.ts",
+        "sha256": "c8563c0e251412e270715bb78edbeaec5d612407029513c828fd72f5d9ba21a0"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\runtime-gateway-network.ts",
+        "sha256": "c9679eba1941a7df2c4974cb9af0ded104f662a2ced7b32fc9956f8b11c8c566"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\runtime-gateway.ts",
+        "sha256": "c57d24f64d10dbcb4aed566558004419c3e46639475d75771a454918745cba24"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\runtime-probe.ts",
+        "sha256": "654d2b6ca1cdca9a4bd03769d1842d5680d9f1df6c971b1b47ebe25b34446355"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\skill-probe.ts",
+        "sha256": "9987786af56977da4886f6d18360ea1faadd94d214f7e486e1d7ffc3fa9ca862"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\skills.ts",
+        "sha256": "51ff43f2d6fbec01cf6cf52a0ab50711d8721b400793c3e1cc28af6cb282471d"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\storage.ts",
+        "sha256": "4247f6b2985a28587a705dcda8a348a78a2681e3ddf35d4fea8c1b7dc707cefd"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\tool-authority.ts",
+        "sha256": "7eb810d0e260e91d95b7fb2aa202b6f9f079d839ce525df3ca64151fd9219d07"
+      },
+      {
+        "path": "packages\\protocol\\src\\v2\\verification.ts",
+        "sha256": "d96d5e972eef174d79bc801e1999212f4e0b3ee7f9caa10c84d66c3d9afd480a"
+      },
+      {
+        "path": "packages\\protocol\\src\\validation.ts",
+        "sha256": "0770aa867ecf015a7885674923a72db9edf4925db7629464c70da7cd97f791d3"
+      },
+      {
+        "path": "packages\\protocol\\src\\versioned.ts",
+        "sha256": "2a493c95cc1397b4de0559e318b9e366fdf316c7ebf6f1394c5e3034bf271f90"
+      },
+      {
+        "path": "packages\\protocol\\test\\agent-runs.test.ts",
+        "sha256": "e0e66e0068a585ff5da7006f73adf45ffeaab980764720d385aa4a528b618fc6"
+      },
+      {
+        "path": "packages\\protocol\\test\\agent-tool-authority.test.ts",
+        "sha256": "06f79278f64b51c09579655a3cee3d75fc42e096c06eb9dfeb4e33e547c4236a"
+      },
+      {
+        "path": "packages\\protocol\\test\\schema.test.ts",
+        "sha256": "be454084b2a14e0b1cd806f2343d742f1149e67b53e9472587e541d448438688"
+      },
+      {
+        "path": "packages\\protocol\\test\\skill-invocations.test.ts",
+        "sha256": "a19d12bbf33410c0a527c558b919971759ea57155c5a5f952ca3898afa40d6d0"
+      },
+      {
+        "path": "packages\\protocol\\test\\tool-authority.test.ts",
+        "sha256": "5c98005f1f501f2241ee238ce20e26a2d18c289d47e4b211fd17cbfc88a45f99"
+      },
+      {
+        "path": "packages\\protocol\\test\\v2.test.ts",
+        "sha256": "2dbb29d357baf02496104fc488791d96d3bd608760542b03423a2442a4e89e3e"
+      },
+      {
+        "path": "packages\\protocol\\tsconfig.json",
+        "sha256": "19dc3d7f8c99e895a07568c95e2fdc28e34fb0a48dbe574e749e3b45c064145d"
+      },
+      {
+        "path": "packages\\runtime-adapter\\native\\AgentRunClock.cs",
+        "sha256": "8bd77c30b8f6b7606b5e48a568fee546b40f32857a96cf88be1658e709896d11"
+      },
+      {
+        "path": "packages\\runtime-adapter\\native\\AgentWorkspaceSandbox.cs",
+        "sha256": "a35ee86fbe66cdf4286c710cf63454c5e9727d947e699a192f1bfadd17391d9b"
+      },
+      {
+        "path": "packages\\runtime-adapter\\native\\AgentWorkspaceTransport.cs",
+        "sha256": "39504606da9331f71c762f00c6d4f91352649cbf6867e4d8dc5cd9c0df6cafdc"
+      },
+      {
+        "path": "packages\\runtime-adapter\\native\\AppContainer.cs",
+        "sha256": "7b6f86476ce0b1101c39a0665aa5e914701d500aff70591980afd64a4ea68fbd"
+      },
+      {
+        "path": "packages\\runtime-adapter\\native\\ConversationTransport.cs",
+        "sha256": "c3e4925ffd33114fe767c477ef7dabcde0d3131ad33a21c7fb5f6bfd90466590"
+      },
+      {
+        "path": "packages\\runtime-adapter\\native\\GatewayTransport.cs",
+        "sha256": "3b83cb8d1ab7c95f7f6d9486258d9473057a6a235763c3a32315296d8650bf28"
+      },
+      {
+        "path": "packages\\runtime-adapter\\native\\IpcTransport.cs",
+        "sha256": "77d54eebca9697d4434133e4452aad01abdba9b035c055cdb5879770aa30dc12"
+      },
+      {
+        "path": "packages\\runtime-adapter\\native\\WorkspaceFiles.cs",
+        "sha256": "024811c6ca219212dcbf0d699a5e83791f193ea23cf359da36f0521a072d4a6a"
+      },
+      {
+        "path": "packages\\runtime-adapter\\package.json",
+        "sha256": "5170d628e71f3f6789a95e1409dc60df9a2aaf87665cf903495201c2e2dc1adf"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-run-budget.ts",
+        "sha256": "cc65ccae99df8e08eb16aed9e26261999bd69d9a8e8730af2bc2fb892aba81f3"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-run-clock.ts",
+        "sha256": "3710a386f341ffd9ab4837f5535e0527a6c4422a009c2156e88a52b5f8430529"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-runtime-operation.ts",
+        "sha256": "bf3db3c49a46d5c3cf595e243cc4aaa4f8cc57552fd26a84005280d5880564b3"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-runtime-result.ts",
+        "sha256": "78566bf5c73f501664ec90b0c8f22c5fedb25897a657b8a8b67811190d42acc3"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-start-ledger.ts",
+        "sha256": "37ef4a4273953bcc7edd1ec72ee8721d38fdeb6e52b76c2a1bff8cc920f6deb9"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-start-origin-windows.ts",
+        "sha256": "76d0bd83677ba7ed72f07679ca1910327c9e574b1bf078ddca5f17504f40ca9e"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-workspace-authority.ts",
+        "sha256": "8a6bcf118b1acacd7c8040b3cb53d6c9f300cf419eccb0e4101a8de84aaf7620"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-workspace-ipc-journal.ts",
+        "sha256": "bc46d63634dbdebca4acd09e3ea29d943befb23808aa3f114bd8cecbfa4a3479"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-workspace-ipc.ts",
+        "sha256": "24a7fc98727954c305eaa3d0d269d19fad859aca1cf027ea8af34ffddcdcb40e"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-workspace-sandbox-recovery.ts",
+        "sha256": "5189365d17e7046f6ce156d35bee9ae1c901c6ab4f1d63886d6a04f6b88c5603"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\agent-workspace-tool-host.ts",
+        "sha256": "b9f139f3ab352bcce34d8f7d3fefa22a38214fc43328660ccb132a6af8f27161"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\connection.ts",
+        "sha256": "6084dac3128e0878e584945109fac4132baa7514d9c771762b504392f361238e"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\execution-lifetime.ts",
+        "sha256": "d9dd8052926f0fcce9eb2fd7a13aa9f6ff435c67e6620542f1afb31a7d6ce351"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\execution-policy.ts",
+        "sha256": "680dd6b8f1841e112f9282436f4114124f31e8d7a7ae5d6652d8053e40c6a449"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\files.ts",
+        "sha256": "06ab5bff6f580fab71c7bec26d725196582208f1235b1c7cc9330102d63ab326"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\fixed-method-replay.ts",
+        "sha256": "ec235c0652fc180875dbc236a12dcca7a6076f10e500eaa7d0b253cf203e96b6"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\fixed-method.ts",
+        "sha256": "c9d4d7772432b73e6aa3ad026128dffdc33039ffc68405bc525cbab22433d7d1"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-address.ts",
+        "sha256": "546a40fd0baab3b2db701f3f2348dbae70eac3b1464f8e58d9be27cb055a4b07"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-billing.ts",
+        "sha256": "e4d98ef631047a7d015b23b7500b430857da8af8cc4f9357466dd13752cf3305"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-bridge-probe.ts",
+        "sha256": "c5a8f87d91edf41a73e13df4f5b7e13a817e46d6c5e359904a9333af32939325"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-bridge.ts",
+        "sha256": "efb162791874db3eca325089b26a1dc36d0c1d36b7abc77a8efb0e42a313bc1b"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-budget.ts",
+        "sha256": "59fa4a5788583ce62d7ac5b5bcb797cb220bc75a02b9e4cfd1f5f782cb5b11c0"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-conversation-bridge.ts",
+        "sha256": "9860aaa65067fb89406d0971ae043f1bf596d94795b0ce1a0ccfb05338a48081"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-conversation-probe.ts",
+        "sha256": "bf90eacc1a970207a36957336dd272a3c902defd1b0a10968ef1b4bcee868f66"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-conversation.ts",
+        "sha256": "d962503879ff4ef376dc6bd2e4992fd47f20b895e598e67ba201bab3be3da1ef"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-credit-owner.ts",
+        "sha256": "93fa203fc8f7a65fb14897c93bf908782011ce3ea6a29d904e6f14c6c7c023fa"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-credit-probe.ts",
+        "sha256": "569c4c105eadb339df4753e79df264f7c15029d869cbdb1fccf5112c5800d7ce"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-credit.ts",
+        "sha256": "39a6c1983f13e8a8452d39f38a5b98372106988b072be46663affa7cfa395fd2"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-fixture.ts",
+        "sha256": "1c63b5ce97b47eb86218e21750845e70577cbe493ac5632ef081871cc33cb9eb"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-host.ts",
+        "sha256": "a012b10553285921cde1027c10186d2771384c944233197a142e8b3d987c7691"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-http.ts",
+        "sha256": "b3208e6e9e9d9c76616b1032e21e578c81342538e94559c569af590d7f310eb5"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-network-probe.ts",
+        "sha256": "3b2538ded2de466f984be0e3f695f3e87d426f659317348128b4c31c9b56f641"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-network.ts",
+        "sha256": "780dd64a4c803fd4067866b593bd1edcbaffe4dfb2aab1c7431f5666c07fddce"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\gateway-probe.ts",
+        "sha256": "c28e5707d8d65658ad739fb4d47414c020b8ec561350d4cbe09df0e48bbf670f"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\index.ts",
+        "sha256": "968a5eefb600a0eb557ecf4110bb5c2c504536017b19cfb5356631f9e741268c"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\ipc-observation.ts",
+        "sha256": "fdd1c5c9894ee6847a5705ef4d9013ee62da5b63d517613c1ca0732bd4b65318"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\model-gateway.ts",
+        "sha256": "52c31c89d6a5116939c68e45a8c1892874bbc81a535e42b072368451d8174ca2"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\named-method-originals.ts",
+        "sha256": "b4f7b6d6c22e030dc99ef2c29e48def71c5a0f6bbf882832e25cd942d9e84155"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\native.ts",
+        "sha256": "5e03fb6bfe942d5c5d7874f9e5dd3691939ecbacfa72184b7154793832b62fd4"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\opencode-workspace-rehearsal.ts",
+        "sha256": "935b4a63a284150c1b27db8ca3499443ffab36c15b1dfdf02d53d3a1a8129f61"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\operations.ts",
+        "sha256": "05e3e35b8bea2fe49a68af4fa26ec25521c29fe5db6b111dd70925e878f20cce"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\private-cleanup.ts",
+        "sha256": "9b0b6da5b7c8353b4e90b06ecf528d8ecd5258ffcde107f5147b3b2a76d8227c"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\probe.ts",
+        "sha256": "1c63161123a6afedd54ebefd06410abda2858e9ff130c222cd30dd418c2be06b"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\recovery.ts",
+        "sha256": "d4057aef804036d992767dbc4504764cab246e6f10469415694ef2b3c16f619b"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\supervise.ts",
+        "sha256": "197145a9b43e0f853a3140a07e43fc360ec54c34ffd50e4f131c31f6c3b6afc5"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\tool-host.ts",
+        "sha256": "9ace68c69cdff35239c581f4f4fdc0e43a3fb39b59ba7e9c676da12fa281fd74"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\tool-journal.ts",
+        "sha256": "fe3e98d6a5f635b8d7f11fd5f69b7d779e96b7f051ec10fb74c6ee1d59859aa6"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\transport-probe.ts",
+        "sha256": "2fe992c53ea9c6a5a1e5711ef6a2e4c433e2a59522cad396050ccfbb5013ebcf"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\workspace-checks.ts",
+        "sha256": "c1cc547b6cdd41cf5d040c98024892a895e0ef8c3b7a2a495b706a85fe53d63d"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\workspace-files.ts",
+        "sha256": "0b184ef838d3057368317af3c425089b5b21e331c1b281fde1a21c1292ab7219"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\workspace-tool-host.ts",
+        "sha256": "3c013b8395e6792ca5124dcb53c2db552411b8758e4dabb76cf8c84a39c9f989"
+      },
+      {
+        "path": "packages\\runtime-adapter\\src\\workspace-tool-journal.ts",
+        "sha256": "bda463fe0884571bdf688f4ca6b05311ea08602b402d16b63d9874d7c4bf7ee0"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\adapter.test.ts",
+        "sha256": "94d003ac46a1ef4fb1e8574fed5e983de6c94fa9a98532080006316cbb52f21d"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-run-budget.test.ts",
+        "sha256": "b197512e1951d20b167df95746ebe06c9c45e6a30a786e2a4eb11c85893d723b"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-runtime-operation.test.ts",
+        "sha256": "a49c8e7b6de8513fb037153e62fe46fb4958434c2749412e8b89157b442af43c"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-runtime-result.test.ts",
+        "sha256": "f01eb93ef46d00e7f5a76cac204180e081fe165d0609b305cc42e93a7f1e8eef"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-start-ledger.test.ts",
+        "sha256": "212212db3bcb5bf0cdd632be6c2793950c6a0de8d1fc9d04c21ef3d5042025a4"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-workspace-authority.test.ts",
+        "sha256": "7219815b2d9263708ceb8fac29158a23d751369efa5d5992079a321f6f12c7e4"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-workspace-ipc-journal.test.ts",
+        "sha256": "51d7e9e097ae894e2f8c178b94931ce4121b919e545697b381c360e112454463"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-workspace-ipc-peer.mjs",
+        "sha256": "877f460dc4efb042edabade9fe03ef9f02a24262da912540330e0f304da4784a"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-workspace-ipc.test.ts",
+        "sha256": "1f36d70d9df70c7bdcebd92a6ab942d3ebabe29cb8ccc3e1e3a004b1af81ef79"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-workspace-startup-worker.mjs",
+        "sha256": "5d797c68efa56eb81cb8f0aff86b6d2d516e15ff0022ebea93be4f35cb145af8"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\agent-workspace-tool-host-worker.mjs",
+        "sha256": "3daa3317d9576d73456b17f9752e54f03d6e47bdceba0467cd7b42bbe7a026a7"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\connection.test.ts",
+        "sha256": "a686f1ecaf3ad0c4d702a5c4627890d4ccd455d7d7cfd76316ae4f7ad9d44198"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\execution-lifetime.test.ts",
+        "sha256": "132c15428b7457feab9c569506e2de2d5d17bf217417fb41247b6636e488d0d6"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\execution-policy.test.ts",
+        "sha256": "0aeee6a6fd7e6cef97940235e1775849cfdcb90745dd5013dcd57a14b6c4b194"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\fixed-method-fixture.ts",
+        "sha256": "f4619c3b1e7fe9e5cc1f39f06d82695539090a4b4d1d6b3c7addda8d3f467306"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\fixed-method-replay.test.ts",
+        "sha256": "02c8f45c412055ce779ebffe7bb1b5067d6cf563b5d01a2e7d5516db54c0dd7e"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\fixed-method.test.ts",
+        "sha256": "db5fbc71fc44e996960b7b40743b8295c9a13e0ff3ade43b2823baca01a8e492"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-billing.test.ts",
+        "sha256": "df5434c2efbdd0da1cb061c5de6ca71c3b17141fd3109afd8345401c526e1b53"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-bridge.test.ts",
+        "sha256": "5e0b8a2e75d1f8dd317f988d9cb631635f780e4eb660ab96e3136c8170d306da"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-client.test.ts",
+        "sha256": "f01e29c117e94923abb0c4d3f96c357cb44e950047296a9a7fa46f65b4c37b7b"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-conversation-bridge.test.ts",
+        "sha256": "8b114783fcc076ecabb662892e0515767df92ac2b44e6161f0ce3cc69a56c7c2"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-conversation-cache.test.ts",
+        "sha256": "6c0600cc317d422da71755e47679b8632697ae9f443fcac6bdfc7a304b05a1ff"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-conversation-client.test.ts",
+        "sha256": "5d72eff6c42770032adea71a8fc8f15329de6afa4d0de07ef41ebb4bf79b920a"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-conversation-fixture.ts",
+        "sha256": "f2a680e0f76d9a373b37af934eab3708ce1d1f78afdddc93c6ff7cab6e4dd99b"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-conversation-host.test.ts",
+        "sha256": "6df4fd579914771783c7db6a4f7b652e166a0cf3989252b60f0d7f1f5407e61a"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-conversation-originals.test.ts",
+        "sha256": "7a61677db7b88a6823f25fee84208e155b6c95910e09a1babb93d07c042c084e"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-conversation.test.ts",
+        "sha256": "01cb3a016cd0490d214a858927854eb88867b0cebfe427e0a066c96021fe2255"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-credit-cache.test.ts",
+        "sha256": "b36aa08093d2b983c96b762660c91c955248b8e69a6007cd4f14b84890ac658e"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-credit.test.ts",
+        "sha256": "d2c5db80715787738b9e594fbef675fd163c2691e8a20064c3136e245c44b87c"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-host-worker.mjs",
+        "sha256": "20a349b8bf03ec976c570fa41405386fe5f27ec936fc12a2813829726601efaa"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-host.test.ts",
+        "sha256": "f55e3f34d2875a49c1686b34c8eb7a7081913a200a744b1d3327b1eea33ab80f"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-http-fixture.ts",
+        "sha256": "8498828eb94292fc090ad04a8a42220663c6a22324fa8ee91e5bbd89198ddf7f"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-http.test.ts",
+        "sha256": "32335da989ef0c988eba13089cae5514c58a034185d8be6830e342edd23b2577"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\gateway-network.test.ts",
+        "sha256": "a2a78e86351ac5d1986bab10bf6d96331e203ae7b6c4872da43db896fcdf9357"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\ipc-client.test.ts",
+        "sha256": "d6f1b61a4e1c5d511ebe36decd8fe48dbb9f28e2653f1c4acf052a43b9a43c91"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\ipc-transport.test.ts",
+        "sha256": "9a422eaca4ee0b89bde7deb43ce1a82e72506cf0de199dbcc4cb63c7e64a771c"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\model-gateway.test.ts",
+        "sha256": "99a98b187df4f9567e41256765833f06b950a948997092b06baf5c3a482c56cf"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\opencode-workspace-tools.test.ts",
+        "sha256": "e332a247dcc2ed47d54b5e27afb112b42c293e39be8af1afa350554592fda2b2"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\owned-fixture.ts",
+        "sha256": "701f8d2824bed3044a068a4c7739668bae9e1e12449e816c8d027cbdc55a8471"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\recovery.test.ts",
+        "sha256": "23496913a7524cd90ddb3798a89d7c273e095e0518066f83a28d93d62470ec8d"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\skill-loader.test.ts",
+        "sha256": "eb4047e723cba82e69f8f198ada5ea501095049ae1d4ca2c536eb70822dbb2c1"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\tool-fixture.ts",
+        "sha256": "297008fc912019ff7dc9b68d1d1ebaa15c520580d97ef2b69c9878ccf6e66d60"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\tool-host-worker.mjs",
+        "sha256": "bfb0696d525bce4663b1447bd32c88d658fa2ee54b5665fc3308a36803affcd2"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\tool-host.test.ts",
+        "sha256": "db6fdda87c5f79675cb5697f17dc4b63f252ac0334e2263117aa34ac8501384a"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\workspace-check-contract.test.ts",
+        "sha256": "bded27b60c3ba69d9ba7a8a9c92597e230de45ce014115a1b687bcb90dc638e6"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\workspace-check-host-worker.mjs",
+        "sha256": "51b56da44025815a300f236e01bbbc088e4852d736a7bc4ba213a2eea2f24810"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\workspace-check-originals.test.ts",
+        "sha256": "45e62a1511f4aa165c0f8739700ba671decd0fee03ddcaad62ca7976fa42a330"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\workspace-check-template.test.ts",
+        "sha256": "2987e76f8690309d0720f65f6d7bb858f799b6db24eb5abcf4bb7fcf9ab75fa6"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\workspace-files.test.ts",
+        "sha256": "e7e62d6a6085a8f53a4ae91ad3db0748ca0686d482ac31feae9de5cb12de3ad5"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\workspace-resource-recovery.test.ts",
+        "sha256": "9c480733d00da22521affaeedbff8c047eb8c647a45982dbc9bf19d69ed594f5"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\workspace-resource-worker.mjs",
+        "sha256": "c64d0c97b29c6cffdb1e69e1986f2291ff0d772b1b1bc1e45e1903d50f774390"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\workspace-tool-host-worker.mjs",
+        "sha256": "8bd3d25ef794964f1c7465a6b1061de0e329ae3ade301f91d8832716cb51b23d"
+      },
+      {
+        "path": "packages\\runtime-adapter\\test\\workspace-tool-journal.test.ts",
+        "sha256": "d3482b3e02306688946f5158ae8478eb610c3ab6bad5ac9ff8e97ea471b010e0"
+      },
+      {
+        "path": "packages\\runtime-adapter\\transport\\agent-workspace-ipc-client.mjs",
+        "sha256": "f5425e43e50ec7366c89bd5f7c36d479d1e46bf79ac161fb5271d9c62acb9997"
+      },
+      {
+        "path": "packages\\runtime-adapter\\transport\\opencode-conversation-probe.mjs",
+        "sha256": "a963007c315926ce59304450c8e5cac647c104c1d2c949a232a38df47f5bbc69"
+      },
+      {
+        "path": "packages\\runtime-adapter\\transport\\opencode-gateway-probe.mjs",
+        "sha256": "7f7c5f783e9a4d4cacab0ba4edd50ce245bf793e2f570f15d2c0a75336baf09a"
+      },
+      {
+        "path": "packages\\runtime-adapter\\transport\\opencode-ipc-probe.mjs",
+        "sha256": "fa04aeae81be52b56b1ba6828f62303053ed89cfe802312d109d3ba96a13a14f"
+      },
+      {
+        "path": "packages\\runtime-adapter\\transport\\opencode-workspace-provider-fixture.mjs",
+        "sha256": "938242ace055e6b4d7948802900deba4a841c15ae627396a46aafaae713949aa"
+      },
+      {
+        "path": "packages\\runtime-adapter\\transport\\opencode-workspace-tools.js",
+        "sha256": "f18a81a465a3b6b25c8fdaa3531dfb6b3c6ce955b7df504f29e52de1e52e1594"
+      },
+      {
+        "path": "packages\\runtime-adapter\\tsconfig.json",
+        "sha256": "b66cf44b8005cf6b4fc73472c158e87532c230dfee5182e59e697f20909638fe"
+      },
+      {
+        "path": "packages\\skill-adapter\\package.json",
+        "sha256": "99dcff19bb6630823aa0de3ad8de528734e9bd49752bcb555d0b22d8f9bd79a7"
+      },
+      {
+        "path": "packages\\skill-adapter\\src\\fixed-method.ts",
+        "sha256": "6af3453039b29c6c83bb1aff02150262e7debbb9ed049c7277c0edf10ef0e32c"
+      },
+      {
+        "path": "packages\\skill-adapter\\src\\index.ts",
+        "sha256": "56f336be8be70f7e2d16577f232406c3dab730ce6d4882045bbbd822592a2778"
+      },
+      {
+        "path": "packages\\skill-adapter\\src\\invocation.ts",
+        "sha256": "9f6a36a1f6b7c44aaf63df0c47bf56fe88b956ad40ba8ce543d8e99adc6dc1a4"
+      },
+      {
+        "path": "packages\\skill-adapter\\src\\package.ts",
+        "sha256": "4c6122dcee020ee2da24cfe69a35b9f5e4d773869d1bbdbd819ba7a36d3c20da"
+      },
+      {
+        "path": "packages\\skill-adapter\\test\\package.test.ts",
+        "sha256": "ac20e23945305bafd7ee707d2cef09651e4aa8f501bd42a68a92c480ecaf6edb"
+      },
+      {
+        "path": "packages\\skill-adapter\\tsconfig.json",
+        "sha256": "ffde1b3a85ca31160195645849a396d0e7cb6c6bf6c6f692a82b32852a41293e"
+      },
+      {
+        "path": "packages\\store-sqlite\\package.json",
+        "sha256": "ce58e0daa222f4768e549b9b543d94dc211079dc7c32bd86b33ad0202e2b8dcc"
+      },
+      {
+        "path": "packages\\store-sqlite\\src\\database-format.ts",
+        "sha256": "17ddadb032474fd7c2c1174a029fb15da286a9a3c832c951388ed19786b25a36"
+      },
+      {
+        "path": "packages\\store-sqlite\\src\\format2-preflight.ts",
+        "sha256": "4569a703de4782535f43b467fcbedf9f04176e076b38e9cee474936eec3d052f"
+      },
+      {
+        "path": "packages\\store-sqlite\\src\\index.ts",
+        "sha256": "787acd46d17a12dc22358e972d786ff9cc968db05f788fe7e0c9c8cac5605bbb"
+      },
+      {
+        "path": "packages\\store-sqlite\\src\\migration-runner.ts",
+        "sha256": "065649d3b98f5c84ac041c189584c17ddc802e556faa55a72dadc0bd2abab853"
+      },
+      {
+        "path": "packages\\store-sqlite\\src\\project-store.ts",
+        "sha256": "a715b6399e3d63784a869f8802c5289e150e7d9c52e469fe424d97f769b22a87"
+      },
+      {
+        "path": "packages\\store-sqlite\\src\\registry.ts",
+        "sha256": "18097c94aa5f8e1888e93e35252a952e4912d3d3e2615871a23b6098faaf9916"
+      },
+      {
+        "path": "packages\\store-sqlite\\src\\v1.ts",
+        "sha256": "dfeec5692e5ac5a7f3ba4c474edcbc13072c49548676035f33d829017d736998"
+      },
+      {
+        "path": "packages\\store-sqlite\\src\\v1\\project-store.ts",
+        "sha256": "a6d9847625638fecb441af8c349f8fa85d90699bd130d2edffd55c127a0c1621"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\agent-run-launch.test.ts",
+        "sha256": "fe2cadeece31f5a00d190b16a7362e36f8720662f2864e0139e0d06e0ac5707e"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\agent-runs.test.ts",
+        "sha256": "1b3c09a31e1b7dde8c39079723507f4b4a6d8e2bfd9d16041da49f9f6d0acac7"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\agent-tool-authority.test.ts",
+        "sha256": "187cc325af3796314464cd11601d62979f7dc9d2735cced20319a90b7ba0eecc"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\current-store.test.ts",
+        "sha256": "fcc377cd14f7079b77c59e9bd876bef9387c417e616f1de6d4a8ac4931b95b2e"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\execution.test.ts",
+        "sha256": "2f8b2d768cbc768f2264fca30fee023e51e679fbd873b8627feb31bd3e0d0bb8"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\flow.test.ts",
+        "sha256": "ed64c14b10ee521fe3f8b3f23fafe939e877d484dc255f00273a6e8c6a04cf2a"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\format10-migration.test.ts",
+        "sha256": "4237601651e171c40b0e1b4358eea8b8cdea64a118cac26e01c2db31161a17b7"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\format3-migration.test.ts",
+        "sha256": "b3021fa74b33c96a2281c11893cda31d93cf4d5d1933def21ab13165bc1bd712"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\format4-migration.test.ts",
+        "sha256": "27f10bfee49fdefea6cf0cb291aaa4c9175b2072b881dbe83e4105c1397b868f"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\format5-migration.test.ts",
+        "sha256": "ff2a7c385c88432dfffe22a1bd3a4423b730f1734a2dcba0c7bfa1d3e104ecce"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\format6-migration.test.ts",
+        "sha256": "d4af4d08b7b2683734633db9953161c1fb40283e19a2db7ab1ce5c1a32dd83d2"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\format7-migration.test.ts",
+        "sha256": "5f3bd164a8ff8297a7dc76f49e519bad765bad2c24396f6c00cf2f28e6d21732"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\format8-migration.test.ts",
+        "sha256": "12841ed1fc460dd9b7c8326988654deda6a4d71fe9a31f9a738a2494989bd0aa"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\format9-migration.test.ts",
+        "sha256": "fc3201c0ffea55d1a2fb5c3ae7f57a0305f3d0d69b4496dfcc3c81bfa56f2fad"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\governance.test.ts",
+        "sha256": "0fe4568ffb9a1a26660177a800b7b394fcba479f49eca895c42f2aafc89a51f0"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\intent.test.ts",
+        "sha256": "349c6983433a0edfa206bb8a74a045b0c94b43bb2bf429c16546516e8c538323"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\migration.test.ts",
+        "sha256": "d4960b5bb50ee66b3b643d966f1d9c3cbb51304f6c18a67700183934cbdb19bc"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\project-store.contract.test.ts",
+        "sha256": "526b0cae0b201b7504ac8977dc6554f88df6164dbda80225b032c4938b8ae688"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\review.test.ts",
+        "sha256": "9e13bc72b6450b2abf31c098dff992102394057c86fc326c42ac95db904ee680"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\runs.test.ts",
+        "sha256": "bb82752416020f77e0c89c8885cb03afe211f90b2fcf40145d08d6cb7d51cefd"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\skill-invocations.test.ts",
+        "sha256": "974a0f13633cc4473ee931048fcab0b0970959fec8f762658907b7357fc5a858"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\tool-authority.test.ts",
+        "sha256": "14dc73c4e6d7ee2efa714ff040ec5941d37c9f0991118028bea602eede0fe5ca"
+      },
+      {
+        "path": "packages\\store-sqlite\\test\\verification.test.ts",
+        "sha256": "56b5ebc39390a8a1c1fc9c7c011c46238f4d4dbc0cb0aa0d8593115ef6531942"
+      },
+      {
+        "path": "packages\\store-sqlite\\tsconfig.json",
+        "sha256": "572131151484c0f17aa216d15af8c80d657ff1c27803077f33ece1657e725dea"
+      },
+      {
+        "path": "packages\\store\\package.json",
+        "sha256": "f8b3414e3a384f44da95476f3bcc5ddbf43f232984f4a0e442eda4a1e5f4f4e9"
+      },
+      {
+        "path": "packages\\store\\src\\index.ts",
+        "sha256": "35307e538b99ee1c57e97ea2deefb31228e9166fc3465b31649f87f038eb9db7"
+      },
+      {
+        "path": "packages\\store\\src\\v1.ts",
+        "sha256": "ac5ce7d602ec733e6502a78d52fde22ebc7a8e148a4817f5afef5bd214962241"
+      },
+      {
+        "path": "packages\\store\\tsconfig.json",
+        "sha256": "099d9585e4504eb725ba43098b1bfdb544753424fe6f22633629194dd191b3c2"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "68a4a3cd87d052c20bdc29742f815918878e8b54d2d80d65fa6b915751cbf545"
+      },
+      {
+        "path": "tests\\contracts\\project-store.contract.ts",
+        "sha256": "d714e916aa702577373d18d7d63c5319f700e75e9a7944f120913ec03100cf01"
+      },
+      {
+        "path": "tests\\fixtures\\agent-run-project.ts",
+        "sha256": "667c416a075bba98b8e6068d0b47e81939fb599f84d5b3603ed46e76db440daa"
+      },
+      {
+        "path": "tests\\fixtures\\capacity-client.mjs",
+        "sha256": "c77199452ab04ce06ef4a740a07f55a3f6de073a4ca192abdd266656ebcfb924"
+      },
+      {
+        "path": "tests\\fixtures\\flow-project.ts",
+        "sha256": "72e7c0d8f2482aec8915ecdaeba55b9e4cee4a8cb7ffa73926bb990e78c93ec4"
+      },
+      {
+        "path": "tests\\fixtures\\format2-history.ts",
+        "sha256": "8da3aa8555bedfd08dad1f78ec1e23d3c264d8eeee01f0b230380b5fc6d33556"
+      },
+      {
+        "path": "tests\\fixtures\\governance-client.mjs",
+        "sha256": "7f4df3b2017e7f8cee915516cc144e9173514cd6c5829054fdaeae95f6671265"
+      },
+      {
+        "path": "tests\\fixtures\\intent-project.ts",
+        "sha256": "41c2ca83f2a60cee47701bb0394e9e719346f6d9f4f77599e13d049c71307073"
+      },
+      {
+        "path": "tests\\fixtures\\m0-database.ts",
+        "sha256": "a5098eca313e1a48ab3e854d2cccdda105bdc6f0795c02ab7d9a0d44901da277"
+      },
+      {
+        "path": "tests\\fixtures\\migration-crash.mjs",
+        "sha256": "50f4c3c512d83bebd89e8b35191483b44b0da7f8cb1ad482f63912f6d478145c"
+      },
+      {
+        "path": "tests\\fixtures\\named-method-transcript.ts",
+        "sha256": "991e13757dfbef64c89ff26aac56af37b07fcf8cca72a50519ddfa822addb5e9"
+      },
+      {
+        "path": "tests\\fixtures\\provider-probe.ts",
+        "sha256": "6d939b91bc149e402b3665cf3b7a0f7bed425c57f37ec0124bd89d17dd1fe2b4"
+      },
+      {
+        "path": "tests\\fixtures\\run-client.mjs",
+        "sha256": "5a5955b965728bfa7f10c9bb1c137a9901812158d19b63bc67e9fcd733f0aa00"
+      },
+      {
+        "path": "tests\\fixtures\\run-project.ts",
+        "sha256": "59037b098b66691a531cee0a8da627b7d2ad0847fd3bac3a0d5dcfdbbafcca05"
+      },
+      {
+        "path": "tests\\fixtures\\skill-invocation-project.ts",
+        "sha256": "fdede9b4e2a35b78e008dc1743aea2743012349eee3194bec0dc4d155c77904c"
+      },
+      {
+        "path": "tests\\fixtures\\skill-probe.ts",
+        "sha256": "fac63b608a23c6480cec94ccd94398ed4dd3718125fd4a272e37aa8b506b4737"
+      },
+      {
+        "path": "tests\\fixtures\\verification-client.mjs",
+        "sha256": "be762e61b0fc3f73666d094c8812cbf7a3388ff672430a94a45bbb8ac98dfbcc"
+      },
+      {
+        "path": "tests\\fixtures\\verification-project.ts",
+        "sha256": "1e238788d6f834f0666a85841a2fc056aaa0fa24149c1d01891169255f64c75d"
+      },
+      {
+        "path": "tests\\scenarios\\agent-check-admission-runtime.test.ts",
+        "sha256": "2580685571c1a127e181a90c007a63bb3a4da0c6dc8e51cbb28bd50deed4d846"
+      },
+      {
+        "path": "tests\\scenarios\\agent-run-budget-runtime.test.ts",
+        "sha256": "46ace34df6e28e4e04cfc42ac988a34122be31a16048ea4d3203bf13cc489914"
+      },
+      {
+        "path": "tests\\scenarios\\agent-runtime-operation.test.ts",
+        "sha256": "1252e45ddc8d0208a924eaf4f0bfe41b08b7bb0ab3491fcb025478ac11e4b2ce"
+      },
+      {
+        "path": "tests\\scenarios\\agent-start-custody-runtime.test.ts",
+        "sha256": "02f93991a0344ff2aa0fe60c544f34d887cc33e1b8d65eacd9686918a51502ee"
+      },
+      {
+        "path": "tests\\scenarios\\agent-workspace-ipc-runtime.test.ts",
+        "sha256": "3ef059dc0830ad1e43b179e9c779888d752b314688b64d2b711261f1232c6903"
+      },
+      {
+        "path": "tests\\scenarios\\agent-workspace-tool-runtime.test.ts",
+        "sha256": "14f39b582a6a7485969ea42008b43b1c00cbe54aa09b1c4bccf457f9f8bff376"
+      },
+      {
+        "path": "tests\\scenarios\\cli-query.test.ts",
+        "sha256": "74c5518a49f2adc15951ce7dd93f92867d60a1bddd77a26709c69f72d65cd2bb"
+      },
+      {
+        "path": "tests\\scenarios\\cli.test.ts",
+        "sha256": "7230f5f386a4b07bd8babf0c8f48801b845d35ecf0e111102dba5a7a932deb73"
+      },
+      {
+        "path": "tests\\scenarios\\m0-reliability.test.ts",
+        "sha256": "b6193770dba17130d7b6ae8d041aa8157ce864e9a168c2dacf484b0146ec8066"
+      },
+      {
+        "path": "tests\\scenarios\\m0.test.ts",
+        "sha256": "7fa788c6e3b034ec9099275cc9442e98f05f5066e627114afe9ae5bb3776162f"
+      },
+      {
+        "path": "tests\\scenarios\\named-skill-method-assessment.test.ts",
+        "sha256": "36ef98cb24b939d152515ad82e252d6288fb6fa08ba09b210ff6ebf5c688b5ca"
+      },
+      {
+        "path": "tests\\scenarios\\opencode-check-runtime.test.ts",
+        "sha256": "fb47756fb20d72e42f138d04da778fbd0ffd0755fdbabba93fdffa2d4d41e58f"
+      },
+      {
+        "path": "tests\\scenarios\\opencode-lifetime-runtime.test.ts",
+        "sha256": "4ea3ff8a29e31dd3f28de4c3d0b17eac738b4938b5a13f33a7dd999b243ba8db"
+      },
+      {
+        "path": "tests\\scenarios\\opencode-startup-recovery.test.ts",
+        "sha256": "df6de1328b130acb196009c87df99ba306aa0f2a3c958e9eb0b756ede1198df1"
+      },
+      {
+        "path": "tests\\scenarios\\opencode-workspace-runtime.test.ts",
+        "sha256": "956030274d17780c80ea1a6497b8ab7ad19da61500645ebbd157790f8bf5dddf"
+      },
+      {
+        "path": "tests\\scenarios\\provider-assessment.test.ts",
+        "sha256": "92c1abf8546cb3672c06ea0f7621f9b18a3b8988f58014b54d6a6c54a2913de8"
+      },
+      {
+        "path": "tests\\scenarios\\provider-catalog.test.ts",
+        "sha256": "c61b8c981e9566e4d1c0cdb146bc3adbffa9e46df90e6273d429b45db017e9f0"
+      },
+      {
+        "path": "tests\\scenarios\\run-cli.test.ts",
+        "sha256": "6588676416d3e9aa872f333aa5d645e0034e9323c31738da99440205b6be7cf3"
+      },
+      {
+        "path": "tests\\scenarios\\runtime-probe-cli.test.ts",
+        "sha256": "f3569bbfa815dd1369e761d06b8b897b0e909a439c4b3be27ed3eedd9ca0d0d3"
+      },
+      {
+        "path": "tests\\scenarios\\skill-method-inputs.test.ts",
+        "sha256": "537b1f8542f4bef7450f928fc6534e8de261ba73da0dd1ef2219635d83226c9f"
+      },
+      {
+        "path": "tests\\scenarios\\skill-package-cli.test.ts",
+        "sha256": "d38d75b6aa22e38ee6e8d05c8bb12092ad09c4a3f3bc346dc6e878883ed60092"
+      },
+      {
+        "path": "tests\\scenarios\\skill-provider-assessment.test.ts",
+        "sha256": "bf9eaeb40a02f91876b9a83de04e500603f558f343cb2e600c6824edd6a77ab4"
+      },
+      {
+        "path": "tests\\scenarios\\verification-cli.test.ts",
+        "sha256": "3eac5a18d0f70c3828db7089d15b4a2a40e056222e176bdd1e2bd5489d93d927"
+      },
+      {
+        "path": "tests\\scenarios\\workspace-check-runtime.test.ts",
+        "sha256": "faf49b083f9b78ea3f79e56681fb0671a015786c93e2ceedaa1aa3cbf116ea1a"
+      },
+      {
+        "path": "tests\\scenarios\\workspace-tool-runtime.test.ts",
+        "sha256": "21e423e9ba873f406f80bf60100d447e1fe85d3e3701c15b182884859df2c60c"
+      },
+      {
+        "path": "tsconfig.base.json",
+        "sha256": "0f39576ede2db4ed847e38b133d07a79852dbc4e92b18e85f3aecace3895620f"
+      },
+      {
+        "path": "tsconfig.tests.json",
+        "sha256": "a18aa33c8d0617f540f450e0f41fb549fb93278b173ba8217994e19d28d7e38c"
+      },
+      {
+        "path": "vitest.config.ts",
+        "sha256": "80d9f838f4fde07cf90c0cbd736e9548319ef98adbdd9c07318d8f9433a985ee"
+      }
+    ],
+    "independent_review": "Ordinary engineering code reviewer confirmed deterministic pending callback wait and minimal same-lifetime fix; no further must-fix reported, did not execute tests. Not a Matt/Superpowers named method invocation.",
+    "same_source_failed_files_recheck": {
+      "path": ".cimiloop/new-host-s1/d238-failure-recheck.json",
+      "sha256": "5f94e25a940189e7afbe1f307f07c28e933ea9438b02cc3d0931eb53e17498cf",
+      "boundary": "Only original failed 2 files rechecked, no source/assertion/deadline changes. Does not replace original final 37/39 or prove Native stability.",
+      "success": true,
+      "total": 16,
+      "passed": 16,
+      "failed": 0,
+      "pending": 0,
+      "duration_seconds": 402.6871689453125,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-check-admission-runtime.test.ts",
+          "status": "passed",
+          "failures": []
+        },
+        {
+          "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+          "status": "passed",
+          "failures": []
+        }
+      ]
+    },
+    "document_checks": {
+      "utf8_fences_local_file_links": 17,
+      "diff_check_passed": true
+    },
+    "final_failure": "Actual first fresh wrapped fixed-check SDK scenario ended with workspace_rehearsal_runtime_failed; no actual completion asserted. The original fixture cleanup deleted this failed root after recorded disposal, so its exact exit/stderr cause cannot be reconstructed. Constructed shared-start response-loss test timed out at unchanged 15s, cause not established. Both retained in final JSON; no source/deadline changes for recheck."
+  },
+  "original_forensics": {
+    "path": ".cimiloop/new-host-s1/d238-retained-forensics.json",
+    "sha256": "1d09bb253c0b87e93f6984576fbf38d7e42aeb82d5ff5b01906c23ec3714f28f",
+    "snapshot": {
+      "observed_at": "2026-10-09T05:05:57.474Z",
+      "mode": "Read-only original retained artifacts; no Run launch/cleanup or paid operation",
+      "findings": [
+        {
+          "fixture_name": "cimiloop-original-runtime-RF2MtR",
+          "operation_id": "472690d0-933b-4c49-9b41-e49193949456",
+          "files": [
+            {
+              "name": "agent-sandbox-cleanup.json",
+              "bytes": 269,
+              "sha256": "820e1df3516602180350480023dccb961d9d8748ad7ac0b09bd7fc9745f90d39",
+              "record": {
+                "format": "cimiloop/agent-workspace-sandbox/1.0.0",
+                "phase": "ended",
+                "nonce": "29630932-f38c-44b6-af3f-a5372e3fd117",
+                "reason": "exited",
+                "exit_code": 3,
+                "runtime_stopped_uptime_ms": 102114796,
+                "resources_disposed": true,
+                "cleanup_errors": [],
+                "formal_agent_execution_enabled": false
+              }
+            },
+            {
+              "name": "incomplete.json",
+              "bytes": 621,
+              "sha256": "c4bc1b962d5246ed6ea6a1aa55bf4341a51896d7f38cc2daa929a09989af8e90",
+              "record": {
+                "format": "cimiloop/opencode-workspace-incomplete/1.0.0",
+                "nonce": "29630932-f38c-44b6-af3f-a5372e3fd117",
+                "original_scope_digest": "1e02b6d07bf4ad8fa90c6e11059494793876a571f01630d28b12e499461c6ea6",
+                "native_exit": {
+                  "code": 3,
+                  "signal": null
+                },
+                "suspended_observed": true,
+                "original_record_present": true,
+                "cleanup_record_present": true,
+                "total_output_bytes": 6539,
+                "captured_output_bytes": 6539,
+                "output_limit_exceeded": false,
+                "completion_proven": false,
+                "resource_disposal_proven": false,
+                "interruption_reason": "workspace_rehearsal_cancel_requested",
+                "actual_credentials_read": 0,
+                "external_model_requests": 0,
+                "formal_agent_execution_enabled": false
+              }
+            },
+            {
+              "name": "stderr.raw",
+              "bytes": 1643,
+              "sha256": "4bfc79298bf5a83a1ff7f628bd81d008bf90c345dadec2288547a9d9f1bb4018",
+              "markers": {
+                "bun_1_3_14": true,
+                "segmentation_fault": true,
+                "shield_dll_stack": true
+              }
+            }
+          ]
+        },
+        {
+          "fixture_name": "cimiloop-original-runtime-zmFOd2",
+          "operation_id": "2061e747-d151-4071-afca-86890d8d5827",
+          "files": [
+            {
+              "name": "agent-sandbox-cleanup.json",
+              "bytes": 290,
+              "sha256": "9dba2f9d7725e937947a7e72ab092dedd10634f5f31ab135e5155d469f090075",
+              "record": {
+                "format": "cimiloop/agent-workspace-sandbox/1.0.0",
+                "phase": "ended",
+                "nonce": "3f1fa0c0-d9cb-432d-bf1e-86d7317d5428",
+                "reason": "agent_sandbox_parent_ended",
+                "exit_code": 12,
+                "runtime_stopped_uptime_ms": 102856937,
+                "resources_disposed": true,
+                "cleanup_errors": [],
+                "formal_agent_execution_enabled": false
+              }
+            },
+            {
+              "name": "incomplete.json",
+              "bytes": 614,
+              "sha256": "9d4c8960dca6721b4c8e33a2665f7959891b94046166e531fb585901f3d80e4d",
+              "record": {
+                "format": "cimiloop/opencode-workspace-incomplete/1.0.0",
+                "nonce": "3f1fa0c0-d9cb-432d-bf1e-86d7317d5428",
+                "original_scope_digest": "7ae59a609b68b8dc9c4ce9aa790bc78cdd948f59d77031e00a55a446f0317f24",
+                "native_exit": {
+                  "code": 12,
+                  "signal": null
+                },
+                "suspended_observed": true,
+                "original_record_present": true,
+                "cleanup_record_present": true,
+                "total_output_bytes": 4918,
+                "captured_output_bytes": 4918,
+                "output_limit_exceeded": false,
+                "completion_proven": false,
+                "resource_disposal_proven": false,
+                "interruption_reason": "workspace_rehearsal_deadline",
+                "actual_credentials_read": 0,
+                "external_model_requests": 0,
+                "formal_agent_execution_enabled": false
+              }
+            },
+            {
+              "name": "stderr.raw",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "markers": {
+                "bun_1_3_14": false,
+                "segmentation_fault": false,
+                "shield_dll_stack": false
+              }
+            }
+          ]
+        }
+      ],
+      "boundary": "RF2MtR proves this original execution crashed, not the exact query-time inspector states or a DLL root cause. zmFOd2 belongs to the deliberate original-controller stdin-end RED; its exit and timeout are separate."
+    }
+  },
+  "history": {
+    "D237": "Initial 63/65 and same-source recheck 3/4 remain historical failures. RF2MtR cleanup exit_code3 and Bun segmentation fault show original execution crashed. Exact original query-time OS inspector states were not preserved; no reconstructed temporal cause or DLL root-cause claim. Original launch/Context admission failures remain unexplained.",
+    "D233_D236": "Prior Native startup crashes/readiness errors are not erased or shown resolved by this handler fix."
+  },
+  "invariants": {
+    "first_interruption_reason_retained": true,
+    "original_run_not_restarted": true,
+    "normal_zero_exit_checks_retained": true,
+    "query_running_authority_not_relaxed": true,
+    "immutable_original_claim_and_bytes_retained": true,
+    "automatic_domain_completion": false,
+    "automatic_fee_settlement": false
+  },
+  "evidence_boundaries": {
+    "actual_credentials_read": 0,
+    "external_model_requests": 0,
+    "paid_requests": 0,
+    "real_skill_calls": 0,
+    "constructed_model_responses": true,
+    "constructed_provider_full_custody": true,
+    "formal_agent_default_entry_enabled": false,
+    "production_driver_installed": false,
+    "model_account_custody_proven": false,
+    "costs_reconciled": false,
+    "s1_accepted": false,
+    "schema_v1": 18,
+    "schema_v2": 224,
+    "schema_count": 242,
+    "database_format": 10,
+    "host_start_ledger_format": 1,
+    "user_database_upgraded": false
+  },
+  "retention": "RF2MtR and original deliberate-failure RED zmFOd2 retained. Existing scenario IPC/lifetime own fixture cleanup may delete failed roots after registered-resource disposal, limiting those forensic directories; JSON results retained. No old Run relaunch, bulk Temp/Profile/mapping cleanup, historical Unknown removal or QA5363D6C.tmp/QF192D3E3.tmp inspection/removal.",
+  "remaining": {
+    "V1_09": "Production Native/SDK/model/account/checks driver, terminal domain result/approved budget/bills/server bounds, physical quota/history/original clock/full recovery and Native crash investigation.",
+    "V1_21": "Real Skill and pre-Plan/Task Human/Matt clarification.",
+    "V1_22": "Real independent Matt and fresh current-source Superpowers verification/actual behavior comparison.",
+    "V1_10": "Formal Workbench Agent start/execution continuation through shared Kernel authority.",
+    "V1_11": "Real ordinary Change to ReadyForDelivery with real methods/interruption/S1 evidence and complete operational integration guide."
+  },
+  "full_goal_status": "active",
+  "push": false
+}

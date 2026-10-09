@@ -131,6 +131,34 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     expect(f.task().usage).toEqual(usage); expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
     expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
   });
+  it("aborts the original SDK wait immediately when the resumed native controller fails", async () => {
+    const f = await setup(), usage = f.task().usage, sequence = f.store.asOfEventSequence();
+    let waitingAt = 0, abortedAfter = 0;
+    await expect(runOpenCodeWorkspaceToolRehearsal({ ...f.options, connect: (supervisor, originalSupervisor, originalPeer, nonce, signal) => AgentWorkspaceToolIpc.open({
+      toolsDirectory: f.dataDirectory, scope: f.options.scope, supervisor, originalSupervisor, originalPeer, nonce, signal, cancel: async () => {},
+      execute: async () => {
+        waitingAt = Date.now();
+        // End only this fixture's original controller input. The controller owns
+        // Job termination and cleanup; neither a new Run nor an external kill.
+        supervisor.stdin!.end();
+        return new Promise<never>((_done, reject) => {
+          const stopped = () => { abortedAfter = Date.now() - waitingAt; reject(new RuntimeAdapterError("original_native_exit")); };
+          signal.addEventListener("abort", stopped, { once: true }); if (signal.aborted) stopped();
+        });
+      }
+    }) })).rejects.toThrow("workspace_rehearsal_runtime_failed");
+    expect(waitingAt).toBeGreaterThan(0); expect(abortedAfter).toBeLessThan(8000);
+    const original = await f.control.collect(f.reserved.run.id);
+    expect(original.status).toMatchObject({ status: "Stopped", cancellation_requested: false, resources_disposed: true, completion_proven: false });
+    expect(original.native).toMatchObject({ status: "Unknown", native_effect_reverified: false });
+    const incomplete = JSON.parse(readFileSync(join(original.status.operation, "incomplete.json"), "utf8"));
+    expect(incomplete).toMatchObject({ interruption_reason: "workspace_rehearsal_runtime_failed", completion_proven: false });
+    expect(existsSync(join(original.status.operation, "result.json"))).toBe(false);
+    await expect(runOpenCodeWorkspaceToolRehearsal(f.options)).rejects.toThrow("agent_runtime_already_claimed");
+    expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.task().usage).toEqual(usage);
+    expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
+    expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
+  });
   it("joins Human Workbench cancellation, collection, Unknown observation and receipt replay to the actual original SDK wait", async () => {
     const f = await setup();
     writeInstance(join(f.dataDirectory, "instance.json"), { schema_version: "1.0.0", instance_id: f.project.instance_id,
@@ -154,7 +182,16 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
       toolsDirectory: f.dataDirectory, scope: f.options.scope, supervisor, originalSupervisor, originalPeer, nonce, signal, cancel: async () => {},
       execute: async () => {
         try {
-          expect(await request("")).toMatchObject({ operation: { outcome: "observed", result: { status: "Running", resources_disposed: false } } });
+          const queriedAt = Date.now(), response = await request("");
+          if (response.operation?.result?.status !== "Running") {
+            const operations = join(f.dataDirectory, "workspace-tool-rehearsals"), operation = join(operations, readdirSync(operations)[0]!);
+            const resources = JSON.parse(readFileSync(join(operation, "agent-sandbox-resources.json"), "utf8"));
+            const diagnostic = { response, query_elapsed_ms: Date.now() - queriedAt, phase: resources.phase,
+              resources_disposed: resources.resources_disposed, supervisor: resources.supervisor, runtime: resources.runtime };
+            writeFileSync(join(f.dataDirectory, "workbench-query-diagnostic.json"), JSON.stringify(diagnostic, null, 2));
+            console.error("Original Workbench query diagnostic: " + JSON.stringify(diagnostic));
+          }
+          expect(response).toMatchObject({ operation: { outcome: "observed", result: { status: "Running", resources_disposed: false } } });
           running = true;
           expect(await request("stop", stop)).toMatchObject({ command_result: { command_type: "CancelRun" }, operation: { outcome: "observed", result: { requested: true } } });
           expect(f.store.getRun(f.reserved.run.id)!.cancel_requested).toBe(true);

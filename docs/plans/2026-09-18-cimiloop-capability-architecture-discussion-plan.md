@@ -1,5 +1,7 @@
 # CimiLoop 整体能力架构讨论计划
 
+2026-10-09 D-238：原控制器恢复运行后异常退出会立即中断同一 SDK 等待，保留首中断原因、原 claim / raw 字节与预算；不重开 Run 或生成成功 / 费用结清。D-237 旧失败现场另发现 Bun 崩溃和退出码3，但原查询时点的全部 OS 检查值未留证，崩溃根因未定。见[原异常退出处理](../implementation/CimiLoop-原Runtime异常退出与SDK等待中断-v0.1.md)；完整五组 S1、生产模型 / 账户及真实方法继续，默认正式入口关闭，242 Schema / 项目库10保持。
+
 2026-10-09 D-237：独立原宿主首次启动账本已接 Context 与共享启动服务；票据绑定原机器、登录主体和原存储身份，首次 dispatch 前不可逆登记 Run / operation_key。缺原账本、新账本、复制账本、登记损坏或当前准入不可核验时拒绝重开；实际 Windows 权限与跨进程验证见[原宿主启动组合](../implementation/CimiLoop-原宿主首次启动账本与Runtime组合-v0.1.md)。完整生产驱动、模型 / 账户 / 费用、配额 / 恢复及其余四组继续实施，默认正式入口仍关闭。242 Schema / 项目库10保持，独立宿主账本为私有格式1，未升级用户库。
 
 2026-10-09 D-236：[原启动授权与共享组合](../implementation/CimiLoop-原Agent启动授权与共享组合-v0.1.md)与[验证](../research/CimiLoop-原Agent启动授权与共享组合-2026-10-09.json)。内部当前启动检查、固定业务材料和持久本地dispatch已接通；独立原宿主账本与生产模型驱动仍缺失，默认入口关闭，不以缺本地资料证明旧电脑未启动。完整五组S1继续。
@@ -1305,6 +1307,7 @@ D-144、D-148 等早期记录保留当时的“待定 / 待讨论”表述，D-1
 | D-234 | Human工作台原Agent运行控制 | 共享应用服务 / 页面已接原查询、采集、停止标记及资源恢复；正式启动 / 接续执行待完成 | Kernel `CancelRun`先行，错误不触Native，已取消才可重送原标记或恢复原资源；异步返回前重读原资料。页面保存原Command ID及Agent入口，重载重放时剥离传输标记，不创建新Run / Observation / 费用结清。见[实现](../implementation/CimiLoop-工作台原Agent运行控制-v0.1.md)和[本机验证](../research/CimiLoop-工作台原Agent运行控制-2026-10-09.json)。真实Kernel / SQLite / HTTP / DOM与Windows SDK等待中断分层留证，模型资格仍构造；普通代码复核不作为Matt真实方法。242 Schema / 格式10保持，凭据 / 外部模型请求0，完整五组S1保持。 |
 | D-235 | 原Agent待核对观测接Kernel | 原采集已接共享Human服务 / 工作台 / Unknown RunObservation；正式终态与费用待完成 | 原请求、claim/input、AgentRunRecord/Context、采集快照和不可变rawref持久固定；Kernel校验Human角色、CAS与唯一回执。响应丢失 / 并发仍只有一个领域效果，坏准备文件闭锁；523份原资料上界与IPC最大128交换匹配。仅Unknown / cost_known false，不结清预算或启用默认启动工具。见[实现](../implementation/CimiLoop-原Agent待核对观测与Kernel接通-v0.1.md)与[验证](../research/CimiLoop-原Agent待核对观测与Kernel接通-2026-10-09.json)。构造资格 / 资料与真实Windows组合分层留证，非Matt真实方法或S1验收；242 Schema / 格式10保持，凭据 / 付费请求0，五组目标保持。 |
 | D-237 | 独立原宿主首次启动票据及不可逆 dispatch 登记 | V1-09 / V1-10 续批，完整 S1 实施中 | 私有宿主 SQLite 格式1绑定原机器 / 主体 / 存储，Context 固定票据；Kernel 与应用服务双重当前准入、原全局 claim 先于本地 dispatch / Native。原资料缺失、复制、新账本、结构 / ACL 漂移闭锁。正式生产模型 / 账户 / 费用仍未批准，完整驱动 / 配额 / 恢复及其余四组继续。验证范围与首次失败见[实现](../implementation/CimiLoop-原宿主首次启动账本与Runtime组合-v0.1.md)。 |
+| D-238 | 原Runtime异常退出及时中断SDK等待 | V1-09 / V1-10 异常恢复续批；完整S1继续 | 原Native恢复后非零 / 信号退出即停止同一执行lifetime，避免等待工具回调至原期限；首取消原因、原不可逆登记与字节、Unknown / 预算保持。实际反例先红后绿，结果与旧失败现场边界见[实现](../implementation/CimiLoop-原Runtime异常退出与SDK等待中断-v0.1.md)；不确认模型套餐预算，不启用默认入口，242 Schema / 格式10保持。 |
 
 ## 10. 原阶段进度与当前校准边界
 

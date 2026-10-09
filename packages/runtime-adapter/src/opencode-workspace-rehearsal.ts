@@ -129,7 +129,15 @@ export async function runOpenCodeWorkspaceToolRehearsal(options: Options) {
   native.stdin.on("error", () => { rejectReady(new RuntimeAdapterError("workspace_rehearsal_input_closed")); });
   const ended = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>(done => {
     native.once("error", () => { rejectReady(new RuntimeAdapterError("workspace_rehearsal_start_failed")); });
-    native.once("close", (code, signal) => { rejectReady(new RuntimeAdapterError("workspace_rehearsal_ended_before_resume")); done({ code, signal }); if (!resumed) lifetime.stop("workspace_rehearsal_ended_before_resume"); });
+    native.once("close", (code, signal) => {
+      rejectReady(new RuntimeAdapterError("workspace_rehearsal_ended_before_resume"));
+      // A failed original controller cannot finish its pending SDK callbacks.
+      // Abort the same lifetime before channel closure waits on those callbacks;
+      // retain the first cancellation cause and the original claim/raw bytes.
+      if (!resumed) lifetime.stop("workspace_rehearsal_ended_before_resume");
+      else if (code !== 0 || signal !== null) lifetime.stop("workspace_rehearsal_runtime_failed");
+      done({ code, signal });
+    });
   });
   try {
     const identity = (await nativeControl(identityBinary, ["--identity", String(native.pid)], lifetime.signal)).value;
