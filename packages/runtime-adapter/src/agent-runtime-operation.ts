@@ -40,6 +40,11 @@ function load(root: string, rawScope: unknown) {
     const config=read(configPath) as Record<string,unknown>,proof=input.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;
     if(!proof||config.binary!==proof.path||!isDeepStrictEqual(config.binary_original,proof))fail("agent_runtime_binary_original_unproven");
   }
+  const launcherPath=join(root,"workspace-tool-rehearsals",claim.operation_id,"original-launcher.json");
+  if(input&&typeof input==="object"&&"sandbox_original" in input&&existsSync(launcherPath)){
+    const launcher=read(launcherPath) as Record<string,unknown>,proof=input.sandbox_original as ReturnType<typeof readRuntimeBinaryOriginal>;
+    if(!proof||launcher.format!=="cimiloop/agent-workspace-launcher/2.0.0"||launcher.launcher_path!==proof.path||launcher.launcher_digest!==proof.sha||!isDeepStrictEqual(launcher.launcher_original,proof))fail("agent_runtime_controller_original_unproven");
+  }
   if (!exact(key, ["run_id", "operation_id", "scope_digest", "input_digest"]) || key.run_id !== scope.run_id || key.operation_id !== claim.operation_id ||
     key.scope_digest !== agentWorkspaceIpcScopeDigest(scope) || key.input_digest !== claim.input_digest) fail("agent_runtime_key_unproven");
   return { claim, location, operation: join(root, "workspace-tool-rehearsals", claim.operation_id) };
@@ -53,6 +58,10 @@ export function readAgentRuntimeOriginalIdentity(root: string, rawScope: unknown
   if(input&&typeof input==="object"&&"binary_original" in input){
     const proof=input.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;
     if(!proof||!isDeepStrictEqual(readRuntimeBinaryOriginal(root,proof.path,proof.sha),proof))fail("agent_runtime_binary_original_unproven");
+  }
+  if(input&&typeof input==="object"&&"sandbox_original" in input){
+    const proof=input.sandbox_original as ReturnType<typeof readRuntimeBinaryOriginal>;
+    if(!proof||!isDeepStrictEqual(readRuntimeBinaryOriginal(root,proof.path,proof.sha),proof))fail("agent_runtime_controller_original_unproven");
   }
   const value = { scope: original.claim.scope, operation: original.operation, operation_id: original.claim.operation_id, claim: original.claim, input };
   if (!isDeepStrictEqual(load(root, rawScope).claim, original.claim)) fail("agent_runtime_claim_changed");
@@ -118,7 +127,8 @@ export async function queryAgentRuntimeOperation(root: string, rawScope: unknown
   const checked = readOriginalAgentWorkspaceOperation({ root, operation: original.operation, scope: original.claim.scope });
   if (!checked.launch || !checked.resources) return { ...summary, status: "Unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false };
   const launcher = checked.launch, resources = checked.resources;
-  if (!exact(launcher, ["format", "nonce", "owner", "supervisor", "launcher_path", "launcher_digest"]) || launcher.format !== "cimiloop/agent-workspace-launcher/1.0.0" ||
+  const launchFields=["format", "nonce", "owner", "supervisor", "launcher_path", "launcher_digest"];
+  if (!(exact(launcher,launchFields)&&launcher.format==="cimiloop/agent-workspace-launcher/1.0.0"||exact(launcher,[...launchFields,"launcher_original"])&&launcher.format==="cimiloop/agent-workspace-launcher/2.0.0") ||
     !validWorkspaceWorkerIdentity(launcher.supervisor) || !isDeepStrictEqual(launcher.owner, original.claim.owner) || !sha(launcher.launcher_digest) ||
     typeof launcher.launcher_path !== "string" || !uuid(launcher.nonce) || !resources || typeof resources !== "object" || Array.isArray(resources)) fail("agent_runtime_original_unproven");
   const ledger = resources as Record<string, unknown>, config = read(join(original.operation, "original-config.json")) as Record<string, unknown>;

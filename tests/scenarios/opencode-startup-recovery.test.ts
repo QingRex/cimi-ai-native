@@ -83,6 +83,18 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     expect(readFileSync(join(operation, "stdout.raw"), "utf8")).toContain('"phase":"mapped"');
     expect(await os(operation)).toMatchObject({ original_grants: 0, original_mapping_present: false, original_profile_present: false });
   });
+  it("recovers the original mapped resources after tools cache loss, using the retained controller without resuming the Run",async()=>{
+    const f=await orphan("mapped"),path=join(f.operation,"original-launcher.json"),bytes=readFileSync(path),launch=JSON.parse(bytes.toString("utf8"));
+    expect(launch.format).toBe("cimiloop/agent-workspace-launcher/2.0.0");expect(launch.launcher_original.path).toBe(launch.launcher_path);
+    const sequence=f.store.asOfEventSequence(),usage=f.task().usage,cache=resolve(join(f.dataDirectory,"tools"));
+    if(!cache.startsWith(resolve(f.root)+sep)||!resolve(f.root).startsWith(resolve(tmpdir())+sep+"cimiloop-opencode-startup-"))throw Error("Unsafe own cache target");
+    rmSync(cache,{recursive:true,force:true});
+    expect(existsSync(launch.launcher_path)).toBe(true);expect(await os(f.operation)).toMatchObject({original_mapping_present:true,original_profile_present:true});
+    expect(await recoverOpenCodeWorkspaceToolRehearsal(f.recovery)).toMatchObject({outcome:"recovered",resources_disposed:true,completion_proven:false});
+    expect(await os(f.operation)).toMatchObject({original_grants:0,original_mapping_present:false,original_profile_present:false});
+    expect(readFileSync(path)).toEqual(bytes);expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
+    expect(existsSync(join(f.operation,"result.json"))).toBe(false);
+  });
   it("refuses foreign DOS mapping, corrupt authority/launcher and missing original registration without erasing another resource", async () => {
     const f = await orphan("mapped"), resourcePath = join(f.operation, "agent-sandbox-resources.json"), original = readFileSync(resourcePath);
     const foreign = await os(f.operation, "reserve");

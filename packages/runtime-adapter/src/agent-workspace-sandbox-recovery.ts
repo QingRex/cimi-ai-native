@@ -37,14 +37,17 @@ function readOriginal(raw: { root: string; operation: string; scope: unknown }, 
     return { scope, root, operation, config, launch: null, resources: null };
   }
   const launch = record(join(operation, "original-launcher.json")), resources = record(join(operation, "agent-sandbox-resources.json"));
-  if (!exact(launch, ["format", "nonce", "owner", "supervisor", "launcher_path", "launcher_digest"]) ||
-    launch.format !== "cimiloop/agent-workspace-launcher/1.0.0" || launch.nonce !== config.nonce || !isDeepStrictEqual(launch.owner, config.owner) ||
+  const launchFields=["format", "nonce", "owner", "supervisor", "launcher_path", "launcher_digest"],legacyLaunch=exact(launch,launchFields)&&launch.format==="cimiloop/agent-workspace-launcher/1.0.0",retainedLaunch=exact(launch,[...launchFields,"launcher_original"])&&launch.format==="cimiloop/agent-workspace-launcher/2.0.0";
+  if (!legacyLaunch&&!retainedLaunch || launch.nonce !== config.nonce || !isDeepStrictEqual(launch.owner, config.owner) ||
     !validWorkspaceWorkerIdentity(launch.supervisor) || typeof launch.launcher_path !== "string" || !sha(launch.launcher_digest) ||
     resolve(launch.supervisor.image).toLowerCase() !== resolve(launch.launcher_path).toLowerCase() ||
-    dirname(dirname(launch.launcher_path)) !== join(root, "tools") || !/^agent-workspace-sandbox-[a-f0-9]{64}$/.test(basename(dirname(launch.launcher_path))) ||
-    basename(launch.launcher_path) !== "AgentWorkspaceSandbox.exe" || digest(bytesAt(launch.launcher_path)).value !== launch.launcher_digest) fail();
-  const metadata = record(join(dirname(launch.launcher_path), "build.json"));
-  if (!exact(metadata, ["digest"]) || !exact(metadata.digest, ["algorithm", "value"]) || metadata.digest.algorithm !== "sha256" || metadata.digest.value !== launch.launcher_digest) fail();
+    digest(bytesAt(launch.launcher_path)).value !== launch.launcher_digest) fail();
+  if(retainedLaunch){if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,launch.launcher_path,launch.launcher_digest),launch.launcher_original))fail();}
+  else{
+    if(dirname(dirname(launch.launcher_path))!==join(root,"tools")||!/^agent-workspace-sandbox-[a-f0-9]{64}$/.test(basename(dirname(launch.launcher_path)))||basename(launch.launcher_path)!=="AgentWorkspaceSandbox.exe")fail();
+    const metadata=record(join(dirname(launch.launcher_path),"build.json"));
+    if(!exact(metadata,["digest"])||!exact(metadata.digest,["algorithm","value"])||metadata.digest.algorithm!=="sha256"||metadata.digest.value!==launch.launcher_digest)fail();
+  }
   if (!exact(resources, ["format", "nonce", "root", "binary", "profile", "scope_digest", "config_digest", "owner", "supervisor", "runtime", "mapping", "job_name", "job_assignment", "phase", "profile_intent", "profile_was_absent", "grants_intent", "resources_disposed", "user_sid", "session_id", "logon_luid"]) ||
     resources.format !== "cimiloop/agent-workspace-resources/1.0.0" || resources.nonce !== config.nonce || resources.root !== config.root || resources.binary !== config.binary ||
     resources.config_digest !== digest(bytesAt(join(operation, "original-config.json"), 65536)).value || resources.scope_digest !== config.scope_digest ||

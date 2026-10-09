@@ -35,6 +35,15 @@ describe("one original Runtime claim per native Run and operation key", () => {
     expect(requestAgentRuntimeCancellation(f.root,f.scope)).toMatchObject({requested:true,stopped_proven:false});
     expect(existsSync(original.operation)).toBe(false);expect(existsSync(pinned.path)).toBe(false);
   });
+  it("binds launcher2 to the frozen controller and preserves cancellation if its bytes disappear",()=>{
+    const f=setup(),source=join(f.root,"constructed-controller.exe");writeFileSync(source,"constructed original controller");const pinned=pinBinary(f.root,source),proof=readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value);
+    const input={...f.input,sandbox_original:proof},original=claimAgentRuntimeOperation(f.root,f.scope,input,f.owner);mkdirSync(original.operation,{recursive:true});
+    const launch={format:"cimiloop/agent-workspace-launcher/2.0.0",launcher_path:pinned.path,launcher_digest:pinned.digest.value,launcher_original:proof};
+    writeFileSync(join(original.operation,"original-launcher.json"),JSON.stringify(launch));expect(readAgentRuntimeOriginalIdentity(f.root,f.scope).input).toEqual(input);
+    rmSync(pinned.path);expect(()=>readAgentRuntimeOriginalIdentity(f.root,f.scope)).toThrow();expect(requestAgentRuntimeCancellation(f.root,f.scope)).toMatchObject({requested:true,stopped_proven:false});
+    writeFileSync(join(original.operation,"original-launcher.json"),JSON.stringify({...launch,format:"cimiloop/agent-workspace-launcher/1.0.0"}));
+    expect(()=>readAgentRuntimeOriginalIdentity(f.root,f.scope)).toThrow("agent_runtime_controller_original_unproven");expect(existsSync(pinned.path)).toBe(false);
+  });
   it("refuses reuse of one operation key by another Run and retains the incomplete claim", () => {
     const f = setup(); claimAgentRuntimeOperation(f.root, f.scope, f.input, f.owner); const next = { ...f.scope, run_id: createInternalId() };
     expect(() => claimAgentRuntimeOperation(f.root, next, f.input, f.owner)).toThrow("agent_runtime_operation_key_conflict");

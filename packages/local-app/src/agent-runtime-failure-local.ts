@@ -28,7 +28,7 @@ export function classifyOriginalAgentExecutionFailure(identity:Identity,collecti
    config.format==="cimiloop/agent-workspace-sandbox-config/4.0.0"&&(config.lifetime_policy!=="agent_task/1.0.0"||input.lifetime_policy!==config.lifetime_policy)||
    typeof nonce!=="string"||!/^([a-f0-9]{8}-)(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(nonce)||config.scope_digest!==collection.scope_digest||
    !same(config.owner,identity.claim.owner)||!Number.isSafeInteger(deadline)||(deadline as number)<=0||deadline!==input.deadline_uptime_ms||
-   launcher.format!=="cimiloop/agent-workspace-launcher/1.0.0"||launcher.nonce!==nonce||!same(launcher.owner,identity.claim.owner)||!worker(launcher.supervisor)||
+   !(launcher.format==="cimiloop/agent-workspace-launcher/1.0.0"&&!input.sandbox_original||launcher.format==="cimiloop/agent-workspace-launcher/2.0.0"&&input.sandbox_original&&same(launcher.launcher_original,input.sandbox_original))||launcher.nonce!==nonce||!same(launcher.owner,identity.claim.owner)||!worker(launcher.supervisor)||
    resources.format!=="cimiloop/agent-workspace-resources/1.0.0"||resources.nonce!==nonce||resources.scope_digest!==collection.scope_digest||
    resources.config_digest!==collection.artifacts.find(a=>a.name==="original-config.json")!.reference.digest?.value||resources.phase!=="ended"||resources.resources_disposed!==true||
    !same(resources.owner,identity.claim.owner)||!same(resources.supervisor,launcher.supervisor)||!worker(resources.runtime)||

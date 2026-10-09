@@ -102,13 +102,15 @@ partial class AppContainer {
       string configPath=Path.Combine(operation,"original-config.json"); Ordinary(configPath); string rawConfig=File.ReadAllText(configPath);
       var config=ObjectAt(configPath); var launch=ObjectAt(Path.Combine(operation,"original-launcher.json")); var ledger=ObjectAt(Path.Combine(operation,"agent-sandbox-resources.json"));
       AgentConfigDeadline(config);
-      AgentKeys(launch,"format","nonce","owner","supervisor","launcher_path","launcher_digest");
+      bool retainedLauncher=launch["format"] as string=="cimiloop/agent-workspace-launcher/2.0.0";
+      if(retainedLauncher) AgentKeys(launch,"format","nonce","owner","supervisor","launcher_path","launcher_digest","launcher_original");
+      else AgentKeys(launch,"format","nonce","owner","supervisor","launcher_path","launcher_digest");
       AgentKeys(ledger,"format","nonce","root","binary","profile","scope_digest","config_digest","owner","supervisor","runtime","mapping","job_name","job_assignment","phase","profile_intent","profile_was_absent","grants_intent","resources_disposed","user_sid","session_id","logon_luid");
       Guid guid; if(!Guid.TryParseExact(config["nonce"] as string,"D",out guid)) throw new InvalidDataException();
       string nonce=guid.ToString("D"),root=Path.Combine(operation,"sandbox"),binary=Path.GetFullPath((string)config["binary"]),profile="CimiLoop.AgentWorkspace."+guid.ToString("N");
       Ordinary(root); Ordinary(binary);
       if(config["root"] as string!=root||
-        launch["format"] as string!="cimiloop/agent-workspace-launcher/1.0.0"||launch["nonce"] as string!=nonce||
+        !retainedLauncher&&launch["format"] as string!="cimiloop/agent-workspace-launcher/1.0.0"||launch["nonce"] as string!=nonce||
         ledger["format"] as string!="cimiloop/agent-workspace-resources/1.0.0"||ledger["nonce"] as string!=nonce||ledger["root"] as string!=root||ledger["binary"] as string!=binary||
         ledger["profile"] as string!=profile||ledger["scope_digest"] as string!=config["scope_digest"] as string||ledger["config_digest"] as string!=AgentHash(rawConfig)||
         ledger["job_name"] as string!="Local\\"+profile||ledger["job_assignment"] as string!="atomic_on_create"||
@@ -117,6 +119,10 @@ partial class AppContainer {
         !AgentSameIdentity((Dictionary<string,object>)launch["owner"],(Dictionary<string,object>)config["owner"])||
         !AgentSameIdentity((Dictionary<string,object>)launch["supervisor"],(Dictionary<string,object>)ledger["supervisor"])) throw new InvalidDataException();
       string launcher=(string)launch["launcher_path"];
+      if(retainedLauncher) {
+        var proof=(Dictionary<string,object>)launch["launcher_original"];
+        if(proof["format"] as string!="cimiloop/runtime-binary-original-proof/1.0.0"||proof["path"] as string!=launcher||proof["sha"] as string!=launch["launcher_digest"] as string) throw new InvalidDataException();
+      }
       if(!String.Equals(Image(Process.GetCurrentProcess().Handle),launcher,StringComparison.OrdinalIgnoreCase)||
         !String.Equals((string)((Dictionary<string,object>)ledger["supervisor"])["image"],launcher,StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
       using(var hash=System.Security.Cryptography.SHA256.Create()) {

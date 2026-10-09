@@ -30,6 +30,12 @@ describe("original negative execution result",()=>{
   f.records["agent-sandbox-cleanup.json"]!.exit_code=-1073741819;f.records["incomplete.json"]!.native_exit={code:3221225477,signal:null};f.materialize();expect(f.classify()).toBe("agent_original_runtime_exit_failed");
   f.records["agent-sandbox-cleanup.json"]!.exit_code=0;f.records["incomplete.json"]!.native_exit={code:0,signal:null};f.materialize();expect(f.classify()).toBeNull();
  });
+ it("qualifies launcher2 only against its frozen controller proof and refuses downgrade",()=>{
+  const f=fixture(),launch=f.records["original-launcher.json"]!;launch.format="cimiloop/agent-workspace-launcher/2.0.0";launch.launcher_original={format:"cimiloop/runtime-binary-original-proof/1.0.0",sha:digest("constructed controller").value};
+  f.identity.input.sandbox_original=structuredClone(launch.launcher_original);f.materialize();expect(f.classify()).toBe("agent_original_task_deadline");
+  launch.format="cimiloop/agent-workspace-launcher/1.0.0";f.materialize();expect(f.classify()).toBeNull();
+  launch.format="cimiloop/agent-workspace-launcher/2.0.0";f.identity.input.sandbox_original={foreign:true};expect(f.classify()).toBeNull();
+ });
  it.each(["wrong_nonce","wrong_scope","wrong_owner","wrong_peer","wrong_config","before_deadline","missing_deadline","cancelled","live","cleanup_error","wrong_exit","missing_original","duplicate_artifact","out_of_range_exit","signaled_exit"])("keeps %s unproven",kind=>{
   const f=fixture(),cleanup=f.records["agent-sandbox-cleanup.json"]!,resources=f.records["agent-sandbox-resources.json"]!,incomplete=f.records["incomplete.json"]!;
   if(kind==="wrong_nonce")cleanup.nonce="foreign";

@@ -1,9 +1,10 @@
 import { retainRuntimeBinary } from "./runtime-binary-originals.js";
+import { retainAgentSandboxBuild } from "./agent-sandbox-build-originals.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { join, resolve } from "node:path";
-import { existsSync, renameSync } from "node:fs";
+import { existsSync, renameSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { bytesAt, digest, directory, atomicJson, readJson, RuntimeAdapterError } from "./files.js";
 
@@ -124,19 +125,41 @@ export const buildWindowsAgentWorkspaceTransport = async (root: string, signal?:
 
 // Distinct suspended-start rehearsal entry point; public Main and persisted
 // recovery formats remain separate from this private composition.
-export const buildWindowsAgentWorkspaceSandbox = async (root: string, signal?: AbortSignal): Promise<{ path: string; digest: ReturnType<typeof digest> }> => {
+export async function compileOriginalAgentSandbox(compiler:string,args:string[],signal?:AbortSignal):Promise<void>{
+  const started=performance.now(),maximumMs=30000,controller=new AbortController();let stopped=false;
+  const stop=()=>{stopped=true;controller.abort();},timer=setTimeout(stop,maximumMs);
+  signal?.addEventListener("abort",stop,{once:true});if(signal?.aborted)stop();
+  try{
+    if(stopped)throw new RuntimeAdapterError("agent_sandbox_build_failed");
+    await execute(compiler,args,{windowsHide:true,maxBuffer:1024*1024,env:isolatedEnvironment(),signal:controller.signal});
+    // Windows can report code0 after termination. A candidate file and a
+    // successful callback cannot override the first stop or elapsed deadline.
+    if(stopped||signal?.aborted||performance.now()-started>=maximumMs)throw new RuntimeAdapterError("agent_sandbox_build_failed");
+  }catch{throw new RuntimeAdapterError("agent_sandbox_build_failed");}
+  finally{clearTimeout(timer);signal?.removeEventListener("abort",stop);}
+}
+export const buildWindowsAgentWorkspaceSandbox = async (root: string, signal?: AbortSignal) => {
   signal?.throwIfAborted();
   if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_agent_sandbox_required");
   const sources = ["AppContainer.cs", "IpcTransport.cs", "GatewayTransport.cs", "ConversationTransport.cs", "AgentWorkspaceSandbox.cs"].map(name => fileURLToPath(new URL(`../native/${name}`, import.meta.url)));
-  const build = directory(join(root, "tools", "agent-workspace-sandbox-" + digest(Buffer.concat(sources.map(path => bytesAt(path)))).value));
-  const output = join(build, "AgentWorkspaceSandbox.exe"), metadata = join(build, "build.json");
-  if (!existsSync(output) || !existsSync(metadata)) {
-    const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe"), candidate = join(build, `${randomUUID()}.exe`);
-    if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
-    try { await execute(compiler, ["/nologo", "/target:exe", "/main:AgentWorkspaceSandbox", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, ...sources], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment(), signal }); }
-    catch { throw new RuntimeAdapterError("agent_sandbox_build_failed"); }
-    renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
-  }
-  const expected = readJson(metadata) as { digest?: { value?: string } }, actual = digest(bytesAt(output));
-  if (expected.digest?.value !== actual.value) throw new RuntimeAdapterError("agent_sandbox_binary_changed"); return { path: output, digest: actual };
+  const frozen=sources.map(path=>bytesAt(path,1024*1024)),compiler=resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
+  if(!existsSync(compiler))throw new RuntimeAdapterError("native_compiler_unavailable");
+  const compilerDigest=digest(bytesAt(compiler)),options=["/nologo","/target:exe","/main:AgentWorkspaceSandbox","/reference:System.Web.Extensions.dll"];
+  const recipe={format:"cimiloop/agent-sandbox-build-recipe/1.0.0",platform:"windows_x64",compiler:{path:compiler,digest:compilerDigest},options,sources:sources.map((path,i)=>({name:path.split(/[\\/]/).at(-1)!,digest:digest(frozen[i]!)}))};
+  return retainAgentSandboxBuild(root,recipe,async build=>{
+    signal?.throwIfAborted();
+    const legacy=join(root,"tools","agent-workspace-sandbox-"+digest(Buffer.concat(frozen)).value),output=join(legacy,"AgentWorkspaceSandbox.exe"),metadata=join(legacy,"build.json");
+    // An available legacy build can be retained prospectively. Partial old
+    // caches are evidence of an unresolved original, never a rebuild request.
+    if(existsSync(legacy)){
+      if(!existsSync(output)||!existsSync(metadata))throw new RuntimeAdapterError("agent_sandbox_legacy_build_unproven");
+      const expected=readJson(metadata) as {digest?:unknown},actual=digest(bytesAt(output));
+      if(JSON.stringify(expected)!==JSON.stringify({digest:actual}))throw new RuntimeAdapterError("agent_sandbox_binary_changed");return output;
+    }
+    const copied=recipe.sources.map((source,i)=>{const path=join(build,source.name);writeFileSync(path,frozen[i]!,{flag:"wx"});return path;}),candidate=join(build,"AgentWorkspaceSandbox.exe");
+    if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError("native_compiler_changed");
+    await compileOriginalAgentSandbox(compiler,[...options,`/out:${candidate}`,...copied],signal);
+    if(digest(bytesAt(compiler)).value!==compilerDigest.value||copied.some((path,i)=>digest(bytesAt(path)).value!==recipe.sources[i]!.digest.value))throw new RuntimeAdapterError("agent_sandbox_build_recipe_changed");
+    return candidate;
+  });
 };

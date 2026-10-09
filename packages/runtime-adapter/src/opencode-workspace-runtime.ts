@@ -82,7 +82,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   lifetime.check(); if (!validWorkspaceWorkerIdentity(owner)) fail("workspace_rehearsal_owner_unproven");
   budget?.assertScope(scope);
   const claim = claimAgentRuntimeOperation(root, scope, { purpose: production ? "agent_runtime" : "workspace_rehearsal", mode: production ? "host_gateway" : checksOnly ? "checks" : "files", binary_digest: pinned.digest,binary_original:binaryOriginal,
-    sandbox_digest: sandboxBinary.digest, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
+    sandbox_digest: sandboxBinary.digest, sandbox_original:sandboxBinary.original, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
     provider_options: providerOptions, ...(production ? { prompt: options.prompt } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
   cancellationWatch = setInterval(() => { try { if (agentRuntimeCancellationRequested(root, scope)) lifetime.stop("workspace_rehearsal_cancel_requested"); }
     catch { lifetime.stop("workspace_rehearsal_claim_unproven"); } }, 100);
@@ -112,6 +112,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null, prompt:production?options.prompt:null, lifetime_policy:production?policy.policy:null };
   atomicJson(join(operation, "original-config.json"), originalConfig);
   if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
+  if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,sandboxBinary.path,sandboxBinary.digest.value),sandboxBinary.original))fail("agent_runtime_controller_original_changed");
   const native = spawn(sandboxBinary.path, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
   let channel: Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close"> | undefined, buffer = Buffer.alloc(0), total = 0, outputFailure = false, suspended: Record<string, unknown> | undefined;
   const output: Buffer[] = [], errors: Buffer[] = [];
@@ -182,9 +183,10 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     originalSupervisor = { ...identity };
     // The native controller cannot mutate resources until this original held-OS
     // identity and binary digest are durable and its config is sent below.
-    atomicJson(join(operation, "original-launcher.json"), { format: "cimiloop/agent-workspace-launcher/1.0.0", nonce,
-      owner, supervisor: originalSupervisor, launcher_path: sandboxBinary.path, launcher_digest: sandboxBinary.digest.value });
+    atomicJson(join(operation, "original-launcher.json"), { format: "cimiloop/agent-workspace-launcher/2.0.0", nonce,
+      owner, supervisor: originalSupervisor, launcher_path: sandboxBinary.path, launcher_digest: sandboxBinary.digest.value,launcher_original:sandboxBinary.original });
     if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
+    if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,sandboxBinary.path,sandboxBinary.digest.value),sandboxBinary.original))fail("agent_runtime_controller_original_changed");
     native.stdin.write(JSON.stringify(originalConfig) + "\n");
     const original = await lifetime.wait(ready);
     if (!isDeepStrictEqual(parseGatewayJson(bytesAt(join(operation, "agent-sandbox-original.json")).toString("utf8"), 32768), original)) fail("workspace_rehearsal_original_unproven");

@@ -1,5 +1,7 @@
 # CimiLoop 文档导航
 
+2026-10-09 D-249：[原恢复控制器保留与编译配方](implementation/CimiLoop-原恢复控制器保留与编译配方-v0.1.md)已接共享Runtime与原操作恢复；控制器不再依赖可重建tools缓存，旧launcher1显式读取、新launcher2冻结原件。物理配额、账户账单、真实技能 / 方法与完整五组S1继续。
+
 2026-10-09 D-248：Runtime与固定检查已接执行二进制原件保留、库外不可覆盖登记及物理身份核验；缺失 / 同字节替换拒绝重建，128版本 / 4 GiB为逻辑容量保留。实际能力与兼容见[原件与历史容量](implementation/CimiLoop-原执行二进制保留与历史容量-v0.1.md)。物理硬配额、生产模型 / 账户账单、真实方法与完整五组S1继续，默认正式入口关闭，242 Schema / 用户库10保持。
 
 - [原Native失败结果与Kernel观测](implementation/CimiLoop-原Native失败结果与Kernel观测-v0.1.md)：原执行失败核验、共享工作台 / Kernel及未知费用冻结；完整S1继续。
