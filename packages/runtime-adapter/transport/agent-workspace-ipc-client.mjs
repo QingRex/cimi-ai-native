@@ -32,8 +32,8 @@ function receiptValid(value, frame) {
   if (frame.tool === "model_step") return exact(value, ["content", "usage", "finish"]) && Array.isArray(value.content) && value.content.length > 0 && value.content.length <= 8 &&
     exact(value.usage, ["input_tokens", "output_tokens"]) && [value.usage.input_tokens, value.usage.output_tokens].every(n => Number.isSafeInteger(n) && n >= 0 && n <= 1000000) &&
     value.usage.output_tokens <= frame.max_output_tokens && ["stop", "tool_calls"].includes(value.finish);
-  if (frame.tool === "run_check") return exact(value, ["format", "input_digest", "run_id", "call_id", "profile", "entry", "outcome", "exit_code", "reason", "stdout_digest", "stderr_digest", "source_digest", "formal_agent_execution_enabled"]) &&
-    value.format === "cimiloop/workspace-check-receipt/1.0.0" && typeof value.run_id === "string" && value.call_id === frame.call_id &&
+  if (frame.tool === "run_check") return exact(value, ["format", "input_digest", "run_id", "call_id", "profile", "entry", "outcome", "exit_code", "reason", "stdout_digest", "stderr_digest", "source_digest", "formal_agent_execution_enabled",...(value?.format==="cimiloop/workspace-check-receipt/2.0.0"?["source_basis_digest"]:[])]) &&
+    ["cimiloop/workspace-check-receipt/1.0.0","cimiloop/workspace-check-receipt/2.0.0"].includes(value.format) && (value.format!=="cimiloop/workspace-check-receipt/2.0.0"||sha(value.source_basis_digest)) && typeof value.run_id === "string" && value.call_id === frame.call_id &&
     [value.input_digest, value.stdout_digest, value.stderr_digest, value.source_digest].every(sha) && value.formal_agent_execution_enabled === false &&
     ["node_syntax", "node_test"].includes(value.profile) && typeof value.entry === "string" && /\.(?:js|mjs|cjs)$/.test(value.entry) &&
     Number.isSafeInteger(value.exit_code) && ["exited", "timeout", "cancelled", "output_limit"].includes(value.reason) &&

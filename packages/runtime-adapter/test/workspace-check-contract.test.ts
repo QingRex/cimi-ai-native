@@ -53,6 +53,9 @@ describe.runIf(process.platform === "win32")("fixed SDK check reply contracts", 
           run_id: createInternalId(), call_id: frame.call_id, profile: recipe.profile, entry: recipe.entry, outcome: "failed", exit_code: 1, reason: "exited",
           stdout_digest: digest("constructed stdout").value, stderr_digest: digest("constructed stderr").value,
           source_digest: digest(JSON.stringify(recipe.inputs.map(source => ({ path: source.path, digest: source.expected_digest })))).value, formal_agent_execution_enabled: false };
+        if(recipe.source_policy){receipt.format="cimiloop/workspace-check-receipt/2.0.0";receipt.source_basis_digest=digest("constructed original write basis").value;receipt.source_digest=digest("constructed edited source snapshot").value;}
+        if(mode==="basis_missing")delete receipt.source_basis_digest;
+        if(mode==="basis_downgrade"){receipt.format="cimiloop/workspace-check-receipt/1.0.0";delete receipt.source_basis_digest;}
         if (mode === "pass") Object.assign(receipt, { outcome: "passed", exit_code: 0 });
         if (mode === "false_pass") receipt.outcome = "passed";
         if (mode === "source") receipt.source_digest = digest("foreign source").value;
@@ -76,6 +79,19 @@ describe.runIf(process.platform === "win32")("fixed SDK check reply contracts", 
       expect(result).toMatchObject({ check_id: "fixed", call_id: callId, check_catalog_digest: expected.catalog_digest, outcome: mode === "pass" ? "passed" : "failed", formal_agent_execution_enabled: false });
       expect(f.frames).toEqual([{ call_id: callId, check_id: "fixed", check_catalog_digest: expected.catalog_digest, tool: "run_check", format: "cimiloop/agent-workspace-tool-request/1.0.0", scope_digest: expected.scope_digest }]);
     } finally { await f.close(); }
+  });
+  it.each(["pass","basis_missing","basis_downgrade"])("pins the edited-source receipt version and complete source basis: %s",async mode=>{
+    const scope=originalScope(),original=catalog(scope),recipe=original.recipes[0]!;
+    const body={...original,format:"cimiloop/workspace-check-catalog/2.0.0",recipes:[{...recipe,source_policy:"original_run_edits/1.0.0",editable_inputs:["src/query.ts"],
+      inputs:[...recipe.inputs,{path:"src/query.ts",expected_digest:digest("before").value}]}]};
+    delete (body as any).catalog_digest;
+    const fixed=parseWorkspaceCheckCatalog({...body,catalog_digest:digest(JSON.stringify(body)).value},scope),f=await pipe(fixed,mode);
+    try{
+      const tools=createOpenCodeWorkspaceTools({pipe:f.name,scope_digest:fixed.scope_digest},fixed),pending=tools.check.execute({check_id:"fixed"},context());
+      if(mode==="pass")expect(JSON.parse((await pending).output)).toMatchObject({format:"cimiloop/opencode-check-output/2.0.0",source_basis_digest:digest("constructed original write basis").value,source_digest:digest("constructed edited source snapshot").value});
+      else await expect(pending).rejects.toThrow(mode==="basis_missing"?"agent_ipc_reply_unproven":"opencode_workspace_check_unproven");
+      expect(f.frames).toHaveLength(1);
+    }finally{await f.close();}
   });
   it.each(["false_pass", "source", "entry", "lost"])("refuses %s without changing the call or retrying", async mode => {
     const fixed = catalog(originalScope()), f = await pipe(fixed, mode);

@@ -124,7 +124,7 @@ export function correlateAgentWorkspaceSdkOriginals(originals: ReturnType<typeof
         if (reply.outcome === "denied") correlated = state.status === "error" && typeof state.error === "string" && state.error.includes(String(reply.reason));
         else if (state.status === "completed" && typeof state.output === "string") {
           const receipt = reply.receipt as Record<string, unknown>, native = receipt?.native as Record<string, unknown>;
-          const expected = request.tool === "run_check" ? { format: "cimiloop/opencode-check-output/1.0.0", call_id: request.call_id, check_id: request.check_id,
+          const expected = request.tool === "run_check" ? { format: receipt.format==="cimiloop/workspace-check-receipt/2.0.0" ? "cimiloop/opencode-check-output/2.0.0" : "cimiloop/opencode-check-output/1.0.0", ...(receipt.format==="cimiloop/workspace-check-receipt/2.0.0"?{source_basis_digest:receipt.source_basis_digest}:{}), call_id: request.call_id, check_id: request.check_id,
             check_catalog_digest: request.check_catalog_digest, outcome: receipt.outcome, exit_code: receipt.exit_code, reason: receipt.reason, source_digest: receipt.source_digest,
             stdout_digest: receipt.stdout_digest, stderr_digest: receipt.stderr_digest, replay: reply.replay, formal_agent_execution_enabled: false } :
             native ? { format: "cimiloop/opencode-workspace-output/1.0.0", call_id: request.call_id, tool: request.tool, path: request.path, before_digest: native.before_digest,

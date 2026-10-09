@@ -32,10 +32,10 @@ function captureCatalog(raw, scopeDigest) {
   try {
     const catalog = copy(raw);
     if (!exact(catalog, ["format", "scope_digest", "node_digest", "policy_digest", "recipes", "catalog_digest"]) ||
-      catalog.format !== "cimiloop/workspace-check-catalog/1.0.0" || catalog.scope_digest !== scopeDigest ||
+      !["cimiloop/workspace-check-catalog/1.0.0","cimiloop/workspace-check-catalog/2.0.0"].includes(catalog.format) || catalog.scope_digest !== scopeDigest ||
       ![catalog.node_digest, catalog.policy_digest, catalog.catalog_digest].every(sha) || !Array.isArray(catalog.recipes) || !catalog.recipes.length || catalog.recipes.length > 16) throw Error("invalid");
     for (const [i, recipe] of catalog.recipes.entries()) {
-      if (!exact(recipe, ["check_id", "profile", "entry", "inputs", "max_elapsed_ms", "max_output_bytes"]) || !id(recipe.check_id) ||
+      if (!exact(recipe, ["check_id", "profile", "entry", "inputs", "max_elapsed_ms", "max_output_bytes",...(recipe.source_policy!==undefined?["source_policy","editable_inputs"]:[])]) || !id(recipe.check_id) ||
         i > 0 && catalog.recipes[i - 1].check_id >= recipe.check_id || !["node_syntax", "node_test"].includes(recipe.profile) || !path(recipe.entry) || !/\.(?:js|mjs|cjs)$/.test(recipe.entry) ||
         !Array.isArray(recipe.inputs) || !recipe.inputs.length || recipe.inputs.length > 32 || !Number.isSafeInteger(recipe.max_elapsed_ms) || recipe.max_elapsed_ms < 100 || recipe.max_elapsed_ms > 30000 ||
         !Number.isSafeInteger(recipe.max_output_bytes) || recipe.max_output_bytes < 1024 || recipe.max_output_bytes > 131072) throw Error("invalid");
@@ -45,7 +45,9 @@ function captureCatalog(raw, scopeDigest) {
         seen.add(source.path.toLowerCase());
       }
       if (!recipe.inputs.some(source => source.path === recipe.entry)) throw Error("invalid");
+      if(recipe.source_policy!==undefined&&(recipe.source_policy!=="original_run_edits/1.0.0"||!Array.isArray(recipe.editable_inputs)||!recipe.editable_inputs.length||recipe.editable_inputs.length>31||new Set(recipe.editable_inputs).size!==recipe.editable_inputs.length||recipe.editable_inputs.some(path=>typeof path!=="string"||path===recipe.entry||!recipe.inputs.some(source=>source.path===path))))throw Error("invalid");
     }
+    if((catalog.format==="cimiloop/workspace-check-catalog/2.0.0")!==catalog.recipes.some(recipe=>!!recipe.source_policy))throw Error("invalid");
     const body = { format: catalog.format, scope_digest: catalog.scope_digest, node_digest: catalog.node_digest, policy_digest: catalog.policy_digest, recipes: catalog.recipes };
     if (hash(JSON.stringify(body)) !== catalog.catalog_digest) throw Error("invalid");
     return catalog;
@@ -84,7 +86,7 @@ export function createOpenCodeWorkspaceTools(endpoint, rawCatalog) {
     }
   });
   const check = catalog ? Object.freeze({
-    description: "Run one fixed CimiLoop check on its pinned authorized input snapshot. A failed command remains a failed result.",
+    description: "Run one fixed CimiLoop check on its authorized original Run source snapshot. A failed command remains a failed result.",
     args: { check_id: { type: "string", enum: catalog.recipes.map(recipe => recipe.check_id), minLength: 1, maxLength: 128 } },
     async execute(args, context) {
       if (!exact(args, ["check_id"]) || Object.values(Object.getOwnPropertyDescriptors(args)).some(field => !("value" in field)) || !validContext(context)) throw Error("opencode_workspace_call_invalid");
@@ -95,8 +97,9 @@ export function createOpenCodeWorkspaceTools(endpoint, rawCatalog) {
       const reply = await client.check({ call_id, check_id: recipe.check_id, check_catalog_digest: catalog.catalog_digest }, abort);
       if (reply.outcome !== "completed") throw Error(reply.reason);
       const receipt = reply.receipt, sourceDigest = hash(JSON.stringify(recipe.inputs.map(source => ({ path: source.path, digest: source.expected_digest }))));
-      if (receipt.profile !== recipe.profile || receipt.entry !== recipe.entry || receipt.source_digest !== sourceDigest) throw Error("opencode_workspace_check_unproven");
-      return { title: recipe.check_id, output: JSON.stringify({ format: "cimiloop/opencode-check-output/1.0.0", call_id, check_id: recipe.check_id,
+      if (receipt.profile !== recipe.profile || receipt.entry !== recipe.entry ||
+        (!!recipe.source_policy !== (receipt.format==="cimiloop/workspace-check-receipt/2.0.0")) || (!recipe.source_policy && receipt.source_digest !== sourceDigest)) throw Error("opencode_workspace_check_unproven");
+      return { title: recipe.check_id, output: JSON.stringify({ format: recipe.source_policy ? "cimiloop/opencode-check-output/2.0.0" : "cimiloop/opencode-check-output/1.0.0", ...(recipe.source_policy ? {source_basis_digest:receipt.source_basis_digest} : {}), call_id, check_id: recipe.check_id,
         check_catalog_digest: catalog.catalog_digest, outcome: receipt.outcome, exit_code: receipt.exit_code, reason: receipt.reason, source_digest: receipt.source_digest,
         stdout_digest: receipt.stdout_digest, stderr_digest: receipt.stderr_digest, replay: reply.replay, formal_agent_execution_enabled: false }),
         metadata: { call_id, tool: "run_check", check_id: recipe.check_id, outcome: receipt.outcome, replay: reply.replay } };

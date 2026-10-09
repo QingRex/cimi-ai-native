@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+- [原Run修改后固定检查研究记录](CimiLoop-原Run修改后固定检查-2026-10-09.json)：Windows / SDK实际修改后检查、原回执来源绑定与历史重放；构造资格不计为真实方法 / 模型 / S1验收。
+
 - [生产执行期限与原Task组合研究记录](CimiLoop-生产执行期限与原Task组合-2026-10-09.json)：实际Windows / SDK / 检查组合与构造模型资格分开留证，旧180秒失败不被新十分钟夹具覆盖。
 
 - [原Native失败结果与Kernel观测](../implementation/CimiLoop-原Native失败结果与Kernel观测-v0.1.md)：原执行失败核验、共享工作台 / Kernel及未知费用冻结；完整S1继续。

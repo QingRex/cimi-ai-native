@@ -51,7 +51,7 @@ export class LocalAgentCheckAdmission {
     this.installation.verify();
     const manifest = this.runs.readWorkspace(project, workspace);
     if (!isDeepStrictEqual(manifest.allowed_resources, item.allowed_resources) || manifest.head_commit_id !== source.commit_id || !isDeepStrictEqual(manifest.head_source_digest, source.source_digest)) fail("Agent check admission workspace mismatch");
-    const recipes: WorkspaceCheckRecipe[] = this.options.templates.map(template => ({ ...template, inputs: template.inputs.map(required => {
+    const recipes: WorkspaceCheckRecipe[] = this.options.templates.map(template => ({ ...template, ...(template.source_policy ? {editable_inputs:template.inputs.filter(source=>!source.expected_digest).map(source=>source.path)} : {}), inputs: template.inputs.map(required => {
       if (!item.allowed_resources.some(bound => contains(bound, required.path))) fail("Agent check input outside WorkItem");
       const file = manifest.files.find(file => file.path === required.path);
       if (!file || file.state !== "present") fail("Agent check input missing from original workspace");

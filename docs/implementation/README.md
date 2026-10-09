@@ -1,5 +1,7 @@
 # CimiLoop 实施设计
 
+- [原Run修改后固定检查](CimiLoop-原Run修改后固定检查-v0.1.md)：显式新策略检查同一Run的Native修改后源码；固定脚本、完整来源摘要、原SDK / IPC对应及旧格式兼容。真实模型 / Skill / 正式结果继续。
+
 - [生产执行期限与原Task组合](CimiLoop-生产执行期限与原Task组合-v0.1.md)：生产期限取原Task剩余时间与一小时上限；准备阶段受同一原Task监督，私有配置4兼容旧1/2/3。真实账户与完整S1继续。
 
 - [原Native失败结果与Kernel观测](CimiLoop-原Native失败结果与Kernel观测-v0.1.md)：原执行失败核验、共享工作台 / Kernel及未知费用冻结；完整S1继续。

@@ -1,3 +1,5 @@
+import {resolveWorkspaceCheckSourceBasis} from "./workspace-check-source-basis.js";
+import {readWorkspaceFileRunOriginals} from "./workspace-tool-host.js";
 import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync, existsSync, readdirSync, realpathSync, unlinkSync, rmdirSync, lstatSync } from "node:fs";
 import { dirname, join, basename } from "node:path";
@@ -14,20 +16,21 @@ import { directory, bytesAt, digest, atomicJson, RuntimeAdapterError, assertOrdi
 
 export interface WorkspaceCheckRecipe {
   check_id: string; profile: "node_syntax" | "node_test"; entry: string;
+  source_policy?: "original_run_edits/1.0.0"; editable_inputs?: string[];
   inputs: { path: string; expected_digest: string }[]; max_elapsed_ms: number; max_output_bytes: number;
 }
 // Fixed digests protect the harness. Other files take their digests from the
 // actual Native Context workspace snapshot, never predicted model edits.
-export interface WorkspaceCheckTemplate extends Omit<WorkspaceCheckRecipe, "inputs"> {
+export interface WorkspaceCheckTemplate extends Omit<WorkspaceCheckRecipe, "inputs" | "editable_inputs"> {
   inputs: { path: string; expected_digest?: string }[];
 }
 export interface WorkspaceCheckCall { format: "cimiloop/workspace-check-call/1.0.0"; call_id: string; check_id: string }
 export interface WorkspaceCheckCatalog {
-  format: "cimiloop/workspace-check-catalog/1.0.0"; scope_digest: string; node_digest: string; policy_digest: string;
+  format: "cimiloop/workspace-check-catalog/1.0.0" | "cimiloop/workspace-check-catalog/2.0.0"; scope_digest: string; node_digest: string; policy_digest: string;
   recipes: WorkspaceCheckRecipe[]; catalog_digest: string;
 }
 export interface WorkspaceCheckReceipt {
-  format: "cimiloop/workspace-check-receipt/1.0.0"; input_digest: string; run_id: string; call_id: string;
+  format: "cimiloop/workspace-check-receipt/1.0.0" | "cimiloop/workspace-check-receipt/2.0.0"; source_basis_digest?:string; input_digest: string; run_id: string; call_id: string;
   profile: WorkspaceCheckRecipe["profile"]; entry: string; outcome: "passed" | "failed"; exit_code: number;
   reason: string; stdout_digest: string; stderr_digest: string; source_digest: string;
   formal_agent_execution_enabled: false;
@@ -42,17 +45,20 @@ const checkPath = (value: unknown): value is string => typeof value === "string"
     [".git", ".cimiloop"].includes(part.toLowerCase()) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part));
 export function parseWorkspaceCheckTemplate(raw: unknown): WorkspaceCheckTemplate {
   const value = copyToolJson(raw);
-  if (!exact(value, ["check_id", "profile", "entry", "inputs", "max_elapsed_ms", "max_output_bytes"]) || !id(value.check_id) ||
+  if (!exact(value, ["check_id", "profile", "entry", "inputs", "max_elapsed_ms", "max_output_bytes",
+    ...(value && typeof value==="object" && "source_policy" in value ? ["source_policy", ...("editable_inputs" in value ? ["editable_inputs"] : [])] : [])]) || !id(value.check_id) ||
     !["node_syntax", "node_test"].includes(String(value.profile)) || !checkPath(value.entry) || !/\.(?:js|mjs|cjs)$/.test(value.entry) ||
     !Array.isArray(value.inputs) || !value.inputs.length || value.inputs.length > 32 || !Number.isSafeInteger(value.max_elapsed_ms) ||
     Number(value.max_elapsed_ms) < 100 || Number(value.max_elapsed_ms) > 30000 || !Number.isSafeInteger(value.max_output_bytes) ||
     Number(value.max_output_bytes) < 1024 || Number(value.max_output_bytes) > 131072) fail("workspace_check_template_invalid");
+  if ("source_policy" in value && value.source_policy !== "original_run_edits/1.0.0") fail("workspace_check_recipe_invalid");
   const seen = new Set<string>();
   for (const source of value.inputs) {
     if (!exact(source, ["path", ...(source && typeof source === "object" && "expected_digest" in source ? ["expected_digest"] : [])]) ||
       !checkPath(source.path) || "expected_digest" in source && !sha(source.expected_digest) || seen.has(source.path.toLowerCase())) fail("workspace_check_template_invalid");
     seen.add(source.path.toLowerCase());
   }
+  if ("editable_inputs" in value) fail("workspace_check_template_invalid");
   if (!value.inputs.some(source => source.path === value.entry && sha(source.expected_digest))) fail("workspace_check_fixed_entry_required");
   return value as unknown as WorkspaceCheckTemplate;
 }
@@ -87,11 +93,13 @@ export function parseWorkspaceCheckCall(raw: unknown): WorkspaceCheckCall {
 }
 export function parseWorkspaceCheckRecipe(raw: unknown, scope: AgentWorkspaceToolScope): WorkspaceCheckRecipe {
   const value = copyToolJson(raw);
-  if (!exact(value, ["check_id", "profile", "entry", "inputs", "max_elapsed_ms", "max_output_bytes"]) || !id(value.check_id) ||
+  if (!exact(value, ["check_id", "profile", "entry", "inputs", "max_elapsed_ms", "max_output_bytes",
+    ...(value && typeof value==="object" && "source_policy" in value ? ["source_policy", ...("editable_inputs" in value ? ["editable_inputs"] : [])] : [])]) || !id(value.check_id) ||
     !["node_syntax", "node_test"].includes(String(value.profile)) || typeof value.entry !== "string" || !/\.(?:js|mjs|cjs)$/.test(value.entry) ||
     !Array.isArray(value.inputs) || !value.inputs.length || value.inputs.length > 32 || !Number.isSafeInteger(value.max_elapsed_ms) ||
     Number(value.max_elapsed_ms) < 100 || Number(value.max_elapsed_ms) > 30000 || !Number.isSafeInteger(value.max_output_bytes) ||
     Number(value.max_output_bytes) < 1024 || Number(value.max_output_bytes) > 131072) fail("workspace_check_recipe_invalid");
+  if ("source_policy" in value && value.source_policy !== "original_run_edits/1.0.0") fail("workspace_check_recipe_invalid");
   const seen = new Set<string>();
   for (const source of value.inputs) {
     if (!exact(source, ["path", "expected_digest"]) || typeof source.path !== "string" || !sha(source.expected_digest) || seen.has(source.path.toLowerCase())) fail("workspace_check_recipe_invalid");
@@ -99,6 +107,8 @@ export function parseWorkspaceCheckRecipe(raw: unknown, scope: AgentWorkspaceToo
     seen.add(source.path.toLowerCase());
   }
   if (!value.inputs.some(source => source.path === value.entry)) fail("workspace_check_entry_missing");
+  if ("source_policy" in value && (!Array.isArray(value.editable_inputs) || !value.editable_inputs.length || value.editable_inputs.length > 31 ||
+    new Set(value.editable_inputs).size !== value.editable_inputs.length || value.editable_inputs.some(path => typeof path !== "string" || path === value.entry || !(value.inputs as {path:string}[]).some(source => source.path === path)))) fail("workspace_check_recipe_invalid");
   return value as unknown as WorkspaceCheckRecipe;
 }
 const scopeFields = (scope: AgentWorkspaceToolScope) => ({ project_id: scope.project_id, run_id: scope.run_id, operation_key: scope.operation_key,
@@ -106,11 +116,12 @@ const scopeFields = (scope: AgentWorkspaceToolScope) => ({ project_id: scope.pro
 export function parseWorkspaceCheckCatalog(raw: unknown, originalScope: AgentWorkspaceToolScope): WorkspaceCheckCatalog {
   const value = copyToolJson(raw), scope = parseAgentWorkspaceToolScope(originalScope);
   if (!exact(value, ["format", "scope_digest", "node_digest", "policy_digest", "recipes", "catalog_digest"]) ||
-    value.format !== "cimiloop/workspace-check-catalog/1.0.0" || value.scope_digest !== digest(JSON.stringify(scope)).value ||
+    !["cimiloop/workspace-check-catalog/1.0.0","cimiloop/workspace-check-catalog/2.0.0"].includes(String(value.format)) || value.scope_digest !== digest(JSON.stringify(scope)).value ||
     !sha(value.node_digest) || !sha(value.policy_digest) || !sha(value.catalog_digest) || !Array.isArray(value.recipes) ||
     !value.recipes.length || value.recipes.length > 16) fail("workspace_check_catalog_invalid");
   const recipes = value.recipes.map(recipe => parseWorkspaceCheckRecipe(recipe, scope));
   if (recipes.some((recipe, i) => i > 0 && recipes[i - 1]!.check_id >= recipe.check_id)) fail("workspace_check_catalog_invalid");
+  if ((value.format === "cimiloop/workspace-check-catalog/2.0.0") !== recipes.some(recipe => !!recipe.source_policy)) fail("workspace_check_catalog_invalid");
   const body = { format: value.format, scope_digest: value.scope_digest, node_digest: value.node_digest, policy_digest: value.policy_digest, recipes };
   if (digest(JSON.stringify(body)).value !== value.catalog_digest) fail("workspace_check_catalog_invalid");
   return { ...body, catalog_digest: value.catalog_digest } as WorkspaceCheckCatalog;
@@ -141,7 +152,7 @@ export class AgentWorkspaceCheckHost {
   }
   getCatalog(): WorkspaceCheckCatalog {
     if (this.abort.signal.aborted) fail("workspace_check_host_closed");
-    const body = { format: "cimiloop/workspace-check-catalog/1.0.0" as const, scope_digest: digest(JSON.stringify(this.options.scope)).value,
+    const body = { format: this.options.recipes.some(recipe=>!!recipe.source_policy) ? "cimiloop/workspace-check-catalog/2.0.0" as const : "cimiloop/workspace-check-catalog/1.0.0" as const, scope_digest: digest(JSON.stringify(this.options.scope)).value,
       node_digest: this.node.digest.value, policy_digest: this.policyDigest,
       recipes: structuredClone(this.options.recipes).sort((a, b) => a.check_id < b.check_id ? -1 : a.check_id > b.check_id ? 1 : 0) };
     return parseWorkspaceCheckCatalog({ ...body, catalog_digest: digest(JSON.stringify(body)).value }, this.options.scope);
@@ -195,17 +206,22 @@ export class AgentWorkspaceCheckHost {
       if (!existsSync(join(operation, "request.json"))) fail("workspace_check_outcome_unproven");
       const original = AgentWorkspaceCheckHost.record(operation, "request.json");
       if (original.input_digest !== inputDigest || !isDeepStrictEqual(original.input, input)) fail("workspace_check_call_conflict");
-      const receipt = AgentWorkspaceCheckHost.receipt(operation, inputDigest, this.options.scope.run_id, this.node.digest.value); if (!receipt) fail("workspace_check_outcome_unproven");
+      const receipt = AgentWorkspaceCheckHost.receipt(operation, inputDigest, this.options.scope.run_id, this.node.digest.value, {id:this.options.scope.project_id,repository_path:this.options.repositoryPath}); if (!receipt) fail("workspace_check_outcome_unproven");
       return { receipt, replay: true, operation };
     }
     const nonce = randomUUID(), root = directory(join(operation, "sandbox")), workspace = directory(join(root, "workspace")); directory(join(root, "state"));
-    atomicJson(join(operation, "request.json"), { format: "cimiloop/workspace-check-request/1.0.0", input, input_digest: inputDigest, nonce,
+    atomicJson(join(operation, "request.json"), { format: recipe.source_policy ? "cimiloop/workspace-check-request/2.0.0" : "cimiloop/workspace-check-request/1.0.0", input, input_digest: inputDigest, nonce,
       owner: this.owners.identity, root, binary: this.node.path, launcher: this.launcher, launcher_digest: this.launcherDigest });
     atomicJson(join(operation, "supervisor.json"), { nonce, identity: this.owners.identity });
     let dispatched = false;
     try {
       await this.options.phase?.("claimed"); await current(); const sources: { path: string; digest: string }[] = [];
-      for (const source of recipe.inputs) {
+      const originalFiles=()=>readWorkspaceFileRunOriginals(this.options.dataDirectory,{id:this.options.scope.project_id,repository_path:this.options.repositoryPath},
+        {run_id:this.options.scope.run_id,operation_key:this.options.scope.operation_key,executor_ref:{object_type:"actor",id:this.options.scope.executor_actor_id},input_digest:this.options.scope.context_digest});
+      const sourceBasis=recipe.source_policy?resolveWorkspaceCheckSourceBasis(recipe,originalFiles().calls):null;
+      const resolved=sourceBasis?sourceBasis.sources.map(source=>({path:source.path,expected_digest:source.digest})):recipe.inputs;
+      const unchangedSources=()=>{if(sourceBasis&&!isDeepStrictEqual(resolveWorkspaceCheckSourceBasis(recipe,originalFiles().calls),sourceBasis))fail("workspace_check_source_changed");};
+      for (const source of resolved) {
         const invocation = parseWorkspaceToolInvocation({ format: "cimiloop/workspace-tool-invocation/1.0.0", ...scopeFields(this.options.scope),
           call_id: call.call_id, tool: "read_file", ...source }), prepared = await this.files.prepare(invocation, this.abort.signal);
         let committed = false;
@@ -214,13 +230,13 @@ export class AgentWorkspaceCheckHost {
           sources.push({ path: source.path, digest: original.after_digest });
         } finally { if (!committed) await this.files.discard(prepared); }
       }
-      const sourceDigest = digest(JSON.stringify(sources)).value; atomicJson(join(operation, "sources.json"), { sources, source_digest: sourceDigest });
-      await this.options.phase?.("sources_captured"); await current();
+      const sourceDigest = digest(JSON.stringify(sources)).value; atomicJson(join(operation, "sources.json"), sourceBasis ? {format:"cimiloop/workspace-check-sources/2.0.0",sources,source_digest:sourceDigest,original_file_calls:sourceBasis.original_file_calls} : { sources, source_digest: sourceDigest });
+      await this.options.phase?.("sources_captured"); await current(); unchangedSources();
       if (digest(bytesAt(this.launcher)).value !== this.launcherDigest || digest(bytesAt(this.node.path, 512 * 1024 * 1024)).value !== this.node.digest.value) fail("workspace_check_binary_changed");
       // Durable dispatch precedes native start. A crash anywhere afterwards is
       // Unknown, even if an exit/partial TAP stream looks plausible.
       atomicJson(join(operation, "dispatch.json"), { input_digest: inputDigest, nonce }); dispatched = true;
-      await this.options.phase?.("dispatch_committed"); await current();
+      await this.options.phase?.("dispatch_committed"); await current(); unchangedSources();
       const proof = join(operation, "native-proof.json"), cancel = join(operation, "cancel.txt");
       const limits = { max_sandbox_bytes: 1048576, max_sandbox_entries: 128, max_file_bytes: 16384, max_output_bytes: recipe.max_output_bytes };
       const argv = recipe.profile === "node_syntax" ? ["--check", "{workspace}/" + recipe.entry] :
@@ -252,7 +268,8 @@ export class AgentWorkspaceCheckHost {
         policy.network_mode !== "deny_all" || policy.enforcement !== "appcontainer_no_network_capabilities" || policy.cost_mode !== "unmetered_probe_only" || policy.formal_execution_enabled !== false ||
         !Array.isArray(policy.capability_sids) || policy.capability_sids.length ||
         !sources.every(source => digest(bytesAt(join(workspace, source.path))).value === source.digest) || !["exited", "timeout", "cancelled", "output_limit"].includes(String(native.reason))) fail("workspace_check_completion_unproven");
-      const receipt: WorkspaceCheckReceipt = { format: "cimiloop/workspace-check-receipt/1.0.0", input_digest: inputDigest, run_id: this.options.scope.run_id, call_id: call.call_id,
+      const receipt: WorkspaceCheckReceipt = { format: sourceBasis ? "cimiloop/workspace-check-receipt/2.0.0" : "cimiloop/workspace-check-receipt/1.0.0",
+        ...(sourceBasis ? {source_basis_digest:digest(JSON.stringify(sourceBasis)).value} : {}), input_digest: inputDigest, run_id: this.options.scope.run_id, call_id: call.call_id,
         profile: recipe.profile, entry: recipe.entry, outcome: native.reason === "exited" && native.exit_code === 0 ? "passed" : "failed",
         exit_code: Number(native.exit_code), reason: String(native.reason), stdout_digest: digest(out).value, stderr_digest: digest(err).value, source_digest: sourceDigest, formal_agent_execution_enabled: false };
       atomicJson(join(operation, "receipt.json"), { receipt, receipt_digest: digest(JSON.stringify(receipt)).value });
@@ -267,11 +284,11 @@ export class AgentWorkspaceCheckHost {
     const value = copyToolJson(parseGatewayJson(bytesAt(join(operation, name), 262144).toString("utf8"), 262144));
     if (!value || typeof value !== "object" || Array.isArray(value)) fail("workspace_check_record_unproven"); return value as Record<string, unknown>;
   }
-  private static receipt(operation: string, inputDigest: string, runId: string, nodeDigest: string): WorkspaceCheckReceipt | undefined {
+  private static receipt(operation: string, inputDigest: string, runId: string, nodeDigest: string, originalProject?:Pick<Project,"id"|"repository_path">): WorkspaceCheckReceipt | undefined {
     if (!existsSync(join(operation, "receipt.json"))) return;
     const value = AgentWorkspaceCheckHost.record(operation, "receipt.json"), receipt = value.receipt;
-    if (!exact(value, ["receipt", "receipt_digest"]) || !exact(receipt, ["format", "input_digest", "run_id", "call_id", "profile", "entry", "outcome", "exit_code", "reason", "stdout_digest", "stderr_digest", "source_digest", "formal_agent_execution_enabled"]) ||
-      digest(JSON.stringify(receipt)).value !== value.receipt_digest || receipt.format !== "cimiloop/workspace-check-receipt/1.0.0" || receipt.input_digest !== inputDigest || receipt.run_id !== runId ||
+    if (!exact(value, ["receipt", "receipt_digest"]) || !exact(receipt, ["format", "input_digest", "run_id", "call_id", "profile", "entry", "outcome", "exit_code", "reason", "stdout_digest", "stderr_digest", "source_digest", "formal_agent_execution_enabled",...(receipt&&typeof receipt==="object"&&"format" in receipt&&receipt.format==="cimiloop/workspace-check-receipt/2.0.0"?["source_basis_digest"]:[])]) ||
+      digest(JSON.stringify(receipt)).value !== value.receipt_digest || !["cimiloop/workspace-check-receipt/1.0.0","cimiloop/workspace-check-receipt/2.0.0"].includes(String(receipt.format)) || receipt.input_digest !== inputDigest || receipt.run_id !== runId ||
       !id(receipt.call_id) || !["node_syntax", "node_test"].includes(String(receipt.profile)) || !["passed", "failed"].includes(String(receipt.outcome)) ||
       !Number.isInteger(receipt.exit_code) || receipt.formal_agent_execution_enabled !== false || !sha(receipt.source_digest) ||
       digest(bytesAt(join(operation, "stdout.raw"), 131072)).value !== receipt.stdout_digest || digest(bytesAt(join(operation, "stderr.raw"), 131072)).value !== receipt.stderr_digest ||
@@ -293,12 +310,28 @@ export class AgentWorkspaceCheckHost {
       policy.pid !== native.pid || policy.operation_key !== basename(operation) || policy.schema_version !== "2.0.0" || policy.scope !== "isolated_provider_probe" ||
       policy.network_mode !== "deny_all" || policy.enforcement !== "appcontainer_no_network_capabilities" || policy.cost_mode !== "unmetered_probe_only" ||
       policy.formal_execution_enabled !== false || !Array.isArray(policy.capability_sids) || policy.capability_sids.length) fail("workspace_check_receipt_unproven");
+    let expectedSources=input?.recipe?.inputs.map(source=>({path:source.path,digest:source.expected_digest}));
+    if(input?.recipe?.source_policy) {
+      const full=request.input as {scope:AgentWorkspaceToolScope;recipe:WorkspaceCheckRecipe},scope=parseAgentWorkspaceToolScope(full.scope);
+      if(request.format!=="cimiloop/workspace-check-request/2.0.0"||!exact(sources,["format","sources","source_digest","original_file_calls"])||
+        sources.format!=="cimiloop/workspace-check-sources/2.0.0"||!Array.isArray(sources.original_file_calls)||sources.original_file_calls.length>128)fail("workspace_check_receipt_unproven");
+      const policyMarker=AgentWorkspaceCheckHost.record(dirname(operation),"policy.json"),p=policyMarker.policy as Record<string,unknown>;
+      // The repository path comes from the native request's fixed project policy
+      // reader supplied below, not from a model-selected path.
+      const project=originalProject;
+      if(!project||project.id!==scope.project_id||p.repository_path_digest!==digest(realpathSync(assertOrdinaryPath(project.repository_path)).toLowerCase()).value)fail("workspace_check_receipt_unproven");
+      const files=readWorkspaceFileRunOriginals(dirname(dirname(dirname(operation))),project,{run_id:scope.run_id,operation_key:scope.operation_key,executor_ref:{object_type:"actor",id:scope.executor_actor_id},input_digest:scope.context_digest});
+      const selected=files.calls.filter(call=>(sources.original_file_calls as {call_id:string}[]).some(ref=>ref.call_id===call.input.call_id));
+      const basis=resolveWorkspaceCheckSourceBasis(full.recipe,selected);
+      if(receipt.format!=="cimiloop/workspace-check-receipt/2.0.0"||receipt.source_basis_digest!==digest(JSON.stringify(basis)).value||!isDeepStrictEqual(basis.original_file_calls,sources.original_file_calls))fail("workspace_check_receipt_unproven");
+      expectedSources=basis.sources;
+    } else if(receipt.format!=="cimiloop/workspace-check-receipt/1.0.0"||request.format!=="cimiloop/workspace-check-request/1.0.0"||!exact(sources,["sources","source_digest"]))fail("workspace_check_receipt_unproven");
     if (!input || !input.recipe || !input.call || receipt.call_id !== input.call.call_id || receipt.profile !== input.recipe.profile || receipt.entry !== input.recipe.entry ||
       receipt.reason !== native.reason || receipt.exit_code !== native.exit_code || native.phase !== "ended" || ownership.resources_disposed !== true ||
       receipt.outcome !== (native.reason === "exited" && native.exit_code === 0 ? "passed" : "failed") ||
-      !exact(sources, ["sources", "source_digest"]) || sources.source_digest !== receipt.source_digest ||
-      !isDeepStrictEqual(sources.sources, input.recipe.inputs.map(source => ({ path: source.path, digest: source.expected_digest }))) ||
-      !input.recipe.inputs.every(source => digest(bytesAt(join(operation, "sandbox", "workspace", source.path), 16384)).value === source.expected_digest) ||
+      sources.source_digest !== receipt.source_digest ||
+      !isDeepStrictEqual(sources.sources, expectedSources) ||
+      !expectedSources?.every(source => digest(bytesAt(join(operation, "sandbox", "workspace", source.path), 16384)).value === source.digest) ||
       !exact(capture, ["format", "input_digest", "total_bytes", "captured_bytes", "maximum_bytes", "exceeded"]) || capture.format !== "cimiloop/workspace-check-capture/1.0.0" ||
       capture.input_digest !== inputDigest || capture.exceeded !== false || capture.maximum_bytes !== input.recipe.max_output_bytes ||
       capture.total_bytes !== capture.captured_bytes || Number(capture.total_bytes) > input.recipe.max_output_bytes ||
@@ -307,11 +340,14 @@ export class AgentWorkspaceCheckHost {
   }
   async recover(raw: unknown) {
     const call = parseWorkspaceCheckCall(raw), operation = this.operation(call), request = AgentWorkspaceCheckHost.record(operation, "request.json");
-    if (!exact(request, ["format", "input", "input_digest", "nonce", "owner", "root", "binary", "launcher", "launcher_digest"]) || request.format !== "cimiloop/workspace-check-request/1.0.0" ||
+    if (!exact(request, ["format", "input", "input_digest", "nonce", "owner", "root", "binary", "launcher", "launcher_digest"]) || !["cimiloop/workspace-check-request/1.0.0","cimiloop/workspace-check-request/2.0.0"].includes(String(request.format)) ||
       request.root !== join(operation, "sandbox") || request.binary !== this.node.path || request.launcher !== this.launcher || request.launcher_digest !== this.launcherDigest ||
       typeof request.nonce !== "string" || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(request.nonce) ||
       digest(JSON.stringify(request.input)).value !== request.input_digest || !(request.input && typeof request.input === "object" &&
         isDeepStrictEqual((request.input as { scope: unknown }).scope, this.options.scope) && isDeepStrictEqual((request.input as { call: unknown }).call, call))) fail("workspace_check_record_unproven");
+    const recoveredInput=request.input as {scope:unknown;recipe:unknown};
+    const recoveredRecipe=parseWorkspaceCheckRecipe(recoveredInput.recipe,parseAgentWorkspaceToolScope(recoveredInput.scope));
+    if((request.format==="cimiloop/workspace-check-request/2.0.0")!==!!recoveredRecipe.source_policy)fail("workspace_check_record_unproven");
     if (!existsSync(join(operation, "native-ownership.json"))) return { outcome: "unknown" as const, reason: "workspace_check_original_native_unproven" };
     if (digest(bytesAt(this.launcher)).value !== this.launcherDigest) fail("workspace_check_binary_changed");
     // Original owner observation stays authoritative even after a new host opens.
@@ -322,7 +358,7 @@ export class AgentWorkspaceCheckHost {
     if (!exact(recovered, ["outcome", "reason", "resources_disposed"]) || !["recovered", "active", "unknown"].includes(String(recovered.outcome)) ||
       typeof recovered.reason !== "string" || typeof recovered.resources_disposed !== "boolean" ||
       (recovered.outcome === "recovered") !== recovered.resources_disposed) fail("workspace_check_recovery_unproven");
-    const completion = AgentWorkspaceCheckHost.receipt(operation, String(request.input_digest), this.options.scope.run_id, this.node.digest.value);
+    const completion = AgentWorkspaceCheckHost.receipt(operation, String(request.input_digest), this.options.scope.run_id, this.node.digest.value, {id:this.options.scope.project_id,repository_path:this.options.repositoryPath});
     return { outcome: recovered.outcome as "recovered" | "active" | "unknown", reason: recovered.reason, resources_disposed: recovered.resources_disposed,
       check_completion: completion ? "recorded" : "unknown" };
   }
@@ -344,11 +380,12 @@ export class AgentWorkspaceCheckHost {
       if (!entry.isDirectory() || !sha(entry.name)) fail("workspace_check_record_unproven");
       const operation = assertOrdinaryPath(join(root, entry.name)), request = AgentWorkspaceCheckHost.record(operation, "request.json"), input = request.input as Record<string, unknown>;
       if (!exact(request, ["format", "input", "input_digest", "nonce", "owner", "root", "binary", "launcher", "launcher_digest"]) ||
-        request.format !== "cimiloop/workspace-check-request/1.0.0" || !exact(input, ["scope", "call", "recipe", "policy_digest", "authority_basis"]) ||
+        !["cimiloop/workspace-check-request/1.0.0","cimiloop/workspace-check-request/2.0.0"].includes(String(request.format)) || !exact(input, ["scope", "call", "recipe", "policy_digest", "authority_basis"]) ||
         input.policy_digest !== marker.policy_digest || !sha(request.input_digest) || digest(JSON.stringify(input)).value !== request.input_digest ||
         !Array.isArray(input.authority_basis) || !input.authority_basis.every(sha) || !validWorkspaceWorkerIdentity(request.owner) ||
         typeof request.nonce !== "string" || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(request.nonce)) fail("workspace_check_record_unproven");
       const scope = parseAgentWorkspaceToolScope(input.scope), call = parseWorkspaceCheckCall(input.call), recipe = parseWorkspaceCheckRecipe(input.recipe, scope);
+      if ((request.format==="cimiloop/workspace-check-request/2.0.0")!==!!recipe.source_policy) fail("workspace_check_record_unproven");
       if (scope.project_id !== project.id || input.authority_basis.length !== recipe.inputs.length + 1 ||
         digest(JSON.stringify([scope.run_id, call.call_id])).value !== entry.name) fail("workspace_check_record_unproven");
       if (scope.run_id !== record.run_id) continue;
@@ -356,7 +393,7 @@ export class AgentWorkspaceCheckHost {
         !isDeepStrictEqual(scope.context_digest, record.input_digest) || !isDeepStrictEqual(scope.runtime_binding, record.runtime_binding) ||
         !isDeepStrictEqual(scope.skill_bindings, record.skill_bindings) || !isDeepStrictEqual(scope.host_admission_ref, record.host_admission_ref)) fail("workspace_check_run_mismatch");
       facts.invocations++; if (facts.invocations > 128) fail("workspace_check_record_unproven");
-      const receipt = AgentWorkspaceCheckHost.receipt(operation, request.input_digest, record.run_id, String(policy.node_digest)) ?? null;
+      const receipt = AgentWorkspaceCheckHost.receipt(operation, request.input_digest, record.run_id, String(policy.node_digest), project) ?? null;
       calls.push({ scope, call, recipe, policy_digest: String(input.policy_digest), node_digest: String(policy.node_digest), receipt });
       if (receipt) { facts.has_effect = true; continue; }
       const dispatched = existsSync(join(operation, "dispatch.json")), notStarted = existsSync(join(operation, "not-started.json"));
