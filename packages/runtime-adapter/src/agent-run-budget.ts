@@ -9,7 +9,7 @@ import { parseGatewayJson } from "./gateway-conversation.js";
 
 export interface AgentRunBudgetBasis { scope: AgentWorkspaceToolScope; task_id: string; first_started_at: string; max_elapsed_ms: number }
 interface Anchor { format: "cimiloop/agent-task-clock-anchor/1.0.0"; project_id: string; task_id: string; first_started_at: string; clock: AgentRunClockReading; task_started_uptime_ms: number }
-export interface AgentRunBudgetPorts { basis(): AgentRunBudgetBasis; readClock(signal?: AbortSignal): Promise<AgentRunClockReading> }
+export interface AgentRunBudgetPorts { basis(): AgentRunBudgetBasis; readClock(signal?: AbortSignal): Promise<AgentRunClockReading>; closeClock?(): Promise<void> }
 const fail = (reason: string): never => { throw new RuntimeAdapterError(reason); };
 const basisCopy = (raw: AgentRunBudgetBasis): AgentRunBudgetBasis => {
   const scope = parseAgentWorkspaceToolScope(raw.scope);
@@ -31,6 +31,8 @@ function parseAnchor(raw: unknown): Anchor {
 // Host-owned Task clock anchor, shared by subsequent Run / WorkItem scopes.
 // No qualification, authority, execution ownership or Run result is inferred here.
 export class AgentRunBudget {
+  private closing: Promise<void> | undefined;
+  close(): Promise<void> { return this.closing ??= Promise.resolve().then(() => this.ports.closeClock?.()); }
   private constructor(private readonly ports: AgentRunBudgetPorts, private readonly originalBasis: AgentRunBudgetBasis, private readonly anchor: Anchor, readonly anchorPath: string) {}
   get basis(): AgentRunBudgetBasis { return basisCopy(this.originalBasis); }
   get nativeDeadlineUptimeMs(): number {
@@ -67,6 +69,7 @@ export class AgentRunBudget {
     if (!Number.isSafeInteger(remaining) || remaining <= 0) fail("agent_run_budget_exhausted"); return remaining;
   }
   async remaining(signal?: AbortSignal): Promise<number> {
+    if (this.closing) fail("agent_run_budget_closed");
     signal?.throwIfAborted(); this.assertScope(this.basis.scope); const started = performance.now(), clock = parseAgentRunClock(await this.ports.readClock(signal));
     signal?.throwIfAborted();
     this.assertScope(this.basis.scope);

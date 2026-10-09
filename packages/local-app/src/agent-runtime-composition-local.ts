@@ -25,8 +25,9 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
  start(runId:string){return new LocalAgentRuntimeStart(this.options.local,this).start(runId);}
  async prepare(input:AgentRuntimeLaunchInputs){
   const budget=await openLocalAgentRunBudget(this.options.local,input.record.run_id);
+  try {
   budget.assertScope(input.scope);
-  return withinAgentRuntimeTaskBudget(budget,async signal=>{
+  return await withinAgentRuntimeTaskBudget(budget,async signal=>{
   await this.options.model.check(structuredClone(input.scope));signal.throwIfAborted();
   const service=await LocalAgentWorkspaceToolService.open(this.options.local,input.record.run_id);
   try {
@@ -44,8 +45,9 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
    return {launch:async()=>{
     await runOpenCodeWorkspaceRuntime({root:this.options.local.location.dataDirectory,binary:this.options.binary,scope:input.scope,prompt,model,runBudget:budget,checkCatalog:catalog,
      connect:(supervisor,originalSupervisor,peer,nonce,signal,originalModel)=>service.openIpc(supervisor,originalSupervisor,peer,{nonce,signal,model:originalModel})});
-   },dispose:()=>service.close()};
+   },dispose:async()=>{try{await service.close();}finally{await budget.close();}}};
   } catch(error){await service.close();throw error;}
   },staged=>staged.dispose());
+  }catch(error){await budget.close();throw error;}
  }
 }

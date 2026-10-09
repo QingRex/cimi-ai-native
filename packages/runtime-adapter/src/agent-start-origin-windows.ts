@@ -51,8 +51,10 @@ function principal(action: "identity" | "protect" | "verify", root: string): str
   }
 }
 async function host(root: string, toolsRoot: string, signal?: AbortSignal): Promise<AgentStartHostIdentity> {
-  signal?.throwIfAborted(); const clock = await openWindowsAgentRunClock(toolsRoot, signal), actual = await clock.read(signal);
+  signal?.throwIfAborted(); const clock = await openWindowsAgentRunClock(toolsRoot, signal);
+  try { const actual = await clock.read(signal);
   signal?.throwIfAborted(); return { machine_digest: actual.machine_digest, principal_digest: principal("identity", root) };
+  } finally { await clock.close(); }
 }
 export async function initializeWindowsAgentStartLedger(root: string, toolsRoot: string, signal?: AbortSignal) {
   root = assertOrdinaryPath(root); const identity = await host(root, toolsRoot, signal);

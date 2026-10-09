@@ -86,7 +86,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("host model joi
  it("cancels the original host model wait without resend and freezes input before asynchronous admission",async()=>{
   const f=await setup();let waiting=false;
   f.model.execute=async()=>{waiting=true;requestAgentRuntimeCancellation(f.dataDirectory,f.scope);return new Promise(()=>{});};
-  const model=await AgentRuntimeModelHost.initialize(f.dataDirectory,f.scope,f.model,["cimi_read","cimi_replace","cimi_check"],"Frozen original task packet"),budget=await openLocalAgentRunBudget(f.local,f.reserved.run.id),service=await LocalAgentWorkspaceToolService.open(f.local,f.reserved.run.id);closers.push(()=>service.close());
+  const model=await AgentRuntimeModelHost.initialize(f.dataDirectory,f.scope,f.model,["cimi_read","cimi_replace","cimi_check"],"Frozen original task packet"),budget=await openLocalAgentRunBudget(f.local,f.reserved.run.id),service=await LocalAgentWorkspaceToolService.open(f.local,f.reserved.run.id);closers.push(()=>budget.close(),()=>service.close());
   await service.installAdmittedChecks(f.checks,f.custody);const checkCatalog=await service.getCheckCatalog();
   const options={maxElapsedMs:180000,root:f.dataDirectory,binary:f.binary,scope:f.scope,prompt:"Frozen original task packet",model,runBudget:budget,checkCatalog,
    connect:(supervisor:Parameters<typeof service.openIpc>[0],owner:Parameters<typeof service.openIpc>[1],peer:Parameters<typeof service.openIpc>[2],nonce:string,signal:AbortSignal,originalModel:AgentRuntimeModelHost)=>service.openIpc(supervisor,owner,peer,{nonce,signal,model:originalModel})};

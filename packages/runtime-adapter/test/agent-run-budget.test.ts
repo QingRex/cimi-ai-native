@@ -23,6 +23,13 @@ describe("original Task elapsed budget survives host and Run replacement", () =>
     const ports = { basis: () => basis, readClock: async () => reading };
     return { root, basis, ports, clock: (next: Partial<AgentRunClockReading>) => { reading = { ...reading, ...next }; } };
   }
+  it("closes its owned clock once without renewing the original Task anchor",async()=>{
+    const f=fixture(),closeClock=vi.fn(async()=>{}),readClock=vi.fn(f.ports.readClock);
+    const budget=await AgentRunBudget.open(f.root,{...f.ports,readClock,closeClock}),anchor=readFileSync(budget.anchorPath);
+    await Promise.all([budget.close(),budget.close()]);expect(closeClock).toHaveBeenCalledTimes(1);
+    await expect(budget.remaining()).rejects.toThrow("agent_run_budget_closed");expect(readClock).toHaveBeenCalledTimes(1);
+    expect(readFileSync(budget.anchorPath)).toEqual(anchor);
+  });
   it("reopens the original anchor and charges elapsed time despite a backwards wall clock", async () => {
     const f = fixture(), first = await AgentRunBudget.open(f.root, f.ports), bytes = readFileSync(first.anchorPath);
     f.clock({ utc: "2026-10-08T00:00:05.000Z", uptime_ms: 86445000 });

@@ -1,5 +1,8 @@
 # CimiLoop 背景研究
 
+- [原宿主持有的Native时钟通道研究记录](CimiLoop-原宿主持有的Native时钟通道-2026-10-09.json)：契约反例、实际Windows / SDK / Task / 工作台范围、宿主死亡夹具诊断和固定源码边界；不计为真实模型 / Skill / S1。
+
+
 - [Native控制期限与首异常保留研究记录](CimiLoop-Native控制期限与首异常保留-2026-10-09.json)：Windows超时 / 取消有效JSON反例、原clock_continuous失败、分阶段原件与最终源码验证；不计为真实模型 / Skill / S1。
 
 

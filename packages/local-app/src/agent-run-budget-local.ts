@@ -18,6 +18,8 @@ export async function openLocalAgentRunBudget(local: AgentWorkspaceToolLocalCont
     return { scope, task_id: task.id, first_started_at: task.usage.first_started_at, max_elapsed_ms: item.budget.max_elapsed_ms };
   };
   const original = basis(), clock = await openWindowsAgentRunClock(local.location.dataDirectory, signal);
-  if (!isDeepStrictEqual(basis(), original)) throw Error("Agent original budget changed during clock preparation");
-  return AgentRunBudget.open(local.location.dataDirectory, { basis, readClock: clock.read }, signal);
+  try {
+    if (!isDeepStrictEqual(basis(), original)) throw Error("Agent original budget changed during clock preparation");
+    return await AgentRunBudget.open(local.location.dataDirectory, { basis, readClock: clock.read, closeClock: clock.close }, signal);
+  } catch (error) { await clock.close(); throw error; }
 }

@@ -1,5 +1,8 @@
 # CimiLoop 实施设计
 
+- [原宿主持有的Native时钟通道](CimiLoop-原宿主持有的Native时钟通道-v0.1.md)：持有原owner handle、新鲜OS读数、排队共用15秒期限与生产预算显式关闭；完整S1继续。
+
+
 - [Native控制期限与首异常保留](CimiLoop-Native控制期限与首异常保留-v0.1.md)：独立15秒停止判定、原执行首异常与取消传播；实际Windows反例及连续时钟失败边界，完整S1继续。
 
 

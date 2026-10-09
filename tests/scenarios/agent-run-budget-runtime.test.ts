@@ -19,7 +19,9 @@ vi.setConfig({ testTimeout: 120000 });
 // custody and OpenCode model replies remain constructed, no paid model request.
 describe.runIf(process.platform === "win32" && process.arch === "x64")("native Task budget and original Windows clock", () => {
   const roots: string[] = [], stores: { close(): void }[] = [];
-  afterEach(() => {
+  const closers: (() => Promise<void>)[] = [];
+  afterEach(async () => {
+    while (closers.length) await closers.pop()!();
     while (stores.length) stores.pop()!.close();
     while (roots.length) {
       const root = roots.pop()!; if (!resolve(root).startsWith(resolve(tmpdir()) + sep + "cimiloop-task-clock-runtime-")) throw Error("Unsafe cleanup");
@@ -45,14 +47,15 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("native T
   }
   it("reads a real boot clock and reopens the durable anchor in another host process", async () => {
     const f = setup(), budget = await openLocalAgentRunBudget(f.local, f.reserved.run.id), original = readFileSync(budget.anchorPath), before = await budget.remaining();
-    const clock = await openWindowsAgentRunClock(f.dataDirectory), reading = await clock.read();
+    closers.push(() => budget.close());
+    const clock = await openWindowsAgentRunClock(f.dataDirectory); closers.push(() => clock.close()); const reading = await clock.read();
     expect(Date.parse(reading.boot_utc)).toBeLessThan(Date.parse(f.task().usage.first_started_at!)); expect(reading.uptime_ms).toBeGreaterThan(0);
     const helper=join(f.dataDirectory,"tools","agent-run-clock-"+digest(readFileSync(resolve("packages/runtime-adapter/native/AgentRunClock.cs"))).value,"AgentRunClock.exe");
     for(const pid of [String(process.pid),"2147483647"]){
       await expect(promisify(execFile)(helper,["--continuous",pid,"1",reading.boot_utc],{windowsHide:true,timeout:15000})).rejects.toMatchObject({code:2,stdout:""});
     }
     const module = pathToFileURL(resolve("packages/runtime-adapter/dist/index.js")).href;
-    const code = `import { AgentRunBudget,openWindowsAgentRunClock } from ${JSON.stringify(module)}; const input=JSON.parse(process.argv[1]); const clock=await openWindowsAgentRunClock(input.root); const budget=await AgentRunBudget.open(input.root,{basis:()=>input.basis,readClock:clock.read}); console.log(JSON.stringify({remaining:await budget.remaining(),digest:budget.anchorDigest}));`;
+    const code = `import { AgentRunBudget,openWindowsAgentRunClock } from ${JSON.stringify(module)}; const input=JSON.parse(process.argv[1]); const clock=await openWindowsAgentRunClock(input.root); const budget=await AgentRunBudget.open(input.root,{basis:()=>input.basis,readClock:clock.read,closeClock:clock.close}); try{console.log(JSON.stringify({remaining:await budget.remaining(),digest:budget.anchorDigest}));}finally{await budget.close();}`;
     const child = await promisify(execFile)(process.execPath, ["--input-type=module", "-e", code, JSON.stringify({ root: f.dataDirectory, basis: budget.basis })], { windowsHide: true, timeout: 15000 });
     const result = JSON.parse(child.stdout); expect(result.remaining).toBeLessThan(before); expect(result.digest).toBe(budget.anchorDigest); expect(readFileSync(budget.anchorPath)).toEqual(original);
     // Child independently reads original anchor and actual OS clock; the immutable
@@ -61,6 +64,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("native T
   });
   it("rejects a current native cancellation both on reuse and on reopen", async () => {
     const f = setup(), budget = await openLocalAgentRunBudget(f.local, f.reserved.run.id), usage = f.task().usage;
+    closers.push(() => budget.close());
     flowSuccess(f.kernel.execute(f.command("CancelRun", "run", f.reserved.run.id, { reason: "Actual native cancellation" })));
     await expect(budget.remaining()).rejects.toThrow("agent_run_cancel_requested");
     await expect(openLocalAgentRunBudget(f.local, f.reserved.run.id)).rejects.toThrow("agent_run_cancel_requested");
@@ -68,6 +72,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("native T
   });
   it("stops the original suspended Runtime when native cancellation arrives during hung preparation", async () => {
     const f = setup(), budget = await openLocalAgentRunBudget(f.local, f.reserved.run.id), usage = f.task().usage;
+    closers.push(() => budget.close());
     const binary = join(process.env.APPDATA!, "npm/node_modules/opencode-ai/node_modules/opencode-windows-x64/bin/opencode.exe");
     let mapped = false;
     await expect(runOpenCodeWorkspaceToolRehearsal({ root: f.dataDirectory, binary, scope: budget.basis.scope, runBudget: budget, maxElapsedMs: 60000,
@@ -86,8 +91,9 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("native T
   });
   it("caps a longer new host lifetime at the original native Task deadline", async () => {
     const f = setup(), first = await openLocalAgentRunBudget(f.local, f.reserved.run.id), original = readFileSync(first.anchorPath), usage = f.task().usage;
+    closers.push(() => first.close());
     await new Promise(resolve => setTimeout(resolve, 2000));
-    const reopened = await openLocalAgentRunBudget(f.local, f.reserved.run.id);
+    const reopened = await openLocalAgentRunBudget(f.local, f.reserved.run.id); closers.push(() => reopened.close());
     expect(await reopened.remaining()).toBeLessThan(58000);
     const binary = join(process.env.APPDATA!, "npm/node_modules/opencode-ai/node_modules/opencode-windows-x64/bin/opencode.exe"); let originalCall = "";
     let rejectPending: ((error: Error) => void) | undefined;
