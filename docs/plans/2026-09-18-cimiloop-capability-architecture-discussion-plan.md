@@ -1308,6 +1308,7 @@ D-144、D-148 等早期记录保留当时的“待定 / 待讨论”表述，D-1
 | D-235 | 原Agent待核对观测接Kernel | 原采集已接共享Human服务 / 工作台 / Unknown RunObservation；正式终态与费用待完成 | 原请求、claim/input、AgentRunRecord/Context、采集快照和不可变rawref持久固定；Kernel校验Human角色、CAS与唯一回执。响应丢失 / 并发仍只有一个领域效果，坏准备文件闭锁；523份原资料上界与IPC最大128交换匹配。仅Unknown / cost_known false，不结清预算或启用默认启动工具。见[实现](../implementation/CimiLoop-原Agent待核对观测与Kernel接通-v0.1.md)与[验证](../research/CimiLoop-原Agent待核对观测与Kernel接通-2026-10-09.json)。构造资格 / 资料与真实Windows组合分层留证，非Matt真实方法或S1验收；242 Schema / 格式10保持，凭据 / 付费请求0，五组目标保持。 |
 | D-237 | 独立原宿主首次启动票据及不可逆 dispatch 登记 | V1-09 / V1-10 续批，完整 S1 实施中 | 私有宿主 SQLite 格式1绑定原机器 / 主体 / 存储，Context 固定票据；Kernel 与应用服务双重当前准入、原全局 claim 先于本地 dispatch / Native。原资料缺失、复制、新账本、结构 / ACL 漂移闭锁。正式生产模型 / 账户 / 费用仍未批准，完整驱动 / 配额 / 恢复及其余四组继续。验证范围与首次失败见[实现](../implementation/CimiLoop-原宿主首次启动账本与Runtime组合-v0.1.md)。 |
 | D-238 | 原Runtime异常退出及时中断SDK等待 | V1-09 / V1-10 异常恢复续批；完整S1继续 | 原Native恢复后非零 / 信号退出即停止同一执行lifetime，避免等待工具回调至原期限；首取消原因、原不可逆登记与字节、Unknown / 预算保持。实际反例先红后绿，结果与旧失败现场边界见[实现](../implementation/CimiLoop-原Runtime异常退出与SDK等待中断-v0.1.md)；不确认模型套餐预算，不启用默认入口，242 Schema / 格式10保持。 |
+| D-239 | 计划前Human澄清与原请求接续 | V1-21 / V1-10续批；完整S1继续 | 共享应用服务、CLI和工作台接Human问答→Kernel约定候选；锁内原身份、原候选占位 / 收据恢复、损坏拒绝与有界历史保持。真实Matt宿主未安装，其他Plan / Task入口尚未全面约束，默认正式Agent关闭；242 Schema / 项目库10不变，独立对话原件私有格式1。见[实现与操作](../implementation/CimiLoop-计划前Human澄清与原请求接续-v0.1.md)。 |
 
 ## 10. 原阶段进度与当前校准边界
 

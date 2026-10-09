@@ -51,10 +51,11 @@ const api = async (path, body) => {
     method: "POST", headers: { "Content-Type": "application/json", "X-CimiLoop-CSRF": state.context?.csrf ?? "" }, body: JSON.stringify(body) }) });
   const result = await response.json();
   if (!response.ok) {
-    const diagnostic = result.details?.diagnostic;
-    const error = new Error(`${result.message ?? result.code}${diagnostic ? `；当前版本 ${diagnostic.current?.revision ?? "未知"}；缺项：${diagnostic.missing_conditions.join("、")}` : ""}`);
-    error.status = response.status; error.code = result.code;
-    error.nativeRejected = typeof result.category === "string"; throw error;
+    const rejected = result.command_result ?? result;
+    const diagnostic = rejected.details?.diagnostic;
+    const error = new Error(`${rejected.message ?? rejected.code}${diagnostic ? `；当前版本 ${diagnostic.current?.revision ?? "未知"}；缺项：${diagnostic.missing_conditions.join("、")}` : ""}`);
+    error.status = response.status; error.code = rejected.code;
+    error.nativeRejected = typeof rejected.category === "string" && rejected.retryable !== true && !["storage", "internal"].includes(rejected.category); throw error;
   }
   return result;
 };
@@ -67,14 +68,32 @@ const mutation = async (type, payload, target, revision, role = "project_owner",
   catch { state.pending = null; throw new Error("浏览器无法保留待核对请求，动作尚未发送。请允许当前页面的会话存储后重试。"); }
   await replay();
 };
+const clarificationMutation = async (changeId, sessionId, values) => {
+  if (state.pending) { showNotice("上次动作的结果还未核对，请先按原请求核对。", true, button("按原请求核对", replay)); return; }
+  state.pending = { clarification_request: true, change_id: changeId, session_id: sessionId ?? null,
+    request: { request_id: uuid(), ...values } };
+  try { sessionStorage.setItem('cimiloop.pending.' + state.context.project_id, JSON.stringify(state.pending)); }
+  catch { state.pending = null; throw new Error("浏览器无法保留待核对请求，澄清动作尚未发送。"); }
+  await replay();
+};
 const replay = async () => {
   if (!state.pending || state.busy) return;
   state.busy = true; document.querySelectorAll("form button").forEach(item => { item.disabled = true; });
   let committed = false;
   try {
-    const { agent_runtime_control, ...command } = state.pending;
-    const action = command.command_type === "RecordRunObservation" ? "observe" : "stop";
-    const path = agent_runtime_control === true ? `/api/agent-runs/${encodeURIComponent(command.target.id)}/${action}` : "/api/commands";
+    let path, command;
+    if (state.pending.clarification_request === true) {
+      const pending = state.pending, internalId = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+      if (!internalId.test(pending.change_id) || (pending.session_id !== null && !internalId.test(pending.session_id)) ||
+        !pending.request || !internalId.test(pending.request.request_id)) throw new Error("保留的澄清请求身份无效，尚未发送。");
+      path = "/api/changes/" + pending.change_id + "/clarifications" + (pending.session_id ? "/" + pending.session_id : "");
+      command = pending.request;
+    } else {
+      const { agent_runtime_control, ...original } = state.pending;
+      command = original;
+      const action = command.command_type === "RecordRunObservation" ? "observe" : "stop";
+      path = agent_runtime_control === true ? "/api/agent-runs/" + encodeURIComponent(command.target.id) + "/" + action : "/api/commands";
+    }
     const result = await api(path, command); state.pending = null; committed = true;
     try { sessionStorage.removeItem(`cimiloop.pending.${state.context.project_id}`); } catch {}
     showNotice(result.operation?.outcome === "unknown" ? "停止请求已记录，原运行状态仍待核对。正在刷新项目事实。" : "动作已记录，正在刷新项目事实。");
@@ -197,14 +216,47 @@ const taskPanel = (task, data) => {
     paragraph(`已完成：${handoff.completed.join("；") || "暂无"}`), paragraph(`待处理：${handoff.unresolved.join("；") || "暂无"}`), details("固定交接记录", handoff)));
   return result;
 };
-const contractForm = change => form(values => mutation("SubmitContractProposal", { base_version_ref: change.contract_ref ?? null, body: {
+const contractForm = (change, submitCandidate) => form(values => (submitCandidate ?? (payload => mutation("SubmitContractProposal", payload, changeTarget(change), change.revision, "change_owner")))({ base_version_ref: change.contract_ref ?? null, body: {
   goal: values.goal, scope: values.scope, non_goals: lines(values.non_goals), constraints: lines(values.constraints),
   acceptance_criteria: [{ key: "A1", scenario: values.scenario, expected: values.expected, evidence_requirements: lines(values.evidence) }],
   delivery_endpoint: "production_verified", knowledge_impact: [], risk: { level: values.risk, impact_categories: ["other"], rationale: values.rationale }, unresolved_questions: lines(values.questions)
-} }, changeTarget(change), change.revision, "change_owner"), input("goal", "期望结果", { required: true }), textarea("scope", "本次范围", { required: true }),
+} }), input("goal", "期望结果", { required: true }), textarea("scope", "本次范围", { required: true }),
 textarea("non_goals", "不包含的工作（每行一项）"), textarea("constraints", "约束（每行一项）"), input("scenario", "验收场景", { required: true }), input("expected", "预期行为", { required: true }),
 textarea("evidence", "验收需要的证据（每行一项）", { required: true }), select("risk", "风险等级", [["ordinary", "普通"], ["high", "高风险"]]), textarea("rationale", "风险说明", { required: true }),
 textarea("questions", "尚未明确的问题（每行一项）"), paragraph("此简表适用于一项验收、无知识影响、other 风险类别的普通候选；多验收项、知识影响或其他风险类别请使用已有 CLI 提交完整候选。"), submit("提交约定候选"));
+const clarificationPanel = (data, change) => {
+  if (data.clarification_error) return panel("原澄清记录待核对", paragraph(data.clarification_error.message));
+  if (![change.owner_actor_id, change.requirement_owner_actor_id].includes(state.context.actor_id)) return null;
+  const beforePlan = change.operating_status === "Active" && ["Draft", "IntentReady"].includes(change.lifecycle_state) &&
+    !change.plan_ref && !data.intent.plan_proposals.length && !data.execution.tasks.length;
+  return panel("计划前 Human 澄清",
+    paragraph("记录需求、问题与回答，再提交约定候选。候选仍需人工确认；真实 Matt 方法尚未接入。"),
+    beforePlan ? form(values => clarificationMutation(change.id, null, {
+      requirement: values.requirement, background: values.background, constraints: lines(values.constraints)
+    }), textarea("requirement", "需要解决的问题", { required: true, maxlength: 4000 }),
+      textarea("background", "业务背景", { required: true, maxlength: 4000 }), textarea("constraints", "约束（每行一项）"),
+      submit("开始澄清")) : paragraph("已有计划或任务的需求仅查看原澄清历史，不能补记前置澄清。"),
+    (data.clarification_history ?? []).slice(0, -1).map(summary => button(summary.requirement, async () => {
+      const response = await api("/api/changes/" + change.id + "/clarifications/" + summary.id);
+      showNotice("原澄清会话", false, details("完整原记录", response.session));
+    })),
+    (data.clarifications ?? []).map(session => {
+      const current = beforePlan && session.head < 64 && !session.pending && !session.submitted && session.basis.change.revision === change.revision;
+      return node("div", { class: "card" }, paragraph(session.basis.request.requirement),
+        paragraph(session.basis.request.background), paragraph("约束：" + (session.basis.request.constraints.join("；") || "暂无")),
+        session.questions.map(question => node("div", {}, paragraph("问题：" + question.text),
+          question.answer !== undefined ? paragraph("回答：" + question.answer) : current ? form(values =>
+            clarificationMutation(change.id, session.id, { kind: "answer", expected_head: session.head, question_id: question.id, text: values.answer }),
+            textarea("answer", "你的回答", { required: true, maxlength: 4000 }), submit("记录回答")) : paragraph("尚待回答"))),
+        current ? form(values => clarificationMutation(change.id, session.id, { kind: "question", expected_head: session.head, text: values.question }),
+          textarea("question", "需要澄清的问题", { required: true, maxlength: 4000 }), submit("记录问题")) : null,
+        current && session.questions.length && !session.unanswered.length ? node("details", {}, node("summary", {}, "从澄清提交约定候选"),
+          contractForm(change, payload => clarificationMutation(change.id, session.id, { kind: "candidate", expected_head: session.head,
+            requested_at: new Date().toISOString(), body: payload.body }))) : null,
+        session.pending ? paragraph("原候选动作待核对，请使用原请求恢复。") : session.submitted ? paragraph("原候选已处理，请继续核对 Kernel 候选与决定。") : null,
+        details("原澄清记录", session));
+    }));
+};
 const changePage = data => {
   const { intent, execution, runs, verification } = data, change = intent.change;
   const proposals = intent.contract_proposals.filter(proposal => !intent.decision_requests.some(item => item.request.target_ref.id === proposal.id));
@@ -213,6 +265,7 @@ const changePage = data => {
       facts([["推进负责人", actorName(change.owner_actor_id)], ["需求负责人", actorName(change.requirement_owner_actor_id)], ["当前版本", change.revision], ["约定版本", change.contract_ref?.domain_version], ["计划版本", change.plan_ref?.domain_version]]),
       change.operating_status === "Active" ? form(values => mutation("PauseChange", { reason: values.reason }, changeTarget(change), change.revision, "change_owner"), input("reason", "暂停理由", { required: true }), submit("暂停需求")) :
       button("核对并恢复推进", () => mutation("ResumeChange", {}, changeTarget(change), change.revision, "change_owner")), details("当前需求事实", change)),
+    clarificationPanel(data, change),
     panel("约定与实施计划", [...intent.contract_versions, ...intent.plan_versions].map(version => details(`${version.proposal_ref.object_type === "contract_proposal" ? "约定" : "计划"}版本 ${version.version}`, version.body)),
       change.plan_ref && execution.tasks.length === 0 ? button("按已确认计划初始化任务", () => mutation("InitializePlanTasks", { plan_ref: change.plan_ref }, changeTarget(change), change.revision, "technical_owner")) : null,
       change.lifecycle_state === "IntentReady" && change.plan_ref ? form(values => mutation("StartChange", { plan_ref: change.plan_ref, opening_reason: values.reason }, changeTarget(change), change.revision, "flow_owner"), input("reason", "开工说明", { required: true }), submit("开始实施")) : null,

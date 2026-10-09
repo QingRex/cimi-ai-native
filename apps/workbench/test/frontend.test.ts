@@ -105,4 +105,51 @@ describe("Workbench frontend recovery with the real HTTP service and SQLite rece
     await until(() => dom.window.document.querySelector("#content")?.textContent.includes("Frontend planning version"));
     expect(f.store.listTargetVersions()).toHaveLength(1);
   });
+  it("retains a response-lost clarification question across reload and submits one candidate from the completed Human round",async()=>{
+    const change=f.create("Before any plan");let lose=true;
+    const first=browser(service.bootstrapUrl,{fault(path,response){if(path.includes("/clarifications/")&&response.ok&&lose){lose=false;throw TypeError("Constructed clarification response loss");}}});
+    await until(()=>first.window.document.querySelector("#operator")?.textContent.includes("Owner"));first.window.location.hash='change/'+change.id;
+    await until(()=>Boolean(first.window.document.querySelector('textarea[name="requirement"]')));
+    const fill=(dom:any,selector:string,value:string)=>{const field=dom.window.document.querySelector(selector);field.value=value;return field.closest("form");};
+    const begin=fill(first,'textarea[name="requirement"]',"澄清后提交唯一候选");fill(first,'textarea[name="background"]',"真实HTTP和Kernel");
+    begin.querySelector('button[type="submit"]').click();
+    await until(()=>Boolean(first.window.document.querySelector('textarea[name="question"]')));
+    const question=fill(first,'textarea[name="question"]',"应怎样验收？");question.querySelector('button[type="submit"]').click();
+    await until(()=>first.window.document.querySelector("#notice")?.textContent.includes("Constructed clarification response loss"));
+    const saved:Record<string,string>={};for(let i=0;i<first.window.sessionStorage.length;i++){const key=first.window.sessionStorage.key(i)!;saved[key]=first.window.sessionStorage.getItem(key)!;}
+    const original=JSON.parse(saved['cimiloop.pending.'+f.project.id]!);expect(original.clarification_request).toBe(true);expect(original.request.kind).toBe("question");
+    const second=browser(service.origin+'/#change/'+change.id,{jar:first.cookieJar,pending:saved});
+    await until(()=>second.window.document.querySelector("#notice")?.textContent.includes("已保留原请求"));
+    [...second.window.document.querySelectorAll("#notice button")].find((item:any)=>item.textContent==="按原请求核对").click();
+    await until(()=>second.window.sessionStorage.getItem('cimiloop.pending.'+f.project.id)===null&&Boolean(second.window.document.querySelector('textarea[name="answer"]')));
+    const answer=fill(second,'textarea[name="answer"]',"保留一致回执");answer.querySelector('button[type="submit"]').click();
+    await until(()=>[...second.window.document.querySelectorAll("summary")].some((item:any)=>item.textContent==="从澄清提交约定候选"));
+    const summary=[...second.window.document.querySelectorAll("summary")].find((item:any)=>item.textContent==="从澄清提交约定候选") as any;summary.parentElement.open=true;
+    const form=summary.parentElement.querySelector("form");for(const [key,value] of Object.entries({goal:"一致结果",scope:"查询",scenario:"重试",expected:"一份候选",evidence:"原收据",rationale:"可撤回候选"}))form.querySelector('[name="'+key+'"]').value=value;
+    const sequence=f.store.asOfEventSequence();form.querySelector('button[type="submit"]').click();
+    await until(()=>f.store.listIntentRecords("contract_proposal",change.id).length===1&&second.window.sessionStorage.getItem('cimiloop.pending.'+f.project.id)===null&&second.window.document.querySelector("#content")?.textContent.includes("原候选已处理"));
+    expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.store.listIntentRecords("plan_proposal",change.id)).toHaveLength(0);expect(f.store.listExecutionObjects("task",change.id)).toHaveLength(0);
+  },60000);
+  it("releases a known Kernel rejection of a clarification candidate and displays its original error",async()=>{
+    const change=f.create("Reject candidate"), priorCommand={...f.context(),command_type:"CreateChange",payload:{title:"Earlier command identity"}};
+    f.kernel.execute(priorCommand);const dom=browser(service.bootstrapUrl);
+    await until(()=>dom.window.document.querySelector("#operator")?.textContent.includes("Owner"));dom.window.location.hash='change/'+change.id;
+    await until(()=>Boolean(dom.window.document.querySelector('textarea[name="requirement"]')));
+    const fill=(selector:string,value:string)=>{const field=dom.window.document.querySelector(selector);field.value=value;return field.closest("form");};
+    const begin=fill('textarea[name="requirement"]',"明确拒绝");fill('textarea[name="background"]',"无目标权限");
+    begin.querySelector('button[type="submit"]').click();await until(()=>Boolean(dom.window.document.querySelector('textarea[name="question"]')));
+    fill('textarea[name="question"]',"如何提交？").querySelector('button[type="submit"]').click();await until(()=>Boolean(dom.window.document.querySelector('textarea[name="answer"]')));
+    fill('textarea[name="answer"]',"核对原请求").querySelector('button[type="submit"]').click();
+    await until(()=>[...dom.window.document.querySelectorAll("summary")].some((item:any)=>item.textContent==="从澄清提交约定候选"));
+    const summary=[...dom.window.document.querySelectorAll("summary")].find((item:any)=>item.textContent==="从澄清提交约定候选") as any;summary.parentElement.open=true;
+    const form=summary.parentElement.querySelector("form");for(const [key,value] of Object.entries({goal:"目标",scope:"范围",scenario:"场景",expected:"拒绝",evidence:"原错误",rationale:"测试"}))form.querySelector('[name="'+key+'"]').value=value;
+    // Generate the next browser UUID as the existing real Kernel command ID.
+    const bytes=Uint8Array.from(priorCommand.command_id.replaceAll("-","").match(/../g)!,byte=>parseInt(byte,16));
+    dom.window.crypto.getRandomValues=(target:Uint8Array)=>{target.set(bytes);return target;};
+    dom.window.Date.now=()=>parseInt(priorCommand.command_id.replaceAll("-","").slice(0,12),16);
+    const storage=dom.window.sessionStorage;
+    form.querySelector('button[type="submit"]').click();
+    await until(()=>dom.window.document.querySelector("#notice")?.textContent.includes("同一 command_id"));
+    expect(storage.getItem('cimiloop.pending.'+f.project.id)).toBeNull();expect(f.store.listIntentRecords("contract_proposal",change.id)).toHaveLength(0);
+  },60000);
 });

@@ -15,7 +15,7 @@ import {
   updateSettings, createTargetVersion, closeTargetVersion, changePlanning, startChange, showFlow,
   submitIntentProposal, assessRisk, requestIntentDecision, recordIntentDecision, confirmIntent, showIntent,
   executionMutation, showExecution, verificationMutation, showVerification, runMutation, showRuns, inspectObject,
-  importSkillProvider, inspectSkillProvider, type GlobalOptions
+  importSkillProvider, inspectSkillProvider, clarificationOperation, type GlobalOptions
 } from "./commands.js";
 import { outputError } from "./output.js";
 import { CliInputError } from "./input.js";
@@ -57,6 +57,17 @@ for (const [name, kind] of [["record-evidence", "RecordProviderEvidence"], ["eva
     .option("--artifact-root <path>", "原始引用可读取的显式根目录；缺省当前项目目录");
   entry.action((options, command) => providerMutation(kind, { ...globals(command), ...options }));
 }
+const clarification = program.command("clarification").description("计划前 Human 问答与原请求核对；真实 Matt 方法尚未接入");
+clarification.command("list <change>").description("读取有界会话摘要与最近原会话")
+  .action((change, _options, command) => clarificationOperation("list", change, undefined, globals(command)));
+clarification.command("show <change> <session>").description("核对完整原会话，不补记历史前置澄清")
+  .action((change, session, _options, command) => clarificationOperation("show", change, session, globals(command)));
+clarification.command("begin <change>").description("在 Plan / Task 创建前开始 Human 澄清")
+  .requiredOption("--file <json>", "固定 request_id、需求、背景与约束的原请求文件")
+  .action((change, options, command) => clarificationOperation("begin", change, undefined, { ...globals(command), ...options }));
+clarification.command("advance <change> <session>").description("按原请求记录问题 / 回答 / 候选，重复请求复用原收据")
+  .requiredOption("--file <json>", "固定 request_id、expected_head 与动作内容；候选须保留原 requested_at")
+  .action((change, session, options, command) => clarificationOperation("advance", change, session, { ...globals(command), ...options }));
 const runtime = program.command("runtime").description("Runtime版本与操作系统隔离探针；尚未启用正式Agent任务");
 runtime.command("gateway-credit-probe").description("历史费率下的持久积分预算演练；不发送HTTP、读取凭据或批准计费")
   .option("--output-dir <path>", "结果及独立积分演练账本目录；默认.cimiloop/gateway-credit-probe")

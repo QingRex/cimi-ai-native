@@ -15,7 +15,7 @@ import { VerificationShowResultSchema } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
-import { openLocalProject, LocalSkillPackageStore } from "@cimiloop/local-app";
+import { openLocalProject, LocalPrePlanClarification, LocalSkillPackageStore } from "@cimiloop/local-app";
 import { SkillPackageInspectionResultSchema, type SkillPackageInspectionResult, type ProviderRegistration } from "@cimiloop/protocol/v2";
 import { RunShowResultSchema, ProviderCatalogResultSchema } from "@cimiloop/protocol/v2";
 import { MigrationRunner, SqliteProjectRegistry, SqliteProjectStore } from "@cimiloop/store-sqlite";
@@ -23,7 +23,7 @@ import { parseVersionedCommandResult } from "@cimiloop/protocol";
 import { readInstance, writeInstance } from "./instance.js";
 import { locateProject, readGitIdentity, registryDatabasePath } from "./location.js";
 import { CliInputError, readJsonObject, targetNotFound, importInputFile } from "./input.js";
-import { isDomainError, outputError, outputJson, outputObject } from "./output.js";
+import { isDomainError, outputError, outputJson, outputObject, renderFields } from "./output.js";
 
 export interface GlobalOptions {
   json?: boolean;
@@ -696,4 +696,16 @@ export const migrateProject = async (options: GlobalOptions & { check?: boolean 
     if (report.migration_required) stdout.write(`Change：${report.counts.changes}，历史 Event：${report.counts.event_ledger}，成功 Receipt：${report.counts.command_receipts}，Outbox：${report.counts.outbox_messages}\n`);
     if (report.backup_path) stdout.write(`一致性备份：${report.backup_path}\n`);
   }
+};
+
+export const clarificationOperation = (kind: "list" | "show" | "begin" | "advance", change: string, session: string | undefined,
+  options: GlobalOptions & { file?: string }): void => {
+  const local = openLocalProject(options.projectDir ? { projectDir: options.projectDir } : {});
+  try {
+    const service = new LocalPrePlanClarification(local);
+    const result = kind === "list" ? service.list(change) : kind === "show" ? service.show(change, session!) :
+      kind === "begin" ? service.begin(change, readJsonObject(options.file!)) : service.advance(change, session!, readJsonObject(options.file!));
+    if ("command_result" in result && isDomainError(result.command_result)) process.exitCode = 1;
+    process.stdout.write((options.json ? JSON.stringify(result, null, 2) : renderFields(result)) + "\n");
+  } finally { local.store.close(); }
 };

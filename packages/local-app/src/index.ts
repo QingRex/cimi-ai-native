@@ -30,3 +30,6 @@ export type { AgentRuntimeControlPort, AgentRuntimeControlContext } from "./agen
 export type { AgentCheckCustodyPort } from "./agent-check-admission-local.js";
 export type { NamedSkillMethodOriginalsPort, NamedSkillMethodExecutionAdmission } from "./skill-method-assessment-local.js";
 export type { LocalSkillMethodPlan, LocalSkillMethodQualificationPort } from "./skill-methods-local.js";
+
+export { LocalPrePlanClarification } from "./clarification-local.js";
+export type { ClarificationBegin, ClarificationAction, ClarificationSession } from "./clarification-local.js";
