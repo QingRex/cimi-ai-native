@@ -1,5 +1,8 @@
 # CimiLoop 背景研究
 
+- [原Task结构化执行产物与Kernel观测研究记录](CimiLoop-原Task结构化执行产物与Kernel观测-2026-10-09.json)：原模型 / SDK / Native结果对应、工程评审反例与实际Windows工作台路径；构造模型和资格不计真实方法或S1。
+
+
 
 - [原启动账本新鲜Native权限核验研究记录](CimiLoop-原启动账本新鲜Native权限核验-2026-10-09.json)：权限核验饥饿反例、实际共享工厂、Native/SDK分阶段结果及未解释0xC0000005；不计为真实模型 / Skill / S1。
 

@@ -47,3 +47,5 @@ export { AgentRuntimeModelHost, parseAgentRuntimeModelRequest, parseAgentRuntime
 export type { AgentRuntimeModelPort, AgentRuntimeModelResponse } from "./agent-runtime-model.js";
 
 export { selectAgentRuntimeLifetime, withinAgentRuntimeTaskBudget } from "./agent-runtime-lifetime.js";
+
+export { originalTaskResultContract, verifyOriginalTaskExecutionResult, type OriginalTaskExecutionResult } from "./agent-runtime-completion.js";

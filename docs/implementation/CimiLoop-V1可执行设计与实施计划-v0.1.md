@@ -1,5 +1,8 @@
 # CimiLoop V1 可执行设计与实施计划 v0.1
 
+2026-10-09 D-247：[原Task结构化执行产物与Kernel观测](CimiLoop-原Task结构化执行产物与Kernel观测-v0.1.md)接共享Runtime和原观测：冻结全部Task输出，独立核对原模型spine / IPC / SDK / Native及工具因果顺序。产物证明不代替账户 / 账单、Task验收或当前源码验证，报告仍Unknown并保留预算；完整五组S1继续，默认正式Agent关闭，242 Schema / 用户库10保持。
+
+
 
 2026-10-09 D-246：[原启动账本新鲜Native权限核验](CimiLoop-原启动账本新鲜Native权限核验-v0.1.md)接共享启动工厂，保留逐次当前ACL / SQLite / 原票据核验，降低同步PowerShell启动阻塞；实际控制回归通过，SDK完整读改查仍有dispatch后重核失败，0xC0000005根因未证明。正向领域结果、真实模型 / 账户 / 方法和完整五组S1继续；默认正式Agent关闭，242 Schema / 用户库10保持。
 

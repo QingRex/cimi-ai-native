@@ -59,9 +59,22 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("original Agent
   // fresh first-launch workspace after its own legitimate Native modification.
   // LocalAgentRuntimeStart independently enforces the original launch rules.
   const model:AgentRuntimeModelPort={admission_digest:digest("constructed model/account qualification").value,check:async current=>{expect(current).toEqual(scope);const assessment=kernel.assessAgentRunTool({...current,action:"read_files",resource:"src/query.ts"});if(!("decision" in assessment)||assessment.decision!=="ALLOW")throw Error(JSON.stringify(assessment));},execute:async input=>{
-   expect(JSON.stringify(input.prompt)).toContain("cimiloop/agent-runtime-task-packet/1.0.0");expect(JSON.stringify(input.prompt)).not.toContain("line truncated");sends++;const name=sends===1?"cimi_read":sends===2?"cimi_replace":sends===3?"cimi_check":null;
+   expect(JSON.stringify(input.prompt)).toContain("cimiloop/agent-runtime-task-packet/2.0.0");expect(JSON.stringify(input.prompt)).not.toContain("line truncated");sends++;const name=sends===1?"cimi_read":sends===2?"cimi_replace":sends===3?"cimi_check":null;
    if(name)return {content:[{type:"tool-call",tool_call_id:"model_tool_"+sends,tool_name:name,arguments:JSON.stringify(name==="cimi_check"?{check_id:"query_test"}:{path:"src/query.ts",expected_digest:digest(readFileSync(join(root,"src/query.ts"))).value,...(name==="cimi_replace"?{replacement_utf8:"export const query = () => 2;\n"}:{})})}],usage:{input_tokens:5,output_tokens:5},finish:"tool_calls"};
-   return {content:[{type:"text",text:"Constructed final model response after actual checks"}],usage:{input_tokens:5,output_tokens:5},finish:"stop"};
+   const outputs:{call_id:string}[]=[];
+   const visit=(value:unknown):void=>{
+    if(typeof value==="string"){if(value.trim().startsWith("{"))try{visit(JSON.parse(value));}catch{}return;}
+    if(!value||typeof value!=="object")return;
+    if("format" in value&&value.format==="cimiloop/opencode-check-output/2.0.0"||"format" in value&&value.format==="cimiloop/opencode-check-output/1.0.0"){
+     if("call_id" in value&&typeof value.call_id==="string")outputs.push({call_id:value.call_id});return;
+    }
+    for(const child of Object.values(value))visit(child);
+   };
+   visit(input.prompt);expect(outputs).toHaveLength(1);
+   const definition=f.store.getExecutionRecord("task_definition",reserved.record.definition_ref.id)!;
+   const terminal={format:"cimiloop/task-execution-result/1.0.0",run_id:scope.run_id,operation_key:scope.operation_key,input_digest:scope.context_digest,definition_ref:reserved.record.definition_ref,
+    outputs:definition.body.outputs.map((_,output_index)=>({output_index,evidence_call_ids:[outputs[0]!.call_id]})),summary:"Constructed model result referencing actual edited-source SDK fixed-check output"};
+   return {content:[{type:"text",text:JSON.stringify(terminal)}],usage:{input_tokens:5,output_tokens:5},finish:"stop"};
   }};
   return {...f,root,dataDirectory,kernel,reserved,scope,local,binary,custody,checks,model,sends:()=>sends};
  }
@@ -89,6 +102,11 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("original Agent
   const observe={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:"technical_owner",command_type:"RecordRunObservation",target:{object_type:"run",id:f.reserved.run.id},expected_revision:f.store.getRun(f.reserved.run.id)!.revision,payload:{}};
   const record=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/observe",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:JSON.stringify(observe)});const body=await response.json();expect({status:response.status,body}).toMatchObject({status:200});return body;};
   const observation=await record();expect(observation).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"unknown",usage:{cost_known:false}}}}});expect(await record()).toEqual(observation);
+  const observationDir=join(f.dataDirectory,"agent-runtime-observations",f.project.id,f.reserved.run.id,observe.command_id),preparedObservation=JSON.parse(readFileSync(join(observationDir,"prepared.json"),"utf8"));
+  const proof=JSON.parse(readFileSync(join(f.dataDirectory,"objects",preparedObservation.proof_ref.locator),"utf8"));expect(proof.execution_result_ref).toBeDefined();
+  const executionResult=JSON.parse(readFileSync(join(f.dataDirectory,"objects",proof.execution_result_ref.locator),"utf8"));
+  expect(executionResult).toMatchObject({format:"cimiloop/original-task-execution-result/1.0.0",run_id:f.reserved.run.id,operation_key:f.scope.operation_key,native_effect_reverified:true,
+   model_account_custody_proven:false,costs_reconciled:false,task_acceptance_proven:false,current_workspace_applicability_proven:false,required_checks:[{check_id:"query_test"}],sdk:{final_model_call_id:"model_0004"}});
   expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(1);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Unknown");
   expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});expect(f.store.asOfEventSequence()).toBe(sequence+1);
  });

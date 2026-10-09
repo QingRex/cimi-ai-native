@@ -1,5 +1,8 @@
 # CimiLoop SDK 调用与 IPC 原字节账本 v0.1
 
+2026-10-09 后续 D-247 已把原模型 / SDK / IPC / Native 对应核验和结构化 Task 执行产物接入共享原观测，见[产物与 Kernel 观测](CimiLoop-原Task结构化执行产物与Kernel观测-v0.1.md)。该组合仍不证明真实账户 / 费用、Task 验收或当前源码适用性；本文件的 IPC 对应层 native_effect_reverified 继续为 false，完整五组 S1 继续。
+
+
 2026-10-09 后续 D-233 已将独立 Native 历史原回执核验接入原操作采集及共享应用服务，见[原回执核验与边界](CimiLoop-Native原回执独立核验-v0.1.md)。本文件的 SDK / IPC 对应层仍不证明 Native 效果，ipc.correlation.native_effect_reverified 保留 false；新增 native 部分独立表达历史回执对应，不能证明当前源码通过、模型 / 账户批准、费用结清或领域完成。
 
 2026-10-08，D-232，V1-09 续批。承接[原 Run 唯一启动登记与操作查询](CimiLoop-原Run唯一启动登记与操作查询-v0.1.md)。补齐正式结果核验需要的原始资料：此前 IPC 只留下内存中的结果摘要，无法逐次重读实际请求、响应与 SDK 输出的对应关系。本批保存受原 OS 身份约束的原字节，并接入原操作采集；完整生产结果核验、模型 / 账户及 S1 尚未完成。

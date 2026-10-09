@@ -1,5 +1,8 @@
 # CimiLoop 实施设计
 
+2026-10-09 D-247：[原Task结构化执行产物与Kernel观测](CimiLoop-原Task结构化执行产物与Kernel观测-v0.1.md)与[分阶段验证](../research/CimiLoop-原Task结构化执行产物与Kernel观测-2026-10-09.json)：冻结输出合同、原模型 / SDK / IPC / Native对应和共享工作台原观测；不确认真实账户、费用、Task验收或S1。
+
+
 
 - [原启动账本新鲜Native权限核验](CimiLoop-原启动账本新鲜Native权限核验-v0.1.md)：固定宿主助手接共享启动工厂，逐次ACL / 原账本核验及助手篡改拒绝；真实Native启动失效保留，完整S1继续。
 
