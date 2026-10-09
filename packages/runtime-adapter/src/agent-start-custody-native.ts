@@ -1,0 +1,50 @@
+import { execFile, execFileSync } from "node:child_process";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
+import { existsSync, renameSync, lstatSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { assertOrdinaryPath, atomicJson, bytesAt, digest, directory, readJson, RuntimeAdapterError } from "./files.js";
+import { isolatedEnvironment } from "./native.js";
+
+type Action = "identity" | "protect" | "verify";
+export async function openWindowsAgentStartCustody(toolsRoot: string, signal?: AbortSignal) {
+  signal?.throwIfAborted();
+  if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_start_custody_required");
+  const source = fileURLToPath(new URL("../native/AgentStartCustody.cs", import.meta.url));
+  const build = directory(join(toolsRoot, "tools", "agent-start-custody-" + digest(bytesAt(source)).value));
+  const binary = join(build, "AgentStartCustody.exe"), metadata = join(build, "build.json");
+  if (!existsSync(binary) || !existsSync(metadata)) {
+    const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
+    if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
+    const candidate = join(build, randomUUID() + ".exe"), started = performance.now();
+    const stop = signal ? AbortSignal.any([signal, AbortSignal.timeout(30000)]) : AbortSignal.timeout(30000);
+    try {
+      await promisify(execFile)(compiler, ["/nologo", "/target:exe", "/out:" + candidate, source],
+        { windowsHide: true, maxBuffer: 1048576, env: isolatedEnvironment(), signal: stop });
+      if (stop.aborted || performance.now() - started >= 30000) throw Error();
+    } catch { throw new RuntimeAdapterError("agent_start_custody_build_failed"); }
+    renameSync(candidate, binary); atomicJson(metadata, { digest: digest(bytesAt(binary)) });
+  }
+  const expected = (readJson(metadata) as { digest?: { value?: string } }).digest?.value;
+  if (!expected || digest(bytesAt(binary)).value !== expected) throw new RuntimeAdapterError("agent_start_custody_binary_changed");
+  // Freeze helper identity; later metadata edits cannot change this live port.
+  return (action: Action, root: string): string => {
+    try {
+      if (digest(bytesAt(binary)).value !== expected) throw Error();
+      const started = performance.now();
+      const result = execFileSync(binary, [action, assertOrdinaryPath(root)], {
+        windowsHide: true, timeout: 15000, maxBuffer: 16384, encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"], env: isolatedEnvironment()
+      });
+      if (performance.now() - started >= 15000 || !/^[a-f0-9]{64}$/.test(result)) throw Error();
+      return result;
+    } catch {
+      if (action === "verify") { try { lstatSync(root); } catch (missing) {
+        if (missing && typeof missing === "object" && "code" in missing && missing.code === "ENOENT") throw new RuntimeAdapterError("agent_start_original_missing");
+      } }
+      // Never forward raw errors, args, output or inherited environment.
+      throw new RuntimeAdapterError("agent_start_directory_custody_unproven");
+    }
+  };
+}

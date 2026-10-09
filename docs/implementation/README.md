@@ -1,5 +1,8 @@
 # CimiLoop 实施设计
 
+
+- [原启动账本新鲜Native权限核验](CimiLoop-原启动账本新鲜Native权限核验-v0.1.md)：固定宿主助手接共享启动工厂，逐次ACL / 原账本核验及助手篡改拒绝；真实Native启动失效保留，完整S1继续。
+
 - [原宿主持有的Native时钟通道](CimiLoop-原宿主持有的Native时钟通道-v0.1.md)：持有原owner handle、新鲜OS读数、排队共用15秒期限与生产预算显式关闭；完整S1继续。
 
 

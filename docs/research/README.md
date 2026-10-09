@@ -1,5 +1,8 @@
 # CimiLoop 背景研究
 
+
+- [原启动账本新鲜Native权限核验研究记录](CimiLoop-原启动账本新鲜Native权限核验-2026-10-09.json)：权限核验饥饿反例、实际共享工厂、Native/SDK分阶段结果及未解释0xC0000005；不计为真实模型 / Skill / S1。
+
 - [原宿主持有的Native时钟通道研究记录](CimiLoop-原宿主持有的Native时钟通道-2026-10-09.json)：契约反例、实际Windows / SDK / Task / 工作台范围、宿主死亡夹具诊断和固定源码边界；不计为真实模型 / Skill / S1。
 
 
