@@ -76,12 +76,12 @@ export class AgentRunBudget {
     const remaining = this.calculate(clock) - Math.ceil(performance.now() - started);
     if (remaining <= 0) fail("agent_run_budget_exhausted"); return remaining;
   }
-  watch(stop: (reason: string) => void): () => void {
+  watch(stop: (reason: string, error?: unknown) => void): () => void {
     const controller = new AbortController(); let busy = false, closed = false;
     const timer = setInterval(() => {
       if (closed || busy) return; busy = true;
       void this.remaining(controller.signal).catch(error => {
-        if (!closed) { stop(error instanceof RuntimeAdapterError ? error.reason : "agent_run_budget_unavailable"); clearInterval(timer); }
+        if (!closed) { stop(error instanceof RuntimeAdapterError ? error.reason : "agent_run_budget_unavailable", error); clearInterval(timer); }
       }).finally(() => { busy = false; });
     }, 1000);
     return () => { closed = true; clearInterval(timer); controller.abort(); };

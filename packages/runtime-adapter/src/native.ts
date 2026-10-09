@@ -6,6 +6,16 @@ import { existsSync, copyFileSync, renameSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { bytesAt, digest, directory, atomicJson, readJson, RuntimeAdapterError } from "./files.js";
 
+export interface NativeControlFailure {
+  format: "cimiloop/native-control-failure/1.0.0";
+  kind: "deadline" | "exit" | "terminated" | "aborted" | "spawn" | "invalid_output";
+  operation: "clock_anchor" | "clock_continuous" | "identity" | "inspect_identity" | "recover" | "other";
+  exit_code: number | null; signal: string | null; duration_ms: number;
+  stdout_bytes: number | null; stderr_bytes: number | null;
+}
+export class NativeControlError extends RuntimeAdapterError {
+  constructor(readonly controlFailure: NativeControlFailure) { super("native_control_unavailable"); }
+}
 const execute = promisify(execFile);
 export const isolatedEnvironment = (systemRoot = process.env.SystemRoot ?? "C:\\Windows"): NodeJS.ProcessEnv => ({
   SystemRoot: systemRoot, WINDIR: systemRoot, PATH: join(systemRoot, "System32"),
@@ -16,15 +26,41 @@ export const isolatedEnvironment = (systemRoot = process.env.SystemRoot ?? "C:\\
   BUN_RUNTIME_TRANSPILER_CACHE_PATH: "0", DO_NOT_TRACK: "1"
 });
 export const nativeControl = async (launcher: string, args: string[], signal?: AbortSignal): Promise<{ value: unknown; bytes: Buffer }> => {
+  const started = performance.now(), maximumMs = 15_000, controller = new AbortController();
+  let stopped: "deadline" | "aborted" | undefined, successful: {stdout: Buffer; stderr: Buffer} | undefined;
+  const stop = (reason: "deadline" | "aborted") => { if (!stopped) { stopped = reason; controller.abort(); } };
+  const externalStop = () => stop("aborted"), timer = setTimeout(() => stop("deadline"), maximumMs);
+  signal?.addEventListener("abort", externalStop, {once:true}); if (signal?.aborted) externalStop();
+  const failureFor = (error: unknown): NativeControlError => {
+    const failure = error as { code?: unknown; signal?: unknown; killed?: unknown; name?: unknown; stdout?: unknown; stderr?: unknown } | null;
+    const code = successful ? 0 : typeof failure?.code === "number" && Number.isSafeInteger(failure.code) ? failure.code : null;
+    const endedSignal = typeof failure?.signal === "string" && /^SIG[A-Z0-9]{1,12}$/.test(failure.signal) ? failure.signal : null;
+    // No raw Error/cause: Node embeds argv, environment and helper output there.
+    return new NativeControlError({format:"cimiloop/native-control-failure/1.0.0",
+      kind:stopped ?? (failure?.name === "AbortError" ? "aborted" : failure?.killed === true ? "terminated" : successful || failure?.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? "invalid_output" : code !== null ? "exit" : typeof failure?.code === "string" ? "spawn" : "invalid_output"),
+      operation: args[0] === "--anchor" ? "clock_anchor" : args[0] === "--continuous" ? "clock_continuous" : args[0] === "--identity" ? "identity" : args[0] === "--inspect-identity" ? "inspect_identity" : args[0] === "--recover" ? "recover" : "other",
+      exit_code:code,signal:endedSignal,duration_ms:Math.max(0,Math.ceil(performance.now()-started)),
+      stdout_bytes: Buffer.isBuffer(successful?.stdout) ? successful.stdout.length : Buffer.isBuffer(failure?.stdout) ? failure.stdout.length : null,
+      stderr_bytes: Buffer.isBuffer(successful?.stderr) ? successful.stderr.length : Buffer.isBuffer(failure?.stderr) ? failure.stderr.length : null});
+  };
+  const expire = () => { if (performance.now()-started >= maximumMs) stop("deadline"); };
   try {
-    const result = await execute(launcher, args, { windowsHide: true, timeout: 15_000, maxBuffer: 64 * 1024, env: isolatedEnvironment(), encoding: "buffer", signal });
-    return { value: JSON.parse(result.stdout.toString("utf8")), bytes: result.stdout };
+    // execFile's built-in timeout can report success after Windows termination
+    // returns code 0. Own the first stop signal and inspect it before any JSON.
+    if (stopped) throw failureFor(null);
+    const result = await execute(launcher, [...args], { windowsHide:true, maxBuffer:64*1024, env:isolatedEnvironment(), encoding:"buffer", signal:controller.signal });
+    successful = result; expire(); if (stopped) throw failureFor(null);
+    return {value:JSON.parse(new TextDecoder("utf-8", {fatal:true}).decode(result.stdout)),bytes:result.stdout};
   } catch (error) {
-    if (error && typeof error === "object" && "stdout" in error && Buffer.isBuffer(error.stdout)) {
-      try { return { value: JSON.parse(error.stdout.toString("utf8")), bytes: error.stdout }; } catch { /* fail closed */ }
+    expire();
+    const failure = error as {killed?:unknown;signal?:unknown;code?:unknown;stdout?:unknown} | null;
+    // Preserve legacy nonzero structured Native denials. Truncated output after
+    // cancellation, timeout, signal or output-limit termination is never proof.
+    if (!stopped && failure?.killed !== true && !failure?.signal && failure?.code !== "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" && Buffer.isBuffer(failure?.stdout)) {
+      try { return {value:JSON.parse(new TextDecoder("utf-8", {fatal:true}).decode(failure.stdout)),bytes:failure.stdout}; } catch { /* fail closed */ }
     }
-    throw new RuntimeAdapterError("native_control_unavailable");
-  }
+    throw error instanceof NativeControlError ? error : failureFor(error);
+  } finally { clearTimeout(timer); signal?.removeEventListener("abort",externalStop); }
 };
 export const buildWindowsLauncher = async (root: string, signal?: AbortSignal): Promise<string> => {
   signal?.throwIfAborted();

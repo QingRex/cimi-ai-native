@@ -64,7 +64,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const policy=selectAgentRuntimeLifetime(production?"production":"rehearsal",requestedElapsed,budget?await budget.remaining(externalSignal):undefined);
   const elapsed=policy.elapsed_ms;
   const lifetime = new ExecutionLifetime(elapsed, externalSignal,production?"agent_task":"workspace_rehearsal");
-  const stopBudgetWatch = budget?.watch(reason => lifetime.stop(reason));
+  const stopBudgetWatch = budget?.watch((reason, error) => lifetime.stop(reason, error));
   let cancellationWatch: ReturnType<typeof setInterval> | undefined;
   try {
   lifetime.check();
@@ -136,7 +136,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
           lifetime.check();
           if (native.exitCode !== null || native.signalCode !== null || native.stdin.writableEnded) return;
           native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-prepare-continue/1.0.0", nonce, phase }) + "\n");
-        }).catch(error => { rejectReady(error); cancel(); });
+        }).catch(error => { lifetime.stop(error instanceof RuntimeAdapterError ? error.reason : "workspace_rehearsal_preparation_failed", error); rejectReady(error); cancel(); });
         return;
       }
       if (!exact(value, ["format", "phase", "nonce", "supervisor", "peer", "appcontainer_sid", "network_capability_sids", "active_process_limit"]) ||
@@ -209,6 +209,8 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
       disposal.phase !== "ended" || disposal.nonce !== nonce || disposal.reason !== "exited" || disposal.exit_code !== 0 || disposal.resources_disposed !== true ||
       !Array.isArray(disposal.cleanup_errors) || disposal.cleanup_errors.length) fail("workspace_rehearsal_completion_unproven");
     return result;
+  } catch (error) {
+    lifetime.stop(error instanceof RuntimeAdapterError ? error.reason : "workspace_rehearsal_execution_failed", error); throw error;
   } finally {
     cancel(); const stop = setTimeout(() => { if (native.exitCode === null && native.signalCode === null) native.kill(); }, 5000);
     await Promise.allSettled([channel?.close(), ended]); clearTimeout(stop); lifetime.signal.removeEventListener("abort", cancel);
@@ -225,6 +227,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
       total_output_bytes: total, captured_output_bytes: Buffer.concat(output).length + Buffer.concat(errors).length,
       output_limit_exceeded: outputFailure, completion_proven: false, resource_disposal_proven: false,
       interruption_reason: lifetime.interruptionReason,
+      ...(lifetime.interruptionFailure ? {control_failure: lifetime.interruptionFailure} : {}),
       actual_credentials_read: production ? null : 0, external_model_requests: production ? null : 0, formal_agent_execution_enabled: false
     });
   }

@@ -1,5 +1,8 @@
 # CimiLoop 背景研究
 
+- [Native控制期限与首异常保留研究记录](CimiLoop-Native控制期限与首异常保留-2026-10-09.json)：Windows超时 / 取消有效JSON反例、原clock_continuous失败、分阶段原件与最终源码验证；不计为真实模型 / Skill / S1。
+
+
 - [原Run修改后固定检查研究记录](CimiLoop-原Run修改后固定检查-2026-10-09.json)：Windows / SDK实际修改后检查、原回执来源绑定与历史重放；构造资格不计为真实方法 / 模型 / S1验收。
 
 - [生产执行期限与原Task组合研究记录](CimiLoop-生产执行期限与原Task组合-2026-10-09.json)：实际Windows / SDK / 检查组合与构造模型资格分开留证，旧180秒失败不被新十分钟夹具覆盖。

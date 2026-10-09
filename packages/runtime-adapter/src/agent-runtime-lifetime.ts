@@ -18,7 +18,7 @@ export async function withinAgentRuntimeTaskBudget<T>(budget:AgentRunBudget,work
  if(!(budget instanceof AgentRunBudget))throw new RuntimeAdapterError("agent_runtime_task_budget_unavailable");
  budget.assertScope(budget.basis.scope);
  const policy=selectAgentRuntimeLifetime("production",undefined,await budget.remaining());
- const lifetime=new ExecutionLifetime(policy.elapsed_ms,undefined,"agent_task"),stop=budget.watch(reason=>lifetime.stop(reason));
+ const lifetime=new ExecutionLifetime(policy.elapsed_ms,undefined,"agent_task"),stop=budget.watch((reason,error)=>lifetime.stop(reason,error));
  try{return await lifetime.wait(Promise.resolve().then(()=>{lifetime.check();return work(lifetime.signal);}),late);}
  finally{stop();lifetime.dispose();}
 }
