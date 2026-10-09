@@ -45,7 +45,8 @@ const inflight = new Map<string, Promise<StartResult>>();
 const unknown = (runId: string): StartResult => ({ ok: true, run_id: runId, outcome: "unknown", completion_proven: false, reason: "agent_original_start_unproven" });
 // Kernel supplies domain authority. Durable dispatch precedes the only call to
 // launch, preserving original identity even if Native claim/response is lost.
-// This shared trusted-Agent service is not installed in Human CLI/workbench.
+// Human callers use the guarded shared application bridge; this internal port
+// still requires the original trusted Agent identity and installed composition.
 export class LocalAgentRuntimeStart {
   constructor(private readonly local: AgentRuntimeStartContext, private readonly port?: AgentRuntimeStartPort) {}
   private scope(runId: string) { return originalAgentWorkspaceScope(this.local, runId); }

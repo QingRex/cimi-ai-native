@@ -6,7 +6,7 @@ import { dirname, join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CimiLoopKernel } from "../../packages/kernel/src/index.js";
 import { contentDigest } from "../../packages/kernel/src/intent.js";
-import { LocalAgentRuntimeComposition, LocalAgentStartCustody, LocalAgentCheckAdmission, LocalAgentWorkspaceToolService, openLocalAgentRunBudget, writeInstance } from "../../packages/local-app/src/index.js";
+import { LocalAgentRuntimeComposition, LocalAgentStartCustody, LocalAgentCheckAdmission, LocalAgentWorkspaceToolService, openLocalAgentRunBudget, writeInstance } from "../../packages/local-app/dist/index.js";
 import { initializeWindowsAgentStartLedger, AgentRuntimeModelHost, runOpenCodeWorkspaceRuntime, collectAgentRuntimeOperation, requestAgentRuntimeCancellation, parseAgentWorkspaceToolScope,
  readAgentRuntimeModelOriginals, type AgentRuntimeModelPort, type WorkspaceCheckTemplate } from "../../packages/runtime-adapter/dist/index.js";
 import { digest } from "../../packages/runtime-adapter/src/files.js";
@@ -82,8 +82,13 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("original Agent
  it("executes actual SDK read/edit/check against original Native edited bytes and replays one Run observation",async()=>{
   const f=await setup(),sequence=f.store.asOfEventSequence(),usage=f.task().usage;
   const runtime=LocalAgentRuntimeComposition.open({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,model:f.model});
-  expect(await runtime.start(f.reserved.run.id)).toMatchObject({outcome:"original",completion_proven:false});expect(f.sends()).toBe(4);
-  expect(await runtime.start(f.reserved.run.id)).toMatchObject({outcome:"original"});expect(f.sends()).toBe(4);
+  writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});
+  const server=await startWorkbench({projectDir:f.root,agentRuntimeForRun:()=>runtime});closers.push(()=>server.close());
+  const login=await fetch(server.origin+"/api/session",{method:"POST",headers:{Origin:server.origin,"Content-Type":"application/json"},body:JSON.stringify({bootstrap:new URL(server.bootstrapUrl).hash.slice(1)})});expect(login.status).toBe(200);
+  const cookie=login.headers.get("set-cookie")!.split(";")[0]!,csrf=(await login.json() as {csrf:string}).csrf;
+  const startOriginal=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/start",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:"{}"});const body=await response.json();expect({status:response.status,body}).toMatchObject({status:200});return body;};
+  expect(await startOriginal()).toMatchObject({outcome:"original",completion_proven:false});expect(f.sends()).toBe(4);
+  expect(await startOriginal()).toMatchObject({outcome:"original"});expect(f.sends()).toBe(4);
   const collected=await collectAgentRuntimeOperation(f.dataDirectory,f.scope,{project:f.project,record:f.reserved.record});
   expect(collected.model).toMatchObject({status:"Observed",calls:4,unresolved:0,model_account_custody_proven:false,costs_reconciled:false});
   expect(collected.native).toMatchObject({status:"Verified",matched_calls:3,native_effect_reverified:true});expect(collected.ipc).toMatchObject({exchanges:7,correlation:{uncorrelated_exchanges:0,unmatched_sdk_calls:0}});
@@ -97,10 +102,6 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("original Agent
   expect(readRuntimeBinaryOriginal(f.dataDirectory,config.binary,config.binary_original.sha)).toEqual(config.binary_original);
   expect(JSON.parse(readFileSync(join(collected.status.operation,"result.json"),"utf8"))).toMatchObject({format:"cimiloop/opencode-workspace-runtime/1.0.0",synthetic_model_responses:null,external_model_requests:null,actual_credentials_read:null,formal_agent_execution_enabled:false});
   expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
-  writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});
-  const server=await startWorkbench({projectDir:f.root});closers.push(()=>server.close());
-  const login=await fetch(server.origin+"/api/session",{method:"POST",headers:{Origin:server.origin,"Content-Type":"application/json"},body:JSON.stringify({bootstrap:new URL(server.bootstrapUrl).hash.slice(1)})});expect(login.status).toBe(200);
-  const cookie=login.headers.get("set-cookie")!.split(";")[0]!,csrf=(await login.json() as {csrf:string}).csrf;
   const observe={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:"technical_owner",command_type:"RecordRunObservation",target:{object_type:"run",id:f.reserved.run.id},expected_revision:f.store.getRun(f.reserved.run.id)!.revision,payload:{}};
   const record=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/observe",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:JSON.stringify(observe)});const body=await response.json();expect({status:response.status,body}).toMatchObject({status:200});return body;};
   const observation=await record();expect(observation).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"unknown",usage:{cost_known:false}}}}});expect(await record()).toEqual(observation);

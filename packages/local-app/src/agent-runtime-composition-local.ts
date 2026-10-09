@@ -4,6 +4,7 @@ import { LocalAgentWorkspaceToolService, type AgentWorkspaceToolLocalContext } f
 import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
 import { LocalAgentCheckAdmission } from "./agent-check-admission-local.js";
 import { openLocalAgentRunBudget } from "./agent-run-budget-local.js";
+import { originalAgentWorkspaceScope } from "./agent-workspace-tools-local.js";
 import { LocalProjectError } from "./errors.js";
 
 interface Options {
@@ -22,8 +23,17 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
    throw new LocalProjectError("完整原 Runtime、检查及模型账户准入尚未安装","CAPABILITY_UNAVAILABLE","conflict");
   return new LocalAgentRuntimeComposition({...options,model:{admission_digest:options.model.admission_digest,check:options.model.check.bind(options.model),execute:options.model.execute.bind(options.model)}});
  }
- start(runId:string){return new LocalAgentRuntimeStart(this.options.local,this).start(runId);}
- async prepare(input:AgentRuntimeLaunchInputs){
+ originalScope(runId:string){return structuredClone(originalAgentWorkspaceScope(this.options.local,runId));}
+ start(runId:string,beforeLaunch?:()=>void){
+  if(!beforeLaunch)return new LocalAgentRuntimeStart(this.options.local,this).start(runId);
+  const guarded:AgentRuntimeStartPort={custody:this.custody,prepare:async input=>{
+   beforeLaunch();const staged=await this.prepare(input,beforeLaunch);
+   try{beforeLaunch();}catch(error){await staged.dispose();throw error;}
+   return {launch:async()=>{beforeLaunch();await staged.launch();},dispose:()=>staged.dispose()};
+  }};
+  return new LocalAgentRuntimeStart(this.options.local,guarded).start(runId);
+ }
+ async prepare(input:AgentRuntimeLaunchInputs,beforeNativeEffect?:()=>void){
   const budget=await openLocalAgentRunBudget(this.options.local,input.record.run_id);
   try {
   budget.assertScope(input.scope);
@@ -44,7 +54,7 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
    const model=await AgentRuntimeModelHost.initialize(this.options.local.location.dataDirectory,input.scope,this.options.model,["cimi_read","cimi_replace","cimi_check"],prompt,signal);
    signal.throwIfAborted();
    return {launch:async()=>{
-    await runOpenCodeWorkspaceRuntime({root:this.options.local.location.dataDirectory,binary:this.options.binary,scope:input.scope,prompt,model,runBudget:budget,checkCatalog:catalog,
+    await runOpenCodeWorkspaceRuntime({root:this.options.local.location.dataDirectory,binary:this.options.binary,scope:input.scope,prompt,model,runBudget:budget,checkCatalog:catalog,...(beforeNativeEffect?{beforeNativeEffect}:{}),
      connect:(supervisor,originalSupervisor,peer,nonce,signal,originalModel)=>service.openIpc(supervisor,originalSupervisor,peer,{nonce,signal,model:originalModel})});
    },dispose:async()=>{try{await service.close();}finally{await budget.close();}}};
   } catch(error){await service.close();throw error;}

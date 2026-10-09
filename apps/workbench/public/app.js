@@ -68,6 +68,22 @@ const mutation = async (type, payload, target, revision, role = "project_owner",
   catch { state.pending = null; throw new Error("浏览器无法保留待核对请求，动作尚未发送。请允许当前页面的会话存储后重试。"); }
   await replay();
 };
+const agentStartKey = runId => `cimiloop.agent-start.${state.context.project_id}.${runId}`;
+const originalStartPending = runId => {
+  try { return {pending: !!sessionStorage.getItem(agentStartKey(runId)), available: true}; }
+  catch { return {pending: false, available: false}; }
+};
+const startAgent = async runId => {
+  const key=agentStartKey(runId), original={run_id:runId};
+  try { const prior=sessionStorage.getItem(key); if(prior && JSON.stringify(JSON.parse(prior))!==JSON.stringify(original))throw new Error("原启动请求身份不符。"); sessionStorage.setItem(key,JSON.stringify(original)); }
+  catch { throw new Error("无法保留原启动身份，启动请求尚未发送。"); }
+  try {
+    const result=await api(`/api/agent-runs/${encodeURIComponent(runId)}/start`,{});
+    sessionStorage.removeItem(key);
+    showNotice(result.outcome==="original" ? "已核对原启动登记；结果与费用仍待核对。" : "原启动状态仍待核对，请查询原运行。");
+    try { await load(); } catch(error) { showNotice(`原启动已核对，但刷新失败：${error.message}`,true,button("刷新当前事实",load)); }
+  } catch(error) { showNotice(error.message,true,button("核对原启动请求",()=>startAgent(runId)),button("刷新当前事实",load)); }
+};
 const clarificationMutation = async (changeId, sessionId, values) => {
   if (state.pending) { showNotice("上次动作的结果还未核对，请先按原请求核对。", true, button("按原请求核对", replay)); return; }
   state.pending = { clarification_request: true, change_id: changeId, session_id: sessionId ?? null,
@@ -187,10 +203,14 @@ const taskPanel = (task, data) => {
         const response = await api(`/api/agent-runs/${encodeURIComponent(run.id)}${action ? `/${action}` : ""}`, action ? {} : undefined);
         output.replaceChildren(paragraph(response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
       };
-      result.append(node("div", { class: "row" }, button("查询原运行", () => observe("")), button("采集原资料", () => observe("collect")),
+      const pendingStart=originalStartPending(run.id);
+      const start=button(pendingStart.pending ? "核对原启动请求" : "启动原 Agent 运行",()=>startAgent(run.id));
+      start.disabled=state.context.agent_start_available!==true || !pendingStart.available;
+      if(!pendingStart.available)result.append(paragraph("浏览器无法读取原启动身份，启动暂不可用；仍可查询和停止原运行。"));
+      result.append(node("div", { class: "row" }, start, button("查询原运行", () => observe("")), button("采集原资料", () => observe("collect")),
         button("记录原运行观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
         ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,
-        paragraph("正式 Agent 执行尚未启用。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
+        paragraph(state.context.agent_start_available===true ? "原启动组合已安装，启动仍核对当前授权、模型账户及预算。结果与费用未结清前继续保留预算。" : "正式 Agent 启动组合尚未安装。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
     }
     result.append(form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision,
       agent ? "technical_owner" : "executor", agent), input("reason", "停止理由", { required: true }), submit(agent ? "请求停止原运行" : "请求停止运行")));

@@ -346,6 +346,25 @@ export class CimiLoopKernel {
     } catch { return domainError(this.#id(), "STORE_FAILURE", "无法读取一致的 Agent 启动授权事实", "storage", true); }
   }
 
+  // Human initiation permission only. The original Agent still needs the full
+  // independent launch assessment; this does not change a Run or grant effects.
+  authorizeAgentRunStart(runId: string) {
+    try {
+      return this.#store.readSnapshot(reader => {
+        const caller=this.#caller, project=reader.getProject(), actor=caller && caller.kind!=="bootstrap" ? reader.getActor(caller.actor_id) : undefined;
+        if(!project || !caller || caller.kind!=="local_operator" || !actor || !callerMatchesActor(caller,actor) || caller.project_id!==project.id)
+          return domainError(this.#id(),"CALLER_IDENTITY_MISMATCH","需要当前项目的 Human 本地身份","forbidden");
+        const run=reader.getRun(runId),record=run && reader.getRuntimeRecord("run_record",run.record_ref.id);
+        if(!run || !record || run.project_id!==project.id || record.run_kind!=="agent" || record.run_id!==run.id)
+          return domainError(this.#id(),"OBJECT_NOT_FOUND","未找到当前项目的原 Agent Run","not_found");
+        const assignment=resolveAssignment(reader.listAssignments(actor.id),{projectId:project.id,actorId:actor.id,role:"technical_owner",scope:{kind:"change",id:run.change_id},now:this.#now()}) ??
+          resolveAssignment(reader.listAssignments(actor.id),{projectId:project.id,actorId:actor.id,role:"technical_owner",scope:{kind:"project",id:project.id},now:this.#now()});
+        if(!assignment)return domainError(this.#id(),"ROLE_NOT_ASSIGNED","请求启动原 Agent 需要当前 Human 技术负责人指派","forbidden");
+        return {ok:true as const,project_id:project.id,actor_id:actor.id,run_id:run.id,run_record_id:record.id,assignment_id:assignment.id,assignment_revision:assignment.revision};
+      }).value;
+    }catch{return domainError(this.#id(),"STORE_FAILURE","无法核对原 Agent 启动请求权限","storage",true);}
+  }
+
   getRuns(idOrKey: string): RunShowResult | DomainError {
     try {
       const snapshot = this.#store.readSnapshot(reader => {

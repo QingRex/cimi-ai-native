@@ -29,6 +29,8 @@ export type RehearsalOptions = SharedOptions & ({ mode?: "files"; path: string; 
   { mode: "checks"; checkCatalog: WorkspaceCheckCatalog; checkId: string });
 export type ProductionOptions = Omit<SharedOptions,"connect"> & {
  connect: (supervisor: ChildProcess, originalSupervisor: CreditProcessIdentity, originalPeer: CreditProcessIdentity, nonce: string, signal: AbortSignal, model: AgentRuntimeModelHost) => Promise<Pick<AgentWorkspaceToolIpc,"getEndpoint"|"snapshot"|"close">>;
+ // Trusted installed application guard only; never serialized into a Native config.
+ beforeNativeEffect?: () => void;
  mode: "host_gateway"; prompt: string; model: AgentRuntimeModelHost; checkCatalog: WorkspaceCheckCatalog;
  runBudget: NonNullable<SharedOptions["runBudget"]>;
 };
@@ -48,6 +50,8 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const scope = parseAgentWorkspaceToolScope(options.scope), requestedElapsed = options.maxElapsedMs, checksOnly = options.mode === "checks";
   const production = options.mode === "host_gateway";
   const model = production ? options.model : undefined;
+  const beforeNativeEffect = production ? options.beforeNativeEffect : undefined;
+  if(beforeNativeEffect !== undefined && typeof beforeNativeEffect !== "function") fail("agent_runtime_start_guard_unavailable");
   if (production && (!(model instanceof AgentRuntimeModelHost) || !options.runBudget || !options.checkCatalog || typeof options.prompt !== "string" || !options.prompt.isWellFormed() || !options.prompt.trim() || Buffer.byteLength(options.prompt) > 32768 || Buffer.byteLength(JSON.stringify({prompt:options.prompt})) > 48000 || options.prompt.split(/\r?\n/).length > 1000 || options.prompt.split(/\r?\n/).some(line => Buffer.byteLength(line) > 1800))) fail("agent_runtime_production_admission_unavailable");
   if (model && production && model.taskPacketDigest !== digest(options.prompt).value) fail("agent_model_task_packet_mismatch");
   if (options.mode !== undefined && !["files", "checks", "host_gateway"].includes(options.mode)) fail("workspace_rehearsal_input_invalid");
@@ -68,8 +72,9 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const stopBudgetWatch = budget?.watch((reason, error) => lifetime.stop(reason, error));
   let cancellationWatch: ReturnType<typeof setInterval> | undefined;
   try {
-  lifetime.check();
+  lifetime.check(); beforeNativeEffect?.();
   if (model) await lifetime.wait(model.check(scope,lifetime.signal));
+  beforeNativeEffect?.();
   const root = directory(rootPath), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root, lifetime.signal);
   lifetime.check();
   const identityBinary = await buildWindowsLauncher(root, lifetime.signal);
@@ -136,7 +141,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
           !validWorkspaceWorkerIdentity(value.supervisor) || !originalSupervisor || !isDeepStrictEqual({ ...value.supervisor }, { ...originalSupervisor }) || buffer.length) fail("workspace_rehearsal_preparation_unproven");
         const phase = phases[preparationCount++]!;
         void lifetime.wait(Promise.resolve().then(() => { lifetime.check(); return Promise.resolve(model?.check(scope,lifetime.signal)).then(() => prepare?.({ phase, operation, supervisor: { ...originalSupervisor! } }, lifetime.signal)); })).then(() => {
-          lifetime.check();
+          lifetime.check(); beforeNativeEffect?.();
           if (native.exitCode !== null || native.signalCode !== null || native.stdin.writableEnded) return;
           native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-prepare-continue/1.0.0", nonce, phase }) + "\n");
         }).catch(error => { lifetime.stop(error instanceof RuntimeAdapterError ? error.reason : "workspace_rehearsal_preparation_failed", error); rejectReady(error); cancel(); });
@@ -187,6 +192,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
       owner, supervisor: originalSupervisor, launcher_path: sandboxBinary.path, launcher_digest: sandboxBinary.digest.value,launcher_original:sandboxBinary.original });
     if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
     if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,sandboxBinary.path,sandboxBinary.digest.value),sandboxBinary.original))fail("agent_runtime_controller_original_changed");
+    beforeNativeEffect?.();
     native.stdin.write(JSON.stringify(originalConfig) + "\n");
     const original = await lifetime.wait(ready);
     if (!isDeepStrictEqual(parseGatewayJson(bytesAt(join(operation, "agent-sandbox-original.json")).toString("utf8"), 32768), original)) fail("workspace_rehearsal_original_unproven");
@@ -198,6 +204,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     if (endpoint.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${pipeNonce}` || endpoint.scope_digest !== scopeDigest || endpoint.check_catalog_digest !== (checkCatalog?.catalog_digest ?? null) || endpoint.appcontainer_sid !== original.appcontainer_sid ||
       !isDeepStrictEqual(endpoint.peer, { ...original.peer as CreditProcessIdentity }) || !isDeepStrictEqual(endpoint.supervisor, { ...original.supervisor as CreditProcessIdentity })) fail("workspace_rehearsal_channel_unproven");
     if (model) await lifetime.wait(model.check(scope,lifetime.signal));
+    beforeNativeEffect?.();
     resumed = true; native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-resume/1.0.0", nonce }) + "\n");
     const exit = await lifetime.wait(ended); await channel.close(); lifetime.check();
     const stdout = Buffer.concat(output), stderr = Buffer.concat(errors);

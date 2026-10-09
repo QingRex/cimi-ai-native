@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+- [工作台原Agent启动衔接研究记录](CimiLoop-工作台原Agent启动衔接-2026-10-10.json)：共享Human核权、实际工作台启动与最终准入等待撤权、浏览器接续 / 存储异常；构造模型资格不计S1。
+
 - [原执行产物领域依据与Kernel核验研究记录](CimiLoop-原执行产物领域依据与Kernel核验-2026-10-10.json)：Kernel原固定版本桥接、同ID正文替换反例、实际Windows组合与类型编译器原崩溃；不计真实模型 / 方法 / Task或S1验收。
 
 - [Human计划澄清与原候选恢复研究记录](CimiLoop-Human计划澄清与原候选恢复-2026-10-10.json)：实际SQLite / Kernel / HTTP / CLI / 浏览器路径、原字节兼容、丢响应不重复计划和大结果先红后绿；受控Human输入不计真实方法、Native或S1验收。

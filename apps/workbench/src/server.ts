@@ -2,7 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { fileURLToPath } from "node:url";
-import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalProjectError, openLocalProject, type LocalProject } from "@cimiloop/local-app";
+import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRuntimeStart, type HumanAgentRuntimeFactory, LocalProjectError, openLocalProject, type LocalProject } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
 
 const MAX_BODY_BYTES = 128 * 1024;
@@ -37,7 +37,7 @@ const checked = <T>(value: T | DomainError): T => {
   return value as T;
 };
 
-export interface WorkbenchOptions { projectDir: string; port?: number }
+export interface WorkbenchOptions { projectDir: string; port?: number; agentRuntimeForRun?: HumanAgentRuntimeFactory }
 export interface WorkbenchServer { origin: string; bootstrapUrl: string; close(): Promise<void> }
 
 export const startWorkbench = async (options: WorkbenchOptions): Promise<WorkbenchServer> => {
@@ -46,6 +46,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   const clarification = new LocalPrePlanClarification(context);
   const agentRuntime = new LocalAgentRuntimeControl(context);
   const agentObservation = new LocalAgentRuntimeObservation(context);
+  const agentStart = new LocalHumanAgentRuntimeStart(context,options.agentRuntimeForRun);
   const assets = new Map<string, { type: string; body: Buffer }>();
   try {
     for (const [route, file, type] of [["/", "index.html", "text/html; charset=utf-8"], ["/app.js", "app.js", "text/javascript; charset=utf-8"],
@@ -102,7 +103,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       }
       requireSession(request, request.method !== "GET");
       if (url.pathname === "/api/context" && request.method === "GET") {
-        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, csrf, expires_at: new Date(expires).toISOString() }); return;
+        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, agent_start_available: typeof options.agentRuntimeForRun === "function", csrf, expires_at: new Date(expires).toISOString() }); return;
       }
       if (url.pathname === "/api/dashboard" && request.method === "GET") {
         send(response, 200, dashboard(context)); return;
@@ -147,7 +148,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         const commandResult = "command_result" in result ? result.command_result as ReturnType<typeof executeLocalCommand> | undefined : undefined;
         send(response, commandResult && "code" in commandResult ? statusFor(commandResult) : 200, result); return;
       }
-      const agentMatch = /^\/api\/agent-runs\/([^/]{1,200})(?:\/(collect|stop|cancel|recover|observe))?$/.exec(url.pathname);
+      const agentMatch = /^\/api\/agent-runs\/([^/]{1,200})(?:\/(collect|stop|cancel|recover|observe|start))?$/.exec(url.pathname);
       if (agentMatch && request.method === "GET" && !agentMatch[2]) {
         send(response, 200, await agentRuntime.query(decodeURIComponent(agentMatch[1]!))); return;
       }
@@ -163,7 +164,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
           send(response, "code" in result ? statusFor(result) : 200, result); return;
         }
         if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length) throw new HttpFailure(400, "INVALID_COMMAND");
-        const result = action === "collect" ? await agentRuntime.collect(runId) : action === "cancel" ? await agentRuntime.retryCancellation(runId) : await agentRuntime.recover(runId);
+        const result = action === "start" ? await agentStart.start(runId) : action === "collect" ? await agentRuntime.collect(runId) : action === "cancel" ? await agentRuntime.retryCancellation(runId) : await agentRuntime.recover(runId);
         send(response, 200, result); return;
       }
       if (url.pathname === "/api/commands" && request.method === "POST") {
