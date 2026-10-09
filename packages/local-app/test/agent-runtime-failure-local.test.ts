@@ -55,4 +55,12 @@ describe("original negative execution result",()=>{
   f.identity.input.lifetime_policy="agent_task/1.0.0";f.records["agent-sandbox-resources.json"]!.config_digest=digest(JSON.stringify(config)).value;
   f.materialize();expect(f.classify()).toBe("agent_original_task_deadline");
   f.identity.input.lifetime_policy="foreign";expect(f.classify()).toBeNull();
+ });
+ it("keeps private config5 negative execution qualification bound to its frozen binary proof",()=>{
+  const f=fixture(),config=f.records["original-config.json"]!;
+  config.format="cimiloop/agent-workspace-sandbox-config/5.0.0";config.lifetime_policy="agent_task/1.0.0";config.prompt="Frozen task";
+  config.binary_original={format:"cimiloop/runtime-binary-original-proof/1.0.0",path:process.execPath,sha:digest("constructed executable").value};
+  f.identity.input.binary_original=structuredClone(config.binary_original);f.identity.input.lifetime_policy=config.lifetime_policy;
+  f.records["agent-sandbox-resources.json"]!.config_digest=digest(JSON.stringify(config)).value;f.materialize();expect(f.classify()).toBe("agent_original_task_deadline");
+  f.identity.input.binary_original={foreign:true};expect(f.classify()).toBeNull();
  });});

@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import { join, resolve, dirname, basename } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { agentWorkspaceIpcScopeDigest } from "./agent-workspace-ipc.js";
@@ -16,19 +17,22 @@ function fail(): never { throw new RuntimeAdapterError("workspace_rehearsal_reco
 const record = (path: string) => copyToolJson(parseGatewayJson(bytesAt(path, 65536).toString("utf8"), 65536));
 // Trusted original-operation composition only; no CLI/workbench default entry.
 // Resource recovery never runs a tool/model or synthesizes Run completion.
-export function readOriginalAgentWorkspaceOperation(raw: { root: string; operation: string; scope: unknown }) {
+function readOriginal(raw: { root: string; operation: string; scope: unknown }, verifyBinaryOriginal:boolean) {
   const scope = parseAgentWorkspaceToolScope(raw.scope), root = assertOrdinaryPath(raw.root), operation = assertOrdinaryPath(raw.operation);
   if (!uuid(basename(operation)) || dirname(operation) !== join(resolve(root), "workspace-tool-rehearsals")) fail();
   const config = record(join(operation, "original-config.json"));
   const fields = ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options"];
   const oldConfig = exact(config, fields) && config.format === "cimiloop/agent-workspace-sandbox-config/1.0.0";
+  const retainedConfig=exact(config,[...fields,"deadline_uptime_ms","prompt","lifetime_policy","binary_original"])&&config.format==="cimiloop/agent-workspace-sandbox-config/5.0.0"&&
+    (typeof config.prompt==="string"&&config.lifetime_policy==="agent_task/1.0.0"||config.prompt===null&&config.lifetime_policy===null);
   const newConfig = (exact(config, [...fields, "deadline_uptime_ms"]) && config.format === "cimiloop/agent-workspace-sandbox-config/2.0.0" ||
     exact(config, [...fields, "deadline_uptime_ms", "prompt"]) && config.format === "cimiloop/agent-workspace-sandbox-config/3.0.0" && typeof config.prompt === "string" ||
-    exact(config,[...fields,"deadline_uptime_ms","prompt","lifetime_policy"]) && config.format === "cimiloop/agent-workspace-sandbox-config/4.0.0" && typeof config.prompt === "string" && config.lifetime_policy==="agent_task/1.0.0") &&
+    exact(config,[...fields,"deadline_uptime_ms","prompt","lifetime_policy"]) && config.format === "cimiloop/agent-workspace-sandbox-config/4.0.0" && typeof config.prompt === "string" && config.lifetime_policy==="agent_task/1.0.0"||retainedConfig) &&
     (config.deadline_uptime_ms === null || Number.isSafeInteger(config.deadline_uptime_ms) && Number(config.deadline_uptime_ms) > 0);
   if (!config || !oldConfig && !newConfig || !uuid(config.nonce) || !uuid(config.pipe_nonce) || config.root !== join(operation, "sandbox") ||
-    !Number.isSafeInteger(config.elapsed_ms) || Number(config.elapsed_ms)<1000 || Number(config.elapsed_ms)>(config.format==="cimiloop/agent-workspace-sandbox-config/4.0.0"?3600000:180000) ||
+    !Number.isSafeInteger(config.elapsed_ms) || Number(config.elapsed_ms)<1000 || Number(config.elapsed_ms)>(config.lifetime_policy==="agent_task/1.0.0"?3600000:180000) ||
     typeof config.binary !== "string" || !validWorkspaceWorkerIdentity(config.owner) || config.scope_digest !== agentWorkspaceIpcScopeDigest(scope)) fail();
+  if(retainedConfig){const proof=config.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;if(!proof||proof.path!==config.binary||verifyBinaryOriginal&&!isDeepStrictEqual(readRuntimeBinaryOriginal(root,config.binary,proof.sha),proof))fail();}
   if (!existsSync(join(operation, "original-launcher.json")) || !existsSync(join(operation, "agent-sandbox-resources.json"))) {
     return { scope, root, operation, config, launch: null, resources: null };
   }
@@ -55,8 +59,11 @@ export function readOriginalAgentWorkspaceOperation(raw: { root: string; operati
     resources.mapping !== null && (typeof resources.mapping !== "string" || !/^[F-Z]:$/.test(resources.mapping))) fail();
   return { scope, root, operation, config, launch, resources };
 }
+export function readOriginalAgentWorkspaceOperation(raw: { root: string; operation: string; scope: unknown }) {return readOriginal(raw,true);}
 export async function recoverOpenCodeWorkspaceToolRehearsal(raw: { root: string; operation: string; scope: unknown }) {
-  const { launch, resources, operation } = readOriginalAgentWorkspaceOperation(raw);
+  // Missing execution bytes invalidate result proof, but must not prevent
+  // disposal of the original OS resources by the original pinned controller.
+  const { launch, resources, operation } = readOriginal(raw,false);
   if (!launch || !resources) return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };
   const result = (await nativeControl(launch.launcher_path as string, ["--recover", operation])).value;
   if (!exact(result, ["outcome", "reason", "resources_disposed", "completion_proven"]) || !["recovered", "active", "unknown"].includes(String(result.outcome)) ||

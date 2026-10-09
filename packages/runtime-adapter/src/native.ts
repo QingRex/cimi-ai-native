@@ -1,8 +1,9 @@
+import { retainRuntimeBinary } from "./runtime-binary-originals.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { join, resolve } from "node:path";
-import { existsSync, copyFileSync, renameSync } from "node:fs";
+import { existsSync, renameSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { bytesAt, digest, directory, atomicJson, readJson, RuntimeAdapterError } from "./files.js";
 
@@ -83,16 +84,7 @@ export const buildWindowsLauncher = async (root: string, signal?: AbortSignal): 
   if (expected.digest?.value !== digest(bytesAt(output)).value) throw new RuntimeAdapterError("native_launcher_digest_changed");
   return output;
 };
-export const pinBinary = (root: string, binary: string): { path: string; digest: ReturnType<typeof digest> } => {
-  // Never grant an AppContainer ACE to the installed global executable.
-  const binaryDigest = digest(bytesAt(binary, 512 * 1024 * 1024));
-  const target = join(directory(join(root, "tools", binaryDigest.value)), "runtime.exe");
-  if (!existsSync(target)) {
-    const temp = `${target}.${randomUUID()}.tmp`; copyFileSync(binary, temp); renameSync(temp, target);
-  }
-  if (digest(bytesAt(target, 512 * 1024 * 1024)).value !== binaryDigest.value) throw new RuntimeAdapterError("runtime_binary_digest_changed");
-  return { path: target, digest: binaryDigest };
-};
+export const pinBinary = retainRuntimeBinary;
 // Separate broker binary: it does not change the pinned AppContainer controller
 // or grant the Runtime access to a host filesystem effect executable.
 export const buildWindowsWorkspaceBroker = async (root: string): Promise<{ path: string; digest: ReturnType<typeof digest> }> => {

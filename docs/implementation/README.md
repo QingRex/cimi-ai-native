@@ -1,5 +1,7 @@
 # CimiLoop 实施设计
 
+2026-10-09 D-248：[原执行二进制保留与历史容量](CimiLoop-原执行二进制保留与历史容量-v0.1.md)已接实际Runtime与固定检查；独立库外登记、容量保留及物理原件核验，不能代替物理硬配额、账户账单或完整S1。
+
 2026-10-09 D-247：[原Task结构化执行产物与Kernel观测](CimiLoop-原Task结构化执行产物与Kernel观测-v0.1.md)与[分阶段验证](../research/CimiLoop-原Task结构化执行产物与Kernel观测-2026-10-09.json)：冻结输出合同、原模型 / SDK / IPC / Native对应和共享工作台原观测；不确认真实账户、费用、Task验收或S1。
 
 

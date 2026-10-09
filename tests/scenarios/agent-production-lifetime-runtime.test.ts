@@ -10,6 +10,7 @@ import { LocalAgentRuntimeComposition, LocalAgentStartCustody, LocalAgentCheckAd
 import { initializeWindowsAgentStartLedger, AgentRuntimeModelHost, runOpenCodeWorkspaceRuntime, collectAgentRuntimeOperation, requestAgentRuntimeCancellation, parseAgentWorkspaceToolScope,
  readAgentRuntimeModelOriginals, type AgentRuntimeModelPort, type WorkspaceCheckTemplate } from "../../packages/runtime-adapter/dist/index.js";
 import { digest } from "../../packages/runtime-adapter/src/files.js";
+import {readRuntimeBinaryOriginal} from "../../packages/runtime-adapter/src/runtime-binary-originals.js";
 import { createAgentRunProject } from "../fixtures/agent-run-project.js";
 import { flowSuccess } from "../fixtures/flow-project.js";
 // Overall test includes setup, a NEW constructed approved ten-minute Task and
@@ -87,7 +88,8 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(11);
   const config=JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"));
   expect(config.elapsed_ms).toBeGreaterThan(180000);expect(config.elapsed_ms).toBeLessThanOrEqual(600000);
-  expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/4.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest}});
+  expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/5.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
+  expect(readRuntimeBinaryOriginal(f.dataDirectory,config.binary,config.binary_original.sha)).toEqual(config.binary_original);
   expect(JSON.parse(readFileSync(join(collected.status.operation,"result.json"),"utf8"))).toMatchObject({format:"cimiloop/opencode-workspace-runtime/1.0.0",synthetic_model_responses:null,external_model_requests:null,actual_credentials_read:null,formal_agent_execution_enabled:false});
   expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
   writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});

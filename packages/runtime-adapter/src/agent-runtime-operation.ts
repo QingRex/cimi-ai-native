@@ -1,4 +1,5 @@
 import { readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
+import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import { mkdirSync, writeFileSync, openSync, fsyncSync, closeSync, existsSync, lstatSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -34,6 +35,11 @@ function load(root: string, rawScope: unknown) {
     (raw.synthetic_model_responses !== true && raw.synthetic_model_responses !== null) || raw.formal_agent_execution_enabled !== false || !isDeepStrictEqual(parseAgentWorkspaceToolScope(raw.scope), scope)) fail("agent_runtime_claim_unproven");
   const claim = raw as unknown as Claim, key = read(join(location.key, "original.json"));
   if (digest(bytesAt(join(location.run, "input.json"), 65536)).value !== claim.input_digest) fail("agent_runtime_input_unproven");
+  const input=read(join(location.run,"input.json")) as Record<string,unknown>,configPath=join(root,"workspace-tool-rehearsals",claim.operation_id,"original-config.json");
+  if(input&&typeof input==="object"&&"binary_original" in input&&existsSync(configPath)){
+    const config=read(configPath) as Record<string,unknown>,proof=input.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;
+    if(!proof||config.binary!==proof.path||!isDeepStrictEqual(config.binary_original,proof))fail("agent_runtime_binary_original_unproven");
+  }
   if (!exact(key, ["run_id", "operation_id", "scope_digest", "input_digest"]) || key.run_id !== scope.run_id || key.operation_id !== claim.operation_id ||
     key.scope_digest !== agentWorkspaceIpcScopeDigest(scope) || key.input_digest !== claim.input_digest) fail("agent_runtime_key_unproven");
   return { claim, location, operation: join(root, "workspace-tool-rehearsals", claim.operation_id) };
@@ -44,6 +50,10 @@ function load(root: string, rawScope: unknown) {
 // tool, model or billing authority, and never repairs a partial claim.
 export function readAgentRuntimeOriginalIdentity(root: string, rawScope: unknown) {
   const original = load(root, rawScope), input = read(join(original.location.run, "input.json"));
+  if(input&&typeof input==="object"&&"binary_original" in input){
+    const proof=input.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;
+    if(!proof||!isDeepStrictEqual(readRuntimeBinaryOriginal(root,proof.path,proof.sha),proof))fail("agent_runtime_binary_original_unproven");
+  }
   const value = { scope: original.claim.scope, operation: original.operation, operation_id: original.claim.operation_id, claim: original.claim, input };
   if (!isDeepStrictEqual(load(root, rawScope).claim, original.claim)) fail("agent_runtime_claim_changed");
   return structuredClone({ ...value, identity_digest: digest(JSON.stringify(value)) });

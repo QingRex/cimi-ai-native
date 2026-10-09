@@ -1,4 +1,5 @@
 import {resolveWorkspaceCheckSourceBasis} from "./workspace-check-source-basis.js";
+import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import {readWorkspaceFileRunOriginals} from "./workspace-tool-host.js";
 import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync, existsSync, readdirSync, realpathSync, unlinkSync, rmdirSync, lstatSync } from "node:fs";
@@ -39,6 +40,11 @@ const exact = (value: unknown, keys: string[]): value is Record<string, unknown>
   Object.keys(value).sort().join(",") === [...keys].sort().join(",");
 const id = (value: unknown): value is string => typeof value === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(value);
 const sha = (value: unknown): value is string => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+function assertCheckInput(request:Record<string,unknown>):void {
+  const retained=request.format==="cimiloop/workspace-check-request/3.0.0",input=request.input;
+  if(!exact(input,["scope","call","recipe","policy_digest","authority_basis",...(retained?["format","binary_original"]:[])])||
+    retained&&(input.format!=="cimiloop/workspace-check-input/2.0.0"||!isDeepStrictEqual(input.binary_original,request.binary_original)))throw new RuntimeAdapterError("workspace_check_record_unproven");
+}
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
 const checkPath = (value: unknown): value is string => typeof value === "string" && value.isWellFormed() && !!value && Buffer.byteLength(value) <= 1024 &&
   !/[\\:%*?\x00-\x1f]/.test(value) && !value.split("/").some(part => !part || part === "." || part === ".." || part !== part.trim() || part.endsWith(".") ||
@@ -67,7 +73,7 @@ export function parseWorkspaceCheckTemplate(raw: unknown): WorkspaceCheckTemplat
 // can pin these original bytes before a Run exists, without recursive hashes.
 export class WorkspaceCheckInstallation {
   private constructor(readonly files: WindowsWorkspaceFileBroker, readonly node: ReturnType<typeof pinBinary>, readonly root: string,
-    readonly policyDigest: string, private readonly encoded: string, private readonly originalBinary: string, private readonly originalRoot: { dev: string; ino: string }) {}
+    readonly policyDigest: string, private readonly encoded: string, private readonly originalBinary: string, private readonly originalRoot: { dev: string; ino: string }, private readonly binaryOriginal: ReturnType<typeof readRuntimeBinaryOriginal>, private readonly dataDirectory: string) {}
   static async open(options: { repositoryPath: string; dataDirectory: string; nodeBinary: string; projectId: string }): Promise<WorkspaceCheckInstallation> {
     const { repositoryPath, dataDirectory, nodeBinary, projectId } = options;
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(projectId)) fail("workspace_check_project_invalid");
@@ -76,10 +82,11 @@ export class WorkspaceCheckInstallation {
       root_identity: files.rootIdentity, node_digest: node.digest.value, maximum_calls: 128 }, policyDigest = digest(JSON.stringify(policy)).value, encoded = JSON.stringify({ policy, policy_digest: policyDigest });
     try { writeFileSync(join(root, "policy.json"), encoded, { flag: "wx" }); }
     catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "EEXIST")) throw error; }
-    const stat = lstatSync(files.repositoryPath, { bigint: true }), installation = new WorkspaceCheckInstallation(files, node, root, policyDigest, encoded, nodeBinary, { dev: String(stat.dev), ino: String(stat.ino) });
+    const stat = lstatSync(files.repositoryPath, { bigint: true }), installation = new WorkspaceCheckInstallation(files, node, root, policyDigest, encoded, nodeBinary, { dev: String(stat.dev), ino: String(stat.ino) }, readRuntimeBinaryOriginal(dataDirectory,node.path,node.digest.value), dataDirectory);
     installation.verify(); return installation;
   }
   verify(): void {
+    if(!isDeepStrictEqual(readRuntimeBinaryOriginal(this.dataDirectory,this.node.path,this.node.digest.value),this.binaryOriginal))fail("workspace_check_binary_changed");
     const stat = lstatSync(assertOrdinaryPath(this.files.repositoryPath), { bigint: true });
     if (!stat.isDirectory() || String(stat.dev) !== this.originalRoot.dev || String(stat.ino) !== this.originalRoot.ino ||
       bytesAt(join(this.root, "policy.json"), 4096).toString("utf8") !== this.encoded || digest(bytesAt(this.node.path, 512 * 1024 * 1024)).value !== this.node.digest.value ||
@@ -181,9 +188,11 @@ export class AgentWorkspaceCheckHost {
     const marker = AgentWorkspaceCheckHost.record(this.root, "policy.json");
     if (!exact(marker, ["policy", "policy_digest"]) || marker.policy_digest !== this.policyDigest || digest(JSON.stringify(marker.policy)).value !== this.policyDigest) fail("workspace_check_policy_conflict");
     const recipe = this.options.recipes.find(value => value.check_id === call.check_id); if (!recipe) fail("workspace_check_unknown_id");
-    const basis = await this.authority(recipe), input = { scope: this.options.scope, call, recipe, policy_digest: this.policyDigest, authority_basis: basis },
+    const binaryOriginal=readRuntimeBinaryOriginal(this.options.dataDirectory,this.node.path,this.node.digest.value);
+    const basis = await this.authority(recipe), input = { format:"cimiloop/workspace-check-input/2.0.0",binary_original:binaryOriginal,scope: this.options.scope, call, recipe, policy_digest: this.policyDigest, authority_basis: basis },
       inputDigest = digest(JSON.stringify(input)).value, operation = this.operation(call);
-    const current = async () => { if (!isDeepStrictEqual(await this.authority(recipe), basis)) fail("workspace_check_authority_changed"); };
+    const current = async () => { if (!isDeepStrictEqual(await this.authority(recipe), basis)) fail("workspace_check_authority_changed");
+      if(!isDeepStrictEqual(readRuntimeBinaryOriginal(this.options.dataDirectory,this.node.path,this.node.digest.value),binaryOriginal))fail("workspace_check_binary_changed"); };
     let existing = existsSync(operation);
     if (!existing) {
       const slots = directory(join(this.root, "slots")); let reserved: string | undefined;
@@ -205,12 +214,15 @@ export class AgentWorkspaceCheckHost {
     if (existing) {
       if (!existsSync(join(operation, "request.json"))) fail("workspace_check_outcome_unproven");
       const original = AgentWorkspaceCheckHost.record(operation, "request.json");
-      if (original.input_digest !== inputDigest || !isDeepStrictEqual(original.input, input)) fail("workspace_check_call_conflict");
-      const receipt = AgentWorkspaceCheckHost.receipt(operation, inputDigest, this.options.scope.run_id, this.node.digest.value, {id:this.options.scope.project_id,repository_path:this.options.repositoryPath}); if (!receipt) fail("workspace_check_outcome_unproven");
+      assertCheckInput(original);
+      if(!["cimiloop/workspace-check-request/1.0.0","cimiloop/workspace-check-request/2.0.0","cimiloop/workspace-check-request/3.0.0"].includes(String(original.format)))fail("workspace_check_record_unproven");
+      const replayInput=original.format==="cimiloop/workspace-check-request/3.0.0"?input:{scope:this.options.scope,call,recipe,policy_digest:this.policyDigest,authority_basis:basis},replayDigest=digest(JSON.stringify(replayInput)).value;
+      if (original.input_digest !== replayDigest || !isDeepStrictEqual(original.input, replayInput)) fail("workspace_check_call_conflict");
+      const receipt = AgentWorkspaceCheckHost.receipt(operation, replayDigest, this.options.scope.run_id, this.node.digest.value, {id:this.options.scope.project_id,repository_path:this.options.repositoryPath}); if (!receipt) fail("workspace_check_outcome_unproven");
       return { receipt, replay: true, operation };
     }
     const nonce = randomUUID(), root = directory(join(operation, "sandbox")), workspace = directory(join(root, "workspace")); directory(join(root, "state"));
-    atomicJson(join(operation, "request.json"), { format: recipe.source_policy ? "cimiloop/workspace-check-request/2.0.0" : "cimiloop/workspace-check-request/1.0.0", input, input_digest: inputDigest, nonce,
+    atomicJson(join(operation, "request.json"), { format: "cimiloop/workspace-check-request/3.0.0", binary_original:binaryOriginal, input, input_digest: inputDigest, nonce,
       owner: this.owners.identity, root, binary: this.node.path, launcher: this.launcher, launcher_digest: this.launcherDigest });
     atomicJson(join(operation, "supervisor.json"), { nonce, identity: this.owners.identity });
     let dispatched = false;
@@ -297,6 +309,8 @@ export class AgentWorkspaceCheckHost {
       native = AgentWorkspaceCheckHost.record(operation, "native-proof.json"), ownership = AgentWorkspaceCheckHost.record(operation, "native-ownership.json"), sources = AgentWorkspaceCheckHost.record(operation, "sources.json");
     const capture = AgentWorkspaceCheckHost.record(operation, "capture.json"), dispatch = AgentWorkspaceCheckHost.record(operation, "dispatch.json"),
       policy = AgentWorkspaceCheckHost.record(operation, "execution-policy-proof.json");
+    assertCheckInput(request);
+    if(request.format==="cimiloop/workspace-check-request/3.0.0"&&!isDeepStrictEqual(readRuntimeBinaryOriginal(dirname(dirname(dirname(operation))),String(request.binary),nodeDigest),request.binary_original))fail("workspace_check_binary_changed");
     if (!exact(dispatch, ["input_digest", "nonce"]) || dispatch.input_digest !== inputDigest || dispatch.nonce !== request.nonce ||
       existsSync(join(operation, "not-started.json")) || typeof request.nonce !== "string" || request.root !== join(operation, "sandbox") ||
       typeof request.binary !== "string" || typeof request.launcher !== "string" || !sha(request.launcher_digest) ||
@@ -313,7 +327,7 @@ export class AgentWorkspaceCheckHost {
     let expectedSources=input?.recipe?.inputs.map(source=>({path:source.path,digest:source.expected_digest}));
     if(input?.recipe?.source_policy) {
       const full=request.input as {scope:AgentWorkspaceToolScope;recipe:WorkspaceCheckRecipe},scope=parseAgentWorkspaceToolScope(full.scope);
-      if(request.format!=="cimiloop/workspace-check-request/2.0.0"||!exact(sources,["format","sources","source_digest","original_file_calls"])||
+      if(!["cimiloop/workspace-check-request/2.0.0","cimiloop/workspace-check-request/3.0.0"].includes(String(request.format))||!exact(sources,["format","sources","source_digest","original_file_calls"])||
         sources.format!=="cimiloop/workspace-check-sources/2.0.0"||!Array.isArray(sources.original_file_calls)||sources.original_file_calls.length>128)fail("workspace_check_receipt_unproven");
       const policyMarker=AgentWorkspaceCheckHost.record(dirname(operation),"policy.json"),p=policyMarker.policy as Record<string,unknown>;
       // The repository path comes from the native request's fixed project policy
@@ -325,7 +339,7 @@ export class AgentWorkspaceCheckHost {
       const basis=resolveWorkspaceCheckSourceBasis(full.recipe,selected);
       if(receipt.format!=="cimiloop/workspace-check-receipt/2.0.0"||receipt.source_basis_digest!==digest(JSON.stringify(basis)).value||!isDeepStrictEqual(basis.original_file_calls,sources.original_file_calls))fail("workspace_check_receipt_unproven");
       expectedSources=basis.sources;
-    } else if(receipt.format!=="cimiloop/workspace-check-receipt/1.0.0"||request.format!=="cimiloop/workspace-check-request/1.0.0"||!exact(sources,["sources","source_digest"]))fail("workspace_check_receipt_unproven");
+    } else if(receipt.format!=="cimiloop/workspace-check-receipt/1.0.0"||!["cimiloop/workspace-check-request/1.0.0","cimiloop/workspace-check-request/3.0.0"].includes(String(request.format))||!exact(sources,["sources","source_digest"]))fail("workspace_check_receipt_unproven");
     if (!input || !input.recipe || !input.call || receipt.call_id !== input.call.call_id || receipt.profile !== input.recipe.profile || receipt.entry !== input.recipe.entry ||
       receipt.reason !== native.reason || receipt.exit_code !== native.exit_code || native.phase !== "ended" || ownership.resources_disposed !== true ||
       receipt.outcome !== (native.reason === "exited" && native.exit_code === 0 ? "passed" : "failed") ||
@@ -340,14 +354,16 @@ export class AgentWorkspaceCheckHost {
   }
   async recover(raw: unknown) {
     const call = parseWorkspaceCheckCall(raw), operation = this.operation(call), request = AgentWorkspaceCheckHost.record(operation, "request.json");
-    if (!exact(request, ["format", "input", "input_digest", "nonce", "owner", "root", "binary", "launcher", "launcher_digest"]) || !["cimiloop/workspace-check-request/1.0.0","cimiloop/workspace-check-request/2.0.0"].includes(String(request.format)) ||
+    assertCheckInput(request);
+    if (!exact(request, ["format", "input", "input_digest", "nonce", "owner", "root", "binary", "launcher", "launcher_digest",...(request.format==="cimiloop/workspace-check-request/3.0.0"?["binary_original"]:[])]) || !["cimiloop/workspace-check-request/1.0.0","cimiloop/workspace-check-request/2.0.0","cimiloop/workspace-check-request/3.0.0"].includes(String(request.format)) ||
       request.root !== join(operation, "sandbox") || request.binary !== this.node.path || request.launcher !== this.launcher || request.launcher_digest !== this.launcherDigest ||
       typeof request.nonce !== "string" || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(request.nonce) ||
       digest(JSON.stringify(request.input)).value !== request.input_digest || !(request.input && typeof request.input === "object" &&
         isDeepStrictEqual((request.input as { scope: unknown }).scope, this.options.scope) && isDeepStrictEqual((request.input as { call: unknown }).call, call))) fail("workspace_check_record_unproven");
     const recoveredInput=request.input as {scope:unknown;recipe:unknown};
     const recoveredRecipe=parseWorkspaceCheckRecipe(recoveredInput.recipe,parseAgentWorkspaceToolScope(recoveredInput.scope));
-    if((request.format==="cimiloop/workspace-check-request/2.0.0")!==!!recoveredRecipe.source_policy)fail("workspace_check_record_unproven");
+    if(request.format!=="cimiloop/workspace-check-request/3.0.0"&&(request.format==="cimiloop/workspace-check-request/2.0.0")!==!!recoveredRecipe.source_policy)fail("workspace_check_record_unproven");
+    if(request.format==="cimiloop/workspace-check-request/3.0.0"&&!isDeepStrictEqual(readRuntimeBinaryOriginal(this.options.dataDirectory,this.node.path,this.node.digest.value),request.binary_original))fail("workspace_check_binary_changed");
     if (!existsSync(join(operation, "native-ownership.json"))) return { outcome: "unknown" as const, reason: "workspace_check_original_native_unproven" };
     if (digest(bytesAt(this.launcher)).value !== this.launcherDigest) fail("workspace_check_binary_changed");
     // Original owner observation stays authoritative even after a new host opens.
@@ -379,16 +395,18 @@ export class AgentWorkspaceCheckHost {
       if (["policy.json", "slots"].includes(entry.name)) continue;
       if (!entry.isDirectory() || !sha(entry.name)) fail("workspace_check_record_unproven");
       const operation = assertOrdinaryPath(join(root, entry.name)), request = AgentWorkspaceCheckHost.record(operation, "request.json"), input = request.input as Record<string, unknown>;
-      if (!exact(request, ["format", "input", "input_digest", "nonce", "owner", "root", "binary", "launcher", "launcher_digest"]) ||
-        !["cimiloop/workspace-check-request/1.0.0","cimiloop/workspace-check-request/2.0.0"].includes(String(request.format)) || !exact(input, ["scope", "call", "recipe", "policy_digest", "authority_basis"]) ||
+      assertCheckInput(request);
+      if (!exact(request, ["format", "input", "input_digest", "nonce", "owner", "root", "binary", "launcher", "launcher_digest",...(request.format==="cimiloop/workspace-check-request/3.0.0"?["binary_original"]:[])]) ||
+        !["cimiloop/workspace-check-request/1.0.0","cimiloop/workspace-check-request/2.0.0","cimiloop/workspace-check-request/3.0.0"].includes(String(request.format)) ||
         input.policy_digest !== marker.policy_digest || !sha(request.input_digest) || digest(JSON.stringify(input)).value !== request.input_digest ||
         !Array.isArray(input.authority_basis) || !input.authority_basis.every(sha) || !validWorkspaceWorkerIdentity(request.owner) ||
         typeof request.nonce !== "string" || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(request.nonce)) fail("workspace_check_record_unproven");
       const scope = parseAgentWorkspaceToolScope(input.scope), call = parseWorkspaceCheckCall(input.call), recipe = parseWorkspaceCheckRecipe(input.recipe, scope);
-      if ((request.format==="cimiloop/workspace-check-request/2.0.0")!==!!recipe.source_policy) fail("workspace_check_record_unproven");
+      if (request.format!=="cimiloop/workspace-check-request/3.0.0"&&(request.format==="cimiloop/workspace-check-request/2.0.0")!==!!recipe.source_policy) fail("workspace_check_record_unproven");
       if (scope.project_id !== project.id || input.authority_basis.length !== recipe.inputs.length + 1 ||
         digest(JSON.stringify([scope.run_id, call.call_id])).value !== entry.name) fail("workspace_check_record_unproven");
       if (scope.run_id !== record.run_id) continue;
+      if(request.format==="cimiloop/workspace-check-request/3.0.0"&&!isDeepStrictEqual(readRuntimeBinaryOriginal(dataDirectory,String(request.binary),String(policy.node_digest)),request.binary_original))fail("workspace_check_binary_changed");
       if (record.run_kind !== "agent" || scope.operation_key !== record.operation_key || scope.executor_actor_id !== record.executor_ref.id ||
         !isDeepStrictEqual(scope.context_digest, record.input_digest) || !isDeepStrictEqual(scope.runtime_binding, record.runtime_binding) ||
         !isDeepStrictEqual(scope.skill_bindings, record.skill_bindings) || !isDeepStrictEqual(scope.host_admission_ref, record.host_admission_ref)) fail("workspace_check_run_mismatch");

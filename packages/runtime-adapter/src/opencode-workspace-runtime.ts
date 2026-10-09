@@ -1,4 +1,5 @@
 import {selectAgentRuntimeLifetime} from "./agent-runtime-lifetime.js";
+import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import { AgentRuntimeModelHost } from "./agent-runtime-model.js";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, writeFileSync } from "node:fs";
@@ -73,14 +74,14 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   lifetime.check();
   const identityBinary = await buildWindowsLauncher(root, lifetime.signal);
   lifetime.check();
-  const pinned = pinBinary(root, binaryPath); lifetime.check();
+  const pinned = pinBinary(root, binaryPath), binaryOriginal=readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value); lifetime.check();
   const originalModules = ["agent-workspace-ipc-client.mjs", "opencode-workspace-tools.js", production ? "opencode-host-gateway-provider.mjs" : "opencode-workspace-provider-fixture.mjs"].map(name => {
     const bytes = bytesAt(fileURLToPath(new URL(`../transport/${name}`, import.meta.url))); return { name, bytes, digest: digest(bytes) };
   });
   const owner = (await nativeControl(identityBinary, ["--identity", String(process.pid)], lifetime.signal)).value;
   lifetime.check(); if (!validWorkspaceWorkerIdentity(owner)) fail("workspace_rehearsal_owner_unproven");
   budget?.assertScope(scope);
-  const claim = claimAgentRuntimeOperation(root, scope, { purpose: production ? "agent_runtime" : "workspace_rehearsal", mode: production ? "host_gateway" : checksOnly ? "checks" : "files", binary_digest: pinned.digest,
+  const claim = claimAgentRuntimeOperation(root, scope, { purpose: production ? "agent_runtime" : "workspace_rehearsal", mode: production ? "host_gateway" : checksOnly ? "checks" : "files", binary_digest: pinned.digest,binary_original:binaryOriginal,
     sandbox_digest: sandboxBinary.digest, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
     provider_options: providerOptions, ...(production ? { prompt: options.prompt } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
   cancellationWatch = setInterval(() => { try { if (agentRuntimeCancellationRequested(root, scope)) lifetime.stop("workspace_rehearsal_cancel_requested"); }
@@ -107,9 +108,10 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const globalConfig = directory(join(config, "global", "opencode")); writeFileSync(join(globalConfig, ".gitignore"), "node_modules\npackage.json\npackage-lock.json\nbun.lock\n.gitignore\n", { flag: "wx" });
   writeFileSync(join(operation, "workspace-private-canary.txt"), "Synthetic private workspace canary\n", { flag: "wx" });
   const nonce = randomUUID(), pipeNonce = randomUUID(), scopeDigest = agentWorkspaceIpcScopeDigest(scope);
-  const originalConfig = { format: production ? "cimiloop/agent-workspace-sandbox-config/4.0.0" : "cimiloop/agent-workspace-sandbox-config/2.0.0", nonce, root: sandbox, binary: pinned.path, owner,
-    pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null, ...(production ? { prompt: options.prompt, lifetime_policy:policy.policy } : {}) };
+  const originalConfig = { format:"cimiloop/agent-workspace-sandbox-config/5.0.0", binary_original:binaryOriginal, nonce, root: sandbox, binary: pinned.path, owner,
+    pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null, prompt:production?options.prompt:null, lifetime_policy:production?policy.policy:null };
   atomicJson(join(operation, "original-config.json"), originalConfig);
+  if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
   const native = spawn(sandboxBinary.path, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
   let channel: Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close"> | undefined, buffer = Buffer.alloc(0), total = 0, outputFailure = false, suspended: Record<string, unknown> | undefined;
   const output: Buffer[] = [], errors: Buffer[] = [];
@@ -182,6 +184,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     // identity and binary digest are durable and its config is sent below.
     atomicJson(join(operation, "original-launcher.json"), { format: "cimiloop/agent-workspace-launcher/1.0.0", nonce,
       owner, supervisor: originalSupervisor, launcher_path: sandboxBinary.path, launcher_digest: sandboxBinary.digest.value });
+    if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
     native.stdin.write(JSON.stringify(originalConfig) + "\n");
     const original = await lifetime.wait(ready);
     if (!isDeepStrictEqual(parseGatewayJson(bytesAt(join(operation, "agent-sandbox-original.json")).toString("utf8"), 32768), original)) fail("workspace_rehearsal_original_unproven");

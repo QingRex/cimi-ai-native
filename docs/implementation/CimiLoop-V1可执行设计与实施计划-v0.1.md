@@ -1,5 +1,7 @@
 # CimiLoop V1 可执行设计与实施计划 v0.1
 
+2026-10-09 D-248：[原执行二进制保留与历史容量](CimiLoop-原执行二进制保留与历史容量-v0.1.md)已接共享Runtime及固定检查。新私有config5 / request3输入冻结物理原件证明；SQLite与库外登记双向核验、缺失或同字节替换拒绝重建。128版本 / 4 GiB是逻辑保留，不是物理硬配额。完整五组S1继续，默认正式Agent关闭，242 Schema / 用户库10保持。
+
 2026-10-09 D-247：[原Task结构化执行产物与Kernel观测](CimiLoop-原Task结构化执行产物与Kernel观测-v0.1.md)接共享Runtime和原观测：冻结全部Task输出，独立核对原模型spine / IPC / SDK / Native及工具因果顺序。产物证明不代替账户 / 账单、Task验收或当前源码验证，报告仍Unknown并保留预算；完整五组S1继续，默认正式Agent关闭，242 Schema / 用户库10保持。
 
 

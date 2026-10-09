@@ -1,5 +1,7 @@
 # CimiLoop SDK 调用与 IPC 原字节账本 v0.1
 
+2026-10-09 后续D-248已把执行二进制原件证明接入Runtime冻结输入及固定检查原摘要，见[保留与历史容量](CimiLoop-原执行二进制保留与历史容量-v0.1.md)。原字节与SDK对应仍不代替独立Native结果、账户预算账单、真实技能或S1。
+
 2026-10-09 后续 D-247 已把原模型 / SDK / IPC / Native 对应核验和结构化 Task 执行产物接入共享原观测，见[产物与 Kernel 观测](CimiLoop-原Task结构化执行产物与Kernel观测-v0.1.md)。该组合仍不证明真实账户 / 费用、Task 验收或当前源码适用性；本文件的 IPC 对应层 native_effect_reverified 继续为 false，完整五组 S1 继续。
 
 

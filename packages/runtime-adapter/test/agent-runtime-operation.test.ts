@@ -4,6 +4,8 @@ import { join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { digest } from "../src/files.js";
+import {pinBinary} from "../src/native.js";
+import {readRuntimeBinaryOriginal} from "../src/runtime-binary-originals.js";
 import { claimAgentRuntimeOperation, requestAgentRuntimeCancellation, queryAgentRuntimeOperation, recoverAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, inspectAgentRuntimeOriginalRegistration } from "../src/agent-runtime-operation.js";
 
 // Constructed scope and owner contract inputs only; no OS or model qualification.
@@ -24,6 +26,14 @@ describe("one original Runtime claim per native Run and operation key", () => {
     expect(() => claimAgentRuntimeOperation(f.root, f.scope, { original: "different" }, f.owner)).toThrow("agent_runtime_input_conflict");
     expect(() => claimAgentRuntimeOperation(f.root, { ...f.scope, operation_key: createInternalId() }, f.input, f.owner)).toThrow("agent_runtime_claim_unproven");
     expect(readFileSync(join(original.claimDirectory, "claim.json"))).toEqual(bytes); expect(existsSync(original.operation)).toBe(false);
+  });
+  it("keeps original cancellation available when frozen binary proof can no longer be verified",()=>{
+    const f=setup(),source=join(f.root,"constructed.exe");writeFileSync(source,"constructed claim executable");const pinned=pinBinary(f.root,source);
+    const input={...f.input,binary_original:readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value)},original=claimAgentRuntimeOperation(f.root,f.scope,input,f.owner);
+    expect(readAgentRuntimeOriginalIdentity(f.root,f.scope).input).toEqual(input);
+    rmSync(pinned.path);expect(()=>readAgentRuntimeOriginalIdentity(f.root,f.scope)).toThrow();
+    expect(requestAgentRuntimeCancellation(f.root,f.scope)).toMatchObject({requested:true,stopped_proven:false});
+    expect(existsSync(original.operation)).toBe(false);expect(existsSync(pinned.path)).toBe(false);
   });
   it("refuses reuse of one operation key by another Run and retains the incomplete claim", () => {
     const f = setup(); claimAgentRuntimeOperation(f.root, f.scope, f.input, f.owner); const next = { ...f.scope, run_id: createInternalId() };

@@ -5,6 +5,8 @@ import { join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { digest } from "../src/files.js";
+import {pinBinary} from "../src/native.js";
+import {readRuntimeBinaryOriginal} from "../src/runtime-binary-originals.js";
 import { AgentWorkspaceCheckHost, parseWorkspaceCheckRecipe } from "../src/workspace-checks.js";
 import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.js";
 
@@ -51,10 +53,32 @@ describe("fixed check completion independently revalidates original dispatch and
     save("receipt.json", { receipt, receipt_digest: digest(JSON.stringify(receipt)).value });
     const record = { run_id: scope.run_id, run_kind: "agent" as const, operation_key: scope.operation_key, executor_ref: { object_type: "actor" as const, id: scope.executor_actor_id },
       input_digest: scope.context_digest, runtime_binding: scope.runtime_binding, skill_bindings: scope.skill_bindings, host_admission_ref: scope.host_admission_ref };
-    return { operation, nonce, inputDigest, save, read: () => AgentWorkspaceCheckHost.readRunOriginals(root, project, record), receipt };
+    return { root, scope,call,recipe,policy,input, operation, nonce, inputDigest, save, read: () => AgentWorkspaceCheckHost.readRunOriginals(root, project, record), receipt };
   }
   it("reads the independent complete original check receipt", () => {
     const f = fixture(); expect(f.read()).toMatchObject({ facts: { invocations: 1, unresolved: 0 }, calls: [{ receipt: f.receipt }] });
+  });
+  it("replays the exact old request1 without rewriting its bytes or executing a new check",async()=>{
+    const f=fixture(),binary=join(f.operation,"constructed.exe"),node=pinBinary(f.root,binary),before=readFileSync(join(f.operation,"request.json"));
+    const host=Reflect.construct(AgentWorkspaceCheckHost,[{scope:f.scope,recipes:[f.recipe],repositoryPath:f.root,dataDirectory:f.root},null,binary,node,null,join(f.root,"workspace-checks",f.scope.project_id),f.input.policy_digest,f.policy.node_digest]);
+    // Constructed authority port; the replay takes no files/spawn/owner port.
+    Object.defineProperty(host,"authority",{value:async()=>f.input.authority_basis});
+    await expect(host.execute(f.call)).resolves.toEqual({receipt:f.receipt,replay:true,operation:f.operation});
+    expect(readFileSync(join(f.operation,"request.json"))).toEqual(before);expect(f.read().facts.invocations).toBe(1);
+  });
+  it.each(["replaced_file","reinitialized_registry","downgraded_request"])("request3 rejects %s despite identical executable bytes",mode=>{
+    const f=fixture(),source=join(f.operation,"constructed.exe"),pinned=pinBinary(f.root,source),proof=readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value);
+    const request=JSON.parse(readFileSync(join(f.operation,"request.json"),"utf8")),ownership=JSON.parse(readFileSync(join(f.operation,"native-ownership.json"),"utf8"));
+    const input={...request.input,format:"cimiloop/workspace-check-input/2.0.0",binary_original:proof},inputDigest=digest(JSON.stringify(input)).value;
+    f.save("request.json",{...request,format:"cimiloop/workspace-check-request/3.0.0",input,input_digest:inputDigest,binary:pinned.path,binary_original:proof});
+    for(const name of ["dispatch.json","capture.json"]){const original=JSON.parse(readFileSync(join(f.operation,name),"utf8"));f.save(name,{...original,input_digest:inputDigest});}
+    const expectedReceipt={...f.receipt,input_digest:inputDigest};f.save("receipt.json",{receipt:expectedReceipt,receipt_digest:digest(JSON.stringify(expectedReceipt)).value});
+    f.save("native-ownership.json",{...ownership,binary:pinned.path,runtime_identity:{...ownership.runtime_identity,image:pinned.path}});
+    expect(f.read().calls[0]!.receipt).toEqual(expectedReceipt);
+    if(mode==="replaced_file"||mode==="downgraded_request"){unlinkSync(pinned.path);writeFileSync(pinned.path,"constructed binary");
+      if(mode==="downgraded_request"){const downgraded=JSON.parse(readFileSync(join(f.operation,"request.json"),"utf8"));downgraded.format="cimiloop/workspace-check-request/1.0.0";delete downgraded.binary_original;f.save("request.json",downgraded);}}
+    else {for(const name of ["runtime-binary-originals","runtime-binary-original-claims","runtime-binary-original-registry.json"])rmSync(join(f.root,name),{recursive:true});pinBinary(f.root,source);}
+    expect(()=>f.read()).toThrow();expect(readFileSync(pinned.path,"utf8")).toBe("constructed binary");
   });
   it.each(["missing_dispatch", "changed_dispatch", "contradictory_not_started", "changed_nonce", "changed_pid", "changed_policy", "changed_launcher_digest", "changed_binary", "missing_binary"])("refuses %s even when the IPC receipt could still match", mode => {
     const f = fixture();
