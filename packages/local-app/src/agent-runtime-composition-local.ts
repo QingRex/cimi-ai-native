@@ -1,4 +1,4 @@
-import { runOpenCodeWorkspaceRuntime, AgentRuntimeModelHost, type AgentRuntimeModelPort } from "@cimiloop/runtime-adapter";
+import { runOpenCodeWorkspaceRuntime, withinAgentRuntimeTaskBudget, AgentRuntimeModelHost, type AgentRuntimeModelPort } from "@cimiloop/runtime-adapter";
 import { LocalAgentRuntimeStart, type AgentRuntimeLaunchInputs, type AgentRuntimeStartContext, type AgentRuntimeStartPort } from "./agent-runtime-start-local.js";
 import { LocalAgentWorkspaceToolService, type AgentWorkspaceToolLocalContext } from "./agent-workspace-tools-local.js";
 import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
@@ -24,13 +24,14 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
  }
  start(runId:string){return new LocalAgentRuntimeStart(this.options.local,this).start(runId);}
  async prepare(input:AgentRuntimeLaunchInputs){
-  await this.options.model.check(structuredClone(input.scope));
   const budget=await openLocalAgentRunBudget(this.options.local,input.record.run_id);
   budget.assertScope(input.scope);
+  return withinAgentRuntimeTaskBudget(budget,async signal=>{
+  await this.options.model.check(structuredClone(input.scope));signal.throwIfAborted();
   const service=await LocalAgentWorkspaceToolService.open(this.options.local,input.record.run_id);
   try {
-   await service.installAdmittedChecks(this.options.checks,this.custody);
-   const catalog=await service.getCheckCatalog();
+   signal.throwIfAborted();await service.installAdmittedChecks(this.options.checks,this.custody);signal.throwIfAborted();
+   const catalog=await service.getCheckCatalog();signal.throwIfAborted();
    if(this.custody.inspectOriginal(input.project,input.record,input.context,input.scope).state === "claimed")throw new LocalProjectError("原 Run 已有启动，保留原模型账本","CAPABILITY_UNAVAILABLE","conflict");
 
    // Frozen domain packet, not a caller-supplied freeform command/prompt. The
@@ -38,11 +39,13 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
    const prompt=JSON.stringify({format:"cimiloop/agent-runtime-task-packet/1.0.0",operation_key:input.scope.operation_key,context_digest:input.scope.context_digest,
     task:input.task,work_item:input.work_item,definition:input.definition,contract:input.contract,plan:input.plan,context:input.context,check_catalog:catalog},null,1);
    if(Buffer.byteLength(prompt)>32768||Buffer.byteLength(JSON.stringify({prompt}))>48000||prompt.split(/\r?\n/).length>1000||prompt.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800))throw new LocalProjectError("原任务资料超出当前 Runtime 输入容量；保留原 Run","CAPABILITY_UNAVAILABLE","conflict");
-   const model=await AgentRuntimeModelHost.initialize(this.options.local.location.dataDirectory,input.scope,this.options.model,["cimi_read","cimi_replace","cimi_check"],prompt);
+   const model=await AgentRuntimeModelHost.initialize(this.options.local.location.dataDirectory,input.scope,this.options.model,["cimi_read","cimi_replace","cimi_check"],prompt,signal);
+   signal.throwIfAborted();
    return {launch:async()=>{
-    await runOpenCodeWorkspaceRuntime({root:this.options.local.location.dataDirectory,binary:this.options.binary,scope:input.scope,maxElapsedMs:180000,prompt,model,runBudget:budget,checkCatalog:catalog,
+    await runOpenCodeWorkspaceRuntime({root:this.options.local.location.dataDirectory,binary:this.options.binary,scope:input.scope,prompt,model,runBudget:budget,checkCatalog:catalog,
      connect:(supervisor,originalSupervisor,peer,nonce,signal,originalModel)=>service.openIpc(supervisor,originalSupervisor,peer,{nonce,signal,model:originalModel})});
    },dispose:()=>service.close()};
   } catch(error){await service.close();throw error;}
+  },staged=>staged.dispose());
  }
 }

@@ -35,4 +35,8 @@ describe("one original execution lifetime", () => {
       expect(() => lifetime.check()).toThrow("workspace_rehearsal_deadline");
     } finally { lifetime.dispose(); }
   });
-});
+  it("permits a bounded original Agent Task lifetime without extending the legacy rehearsal",()=>{
+    expect(()=>new ExecutionLifetime(180001)).toThrow("execution_lifetime_invalid");
+    const lifetime=new ExecutionLifetime(600000,undefined,"agent_task");
+    try{expect(lifetime.signal.aborted).toBe(false);}finally{lifetime.dispose();}
+  });});

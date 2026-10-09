@@ -9,8 +9,8 @@ export class ExecutionLifetime {
   private readonly timer: ReturnType<typeof setTimeout>;
   private reason?: string;
   private readonly externalStop = () => this.stop("workspace_rehearsal_aborted");
-  constructor(private readonly maximumMs: number, private readonly external?: AbortSignal) {
-    if (!Number.isSafeInteger(maximumMs) || maximumMs < 1 || maximumMs > 180000) throw new RuntimeAdapterError("execution_lifetime_invalid");
+  constructor(private readonly maximumMs: number, private readonly external?: AbortSignal, policy:"workspace_rehearsal"|"agent_task"="workspace_rehearsal") {
+    if (!["workspace_rehearsal","agent_task"].includes(policy) || !Number.isSafeInteger(maximumMs) || maximumMs < 1 || maximumMs > (policy==="agent_task"?3600000:180000)) throw new RuntimeAdapterError("execution_lifetime_invalid");
     this.timer = setTimeout(() => this.stop("workspace_rehearsal_deadline"), maximumMs);
     external?.addEventListener("abort", this.externalStop, { once: true });
     if (external?.aborted) this.externalStop();

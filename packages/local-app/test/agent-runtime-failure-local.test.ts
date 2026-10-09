@@ -49,4 +49,10 @@ describe("original negative execution result",()=>{
   f.materialize();if(kind==="duplicate_artifact")f.collection.artifacts.push(f.collection.artifacts[0]!);
   expect(f.classify()).toBeNull();
  });
-});
+ it("explicitly reads private production config4 only with the original matching lifetime policy",()=>{
+  const f=fixture(),config=f.records["original-config.json"]!;
+  config.format="cimiloop/agent-workspace-sandbox-config/4.0.0";config.lifetime_policy="agent_task/1.0.0";config.elapsed_ms=600000;config.prompt="Frozen task";
+  f.identity.input.lifetime_policy="agent_task/1.0.0";f.records["agent-sandbox-resources.json"]!.config_digest=digest(JSON.stringify(config)).value;
+  f.materialize();expect(f.classify()).toBe("agent_original_task_deadline");
+  f.identity.input.lifetime_policy="foreign";expect(f.classify()).toBeNull();
+ });});

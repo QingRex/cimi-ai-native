@@ -22,7 +22,8 @@ export function classifyOriginalAgentExecutionFailure(identity:Identity,collecti
   const exitBits=(v:unknown)=>typeof v==="number"&&Number.isSafeInteger(v)&&v>=-2147483648&&v<=4294967295?v>>>0:null;
   const nativeExit=incomplete.native_exit,exit=exitBits(cleanup.exit_code);
   const worker=(v:unknown)=>!!v&&typeof v==="object"&&!Array.isArray(v)&&"pid" in v&&Number.isSafeInteger(v.pid)&&(v.pid as number)>0&&"creation_ticks" in v&&typeof v.creation_ticks==="string"&&/^[0-9]+$/.test(v.creation_ticks)&&"image" in v&&typeof v.image==="string"&&!!v.image;
-  if(!["cimiloop/agent-workspace-sandbox-config/2.0.0","cimiloop/agent-workspace-sandbox-config/3.0.0"].includes(String(config.format))||
+  if(!["cimiloop/agent-workspace-sandbox-config/2.0.0","cimiloop/agent-workspace-sandbox-config/3.0.0","cimiloop/agent-workspace-sandbox-config/4.0.0"].includes(String(config.format))||
+   config.format==="cimiloop/agent-workspace-sandbox-config/4.0.0"&&(config.lifetime_policy!=="agent_task/1.0.0"||input.lifetime_policy!==config.lifetime_policy)||
    typeof nonce!=="string"||!/^([a-f0-9]{8}-)(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(nonce)||config.scope_digest!==collection.scope_digest||
    !same(config.owner,identity.claim.owner)||!Number.isSafeInteger(deadline)||(deadline as number)<=0||deadline!==input.deadline_uptime_ms||
    launcher.format!=="cimiloop/agent-workspace-launcher/1.0.0"||launcher.nonce!==nonce||!same(launcher.owner,identity.claim.owner)||!worker(launcher.supervisor)||

@@ -23,9 +23,11 @@ export function readOriginalAgentWorkspaceOperation(raw: { root: string; operati
   const fields = ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options"];
   const oldConfig = exact(config, fields) && config.format === "cimiloop/agent-workspace-sandbox-config/1.0.0";
   const newConfig = (exact(config, [...fields, "deadline_uptime_ms"]) && config.format === "cimiloop/agent-workspace-sandbox-config/2.0.0" ||
-    exact(config, [...fields, "deadline_uptime_ms", "prompt"]) && config.format === "cimiloop/agent-workspace-sandbox-config/3.0.0" && typeof config.prompt === "string") &&
+    exact(config, [...fields, "deadline_uptime_ms", "prompt"]) && config.format === "cimiloop/agent-workspace-sandbox-config/3.0.0" && typeof config.prompt === "string" ||
+    exact(config,[...fields,"deadline_uptime_ms","prompt","lifetime_policy"]) && config.format === "cimiloop/agent-workspace-sandbox-config/4.0.0" && typeof config.prompt === "string" && config.lifetime_policy==="agent_task/1.0.0") &&
     (config.deadline_uptime_ms === null || Number.isSafeInteger(config.deadline_uptime_ms) && Number(config.deadline_uptime_ms) > 0);
   if (!config || !oldConfig && !newConfig || !uuid(config.nonce) || !uuid(config.pipe_nonce) || config.root !== join(operation, "sandbox") ||
+    !Number.isSafeInteger(config.elapsed_ms) || Number(config.elapsed_ms)<1000 || Number(config.elapsed_ms)>(config.format==="cimiloop/agent-workspace-sandbox-config/4.0.0"?3600000:180000) ||
     typeof config.binary !== "string" || !validWorkspaceWorkerIdentity(config.owner) || config.scope_digest !== agentWorkspaceIpcScopeDigest(scope)) fail();
   if (!existsSync(join(operation, "original-launcher.json")) || !existsSync(join(operation, "agent-sandbox-resources.json"))) {
     return { scope, root, operation, config, launch: null, resources: null };

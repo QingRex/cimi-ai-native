@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
@@ -85,4 +85,10 @@ describe("original host model dispatch", () => {
  it("concurrent identical requests send once and join the original reply",async()=>{
   const f=fixture(),host=await f.open();const [a,b]=await Promise.all([host.execute(f.frame),host.execute(f.frame)]);expect(a.receipt).toEqual(b.receipt);expect(f.sends()).toBe(1);
  });
-});
+ it("does not create original model headers after staging cancellation and late qualification",async()=>{
+  const f=fixture(),controller=new AbortController();let release!:()=>void;
+  const gate=new Promise<void>(done=>{release=done;});f.port.check=()=>gate;
+  const pending=AgentRuntimeModelHost.initialize(f.root,f.scope,f.port,["cimi_read"],null,controller.signal);
+  const stopped=expect(pending).rejects.toThrow("agent_model_original_aborted");controller.abort();release();await stopped;
+  expect(existsSync(join(f.root,"agent-runtime-model-starts",f.scope.project_id,f.scope.run_id))).toBe(false);expect(f.sends()).toBe(0);
+ });});

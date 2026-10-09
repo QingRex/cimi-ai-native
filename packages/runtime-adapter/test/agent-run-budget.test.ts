@@ -1,7 +1,8 @@
+import {withinAgentRuntimeTaskBudget} from "../src/agent-runtime-lifetime.js";
 import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { AgentRunBudget } from "../src/agent-run-budget.js";
 import { parseAgentRunClock, type AgentRunClockReading } from "../src/agent-run-clock.js";
@@ -11,7 +12,7 @@ import { runOpenCodeWorkspaceToolRehearsal } from "../src/opencode-workspace-reh
 // Contract clocks are explicit constructed observations, not actual OS proof.
 describe("original Task elapsed budget survives host and Run replacement", () => {
   const roots: string[] = [];
-  afterEach(() => { for (const root of roots.splice(0)) { if (!resolve(root).startsWith(resolve(tmpdir()) + sep + "cimiloop-task-budget-")) throw Error("Unsafe cleanup"); rmSync(root, { recursive: true, force: true }); } });
+  afterEach(() => { vi.useRealTimers();for (const root of roots.splice(0)) { if (!resolve(root).startsWith(resolve(tmpdir()) + sep + "cimiloop-task-budget-")) throw Error("Unsafe cleanup"); rmSync(root, { recursive: true, force: true }); } });
   function fixture() {
     const root = mkdtempSync(join(tmpdir(), "cimiloop-task-budget-")); roots.push(root);
     const basis = { scope: { project_id: createInternalId(), run_id: createInternalId(), operation_key: createInternalId(), executor_actor_id: createInternalId(), context_digest: digest("context"),
@@ -81,4 +82,12 @@ describe("original Task elapsed budget survives host and Run replacement", () =>
     await expect(runOpenCodeWorkspaceToolRehearsal(options)).rejects.toThrow("workspace_rehearsal_aborted");
     expect(existsSync(join(f.root, "tools"))).toBe(false);
   });
-});
+  it("bounds shared staging by the same Task clock and closes a late resource without renewing its anchor",async()=>{
+    vi.useFakeTimers();const f=fixture(),budget=await AgentRunBudget.open(f.root,f.ports),anchor=readFileSync(budget.anchorPath);
+    let finish!:(value:{close():void})=>void,arrived!:()=>void;const ready=new Promise<void>(done=>{arrived=done;});let closed!:()=>void;const closure=new Promise<void>(done=>{closed=done;}),close=vi.fn(()=>closed());
+    const pending=withinAgentRuntimeTaskBudget(budget,async()=>{arrived();return new Promise<{close():void}>(done=>{finish=done;});},late=>late.close());
+    const rejected=expect(pending).rejects.toThrow("agent_run_budget_exhausted");await ready;
+    f.clock({utc:"2026-10-08T00:01:00.000Z",uptime_ms:86460000});await vi.advanceTimersByTimeAsync(1000);await rejected;
+    finish({close});await closure;expect(close).toHaveBeenCalledTimes(1);
+    expect(readFileSync(budget.anchorPath)).toEqual(anchor);expect(f.basis.first_started_at).toBe("2026-10-08T00:00:00.000Z");
+  });});

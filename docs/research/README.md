@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+- [生产执行期限与原Task组合研究记录](CimiLoop-生产执行期限与原Task组合-2026-10-09.json)：实际Windows / SDK / 检查组合与构造模型资格分开留证，旧180秒失败不被新十分钟夹具覆盖。
+
 - [原Native失败结果与Kernel观测](../implementation/CimiLoop-原Native失败结果与Kernel观测-v0.1.md)：原执行失败核验、共享工作台 / Kernel及未知费用冻结；完整S1继续。
 
 2026-10-09 D-240：[宿主模型与Runtime执行组合研究记录](CimiLoop-宿主模型与正式Runtime执行组合-2026-10-09.json)区分实际Native / SDK组合、构造模型与账户资格、过程失败及固定源码复验；不计为真实模型 / Skill / S1验收。

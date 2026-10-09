@@ -60,12 +60,12 @@ export function parseAgentRuntimeModelResponse(raw:unknown,request:ReturnType<ty
 export class AgentRuntimeModelHost {
  private readonly inflight=new Map<string,{input:unknown;promise:Promise<{receipt:AgentRuntimeModelResponse;replay:boolean}>}>();
  private constructor(readonly path:string,private readonly scope:AgentWorkspaceToolScope,private readonly port:AgentRuntimeModelPort,private readonly permitted:string[],private readonly header:unknown,private readonly spine:string,private readonly taskPacket:string|null){}
- static async open(root:string,rawScope:unknown,port:AgentRuntimeModelPort,permitted:string[],taskPacket:string|null=null) {
+ static async open(root:string,rawScope:unknown,port:AgentRuntimeModelPort,permitted:string[],taskPacket:string|null=null,signal?:AbortSignal) {
   const scope=parseAgentWorkspaceToolScope(rawScope);
   port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port)}; permitted=[...permitted];
   if(!port||!sha(port.admission_digest)||typeof port.check!=="function"||typeof port.execute!=="function"||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||permitted.some(name=>!["cimi_read","cimi_replace","cimi_check"].includes(name)))fail("agent_model_admission_unavailable");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
-  await port.check(structuredClone(scope));
+  signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
   const parent=directory(join(root,"agent-runtime-model-originals",scope.project_id)),path=assertOrdinaryPath(join(parent,scope.run_id));
   const header={format:"cimiloop/agent-runtime-model-originals/1.0.0",scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
   const spine=assertOrdinaryPath(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id));
@@ -74,12 +74,12 @@ export class AgentRuntimeModelHost {
  }
  // Staging only, before the independent original Run custody is claimed. This
  // immutable separate start/spine refuses recreation of lost ledger/call files.
- static async initialize(root:string,rawScope:unknown,port:AgentRuntimeModelPort,permitted:string[],taskPacket:string|null=null) {
+ static async initialize(root:string,rawScope:unknown,port:AgentRuntimeModelPort,permitted:string[],taskPacket:string|null=null,signal?:AbortSignal) {
   const scope=parseAgentWorkspaceToolScope(rawScope);
   port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port)}; permitted=[...permitted];
   if(!port||!sha(port.admission_digest)||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||permitted.some(n=>!["cimi_read","cimi_replace","cimi_check"].includes(n)))fail("agent_model_admission_unavailable");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
-  await port.check(structuredClone(scope));
+  signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
   const header={format:"cimiloop/agent-runtime-model-originals/1.0.0",scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
   const parent=directory(join(root,"agent-runtime-model-starts",scope.project_id)),spine=assertOrdinaryPath(join(parent,scope.run_id));
   let created=false;try{mkdirSync(spine);created=true;}catch(error){if(!(error&&typeof error==="object"&&"code" in error&&error.code==="EEXIST"))throw error;}
@@ -88,11 +88,11 @@ export class AgentRuntimeModelHost {
    const originals=directory(join(root,"agent-runtime-model-originals",scope.project_id)),path=assertOrdinaryPath(join(originals,scope.run_id));
    mkdirSync(path);save(join(path,"header.json"),header);
   }
-  return this.open(root,scope,port,permitted,taskPacket);
+  return this.open(root,scope,port,permitted,taskPacket,signal);
  }
  get taskPacketDigest(){return this.taskPacket===null?null:digest(this.taskPacket).value;}
  get admissionDigest(){return this.port.admission_digest;}
- async check(rawScope:unknown){if(!isDeepStrictEqual(parseAgentWorkspaceToolScope(rawScope),this.scope))fail("agent_model_scope_mismatch");await this.port.check(structuredClone(this.scope));}
+ async check(rawScope:unknown,signal?:AbortSignal){if(!isDeepStrictEqual(parseAgentWorkspaceToolScope(rawScope),this.scope))fail("agent_model_scope_mismatch");signal?.throwIfAborted();await waitOriginal(this.port.check(structuredClone(this.scope)),signal);signal?.throwIfAborted();}
  async execute(raw:unknown,signal?:AbortSignal):Promise<{receipt:AgentRuntimeModelResponse;replay:boolean}> {
   const input=parseAgentRuntimeModelRequest(this.scope,raw,this.permitted);if(input.admission_digest!==this.port.admission_digest)fail("agent_model_admission_mismatch");const prior=this.inflight.get(input.call_id);
   if(prior){if(!isDeepStrictEqual(prior.input,input))fail("agent_model_input_conflict");return prior.promise;}

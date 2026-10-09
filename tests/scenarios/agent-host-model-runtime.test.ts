@@ -70,7 +70,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("host model joi
   expect(collected.native).toMatchObject({status:"Verified",matched_calls:2,native_effect_reverified:true});expect(collected.ipc).toMatchObject({exchanges:5,correlation:{uncorrelated_exchanges:0,unmatched_sdk_calls:0}});
   const original=readAgentRuntimeModelOriginals(f.dataDirectory,f.scope);expect(original.calls[0]!.request.prompt).toBeDefined();expect(original.calls).toHaveLength(3);
   expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(11);
-  expect(JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"))).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/3.0.0",provider_options:{admission_digest:f.model.admission_digest}});
+  expect(JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"))).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/4.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest}});
   expect(JSON.parse(readFileSync(join(collected.status.operation,"result.json"),"utf8"))).toMatchObject({format:"cimiloop/opencode-workspace-runtime/1.0.0",synthetic_model_responses:null,external_model_requests:null,actual_credentials_read:null,formal_agent_execution_enabled:false});
   expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
   writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});

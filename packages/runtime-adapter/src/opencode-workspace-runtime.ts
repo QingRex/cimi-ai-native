@@ -1,3 +1,4 @@
+import {selectAgentRuntimeLifetime} from "./agent-runtime-lifetime.js";
 import { AgentRuntimeModelHost } from "./agent-runtime-model.js";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, writeFileSync } from "node:fs";
@@ -43,14 +44,13 @@ function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
 // it cannot produce production admission, Run observation or Skill evidence.
 export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | ProductionOptions) {
   const options: RehearsalOptions | ProductionOptions = {...rawOptions, scope:parseAgentWorkspaceToolScope(rawOptions.scope), ...(rawOptions.checkCatalog === undefined ? {} : {checkCatalog:parseWorkspaceCheckCatalog(rawOptions.checkCatalog, rawOptions.scope)})};
-  const scope = parseAgentWorkspaceToolScope(options.scope), requestedElapsed = options.maxElapsedMs ?? 45000, checksOnly = options.mode === "checks";
+  const scope = parseAgentWorkspaceToolScope(options.scope), requestedElapsed = options.maxElapsedMs, checksOnly = options.mode === "checks";
   const production = options.mode === "host_gateway";
   const model = production ? options.model : undefined;
   if (production && (!(model instanceof AgentRuntimeModelHost) || !options.runBudget || !options.checkCatalog || typeof options.prompt !== "string" || !options.prompt.isWellFormed() || !options.prompt.trim() || Buffer.byteLength(options.prompt) > 32768 || Buffer.byteLength(JSON.stringify({prompt:options.prompt})) > 48000 || options.prompt.split(/\r?\n/).length > 1000 || options.prompt.split(/\r?\n/).some(line => Buffer.byteLength(line) > 1800))) fail("agent_runtime_production_admission_unavailable");
   if (model && production && model.taskPacketDigest !== digest(options.prompt).value) fail("agent_model_task_packet_mismatch");
-  if (model) await model.check(scope);
-  let elapsed = requestedElapsed;
-  if (!Number.isSafeInteger(elapsed) || elapsed < 1000 || elapsed > 180000 || options.mode !== undefined && !["files", "checks", "host_gateway"].includes(options.mode)) fail("workspace_rehearsal_input_invalid");
+  if (options.mode !== undefined && !["files", "checks", "host_gateway"].includes(options.mode)) fail("workspace_rehearsal_input_invalid");
+
   if (options.mode !== "checks" && options.mode !== "host_gateway" && (typeof options.path !== "string" || !options.path || options.path.length > 240 || !/^[a-f0-9]{64}$/.test(options.expectedDigest) ||
     typeof options.replacement !== "string" || !options.replacement.isWellFormed() || Buffer.byteLength(options.replacement) > 16384)) fail("workspace_rehearsal_input_invalid");
   // Detach original arguments before the asynchronous compilation/launch.
@@ -60,13 +60,15 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement, ...(checkCatalog ? { check_id: options.checkId! } : {}) };
   const binaryPath = options.binary, rootPath = options.root, prepare = options.prepare, externalSignal = options.signal;
   const budget = options.runBudget;
-  if (budget) { budget.assertScope(scope); elapsed = Math.min(elapsed, await budget.remaining(externalSignal)); }
-  if (elapsed < 1000) fail("agent_run_budget_exhausted");
-  const lifetime = new ExecutionLifetime(elapsed, externalSignal);
+  budget?.assertScope(scope);
+  const policy=selectAgentRuntimeLifetime(production?"production":"rehearsal",requestedElapsed,budget?await budget.remaining(externalSignal):undefined);
+  const elapsed=policy.elapsed_ms;
+  const lifetime = new ExecutionLifetime(elapsed, externalSignal,production?"agent_task":"workspace_rehearsal");
   const stopBudgetWatch = budget?.watch(reason => lifetime.stop(reason));
   let cancellationWatch: ReturnType<typeof setInterval> | undefined;
   try {
   lifetime.check();
+  if (model) await lifetime.wait(model.check(scope,lifetime.signal));
   const root = directory(rootPath), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root, lifetime.signal);
   lifetime.check();
   const identityBinary = await buildWindowsLauncher(root, lifetime.signal);
@@ -80,7 +82,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   budget?.assertScope(scope);
   const claim = claimAgentRuntimeOperation(root, scope, { purpose: production ? "agent_runtime" : "workspace_rehearsal", mode: production ? "host_gateway" : checksOnly ? "checks" : "files", binary_digest: pinned.digest,
     sandbox_digest: sandboxBinary.digest, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
-    provider_options: providerOptions, ...(production ? { prompt: options.prompt } : {}), requested_elapsed_ms: requestedElapsed, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
+    provider_options: providerOptions, ...(production ? { prompt: options.prompt } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
   cancellationWatch = setInterval(() => { try { if (agentRuntimeCancellationRequested(root, scope)) lifetime.stop("workspace_rehearsal_cancel_requested"); }
     catch { lifetime.stop("workspace_rehearsal_claim_unproven"); } }, 100);
   lifetime.check();
@@ -105,8 +107,8 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const globalConfig = directory(join(config, "global", "opencode")); writeFileSync(join(globalConfig, ".gitignore"), "node_modules\npackage.json\npackage-lock.json\nbun.lock\n.gitignore\n", { flag: "wx" });
   writeFileSync(join(operation, "workspace-private-canary.txt"), "Synthetic private workspace canary\n", { flag: "wx" });
   const nonce = randomUUID(), pipeNonce = randomUUID(), scopeDigest = agentWorkspaceIpcScopeDigest(scope);
-  const originalConfig = { format: production ? "cimiloop/agent-workspace-sandbox-config/3.0.0" : "cimiloop/agent-workspace-sandbox-config/2.0.0", nonce, root: sandbox, binary: pinned.path, owner,
-    pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null, ...(production ? { prompt: options.prompt } : {}) };
+  const originalConfig = { format: production ? "cimiloop/agent-workspace-sandbox-config/4.0.0" : "cimiloop/agent-workspace-sandbox-config/2.0.0", nonce, root: sandbox, binary: pinned.path, owner,
+    pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null, ...(production ? { prompt: options.prompt, lifetime_policy:policy.policy } : {}) };
   atomicJson(join(operation, "original-config.json"), originalConfig);
   const native = spawn(sandboxBinary.path, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
   let channel: Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close"> | undefined, buffer = Buffer.alloc(0), total = 0, outputFailure = false, suspended: Record<string, unknown> | undefined;
@@ -130,7 +132,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
         if (!exact(value, ["format", "nonce", "phase", "supervisor"]) || value.nonce !== nonce || value.phase !== phases[preparationCount] ||
           !validWorkspaceWorkerIdentity(value.supervisor) || !originalSupervisor || !isDeepStrictEqual({ ...value.supervisor }, { ...originalSupervisor }) || buffer.length) fail("workspace_rehearsal_preparation_unproven");
         const phase = phases[preparationCount++]!;
-        void lifetime.wait(Promise.resolve().then(() => { lifetime.check(); return Promise.resolve(model?.check(scope)).then(() => prepare?.({ phase, operation, supervisor: { ...originalSupervisor! } }, lifetime.signal)); })).then(() => {
+        void lifetime.wait(Promise.resolve().then(() => { lifetime.check(); return Promise.resolve(model?.check(scope,lifetime.signal)).then(() => prepare?.({ phase, operation, supervisor: { ...originalSupervisor! } }, lifetime.signal)); })).then(() => {
           lifetime.check();
           if (native.exitCode !== null || native.signalCode !== null || native.stdin.writableEnded) return;
           native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-prepare-continue/1.0.0", nonce, phase }) + "\n");
@@ -190,7 +192,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     if (production && endpoint.model_admission_digest !== model?.admissionDigest) fail("agent_model_admission_mismatch");
     if (endpoint.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${pipeNonce}` || endpoint.scope_digest !== scopeDigest || endpoint.check_catalog_digest !== (checkCatalog?.catalog_digest ?? null) || endpoint.appcontainer_sid !== original.appcontainer_sid ||
       !isDeepStrictEqual(endpoint.peer, { ...original.peer as CreditProcessIdentity }) || !isDeepStrictEqual(endpoint.supervisor, { ...original.supervisor as CreditProcessIdentity })) fail("workspace_rehearsal_channel_unproven");
-    if (model) await lifetime.wait(model.check(scope));
+    if (model) await lifetime.wait(model.check(scope,lifetime.signal));
     resumed = true; native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-resume/1.0.0", nonce }) + "\n");
     const exit = await lifetime.wait(ended); await channel.close(); lifetime.check();
     const stdout = Buffer.concat(output), stderr = Buffer.concat(errors);

@@ -45,3 +45,5 @@ export { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
 export { runOpenCodeWorkspaceRuntime } from "./opencode-workspace-runtime.js";
 export { AgentRuntimeModelHost, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
 export type { AgentRuntimeModelPort, AgentRuntimeModelResponse } from "./agent-runtime-model.js";
+
+export { selectAgentRuntimeLifetime, withinAgentRuntimeTaskBudget } from "./agent-runtime-lifetime.js";

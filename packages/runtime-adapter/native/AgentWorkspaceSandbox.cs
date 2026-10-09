@@ -32,7 +32,8 @@ partial class AppContainer {
   static ulong AgentConfigDeadline(Dictionary<string,object> config) {
     string format=config["format"] as string;
     if(format=="cimiloop/agent-workspace-sandbox-config/1.0.0") { AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options"); return 0; }
-    if(format=="cimiloop/agent-workspace-sandbox-config/3.0.0") AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt");
+    if(format=="cimiloop/agent-workspace-sandbox-config/4.0.0") { AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy"); if(config["lifetime_policy"] as string!="agent_task/1.0.0") throw new InvalidDataException(); }
+    else if(format=="cimiloop/agent-workspace-sandbox-config/3.0.0") AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt");
     else if(format=="cimiloop/agent-workspace-sandbox-config/2.0.0") AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms");
     else throw new InvalidDataException();
     object value=config["deadline_uptime_ms"]; if(value==null) return 0;
@@ -197,9 +198,9 @@ partial class AppContainer {
       var originalOwner=(Dictionary<string,object>)config["owner"]; AgentKeys(originalOwner,"pid","creation_ticks","image"); int ownerPid=Convert.ToInt32(originalOwner["pid"]);
       owner=OpenProcess(0x1000|0x100000,false,ownerPid); if(owner==IntPtr.Zero||WaitForSingleObject(owner,0)!=258||Creation(owner)!=(string)originalOwner["creation_ticks"]||
         !String.Equals(Image(owner),(string)originalOwner["image"],StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
-      int elapsed=Convert.ToInt32(config["elapsed_ms"]); if(elapsed<1000||elapsed>180000) throw new InvalidDataException();
+      int elapsed=Convert.ToInt32(config["elapsed_ms"]); bool taskPolicy=config["format"] as string=="cimiloop/agent-workspace-sandbox-config/4.0.0"; if(elapsed<1000||elapsed>(taskPolicy?3600000:180000)) throw new InvalidDataException();
       var options=(Dictionary<string,object>)config["provider_options"];
-      bool production=config["format"] as string=="cimiloop/agent-workspace-sandbox-config/3.0.0",checksOnly=options.ContainsKey("check_only");
+      bool production=taskPolicy||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/3.0.0",checksOnly=options.ContainsKey("check_only");
       if(production) {
         AgentKeys(options,"admission_digest");
         if(!(options["admission_digest"] is string)||!System.Text.RegularExpressions.Regex.IsMatch((string)options["admission_digest"],"^[a-f0-9]{64}$")||agentTaskDeadline==0) throw new InvalidDataException();
