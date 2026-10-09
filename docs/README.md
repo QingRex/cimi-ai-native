@@ -1,5 +1,7 @@
 # CimiLoop 文档导航
 
+2026-10-10 D-251：[Human计划澄清与原候选恢复](implementation/CimiLoop-Human计划澄清与原候选恢复-v0.1.md)已接共享服务、CLI与工作台；当前正式约定下完成问答后提交原Plan候选，丢响应沿原身份恢复，不重复生成候选或Task。旧格式1原字节保持、新记录2显式target=plan；242 Schema / 用户库10不变。真实Matt、全面前置证据约束、正式Agent与完整五组S1继续。
+
 2026-10-10 D-250：[原监督回读与新鲜工具准入](implementation/CimiLoop-原监督回读与新鲜工具准入-v0.1.md)已接共享Runtime工具执行；交付诊断不冒充端到端期限或旧失败唯一根因，完整五组S1继续。
 
 2026-10-09 D-249：[原恢复控制器保留与编译配方](implementation/CimiLoop-原恢复控制器保留与编译配方-v0.1.md)已接共享Runtime与原操作恢复；控制器不再依赖可重建tools缓存，旧launcher1显式读取、新launcher2冻结原件。物理配额、账户账单、真实技能 / 方法与完整五组S1继续。

@@ -3,14 +3,17 @@ import { closeSync, existsSync, lstatSync, openSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { isDeepStrictEqual } from "node:util";
-import { ChangeSchema, ContractBodySchema, compileValidator, type Change, type ContractBody } from "@cimiloop/protocol/v2";
+import { ChangeSchema, ContractBodySchema, PlanBodySchema, compileValidator, type Change, type ContractBody, type PlanBody } from "@cimiloop/protocol/v2";
 import { assertOrdinaryPath, directory, parseGatewayJson } from "@cimiloop/runtime-adapter";
 import { executeLocalCommand, type LocalProject } from "./project.js";
 import { LocalProjectError } from "./errors.js";
 
 const FORMAT = "cimiloop/pre-plan-clarification/1.0.0", APP_ID = 0x43494d43;
+const PLAN_FORMAT = "cimiloop/pre-plan-clarification/2.0.0";
+const PLAN_RESULT_BYTES = 1024 * 1024;
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 const parseContract = compileValidator<ContractBody>(ContractBodySchema), parseChange = compileValidator<Change>(ChangeSchema);
+const parsePlan = compileValidator<PlanBody>(PlanBodySchema);
 function fail(message: string, code: LocalProjectError["code"] = "INVALID_COMMAND", category: LocalProjectError["category"] = "validation"): never {
   throw new LocalProjectError(message, code, category);
 };
@@ -18,10 +21,10 @@ function corrupt(): never { return fail("原澄清记录缺失或完整性无法
 const id = (value: unknown): string => typeof value === "string" && uuid.test(value) ? value : fail("需要原始内部请求身份");
 const text = (value: unknown): string => typeof value === "string" && value.trim() && value.length <= 4000 && value.isWellFormed() ? value : fail("需要非空且有界的澄清内容");
 const hash = (body: string) => createHash("sha256").update(body).digest("hex");
-const encode = (value: unknown): string => {
+const encode = (value: unknown, limit = 131072): string => {
   const body = JSON.stringify(value);
-  if (typeof body !== "string" || Buffer.byteLength(body) > 131072) fail("澄清请求超过大小上限");
-  parseGatewayJson(body, 131072); return body;
+  if (typeof body !== "string" || Buffer.byteLength(body) > limit) fail("澄清请求超过大小上限");
+  parseGatewayJson(body, limit); return body;
 };
 const copy = <T>(value: T): T => JSON.parse(encode(value)) as T;
 const strict = (raw: unknown, keys: string[]): Record<string, unknown> => {
@@ -29,11 +32,12 @@ const strict = (raw: unknown, keys: string[]): Record<string, unknown> => {
     Object.keys(raw).sort().join(",") !== keys.sort().join(",")) fail("澄清请求含缺失或不支持的字段");
   return raw as Record<string, unknown>;
 };
-export interface ClarificationBegin { request_id: string; requirement: string; background: string; constraints: string[] }
+export interface ClarificationBegin { request_id: string; requirement: string; background: string; constraints: string[]; target?: "plan" }
 export type ClarificationAction = { request_id: string; expected_head: number } & (
   { kind: "question"; text: string } | { kind: "answer"; question_id: string; text: string } |
-  { kind: "matt" } | { kind: "candidate"; requested_at: string; body: ContractBody });
-interface Basis { format: typeof FORMAT; id: string; change_id: string; project_id: string; actor_id: string; change: Change; request: ClarificationBegin }
+  { kind: "matt" } | { kind: "candidate"; requested_at: string; body: ContractBody } | { kind: "plan_candidate"; requested_at: string; body: PlanBody });
+interface Basis { format: typeof FORMAT | typeof PLAN_FORMAT; id: string; change_id: string; project_id: string; actor_id: string; change: Change; request: ClarificationBegin }
+const isCandidate = (request: ClarificationAction): request is Extract<ClarificationAction, { kind: "candidate" | "plan_candidate" }> => request.kind === "candidate" || request.kind === "plan_candidate";
 interface Step { request: ClarificationAction; command_result?: ReturnType<typeof executeLocalCommand> }
 export interface ClarificationSession {
   id: string; change_id: string; project_id: string; actor_id: string; basis: Basis; head: number;
@@ -41,21 +45,23 @@ export interface ClarificationSession {
   unanswered: string[]; submitted: boolean; pending: boolean; real_method_invocations: 0;
 }
 const parseBegin = (raw: unknown): ClarificationBegin => {
-  const value = strict(copy(raw), ["request_id", "requirement", "background", "constraints"]);
+  const input = copy(raw);
+  const value = strict(input, ["request_id", "requirement", "background", "constraints", ...(input && typeof input === "object" && "target" in input ? ["target"] : [])]);
+  if ("target" in value && value.target !== "plan") fail("不支持的澄清目标");
   if (!Array.isArray(value.constraints) || value.constraints.length > 32) fail("约束数量超过上限");
-  return { request_id: id(value.request_id), requirement: text(value.requirement), background: text(value.background), constraints: value.constraints.map(text) };
+  return { request_id: id(value.request_id), requirement: text(value.requirement), background: text(value.background), constraints: value.constraints.map(text), ...("target" in value ? { target: "plan" as const } : {}) };
 };
 const parseAction = (raw: unknown): ClarificationAction => {
   const value = copy(raw) as Record<string, unknown>, kind = value?.kind;
-  const extras = kind === "question" ? ["text"] : kind === "answer" ? ["question_id", "text"] : kind === "candidate" ? ["requested_at", "body"] : kind === "matt" ? [] : fail("不支持的澄清动作");
+  const extras = kind === "question" ? ["text"] : kind === "answer" ? ["question_id", "text"] : kind === "candidate" || kind === "plan_candidate" ? ["requested_at", "body"] : kind === "matt" ? [] : fail("不支持的澄清动作");
   strict(value, ["request_id", "expected_head", "kind", ...extras]); id(value.request_id);
   if (!Number.isSafeInteger(value.expected_head) || Number(value.expected_head) < 0 || Number(value.expected_head) >= 64) fail("无效澄清轮次");
   if (kind === "question" || kind === "answer") text(value.text);
   if (kind === "answer") id(value.question_id);
-  if (kind === "candidate") {
+  if (kind === "candidate" || kind === "plan_candidate") {
     if (typeof value.requested_at !== "string" || !Number.isFinite(Date.parse(value.requested_at)) ||
       new Date(value.requested_at).toISOString() !== value.requested_at) fail("需要固定的原请求时间");
-    try { parseContract(value.body); } catch { fail("候选约定内容无效"); }
+    try { if (kind === "plan_candidate") parsePlan(value.body); else parseContract(value.body); } catch { fail("候选内容无效"); }
   }
   return value as unknown as ClarificationAction;
 };
@@ -67,7 +73,8 @@ const ddl = [
     "CREATE TRIGGER " + table + "_" + action.toLowerCase() + " BEFORE " + action + " ON " + table + " BEGIN SELECT RAISE(ABORT, 'immutable clarification record'); END"))
 ];
 // Private conversation originals, not Project domain facts or SkillInvocation proof.
-// Format 1 is created separately; Project database format 10 is never migrated.
+// Ledger DDL/user_version1 retains legacy originals; record2 is prospective.
+// Project database format10 is never migrated.
 class ClarificationLedger {
   readonly db: DatabaseSync;
   constructor(path: string, create: boolean) {
@@ -106,9 +113,9 @@ class ClarificationLedger {
     try { const result = work(); this.db.exec("COMMIT"); return result; }
     catch (error) { this.db.exec("ROLLBACK"); throw error; }
   }
-  private decode(row: Record<string, unknown>): unknown {
+  private decode(row: Record<string, unknown>, limit = 131072): unknown {
     if (typeof row.body !== "string" || row.digest !== hash(row.body)) corrupt();
-    try { const value = parseGatewayJson(row.body, 131072); if (encode(value) !== row.body) corrupt(); return JSON.parse(row.body); }
+    try { const value = parseGatewayJson(row.body, limit); if (encode(value, limit) !== row.body) corrupt(); return JSON.parse(row.body); }
     catch { return corrupt(); }
   }
   request(requestId: string): { sessionId: string; seq: number; request: ClarificationAction; step?: Step } | undefined {
@@ -117,9 +124,9 @@ class ClarificationLedger {
     const request = parseAction(this.decode(row));
     if (request.request_id !== row.id || typeof row.session_id !== "string" || !Number.isSafeInteger(row.seq)) corrupt();
     const result = this.db.prepare("SELECT * FROM results WHERE request_id=?").get(requestId);
-    const step = result ? this.decode(result) as Step : undefined;
+    const step = result ? this.decode(result, request.kind === "plan_candidate" ? PLAN_RESULT_BYTES : 131072) as Step : undefined;
     if (step && (!isDeepStrictEqual(step.request, request) || Object.keys(step).some(key => !["request", "command_result"].includes(key)) ||
-      (request.kind === "candidate") !== ("command_result" in step))) corrupt();
+      isCandidate(request) !== ("command_result" in step))) corrupt();
     return { sessionId: row.session_id as string, seq: Number(row.seq), request, ...(step ? { step } : {}) };
   }
   session(sessionId: string, through?: number): ClarificationSession {
@@ -131,7 +138,7 @@ class ClarificationLedger {
         strict(basis, ["format", "id", "change_id", "project_id", "actor_id", "change", "request"]);
         parseChange(basis.change); parseBegin(basis.request); id(basis.project_id); id(basis.actor_id); id(basis.change_id);
       } catch { corrupt(); }
-      if (basis.format !== FORMAT || basis.id !== row!.id || basis.id !== basis.request.request_id ||
+      if (basis.format !== (basis.request.target === "plan" ? PLAN_FORMAT : FORMAT) || basis.id !== row!.id || basis.id !== basis.request.request_id ||
         basis.change_id !== row!.change_id || basis.change_id !== basis.change.id || basis.actor_id !== row!.actor_id ||
         basis.project_id !== basis.change.project_id) corrupt();
       const session: ClarificationSession = { id: basis.id, change_id: basis.change_id, project_id: basis.project_id,
@@ -144,12 +151,16 @@ class ClarificationLedger {
         if (!item || entry.seq !== index + 1 || item.seq !== index + 1 || item.sessionId !== sessionId ||
           item.request.expected_head !== index || session.pending || session.submitted) corrupt();
         const request = item.request;
+        if (isCandidate(request) && (request.kind !== (basis.request.target === "plan" ? "plan_candidate" : "candidate") ||
+          request.kind === "plan_candidate" && !isDeepStrictEqual(request.body.contract_ref, basis.change.contract_ref))) corrupt();
         if (!item.step) { session.pending = true; session.head++; continue; }
         if (request.kind === "question") session.questions.push({ id: request.request_id, text: request.text });
         else if (request.kind === "answer") {
           const question = session.questions.find(value => value.id === request.question_id);
           if (!question || question.answer !== undefined) corrupt(); question!.answer = request.text;
-        } else if (request.kind === "candidate") session.submitted = true;
+        } else if (isCandidate(request)) {
+          session.submitted = true;
+        }
         else corrupt();
         session.head++; session.steps.push(item.step);
       }
@@ -186,7 +197,9 @@ class ClarificationLedger {
     this.db.prepare("INSERT INTO requests VALUES (?,?,?,?,?)").run(request.request_id, sessionId, session.head + 1, body, hash(body));
   }
   complete(step: Step): void {
-    const body = encode(step); this.db.prepare("INSERT INTO results VALUES (?,?,?)").run(step.request.request_id, body, hash(body));
+    // Format2 contains both the bounded original Plan request and Kernel's
+    // complete proposal/Change receipt. Keep legacy format1 byte rules intact.
+    const body = encode(step, step.request.kind === "plan_candidate" ? PLAN_RESULT_BYTES : 131072); this.db.prepare("INSERT INTO results VALUES (?,?,?)").run(step.request.request_id, body, hash(body));
   }
 }
 
@@ -202,17 +215,21 @@ export class LocalPrePlanClarification {
       fail("需要当前需求的 Human 负责人", "CALLER_IDENTITY_MISMATCH", "forbidden");
     return change!;
   }
-  private prePlan(changeId: string, expected?: Change): Change {
+  private prePlan(changeId: string, expected?: Change, target?: "plan"): Change {
     const current = this.human(changeId);
     const basis = this.context.store.readSnapshot(reader => ({
       change: reader.getChange(changeId), plans: reader.listIntentRecords("plan_proposal", changeId),
-      versions: reader.listIntentRecords("plan_version", changeId), tasks: reader.listExecutionObjects("task", changeId)
+      versions: reader.listIntentRecords("plan_version", changeId), tasks: reader.listExecutionObjects("task", changeId),
+      contract: current.contract_ref ? reader.getIntentRecord("contract_version", current.contract_ref.id) : undefined
     })).value;
     if (!isDeepStrictEqual(current, basis.change) || (expected && !isDeepStrictEqual(expected, current)))
       fail("需求依据已变化，请核对新事实", "INPUT_CHANGED", "conflict");
     if (current.plan_ref || basis.plans.length || basis.versions.length || basis.tasks.length ||
       current.operating_status !== "Active" || !["Draft", "IntentReady"].includes(current.lifecycle_state))
       fail("只能在创建 Plan 或 Task 前澄清，不能追认历史", "RECOVERY_CONDITIONS_UNMET", "conflict");
+    if (target === "plan" && (current.lifecycle_state !== "IntentReady" || !current.contract_ref || !basis.contract ||
+      basis.contract.change_id !== changeId || basis.contract.version !== current.contract_ref.domain_version))
+      fail("计划澄清需要当前真实正式约定", "RECOVERY_CONDITIONS_UNMET", "conflict");
     return current;
   }
   private bound(ledger: ClarificationLedger, changeId: string, sessionId: string): ClarificationSession {
@@ -247,8 +264,8 @@ export class LocalPrePlanClarification {
         if (!isDeepStrictEqual(prior.basis.request, request)) fail("原请求身份已用于不同输入", "COMMAND_ID_REUSED", "conflict");
         return { ok: true, session: ledger.session(prior.id, 0) };
       }
-      const change = this.prePlan(changeId);
-      return { ok: true, session: ledger.begin({ format: FORMAT, id: request.request_id, change_id: changeId,
+      const change = this.prePlan(changeId, undefined, request.target);
+      return { ok: true, session: ledger.begin({ format: request.target === "plan" ? PLAN_FORMAT : FORMAT, id: request.request_id, change_id: changeId,
         project_id: this.context.instance.project_id, actor_id: this.context.instance.actor_id, change, request }) };
     } finally { ledger.close(); }
   }
@@ -262,27 +279,29 @@ export class LocalPrePlanClarification {
         if (prior) {
           if (prior.sessionId !== sessionId || !isDeepStrictEqual(prior.request, request)) fail("原请求身份已用于不同输入", "COMMAND_ID_REUSED", "conflict");
           if (prior.step) return { seq: prior.seq, step: prior.step };
-          if (request.kind !== "candidate") fail("原动作尚待核对，不创建替代请求", "RECOVERY_CONDITIONS_UNMET", "conflict");
+          if (!isCandidate(request)) fail("原动作尚待核对，不创建替代请求", "RECOVERY_CONDITIONS_UNMET", "conflict");
           return undefined;
         }
-        this.prePlan(changeId, session.basis.change);
+        this.prePlan(changeId, session.basis.change, session.basis.request.target);
         if (session.pending || session.submitted) fail("原会话已有待核对或已提交动作", "RECOVERY_CONDITIONS_UNMET", "conflict");
         if (request.expected_head !== session.head) fail("澄清依据已变化", "REVISION_CONFLICT", "conflict");
         if (request.kind === "matt") fail("真实 Matt 方法宿主尚未安装", "CAPABILITY_UNAVAILABLE", "conflict");
         if (request.kind === "answer" && !session.unanswered.includes(request.question_id)) fail("只能回答当前未解决问题");
-        if (request.kind === "candidate" && (!session.questions.length || session.unanswered.length || request.body.unresolved_questions.length))
+        if (isCandidate(request) && request.kind !== (session.basis.request.target === "plan" ? "plan_candidate" : "candidate")) fail("候选与原澄清目标不匹配");
+        if (request.kind === "plan_candidate" && !isDeepStrictEqual(request.body.contract_ref, session.basis.change.contract_ref)) fail("计划候选必须引用原正式约定");
+        if (isCandidate(request) && (!session.questions.length || session.unanswered.length || request.kind === "candidate" && request.body.unresolved_questions.length))
           fail("需要先完成 Human 澄清，再提交无未决问题的候选", "RECOVERY_CONDITIONS_UNMET", "conflict");
         ledger.reserve(sessionId, request);
-        if (request.kind === "candidate") return undefined;
+        if (isCandidate(request)) return undefined;
         const step: Step = { request }; ledger.complete(step); return { seq: request.expected_head + 1, step };
       });
       if (saved) return { ok: true, session: ledger.session(sessionId, saved.seq), ...(saved.step.command_result ? { command_result: saved.step.command_result } : {}) };
-      if (request.kind !== "candidate") corrupt();
+      if (!isCandidate(request)) corrupt();
       const session = ledger.session(sessionId);
-      const candidate = request as Extract<ClarificationAction, { kind: "candidate" }>;
+      const candidate = request as Extract<ClarificationAction, { kind: "candidate" | "plan_candidate" }>;
       const command_result = executeLocalCommand(this.context, { command_id: request.request_id, requested_at: candidate.requested_at,
-        acting_role: "change_owner", command_type: "SubmitContractProposal", target: { object_type: "change", id: changeId },
-        expected_revision: session.basis.change.revision, payload: { base_version_ref: session.basis.change.contract_ref ?? null, body: candidate.body } });
+        acting_role: candidate.kind === "plan_candidate" ? "technical_owner" : "change_owner", command_type: candidate.kind === "plan_candidate" ? "SubmitPlanProposal" : "SubmitContractProposal", target: { object_type: "change", id: changeId },
+        expected_revision: session.basis.change.revision, payload: { base_version_ref: (candidate.kind === "plan_candidate" ? session.basis.change.plan_ref : session.basis.change.contract_ref) ?? null, body: candidate.body } });
       if ("code" in command_result && (command_result.retryable || ["storage", "internal"].includes(command_result.category))) {
         return { ok: true, session: ledger.session(sessionId), command_result };
       }

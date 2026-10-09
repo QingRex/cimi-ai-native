@@ -224,18 +224,34 @@ const contractForm = (change, submitCandidate) => form(values => (submitCandidat
 textarea("non_goals", "不包含的工作（每行一项）"), textarea("constraints", "约束（每行一项）"), input("scenario", "验收场景", { required: true }), input("expected", "预期行为", { required: true }),
 textarea("evidence", "验收需要的证据（每行一项）", { required: true }), select("risk", "风险等级", [["ordinary", "普通"], ["high", "高风险"]]), textarea("rationale", "风险说明", { required: true }),
 textarea("questions", "尚未明确的问题（每行一项）"), paragraph("此简表适用于一项验收、无知识影响、other 风险类别的普通候选；多验收项、知识影响或其他风险类别请使用已有 CLI 提交完整候选。"), submit("提交约定候选"));
+const clarifiedPlanForm = (change, contract, submitCandidate) => form(values => {
+  const implementation = uuid(), verification = uuid(), keys = contract.body.acceptance_criteria.map(item => item.key);
+  const task = (purpose, id) => ({ task_id: id, version: 1, scope: { kind: "change", id: change.id }, purpose,
+    goal: values[purpose === "implementation" ? "implementation_goal" : "verification_goal"], inputs: [],
+    outputs: lines(values[purpose === "implementation" ? "implementation_outputs" : "verification_outputs"]),
+    dependencies: purpose === "verification" ? [implementation] : [], allowed_changes: purpose === "implementation" ? lines(values.allowed_changes) : [],
+    affected_targets: [], closure_requirement: "before_release", knowledge_keys: [],
+    verification: { method: values.verification_method, mode: purpose === "verification" ? "independent" : "self_check", acceptance_keys: keys, evidence_requirements: lines(values.verification_evidence) } });
+  return submitCandidate({ contract_ref: change.contract_ref, approach: values.plan_approach,
+    task_definitions: [task("implementation", implementation), task("verification", verification)], dependencies: [],
+    verification_strategy: { description: values.verification_method, deferred_checks: [] } });
+}, textarea("plan_approach", "实施方案", { required: true }), input("implementation_goal", "实施任务目标", { required: true }),
+  textarea("implementation_outputs", "实施产物（每行一项）", { required: true }), textarea("allowed_changes", "允许修改范围（每行一项）"),
+  input("verification_goal", "独立验证任务目标", { required: true }), textarea("verification_outputs", "验证产物（每行一项）", { required: true }),
+  textarea("verification_method", "验证方法", { required: true }), textarea("verification_evidence", "需要的证据（每行一项）", { required: true }),
+  paragraph("普通计划包含一个实施任务和一个独立验证任务，覆盖当前约定验收项。复杂任务、知识影响或依赖请用现有 CLI 提交完整计划候选。计划仍需人工确认。"), submit("提交计划候选"));
 const clarificationPanel = (data, change) => {
   if (data.clarification_error) return panel("原澄清记录待核对", paragraph(data.clarification_error.message));
   if (![change.owner_actor_id, change.requirement_owner_actor_id].includes(state.context.actor_id)) return null;
   const beforePlan = change.operating_status === "Active" && ["Draft", "IntentReady"].includes(change.lifecycle_state) &&
     !change.plan_ref && !data.intent.plan_proposals.length && !data.execution.tasks.length;
   return panel("计划前 Human 澄清",
-    paragraph("记录需求、问题与回答，再提交约定候选。候选仍需人工确认；真实 Matt 方法尚未接入。"),
+    paragraph(change.contract_ref ? "核对当前约定、实施边界和任务验收，再提交计划候选。计划仍需人工确认；真实 Matt 方法尚未接入。" : "记录需求、问题与回答，再提交约定候选。候选仍需人工确认；真实 Matt 方法尚未接入。"),
     beforePlan ? form(values => clarificationMutation(change.id, null, {
-      requirement: values.requirement, background: values.background, constraints: lines(values.constraints)
+      requirement: values.requirement, background: values.background, constraints: lines(values.constraints), ...(change.contract_ref ? { target: "plan" } : {})
     }), textarea("requirement", "需要解决的问题", { required: true, maxlength: 4000 }),
       textarea("background", "业务背景", { required: true, maxlength: 4000 }), textarea("constraints", "约束（每行一项）"),
-      submit("开始澄清")) : paragraph("已有计划或任务的需求仅查看原澄清历史，不能补记前置澄清。"),
+      submit(change.contract_ref ? "开始计划澄清" : "开始澄清")) : paragraph("已有计划或任务的需求仅查看原澄清历史，不能补记前置澄清。"),
     (data.clarification_history ?? []).slice(0, -1).map(summary => button(summary.requirement, async () => {
       const response = await api("/api/changes/" + change.id + "/clarifications/" + summary.id);
       showNotice("原澄清会话", false, details("完整原记录", response.session));
@@ -250,9 +266,11 @@ const clarificationPanel = (data, change) => {
             textarea("answer", "你的回答", { required: true, maxlength: 4000 }), submit("记录回答")) : paragraph("尚待回答"))),
         current ? form(values => clarificationMutation(change.id, session.id, { kind: "question", expected_head: session.head, text: values.question }),
           textarea("question", "需要澄清的问题", { required: true, maxlength: 4000 }), submit("记录问题")) : null,
-        current && session.questions.length && !session.unanswered.length ? node("details", {}, node("summary", {}, "从澄清提交约定候选"),
-          contractForm(change, payload => clarificationMutation(change.id, session.id, { kind: "candidate", expected_head: session.head,
-            requested_at: new Date().toISOString(), body: payload.body }))) : null,
+        current && session.questions.length && !session.unanswered.length ? (session.basis.request.target === "plan" ?
+          node("details", {}, node("summary", {}, "从澄清提交计划候选"), clarifiedPlanForm(change, data.intent.contract_versions.find(version => version.id === change.contract_ref?.id),
+            body => clarificationMutation(change.id, session.id, { kind: "plan_candidate", expected_head: session.head, requested_at: new Date().toISOString(), body }))) :
+          node("details", {}, node("summary", {}, "从澄清提交约定候选"), contractForm(change, payload => clarificationMutation(change.id, session.id, { kind: "candidate", expected_head: session.head,
+            requested_at: new Date().toISOString(), body: payload.body })))) : null,
         session.pending ? paragraph("原候选动作待核对，请使用原请求恢复。") : session.submitted ? paragraph("原候选已处理，请继续核对 Kernel 候选与决定。") : null,
         details("原澄清记录", session));
     }));
