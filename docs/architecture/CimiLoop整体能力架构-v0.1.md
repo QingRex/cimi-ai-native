@@ -1,5 +1,7 @@
 # CimiLoop 整体能力架构 v0.1
 
+2026-10-09 D-236：Kernel 当前启动检查与共享 Agent 启动资料组装已实现，本地持久 dispatch 先于唯一 launch；异步准备后重核原事实，丢响应只核对原登记。默认入口仍关闭，独立受保护原宿主账本、生产驱动及完整模型 / 账户 / 费用尚未接通；新电脑缺文件不能证明旧 Run 未启动。242 Schema / 格式10保持，完整五组 S1 继续实施，见[原启动授权与共享组合](../implementation/CimiLoop-原Agent启动授权与共享组合-v0.1.md)。
+
 2026-10-09 D-235：原Agent采集已接共享应用服务、工作台和Kernel Unknown RunObservation；固定原请求及rawref，响应丢失重放同一Kernel回执，不重开Run、不结清费用或释放预算。默认启动与工具权限仍关闭，完整正式终态 / 模型账户 / 配额 / 全恢复及五组S1继续实施，242 Schema / 格式10保持，见[原待核对观测](../implementation/CimiLoop-原Agent待核对观测与Kernel接通-v0.1.md).
 
 2026-10-09 D-234：共享应用服务与工作台已接 Human 对原 Agent Run 的查询、采集、Kernel 取消后原停止标记重送及原资源恢复；浏览器丢响应后保留同一 Command ID 和 Agent 控制入口。停止不产生领域结果或结清预算，恢复资源不重启 Run。正式启动 / 接续执行与完整 S1 继续实施，242 Schema / 格式10保持，见[原运行控制](../implementation/CimiLoop-工作台原Agent运行控制-v0.1.md)。

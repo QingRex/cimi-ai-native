@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { execFile } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LocalAgentRuntimeOperations, LocalAgentWorkspaceToolService, writeInstance } from "../../packages/local-app/src/index.js";
+import { LocalAgentRuntimeOperations, LocalAgentRuntimeStart, LocalAgentWorkspaceToolService, writeInstance } from "../../packages/local-app/src/index.js";
 import { startWorkbench } from "../../apps/workbench/src/server.js";
 import { createInternalId } from "../../packages/protocol/src/v2/index.js";
 import { AgentWorkspaceToolIpc, RuntimeAdapterError, runOpenCodeWorkspaceToolRehearsal, parseAgentWorkspaceToolScope, readAgentWorkspaceIpcOriginals } from "../../packages/runtime-adapter/src/index.js";
@@ -36,6 +36,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     const root = mkdtempSync(join(tmpdir(), "cimiloop-original-runtime-")); roots.push(root);
     const f = createAgentRunProject(root, "task_execution", 100, undefined, ["read_files", "edit_files"]); stores.push(f.store);
     f.runPort.agent.checkToolAuthority = (project, input) => contentDigest({ constructed: true, project_id: project.id, request: input.request });
+    f.runPort.agent.checkRunAuthority = (project, input) => contentDigest({ constructed: true, project_id: project.id, input });
     const prepared = f.prepareAgent(), reserved = f.reserveAgent(prepared), dataDirectory = dirname(f.path);
     const scope = parseAgentWorkspaceToolScope({ project_id: f.project.id, run_id: reserved.run.id, operation_key: reserved.record.operation_key,
       executor_actor_id: f.agent.id, context_digest: prepared.context.input_digest, ...f.pins, host_admission_ref: prepared.context.host_admission_ref });
@@ -48,7 +49,16 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     return { ...f, root, dataDirectory, reserved, options, local, control };
   }
   it("collects stopped facts without modifying original records and refuses restarting the same completed Run", async () => {
-    const f = await setup(), usage = f.task().usage, sequence = f.store.asOfEventSequence(), result = await runOpenCodeWorkspaceToolRehearsal(f.options);
+    const f = await setup(), usage = f.task().usage, sequence = f.store.asOfEventSequence();
+    let nativeResult: Awaited<ReturnType<typeof runOpenCodeWorkspaceToolRehearsal>> | undefined, starts = 0;
+    const starter = new LocalAgentRuntimeStart(f.local, { prepare: async input => {
+      expect(input.definition.task_id).toBe(f.item.task_id); expect(input.plan.id).toBe(f.task().plan_ref.id);
+      expect(input.scope).toEqual(f.options.scope);
+      return { launch: async () => { starts++; nativeResult = await runOpenCodeWorkspaceToolRehearsal(f.options); }, dispose() {} };
+    } });
+    expect(await starter.start(f.reserved.run.id)).toMatchObject({ outcome: "original", completion_proven: false });
+    expect(await starter.start(f.reserved.run.id)).toMatchObject({ outcome: "original", completion_proven: false });
+    expect(starts).toBe(1); if (!nativeResult) throw Error("Original Native execution missing"); const result = nativeResult;
     const ledgerPath = join(result.operation, "agent-sandbox-resources.json"), before = readFileSync(ledgerPath);
     expect(await f.control.query(f.reserved.run.id)).toMatchObject({ operation: result.operation, status: "Stopped", resources_disposed: true, completion_proven: false });
     expect(readFileSync(ledgerPath)).toEqual(before);

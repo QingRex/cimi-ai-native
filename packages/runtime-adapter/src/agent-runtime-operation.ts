@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, openSync, fsyncSync, closeSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync, openSync, fsyncSync, closeSync, existsSync, lstatSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
@@ -46,6 +46,21 @@ export function readAgentRuntimeOriginalIdentity(root: string, rawScope: unknown
   const value = { scope: original.claim.scope, operation: original.operation, operation_id: original.claim.operation_id, claim: original.claim, input };
   if (!isDeepStrictEqual(load(root, rawScope).claim, original.claim)) fail("agent_runtime_claim_changed");
   return structuredClone({ ...value, identity_digest: digest(JSON.stringify(value)) });
+}
+// Only an explicit ENOENT for BOTH original identities permits a first claim.
+// Unreadable/partial/foreign registrations remain Unknown, never "not found".
+export function inspectAgentRuntimeOriginalRegistration(root: string, rawScope: unknown) {
+  const scope = parseAgentWorkspaceToolScope(rawScope);
+  try {
+    root = assertOrdinaryPath(root); const location = paths(root, scope);
+    const present = (path: string) => {
+      assertOrdinaryPath(path);
+      try { lstatSync(path); return true; }
+      catch (error) { if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") return false; throw error; }
+    };
+    if (!present(location.run) && !present(location.key)) return { status: "absent" as const };
+    return { status: "original" as const, identity: readAgentRuntimeOriginalIdentity(root, scope) };
+  } catch { return { status: "unknown" as const, reason: "agent_runtime_registration_unproven" }; }
 }
 export function claimAgentRuntimeOperation(root: string, rawScope: unknown, input: unknown, owner: CreditProcessIdentity) {
   const scope = parseAgentWorkspaceToolScope(rawScope), originalInput = copyToolJson(input), inputDigest = digest(JSON.stringify(originalInput)).value;

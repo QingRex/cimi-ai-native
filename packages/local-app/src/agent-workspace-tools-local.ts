@@ -29,7 +29,7 @@ export const readOriginalAgentRunInputs = (local: Pick<AgentWorkspaceToolLocalCo
     runtime_binding: record.runtime_binding, skill_bindings: record.skill_bindings, host_admission_ref: record.host_admission_ref });
   return { project, run, record, context, actor, scope };
 };
-export const originalAgentWorkspaceScope = (local: AgentWorkspaceToolLocalContext, runId: string): AgentWorkspaceToolScope => {
+export const originalAgentWorkspaceScope = <T extends Pick<AgentWorkspaceToolLocalContext, "caller" | "location" | "store">>(local: T, runId: string): AgentWorkspaceToolScope => {
   const original = readOriginalAgentRunInputs(local, runId);
   if (local.caller.kind !== "agent" || !callerMatchesActor(local.caller, original.actor)) throw Error("Agent workspace original identity mismatch");
   return original.scope;

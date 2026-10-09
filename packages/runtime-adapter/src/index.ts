@@ -1,7 +1,8 @@
 export { IsolatedProbeAdapter, normalizeOpenCode, validateOperationInput, validateOperationRequest, parseRuntimeOperation, openProbeOperation } from "./operations.js";
 export type { ProbeOperationInput, ProbeDriver, NativeProof, OperationRequest } from "./operations.js";
 export { runOpenCodeProbe, parseRuntimeProbe } from "./probe.js";
-export { RuntimeAdapterError, digest, bytesAt, directory } from "./files.js";
+export { RuntimeAdapterError, digest, bytesAt, directory, assertOrdinaryPath } from "./files.js";
+export { inspectAgentRuntimeOriginalRegistration } from "./agent-runtime-operation.js";
 export { copyToolJson } from "./tool-journal.js";
 export { recoverProbeOperation, parseRuntimeRecovery } from "./recovery.js";
 export { parseExecutionPolicy, requireSupportedExecutionPolicy, defaultExecutionPolicy } from "./execution-policy.js";

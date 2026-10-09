@@ -21,6 +21,12 @@ export interface AgentRunAdmissionInput extends AgentRunBindings {
 }
 export interface AgentRunVerifierPort {
   skills?: SkillInvocationVerifierPort;
+  // Independent, side-effect-free launch admission. Re-read original model,
+  // account/cost caps, qualification, physical quota and recovery custody.
+  // Prove first-start eligibility from the original protected host ledger;
+  // missing local files on a new computer never prove no previous dispatch.
+  // Tool permission or a JSON/imported approval cannot substitute for this port.
+  checkRunAuthority?(project: Project, input: AgentRunLaunchAuthorityInput): Digest;
   // Side-effect-free live admission check for one original Agent operation/tool.
   // Must re-read original host admission, current qualification/enforcement and
   // run/tool/SDK/account ownership. A model/import cannot install this port.
@@ -39,6 +45,9 @@ export interface AgentRunToolAuthorityInput extends AgentRunAdmissionInput {
   request: AgentToolAuthorityRequest; record: AgentRunRecord; context: AgentContextManifest;
   runtime: ProviderBinding; skills: ProviderBinding[];
 }
+// Internal trusted-host API only; no new wire schema or persisted database format.
+export type AgentRunLaunchRequest = Omit<AgentToolAuthorityRequest, "action" | "resource">;
+export type AgentRunLaunchAuthorityInput = Omit<AgentRunToolAuthorityInput, "request"> & { request: AgentRunLaunchRequest };
 export interface SkillInvocationVerifierPort {
   // Read exact input/package/schema bytes and the real named-method qualification;
   // preparing Native records performs no external effect or model invocation.

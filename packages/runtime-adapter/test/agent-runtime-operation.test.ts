@@ -4,7 +4,7 @@ import { join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { digest } from "../src/files.js";
-import { claimAgentRuntimeOperation, requestAgentRuntimeCancellation, queryAgentRuntimeOperation, recoverAgentRuntimeOperation, readAgentRuntimeOriginalIdentity } from "../src/agent-runtime-operation.js";
+import { claimAgentRuntimeOperation, requestAgentRuntimeCancellation, queryAgentRuntimeOperation, recoverAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, inspectAgentRuntimeOriginalRegistration } from "../src/agent-runtime-operation.js";
 
 // Constructed scope and owner contract inputs only; no OS or model qualification.
 describe("one original Runtime claim per native Run and operation key", () => {
@@ -65,5 +65,16 @@ describe("one original Runtime claim per native Run and operation key", () => {
     expect(()=>readAgentRuntimeOriginalIdentity(f.root,{...f.scope,context_digest:digest("foreign")})).toThrow("agent_runtime_claim_unproven");
     writeFileSync(join(claim.claimDirectory,"input.json"),'{}');
     expect(()=>readAgentRuntimeOriginalIdentity(f.root,f.scope)).toThrow("agent_runtime_input_unproven");
+  });
+  it("distinguishes local absence from an incomplete operation-key registration", () => {
+    const f = setup(); expect(inspectAgentRuntimeOriginalRegistration(f.root, f.scope)).toEqual({ status: "absent" });
+    mkdirSync(join(f.root, "agent-runtime-claims", f.scope.project_id, "keys", f.scope.operation_key), { recursive: true });
+    expect(inspectAgentRuntimeOriginalRegistration(f.root, f.scope)).toMatchObject({ status: "unknown" });
+  });
+  it("never describes damaged original input as absent", () => {
+    const f = setup(), claim = claimAgentRuntimeOperation(f.root, f.scope, f.input, f.owner);
+    expect(inspectAgentRuntimeOriginalRegistration(f.root, f.scope)).toMatchObject({ status: "original", identity: { operation_id: claim.operationId } });
+    writeFileSync(join(claim.claimDirectory, "input.json"), "{}");
+    expect(inspectAgentRuntimeOriginalRegistration(f.root, f.scope)).toMatchObject({ status: "unknown" });
   });
 });
