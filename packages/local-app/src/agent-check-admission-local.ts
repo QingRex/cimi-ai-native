@@ -1,3 +1,4 @@
+import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
 import { resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import type { AgentRunAdmissionInput, AgentRunToolAuthorityInput } from "@cimiloop/kernel";
@@ -84,7 +85,11 @@ export class LocalAgentCheckAdmission {
     const current = this.capture(captured.project, captured.input);
     return this.runs.content.storeContent(Buffer.from(JSON.stringify(this.body(current, original))), "agent_host_admission");
   }
-  read(project: Project, input: AgentRunAdmissionInput, reference: AdmissionReference) {
+  read(project: Project, input: AgentRunAdmissionInput, reference: AdmissionReference, startCustody?: LocalAgentStartCustody) {
+    if (startCustody !== undefined) {
+      if (!(startCustody instanceof LocalAgentStartCustody)) fail("Agent original start custody invalid");
+      reference = startCustody.originalAdmission(reference);
+    }
     const captured = this.capture(project, input), originalReference = compileValidator<AdmissionReference>(AgentHostAdmissionReferenceSchema)(copyToolJson(reference));
     const record = copyToolJson(parseGatewayJson(this.runs.content.readContent(originalReference).toString("utf8"), 1048576));
     if (!exact(record, ["format", "original_host_admission_ref", "basis_digest", "templates_digest", "node_digest", "policy_digest", "recipes"]) || record.format !== "cimiloop/agent-check-host-admission/1.0.0") fail("Agent original check admission missing");
@@ -94,18 +99,18 @@ export class LocalAgentCheckAdmission {
     if (!isDeepStrictEqual(JSON.parse(JSON.stringify(record)), expected)) fail("Agent original check admission mismatch");
     return { original_host_admission_ref: structuredClone(original), recipes: structuredClone(captured.recipes), node_digest: expected.node_digest, policy_digest: expected.policy_digest };
   }
-  validateTool(project: Project, input: AgentRunToolAuthorityInput): Digest {
+  validateTool(project: Project, input: AgentRunToolAuthorityInput, startCustody?: LocalAgentStartCustody): Digest {
     const captured = structuredClone(input), originalInput = { task: captured.task, work_item: captured.work_item, source: captured.source, workspace: captured.workspace,
-      runtime_binding: captured.runtime_binding, skill_bindings: captured.skill_bindings }, admitted = this.read(project, originalInput, captured.record.host_admission_ref);
+      runtime_binding: captured.runtime_binding, skill_bindings: captured.skill_bindings }, admitted = this.read(project, originalInput, captured.record.host_admission_ref, startCustody);
     if (!isDeepStrictEqual(captured.context.host_admission_ref, captured.record.host_admission_ref) || !isDeepStrictEqual(captured.request.host_admission_ref, captured.record.host_admission_ref) ||
       captured.request.action === "run_checks" && !admitted.recipes.some(recipe => recipe.entry === captured.request.resource)) fail("Agent check tool outside admitted catalog");
     const original = compileValidator<Digest>(DigestSchema)(this.options.custody.verify(structuredClone(project), captured, admitted.original_host_admission_ref));
     // This is a combined validation digest, not an assertion of model/billing
     // qualification. The original full custody callback must still prove that.
-    this.read(project, originalInput, input.record.host_admission_ref);
+    this.read(project, originalInput, input.record.host_admission_ref, startCustody);
     return digest(JSON.stringify({ original, check_admission: input.record.host_admission_ref }));
   }
-  forRun(project: Project, input: AgentRunAdmissionInput, record: AgentRunRecord, context: AgentContextManifest, scope: AgentWorkspaceToolScope) {
+  forRun(project: Project, input: AgentRunAdmissionInput, record: AgentRunRecord, context: AgentContextManifest, scope: AgentWorkspaceToolScope, startCustody?: LocalAgentStartCustody) {
     if ([record, context].some(value => value.project_id !== project.id || value.task_id !== input.task.id || value.change_id !== input.task.change_id || value.work_item_ref.id !== input.work_item.id ||
       value.executor_ref.id !== input.work_item.executor_ref.id || value.source_snapshot_ref.id !== input.source.id || ["definition_ref", "contract_ref", "plan_ref"].some(key => !isDeepStrictEqual(value[key as "definition_ref"], input.task[key as "definition_ref"]))) ||
       scope.project_id !== project.id || record.workspace_before_ref.id !== input.workspace.id || context.workspace_snapshot_ref.id !== input.workspace.id ||
@@ -113,7 +118,7 @@ export class LocalAgentCheckAdmission {
       record.context_ref.id !== context.id || !isDeepStrictEqual(record.input_digest, scope.context_digest) || !isDeepStrictEqual(context.input_digest, scope.context_digest) ||
       !isDeepStrictEqual(record.host_admission_ref, context.host_admission_ref) || !isDeepStrictEqual(record.host_admission_ref, scope.host_admission_ref) ||
       !isDeepStrictEqual(record.runtime_binding, scope.runtime_binding) || !isDeepStrictEqual(record.skill_bindings, scope.skill_bindings)) fail("Agent original check Run mismatch");
-    const admitted = this.read(project, input, record.host_admission_ref);
+    const admitted = this.read(project, input, record.host_admission_ref, startCustody);
     return { nodeBinary: this.installation.node.path, recipes: admitted.recipes.map(recipe => parseWorkspaceCheckRecipe(recipe, scope)), node_digest: admitted.node_digest, policy_digest: admitted.policy_digest };
   }
 }

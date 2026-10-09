@@ -1,0 +1,1766 @@
+{
+  "decision": "D-237",
+  "date": "2026-10-09",
+  "base_commit": "5474abfec8c5eeb46a7281201fbd31db53836137",
+  "scope": "Independent pinned original-host first-start ticket and irreversible claim before local dispatch; actual Windows protected machine/principal/storage origin, continued ACL verification; direct full custody consistency with Kernel and fixed-check admission wrapping. Production driver/full model/account/quota/recovery remain separate and default closed.",
+  "environment": {
+    "platform": "win32",
+    "architecture": "x64",
+    "node": "v24.19.0",
+    "pnpm": "12.4.2",
+    "opencode": "1.18.34",
+    "opencode_sha256": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e",
+    "dependency_install": "D-233 frozen lock installation; no dependency or lock change.",
+    "git": "main; refreshed origin/main e789902379534c6e36ea6ebc14266ed5167b761c; main ahead4 before batch commit; no reset/clean/push/force push."
+  },
+  "implementation": {
+    "ledger": "Independent private format1. Explicit NEW root initialization, no missing-original repair; random ledger ID, actual machine/principal/path/directory/database file identity. Pinned original ticket before Context; immutable run/operation claim before local dispatch, no release/retry API.",
+    "integrity": "Exact SQLite DDL/immutable triggers/application_id/user_version, quick_check/FK/full row canonical bytes/digests/counts; integrity checks in a single read or write transaction snapshot.",
+    "windows": "Actual Windows MachineGuid digest via existing native clock; SID digest only. Exact root owner/protected one SID FullControl/child inheritance, database/WAL/SHM/journal same owner inherited-only ACL checked on each origin assertion. No principal names/keys/script stderr exported.",
+    "runtime": "Service explicitly checks own full custody plus Kernel equal host_validation_digest; missing/partial registration or ledger/ACL/structure/identity drift denies or retains Unknown. Actual Native unique-start path retained.",
+    "checks": "Start wrapper is independently unwrapped by concrete trusted custody, then original checks subsystem revalidates unchanged fixed admission/Node/policy/harness/catalog. Manual install rejects both check and start wrappers.",
+    "capacity_boundary": "1024 tickets,4096 claims,65536-byte encoded record; initializer max_page_count16384, FULL/WAL. Not total Runtime physical/WAL/history capacity or approved money/points budget.",
+    "trust_boundary": "No external anti-rollback proof against privileged original host administrator or in-place old-backup restoration; full original recovery remains required. Ledger cannot qualify Provider/model/account, settle fees or prove terminal business success."
+  },
+  "engineering": {
+    "typecheck": {
+      "command": "pnpm check",
+      "exit_code": 0
+    },
+    "compiled_cli_help": {
+      "command": "node apps/cli/dist/bin.js --help",
+      "exit_code": 0
+    },
+    "documentation": {
+      "documents": 16,
+      "utf8": true,
+      "fenced_blocks": true,
+      "local_file_links": true
+    },
+    "behavior_red": {
+      "path": ".cimiloop/new-host-s1/d237-custody-required-red.json",
+      "sha256": "513afb75eebf2b4437e43780b64c09d83bffcb596e2a73292147090d201d1917",
+      "boundary": "Actual constructed Kernel callback allows start without independent original host ledger before fix; one behavior assertion fails, other assertions filtered, no Native process/model evidence.",
+      "success": false,
+      "total": 8,
+      "passed": 0,
+      "failed": 1,
+      "pending": 7,
+      "duration_seconds": 35.16682763671875,
+      "files": [
+        {
+          "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+          "status": "failed",
+          "tests": 8,
+          "failures": [
+            {
+              "name": "shared original Agent launch assembly refuses even a positive launch callback when no independent original start ledger is installed",
+              "reasons": [
+                "Error: promise resolved \"{ ok: true, …(4) }\" instead of rejecting\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:89:78\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)"
+              ]
+            }
+          ],
+          "message": ""
+        }
+      ]
+    },
+    "required_custody_focused_green": {
+      "path": ".cimiloop/new-host-s1/d237-custody-required-green.json",
+      "sha256": "1f4c441739f135afc321a6fb3e8b1ebc3d3aa6847601102d47931f9e70ea1170",
+      "boundary": "One missing-custody rejection passes; seven assertions filtered, NOT full regression.",
+      "success": true,
+      "total": 8,
+      "passed": 1,
+      "failed": 0,
+      "pending": 7,
+      "duration_seconds": 23.933513916015624,
+      "files": [
+        {
+          "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+          "status": "passed",
+          "tests": 8,
+          "failures": [],
+          "message": ""
+        }
+      ]
+    },
+    "initial_fixture_failure": {
+      "path": ".cimiloop/new-host-s1/d237-contract-first.json",
+      "sha256": "ebab0d5220179a6d4606b6076df697d1866c8270d13ce9b614266dd11ea2657e",
+      "boundary": "Original four ledger assertions pass/nine Context fixtures fail because test ledger was mistakenly untracked outside allowed paths in source tree. Fixed by private .git data root; no Native launch occurred.",
+      "success": false,
+      "total": 13,
+      "passed": 4,
+      "failed": 9,
+      "pending": 0,
+      "duration_seconds": 44.43268530273438,
+      "files": [
+        {
+          "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+          "status": "failed",
+          "tests": 9,
+          "failures": [
+            {
+              "name": "shared original Agent launch assembly assembles Task/Plan/Contract from Kernel records and starts once across concurrent callers and service instances",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"EVIDENCE_MISSING\",\"message\":\"无法保存并核对授权范围内的工作区\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11edc-e2f2-702d-8fb1-962275b78ffe\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11edc-e2f2-702d-8fb1-962275b78ffe\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edc-dde9-7349-b54b-cb9ca4fad9d3\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edc-ded7-7019-8768-b8046408b827\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edc-df45-711b-b05c-ff3908b31762\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11edc-de4a-7480-9755-fee3af2fb774\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edc-dde9-7349-b54b-cb9ca4fad9d3\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edc-ded7-7019-8768-b8046408b827\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edc-df45-711b-b05c-ff3908b31762\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11edc-e2f2-702d-8fb1-962275b78ffe\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11edc-dc6e-7597-ba30-ddbfb4fd7d10\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edc-dde9-7349-b54b-cb9ca4fad9d3\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edc-ded7-7019-8768-b8046408b827\",\"domain_version\":1}}],\"missing_conditions\":[\"EVIDENCE_MISSING\"],\"readiness\":{\"task_id\":\"01a11edc-de4a-7480-9755-fee3af2fb774\",\"ready\":true,\"reasons\":[\"EVIDENCE_MISSING\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"7dc6cb60e8c92324f3f30a00670ab4bc8b4c953d10bee78cdb230485b6b7dd4d\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11edc-e37a-72a1-b575-8c2e84ed1627\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:27:30\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at wrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1977:37)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3584:52\n    at run (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1348:20)"
+              ]
+            },
+            {
+              "name": "shared original Agent launch assembly defaults closed before preparation and refuses Human caller or request-supplied launch material",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"EVIDENCE_MISSING\",\"message\":\"无法保存并核对授权范围内的工作区\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11edc-f1db-7033-ab2a-e37b12b53239\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11edc-f1db-7033-ab2a-e37b12b53239\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edc-eea9-7475-8d10-8fb2bdc0be5a\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edc-eec1-77d9-9560-e5c70e20a26e\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edc-eec8-7348-9123-4fbf3b8e4c11\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11edc-eead-7752-8a81-ef08902f9087\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edc-eea9-7475-8d10-8fb2bdc0be5a\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edc-eec1-77d9-9560-e5c70e20a26e\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edc-eec8-7348-9123-4fbf3b8e4c11\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11edc-f1db-7033-ab2a-e37b12b53239\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11edc-ee94-7463-aeb5-442b4313847d\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edc-eea9-7475-8d10-8fb2bdc0be5a\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edc-eec1-77d9-9560-e5c70e20a26e\",\"domain_version\":1}}],\"missing_conditions\":[\"EVIDENCE_MISSING\"],\"readiness\":{\"task_id\":\"01a11edc-eead-7752-8a81-ef08902f9087\",\"ready\":true,\"reasons\":[\"EVIDENCE_MISSING\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"43ef7b219d50f19a6996fce3fe11654a9072d683b1bcb250b2c95d9dadce03fa\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11edc-f1fb-73b1-93cd-78a52747fd09\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:27:30\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at wrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1977:37)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3584:52\n    at run (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1348:20)"
+              ]
+            },
+            {
+              "name": "shared original Agent launch assembly rechecks Kernel cancellation after asynchronous preparation, disposes staging and produces no start",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"EVIDENCE_MISSING\",\"message\":\"无法保存并核对授权范围内的工作区\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11edc-fe51-72a5-9f87-246a63217be6\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11edc-fe51-72a5-9f87-246a63217be6\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edc-fb39-72ee-ae01-1a57b43401b7\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edc-fb4e-77d9-a176-65a9f689b2d0\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edc-fb53-7454-ad29-50caaaf35947\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11edc-fb3e-7436-96a9-0eae8cf5638d\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edc-fb39-72ee-ae01-1a57b43401b7\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edc-fb4e-77d9-a176-65a9f689b2d0\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edc-fb53-7454-ad29-50caaaf35947\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11edc-fe51-72a5-9f87-246a63217be6\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11edc-fb23-77d9-a14f-d278aeb5f312\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edc-fb39-72ee-ae01-1a57b43401b7\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edc-fb4e-77d9-a176-65a9f689b2d0\",\"domain_version\":1}}],\"missing_conditions\":[\"EVIDENCE_MISSING\"],\"readiness\":{\"task_id\":\"01a11edc-fb3e-7436-96a9-0eae8cf5638d\",\"ready\":true,\"reasons\":[\"EVIDENCE_MISSING\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"1a741f4461e240b06fbf4e4425929fb72f4ba9cecab5d40f98760e3f9ab10cca\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11edc-fe73-7365-b72a-86c9e48b5b97\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:27:30\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at wrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1977:37)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3584:52\n    at run (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1348:20)"
+              ]
+            },
+            {
+              "name": "shared original Agent launch assembly keeps one original dispatch after response loss and reads it even after cancellation",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"EVIDENCE_MISSING\",\"message\":\"无法保存并核对授权范围内的工作区\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-0abe-734d-a1c0-962585901e6a\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-0abe-734d-a1c0-962585901e6a\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-07eb-70a4-8fb9-a5e9ff487d41\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-07fd-72f7-8b5c-11e177e6c4c7\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-0804-7738-85cb-73e6534cea1c\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11edd-07ed-7461-935c-60049511f526\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-07eb-70a4-8fb9-a5e9ff487d41\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-07fd-72f7-8b5c-11e177e6c4c7\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-0804-7738-85cb-73e6534cea1c\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-0abe-734d-a1c0-962585901e6a\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11edd-07db-7255-ba77-b1c8c3b126f8\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-07eb-70a4-8fb9-a5e9ff487d41\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-07fd-72f7-8b5c-11e177e6c4c7\",\"domain_version\":1}}],\"missing_conditions\":[\"EVIDENCE_MISSING\"],\"readiness\":{\"task_id\":\"01a11edd-07ed-7461-935c-60049511f526\",\"ready\":true,\"reasons\":[\"EVIDENCE_MISSING\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"c4b8b147c816d88613b2ec9f010137085e5d89a00da00a7ef7fc5f636f72fe89\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11edd-0ae4-7356-98e5-7ad6ddc366ab\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:27:30\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at wrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1977:37)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3584:52\n    at run (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1348:20)"
+              ]
+            },
+            {
+              "name": "shared original Agent launch assembly retains partial original Native registration and never fills it with another start",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"EVIDENCE_MISSING\",\"message\":\"无法保存并核对授权范围内的工作区\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-1e65-76a2-96cb-b6c6d754ee01\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-1e65-76a2-96cb-b6c6d754ee01\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-186f-75b6-a753-5767623dfaf1\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-1885-7181-8703-c8a630017c60\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-188c-76e5-bfbc-849ddecd072f\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11edd-1873-75fe-90fd-fbfddb156ed7\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-186f-75b6-a753-5767623dfaf1\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-1885-7181-8703-c8a630017c60\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-188c-76e5-bfbc-849ddecd072f\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-1e65-76a2-96cb-b6c6d754ee01\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11edd-1859-778f-9e6c-77206d34a571\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-186f-75b6-a753-5767623dfaf1\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-1885-7181-8703-c8a630017c60\",\"domain_version\":1}}],\"missing_conditions\":[\"EVIDENCE_MISSING\"],\"readiness\":{\"task_id\":\"01a11edd-1873-75fe-90fd-fbfddb156ed7\",\"ready\":true,\"reasons\":[\"EVIDENCE_MISSING\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"b23839739b4369a125dc3244513953729ead007971b0c712eaabace06febd6ed\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11edd-1e86-7397-9793-93fad7f0e222\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:27:30\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at wrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1977:37)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3584:52\n    at run (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1348:20)"
+              ]
+            },
+            {
+              "name": "shared original Agent launch assembly preserves dispatch without a Native claim after a lost effect acknowledgement, and never retries launch",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"EVIDENCE_MISSING\",\"message\":\"无法保存并核对授权范围内的工作区\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-2b27-7620-9f05-680a5a69c2cb\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-2b27-7620-9f05-680a5a69c2cb\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-2858-70f6-8be0-ee249c25e076\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-286c-707b-866d-5d732553b706\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-2873-7130-9068-030b5c5b6b7e\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11edd-285a-71d9-8d16-82d12eb6546b\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-2858-70f6-8be0-ee249c25e076\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-286c-707b-866d-5d732553b706\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-2873-7130-9068-030b5c5b6b7e\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-2b27-7620-9f05-680a5a69c2cb\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11edd-2848-776f-b9cd-e81440cf13be\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-2858-70f6-8be0-ee249c25e076\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-286c-707b-866d-5d732553b706\",\"domain_version\":1}}],\"missing_conditions\":[\"EVIDENCE_MISSING\"],\"readiness\":{\"task_id\":\"01a11edd-285a-71d9-8d16-82d12eb6546b\",\"ready\":true,\"reasons\":[\"EVIDENCE_MISSING\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"9662853a1c2c4821f45f42c8fd4c469bae1e87ec8cc061875c71e1532c27274e\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11edd-2b41-74a8-91b8-ae2c5a910619\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:27:30\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at wrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1977:37)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3584:52\n    at run (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1348:20)"
+              ]
+            },
+            {
+              "name": "shared original Agent launch assembly does not treat missing new-host local registration as independent first-start custody",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"EVIDENCE_MISSING\",\"message\":\"无法保存并核对授权范围内的工作区\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-377b-77e4-afac-7ebce912f7d0\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-377b-77e4-afac-7ebce912f7d0\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-34ad-76da-b4ef-60ad2c1581a4\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-34c0-758a-901e-a346f957d0e8\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-34c5-7412-8ef3-d07cd5d96fee\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11edd-34b2-7484-a432-bf192138f98d\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-34ad-76da-b4ef-60ad2c1581a4\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-34c0-758a-901e-a346f957d0e8\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-34c5-7412-8ef3-d07cd5d96fee\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-377b-77e4-afac-7ebce912f7d0\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11edd-349a-76b1-80ef-6c190ee99118\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-34ad-76da-b4ef-60ad2c1581a4\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-34c0-758a-901e-a346f957d0e8\",\"domain_version\":1}}],\"missing_conditions\":[\"EVIDENCE_MISSING\"],\"readiness\":{\"task_id\":\"01a11edd-34b2-7484-a432-bf192138f98d\",\"ready\":true,\"reasons\":[\"EVIDENCE_MISSING\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"e55f5515f397ea7bd6b16cfa17dd068c0cce2c6d8a7cbc70b8249be35bfe6c13\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11edd-3798-7429-9d48-d36ce9f5b7b5\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:27:30\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at wrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1977:37)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3584:52\n    at run (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1348:20)"
+              ]
+            },
+            {
+              "name": "shared original Agent launch assembly refuses even a positive launch callback when no independent original start ledger is installed",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"EVIDENCE_MISSING\",\"message\":\"无法保存并核对授权范围内的工作区\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-442b-713f-9b32-26a8fea534b9\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-442b-713f-9b32-26a8fea534b9\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-40fe-7666-916e-ca31e48ce544\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-410d-7466-91a0-8bd0656c7a2f\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-4112-74d0-8e85-35dcfe87f4eb\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11edd-4101-7368-b18b-eda7bb67b93e\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-40fe-7666-916e-ca31e48ce544\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-410d-7466-91a0-8bd0656c7a2f\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-4112-74d0-8e85-35dcfe87f4eb\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-442b-713f-9b32-26a8fea534b9\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11edd-40f1-7383-ba2b-77d866cae503\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-40fe-7666-916e-ca31e48ce544\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-410d-7466-91a0-8bd0656c7a2f\",\"domain_version\":1}}],\"missing_conditions\":[\"EVIDENCE_MISSING\"],\"readiness\":{\"task_id\":\"01a11edd-4101-7368-b18b-eda7bb67b93e\",\"ready\":true,\"reasons\":[\"EVIDENCE_MISSING\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"e5e82c0a49984634162e40caa96686bd249030a0b323891851747d867e686055\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11edd-4453-72da-a880-705a0d7a16b2\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:27:30\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at wrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1977:37)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3584:52\n    at run (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1348:20)"
+              ]
+            },
+            {
+              "name": "shared original Agent launch assembly retains global first-start custody when both local dispatch and Native registration disappear",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"EVIDENCE_MISSING\",\"message\":\"无法保存并核对授权范围内的工作区\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-51dd-7245-9ddf-6c447bbb1357\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-51dd-7245-9ddf-6c447bbb1357\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-4e2a-7465-ac3e-3b0d32da04b3\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-4e3a-775f-87b7-64a50709b79f\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-4e3e-7675-8e99-680532153175\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11edd-4e2d-749a-89d8-9ccbcfb60410\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-4e2a-7465-ac3e-3b0d32da04b3\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-4e3a-775f-87b7-64a50709b79f\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11edd-4e3e-7675-8e99-680532153175\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11edd-51dd-7245-9ddf-6c447bbb1357\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11edd-4e1c-76c2-831d-645652cae760\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11edd-4e2a-7465-ac3e-3b0d32da04b3\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11edd-4e3a-775f-87b7-64a50709b79f\",\"domain_version\":1}}],\"missing_conditions\":[\"EVIDENCE_MISSING\"],\"readiness\":{\"task_id\":\"01a11edd-4e2d-749a-89d8-9ccbcfb60410\",\"ready\":true,\"reasons\":[\"EVIDENCE_MISSING\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"e732d892b886596ce5cc0a9a861776350bdb3e8521ffb23275c99f957a3f7439\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11edd-5203-7429-a2a9-9584a72bd742\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:27:30\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at wrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1977:37)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3584:52\n    at run (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1348:20)"
+              ]
+            }
+          ],
+          "message": ""
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+          "status": "passed",
+          "tests": 4,
+          "failures": [],
+          "message": ""
+        }
+      ]
+    },
+    "damaged_structure_red": {
+      "path": ".cimiloop/new-host-s1/d237-review-red.json",
+      "sha256": "ae0c1435acb111b43d71accbe4c6148a49c009289a5414e513caeef236655ccf",
+      "boundary": "One structural corruption assertion fails before fix; local startup suite has transform/parse error with no assertions executed. Parse diagnostic is NOT behavior evidence.",
+      "success": false,
+      "total": 6,
+      "passed": 0,
+      "failed": 1,
+      "pending": 5,
+      "duration_seconds": 2.613510009765625,
+      "files": [
+        {
+          "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+          "status": "failed",
+          "tests": 0,
+          "failures": [],
+          "message": "Transform failed with 1 error:\n\n\u001b[31m[PARSE_ERROR] \u001b[0mExpected `,` or `)` but found `;`\n    \u001b[38;5;246m╭\u001b[0m\u001b[38;5;246m─\u001b[0m\u001b[38;5;246m[\u001b[0m packages/local-app/test/agent-runtime-start-local.test.ts:24:6 \u001b[38;5;246m]\u001b[0m\n    \u001b[38;5;246m│\u001b[0m\n \u001b[38;5;246m22 │\u001b[0m \u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mc\u001b[0m\u001b[38;5;249mu\u001b[0m\u001b[38;5;249ms\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249md\u001b[0m\u001b[38;5;249my\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m=\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mn\u001b[0m\u001b[38;5;249me\u001b[0m\u001b[38;5;249mw\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249mL\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mc\u001b[0m\u001b[38;5;249ma\u001b[0m\u001b[38;5;249ml\u001b[0m\u001b[38;5;249mA\u001b[0m\u001b[38;5;249mg\u001b[0m\u001b[38;5;249me\u001b[0m\u001b[38;5;249mn\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249mS\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249ma\u001b[0m\u001b[38;5;249mr\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249mC\u001b[0m\u001b[38;5;249mu\u001b[0m\u001b[38;5;249ms\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249md\u001b[0m\u001b[38;5;249my\u001b[0m(\u001b[38;5;249mr\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mo\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249m,\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249md\u001b[0m\u001b[38;5;249mi\u001b[0m\u001b[38;5;249mr\u001b[0m\u001b[38;5;249mn\u001b[0m\u001b[38;5;249ma\u001b[0m\u001b[38;5;249mm\u001b[0m\u001b[38;5;249me\u001b[0m\u001b[38;5;249m(\u001b[0m\u001b[38;5;249mf\u001b[0m\u001b[38;5;249m.\u001b[0m\u001b[38;5;249mp\u001b[0m\u001b[38;5;249ma\u001b[0m\u001b[38;5;249mt\u001b[0m\u001b[38;5;249mh\u001b[0m\u001b[38;5;249m)\u001b[0m\u001b[38;5;249m,\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249ml\u001b[0m\u001b[38;5;249me\u001b[0m\u001b[38;5;249md\u001b[0m\u001b[38;5;249mg\u001b[0m\u001b[38;5;249me\u001b[0m\u001b[38;5;249mr\u001b[0m\u001b[38;5;249m,\u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m{\u001b[0m\n \u001b[38;5;240m   │\u001b[0m                                         ┬  \n \u001b[38;5;240m   │\u001b[0m                                         ╰── Opened here\n \u001b[38;5;240m   │\u001b[0m \n \u001b[38;5;246m24 │\u001b[0m \u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m \u001b[0m\u001b[38;5;249m}\u001b[0m;\n \u001b[38;5;240m   │\u001b[0m      ┬  \n \u001b[38;5;240m   │\u001b[0m      ╰── `,` or `)` expected"
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+          "status": "failed",
+          "tests": 6,
+          "failures": [
+            {
+              "name": "original host first-start ledger denies a structurally damaged original ledger instead of treating erased claims as first start",
+              "reasons": [
+                "AssertionError: expected [Function] to throw an error\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2277:114)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)\n    at Proxy.methodWrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)\n    at D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-start-ledger.test.ts:64:57\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20"
+              ]
+            }
+          ],
+          "message": ""
+        }
+      ]
+    },
+    "full_custody_red": {
+      "path": ".cimiloop/new-host-s1/d237-full-custody-red.json",
+      "sha256": "eaa9d132156c6fa0296c8a165e0689142610f0673c4ba4d0c444de57725ed67f",
+      "boundary": "One behavior assertion proves service incorrectly accepts separate positive Kernel callback despite own full custody rejection; other nine assertions filtered, fixed.",
+      "success": false,
+      "total": 10,
+      "passed": 0,
+      "failed": 1,
+      "pending": 9,
+      "duration_seconds": 35.24936669921875,
+      "files": [
+        {
+          "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+          "status": "failed",
+          "tests": 10,
+          "failures": [
+            {
+              "name": "shared original Agent launch assembly denies before staging when the installed full host custody rejects despite a positive Kernel callback",
+              "reasons": [
+                "Error: promise resolved \"{ ok: true, …(4) }\" instead of rejecting\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts:111:87\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)"
+              ]
+            }
+          ],
+          "message": ""
+        }
+      ]
+    },
+    "acl_red": {
+      "path": ".cimiloop/new-host-s1/d237-acl-red.json",
+      "sha256": "2c7cb8f5be296be2e2a4b437b13d64c1ca4be0a8c878f4050610e35f6b9117e9",
+      "boundary": "Actual Windows opened database ACL drift incorrectly permits issue before fix; one assertion fails, one filtered, no model/account approval.",
+      "success": false,
+      "total": 2,
+      "passed": 0,
+      "failed": 1,
+      "pending": 1,
+      "duration_seconds": 4.5212822265625,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-start-custody-runtime.test.ts",
+          "status": "failed",
+          "tests": 2,
+          "failures": [
+            {
+              "name": "Windows original start origin denies an already opened original ledger when its database permissions drift",
+              "reasons": [
+                "AssertionError: expected [Function] to throw an error\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2277:114)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)\n    at Proxy.methodWrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)\n    at D:/cc/cimi-ai-native/tests/scenarios/agent-start-custody-runtime.test.ts:39:77\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+              ]
+            }
+          ],
+          "message": ""
+        }
+      ]
+    },
+    "first_related_green": {
+      "path": ".cimiloop/new-host-s1/d237-custody-first.json",
+      "sha256": "0bc90fa252ea9de3b4579847d47b7f98db247dac3837f13f2415ed323a4085af",
+      "boundary": "18 assertions pass; real Kernel/SQLite + fake full Provider/owner for contracts, actual Windows ACL and same existing-ticket two-process claim CAS. Later wrapper and snapshot changes verified by final regression.",
+      "success": true,
+      "total": 18,
+      "passed": 18,
+      "failed": 0,
+      "pending": 0,
+      "duration_seconds": 208.94797778320313,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-start-custody-runtime.test.ts",
+          "status": "passed",
+          "tests": 2,
+          "failures": [],
+          "message": ""
+        },
+        {
+          "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+          "status": "passed",
+          "tests": 10,
+          "failures": [],
+          "message": ""
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+          "status": "passed",
+          "tests": 6,
+          "failures": [],
+          "message": ""
+        }
+      ]
+    },
+    "final": {
+      "path": ".cimiloop/new-host-s1/d237-final-regression.json",
+      "sha256": "d3df4d724213960d238d83ee0d9c89fb5783cd0d87342ea5056f7e3da1426baa",
+      "boundary": "Affected original start ledger, shared application/Kernel authority, wrapped fixed checks and actual Windows/AppContainer/SDK/IPC. Not whole repository or full S1.",
+      "success": false,
+      "total": 65,
+      "passed": 63,
+      "failed": 2,
+      "pending": 0,
+      "duration_seconds": 794.6534943847656,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-check-admission-runtime.test.ts",
+          "status": "passed",
+          "tests": 6,
+          "failures": [],
+          "message": ""
+        },
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "failed",
+          "tests": 4,
+          "failures": [
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+              "reasons": [
+                "Error: 原 Agent 启动资料或当前准入不可证明\n    at unavailable (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-start-local.ts:14:27)\n    at LocalAgentRuntimeStart.fresh (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-start-local.ts:68:97)\n    at LocalAgentRuntimeStart.execute (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-start-local.ts:90:24)\n    at LocalAgentRuntimeStart.start (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-start-local.ts:84:26)\n    at D:/cc/cimi-ai-native/tests/scenarios/agent-runtime-operation.test.ts:67:26\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+              ]
+            },
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key joins Human Workbench cancellation, collection, Unknown observation and receipt replay to the actual original SDK wait",
+              "reasons": [
+                "Error: {\"schema_version\":\"2.0.0\",\"code\":\"CAPABILITY_UNAVAILABLE\",\"message\":\"正式 Agent 宿主或原始资格证据核验失败\",\"category\":\"conflict\",\"retryable\":false,\"details\":{\"diagnostic\":{\"schema_version\":\"2.0.0\",\"observed_at\":\"2026-10-03T00:00:00.000Z\",\"as_of_event_sequence\":22,\"command_type\":\"PrepareRunContext\",\"target\":{\"object_type\":\"work_item\",\"id\":\"01a11ef3-433a-7048-bdc1-a1ff23cd8820\"},\"expected_revision\":1,\"current\":{\"reference\":{\"object_type\":\"work_item\",\"id\":\"01a11ef3-433a-7048-bdc1-a1ff23cd8820\"},\"revision\":1,\"status\":\"Ready\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11ef3-4048-750a-a390-8c6aaac528f9\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11ef3-4060-7221-8e83-e0900a998ea3\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11ef3-4067-7532-aaa3-82c20461f748\",\"domain_version\":1}},\"related\":[{\"reference\":{\"object_type\":\"task\",\"id\":\"01a11ef3-404d-72ac-aff0-34774ccf4d00\"},\"revision\":2,\"status\":\"Pending\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11ef3-4048-750a-a390-8c6aaac528f9\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11ef3-4060-7221-8e83-e0900a998ea3\",\"domain_version\":1},\"definition_ref\":{\"object_type\":\"task_definition\",\"id\":\"01a11ef3-4067-7532-aaa3-82c20461f748\",\"domain_version\":1},\"active_work_item_ref\":{\"object_type\":\"work_item\",\"id\":\"01a11ef3-433a-7048-bdc1-a1ff23cd8820\"}},{\"reference\":{\"object_type\":\"change\",\"id\":\"01a11ef3-4030-773c-9a44-b96910e278b8\"},\"revision\":7,\"lifecycle_state\":\"Executing\",\"operating_status\":\"Active\",\"contract_ref\":{\"object_type\":\"contract_version\",\"id\":\"01a11ef3-4048-750a-a390-8c6aaac528f9\",\"domain_version\":1},\"plan_ref\":{\"object_type\":\"plan_version\",\"id\":\"01a11ef3-4060-7221-8e83-e0900a998ea3\",\"domain_version\":1}}],\"missing_conditions\":[\"CAPABILITY_UNAVAILABLE\"],\"readiness\":{\"task_id\":\"01a11ef3-404d-72ac-aff0-34774ccf4d00\",\"ready\":true,\"reasons\":[\"CAPABILITY_UNAVAILABLE\"],\"usage_digest\":{\"algorithm\":\"sha256\",\"value\":\"43db589973fceec3b70a3c502dc83ea6659e25865b9aed4a6c5fb279213d7f5a\"},\"budget_remaining\":{\"attempts\":3,\"elapsed_ms\":60000,\"cost_micros\":100}}}},\"correlation_id\":\"01a11ef3-4943-7272-80ac-fab1183c5a62\"}\n    at flowSuccess (D:/cc/cimi-ai-native/tests/fixtures/flow-project.ts:10:65)\n    at Object.prepare [as prepareAgent] (D:/cc/cimi-ai-native/tests/fixtures/agent-run-project.ts:70:42)\n    at setup (D:/cc/cimi-ai-native/tests/scenarios/agent-runtime-operation.test.ts:48:24)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at D:/cc/cimi-ai-native/tests/scenarios/agent-runtime-operation.test.ts:135:15\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+              ]
+            }
+          ],
+          "message": ""
+        },
+        {
+          "path": "tests/scenarios/agent-start-custody-runtime.test.ts",
+          "status": "passed",
+          "tests": 2,
+          "failures": [],
+          "message": ""
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+          "status": "passed",
+          "tests": 9,
+          "failures": [],
+          "message": ""
+        },
+        {
+          "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+          "status": "passed",
+          "tests": 10,
+          "failures": [],
+          "message": ""
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+          "status": "passed",
+          "tests": 9,
+          "failures": [],
+          "message": ""
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+          "status": "passed",
+          "tests": 6,
+          "failures": [],
+          "message": ""
+        },
+        {
+          "path": "packages/store-sqlite/test/agent-run-launch.test.ts",
+          "status": "passed",
+          "tests": 4,
+          "failures": [],
+          "message": ""
+        },
+        {
+          "path": "packages/store-sqlite/test/agent-tool-authority.test.ts",
+          "status": "passed",
+          "tests": 15,
+          "failures": [],
+          "message": ""
+        }
+      ]
+    },
+    "regression_command": "pnpm exec vitest run tests/scenarios/agent-check-admission-runtime.test.ts tests/scenarios/agent-runtime-operation.test.ts tests/scenarios/agent-start-custody-runtime.test.ts tests/scenarios/agent-workspace-ipc-runtime.test.ts packages/local-app/test/agent-runtime-start-local.test.ts packages/runtime-adapter/test/agent-runtime-operation.test.ts packages/runtime-adapter/test/agent-start-ledger.test.ts packages/store-sqlite/test/agent-run-launch.test.ts packages/store-sqlite/test/agent-tool-authority.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d237-final-regression.json",
+    "source_freeze": {
+      "files": 316,
+      "changed_files": 0,
+      "sha256": "7ae7be39993f6a61cfe34b563672068a71ff00cc3f8350d4390cc5ffeabe3665",
+      "manifest": [
+        {
+          "path": "apps\\cli\\src\\bin.ts",
+          "sha256": "423931de5ee3fa5ce5f40d643be1c2634a3829b35fe4be3171dc07c18829c704"
+        },
+        {
+          "path": "apps\\cli\\src\\commands.ts",
+          "sha256": "57b161ba15e815b1a111aab48078d36c4a118f568ec2fb88121e995e79924d68"
+        },
+        {
+          "path": "apps\\cli\\src\\evidence-local.ts",
+          "sha256": "3175901244fb9ba8c4c2f700fbf3cad4d9a58ba1bec0c487f0a06f14d290e846"
+        },
+        {
+          "path": "apps\\cli\\src\\input.ts",
+          "sha256": "38802077ca0dcefbd86ee583d7ae274fe1a21bd9b1193316fbc30a9df764c323"
+        },
+        {
+          "path": "apps\\cli\\src\\instance.ts",
+          "sha256": "5336394853eea941f50febfa27c5d0501bd08afe940557149bd05b7b71ea70ad"
+        },
+        {
+          "path": "apps\\cli\\src\\location.ts",
+          "sha256": "3ca752fdff05705e0f7ebad0856c788502d19e33aa73b98bff307885c4131eb3"
+        },
+        {
+          "path": "apps\\cli\\src\\output.ts",
+          "sha256": "d516c6ccbfc854dce19daf0ea93ed51341abba84a3b18d9721682bfac179fa74"
+        },
+        {
+          "path": "apps\\cli\\src\\providers-local.ts",
+          "sha256": "3a5eb4974ba9a47e9140694e44f0002b5a73ac1585ff005b08fb18192c27386e"
+        },
+        {
+          "path": "apps\\cli\\src\\runs-local.ts",
+          "sha256": "3acb31dbe92a6d98ee7e6ca26d219b3ab562190adeb1b10d0ec1752641c95749"
+        },
+        {
+          "path": "apps\\cli\\src\\runtime-probe.ts",
+          "sha256": "e7286cf6b316c48c802ca0566019374ec944970e412319eeff42174075684605"
+        },
+        {
+          "path": "apps\\cli\\test\\output.test.ts",
+          "sha256": "25a0605394171111199ef6da155ebc90a561a83cb340f451f9ddc45c52b9c785"
+        },
+        {
+          "path": "apps\\demo-web\\index.html",
+          "sha256": "e6de0ad71fb459deceb51b899153edb4df610b9f2eb689aedfa1428620038700"
+        },
+        {
+          "path": "apps\\demo-web\\src\\demo\\commands.ts",
+          "sha256": "d763ad79eb04fbe311a71ce790bd96e649bed20626866879988acee07960edaa"
+        },
+        {
+          "path": "apps\\demo-web\\src\\demo\\reducer.ts",
+          "sha256": "b13e2acb7f4e2d81c30869ff55a0a987083d913c83558977067d161f0cf3ab84"
+        },
+        {
+          "path": "apps\\demo-web\\src\\demo\\scenario.ts",
+          "sha256": "7a0475fdb0e8a809d49ede62f8863a9a85ff69c76b47bf4a10b5bb61941a154a"
+        },
+        {
+          "path": "apps\\demo-web\\src\\demo\\types.ts",
+          "sha256": "2d9523240754d720077663184bb7cf2acdac32828c0760c5d311c04e78ec4335"
+        },
+        {
+          "path": "apps\\demo-web\\src\\styles\\global.css",
+          "sha256": "9063a88c178d049d671d0bf128e2facf06036f62c6f6145bdf27568c6b09f61c"
+        },
+        {
+          "path": "apps\\demo-web\\src\\styles\\tokens.css",
+          "sha256": "26b06627ff012609cb51622804c3d62082f0c3a0278508072c2f8f665058c5e7"
+        },
+        {
+          "path": "apps\\demo-web\\src\\tests\\reducer.test.ts",
+          "sha256": "a3cc8780c2ed5a8535b6a1ff99b113844d3db8671154a4c5fd816a9439429bae"
+        },
+        {
+          "path": "apps\\demo-web\\src\\tests\\setup.ts",
+          "sha256": "1ce2b8a77e5a528ab398be9ecda76510164f1652ca1dce812f9dacc1529b314a"
+        },
+        {
+          "path": "apps\\demo-web\\src\\vite-env.d.ts",
+          "sha256": "424faf9241dd699dda995b367ed36665732da1e6ec1f33b2fd40394488ecac92"
+        },
+        {
+          "path": "apps\\demo-web\\vite.config.ts",
+          "sha256": "2044d81760e1fe31926c25bb6fc085929f737f27e3bba80e1844a4ca17cfcaf7"
+        },
+        {
+          "path": "apps\\workbench\\public\\app.js",
+          "sha256": "0a23dd2083321f1d7e7439d9fe5afd81230adf7a95faa81e3f617df3293d7d06"
+        },
+        {
+          "path": "apps\\workbench\\public\\index.html",
+          "sha256": "540ad7bafa57b1d56b300244b2f9d964e7b50ecd4e3fce4ec31cafecf14db561"
+        },
+        {
+          "path": "apps\\workbench\\public\\style.css",
+          "sha256": "a8ea49c3a729dd2efc559742b536066b1ffc058a111184fdabbb113f016dadf4"
+        },
+        {
+          "path": "apps\\workbench\\src\\bin.ts",
+          "sha256": "1228d0d77c4bb8eba0fafe6a1445434826e54a653edffdab4516ddb505e2077c"
+        },
+        {
+          "path": "apps\\workbench\\src\\server.ts",
+          "sha256": "bfa88d9fe6b1de98b7ea5214bc1859a4fd78214d1134ada8ee3caa6906b5ab61"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-runtime-control.test.ts",
+          "sha256": "fb667f55b31ae3f1278f03be54a377bb4150d8d693f0a3f75b320ae295f785fc"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-runtime-frontend.test.ts",
+          "sha256": "aff624c89a8744da52d7e9dedb8fd3f48d3f29ad11e7d938b77ddd75ad1d0a94"
+        },
+        {
+          "path": "apps\\workbench\\test\\frontend.test.ts",
+          "sha256": "e9af0648d4ee003235bfae8afc12aa930ccb8d25801843c95b31d92b92bf703d"
+        },
+        {
+          "path": "apps\\workbench\\test\\server.test.ts",
+          "sha256": "588d146b17ea8bef73977b52adeb169cc686e3c0a314f85f714430ac2bfaa37b"
+        },
+        {
+          "path": "package.json",
+          "sha256": "d779267d3e382a5f59daab6f162886e50458ed47caee5982fddf486dbff1cd03"
+        },
+        {
+          "path": "packages\\kernel\\src\\agent-run-authority.ts",
+          "sha256": "2c102c30214f1e6c055741e1bb92f91e120c7c467df6022738f4c0f50178a4d0"
+        },
+        {
+          "path": "packages\\kernel\\src\\agent-run-launch.ts",
+          "sha256": "1befb71ba72dfcf2493b4fce7f245a341be218e1a66fa4b942255ee665bb8bed"
+        },
+        {
+          "path": "packages\\kernel\\src\\agent-runs.ts",
+          "sha256": "674ac7acafdeca93b0ac6e5bfd905ae0bbd9b3c583a0e11c09e16b811ada92d1"
+        },
+        {
+          "path": "packages\\kernel\\src\\agent-tool-authority.ts",
+          "sha256": "d0e7be36386ff7e70618e760480687e4c6841f43c39d89404fa47466b6d6f06e"
+        },
+        {
+          "path": "packages\\kernel\\src\\authorization.ts",
+          "sha256": "67fa949d1330c86cd42c294b47e0d886048643f623b8ed7e8efb37285e92a910"
+        },
+        {
+          "path": "packages\\kernel\\src\\canonical.ts",
+          "sha256": "2f6c5e1dc01af7e46b5643634202630a1ec2809e81e404800241703378897f23"
+        },
+        {
+          "path": "packages\\kernel\\src\\change.ts",
+          "sha256": "743180dc4748bc91b4c3b134c8cf1806aad2dcfebef5e7eb5efd38dac0dd76f8"
+        },
+        {
+          "path": "packages\\kernel\\src\\execution.ts",
+          "sha256": "e2293b1ebec9b1adcbd42accae0c3c2915f39e47b48e193021a9cdbf9f62a34c"
+        },
+        {
+          "path": "packages\\kernel\\src\\flow.ts",
+          "sha256": "66f0c53e6b14967aa99b4c09a16d76e8bf64f84d19d34e810c404d49711ebb37"
+        },
+        {
+          "path": "packages\\kernel\\src\\governance.ts",
+          "sha256": "3c2ed62ef657cf1b60ebe41648e82052af0d912e0f346e029ad93e36fa460342"
+        },
+        {
+          "path": "packages\\kernel\\src\\index.ts",
+          "sha256": "41539f1f3b8d822f5835d3e57a4cce38939451f3e59b4ab676329040d4d063dd"
+        },
+        {
+          "path": "packages\\kernel\\src\\intent.ts",
+          "sha256": "761ea476e9b070e8ff23fd9507b0c6d60d35343d58889239896b52b35506281c"
+        },
+        {
+          "path": "packages\\kernel\\src\\kernel.ts",
+          "sha256": "dc5a30aa3d7aaa7374b9e28049889d49a80551c407c5caa769c447f5df3d2e49"
+        },
+        {
+          "path": "packages\\kernel\\src\\provider-assessment.ts",
+          "sha256": "7a69bacb464b632459194544b8c4ee46b7732f598b27bdade5d37534d5ead38b"
+        },
+        {
+          "path": "packages\\kernel\\src\\providers.ts",
+          "sha256": "532dfda030ee2317dcf79d5d7c02c9790acad197be1f356c00b9daf7cc34b908"
+        },
+        {
+          "path": "packages\\kernel\\src\\queries.ts",
+          "sha256": "f1f1502568b3d63c91096eaa73e3699020b2b831c3549df0f3ccc1785cc19977"
+        },
+        {
+          "path": "packages\\kernel\\src\\review-facts.ts",
+          "sha256": "94864cb7988f7d62e6784f064f616155aab6a7dde04ca32c256df2bda85dd281"
+        },
+        {
+          "path": "packages\\kernel\\src\\review.ts",
+          "sha256": "5275af5898977707449a6575b58e46a63d126da03188457ac7d2b4d3f514edcf"
+        },
+        {
+          "path": "packages\\kernel\\src\\runs.ts",
+          "sha256": "e1bbe7d4b113d992f295d17b6762b803f3dd8ae82a24b3343c8bba94671e5339"
+        },
+        {
+          "path": "packages\\kernel\\src\\skill-assessment.ts",
+          "sha256": "f9664679be9fa0698689764295d3d0d36ebf4ec035c9aafa6681a89fbf134b44"
+        },
+        {
+          "path": "packages\\kernel\\src\\skill-invocation-facts.ts",
+          "sha256": "580fb5139e47c8d217cf07e7feee87b2bc46017e6260b1fc6c5aeb2c8b41d78a"
+        },
+        {
+          "path": "packages\\kernel\\src\\skill-invocations.ts",
+          "sha256": "7beed6cbbb688b0730d72737b4da5a1ff9f18f31a4110eea0850fcac34cef6b3"
+        },
+        {
+          "path": "packages\\kernel\\src\\tool-authority.ts",
+          "sha256": "025d4eeb9b85928b10d2b66e95de8a787149ac9e76d2fb6b3ef45e6b1a575e0d"
+        },
+        {
+          "path": "packages\\kernel\\src\\v1.ts",
+          "sha256": "b1d6016226d5fd2104fae083fc3efa4ddbeb774705fc20dbddcbe235374c0709"
+        },
+        {
+          "path": "packages\\kernel\\src\\v1\\change.ts",
+          "sha256": "e8c5440e03812a8df3ac1eea772db0b9f43f5ba884b7065e3e87ea032ea0712a"
+        },
+        {
+          "path": "packages\\kernel\\src\\v1\\kernel.ts",
+          "sha256": "36e44adfca355b55d7688ad1521dc3e0e9ed28d952baa5f485f0a7f251031764"
+        },
+        {
+          "path": "packages\\kernel\\src\\verification-facts.ts",
+          "sha256": "c258a4ff999afac5a58e6b820c55568a137cec6433e3e423420ca82c030c2ea8"
+        },
+        {
+          "path": "packages\\kernel\\src\\verification.ts",
+          "sha256": "f12e31f1ea30840feeec69fedfc5517b31b3653518f6ec8e753dabe127c401b8"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-check-admission-local.ts",
+          "sha256": "8d30395939459d1b2627b9f260884f857c8c948170a670b5d2cd799f3cdc6639"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-run-budget-local.ts",
+          "sha256": "33e644196c263db6a2b8ca137052078201a87a6ea7f9d5ee02b25decbbec599b"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-control-local.ts",
+          "sha256": "205036c9f838f7a170c870fc986ee851c6abc60364cb90d682b6c04d2ee427b6"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-observation-local.ts",
+          "sha256": "aefa6ba843441e076c6d50c590fba8e910803480637704adbbff17477e8266a9"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-operations-local.ts",
+          "sha256": "12812dd341e171f27b98a99cc171a28944e9677a0ff3fd993924c2792fd765c6"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-start-local.ts",
+          "sha256": "4b6856a7ada5a2ee33dcdd69c636b71dfa9f26706b8911287b78435298c614cf"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-start-custody-local.ts",
+          "sha256": "ba1a9c4832d7cc7750d3bd4eea197e7335fb04614aafbc9d8c7c06f204c658df"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-workspace-tools-local.ts",
+          "sha256": "8a2301b9811b69b6b86253bd8ebd66c6bc3a451c3dc7cf812914c2093eba3cce"
+        },
+        {
+          "path": "packages\\local-app\\src\\errors.ts",
+          "sha256": "fbce533807d48c8902f129faaae3ed0d1044f3395d52d815ad6a113c8f18ae8d"
+        },
+        {
+          "path": "packages\\local-app\\src\\evidence-local.ts",
+          "sha256": "604a819334b52cec2209e0273c7d793b17c2f0505bad9656cb4c1224b5e7daac"
+        },
+        {
+          "path": "packages\\local-app\\src\\index.ts",
+          "sha256": "451d2a73213877d7845d9fed84fd7a8c5787c459419d541a8c8cba407fb62888"
+        },
+        {
+          "path": "packages\\local-app\\src\\instance.ts",
+          "sha256": "7366cf8b96931ab6305104dfc5a6a25e765e58cc50758a26b65eaec124dacebd"
+        },
+        {
+          "path": "packages\\local-app\\src\\location.ts",
+          "sha256": "a65c5d150ef0498f612cdcbd2abfd707e45e06ba39934e2e12257f72e1b3ec20"
+        },
+        {
+          "path": "packages\\local-app\\src\\project.ts",
+          "sha256": "b1b178db5186b78147c4bbd3e1439a0692916d9c69a9c44321680f23a7ee0c7b"
+        },
+        {
+          "path": "packages\\local-app\\src\\providers-local.ts",
+          "sha256": "09b5df5272539df68abf2d342eb712b61897e6e6a5a2d9ed2d3359e96c613358"
+        },
+        {
+          "path": "packages\\local-app\\src\\runs-local.ts",
+          "sha256": "4d6024fa90db43ec10be2822fa58e24ebaf09a2c1303ff4ab620ced2f71c0291"
+        },
+        {
+          "path": "packages\\local-app\\src\\skill-method-assessment-local.ts",
+          "sha256": "3ed433f59054902a0766deea69ea0dd27e12af69979426bd91582609d0718f6e"
+        },
+        {
+          "path": "packages\\local-app\\src\\skill-methods-local.ts",
+          "sha256": "bc2b902fb6233d1e736cfaebfc04c6bbe1080f93ae5888a7c45c6714495c082c"
+        },
+        {
+          "path": "packages\\local-app\\src\\skills-local.ts",
+          "sha256": "d19f90cfca78008256550ad723a658fed1891e2a0cdcef3d84104f0f6cda5a21"
+        },
+        {
+          "path": "packages\\local-app\\src\\workspace-tools-local.ts",
+          "sha256": "6f8315fe931efcfcc21c0ba0e4fedc81a39ac5439fbeaf6f988804afaf7ab0d3"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-runtime-control-local.test.ts",
+          "sha256": "d41c6b69b3b582344f1beacd99b912e3230402ff174427e05fd64a27e53e9236"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-runtime-observation-local.test.ts",
+          "sha256": "ee1493b6617ff9bb2eeff8910666ea1f0a58e8591ccd3cc7eb42ce7079d317fa"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-runtime-start-local.test.ts",
+          "sha256": "4ee6da463c7cdcc3b69a435f5df6e23981684351faa51f8bf21f9f019c39a6ed"
+        },
+        {
+          "path": "packages\\protocol\\src\\export-schemas.ts",
+          "sha256": "4b6d1bf4a691c8a459edfb59b7bd5f1ae4d9766f68460b14a704d26e20cc5f85"
+        },
+        {
+          "path": "packages\\protocol\\src\\ids.ts",
+          "sha256": "f35a52eb85c640f23f2c3b112130c165ccd77bf31923cce7f76eef4bc79e65a3"
+        },
+        {
+          "path": "packages\\protocol\\src\\index.ts",
+          "sha256": "7a5b11822736d483d3ede9bbe2dfc8c37c4f6cd90524e1cdaa6d23fb57fe6b09"
+        },
+        {
+          "path": "packages\\protocol\\src\\schemas.ts",
+          "sha256": "b1e5f7f12e1fe29e1141ce6724791e24846feb67c9303785b3ad915586b9b6b9"
+        },
+        {
+          "path": "packages\\protocol\\src\\v1\\index.ts",
+          "sha256": "a9544cdf667b2cb07f94eb375c94f5314f37843d6f08eb28bcbf07ec4ab75020"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\agent-tool-authority.ts",
+          "sha256": "e0737123b8b3d395e693bcc5a2d1660523f764a6ebd86033f03933ae7b337c4f"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\commands.ts",
+          "sha256": "66d6d8759eb4b783f86658d185c928e1e0ab411f055841c37b441de6c19c0012"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\common.ts",
+          "sha256": "bcefd17834f896f5af12dc4a343f98edce750fa461e48d7280e61f7c83c9dceb"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\execution.ts",
+          "sha256": "98e285831384dd3967f7fde42ba7c7848f5d8892cfa35d18cb262030d4ece3f2"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\fixed-method.ts",
+          "sha256": "5ae2d6fb99073e2cf3ec0a736a71a9ac02f3830d012078722d26a8323a79483e"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\governance.ts",
+          "sha256": "7b28111b1376dcb6d8e060090c53162806fd9df301bcf903942248439b22caf1"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\index.ts",
+          "sha256": "44aeebfe6eb2c174a3558de7f9ddd6100c5cbeb78990d2725acb56d503614330"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\intent.ts",
+          "sha256": "373b2c812b3f0eefe8863f760989583e8d26b4fea1c1d9733f1f0e8f8bff33bb"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\named-method-assessment.ts",
+          "sha256": "4e8b7576aff7e98e69309ed51c1a81fba91354b2b5a98b42b8291b68328db1bd"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\objects.ts",
+          "sha256": "8120c4033d6d259ca2e585008b616765d594019660b01a8495629bf0d5564c7c"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\provider-assessment.ts",
+          "sha256": "f17ec370984727dfa7d9665e8b0b6d4a80c3a0e3d42f7485a722afd95431671a"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\providers.ts",
+          "sha256": "be381941ac1ce0af9e0af9e30f9b1268612b3d9b38dc989cb5cef40bdf2d0e82"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\queries.ts",
+          "sha256": "8e4853be187c45b7a012052b995c86faad64af21e3e5c3826a4a9afa6bb88c60"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\results.ts",
+          "sha256": "ddd1245b7fb571479ec96ac003728690ace12d2034c8fe6cb8a5be34dfd09dec"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runs.ts",
+          "sha256": "63c562a63a949a31195e05f678048e277c38c47c103e0f1aec132421918fb890"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-gateway-bridge.ts",
+          "sha256": "5128b014108bba6aa49001a2391abaf54075cfefc100c65d2526c19aca1c8b60"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-gateway-credit.ts",
+          "sha256": "c8563c0e251412e270715bb78edbeaec5d612407029513c828fd72f5d9ba21a0"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-gateway-network.ts",
+          "sha256": "c9679eba1941a7df2c4974cb9af0ded104f662a2ced7b32fc9956f8b11c8c566"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-gateway.ts",
+          "sha256": "c57d24f64d10dbcb4aed566558004419c3e46639475d75771a454918745cba24"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-probe.ts",
+          "sha256": "654d2b6ca1cdca9a4bd03769d1842d5680d9f1df6c971b1b47ebe25b34446355"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\skill-probe.ts",
+          "sha256": "9987786af56977da4886f6d18360ea1faadd94d214f7e486e1d7ffc3fa9ca862"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\skills.ts",
+          "sha256": "51ff43f2d6fbec01cf6cf52a0ab50711d8721b400793c3e1cc28af6cb282471d"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\storage.ts",
+          "sha256": "4247f6b2985a28587a705dcda8a348a78a2681e3ddf35d4fea8c1b7dc707cefd"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\tool-authority.ts",
+          "sha256": "7eb810d0e260e91d95b7fb2aa202b6f9f079d839ce525df3ca64151fd9219d07"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\verification.ts",
+          "sha256": "d96d5e972eef174d79bc801e1999212f4e0b3ee7f9caa10c84d66c3d9afd480a"
+        },
+        {
+          "path": "packages\\protocol\\src\\validation.ts",
+          "sha256": "0770aa867ecf015a7885674923a72db9edf4925db7629464c70da7cd97f791d3"
+        },
+        {
+          "path": "packages\\protocol\\src\\versioned.ts",
+          "sha256": "2a493c95cc1397b4de0559e318b9e366fdf316c7ebf6f1394c5e3034bf271f90"
+        },
+        {
+          "path": "packages\\protocol\\test\\agent-runs.test.ts",
+          "sha256": "e0e66e0068a585ff5da7006f73adf45ffeaab980764720d385aa4a528b618fc6"
+        },
+        {
+          "path": "packages\\protocol\\test\\agent-tool-authority.test.ts",
+          "sha256": "06f79278f64b51c09579655a3cee3d75fc42e096c06eb9dfeb4e33e547c4236a"
+        },
+        {
+          "path": "packages\\protocol\\test\\schema.test.ts",
+          "sha256": "be454084b2a14e0b1cd806f2343d742f1149e67b53e9472587e541d448438688"
+        },
+        {
+          "path": "packages\\protocol\\test\\skill-invocations.test.ts",
+          "sha256": "a19d12bbf33410c0a527c558b919971759ea57155c5a5f952ca3898afa40d6d0"
+        },
+        {
+          "path": "packages\\protocol\\test\\tool-authority.test.ts",
+          "sha256": "5c98005f1f501f2241ee238ce20e26a2d18c289d47e4b211fd17cbfc88a45f99"
+        },
+        {
+          "path": "packages\\protocol\\test\\v2.test.ts",
+          "sha256": "2dbb29d357baf02496104fc488791d96d3bd608760542b03423a2442a4e89e3e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-run-budget.ts",
+          "sha256": "cc65ccae99df8e08eb16aed9e26261999bd69d9a8e8730af2bc2fb892aba81f3"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-run-clock.ts",
+          "sha256": "3710a386f341ffd9ab4837f5535e0527a6c4422a009c2156e88a52b5f8430529"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-runtime-operation.ts",
+          "sha256": "bf3db3c49a46d5c3cf595e243cc4aaa4f8cc57552fd26a84005280d5880564b3"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-runtime-result.ts",
+          "sha256": "78566bf5c73f501664ec90b0c8f22c5fedb25897a657b8a8b67811190d42acc3"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-start-ledger.ts",
+          "sha256": "37ef4a4273953bcc7edd1ec72ee8721d38fdeb6e52b76c2a1bff8cc920f6deb9"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-start-origin-windows.ts",
+          "sha256": "76d0bd83677ba7ed72f07679ca1910327c9e574b1bf078ddca5f17504f40ca9e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-authority.ts",
+          "sha256": "8a6bcf118b1acacd7c8040b3cb53d6c9f300cf419eccb0e4101a8de84aaf7620"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-ipc-journal.ts",
+          "sha256": "bc46d63634dbdebca4acd09e3ea29d943befb23808aa3f114bd8cecbfa4a3479"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-ipc.ts",
+          "sha256": "24a7fc98727954c305eaa3d0d269d19fad859aca1cf027ea8af34ffddcdcb40e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-sandbox-recovery.ts",
+          "sha256": "5189365d17e7046f6ce156d35bee9ae1c901c6ab4f1d63886d6a04f6b88c5603"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-tool-host.ts",
+          "sha256": "b9f139f3ab352bcce34d8f7d3fefa22a38214fc43328660ccb132a6af8f27161"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\connection.ts",
+          "sha256": "6084dac3128e0878e584945109fac4132baa7514d9c771762b504392f361238e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\execution-lifetime.ts",
+          "sha256": "d9dd8052926f0fcce9eb2fd7a13aa9f6ff435c67e6620542f1afb31a7d6ce351"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\execution-policy.ts",
+          "sha256": "680dd6b8f1841e112f9282436f4114124f31e8d7a7ae5d6652d8053e40c6a449"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\files.ts",
+          "sha256": "06ab5bff6f580fab71c7bec26d725196582208f1235b1c7cc9330102d63ab326"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\fixed-method-replay.ts",
+          "sha256": "ec235c0652fc180875dbc236a12dcca7a6076f10e500eaa7d0b253cf203e96b6"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\fixed-method.ts",
+          "sha256": "c9d4d7772432b73e6aa3ad026128dffdc33039ffc68405bc525cbab22433d7d1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-address.ts",
+          "sha256": "546a40fd0baab3b2db701f3f2348dbae70eac3b1464f8e58d9be27cb055a4b07"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-billing.ts",
+          "sha256": "e4d98ef631047a7d015b23b7500b430857da8af8cc4f9357466dd13752cf3305"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-bridge-probe.ts",
+          "sha256": "c5a8f87d91edf41a73e13df4f5b7e13a817e46d6c5e359904a9333af32939325"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-bridge.ts",
+          "sha256": "efb162791874db3eca325089b26a1dc36d0c1d36b7abc77a8efb0e42a313bc1b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-budget.ts",
+          "sha256": "59fa4a5788583ce62d7ac5b5bcb797cb220bc75a02b9e4cfd1f5f782cb5b11c0"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-conversation-bridge.ts",
+          "sha256": "9860aaa65067fb89406d0971ae043f1bf596d94795b0ce1a0ccfb05338a48081"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-conversation-probe.ts",
+          "sha256": "bf90eacc1a970207a36957336dd272a3c902defd1b0a10968ef1b4bcee868f66"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-conversation.ts",
+          "sha256": "d962503879ff4ef376dc6bd2e4992fd47f20b895e598e67ba201bab3be3da1ef"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-credit-owner.ts",
+          "sha256": "93fa203fc8f7a65fb14897c93bf908782011ce3ea6a29d904e6f14c6c7c023fa"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-credit-probe.ts",
+          "sha256": "569c4c105eadb339df4753e79df264f7c15029d869cbdb1fccf5112c5800d7ce"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-credit.ts",
+          "sha256": "39a6c1983f13e8a8452d39f38a5b98372106988b072be46663affa7cfa395fd2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-fixture.ts",
+          "sha256": "1c63b5ce97b47eb86218e21750845e70577cbe493ac5632ef081871cc33cb9eb"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-host.ts",
+          "sha256": "a012b10553285921cde1027c10186d2771384c944233197a142e8b3d987c7691"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-http.ts",
+          "sha256": "b3208e6e9e9d9c76616b1032e21e578c81342538e94559c569af590d7f310eb5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-network-probe.ts",
+          "sha256": "3b2538ded2de466f984be0e3f695f3e87d426f659317348128b4c31c9b56f641"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-network.ts",
+          "sha256": "780dd64a4c803fd4067866b593bd1edcbaffe4dfb2aab1c7431f5666c07fddce"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-probe.ts",
+          "sha256": "c28e5707d8d65658ad739fb4d47414c020b8ec561350d4cbe09df0e48bbf670f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\index.ts",
+          "sha256": "968a5eefb600a0eb557ecf4110bb5c2c504536017b19cfb5356631f9e741268c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\ipc-observation.ts",
+          "sha256": "fdd1c5c9894ee6847a5705ef4d9013ee62da5b63d517613c1ca0732bd4b65318"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\model-gateway.ts",
+          "sha256": "52c31c89d6a5116939c68e45a8c1892874bbc81a535e42b072368451d8174ca2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\named-method-originals.ts",
+          "sha256": "b4f7b6d6c22e030dc99ef2c29e48def71c5a0f6bbf882832e25cd942d9e84155"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\native.ts",
+          "sha256": "5e03fb6bfe942d5c5d7874f9e5dd3691939ecbacfa72184b7154793832b62fd4"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\opencode-workspace-rehearsal.ts",
+          "sha256": "432ce664b69c5aa5e3cf03f80e1e85e32d3289d70dfaaa99135b0403ba3db826"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\operations.ts",
+          "sha256": "05e3e35b8bea2fe49a68af4fa26ec25521c29fe5db6b111dd70925e878f20cce"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\private-cleanup.ts",
+          "sha256": "9b0b6da5b7c8353b4e90b06ecf528d8ecd5258ffcde107f5147b3b2a76d8227c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\probe.ts",
+          "sha256": "1c63161123a6afedd54ebefd06410abda2858e9ff130c222cd30dd418c2be06b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\recovery.ts",
+          "sha256": "d4057aef804036d992767dbc4504764cab246e6f10469415694ef2b3c16f619b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\supervise.ts",
+          "sha256": "197145a9b43e0f853a3140a07e43fc360ec54c34ffd50e4f131c31f6c3b6afc5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\tool-host.ts",
+          "sha256": "9ace68c69cdff35239c581f4f4fdc0e43a3fb39b59ba7e9c676da12fa281fd74"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\tool-journal.ts",
+          "sha256": "fe3e98d6a5f635b8d7f11fd5f69b7d779e96b7f051ec10fb74c6ee1d59859aa6"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\transport-probe.ts",
+          "sha256": "2fe992c53ea9c6a5a1e5711ef6a2e4c433e2a59522cad396050ccfbb5013ebcf"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\workspace-checks.ts",
+          "sha256": "c1cc547b6cdd41cf5d040c98024892a895e0ef8c3b7a2a495b706a85fe53d63d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\workspace-files.ts",
+          "sha256": "0b184ef838d3057368317af3c425089b5b21e331c1b281fde1a21c1292ab7219"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\workspace-tool-host.ts",
+          "sha256": "3c013b8395e6792ca5124dcb53c2db552411b8758e4dabb76cf8c84a39c9f989"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\workspace-tool-journal.ts",
+          "sha256": "bda463fe0884571bdf688f4ca6b05311ea08602b402d16b63d9874d7c4bf7ee0"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\adapter.test.ts",
+          "sha256": "94d003ac46a1ef4fb1e8574fed5e983de6c94fa9a98532080006316cbb52f21d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-run-budget.test.ts",
+          "sha256": "b197512e1951d20b167df95746ebe06c9c45e6a30a786e2a4eb11c85893d723b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-runtime-operation.test.ts",
+          "sha256": "a49c8e7b6de8513fb037153e62fe46fb4958434c2749412e8b89157b442af43c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-runtime-result.test.ts",
+          "sha256": "f01eb93ef46d00e7f5a76cac204180e081fe165d0609b305cc42e93a7f1e8eef"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-start-ledger.test.ts",
+          "sha256": "212212db3bcb5bf0cdd632be6c2793950c6a0de8d1fc9d04c21ef3d5042025a4"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-authority.test.ts",
+          "sha256": "7219815b2d9263708ceb8fac29158a23d751369efa5d5992079a321f6f12c7e4"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-ipc-journal.test.ts",
+          "sha256": "51d7e9e097ae894e2f8c178b94931ce4121b919e545697b381c360e112454463"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-ipc-peer.mjs",
+          "sha256": "877f460dc4efb042edabade9fe03ef9f02a24262da912540330e0f304da4784a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-ipc.test.ts",
+          "sha256": "1f36d70d9df70c7bdcebd92a6ab942d3ebabe29cb8ccc3e1e3a004b1af81ef79"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-startup-worker.mjs",
+          "sha256": "5d797c68efa56eb81cb8f0aff86b6d2d516e15ff0022ebea93be4f35cb145af8"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-tool-host-worker.mjs",
+          "sha256": "3daa3317d9576d73456b17f9752e54f03d6e47bdceba0467cd7b42bbe7a026a7"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\connection.test.ts",
+          "sha256": "a686f1ecaf3ad0c4d702a5c4627890d4ccd455d7d7cfd76316ae4f7ad9d44198"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\execution-lifetime.test.ts",
+          "sha256": "132c15428b7457feab9c569506e2de2d5d17bf217417fb41247b6636e488d0d6"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\execution-policy.test.ts",
+          "sha256": "0aeee6a6fd7e6cef97940235e1775849cfdcb90745dd5013dcd57a14b6c4b194"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\fixed-method-fixture.ts",
+          "sha256": "f4619c3b1e7fe9e5cc1f39f06d82695539090a4b4d1d6b3c7addda8d3f467306"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\fixed-method-replay.test.ts",
+          "sha256": "02c8f45c412055ce779ebffe7bb1b5067d6cf563b5d01a2e7d5516db54c0dd7e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\fixed-method.test.ts",
+          "sha256": "db5fbc71fc44e996960b7b40743b8295c9a13e0ff3ade43b2823baca01a8e492"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-billing.test.ts",
+          "sha256": "df5434c2efbdd0da1cb061c5de6ca71c3b17141fd3109afd8345401c526e1b53"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-bridge.test.ts",
+          "sha256": "5e0b8a2e75d1f8dd317f988d9cb631635f780e4eb660ab96e3136c8170d306da"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-client.test.ts",
+          "sha256": "f01e29c117e94923abb0c4d3f96c357cb44e950047296a9a7fa46f65b4c37b7b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-bridge.test.ts",
+          "sha256": "8b114783fcc076ecabb662892e0515767df92ac2b44e6161f0ce3cc69a56c7c2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-cache.test.ts",
+          "sha256": "6c0600cc317d422da71755e47679b8632697ae9f443fcac6bdfc7a304b05a1ff"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-client.test.ts",
+          "sha256": "5d72eff6c42770032adea71a8fc8f15329de6afa4d0de07ef41ebb4bf79b920a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-fixture.ts",
+          "sha256": "f2a680e0f76d9a373b37af934eab3708ce1d1f78afdddc93c6ff7cab6e4dd99b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-host.test.ts",
+          "sha256": "6df4fd579914771783c7db6a4f7b652e166a0cf3989252b60f0d7f1f5407e61a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-originals.test.ts",
+          "sha256": "7a61677db7b88a6823f25fee84208e155b6c95910e09a1babb93d07c042c084e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation.test.ts",
+          "sha256": "01cb3a016cd0490d214a858927854eb88867b0cebfe427e0a066c96021fe2255"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-credit-cache.test.ts",
+          "sha256": "b36aa08093d2b983c96b762660c91c955248b8e69a6007cd4f14b84890ac658e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-credit.test.ts",
+          "sha256": "d2c5db80715787738b9e594fbef675fd163c2691e8a20064c3136e245c44b87c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-host-worker.mjs",
+          "sha256": "20a349b8bf03ec976c570fa41405386fe5f27ec936fc12a2813829726601efaa"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-host.test.ts",
+          "sha256": "f55e3f34d2875a49c1686b34c8eb7a7081913a200a744b1d3327b1eea33ab80f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-http-fixture.ts",
+          "sha256": "8498828eb94292fc090ad04a8a42220663c6a22324fa8ee91e5bbd89198ddf7f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-http.test.ts",
+          "sha256": "32335da989ef0c988eba13089cae5514c58a034185d8be6830e342edd23b2577"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-network.test.ts",
+          "sha256": "a2a78e86351ac5d1986bab10bf6d96331e203ae7b6c4872da43db896fcdf9357"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\ipc-client.test.ts",
+          "sha256": "d6f1b61a4e1c5d511ebe36decd8fe48dbb9f28e2653f1c4acf052a43b9a43c91"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\ipc-transport.test.ts",
+          "sha256": "9a422eaca4ee0b89bde7deb43ce1a82e72506cf0de199dbcc4cb63c7e64a771c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\model-gateway.test.ts",
+          "sha256": "99a98b187df4f9567e41256765833f06b950a948997092b06baf5c3a482c56cf"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\opencode-workspace-tools.test.ts",
+          "sha256": "e332a247dcc2ed47d54b5e27afb112b42c293e39be8af1afa350554592fda2b2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\owned-fixture.ts",
+          "sha256": "701f8d2824bed3044a068a4c7739668bae9e1e12449e816c8d027cbdc55a8471"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\recovery.test.ts",
+          "sha256": "23496913a7524cd90ddb3798a89d7c273e095e0518066f83a28d93d62470ec8d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\skill-loader.test.ts",
+          "sha256": "eb4047e723cba82e69f8f198ada5ea501095049ae1d4ca2c536eb70822dbb2c1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\tool-fixture.ts",
+          "sha256": "297008fc912019ff7dc9b68d1d1ebaa15c520580d97ef2b69c9878ccf6e66d60"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\tool-host-worker.mjs",
+          "sha256": "bfb0696d525bce4663b1447bd32c88d658fa2ee54b5665fc3308a36803affcd2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\tool-host.test.ts",
+          "sha256": "db6fdda87c5f79675cb5697f17dc4b63f252ac0334e2263117aa34ac8501384a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-check-contract.test.ts",
+          "sha256": "bded27b60c3ba69d9ba7a8a9c92597e230de45ce014115a1b687bcb90dc638e6"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-check-host-worker.mjs",
+          "sha256": "51b56da44025815a300f236e01bbbc088e4852d736a7bc4ba213a2eea2f24810"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-check-originals.test.ts",
+          "sha256": "45e62a1511f4aa165c0f8739700ba671decd0fee03ddcaad62ca7976fa42a330"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-check-template.test.ts",
+          "sha256": "2987e76f8690309d0720f65f6d7bb858f799b6db24eb5abcf4bb7fcf9ab75fa6"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-files.test.ts",
+          "sha256": "e7e62d6a6085a8f53a4ae91ad3db0748ca0686d482ac31feae9de5cb12de3ad5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-resource-recovery.test.ts",
+          "sha256": "9c480733d00da22521affaeedbff8c047eb8c647a45982dbc9bf19d69ed594f5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-resource-worker.mjs",
+          "sha256": "c64d0c97b29c6cffdb1e69e1986f2291ff0d772b1b1bc1e45e1903d50f774390"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-tool-host-worker.mjs",
+          "sha256": "8bd3d25ef794964f1c7465a6b1061de0e329ae3ade301f91d8832716cb51b23d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-tool-journal.test.ts",
+          "sha256": "d3482b3e02306688946f5158ae8478eb610c3ab6bad5ac9ff8e97ea471b010e0"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\agent-workspace-ipc-client.mjs",
+          "sha256": "f5425e43e50ec7366c89bd5f7c36d479d1e46bf79ac161fb5271d9c62acb9997"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-conversation-probe.mjs",
+          "sha256": "a963007c315926ce59304450c8e5cac647c104c1d2c949a232a38df47f5bbc69"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-gateway-probe.mjs",
+          "sha256": "7f7c5f783e9a4d4cacab0ba4edd50ce245bf793e2f570f15d2c0a75336baf09a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-ipc-probe.mjs",
+          "sha256": "fa04aeae81be52b56b1ba6828f62303053ed89cfe802312d109d3ba96a13a14f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-workspace-provider-fixture.mjs",
+          "sha256": "938242ace055e6b4d7948802900deba4a841c15ae627396a46aafaae713949aa"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-workspace-tools.js",
+          "sha256": "f18a81a465a3b6b25c8fdaa3531dfb6b3c6ce955b7df504f29e52de1e52e1594"
+        },
+        {
+          "path": "packages\\skill-adapter\\src\\fixed-method.ts",
+          "sha256": "6af3453039b29c6c83bb1aff02150262e7debbb9ed049c7277c0edf10ef0e32c"
+        },
+        {
+          "path": "packages\\skill-adapter\\src\\index.ts",
+          "sha256": "56f336be8be70f7e2d16577f232406c3dab730ce6d4882045bbbd822592a2778"
+        },
+        {
+          "path": "packages\\skill-adapter\\src\\invocation.ts",
+          "sha256": "9f6a36a1f6b7c44aaf63df0c47bf56fe88b956ad40ba8ce543d8e99adc6dc1a4"
+        },
+        {
+          "path": "packages\\skill-adapter\\src\\package.ts",
+          "sha256": "4c6122dcee020ee2da24cfe69a35b9f5e4d773869d1bbdbd819ba7a36d3c20da"
+        },
+        {
+          "path": "packages\\skill-adapter\\test\\package.test.ts",
+          "sha256": "ac20e23945305bafd7ee707d2cef09651e4aa8f501bd42a68a92c480ecaf6edb"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\database-format.ts",
+          "sha256": "17ddadb032474fd7c2c1174a029fb15da286a9a3c832c951388ed19786b25a36"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\format2-preflight.ts",
+          "sha256": "4569a703de4782535f43b467fcbedf9f04176e076b38e9cee474936eec3d052f"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\index.ts",
+          "sha256": "787acd46d17a12dc22358e972d786ff9cc968db05f788fe7e0c9c8cac5605bbb"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\migration-runner.ts",
+          "sha256": "065649d3b98f5c84ac041c189584c17ddc802e556faa55a72dadc0bd2abab853"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\project-store.ts",
+          "sha256": "a715b6399e3d63784a869f8802c5289e150e7d9c52e469fe424d97f769b22a87"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\registry.ts",
+          "sha256": "18097c94aa5f8e1888e93e35252a952e4912d3d3e2615871a23b6098faaf9916"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\v1.ts",
+          "sha256": "dfeec5692e5ac5a7f3ba4c474edcbc13072c49548676035f33d829017d736998"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\v1\\project-store.ts",
+          "sha256": "a6d9847625638fecb441af8c349f8fa85d90699bd130d2edffd55c127a0c1621"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\agent-run-launch.test.ts",
+          "sha256": "fe2cadeece31f5a00d190b16a7362e36f8720662f2864e0139e0d06e0ac5707e"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\agent-runs.test.ts",
+          "sha256": "1b3c09a31e1b7dde8c39079723507f4b4a6d8e2bfd9d16041da49f9f6d0acac7"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\agent-tool-authority.test.ts",
+          "sha256": "187cc325af3796314464cd11601d62979f7dc9d2735cced20319a90b7ba0eecc"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\current-store.test.ts",
+          "sha256": "fcc377cd14f7079b77c59e9bd876bef9387c417e616f1de6d4a8ac4931b95b2e"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\execution.test.ts",
+          "sha256": "2f8b2d768cbc768f2264fca30fee023e51e679fbd873b8627feb31bd3e0d0bb8"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\flow.test.ts",
+          "sha256": "ed64c14b10ee521fe3f8b3f23fafe939e877d484dc255f00273a6e8c6a04cf2a"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format10-migration.test.ts",
+          "sha256": "4237601651e171c40b0e1b4358eea8b8cdea64a118cac26e01c2db31161a17b7"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format3-migration.test.ts",
+          "sha256": "b3021fa74b33c96a2281c11893cda31d93cf4d5d1933def21ab13165bc1bd712"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format4-migration.test.ts",
+          "sha256": "27f10bfee49fdefea6cf0cb291aaa4c9175b2072b881dbe83e4105c1397b868f"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format5-migration.test.ts",
+          "sha256": "ff2a7c385c88432dfffe22a1bd3a4423b730f1734a2dcba0c7bfa1d3e104ecce"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format6-migration.test.ts",
+          "sha256": "d4af4d08b7b2683734633db9953161c1fb40283e19a2db7ab1ce5c1a32dd83d2"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format7-migration.test.ts",
+          "sha256": "5f3bd164a8ff8297a7dc76f49e519bad765bad2c24396f6c00cf2f28e6d21732"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format8-migration.test.ts",
+          "sha256": "12841ed1fc460dd9b7c8326988654deda6a4d71fe9a31f9a738a2494989bd0aa"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format9-migration.test.ts",
+          "sha256": "fc3201c0ffea55d1a2fb5c3ae7f57a0305f3d0d69b4496dfcc3c81bfa56f2fad"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\governance.test.ts",
+          "sha256": "0fe4568ffb9a1a26660177a800b7b394fcba479f49eca895c42f2aafc89a51f0"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\intent.test.ts",
+          "sha256": "349c6983433a0edfa206bb8a74a045b0c94b43bb2bf429c16546516e8c538323"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\migration.test.ts",
+          "sha256": "d4960b5bb50ee66b3b643d966f1d9c3cbb51304f6c18a67700183934cbdb19bc"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\project-store.contract.test.ts",
+          "sha256": "526b0cae0b201b7504ac8977dc6554f88df6164dbda80225b032c4938b8ae688"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\review.test.ts",
+          "sha256": "9e13bc72b6450b2abf31c098dff992102394057c86fc326c42ac95db904ee680"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\runs.test.ts",
+          "sha256": "bb82752416020f77e0c89c8885cb03afe211f90b2fcf40145d08d6cb7d51cefd"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\skill-invocations.test.ts",
+          "sha256": "974a0f13633cc4473ee931048fcab0b0970959fec8f762658907b7357fc5a858"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\tool-authority.test.ts",
+          "sha256": "14dc73c4e6d7ee2efa714ff040ec5941d37c9f0991118028bea602eede0fe5ca"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\verification.test.ts",
+          "sha256": "56b5ebc39390a8a1c1fc9c7c011c46238f4d4dbc0cb0aa0d8593115ef6531942"
+        },
+        {
+          "path": "packages\\store\\src\\index.ts",
+          "sha256": "35307e538b99ee1c57e97ea2deefb31228e9166fc3465b31649f87f038eb9db7"
+        },
+        {
+          "path": "packages\\store\\src\\v1.ts",
+          "sha256": "ac5ce7d602ec733e6502a78d52fde22ebc7a8e148a4817f5afef5bd214962241"
+        },
+        {
+          "path": "pnpm-lock.yaml",
+          "sha256": "68a4a3cd87d052c20bdc29742f815918878e8b54d2d80d65fa6b915751cbf545"
+        },
+        {
+          "path": "tests\\contracts\\project-store.contract.ts",
+          "sha256": "d714e916aa702577373d18d7d63c5319f700e75e9a7944f120913ec03100cf01"
+        },
+        {
+          "path": "tests\\fixtures\\agent-run-project.ts",
+          "sha256": "667c416a075bba98b8e6068d0b47e81939fb599f84d5b3603ed46e76db440daa"
+        },
+        {
+          "path": "tests\\fixtures\\capacity-client.mjs",
+          "sha256": "c77199452ab04ce06ef4a740a07f55a3f6de073a4ca192abdd266656ebcfb924"
+        },
+        {
+          "path": "tests\\fixtures\\flow-project.ts",
+          "sha256": "72e7c0d8f2482aec8915ecdaeba55b9e4cee4a8cb7ffa73926bb990e78c93ec4"
+        },
+        {
+          "path": "tests\\fixtures\\format2-history.ts",
+          "sha256": "8da3aa8555bedfd08dad1f78ec1e23d3c264d8eeee01f0b230380b5fc6d33556"
+        },
+        {
+          "path": "tests\\fixtures\\governance-client.mjs",
+          "sha256": "7f4df3b2017e7f8cee915516cc144e9173514cd6c5829054fdaeae95f6671265"
+        },
+        {
+          "path": "tests\\fixtures\\intent-project.ts",
+          "sha256": "41c2ca83f2a60cee47701bb0394e9e719346f6d9f4f77599e13d049c71307073"
+        },
+        {
+          "path": "tests\\fixtures\\m0-database.ts",
+          "sha256": "a5098eca313e1a48ab3e854d2cccdda105bdc6f0795c02ab7d9a0d44901da277"
+        },
+        {
+          "path": "tests\\fixtures\\migration-crash.mjs",
+          "sha256": "50f4c3c512d83bebd89e8b35191483b44b0da7f8cb1ad482f63912f6d478145c"
+        },
+        {
+          "path": "tests\\fixtures\\named-method-transcript.ts",
+          "sha256": "991e13757dfbef64c89ff26aac56af37b07fcf8cca72a50519ddfa822addb5e9"
+        },
+        {
+          "path": "tests\\fixtures\\provider-probe.ts",
+          "sha256": "6d939b91bc149e402b3665cf3b7a0f7bed425c57f37ec0124bd89d17dd1fe2b4"
+        },
+        {
+          "path": "tests\\fixtures\\run-client.mjs",
+          "sha256": "5a5955b965728bfa7f10c9bb1c137a9901812158d19b63bc67e9fcd733f0aa00"
+        },
+        {
+          "path": "tests\\fixtures\\run-project.ts",
+          "sha256": "59037b098b66691a531cee0a8da627b7d2ad0847fd3bac3a0d5dcfdbbafcca05"
+        },
+        {
+          "path": "tests\\fixtures\\skill-invocation-project.ts",
+          "sha256": "fdede9b4e2a35b78e008dc1743aea2743012349eee3194bec0dc4d155c77904c"
+        },
+        {
+          "path": "tests\\fixtures\\skill-probe.ts",
+          "sha256": "fac63b608a23c6480cec94ccd94398ed4dd3718125fd4a272e37aa8b506b4737"
+        },
+        {
+          "path": "tests\\fixtures\\verification-client.mjs",
+          "sha256": "be762e61b0fc3f73666d094c8812cbf7a3388ff672430a94a45bbb8ac98dfbcc"
+        },
+        {
+          "path": "tests\\fixtures\\verification-project.ts",
+          "sha256": "1e238788d6f834f0666a85841a2fc056aaa0fa24149c1d01891169255f64c75d"
+        },
+        {
+          "path": "tests\\scenarios\\agent-check-admission-runtime.test.ts",
+          "sha256": "2580685571c1a127e181a90c007a63bb3a4da0c6dc8e51cbb28bd50deed4d846"
+        },
+        {
+          "path": "tests\\scenarios\\agent-run-budget-runtime.test.ts",
+          "sha256": "46ace34df6e28e4e04cfc42ac988a34122be31a16048ea4d3203bf13cc489914"
+        },
+        {
+          "path": "tests\\scenarios\\agent-runtime-operation.test.ts",
+          "sha256": "e615455fdd48fb62dee137d9cfa6b7141028b0f3c3990e480b973a579200a595"
+        },
+        {
+          "path": "tests\\scenarios\\agent-start-custody-runtime.test.ts",
+          "sha256": "02f93991a0344ff2aa0fe60c544f34d887cc33e1b8d65eacd9686918a51502ee"
+        },
+        {
+          "path": "tests\\scenarios\\agent-workspace-ipc-runtime.test.ts",
+          "sha256": "3ef059dc0830ad1e43b179e9c779888d752b314688b64d2b711261f1232c6903"
+        },
+        {
+          "path": "tests\\scenarios\\agent-workspace-tool-runtime.test.ts",
+          "sha256": "14f39b582a6a7485969ea42008b43b1c00cbe54aa09b1c4bccf457f9f8bff376"
+        },
+        {
+          "path": "tests\\scenarios\\cli-query.test.ts",
+          "sha256": "74c5518a49f2adc15951ce7dd93f92867d60a1bddd77a26709c69f72d65cd2bb"
+        },
+        {
+          "path": "tests\\scenarios\\cli.test.ts",
+          "sha256": "7230f5f386a4b07bd8babf0c8f48801b845d35ecf0e111102dba5a7a932deb73"
+        },
+        {
+          "path": "tests\\scenarios\\m0-reliability.test.ts",
+          "sha256": "b6193770dba17130d7b6ae8d041aa8157ce864e9a168c2dacf484b0146ec8066"
+        },
+        {
+          "path": "tests\\scenarios\\m0.test.ts",
+          "sha256": "7fa788c6e3b034ec9099275cc9442e98f05f5066e627114afe9ae5bb3776162f"
+        },
+        {
+          "path": "tests\\scenarios\\named-skill-method-assessment.test.ts",
+          "sha256": "36ef98cb24b939d152515ad82e252d6288fb6fa08ba09b210ff6ebf5c688b5ca"
+        },
+        {
+          "path": "tests\\scenarios\\opencode-check-runtime.test.ts",
+          "sha256": "fb47756fb20d72e42f138d04da778fbd0ffd0755fdbabba93fdffa2d4d41e58f"
+        },
+        {
+          "path": "tests\\scenarios\\opencode-lifetime-runtime.test.ts",
+          "sha256": "4ea3ff8a29e31dd3f28de4c3d0b17eac738b4938b5a13f33a7dd999b243ba8db"
+        },
+        {
+          "path": "tests\\scenarios\\opencode-startup-recovery.test.ts",
+          "sha256": "df6de1328b130acb196009c87df99ba306aa0f2a3c958e9eb0b756ede1198df1"
+        },
+        {
+          "path": "tests\\scenarios\\opencode-workspace-runtime.test.ts",
+          "sha256": "956030274d17780c80ea1a6497b8ab7ad19da61500645ebbd157790f8bf5dddf"
+        },
+        {
+          "path": "tests\\scenarios\\provider-assessment.test.ts",
+          "sha256": "92c1abf8546cb3672c06ea0f7621f9b18a3b8988f58014b54d6a6c54a2913de8"
+        },
+        {
+          "path": "tests\\scenarios\\provider-catalog.test.ts",
+          "sha256": "c61b8c981e9566e4d1c0cdb146bc3adbffa9e46df90e6273d429b45db017e9f0"
+        },
+        {
+          "path": "tests\\scenarios\\run-cli.test.ts",
+          "sha256": "6588676416d3e9aa872f333aa5d645e0034e9323c31738da99440205b6be7cf3"
+        },
+        {
+          "path": "tests\\scenarios\\runtime-probe-cli.test.ts",
+          "sha256": "f3569bbfa815dd1369e761d06b8b897b0e909a439c4b3be27ed3eedd9ca0d0d3"
+        },
+        {
+          "path": "tests\\scenarios\\skill-method-inputs.test.ts",
+          "sha256": "537b1f8542f4bef7450f928fc6534e8de261ba73da0dd1ef2219635d83226c9f"
+        },
+        {
+          "path": "tests\\scenarios\\skill-package-cli.test.ts",
+          "sha256": "d38d75b6aa22e38ee6e8d05c8bb12092ad09c4a3f3bc346dc6e878883ed60092"
+        },
+        {
+          "path": "tests\\scenarios\\skill-provider-assessment.test.ts",
+          "sha256": "bf9eaeb40a02f91876b9a83de04e500603f558f343cb2e600c6824edd6a77ab4"
+        },
+        {
+          "path": "tests\\scenarios\\verification-cli.test.ts",
+          "sha256": "3eac5a18d0f70c3828db7089d15b4a2a40e056222e176bdd1e2bd5489d93d927"
+        },
+        {
+          "path": "tests\\scenarios\\workspace-check-runtime.test.ts",
+          "sha256": "faf49b083f9b78ea3f79e56681fb0671a015786c93e2ceedaa1aa3cbf116ea1a"
+        },
+        {
+          "path": "tests\\scenarios\\workspace-tool-runtime.test.ts",
+          "sha256": "21e423e9ba873f406f80bf60100d447e1fe85d3e3701c15b182884859df2c60c"
+        },
+        {
+          "path": "tsconfig.base.json",
+          "sha256": "0f39576ede2db4ed847e38b133d07a79852dbc4e92b18e85f3aecace3895620f"
+        },
+        {
+          "path": "tsconfig.tests.json",
+          "sha256": "a18aa33c8d0617f540f450e0f41fb549fb93278b173ba8217994e19d28d7e38c"
+        },
+        {
+          "path": "vitest.config.ts",
+          "sha256": "80d9f838f4fde07cf90c0cbd736e9548319ef98adbdd9c07318d8f9433a985ee"
+        }
+      ]
+    },
+    "review": "Independent engineering subagent identified and rechecked structural closure/full-custody callback/wrapper checks/Windows ACL and consistent integrity snapshot; NOT Matt method or Superpowers invocation/S1 proof.",
+    "module_diagnostics": [
+      {
+        "path": ".cimiloop/new-host-s1/d237-ledger-import-red.json",
+        "sha256": "ea47d5ce783278a5e39006fdee82b39a2557d2cbed23c1cae41555eaa91d549a",
+        "boundary": "Missing implementation module, zero assertions; diagnostic only, never behavior or S1 evidence.",
+        "success": false,
+        "total": 0,
+        "passed": 0,
+        "failed": 0,
+        "pending": 0,
+        "duration_seconds": 0,
+        "files": [
+          {
+            "path": "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+            "status": "failed",
+            "tests": 0,
+            "failures": [],
+            "message": "Cannot find module '../src/agent-start-ledger.js' imported from D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-start-ledger.test.ts"
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/new-host-s1/d237-origin-import-red.json",
+        "sha256": "10be80647a723f4e75b40794eab8d551268d60835cd2273cfdcb9aed696a1cf7",
+        "boundary": "Missing implementation module, zero assertions; diagnostic only, never behavior or S1 evidence.",
+        "success": false,
+        "total": 0,
+        "passed": 0,
+        "failed": 0,
+        "pending": 0,
+        "duration_seconds": 0,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-start-custody-runtime.test.ts",
+            "status": "failed",
+            "tests": 0,
+            "failures": [],
+            "message": "Cannot find module '../../packages/runtime-adapter/src/agent-start-origin-windows.js' imported from D:/cc/cimi-ai-native/tests/scenarios/agent-start-custody-runtime.test.ts"
+          }
+        ]
+      }
+    ],
+    "same_source_failure_recheck": {
+      "path": ".cimiloop/new-host-s1/d237-failure-recheck.json",
+      "sha256": "9de97bce9b8f2e7106475b1bc3afc7314b95d8e812c888d8be00a8776fb5dc54",
+      "boundary": "Only failed file(s) rechecked at same frozen source; does not erase original failures or prove general Native stability.",
+      "success": false,
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "pending": 0,
+      "duration_seconds": 130.7418056640625,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "failed",
+          "tests": 4,
+          "failures": [
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key joins Human Workbench cancellation, collection, Unknown observation and receipt replay to the actual original SDK wait",
+              "reasons": [
+                "AssertionError: expected { ok: true, …(4) } to match object { operation: { …(2) } }\n(11 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2040:10)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)\n    at Proxy.methodWrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)\n    at Object.execute (D:/cc/cimi-ai-native/tests/scenarios/agent-runtime-operation.test.ts:157:37)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at AgentWorkspaceToolIpc.respond (D:/cc/cimi-ai-native/packages/runtime-adapter/src/agent-workspace-ipc.ts:155:24)"
+              ]
+            }
+          ],
+          "message": ""
+        }
+      ]
+    }
+  },
+  "evidence_boundaries": {
+    "credentials_read": 0,
+    "external_model_requests": 0,
+    "paid_requests": 0,
+    "real_skill_calls": 0,
+    "formal_agent_default_entry_enabled": false,
+    "production_driver_installed": false,
+    "original_host_first_start_ledger_implemented": true,
+    "model_account_custody_proven": false,
+    "costs_reconciled": false,
+    "s1_accepted": false,
+    "schema_v1": 18,
+    "schema_v2": 224,
+    "schema_count": 242,
+    "database_format": 10,
+    "host_start_ledger_format": 1,
+    "user_database_upgraded": false
+  },
+  "native_history": "D-236 original complete IPC file and same-source recheck failed native_prepared controller readiness with agent_ipc_native_exit_unproven; isolated case passed but did not erase failures/root cause. Legacy IPC own cleanup closes registered peers/hosts then deletes failed root, limiting raw forensics. Historical Unknown resources remain untouched. Current batch final results are separate.",
+  "retention": "No old process ownership/cleanup inferred from new computer absence. Actual original Runtime resources require own disposal proof before fixture cleanup. Unrelated QA5363D6C.tmp and QF192D3E3.tmp retained/uncommitted; no bulk Temp/mapping/Profile cleanup.",
+  "remaining": {
+    "V1_09": "Full production Runtime driver, approved model/plan/server bounds/account/cash or points caps/bills, terminal domain result/cost reconciliation, physical quotas/history and original clock/full recovery; Native startup stability root cause unresolved.",
+    "V1_21": "Real Skill methods and Human/Matt clarification before Plan/Task.",
+    "V1_22": "Real independent complete Matt review, fresh current-source Superpowers verification and actual behavior comparison.",
+    "V1_10": "Formal Human workbench launch/execution continuation through shared Kernel services; original query/cancel/collect/Unknown observation/resource recovery already present.",
+    "V1_11": "Real ordinary Change->ReadyForDelivery with real skills/interruption/full S1 evidence and actionable integration guide."
+  },
+  "full_goal_status": "active",
+  "push": false,
+  "native_failure": {
+    "original": "Two original lifecycle failures before intended Native effect: current launch assessment refused and Context admission unavailable; original 63/65 is retained.",
+    "same_source_recheck": "3/4 pass; shared unique Native/SDK launch/collection now passes. Workbench query during original SDK wait returns Unknown/resources_disposed false, expected Running; completion and ownership do not become proven. This separate failure is retained; root cause unresolved.",
+    "retained_fixture_roots": [
+      "cimiloop-original-runtime-vOwb2x",
+      "cimiloop-original-runtime-ADSxyf",
+      "cimiloop-original-runtime-RF2MtR"
+    ],
+    "retrospective_query": {
+      "path": ".cimiloop/new-host-s1/d237-retained-query.json",
+      "sha256": "196509e83e7b793c9d45b7ea6e16848eed9f3716a31c3eb2f6d8758df5ffb8c1",
+      "boundary": "Original first failed Run queried later with compiled same-source Kernel/full constructed custody: ALLOW, not proof of original failed admission. Second fixture had no Run reservation. No Context/Run launched or paid requests."
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
 import { resolve } from "node:path";
 import type { ChildProcess } from "node:child_process";
 import { isDeepStrictEqual } from "node:util";
@@ -41,6 +42,7 @@ export class LocalAgentWorkspaceToolService {
   private ipc?: Promise<AgentWorkspaceToolIpc>;
   private checks?: Promise<AgentWorkspaceCheckHost>;
   private checkAdmission?: LocalAgentCheckAdmission;
+  private startCustody: LocalAgentStartCustody | undefined;
   private constructor(private readonly local: AgentWorkspaceToolLocalContext, private readonly scope: AgentWorkspaceToolScope,
     private readonly execution: Awaited<ReturnType<typeof openAgentWorkspaceToolHost>>) {}
   static async open(local: AgentWorkspaceToolLocalContext, runId: string): Promise<LocalAgentWorkspaceToolService> {
@@ -59,7 +61,7 @@ export class LocalAgentWorkspaceToolService {
     if (!isDeepStrictEqual(originalScope(this.local, this.scope.run_id), this.scope)) return Promise.reject(Error("Agent workspace original scope changed"));
     const reader = new LocalRunVerifier(this.local.location.repositoryPath, this.local.location.dataDirectory);
     const original = parseGatewayJson(reader.content.readContent(this.scope.host_admission_ref).toString("utf8"), 1048576) as Record<string, unknown>;
-    if (original?.format === "cimiloop/agent-check-host-admission/1.0.0") return Promise.reject(Error("Agent original admitted checks required"));
+    if (["cimiloop/agent-check-host-admission/1.0.0", "cimiloop/agent-start-host-admission/1.0.0"].includes(String(original?.format))) return Promise.reject(Error("Agent original admitted checks required"));
     this.checks = AgentWorkspaceCheckHost.open({ repositoryPath: this.local.location.repositoryPath, dataDirectory: this.local.location.dataDirectory,
       nodeBinary, recipes, scope: this.scope, assess: request => this.local.kernel.assessAgentRunTool(request) });
     return this.checks.then(() => undefined);
@@ -71,10 +73,11 @@ export class LocalAgentWorkspaceToolService {
       item = run && store.getExecutionObject("work_item", run.work_item_ref.id), source = context && store.getVerificationRecord("source_snapshot", context.source_snapshot_ref.id),
       workspace = context && store.getRuntimeRecord("workspace_snapshot", context.workspace_snapshot_ref.id);
     if (!project || !record || record.run_kind !== "agent" || !context || !("runtime_binding" in context) || !task || !item || !source || !workspace) throw Error("Agent original check inputs missing");
-    return admission.forRun(project, { task, work_item: item, source, workspace, runtime_binding: record.runtime_binding, skill_bindings: record.skill_bindings }, record, context, this.scope);
+    return admission.forRun(project, { task, work_item: item, source, workspace, runtime_binding: record.runtime_binding, skill_bindings: record.skill_bindings }, record, context, this.scope, this.startCustody);
   }
-  async installAdmittedChecks(admission: LocalAgentCheckAdmission) {
+  async installAdmittedChecks(admission: LocalAgentCheckAdmission, startCustody?: LocalAgentStartCustody) {
     if (this.checks || this.ipc) return Promise.reject(Error("Agent workspace checks already installed or IPC fixed"));
+    this.startCustody = startCustody;
     const installed = this.admittedChecks(admission); this.checkAdmission = admission;
     this.checks = AgentWorkspaceCheckHost.open({ repositoryPath: this.local.location.repositoryPath, dataDirectory: this.local.location.dataDirectory, nodeBinary: installed.nodeBinary,
       recipes: installed.recipes, scope: this.scope, assess: request => this.local.kernel.assessAgentRunTool(request) }).then(async host => {

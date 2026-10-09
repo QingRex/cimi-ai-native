@@ -1,3 +1,4 @@
+import { initializeWindowsAgentStartLedger } from "../../packages/runtime-adapter/dist/agent-start-origin-windows.js";
 import { mkdtempSync, readFileSync, writeFileSync, readdirSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
@@ -5,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { execFile } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LocalAgentRuntimeOperations, LocalAgentRuntimeStart, LocalAgentWorkspaceToolService, writeInstance } from "../../packages/local-app/src/index.js";
+import { LocalAgentRuntimeOperations, LocalAgentRuntimeStart, LocalAgentStartCustody, LocalAgentWorkspaceToolService, writeInstance } from "../../packages/local-app/src/index.js";
 import { startWorkbench } from "../../apps/workbench/src/server.js";
 import { createInternalId } from "../../packages/protocol/src/v2/index.js";
 import { AgentWorkspaceToolIpc, RuntimeAdapterError, runOpenCodeWorkspaceToolRehearsal, parseAgentWorkspaceToolScope, readAgentWorkspaceIpcOriginals } from "../../packages/runtime-adapter/src/index.js";
@@ -36,8 +37,15 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     const root = mkdtempSync(join(tmpdir(), "cimiloop-original-runtime-")); roots.push(root);
     const f = createAgentRunProject(root, "task_execution", 100, undefined, ["read_files", "edit_files"]); stores.push(f.store);
     f.runPort.agent.checkToolAuthority = (project, input) => contentDigest({ constructed: true, project_id: project.id, request: input.request });
-    f.runPort.agent.checkRunAuthority = (project, input) => contentDigest({ constructed: true, project_id: project.id, input });
-    const prepared = f.prepareAgent(), reserved = f.reserveAgent(prepared), dataDirectory = dirname(f.path);
+    const dataDirectory = dirname(f.path), ledger = await initializeWindowsAgentStartLedger(join(dataDirectory, "original-host"), join(dataDirectory, "original-host-tools"));
+    closers.push(async () => ledger.close());
+    const originalAdmission = f.runPort.agent.admitContext.bind(f.runPort.agent);
+    const custody = new LocalAgentStartCustody(root, dataDirectory, ledger, {
+      admit: originalAdmission, verifyLaunch: (project, input, original) => contentDigest({ constructed: true, project_id: project.id, input, original })
+    });
+    f.runPort.agent.admitContext = custody.admit.bind(custody);
+    f.runPort.agent.checkRunAuthority = custody.checkRunAuthority.bind(custody);
+    const prepared = f.prepareAgent(), reserved = f.reserveAgent(prepared);
     const scope = parseAgentWorkspaceToolScope({ project_id: f.project.id, run_id: reserved.run.id, operation_key: reserved.record.operation_key,
       executor_actor_id: f.agent.id, context_digest: prepared.context.input_digest, ...f.pins, host_admission_ref: prepared.context.host_admission_ref });
     const local = { caller: f.caller, store: f.store, kernel: f.kernel, location: { repositoryKind: "git" as const, repositoryPath: root, dataDirectory,
@@ -46,12 +54,12 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     const control = new LocalAgentRuntimeOperations(local), binary = join(process.env.APPDATA!, "npm/node_modules/opencode-ai/node_modules/opencode-windows-x64/bin/opencode.exe");
     const options = { root: dataDirectory, binary, scope, maxElapsedMs: 60000, path: "src/query.ts", expectedDigest: digest(readFileSync(join(root, "src/query.ts"))).value, replacement: "export const query = () => 7;\n",
       connect: (supervisor: Parameters<typeof service.openIpc>[0], originalSupervisor: Parameters<typeof service.openIpc>[1], peer: Parameters<typeof service.openIpc>[2], nonce: string, signal: AbortSignal) => service.openIpc(supervisor, originalSupervisor, peer, { nonce, signal }) };
-    return { ...f, root, dataDirectory, reserved, options, local, control };
+    return { ...f, custody, root, dataDirectory, reserved, options, local, control };
   }
   it("collects stopped facts without modifying original records and refuses restarting the same completed Run", async () => {
     const f = await setup(), usage = f.task().usage, sequence = f.store.asOfEventSequence();
     let nativeResult: Awaited<ReturnType<typeof runOpenCodeWorkspaceToolRehearsal>> | undefined, starts = 0;
-    const starter = new LocalAgentRuntimeStart(f.local, { prepare: async input => {
+    const starter = new LocalAgentRuntimeStart(f.local, { custody: f.custody, prepare: async input => {
       expect(input.definition.task_id).toBe(f.item.task_id); expect(input.plan.id).toBe(f.task().plan_ref.id);
       expect(input.scope).toEqual(f.options.scope);
       return { launch: async () => { starts++; nativeResult = await runOpenCodeWorkspaceToolRehearsal(f.options); }, dispose() {} };

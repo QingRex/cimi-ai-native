@@ -1,10 +1,11 @@
+import { initializeWindowsAgentStartLedger } from "../../packages/runtime-adapter/dist/agent-start-origin-windows.js";
 import { mkdtempSync, writeFileSync, readFileSync, readdirSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
 import { randomInt } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { contentDigest } from "../../packages/kernel/src/intent.js";
-import { LocalAgentCheckAdmission, LocalAgentWorkspaceToolService, type AgentWorkspaceToolLocalContext } from "../../packages/local-app/src/index.js";
+import { LocalAgentCheckAdmission, LocalAgentStartCustody, LocalAgentWorkspaceToolService, type AgentWorkspaceToolLocalContext } from "../../packages/local-app/src/index.js";
 import { parseAgentWorkspaceToolScope, readWorkspaceToolRunFacts, runOpenCodeWorkspaceToolRehearsal, type WorkspaceCheckTemplate } from "../../packages/runtime-adapter/src/index.js";
 import { digest } from "../../packages/runtime-adapter/src/files.js";
 import { createAgentRunProject } from "../fixtures/agent-run-project.js";
@@ -33,7 +34,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
       rmSync(root, { recursive: true, force: true });
     }
   });
-  async function setup() {
+  async function setup(wrappedStart = false) {
     const root = mkdtempSync(join(tmpdir(), "cimiloop-check-admission-")); roots.push(root);
     const f = createAgentRunProject(root, "task_execution", 100, [{ provider: "cimiloop_workspace", resource_type: "repository_path", locator: "src/**", version: "1.0.0" }], ["read_files", "run_checks"], ["src/**"]); stores.push(f.store);
     const harness = "import test from 'node:test'; import assert from 'node:assert/strict'; import {query} from './query.ts'; test('fresh actual query',()=>assert.ok(query()>1));\n";
@@ -47,8 +48,16 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
       return contentDigest({ constructed: true, original, request: input.request });
     } };
     const options = { repositoryPath: root, dataDirectory, nodeBinary: process.execPath, projectId: f.project.id, templates: [template], custody }, admission = await LocalAgentCheckAdmission.open(options);
-    f.runPort.agent.admitContext = (project, input) => admission.admit(project, input);
-    f.runPort.agent.checkToolAuthority = (project, input) => admission.validateTool(project, input);
+    let startCustody: LocalAgentStartCustody | undefined;
+    if (wrappedStart) {
+      const ledger = await initializeWindowsAgentStartLedger(join(dataDirectory, "start-origin"), join(dataDirectory, "start-origin-tools"));
+      closers.push(async () => ledger.close());
+      startCustody = new LocalAgentStartCustody(root, dataDirectory, ledger, {
+        admit: admission.admit.bind(admission), verifyLaunch: (_project, input, original) => contentDigest({ constructed: true, input, original })
+      });
+    }
+    f.runPort.agent.admitContext = (project, input) => startCustody ? startCustody.admit(project, input) : admission.admit(project, input);
+    f.runPort.agent.checkToolAuthority = (project, input) => admission.validateTool(project, input, startCustody);
     const kernel = new CimiLoopKernel({ store: f.store, caller: f.caller, now: () => flowTime, runVerifier: f.runPort });
     const edit = () => { const text = `export const query = () => ${randomInt(2, 10000)};\n`; writeFileSync(join(root, "src/query.ts"), text); return text; };
     const start = async (prepared = f.prepareAgent(), admitted = admission) => {
@@ -57,12 +66,12 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
       const local: AgentWorkspaceToolLocalContext = { caller: f.caller, store: f.store, kernel, location: { repositoryKind: "git", repositoryPath: root, dataDirectory, databasePath: f.path,
         instancePath: join(dataDirectory, "instance.json"), suggestedName: "Actual checks with constructed full Runtime custody" } };
       const service = await LocalAgentWorkspaceToolService.open(local, reserved.run.id); closers.push(() => service.close());
-      await service.installAdmittedChecks(admitted); return { reserved, scope, prepared, service };
+      await service.installAdmittedChecks(admitted, startCustody); return { reserved, scope, prepared, service };
     };
-    return { ...f, root, dataDirectory, harness, template, options, admission, edit, start, admissionInput };
+    return { ...f, startCustody, root, dataDirectory, harness, template, options, admission, edit, start, admissionInput };
   }
   it("captures an unpredictable actual edit in a new Context and checks it through original SDK without predicted replacement bytes", async () => {
-    const f = await setup(), old = f.prepareAgent(), text = f.edit();
+    const f = await setup(true), old = f.prepareAgent(), text = f.edit();
     f.git("add", "src/query.ts", "src/check.mjs"); f.git("commit", "--quiet", "-m", "Actual edited source for fresh verification");
     const source = f.capture(), command = f.prepareCommand(), result = flowSuccess(f.kernel.execute({ ...command, payload: { ...f.pins, source_snapshot_ref: { object_type: "source_snapshot", id: source.id } } }));
     if (result.command_type !== "PrepareRunContext" || !("runtime_binding" in result.data.context)) throw Error("Fresh Agent Context expected");
@@ -81,7 +90,8 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     const parts = rehearsal.events.filter(event => event.type === "tool_use").map(event => event.part as any); expect(parts.map(part => part.tool)).toEqual(["cimi_check"]);
     const output = JSON.parse(parts[0].state.output); expect(output).toMatchObject({ outcome: "passed", exit_code: 0, check_catalog_digest: catalog.catalog_digest, formal_agent_execution_enabled: false });
     expect(output.call_id).toBe("sdk_" + digest(JSON.stringify([parts[0].sessionID, parts[0].messageID, parts[0].callID])).value);
-    const original = JSON.parse(readFileSync(join(f.dataDirectory, "objects", fresh.context.host_admission_ref.locator), "utf8"));
+    const inner = f.startCustody!.originalAdmission(fresh.context.host_admission_ref);
+    const original = JSON.parse(readFileSync(join(f.dataDirectory, "objects", inner.locator), "utf8"));
     expect(original.recipes).toEqual(catalog.recipes); expect(original.original_host_admission_ref).toBeDefined();
     expect(readWorkspaceToolRunFacts(f.dataDirectory, f.project, started.reserved.record)).toEqual({ invocations: 1, unresolved: 0, has_effect: true });
     expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe(text); expect(rehearsal.mode).toBe("checks");

@@ -3,6 +3,9 @@ export type { ProbeOperationInput, ProbeDriver, NativeProof, OperationRequest } 
 export { runOpenCodeProbe, parseRuntimeProbe } from "./probe.js";
 export { RuntimeAdapterError, digest, bytesAt, directory, assertOrdinaryPath } from "./files.js";
 export { inspectAgentRuntimeOriginalRegistration } from "./agent-runtime-operation.js";
+export { AgentStartLedger } from "./agent-start-ledger.js";
+export type { AgentStartTicket, AgentStartHostIdentity } from "./agent-start-ledger.js";
+export { initializeWindowsAgentStartLedger, openWindowsAgentStartLedger } from "./agent-start-origin-windows.js";
 export { copyToolJson } from "./tool-journal.js";
 export { recoverProbeOperation, parseRuntimeRecovery } from "./recovery.js";
 export { parseExecutionPolicy, requireSupportedExecutionPolicy, defaultExecutionPolicy } from "./execution-policy.js";

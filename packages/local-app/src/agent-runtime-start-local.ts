@@ -6,6 +6,7 @@ import { readOriginalAgentRunInputs, originalAgentWorkspaceScope, type AgentWork
 import { LocalProjectError } from "./errors.js";
 import type { LocalProject } from "./project.js";
 import type { AgentRunLaunchAssessment } from "@cimiloop/kernel";
+import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
 export type AgentRuntimeStartContext = Omit<AgentWorkspaceToolLocalContext, "store" | "kernel"> & {
   store: Pick<LocalProject["store"], "readSnapshot"> & AgentWorkspaceToolLocalContext["store"];
   kernel: Pick<LocalProject["kernel"], "assessAgentRunLaunch">;
@@ -31,6 +32,7 @@ function materials(local: AgentRuntimeStartContext, runId: string) {
 }
 export type AgentRuntimeLaunchInputs = ReturnType<typeof materials>["value"] & { launch_authority: NonNullable<AgentRunLaunchAssessment["authority"]> };
 export interface AgentRuntimeStartPort {
+  custody?: LocalAgentStartCustody;
   // Staging only: no Native start, model/tool effect, charge or credential export.
   // Independent live checkRunAuthority must prove original first-start custody;
   // absent local registration on a new machine is never sufficient admission.
@@ -55,7 +57,11 @@ export class LocalAgentRuntimeStart {
     if (registration.status === "original") return { ok: true, run_id: runId, outcome: "original", completion_proven: false, operation_id: registration.identity.operation_id };
     if (registration.status === "unknown") return unknown(runId);
     try { assertOrdinaryPath(parent); lstatSync(parent); return unknown(runId); }
-    catch (error) { if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") return; return unknown(runId); }
+    catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "ENOENT")) return unknown(runId); }
+    if (!(this.port?.custody instanceof LocalAgentStartCustody)) throw unavailable();
+    const original = readOriginalAgentRunInputs(this.local, runId);
+    try { if (this.port.custody.inspectOriginal(original.project, original.record, original.context, scope).state === "claimed") return unknown(runId); }
+    catch { throw unavailable(); }
   }
   private fresh(runId: string) {
     const scope = this.scope(runId), assessment = this.local.kernel.assessAgentRunLaunch(scope);
@@ -63,6 +69,13 @@ export class LocalAgentRuntimeStart {
     const snapshot = materials(this.local, runId), input = snapshot.value;
     if (snapshot.as_of_event_sequence !== assessment.as_of_event_sequence || assessment.authority.run_record_id !== input.record.id ||
       assessment.authority.context_id !== input.context.id || assessment.authority.work_item_id !== input.work_item.id || assessment.authority.task_id !== input.task.id) throw unavailable();
+    try {
+      if (!this.port?.custody) throw unavailable();
+      const validation = this.port.custody.checkRunAuthority(input.project, { task: input.task, work_item: input.work_item, source: input.source,
+        workspace: input.workspace, runtime_binding: input.scope.runtime_binding, skill_bindings: input.scope.skill_bindings,
+        request: input.scope, record: input.record, context: input.context, runtime: input.runtime, skills: input.skills });
+      if (!isDeepStrictEqual(validation, assessment.authority.host_validation_digest)) throw unavailable();
+    } catch { throw unavailable(); }
     return { ...input, launch_authority: structuredClone(assessment.authority) };
   }
   async start(runId: string): Promise<StartResult> {
@@ -73,11 +86,13 @@ export class LocalAgentRuntimeStart {
   }
   private async execute(runId: string): Promise<StartResult> {
     const prior = this.original(runId); if (prior) return prior;
-    if (!this.port) throw unavailable();
+    if (!this.port || !(this.port.custody instanceof LocalAgentStartCustody)) throw unavailable();
     const input = this.fresh(runId), staged = await this.port.prepare(structuredClone(input));
     try {
       if (!isDeepStrictEqual(this.fresh(runId), input)) throw unavailable();
       const appeared = this.original(runId); if (appeared) return appeared;
+      const global = this.port.custody.claimOriginal(input.project, input.record, input.context, input.scope, input.material_digest);
+      if (!global.created) return unknown(runId);
       const { parent } = this.paths(runId);
       // mkdir is the atomic, never-repaired dispatch claim across processes.
       directory(join(parent, ".."));

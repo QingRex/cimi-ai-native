@@ -20,6 +20,8 @@ export { LocalAgentCheckAdmission } from "./agent-check-admission-local.js";
 export { openLocalAgentRunBudget } from "./agent-run-budget-local.js";
 export { LocalAgentRuntimeOperations } from "./agent-runtime-operations-local.js";
 export { LocalAgentRuntimeStart } from "./agent-runtime-start-local.js";
+export { LocalAgentStartCustody } from "./agent-start-custody-local.js";
+export type { AgentStartFullCustodyPort } from "./agent-start-custody-local.js";
 export type { AgentRuntimeStartContext, AgentRuntimeStartPort, AgentRuntimeLaunchInputs } from "./agent-runtime-start-local.js";
 export { LocalAgentRuntimeControl } from "./agent-runtime-control-local.js";
 export { LocalAgentRuntimeObservation, LocalAgentRunResultVerifier } from "./agent-runtime-observation-local.js";

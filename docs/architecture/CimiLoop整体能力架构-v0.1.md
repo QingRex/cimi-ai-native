@@ -1,5 +1,7 @@
 # CimiLoop 整体能力架构 v0.1
 
+2026-10-09 D-237：独立原宿主首次启动账本已接 Context 与共享启动服务；票据绑定原机器、登录主体和原存储身份，首次 dispatch 前不可逆登记 Run / operation_key。缺原账本、新账本、复制账本、登记损坏或当前准入不可核验时拒绝重开；实际 Windows 权限与跨进程验证见[原宿主启动组合](../implementation/CimiLoop-原宿主首次启动账本与Runtime组合-v0.1.md)。完整生产驱动、模型 / 账户 / 费用、配额 / 恢复及其余四组继续实施，默认正式入口仍关闭。242 Schema / 项目库10保持，独立宿主账本为私有格式1，未升级用户库。
+
 2026-10-09 D-236：Kernel 当前启动检查与共享 Agent 启动资料组装已实现，本地持久 dispatch 先于唯一 launch；异步准备后重核原事实，丢响应只核对原登记。默认入口仍关闭，独立受保护原宿主账本、生产驱动及完整模型 / 账户 / 费用尚未接通；新电脑缺文件不能证明旧 Run 未启动。242 Schema / 格式10保持，完整五组 S1 继续实施，见[原启动授权与共享组合](../implementation/CimiLoop-原Agent启动授权与共享组合-v0.1.md)。
 
 2026-10-09 D-235：原Agent采集已接共享应用服务、工作台和Kernel Unknown RunObservation；固定原请求及rawref，响应丢失重放同一Kernel回执，不重开Run、不结清费用或释放预算。默认启动与工具权限仍关闭，完整正式终态 / 模型账户 / 配额 / 全恢复及五组S1继续实施，242 Schema / 格式10保持，见[原待核对观测](../implementation/CimiLoop-原Agent待核对观测与Kernel接通-v0.1.md).
