@@ -5,7 +5,9 @@ import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { execFile } from "node:child_process";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LocalAgentRuntimeOperations, LocalAgentWorkspaceToolService } from "../../packages/local-app/src/index.js";
+import { LocalAgentRuntimeOperations, LocalAgentWorkspaceToolService, writeInstance } from "../../packages/local-app/src/index.js";
+import { startWorkbench } from "../../apps/workbench/src/server.js";
+import { createInternalId } from "../../packages/protocol/src/v2/index.js";
 import { AgentWorkspaceToolIpc, RuntimeAdapterError, runOpenCodeWorkspaceToolRehearsal, parseAgentWorkspaceToolScope, readAgentWorkspaceIpcOriginals } from "../../packages/runtime-adapter/src/index.js";
 import { digest } from "../../packages/runtime-adapter/src/files.js";
 import { buildWindowsLauncher } from "../../packages/runtime-adapter/src/native.js";
@@ -109,6 +111,50 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     expect(originals.ipc.correlation?.model_account_custody_proven).toBe(false);
     expect(originals.native).toMatchObject({ status: "Unknown", native_effect_reverified: false });
     expect(f.task().usage).toEqual(usage); expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
+    expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
+  });
+  it("joins Human Workbench cancellation to the actual original SDK wait, collection and resource recovery", async () => {
+    const f = await setup();
+    writeInstance(join(f.dataDirectory, "instance.json"), { schema_version: "1.0.0", instance_id: f.project.instance_id,
+      project_id: f.project.id, actor_id: f.actor.id, created_at: f.project.created_at });
+    const server = await startWorkbench({ projectDir: f.root }); closers.push(() => server.close());
+    const login = await fetch(server.origin + "/api/session", { method: "POST", headers: { Origin: server.origin, "Content-Type": "application/json" },
+      body: JSON.stringify({ bootstrap: new URL(server.bootstrapUrl).hash.slice(1) }) });
+    expect(login.status).toBe(200);
+    const cookie = login.headers.get("set-cookie")!.split(";")[0]!, csrf = (await login.json() as { csrf: string }).csrf;
+    const request = async (action: string, body?: unknown) => {
+      const response = await fetch(`${server.origin}/api/agent-runs/${f.reserved.run.id}${action ? "/" + action : ""}`, {
+        headers: { Cookie: cookie, Connection: "close", ...(body === undefined ? {} : { Origin: server.origin, "Content-Type": "application/json", "X-CimiLoop-CSRF": csrf }) },
+        ...(body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }) });
+      const value = await response.json() as Record<string, any>;
+      expect({ status: response.status, body: value }).toMatchObject({ status: 200 }); return value;
+    };
+    const stop = { command_id: createInternalId(), requested_at: new Date().toISOString(), acting_role: "technical_owner", command_type: "CancelRun",
+      target: { object_type: "run", id: f.reserved.run.id }, expected_revision: f.store.getRun(f.reserved.run.id)!.revision, payload: { reason: "Human stops actual original SDK wait" } };
+    const sequence = f.store.asOfEventSequence(); let running = false, controlError: unknown;
+    await expect(runOpenCodeWorkspaceToolRehearsal({ ...f.options, connect: (supervisor, originalSupervisor, originalPeer, nonce, signal) => AgentWorkspaceToolIpc.open({
+      toolsDirectory: f.dataDirectory, scope: f.options.scope, supervisor, originalSupervisor, originalPeer, nonce, signal, cancel: async () => {},
+      execute: async () => {
+        try {
+          expect(await request("")).toMatchObject({ operation: { outcome: "observed", result: { status: "Running", resources_disposed: false } } });
+          running = true;
+          expect(await request("stop", stop)).toMatchObject({ command_result: { command_type: "CancelRun" }, operation: { outcome: "observed", result: { requested: true } } });
+          expect(f.store.getRun(f.reserved.run.id)!.cancel_requested).toBe(true);
+          return new Promise<never>((_done, reject) => { signal.addEventListener("abort", () => reject(new RuntimeAdapterError("original_stop")), { once: true });
+            if (signal.aborted) reject(new RuntimeAdapterError("original_stop")); });
+        } catch (error) { controlError = error; f.control.requestCancellation(f.reserved.run.id); throw error; }
+      }
+    }) })).rejects.toThrow("workspace_rehearsal_cancel_requested");
+    if (controlError) throw controlError;
+    expect(running).toBe(true);
+    expect(await request("")).toMatchObject({ operation: { outcome: "observed", result: { status: "Stopped", cancellation_requested: true, resources_disposed: true, completion_proven: false } } });
+    expect(await request("stop", stop)).toMatchObject({ command_result: { command_type: "CancelRun" }, starts_run: false });
+    const collected = await request("collect", {});
+    expect(collected).toMatchObject({ operation: { outcome: "observed", result: { native: { status: "Unknown" }, domain_observation_produced: false } } });
+    expect(await request("recover", {})).toMatchObject({ operation: { outcome: "observed", result: { outcome: "recovered", resources_disposed: true, completion_proven: false } } });
+    expect(f.store.asOfEventSequence()).toBe(sequence + 1); expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+    expect(f.store.listRuntimeRecords("run_observation", f.change.id)).toHaveLength(0);
+    expect(f.task().usage).toMatchObject({ pending_reconciliation: true, cost_reserved_micros: 100 });
     expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
   });
 });

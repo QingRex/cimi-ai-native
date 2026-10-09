@@ -19,6 +19,8 @@ export type { AgentWorkspaceToolLocalContext } from "./agent-workspace-tools-loc
 export { LocalAgentCheckAdmission } from "./agent-check-admission-local.js";
 export { openLocalAgentRunBudget } from "./agent-run-budget-local.js";
 export { LocalAgentRuntimeOperations } from "./agent-runtime-operations-local.js";
+export { LocalAgentRuntimeControl } from "./agent-runtime-control-local.js";
+export type { AgentRuntimeControlPort, AgentRuntimeControlContext } from "./agent-runtime-control-local.js";
 export type { AgentCheckCustodyPort } from "./agent-check-admission-local.js";
 export type { NamedSkillMethodOriginalsPort, NamedSkillMethodExecutionAdmission } from "./skill-method-assessment-local.js";
 export type { LocalSkillMethodPlan, LocalSkillMethodQualificationPort } from "./skill-methods-local.js";

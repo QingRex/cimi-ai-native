@@ -13,17 +13,26 @@ export type AgentWorkspaceToolLocalContext = Pick<LocalProject, "location"> & {
   store: Pick<LocalProject["store"], "getProject" | "getActor" | "getRun" | "getRuntimeRecord" | "getExecutionObject" | "getVerificationRecord">;
   kernel: Pick<LocalProject["kernel"], "assessAgentRunTool">;
 };
-export const originalAgentWorkspaceScope = (local: AgentWorkspaceToolLocalContext, runId: string): AgentWorkspaceToolScope => {
+// Original metadata reader only; this grants no Agent caller or tool authority.
+export const readOriginalAgentRunInputs = (local: Pick<AgentWorkspaceToolLocalContext, "location"> & {
+  store: Pick<AgentWorkspaceToolLocalContext["store"], "getProject" | "getActor" | "getRun" | "getRuntimeRecord">;
+}, runId: string) => {
   const project = local.store.getProject(), run = local.store.getRun(runId), record = run && local.store.getRuntimeRecord("run_record", run.record_ref.id),
     context = record && local.store.getRuntimeRecord("context_manifest", record.context_ref.id), actor = record && local.store.getActor(record.executor_ref.id);
   if (!project || resolve(project.repository_path) !== resolve(local.location.repositoryPath) || !run || !record || record.run_kind !== "agent" || !context || !("runtime_binding" in context) ||
-    !actor || local.caller.kind !== "agent" || !callerMatchesActor(local.caller, actor) || [run, record, context].some(value => value.project_id !== project.id) ||
+    !actor || actor.actor_type !== "agent" || actor.project_id !== project.id || [run, record, context].some(value => value.project_id !== project.id) ||
     record.run_id !== run.id || record.task_id !== run.task_id || context.task_id !== run.task_id || record.change_id !== run.change_id || context.change_id !== run.change_id ||
     record.work_item_ref.id !== run.work_item_ref.id || context.work_item_ref.id !== run.work_item_ref.id || context.executor_ref.id !== actor.id ||
     !isDeepStrictEqual(record.input_digest, context.input_digest) || !isDeepStrictEqual(record.runtime_binding, context.runtime_binding) ||
     !isDeepStrictEqual(record.skill_bindings, context.skill_bindings) || !isDeepStrictEqual(record.host_admission_ref, context.host_admission_ref)) throw Error("Agent workspace original identity mismatch");
-  return parseAgentWorkspaceToolScope({ project_id: project.id, run_id: run.id, operation_key: record.operation_key, executor_actor_id: actor.id, context_digest: record.input_digest,
+  const scope = parseAgentWorkspaceToolScope({ project_id: project.id, run_id: run.id, operation_key: record.operation_key, executor_actor_id: actor.id, context_digest: record.input_digest,
     runtime_binding: record.runtime_binding, skill_bindings: record.skill_bindings, host_admission_ref: record.host_admission_ref });
+  return { project, run, record, context, actor, scope };
+};
+export const originalAgentWorkspaceScope = (local: AgentWorkspaceToolLocalContext, runId: string): AgentWorkspaceToolScope => {
+  const original = readOriginalAgentRunInputs(local, runId);
+  if (local.caller.kind !== "agent" || !callerMatchesActor(local.caller, original.actor)) throw Error("Agent workspace original identity mismatch");
+  return original.scope;
 };
 const originalScope = originalAgentWorkspaceScope;
 // Trusted Agent composition only. CLI/workbench Human initialization never

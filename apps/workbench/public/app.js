@@ -58,10 +58,11 @@ const api = async (path, body) => {
   }
   return result;
 };
-const mutation = async (type, payload, target, revision, role = "project_owner") => {
+const mutation = async (type, payload, target, revision, role = "project_owner", agentRuntimeControl = false) => {
   if (state.pending) { showNotice("上次动作的结果还未核对，请先按原请求核对。", true, button("按原请求核对", replay)); return; }
   state.pending = { command_id: uuid(), requested_at: new Date().toISOString(), acting_role: role, command_type: type,
-    ...(target ? { target } : {}), ...(revision === undefined ? {} : { expected_revision: revision }), payload };
+    ...(target ? { target } : {}), ...(revision === undefined ? {} : { expected_revision: revision }), payload,
+    ...(agentRuntimeControl ? { agent_runtime_control: true } : {}) };
   try { sessionStorage.setItem(`cimiloop.pending.${state.context.project_id}`, JSON.stringify(state.pending)); }
   catch { state.pending = null; throw new Error("浏览器无法保留待核对请求，动作尚未发送。请允许当前页面的会话存储后重试。"); }
   await replay();
@@ -71,9 +72,11 @@ const replay = async () => {
   state.busy = true; document.querySelectorAll("form button").forEach(item => { item.disabled = true; });
   let committed = false;
   try {
-    await api("/api/commands", state.pending); state.pending = null; committed = true;
+    const { agent_runtime_control, ...command } = state.pending;
+    const path = agent_runtime_control === true ? `/api/agent-runs/${encodeURIComponent(command.target.id)}/stop` : "/api/commands";
+    const result = await api(path, command); state.pending = null; committed = true;
     try { sessionStorage.removeItem(`cimiloop.pending.${state.context.project_id}`); } catch {}
-    showNotice("动作已记录，正在刷新项目事实。");
+    showNotice(result.operation?.outcome === "unknown" ? "停止请求已记录，原运行状态仍待核对。正在刷新项目事实。" : "动作已记录，正在刷新项目事实。");
   }
   catch (error) {
     // An expired session only rejects this transport attempt. It cannot prove
@@ -156,8 +159,21 @@ const taskPanel = (task, data) => {
     facts([["累计尝试", task.usage.attempts_consumed], ["已记录费用", !task.usage.cost_known ? "未知，待核对" : task.usage.cost_consumed_micros === undefined ? "数额尚未记录" : `${(task.usage.cost_consumed_micros / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${task.usage.cost_currency ?? "（币种未记录）"}`],
       ["授权准入", readiness?.ready ? "满足" : (readiness?.reasons ?? []).join("、") || "尚未评估"], ["当前授权", active?.id ?? "暂无"]]), details("任务与授权事实", { task, definition, readiness, work_items: items }));
   const run = data.runs.runs.find(value => value.id === task.active_run_ref?.id);
-  if (run) result.append(node("div", { class: "row" }, paragraph("当前运行"), badge(run.status)), details("运行事实", run),
-    form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision, "executor"), input("reason", "停止理由", { required: true }), submit("请求停止运行")));
+  if (run) {
+    const agent = data.runs.records.find(record => record.id === run.record_ref.id)?.run_kind === "agent";
+    result.append(node("div", { class: "row" }, paragraph("当前运行"), badge(run.status)), details("运行事实", run));
+    if (agent) {
+      const output = node("div"), observe = async action => {
+        const response = await api(`/api/agent-runs/${encodeURIComponent(run.id)}${action ? `/${action}` : ""}`, action ? {} : undefined);
+        output.replaceChildren(paragraph(response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
+      };
+      result.append(node("div", { class: "row" }, button("查询原运行", () => observe("")), button("采集原资料", () => observe("collect")),
+        ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,
+        paragraph("正式 Agent 执行尚未启用。这里控制已有原运行；恢复原资源后仍须核对任务结果与费用。"));
+    }
+    result.append(form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision,
+      agent ? "technical_owner" : "executor", agent), input("reason", "停止理由", { required: true }), submit(agent ? "请求停止原运行" : "请求停止运行")));
+  }
   if (active) result.append(details("保存交接说明", {}));
   if (active) {
     const handoffForm = form(values => mutation("SaveHandoff", { source_snapshot_ref: { object_type: "source_snapshot", id: values.source },

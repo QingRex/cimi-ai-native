@@ -1,0 +1,381 @@
+{
+  "decision": "D-234",
+  "date": "2026-10-09",
+  "base_commit": "65dc65d8222c80f5b3425e6dd72f7479dbd77b66",
+  "scope": "Shared Human application service and Workbench controls for original Agent Runs: query, collect, Kernel CancelRun then original marker retry/resource recovery. Formal launch/execution resumption, result/billing bridge and complete five S1 groups remain incomplete.",
+  "environment": {
+    "platform": "win32",
+    "architecture": "x64",
+    "node": "24.19.0",
+    "pnpm": "12.4.2",
+    "opencode": "1.18.34",
+    "opencode_sha256": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e",
+    "installation": "Exact task-local pnpm12.4.2 and bundled supported Node; frozen-lockfile install completed D-233, no lock/dependency changes in D-234",
+    "git": "main, D-233 committed locally, no reset/clean/force push/push"
+  },
+  "engineering": {
+    "typecheck": {
+      "command": "pnpm check",
+      "exit_code": 0
+    },
+    "compiled_cli_help": {
+      "command": "node apps/cli/dist/bin.js --help",
+      "exit_code": 0
+    },
+    "tdd_red": [
+      {
+        "scope": "New application contract and HTTP routes",
+        "files": 2,
+        "total": 13,
+        "failed": 12,
+        "passed": 1,
+        "reason": "NotImplemented application skeleton and absent routes; existing auth test already passed. Earlier default 10s fixture hook timeout corrected to explicit 60s setup, not a Runtime deadline."
+      },
+      {
+        "scope": "Actual DOM/HTTP response-loss test",
+        "files": 1,
+        "total": 1,
+        "failed": 1,
+        "reason": "Agent controls absent from original page; timed out waiting for query control."
+      }
+    ],
+    "preliminary": [
+      {
+        "path": ".cimiloop/new-host-s1/d234-application-focused.json",
+        "sha256": "048ef66f979975659b4956f856cf3c1750d91dab065806d8cddbcb60413d596b",
+        "scope": "Five application/HTTP/DOM files: incorrect expected HTTP403 instead of existing Kernel conflict409 and one asynchronous DOM teardown rejection; fixed test status+code assertion and await original replay refresh.",
+        "command": "pnpm exec vitest run apps/workbench/test/agent-runtime-control.test.ts apps/workbench/test/agent-runtime-frontend.test.ts apps/workbench/test/frontend.test.ts apps/workbench/test/server.test.ts packages/local-app/test/agent-runtime-control-local.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d234-application-focused.json",
+        "exit_code": 1,
+        "total": 32,
+        "passed": 31,
+        "failed": 1,
+        "pending": 0,
+        "success": false,
+        "unhandled_errors": [
+          {
+            "name": "TypeError",
+            "message": "DOM createElement after window.close during outstanding replay refresh; captured in runner output, not exported by Vitest JSON; test now awaits refresh completion"
+          }
+        ],
+        "files": [
+          {
+            "path": "apps/workbench/test/agent-runtime-control.test.ts",
+            "status": "failed",
+            "tests": 6,
+            "failures": [
+              {
+                "name": "Workbench controls original Agent Runs with Human Kernel authority keeps Kernel role checks and forbids marker retry or resource recovery before native cancellation authority",
+                "reasons": [
+                  "AssertionError: expected 409 to be 403 // Object.is equality\n    at D:/cc/cimi-ai-native/apps/workbench/test/agent-runtime-control.test.ts:62:86\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+                ]
+              }
+            ]
+          },
+          {
+            "path": "apps/workbench/test/agent-runtime-frontend.test.ts",
+            "status": "passed",
+            "tests": 1,
+            "failures": []
+          },
+          {
+            "path": "apps/workbench/test/frontend.test.ts",
+            "status": "passed",
+            "tests": 3,
+            "failures": []
+          },
+          {
+            "path": "apps/workbench/test/server.test.ts",
+            "status": "passed",
+            "tests": 15,
+            "failures": []
+          },
+          {
+            "path": "packages/local-app/test/agent-runtime-control-local.test.ts",
+            "status": "passed",
+            "tests": 7,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/new-host-s1/d234-control-integration.json",
+        "sha256": "b9fe6bf61bbcdfb8a84b1944dd88e75d5135eecd4db44d51da01cfffb2dbc034",
+        "scope": "Three-file intermediate integration: corrected HTTP/DOM passed, newly added actual Windows test failed because fixture used UUIDv4 command_id. Original IPC caught test assertion as denied; no Human cancellation verified in this attempt.",
+        "command": "pnpm exec vitest run tests/scenarios/agent-runtime-operation.test.ts apps/workbench/test/agent-runtime-control.test.ts apps/workbench/test/agent-runtime-frontend.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d234-control-integration.json",
+        "exit_code": 1,
+        "total": 11,
+        "passed": 10,
+        "failed": 1,
+        "pending": 0,
+        "success": false,
+        "unhandled_errors": [],
+        "files": [
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "failed",
+            "tests": 4,
+            "failures": [
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key joins Human Workbench cancellation to the actual original SDK wait, collection and resource recovery",
+                "reasons": [
+                  "Error: promise resolved \"{ …(20) }\" instead of rejecting\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)"
+                ]
+              }
+            ]
+          },
+          {
+            "path": "apps/workbench/test/agent-runtime-control.test.ts",
+            "status": "passed",
+            "tests": 6,
+            "failures": []
+          },
+          {
+            "path": "apps/workbench/test/agent-runtime-frontend.test.ts",
+            "status": "passed",
+            "tests": 1,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/new-host-s1/d234-native-control-diagnostic.json",
+        "sha256": "6d84cdc5557b72f1b06d0facb724caf8d0ef9704dd41ed6bacc2d32509afa858",
+        "scope": "Single selected Native diagnostic with test hook error preserved and original adapter cancellation used only as failure cleanup. Three deselected tests are pending, not passes. Human stop rejected invalid UUIDv4; test now uses protocol createInternalId UUIDv7.",
+        "command": "pnpm exec vitest run tests/scenarios/agent-runtime-operation.test.ts -t 'joins Human Workbench' --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d234-native-control-diagnostic.json",
+        "exit_code": 1,
+        "total": 4,
+        "passed": 0,
+        "failed": 1,
+        "pending": 3,
+        "success": false,
+        "unhandled_errors": [],
+        "files": [
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "failed",
+            "tests": 4,
+            "failures": [
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key joins Human Workbench cancellation to the actual original SDK wait, collection and resource recovery",
+                "reasons": [
+                  "AssertionError: expected { status: 400, body: { …(7) } } to match object { status: 200 }\n(8 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2040:10)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "initial_typecheck_failures": [
+      "Structural source/dist class fixture mismatch resolved by narrowing service context interface",
+      "Native scenario first draft imported root-inaccessible workspace alias and omitted required IPC cancel hook; corrected without changing production Native code"
+    ],
+    "final": {
+      "path": ".cimiloop/new-host-s1/d234-final-regression.json",
+      "sha256": "98c6830e537e4879783a4e2afd855e4fd6ee27776b1bcc0cbb48d9f4eac67869",
+      "scope": "Frozen-source ten-file affected regression: application contract, actual HTTP/DOM and existing Workbench tests, actual Windows/AppContainer original Runtime/SDK operation control, workspace tool/check admission, IPC and Task budget scenarios. Serial; not whole repository or S1 acceptance.",
+      "command": "pnpm exec vitest run tests/scenarios/agent-check-admission-runtime.test.ts tests/scenarios/agent-run-budget-runtime.test.ts tests/scenarios/agent-runtime-operation.test.ts tests/scenarios/agent-workspace-ipc-runtime.test.ts tests/scenarios/agent-workspace-tool-runtime.test.ts apps/workbench/test/agent-runtime-control.test.ts apps/workbench/test/agent-runtime-frontend.test.ts apps/workbench/test/frontend.test.ts apps/workbench/test/server.test.ts packages/local-app/test/agent-runtime-control-local.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d234-final-regression.json",
+      "exit_code": 1,
+      "total": 63,
+      "passed": 61,
+      "failed": 2,
+      "pending": 0,
+      "success": false,
+      "unhandled_errors": [],
+      "files": [
+        {
+          "path": "tests/scenarios/agent-check-admission-runtime.test.ts",
+          "status": "passed",
+          "tests": 6,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+          "status": "passed",
+          "tests": 4,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "failed",
+          "tests": 4,
+          "failures": [
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key refuses a second actual host while the original controller is preparing",
+              "reasons": [
+                "Error: native_control_unavailable\n    at nativeControl (D:/cc/cimi-ai-native/packages/runtime-adapter/src/native.ts:26:11)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at creditHostDependencies (D:/cc/cimi-ai-native/packages/runtime-adapter/src/gateway-credit-owner.ts:5:20)"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+          "status": "passed",
+          "tests": 9,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-tool-runtime.test.ts",
+          "status": "passed",
+          "tests": 8,
+          "failures": []
+        },
+        {
+          "path": "apps/workbench/test/agent-runtime-control.test.ts",
+          "status": "passed",
+          "tests": 6,
+          "failures": []
+        },
+        {
+          "path": "apps/workbench/test/agent-runtime-frontend.test.ts",
+          "status": "passed",
+          "tests": 1,
+          "failures": []
+        },
+        {
+          "path": "apps/workbench/test/frontend.test.ts",
+          "status": "passed",
+          "tests": 3,
+          "failures": []
+        },
+        {
+          "path": "apps/workbench/test/server.test.ts",
+          "status": "failed",
+          "tests": 15,
+          "failures": [
+            {
+              "name": "local Workbench uses native project authority saves native workspace and usage in a handoff, visible to another CLI context",
+              "reasons": [
+                "Error: Test timed out in 15000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2681:43)\n    at Object.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2698:16)"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "packages/local-app/test/agent-runtime-control-local.test.ts",
+          "status": "passed",
+          "tests": 7,
+          "failures": []
+        }
+      ]
+    },
+    "failure_recheck": {
+      "path": ".cimiloop/new-host-s1/d234-failure-recheck.json",
+      "sha256": "454237cc71b08d167735e03f00b64679a9294d76d64ada1452c4886683263497",
+      "scope": "Same frozen source, only the two failed files. Preserve original ten-file Native identity failure and preexisting 15s Workbench handoff timeout; no timeout or Runtime change.",
+      "command": "pnpm exec vitest run tests/scenarios/agent-runtime-operation.test.ts apps/workbench/test/server.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d234-failure-recheck.json",
+      "exit_code": 0,
+      "total": 19,
+      "passed": 19,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "unhandled_errors": [],
+      "files": [
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "passed",
+          "tests": 4,
+          "failures": []
+        },
+        {
+          "path": "apps/workbench/test/server.test.ts",
+          "status": "passed",
+          "tests": 15,
+          "failures": []
+        }
+      ]
+    },
+    "source_freeze": {
+      "manifest_sha256": "4b57d99f865cba7c6aebf97d1081da3015f63c3f440cab48188a46a38eca645a",
+      "source_files": 304,
+      "after_run_changed": 0
+    },
+    "final_sources": [
+      {
+        "path": "apps\\workbench\\public\\app.js",
+        "sha256": "ad96656e34ab12aeb311a5573a0b0f1acb5e596dea0d29c07e5aefc7c7f56394"
+      },
+      {
+        "path": "apps\\workbench\\src\\server.ts",
+        "sha256": "c7bfcf2b00526157611844980e8d6a7f4c0d1764f7881bea2e14b6e705861f0b"
+      },
+      {
+        "path": "apps\\workbench\\test\\agent-runtime-control.test.ts",
+        "sha256": "9ad333dbd0eab21033b94096a9d438217c2d15a451c9aa1ba87651e2f0ce28a8"
+      },
+      {
+        "path": "apps\\workbench\\test\\agent-runtime-frontend.test.ts",
+        "sha256": "3c9b19b6e5dd3fa1a0fd024f915033bd99336da61e18b876337ce39749a8f778"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-runtime-control-local.ts",
+        "sha256": "b61cbef3ee4aa287cfbb9126e8f7368f51c4ccb18e2cd60d8ab5785b727ad689"
+      },
+      {
+        "path": "packages\\local-app\\src\\agent-workspace-tools-local.ts",
+        "sha256": "64440833b4387f75cd1d69ac3e0588cd259b71b2051fcce64133f998e2911bf0"
+      },
+      {
+        "path": "packages\\local-app\\src\\index.ts",
+        "sha256": "1d29a0a3a9e17df14c518590ff3223dd7633d84cf8c5a34e49a370d706f940fd"
+      },
+      {
+        "path": "packages\\local-app\\src\\project.ts",
+        "sha256": "b1b178db5186b78147c4bbd3e1439a0692916d9c69a9c44321680f23a7ee0c7b"
+      },
+      {
+        "path": "packages\\local-app\\test\\agent-runtime-control-local.test.ts",
+        "sha256": "d41c6b69b3b582344f1beacd99b912e3230402ff174427e05fd64a27e53e9236"
+      },
+      {
+        "path": "tests\\scenarios\\agent-runtime-operation.test.ts",
+        "sha256": "245b829459ecff3f47752ac4db3ca2e42c385428a5126b6f802bc3a957c3d246"
+      }
+    ],
+    "independent_code_review": "Read-only review of application/HTTP/browser identity and final Native test found no blockers. No tests were run by reviewer. Ordinary engineering review, not real Matt/V1-22 method evidence."
+  },
+  "implementation": {
+    "entry": "Human fixed Project/instance -> original Store Run/AgentRunRecord/Context reader -> shared LocalAgentRuntimeControl -> existing original Runtime Adapter",
+    "kernel_authority": "Kernel CancelRun is committed before Native marker; rejected commands never touch Native. Retry/recover require persisted cancel_requested.",
+    "original_identity": "No Agent caller adoption, new Run, new operation_key or mutable original evidence. Agent tools still verify trusted original Agent caller.",
+    "response_loss": "Browser retains exact command_id/requested_at/body plus browser-only agent_runtime_control transport marker; same-origin reload reuses dedicated original stop endpoint and strips marker before Kernel.",
+    "async_recheck": "Re-read original scope/record/context after awaited Native action; changed/missing original inputs rejected.",
+    "unknown": "Native error/missing original returns bounded Unknown; cancellation/budget remain in Kernel, no observation or settlement.",
+    "compatibility": "Existing pending commands retain ordinary /api/commands behavior. No protocol/store/lockfile changes or migration."
+  },
+  "native_boundary": {
+    "actual": "Final Windows scenario requests original Running status via real Workbench HTTP during actual SDK IPC wait, then Human Kernel cancellation, original marker/process stop, same-command replay, original collection and resource recovery.",
+    "constructed": "Positive Agent qualification, model replies and paused IPC execute test hook. Application unit Native port explicitly constructed; HTTP/DOM fixtures have no Native original registration.",
+    "not_proven": "File-tool dispatch interruption, real model/account/skill qualification, formal Agent execution/resume, domain result and bill reconciliation. D-233 new-host Native/Bun startup stability remains unresolved despite independent later test success.",
+    "retained_failed_own_fixtures": [
+      "%TEMP%/cimiloop-original-runtime-401dpF",
+      "%TEMP%/cimiloop-original-runtime-nVgEJM",
+      "%TEMP%/cimiloop-original-runtime-L0LKRn"
+    ],
+    "final_native_failure": "native_control_unavailable during original workspace resource owner identity setup, before claim/launcher registration. Failed root has no original Runtime claim/resources; this does not prove historical resources cleared. Root cause unproven.",
+    "retention": "Two failed diagnostics retained after disposal checks; final Native identity setup failure root also retained; no bulk cleanup of own or historical Unknown resources. Old-machine missing-resource searches prove no cleanup."
+  },
+  "evidence_boundaries": {
+    "actual_credentials_read": 0,
+    "external_model_requests": 0,
+    "real_skill_calls": 0,
+    "model_account_custody_proven": false,
+    "formal_agent_execution_enabled": false,
+    "domain_observation_produced": false,
+    "costs_reconciled": false,
+    "s1_accepted": false,
+    "schema_count": 242,
+    "schema_v1": 18,
+    "schema_v2": 224,
+    "database_format": 10,
+    "user_database_upgraded": false
+  },
+  "remaining": {
+    "V1_09": "Formal Runtime composition/admission, complete result/model/account custody, approved model/plan/cash/points and bill reconciliation, physical quotas/history capacity, complete recovery and original reservation clock",
+    "V1_21": "Real skills and pre-Plan/Task Human/Matt clarification",
+    "V1_22": "Real independent complete Matt review, fresh Superpowers source verification and behavior comparison",
+    "V1_10": "Shared original Human control now wired; formal Agent launch/execution resumption and full lifecycle remain",
+    "V1_11": "Real ordinary Change -> ReadyForDelivery, real skills/interruption recovery/S1 acceptance/operator guide"
+  }
+}

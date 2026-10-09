@@ -1,5 +1,7 @@
 # CimiLoop
 
+2026-10-09 D-234：共享应用服务与工作台已接 Human 对原 Agent Run 的查询、采集、Kernel 取消后原停止标记重送及原资源恢复；浏览器丢响应后保留同一 Command ID 和 Agent 控制入口。停止不产生领域结果或结清预算，恢复资源不重启 Run。正式启动 / 接续执行与完整 S1 继续实施，242 Schema / 格式10保持，见[原运行控制](docs/implementation/CimiLoop-工作台原Agent运行控制-v0.1.md)。
+
 2026-10-09 D-233：原操作采集与共享应用服务已接独立 Native 原回执核验，重读文件账本、固定检查 dispatch / 原归属 / 策略 / 二进制及原快照，并与完整 IPC 输入 / 回执对应。丢响应、损坏或未结资料保留 Unknown；历史回执一致不代表当前源码通过、模型账户批准或费用结清。正式 Agent / RunObservation 与完整 S1 仍待接通，242 Schema / 格式10保持，见[实现与边界](docs/implementation/CimiLoop-Native原回执独立核验-v0.1.md)。
 
 2026-10-08 D-219–D-232：原工具 / SDK检查、取消、原Task累计期限和原Run唯一启动保持；D-232新增受原OS身份约束的IPC请求 / 响应字节账本，接入原操作采集并核对实际SDK身份、入参和输出对应关系。响应记录不证明送达、Task成功或费用结清。私有模型回复和受控资格仍构造，没有安装默认正式Agent；完整生产准入 / Native与模型账户保管链 / 套餐费用、物理配额 / 全恢复、真实技能 / 评审、工作台正式执行及S1仍待完成。242 Schema / 格式10保持，见[SDK调用与IPC原字节账本](docs/implementation/CimiLoop-SDK调用与IPC原字节账本-v0.1.md)。

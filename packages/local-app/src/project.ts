@@ -62,7 +62,7 @@ export interface LocalCommandInput {
   payload: unknown;
 }
 
-export const executeLocalCommand = (context: LocalProject, input: unknown): KernelResult => {
+export const executeLocalCommand = (context: Pick<LocalProject, "location" | "instance"> & { kernel: Pick<LocalProject["kernel"], "execute"> }, input: unknown): KernelResult => {
   const keys = new Set(["command_id", "requested_at", "acting_role", "command_type", "target", "expected_revision", "expected_input_digest", "payload"]);
   if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some(key => !keys.has(key))) {
     throw new LocalProjectError("动作包含不支持的字段", "INVALID_COMMAND");
