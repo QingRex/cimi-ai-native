@@ -195,7 +195,7 @@ export class AgentWorkspaceCheckHost {
       if (!existsSync(join(operation, "request.json"))) fail("workspace_check_outcome_unproven");
       const original = AgentWorkspaceCheckHost.record(operation, "request.json");
       if (original.input_digest !== inputDigest || !isDeepStrictEqual(original.input, input)) fail("workspace_check_call_conflict");
-      const receipt = AgentWorkspaceCheckHost.receipt(operation, inputDigest, this.options.scope.run_id); if (!receipt) fail("workspace_check_outcome_unproven");
+      const receipt = AgentWorkspaceCheckHost.receipt(operation, inputDigest, this.options.scope.run_id, this.node.digest.value); if (!receipt) fail("workspace_check_outcome_unproven");
       return { receipt, replay: true, operation };
     }
     const nonce = randomUUID(), root = directory(join(operation, "sandbox")), workspace = directory(join(root, "workspace")); directory(join(root, "state"));
@@ -267,7 +267,7 @@ export class AgentWorkspaceCheckHost {
     const value = copyToolJson(parseGatewayJson(bytesAt(join(operation, name), 262144).toString("utf8"), 262144));
     if (!value || typeof value !== "object" || Array.isArray(value)) fail("workspace_check_record_unproven"); return value as Record<string, unknown>;
   }
-  private static receipt(operation: string, inputDigest: string, runId: string): WorkspaceCheckReceipt | undefined {
+  private static receipt(operation: string, inputDigest: string, runId: string, nodeDigest: string): WorkspaceCheckReceipt | undefined {
     if (!existsSync(join(operation, "receipt.json"))) return;
     const value = AgentWorkspaceCheckHost.record(operation, "receipt.json"), receipt = value.receipt;
     if (!exact(value, ["receipt", "receipt_digest"]) || !exact(receipt, ["format", "input_digest", "run_id", "call_id", "profile", "entry", "outcome", "exit_code", "reason", "stdout_digest", "stderr_digest", "source_digest", "formal_agent_execution_enabled"]) ||
@@ -278,7 +278,21 @@ export class AgentWorkspaceCheckHost {
       digest(JSON.stringify(AgentWorkspaceCheckHost.record(operation, "sources.json").sources)).value !== receipt.source_digest) fail("workspace_check_receipt_unproven");
     const request = AgentWorkspaceCheckHost.record(operation, "request.json"), input = request.input as { call?: WorkspaceCheckCall; recipe?: WorkspaceCheckRecipe },
       native = AgentWorkspaceCheckHost.record(operation, "native-proof.json"), ownership = AgentWorkspaceCheckHost.record(operation, "native-ownership.json"), sources = AgentWorkspaceCheckHost.record(operation, "sources.json");
-    const capture = AgentWorkspaceCheckHost.record(operation, "capture.json");
+    const capture = AgentWorkspaceCheckHost.record(operation, "capture.json"), dispatch = AgentWorkspaceCheckHost.record(operation, "dispatch.json"),
+      policy = AgentWorkspaceCheckHost.record(operation, "execution-policy-proof.json");
+    if (!exact(dispatch, ["input_digest", "nonce"]) || dispatch.input_digest !== inputDigest || dispatch.nonce !== request.nonce ||
+      existsSync(join(operation, "not-started.json")) || typeof request.nonce !== "string" || request.root !== join(operation, "sandbox") ||
+      typeof request.binary !== "string" || typeof request.launcher !== "string" || !sha(request.launcher_digest) ||
+      digest(bytesAt(request.launcher)).value !== request.launcher_digest || digest(bytesAt(request.binary, 512 * 1024 * 1024)).value !== nodeDigest ||
+      !exact(native, ["pid", "profile", "phase", "reason", "exit_code"]) || !Number.isSafeInteger(native.pid) || Number(native.pid) < 1 ||
+      native.profile !== "CimiLoop." + request.nonce.replaceAll("-", "") || !["exited", "timeout", "cancelled", "output_limit"].includes(String(native.reason)) ||
+      ownership.format !== "cimiloop/native-ownership/1.0.0" || ownership.nonce !== request.nonce || ownership.root !== request.root ||
+      ownership.binary !== request.binary || ownership.profile !== native.profile || ownership.mode !== "read" || ownership.job_assignment !== "atomic_on_create" ||
+      !validWorkspaceWorkerIdentity(ownership.native_identity) || ownership.native_identity.image.toLowerCase() !== request.launcher.toLowerCase() ||
+      !validWorkspaceWorkerIdentity(ownership.runtime_identity) || ownership.runtime_identity.pid !== native.pid || ownership.runtime_identity.image.toLowerCase() !== request.binary.toLowerCase() ||
+      policy.pid !== native.pid || policy.operation_key !== basename(operation) || policy.schema_version !== "2.0.0" || policy.scope !== "isolated_provider_probe" ||
+      policy.network_mode !== "deny_all" || policy.enforcement !== "appcontainer_no_network_capabilities" || policy.cost_mode !== "unmetered_probe_only" ||
+      policy.formal_execution_enabled !== false || !Array.isArray(policy.capability_sids) || policy.capability_sids.length) fail("workspace_check_receipt_unproven");
     if (!input || !input.recipe || !input.call || receipt.call_id !== input.call.call_id || receipt.profile !== input.recipe.profile || receipt.entry !== input.recipe.entry ||
       receipt.reason !== native.reason || receipt.exit_code !== native.exit_code || native.phase !== "ended" || ownership.resources_disposed !== true ||
       receipt.outcome !== (native.reason === "exited" && native.exit_code === 0 ? "passed" : "failed") ||
@@ -308,13 +322,18 @@ export class AgentWorkspaceCheckHost {
     if (!exact(recovered, ["outcome", "reason", "resources_disposed"]) || !["recovered", "active", "unknown"].includes(String(recovered.outcome)) ||
       typeof recovered.reason !== "string" || typeof recovered.resources_disposed !== "boolean" ||
       (recovered.outcome === "recovered") !== recovered.resources_disposed) fail("workspace_check_recovery_unproven");
-    const completion = AgentWorkspaceCheckHost.receipt(operation, String(request.input_digest), this.options.scope.run_id);
+    const completion = AgentWorkspaceCheckHost.receipt(operation, String(request.input_digest), this.options.scope.run_id, this.node.digest.value);
     return { outcome: recovered.outcome as "recovered" | "active" | "unknown", reason: recovered.reason, resources_disposed: recovered.resources_disposed,
       check_completion: completion ? "recorded" : "unknown" };
   }
   static readRunFacts(dataDirectory: string, project: Project, record: RunRecord) {
+    return this.readRunOriginals(dataDirectory, project, record).facts;
+  }
+  static readRunOriginals(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
+    record: Pick<RunRecord, "run_id" | "run_kind" | "operation_key" | "executor_ref" | "input_digest"> & Partial<Pick<AgentWorkspaceToolScope, "runtime_binding" | "skill_bindings" | "host_admission_ref">>) {
     const root = assertOrdinaryPath(join(dataDirectory, "workspace-checks", project.id)), facts = { invocations: 0, unresolved: 0, has_effect: false };
-    if (!existsSync(root)) return facts;
+    const calls: { scope: AgentWorkspaceToolScope; call: WorkspaceCheckCall; recipe: WorkspaceCheckRecipe; policy_digest: string; node_digest: string; receipt: WorkspaceCheckReceipt | null }[] = [];
+    if (!existsSync(root)) return { facts, calls };
     const marker = AgentWorkspaceCheckHost.record(root, "policy.json"), policy = marker.policy as Record<string, unknown>;
     if (!exact(marker, ["policy", "policy_digest"]) || !exact(policy, ["format", "project_id", "repository_path_digest", "root_identity", "node_digest", "maximum_calls"]) ||
       policy.format !== "cimiloop/workspace-check-policy/1.0.0" || policy.project_id !== project.id || policy.maximum_calls !== 128 || !sha(policy.node_digest) || !validWorkspaceFileIdentity(policy.root_identity) ||
@@ -337,7 +356,9 @@ export class AgentWorkspaceCheckHost {
         !isDeepStrictEqual(scope.context_digest, record.input_digest) || !isDeepStrictEqual(scope.runtime_binding, record.runtime_binding) ||
         !isDeepStrictEqual(scope.skill_bindings, record.skill_bindings) || !isDeepStrictEqual(scope.host_admission_ref, record.host_admission_ref)) fail("workspace_check_run_mismatch");
       facts.invocations++; if (facts.invocations > 128) fail("workspace_check_record_unproven");
-      if (AgentWorkspaceCheckHost.receipt(operation, request.input_digest, record.run_id)) { facts.has_effect = true; continue; }
+      const receipt = AgentWorkspaceCheckHost.receipt(operation, request.input_digest, record.run_id, String(policy.node_digest)) ?? null;
+      calls.push({ scope, call, recipe, policy_digest: String(input.policy_digest), node_digest: String(policy.node_digest), receipt });
+      if (receipt) { facts.has_effect = true; continue; }
       const dispatched = existsSync(join(operation, "dispatch.json")), notStarted = existsSync(join(operation, "not-started.json"));
       if (dispatched && notStarted) fail("workspace_check_record_unproven");
       if (notStarted) {
@@ -345,7 +366,7 @@ export class AgentWorkspaceCheckHost {
         if (!exact(stopped, ["input_digest", "nonce"]) || stopped.input_digest !== request.input_digest || stopped.nonce !== request.nonce) fail("workspace_check_record_unproven");
       } else { facts.unresolved++; facts.has_effect ||= dispatched; }
     }
-    return facts;
+    return { facts, calls };
   }
   close(): Promise<void> { if (!this.closing) { this.abort.abort(); this.closing = Promise.allSettled([...this.pending]).then(() => undefined); } return this.closing; }
 }

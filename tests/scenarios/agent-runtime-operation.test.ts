@@ -17,7 +17,7 @@ vi.setConfig({ testTimeout: 120000 });
 // responses remain constructed; no formal Agent/model admission is asserted.
 describe.runIf(process.platform === "win32" && process.arch === "x64")("original Runtime lifecycle uses the native Run operation key", () => {
   const roots: string[] = [], stores: { close(): void }[] = [], closers: (() => Promise<void>)[] = [];
-  afterEach(async () => {
+  afterEach(async context => {
     while (closers.length) await closers.pop()!(); while (stores.length) stores.pop()!.close();
     while (roots.length) {
       const root = roots.pop()!; if (!resolve(root).startsWith(resolve(tmpdir()) + sep + "cimiloop-original-runtime-")) throw Error("Unsafe cleanup");
@@ -26,6 +26,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
         const proof = join(operations, name, "agent-sandbox-cleanup.json");
         if (!existsSync(proof) || JSON.parse(readFileSync(proof, "utf8")).resources_disposed !== true) throw Error("Retain original resources: " + proof);
       }
+      if (context.task.result?.state === "fail") { console.error("Retain failed original Runtime fixture: " + root); continue; }
       rmSync(root, { recursive: true, force: true });
     }
   });
@@ -51,6 +52,8 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     expect(readFileSync(ledgerPath)).toEqual(before);
     const collected = await f.control.collect(f.reserved.run.id);
     expect(collected).toMatchObject({ domain_observation_produced: false, formal_agent_execution_enabled: false });
+    expect(collected.native).toMatchObject({ status: "Verified", native_effect_reverified: true, matched_calls: 2,
+      unmatched_native_calls: 0, model_account_custody_proven: false });
     expect(collected.ipc).toMatchObject({ status: "Observed", exchanges: 2, unresolved: 0, correlation: { uncorrelated_exchanges: 0, unmatched_sdk_calls: 0, model_account_custody_proven: false, native_effect_reverified: false } });
     expect(collected.artifacts.filter(artifact => artifact.name.startsWith("ipc/")).length).toBe(9);
     const stdout = collected.artifacts.find(artifact => artifact.name === "stdout.raw")!;
@@ -104,6 +107,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     const originals = await f.control.collect(f.reserved.run.id);
     expect(originals.ipc.exchanges).toBe(1);
     expect(originals.ipc.correlation?.model_account_custody_proven).toBe(false);
+    expect(originals.native).toMatchObject({ status: "Unknown", native_effect_reverified: false });
     expect(f.task().usage).toEqual(usage); expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
     expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
   });

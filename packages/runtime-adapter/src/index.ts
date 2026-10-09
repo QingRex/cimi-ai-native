@@ -36,3 +36,4 @@ export { AgentRunBudget } from "./agent-run-budget.js";
 export type { AgentRunBudgetBasis, AgentRunBudgetPorts } from "./agent-run-budget.js";
 export { queryAgentRuntimeOperation, requestAgentRuntimeCancellation, recoverAgentRuntimeOperation, collectAgentRuntimeOperation } from "./agent-runtime-operation.js";
 export { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } from "./agent-workspace-ipc-journal.js";
+export { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";

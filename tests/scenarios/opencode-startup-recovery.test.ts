@@ -16,7 +16,7 @@ const execute = promisify(execFile);
 // positive Native Agent admission remains the constructed fixture port.
 describe.runIf(process.platform === "win32" && process.arch === "x64")("original OpenCode startup resource recovery", () => {
   const roots: string[] = [], stores: { close(): void }[] = [];
-  afterEach(() => {
+  afterEach(context => {
     while (stores.length) stores.pop()!.close();
     while (roots.length) {
       const root = roots.pop()!; if (!resolve(root).startsWith(resolve(tmpdir()) + sep + "cimiloop-opencode-startup-")) throw Error("Unsafe startup fixture cleanup");
@@ -25,6 +25,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
         const operation = join(operations, name), resources = join(operation, "agent-sandbox-resources.json"), foreign = join(operation, "foreign-mapping.json");
         if (!existsSync(resources) || JSON.parse(readFileSync(resources, "utf8")).resources_disposed !== true || existsSync(foreign) && !existsSync(join(operation, "foreign-released"))) throw Error("Retain original startup resources: " + operation);
       }
+      if (context.task.result?.state === "fail") { console.error("Retain failed original startup fixture: " + root); continue; }
       rmSync(root, { recursive: true, force: true });
     }
   });

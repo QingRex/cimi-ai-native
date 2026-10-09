@@ -73,6 +73,17 @@ describe("workspace journal original ownership and effect barriers", () => {
     expect(() => read({ ...record, input_digest: digest("foreign") })).toThrow("workspace_tool_run_binding_mismatch");
     expect(() => read(record, createInternalId())).toThrow("workspace_tool_scope_mismatch"); expect(() => read(record, f.input.project_id, digest("foreign root").value)).toThrow("workspace_tool_scope_mismatch");
   });
+  it("independently reads the original input and Native receipt without issuing a permit", () => {
+    const f = setup(), journal = f.open(), permit = f.claim(journal), proof = f.proof();
+    journal.prepare(permit, proof); journal.dispatch(permit);
+    const receipt = journal.complete(permit, { ...proof, phase: "completed", after_digest: f.input.expected_digest,
+      after_file_identity: proof.file_identity, text: "original\n" });
+    const record = { run_id: f.input.run_id, operation_key: f.input.operation_key, executor_ref: { id: f.input.executor_actor_id }, input_digest: f.input.context_digest };
+    const read = () => WorkspaceToolJournal.readRunOriginals(f.path, f.input.project_id, f.policy.repository_path_digest, record, digest(JSON.stringify(f.policy)).value);
+    expect(read()).toEqual({ facts: { invocations: 1, unresolved: 0, has_effect: true }, calls: [{ input: f.input, state: "completed", receipt }] });
+    const copy = read(); copy.calls[0]!.receipt!.native.after_digest = "0".repeat(64);
+    expect(read().calls[0]!.receipt).toEqual(receipt); expect(journal.facts().states.completed).toBe(1);
+  });
   it("never calls resource deletion while either original owner is active or unproven", async () => {
     const f = setup(), first = f.open(), input = parseWorkspaceToolInvocation({ ...f.input, tool: "replace_file", replacement_utf8: "replacement\n" }), permit = f.claim(first, input);
     first.prepare(permit, { ...f.proof(input), replacement_identity: { volume_serial: "12345678", file_index: "0000000000000003" } }); first.dispatch(permit); first.stop(permit, true); first.close();

@@ -107,3 +107,12 @@ export function readWorkspaceToolRunFacts(dataDirectory: string, project: Projec
   const files = WorkspaceToolJournal.readRunFacts(paths.journal, project.id, repositoryPathDigest, record, markerAt(paths.marker, project.id, repositoryPathDigest));
   return { invocations: files.invocations + checks.invocations, unresolved: files.unresolved + checks.unresolved, has_effect: files.has_effect || checks.has_effect };
 }
+
+export function readWorkspaceFileRunOriginals(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
+  record: Pick<RunRecord, "run_id" | "operation_key" | "executor_ref" | "input_digest">) {
+  const paths = location(dataDirectory, project.id), marker = existsSync(paths.marker), journal = existsSync(paths.journal);
+  if (!marker && !journal) return { facts: { invocations: 0, unresolved: 0, has_effect: false }, calls: [] };
+  if (!marker || !journal) throw new RuntimeAdapterError("workspace_tool_anchor_missing");
+  const repositoryPathDigest = digest(realpathSync(assertOrdinaryPath(project.repository_path)).toLowerCase()).value;
+  return WorkspaceToolJournal.readRunOriginals(paths.journal, project.id, repositoryPathDigest, record, markerAt(paths.marker, project.id, repositoryPathDigest));
+}

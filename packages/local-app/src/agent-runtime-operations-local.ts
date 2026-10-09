@@ -13,7 +13,10 @@ export class LocalAgentRuntimeOperations {
   }
   requestCancellation(runId: string) { return requestAgentRuntimeCancellation(this.local.location.dataDirectory, this.scope(runId)); }
   async collect(runId: string) {
-    const scope = this.scope(runId), result = await collectAgentRuntimeOperation(this.local.location.dataDirectory, scope);
+    const scope = this.scope(runId), project = this.local.store.getProject(), run = this.local.store.getRun(runId),
+      record = run && this.local.store.getRuntimeRecord("run_record", run.record_ref.id);
+    if (!project || !record || record.run_kind !== "agent") throw Error("Agent original Runtime inputs missing");
+    const result = await collectAgentRuntimeOperation(this.local.location.dataDirectory, scope, { project, record });
     if (!isDeepStrictEqual(this.scope(runId), scope)) throw Error("Agent original Runtime scope changed"); return result;
   }
   async recover(runId: string) {

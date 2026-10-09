@@ -1,0 +1,527 @@
+{
+  "decision": "D-233",
+  "date": "2026-10-09",
+  "base_commit": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "scope": "Independent historical Native file/check original receipt verification joined to original IPC and shared application collection. Production admission, result/billing/domain bridge and all five complete S1 groups remain incomplete.",
+  "environment": {
+    "platform": "win32",
+    "architecture": "x64",
+    "node": "24.19.0",
+    "pnpm": "12.4.2",
+    "opencode": "1.18.34",
+    "opencode_sha256": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e",
+    "installation": "pnpm install --frozen-lockfile using task-local exact pnpm, lockfile unchanged",
+    "initial_defaults_rejected": {
+      "node": "24.14.0",
+      "pnpm": "10.20.0 with incomplete exact-version cache"
+    },
+    "git": "Initially clean main 1e6a9c2, fetched origin/main e789902 and fast-forwarded only; no reset, clean, force push or push"
+  },
+  "engineering": {
+    "typecheck": {
+      "command": "pnpm check",
+      "exit_code": 0
+    },
+    "compiled_cli_help": {
+      "command": "node apps/cli/dist/bin.js --help",
+      "exit_code": 0
+    },
+    "source_freeze": {
+      "manifest_sha256": "efaed7967d1a0555f16fb5989a770b77b0e2f3372903f81d5da4f9b259e707e7",
+      "source_files": 298,
+      "after_run_changed": 0
+    },
+    "final_sources": [
+      {
+        "sha256": "12812dd341e171f27b98a99cc171a28944e9677a0ff3fd993924c2792fd765c6",
+        "path": "packages\\local-app\\src\\agent-runtime-operations-local.ts"
+      },
+      {
+        "sha256": "fc4f66734adea5189527ec7f16e7834d2abda517c8c661d829d8c733c06f5114",
+        "path": "packages\\runtime-adapter\\src\\agent-runtime-operation.ts"
+      },
+      {
+        "sha256": "78566bf5c73f501664ec90b0c8f22c5fedb25897a657b8a8b67811190d42acc3",
+        "path": "packages\\runtime-adapter\\src\\agent-runtime-result.ts"
+      },
+      {
+        "sha256": "eed78a466afe1374ef9bff7691e5f6245e1c8e94a28d86dc93f8224b17b59861",
+        "path": "packages\\runtime-adapter\\src\\index.ts"
+      },
+      {
+        "sha256": "c1cc547b6cdd41cf5d040c98024892a895e0ef8c3b7a2a495b706a85fe53d63d",
+        "path": "packages\\runtime-adapter\\src\\workspace-checks.ts"
+      },
+      {
+        "sha256": "3c013b8395e6792ca5124dcb53c2db552411b8758e4dabb76cf8c84a39c9f989",
+        "path": "packages\\runtime-adapter\\src\\workspace-tool-host.ts"
+      },
+      {
+        "sha256": "bda463fe0884571bdf688f4ca6b05311ea08602b402d16b63d9874d7c4bf7ee0",
+        "path": "packages\\runtime-adapter\\src\\workspace-tool-journal.ts"
+      },
+      {
+        "sha256": "f01eb93ef46d00e7f5a76cac204180e081fe165d0609b305cc42e93a7f1e8eef",
+        "path": "packages\\runtime-adapter\\test\\agent-runtime-result.test.ts"
+      },
+      {
+        "sha256": "45e62a1511f4aa165c0f8739700ba671decd0fee03ddcaad62ca7976fa42a330",
+        "path": "packages\\runtime-adapter\\test\\workspace-check-originals.test.ts"
+      },
+      {
+        "sha256": "d3482b3e02306688946f5158ae8478eb610c3ab6bad5ac9ff8e97ea471b010e0",
+        "path": "packages\\runtime-adapter\\test\\workspace-tool-journal.test.ts"
+      },
+      {
+        "sha256": "b287b033e5963304f701c26a681f838cd128d3bdb231bafa87d0621a260e212c",
+        "path": "tests\\scenarios\\agent-runtime-operation.test.ts"
+      },
+      {
+        "sha256": "fb47756fb20d72e42f138d04da778fbd0ffd0755fdbabba93fdffa2d4d41e58f",
+        "path": "tests\\scenarios\\opencode-check-runtime.test.ts"
+      },
+      {
+        "sha256": "df6de1328b130acb196009c87df99ba306aa0f2a3c958e9eb0b756ede1198df1",
+        "path": "tests\\scenarios\\opencode-startup-recovery.test.ts"
+      }
+    ],
+    "preliminary": [
+      {
+        "path": ".cimiloop/new-host-s1/d232-regression.json",
+        "sha256": "e44bdf47e31a9f7142e351380c10ce5a227e8e1e346ac1dda66d3bb1ff1ea765",
+        "scope": "Preliminary 10-file attempt: test assertions/source changed while dist was already loaded; NOT a clean D-232 baseline or final-source verification. Three new native assertions observed old dist; other actual Native failures retained.",
+        "command": "pnpm exec vitest run tests/scenarios/agent-run-budget-runtime.test.ts tests/scenarios/agent-runtime-operation.test.ts tests/scenarios/agent-workspace-ipc-runtime.test.ts tests/scenarios/opencode-check-runtime.test.ts tests/scenarios/opencode-lifetime-runtime.test.ts tests/scenarios/opencode-startup-recovery.test.ts tests/scenarios/opencode-workspace-runtime.test.ts packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts packages/runtime-adapter/test/agent-workspace-ipc.test.ts packages/runtime-adapter/test/opencode-workspace-tools.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d232-regression.json",
+        "exit_code": 1,
+        "total": 59,
+        "passed": 52,
+        "failed": 7,
+        "pending": 0,
+        "success": false,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+            "status": "passed",
+            "tests": 4,
+            "failures": []
+          },
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "failed",
+            "tests": 3,
+            "failures": [
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+                "reasons": [
+                  "AssertionError: expected undefined to match object { status: 'Verified', …(4) }\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2040:10)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)"
+                ]
+              },
+              {
+                "name": "original Runtime lifecycle uses the native Run operation key queries actual running processes and cancels the original SDK wait without domain completion",
+                "reasons": [
+                  "AssertionError: expected undefined to match object { status: 'Unknown', …(1) }\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2040:10)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)"
+                ]
+              }
+            ]
+          },
+          {
+            "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+            "status": "failed",
+            "tests": 9,
+            "failures": [
+              {
+                "name": "original Agent workspace IPC on Windows stops the original file host on peer exit at native_prepared and retains its original outcome",
+                "reasons": [
+                  "Error: Test timed out in 60000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2681:43)"
+                ]
+              }
+            ]
+          },
+          {
+            "path": "tests/scenarios/opencode-check-runtime.test.ts",
+            "status": "failed",
+            "tests": 3,
+            "failures": [
+              {
+                "name": "OpenCode consumes fixed original checks checks actual edited bytes beyond the old 20-second channel limit and replays the original passed operation once",
+                "reasons": [
+                  "AssertionError: expected undefined to match object { status: 'Verified', …(3) }\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2040:10)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)"
+                ]
+              },
+              {
+                "name": "OpenCode consumes fixed original checks keeps an actual failing Node assertion as failed SDK output",
+                "reasons": [
+                  "Error: workspace_rehearsal_completion_unproven\n    at fail (D:/cc/cimi-ai-native/packages/runtime-adapter/src/opencode-workspace-rehearsal.ts:28:46)\n    at runOpenCodeWorkspaceToolRehearsal (D:/cc/cimi-ai-native/packages/runtime-adapter/src/opencode-workspace-rehearsal.ts:166:82)"
+                ]
+              }
+            ]
+          },
+          {
+            "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+            "status": "passed",
+            "tests": 6,
+            "failures": []
+          },
+          {
+            "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+            "status": "failed",
+            "tests": 8,
+            "failures": [
+              {
+                "name": "original OpenCode startup resource recovery recovers actual original controller/host death at granted without inferring completion",
+                "reasons": [
+                  "AssertionError: expected false to be true // Object.is equality\n    at D:/cc/cimi-ai-native/tests/scenarios/opencode-startup-recovery.test.ts:64:138\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+                ]
+              },
+              {
+                "name": "original OpenCode startup resource recovery refuses foreign DOS mapping, corrupt authority/launcher and missing original registration without erasing another resource",
+                "reasons": [
+                  "Error: expected Error: Command failed: C:\\Users\\hector.he… { …(6) } to match object { code: 73 }\n(5 matching properties omitted from actual)\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)",
+                  "Error: Retain original startup resources: C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-opencode-startup-7JWab2\\.git\\cimiloop\\workspace-tool-rehearsals\\2787b936-8b57-4bd2-909a-0dc12f008e86\n    at D:/cc/cimi-ai-native/tests/scenarios/opencode-startup-recovery.test.ts:26:193\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35"
+                ]
+              }
+            ]
+          },
+          {
+            "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+            "status": "passed",
+            "tests": 4,
+            "failures": []
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+            "status": "passed",
+            "tests": 8,
+            "failures": []
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+            "status": "passed",
+            "tests": 11,
+            "failures": []
+          },
+          {
+            "path": "packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+            "status": "passed",
+            "tests": 3,
+            "failures": []
+          }
+        ]
+      },
+      {
+        "path": ".cimiloop/new-host-s1/native-focused.json",
+        "sha256": "fb27f4096c20b46c9ce8bea8e0fb1abffebf5efb63dbfdbb4ff0586f1cd4c39f",
+        "scope": "Intermediate four-file actual Windows rerun, before final receipt binary binding was frozen; one native controller startup crash remained. NOT final-source proof.",
+        "command": "pnpm exec vitest run tests/scenarios/agent-runtime-operation.test.ts tests/scenarios/agent-workspace-ipc-runtime.test.ts tests/scenarios/opencode-check-runtime.test.ts tests/scenarios/opencode-startup-recovery.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/native-focused.json",
+        "exit_code": 1,
+        "total": 23,
+        "passed": 22,
+        "failed": 1,
+        "pending": 0,
+        "success": false,
+        "files": [
+          {
+            "path": "tests/scenarios/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "tests": 3,
+            "failures": []
+          },
+          {
+            "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+            "status": "passed",
+            "tests": 9,
+            "failures": []
+          },
+          {
+            "path": "tests/scenarios/opencode-check-runtime.test.ts",
+            "status": "failed",
+            "tests": 3,
+            "failures": [
+              {
+                "name": "OpenCode consumes fixed original checks keeps an actual failing Node assertion as failed SDK output",
+                "reasons": [
+                  "Error: native_control_unavailable\n    at nativeControl (D:/cc/cimi-ai-native/packages/runtime-adapter/src/native.ts:26:11)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)",
+                  "Error: Retain original Runtime resources: C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-opencode-check-pwTTLX\\.git\\cimiloop\\workspace-tool-rehearsals\\2327bc5f-9f9c-4b56-b15d-8e57e5a05a3f\\agent-sandbox-cleanup.json\n    at D:/cc/cimi-ai-native/tests/scenarios/opencode-check-runtime.test.ts:27:110\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+                ]
+              }
+            ]
+          },
+          {
+            "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+            "status": "passed",
+            "tests": 8,
+            "failures": []
+          }
+        ]
+      }
+    ],
+    "final": {
+      "path": ".cimiloop/new-host-s1/d233-final-regression.json",
+      "sha256": "91c09bec3536d1192a3be6b070788fb20be13388237c6d71e017fb2c194d4bc5",
+      "scope": "Frozen-source full affected regression: original 10-file D-232 suite, three Native contract files, and standalone check/admission/file-host affected scenarios; serial Windows/AppContainer. Not whole repository or S1 acceptance.",
+      "command": "pnpm exec vitest run tests/scenarios/agent-check-admission-runtime.test.ts tests/scenarios/agent-run-budget-runtime.test.ts tests/scenarios/agent-runtime-operation.test.ts tests/scenarios/agent-workspace-ipc-runtime.test.ts tests/scenarios/agent-workspace-tool-runtime.test.ts tests/scenarios/opencode-check-runtime.test.ts tests/scenarios/opencode-lifetime-runtime.test.ts tests/scenarios/opencode-startup-recovery.test.ts tests/scenarios/opencode-workspace-runtime.test.ts tests/scenarios/workspace-check-runtime.test.ts packages/runtime-adapter/test/agent-runtime-result.test.ts packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts packages/runtime-adapter/test/agent-workspace-ipc.test.ts packages/runtime-adapter/test/opencode-workspace-tools.test.ts packages/runtime-adapter/test/workspace-check-originals.test.ts packages/runtime-adapter/test/workspace-tool-journal.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d233-final-regression.json",
+      "exit_code": 1,
+      "total": 108,
+      "passed": 104,
+      "failed": 4,
+      "pending": 0,
+      "success": false,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-check-admission-runtime.test.ts",
+          "status": "passed",
+          "tests": 6,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+          "status": "passed",
+          "tests": 4,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "failed",
+          "tests": 3,
+          "failures": [
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+              "reasons": [
+                "Error: workspace_rehearsal_completion_unproven\n    at fail (D:/cc/cimi-ai-native/packages/runtime-adapter/src/opencode-workspace-rehearsal.ts:28:46)\n    at runOpenCodeWorkspaceToolRehearsal (D:/cc/cimi-ai-native/packages/runtime-adapter/src/opencode-workspace-rehearsal.ts:166:82)"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+          "status": "passed",
+          "tests": 9,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-tool-runtime.test.ts",
+          "status": "failed",
+          "tests": 8,
+          "failures": [
+            {
+              "name": "actual Agent workspace effects with independent Native authority recovers actual original Agent owners/staging after forced_native_prepared and keeps parent Run facts",
+              "reasons": [
+                "AssertionError: expected 1 to be 73 // Object.is equality\n    at D:/cc/cimi-ai-native/tests/scenarios/agent-workspace-tool-runtime.test.ts:92:21\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/scenarios/opencode-check-runtime.test.ts",
+          "status": "failed",
+          "tests": 3,
+          "failures": [
+            {
+              "name": "OpenCode consumes fixed original checks honors Human revocation after real file edits and before check dispatch",
+              "reasons": [
+                "Error: workspace_native_exit_unproven\n    at ChildProcess.<anonymous> (D:/cc/cimi-ai-native/packages/runtime-adapter/src/workspace-files.ts:95:66)\n    at Object.onceWrapper (node:events:631:26)"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+          "status": "failed",
+          "tests": 6,
+          "failures": [
+            {
+              "name": "original Runtime lifetime covers preparation and nested checks applies the original deadline to preparation without renewing it at Runtime resume",
+              "reasons": [
+                "Error: expected [Function] to throw error including 'workspace_rehearsal_deadline' but got 'native_control_unavailable'\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)",
+                "Error: Retain original Runtime resources: C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-lifetime-GYAgxM\\.git\\cimiloop\\workspace-tool-rehearsals\\0ce7e94e-a7c6-4728-962b-c51339a1d448\\agent-sandbox-cleanup.json\n    at D:/cc/cimi-ai-native/tests/scenarios/opencode-lifetime-runtime.test.ts:28:110\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+          "status": "passed",
+          "tests": 8,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/opencode-workspace-runtime.test.ts",
+          "status": "passed",
+          "tests": 4,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/workspace-check-runtime.test.ts",
+          "status": "passed",
+          "tests": 10,
+          "failures": []
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-runtime-result.test.ts",
+          "status": "passed",
+          "tests": 5,
+          "failures": []
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+          "status": "passed",
+          "tests": 8,
+          "failures": []
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+          "status": "passed",
+          "tests": 11,
+          "failures": []
+        },
+        {
+          "path": "packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+          "status": "passed",
+          "tests": 3,
+          "failures": []
+        },
+        {
+          "path": "packages/runtime-adapter/test/workspace-check-originals.test.ts",
+          "status": "passed",
+          "tests": 10,
+          "failures": []
+        },
+        {
+          "path": "packages/runtime-adapter/test/workspace-tool-journal.test.ts",
+          "status": "passed",
+          "tests": 10,
+          "failures": []
+        }
+      ]
+    },
+    "failure_recheck": {
+      "path": ".cimiloop/new-host-s1/native-failure-recheck.json",
+      "sha256": "f0f2f4b913eb78b6b6e7504b6b1658fbdca97b02bc125c76d89ebc36d014af85",
+      "scope": "Same frozen sources, only the four failed actual Windows files; original full-run failures are retained and not relabeled as passes.",
+      "command": "pnpm exec vitest run tests/scenarios/agent-runtime-operation.test.ts tests/scenarios/agent-workspace-tool-runtime.test.ts tests/scenarios/opencode-check-runtime.test.ts tests/scenarios/opencode-lifetime-runtime.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/native-failure-recheck.json",
+      "exit_code": 1,
+      "total": 20,
+      "passed": 18,
+      "failed": 2,
+      "pending": 0,
+      "success": false,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "failed",
+          "tests": 3,
+          "failures": [
+            {
+              "name": "original Runtime lifecycle uses the native Run operation key collects stopped facts without modifying original records and refuses restarting the same completed Run",
+              "reasons": [
+                "Error: native_control_unavailable\n    at nativeControl (D:/cc/cimi-ai-native/packages/runtime-adapter/src/native.ts:26:11)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)",
+                "Error: Retain original resources: C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-original-runtime-quZZfJ\\.git\\cimiloop\\workspace-tool-rehearsals\\3b30b902-d8a4-46a3-b774-c6326438accf\\agent-sandbox-cleanup.json\n    at D:/cc/cimi-ai-native/tests/scenarios/agent-runtime-operation.test.ts:27:110\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-tool-runtime.test.ts",
+          "status": "passed",
+          "tests": 8,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/opencode-check-runtime.test.ts",
+          "status": "failed",
+          "tests": 3,
+          "failures": [
+            {
+              "name": "OpenCode consumes fixed original checks checks actual edited bytes beyond the old 20-second channel limit and replays the original passed operation once",
+              "reasons": [
+                "Error: native_control_unavailable\n    at nativeControl (D:/cc/cimi-ai-native/packages/runtime-adapter/src/native.ts:26:11)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/scenarios/opencode-lifetime-runtime.test.ts",
+          "status": "passed",
+          "tests": 6,
+          "failures": []
+        }
+      ]
+    }
+  },
+  "implementation": {
+    "pipeline": "Store original Project/AgentRunRecord -> original operation collection -> immutable original catalog -> independent file SQLite/check originals -> exact full IPC input/receipt join -> second original snapshot consistency read",
+    "read_only": true,
+    "creates_run": false,
+    "dispatches_tool": false,
+    "reconciles_domain": false,
+    "checks": [
+      "original scope/runtime/skill/admission identities",
+      "original fixed recipe/catalog/policy/Node bytes",
+      "original dispatch input digest and nonce, no contradictory not-started",
+      "Native ownership nonce/PID/image/profile/Job and deny-all policy",
+      "original launcher and Node binary byte digests",
+      "original input snapshots and stdout/stderr/capture bytes",
+      "exact replay without effect, lost reply and unresolved originals remain Unknown"
+    ],
+    "independent_code_review": "Read-only reviewer found missing dispatch barrier and binary byte verification; both fixed with failing-then-passing contract tests; final review no blockers. This is not real Matt method or V1-22 evidence."
+  },
+  "native_failures": {
+    "startup_exit": "Intermediate retained original native_exit.code=3221225477 (0xC0000005), before original launcher/resource registration; empty stdout/stderr, root cause unproven, no matching Windows Application 1000/1026 event in the inspected hour.",
+    "retained_unknown_own_fixtures": [
+      "%TEMP%/cimiloop-opencode-check-pwTTLX/.git/cimiloop/workspace-tool-rehearsals/2327bc5f-9f9c-4b56-b15d-8e57e5a05a3f",
+      "%TEMP%/cimiloop-opencode-startup-7JWab2/.git/cimiloop/workspace-tool-rehearsals/2787b936-8b57-4bd2-909a-0dc12f008e86",
+      "%TEMP%/cimiloop-lifetime-GYAgxM/.git/cimiloop/workspace-tool-rehearsals/0ce7e94e-a7c6-4728-962b-c51339a1d448",
+      "%TEMP%/cimiloop-original-runtime-quZZfJ/.git/cimiloop/workspace-tool-rehearsals/3b30b902-d8a4-46a3-b774-c6326438accf"
+    ],
+    "read_only_broker_diagnostic": {
+      "path": ".cimiloop/new-host-s1/native-inspect-diagnostic.json",
+      "sha256": "04f61dd7039fcb965e1121dd02e64e4ad674468ae583afa35bcc49af027dccb9",
+      "purpose": "Read-only original broker root inspection on one retained failed fixture. No Run launch, file write/replace, recovery or resource cleanup.",
+      "binary_sha256": "7c63976aed09275d521bb9ebe8fefed3bbf9be666b0ffead0a27f7f1001ce41f",
+      "total": 30,
+      "passed": 30,
+      "failures": []
+    },
+    "new_host_stability": "Native controller access violations and a Bun startup segmentation fault observed. Crash stack contains CcLHShield64.dll; vendor and causal attribution unproven. No security configuration changes. Read-only inspect repeats do not prove full Runtime startup stability.",
+    "policy": "Retain missing original resource/disposal proof. Repeated tests create their own independent fixtures; they do not restart the failed original Run or prove its disposal. No bulk cleanup; old-machine Unknown unchanged.",
+    "original_sdk_crash": {
+      "stdout_sha256": "f78ce4185c67a599c4cdff49371b1c8c524c90da5ba2a79d09ca3ecbcdee0b82",
+      "stderr_sha256": "4003feab0c6527ce12f4ed18d3ee5697341cc814d0e88e361b38bb5b383aa0cf",
+      "original_cleanup": {
+        "format": "cimiloop/agent-workspace-sandbox/1.0.0",
+        "phase": "ended",
+        "nonce": "ef85f740-d36b-487e-b49a-d4c3c6143245",
+        "reason": "exited",
+        "exit_code": 3,
+        "runtime_stopped_uptime_ms": 89303437,
+        "resources_disposed": true,
+        "cleanup_errors": [],
+        "formal_agent_execution_enabled": false
+      },
+      "diagnostic": "Bun 1.3.14 on the fixed OpenCode binary crashed at startup with a segmentation fault; CcLHShield64.dll appears in its stack. Original native receipt reports exit 3 and resources_disposed true; this is not domain completion."
+    }
+  },
+  "evidence_boundaries": {
+    "actual": "Windows x64/AppContainer processes, fixed OpenCode SDK calls, filesystem effects, fixed Node checks, IPC/cancel/recovery tests",
+    "constructed": "Model replies, positive admission/qualification fixtures and standalone Native contract records",
+    "actual_credentials_read": 0,
+    "external_model_requests": 0,
+    "real_skill_calls": 0,
+    "model_account_custody_proven": false,
+    "formal_agent_execution_enabled": false,
+    "domain_observation_produced": false,
+    "costs_reconciled": false,
+    "s1_accepted": false,
+    "schema_count": 242,
+    "schema_v1": 18,
+    "schema_v2": 224,
+    "database_format": 10,
+    "user_database_upgraded": false
+  },
+  "remaining": {
+    "V1_09": "Formal Runtime composition/admission, complete result/model/account custody, approved model/plan/cash/points and bill reconciliation, physical quotas/history capacity, complete recovery and original reservation clock",
+    "V1_21": "Real skills and pre-Plan/Task Human/Matt clarification",
+    "V1_22": "Real independent complete Matt review, fresh Superpowers source verification and behavior comparison",
+    "V1_10": "Workbench formal execute/query/stop/original resume through shared Kernel application services",
+    "V1_11": "Real ordinary Change -> ReadyForDelivery, skills/interruption recovery/S1 acceptance/operator guide"
+  }
+}

@@ -63,6 +63,12 @@ export class WorkspaceToolJournal {
   private readonly readOnly: boolean;
   static readRunFacts(path: string, projectId: string, repositoryPathDigest: string,
     record: { run_id: string; operation_key: string; executor_ref: { id: string }; input_digest: { value: string } }, policyDigest: string) {
+    return this.readRunOriginals(path, projectId, repositoryPathDigest, record, policyDigest).facts;
+  }
+  // Read-only snapshot of the independently validated original Native records.
+  // Never acquire permits, reconcile owners or recreate a missing journal.
+  static readRunOriginals(path: string, projectId: string, repositoryPathDigest: string,
+    record: { run_id: string; operation_key: string; executor_ref: { id: string }; input_digest: { value: string } }, policyDigest: string) {
     const db = new DatabaseSync(assertOrdinaryPath(path), { readOnly: true, timeout: 5000 }); let policy: WorkspaceToolPolicy;
     try { const row = db.prepare("SELECT * FROM workspace_tool_policy").get(); if (!row || typeof row.policy !== "string" || digest(row.policy).value !== policyDigest) fail("workspace_tool_policy_conflict");
       policy = policyFrom(parseGatewayJson(row.policy)); if (policy.project_id !== projectId || policy.repository_path_digest !== repositoryPathDigest) fail("workspace_tool_scope_mismatch");
@@ -73,8 +79,10 @@ export class WorkspaceToolJournal {
         const input = parseWorkspaceToolInvocation(parseGatewayJson(String(row.input)));
         if (input.operation_key !== record.operation_key || input.executor_actor_id !== record.executor_ref.id || input.context_digest.value !== record.input_digest.value) fail("workspace_tool_run_binding_mismatch");
       }
-      const states = { reserved: 0, executing: 0, completed: 0, unknown: 0, not_started: 0 }, rows = journal.db.prepare("SELECT state FROM workspace_tool_calls WHERE run_id=?").all(record.run_id);
-      for (const row of rows) states[row.state as State]++; return { invocations: rows.length, unresolved: states.reserved + states.executing + states.unknown, has_effect: states.executing + states.completed + states.unknown > 0 };
+      const states = { reserved: 0, executing: 0, completed: 0, unknown: 0, not_started: 0 }, rows = journal.db.prepare("SELECT * FROM workspace_tool_calls WHERE run_id=? ORDER BY call_id").all(record.run_id);
+      const calls = rows.map(row => { const input = parseWorkspaceToolInvocation(parseGatewayJson(String(row.input))); states[row.state as State]++;
+        return { input, state: row.state as State, receipt: row.state === "completed" ? journal.receipt(row, input) : null }; });
+      return { facts: { invocations: rows.length, unresolved: states.reserved + states.executing + states.unknown, has_effect: states.executing + states.completed + states.unknown > 0 }, calls };
     }); } finally { journal.close(); }
   }
   constructor(path: string, policy: WorkspaceToolPolicy, private readonly owners: WorkspaceToolOwnerPort, token?: symbol) {

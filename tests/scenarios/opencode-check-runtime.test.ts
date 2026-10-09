@@ -16,7 +16,7 @@ vi.setConfig({ testTimeout: 180000 });
 // explicitly constructed; this is not real model/Skill or production admission.
 describe.runIf(process.platform === "win32" && process.arch === "x64")("OpenCode consumes fixed original checks", () => {
   const roots: string[] = [], closers: (() => Promise<void>)[] = [], stores: { close(): void }[] = [];
-  afterEach(async () => {
+  afterEach(async context => {
     while (closers.length) await closers.pop()!(); while (stores.length) stores.pop()!.close();
     while (roots.length) {
       const root = roots.pop()!;
@@ -32,6 +32,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("OpenCode
         const proof = join(checks, project, name, "native-ownership.json");
         if (existsSync(proof) && JSON.parse(readFileSync(proof, "utf8")).resources_disposed !== true) throw Error("Retain original checker resources: " + proof);
       }
+      if (context.task.result?.state === "fail") { console.error("Retain failed original check fixture: " + root); continue; }
       rmSync(root, { recursive: true, force: true });
     }
   });
@@ -79,8 +80,10 @@ test('actual edited query', async () => { await new Promise(done=>setTimeout(don
     expect(result.events.find(event => event.event === "cimiloop.workspace_boundary")).toMatchObject({ catalog_write_denied: true });
     expect(result.channel.attempts).toEqual(Array.from({ length: 3 }, () => ({ outcome: "completed", reason: null })));
     expect(result.check_catalog_digest).toBe(f.options.checkCatalog.catalog_digest); expect(result.synthetic_model_responses).toBe(true);
-    const collected = await collectAgentRuntimeOperation(f.dataDirectory, f.scope);
+    if (f.reserved.record.run_kind !== "agent") throw Error("Agent record expected");
+    const collected = await collectAgentRuntimeOperation(f.dataDirectory, f.scope, { project: f.project, record: f.reserved.record });
     expect(collected.ipc).toMatchObject({ status: "Observed", exchanges: 3, unresolved: 0, correlation: { uncorrelated_exchanges: 0, unmatched_sdk_calls: 0, model_account_custody_proven: false } });
+    expect(collected.native).toMatchObject({ status: "Verified", matched_calls: 3, native_effect_reverified: true, model_account_custody_proven: false });
     expect(readWorkspaceToolRunFacts(f.dataDirectory, f.project, f.reserved.record)).toEqual({ invocations: 3, unresolved: 0, has_effect: true });
     const host = await AgentWorkspaceCheckHost.open({ repositoryPath: f.root, dataDirectory: f.dataDirectory, nodeBinary: process.execPath, scope: f.scope, recipes: [f.recipe], assess: f.assess });
     try {
@@ -89,6 +92,13 @@ test('actual edited query', async () => { await new Promise(done=>setTimeout(don
       const original = JSON.parse(readFileSync(join(replay.operation, "request.json"), "utf8")); expect(original.input.recipe).toEqual(f.recipe);
       expect(readFileSync(join(replay.operation, "stdout.raw"), "utf8")).toContain("ok 1 - actual edited query");
       expect(JSON.parse(readFileSync(join(replay.operation, "native-ownership.json"), "utf8"))).toMatchObject({ resources_disposed: true });
+      const ownershipPath = join(replay.operation, "native-ownership.json"), ownershipBytes = readFileSync(ownershipPath);
+      try {
+        writeFileSync(ownershipPath, JSON.stringify({ ...JSON.parse(ownershipBytes.toString("utf8")), nonce: "00000000-0000-4000-8000-000000000000" }));
+        const changed = await collectAgentRuntimeOperation(f.dataDirectory, f.scope, { project: f.project, record: f.reserved.record });
+        expect(changed.native).toMatchObject({ status: "Unknown", native_effect_reverified: false });
+        expect(changed.ipc.correlation_reason).toBe("agent_sdk_originals_correlated");
+      } finally { writeFileSync(ownershipPath, ownershipBytes); }
     } finally { await host.close(); }
     expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved"); expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.task().usage).toEqual(usage);
   });

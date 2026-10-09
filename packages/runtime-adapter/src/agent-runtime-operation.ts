@@ -12,6 +12,8 @@ import { buildWindowsLauncher, nativeControl } from "./native.js";
 import { recoverOpenCodeWorkspaceToolRehearsal, readOriginalAgentWorkspaceOperation } from "./agent-workspace-sandbox-recovery.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } from "./agent-workspace-ipc-journal.js";
+import type { Project, AgentRunRecord } from "@cimiloop/protocol/v2";
+import { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
 
 interface Claim { format: "cimiloop/agent-runtime-operation-claim/1.0.0"; scope: AgentWorkspaceToolScope; input_digest: string; operation_id: string; owner: CreditProcessIdentity; synthetic_model_responses: true; formal_agent_execution_enabled: false }
 const exact = (raw: unknown, keys: string[]): raw is Record<string, unknown> => !!raw && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw).sort().join(",") === [...keys].sort().join(",");
@@ -114,9 +116,11 @@ export async function recoverAgentRuntimeOperation(root: string, rawScope: unkno
   if (!existsSync(join(original.operation, "original-config.json"))) return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };
   return recoverOpenCodeWorkspaceToolRehearsal({ root, operation: original.operation, scope: original.claim.scope });
 }
-export async function collectAgentRuntimeOperation(root: string, rawScope: unknown) {
+export async function collectAgentRuntimeOperation(root: string, rawScope: unknown, nativeInputs?: { project: Project; record: AgentRunRecord }) {
   const original = load(root, rawScope), status = await queryAgentRuntimeOperation(root, rawScope), artifacts = [], missing = [];
   let stdout: Buffer | undefined;
+  let native: ReturnType<typeof readAgentRuntimeNativeResult> = { status: "Unknown", reason: "agent_native_original_inputs_missing", matched_calls: 0,
+    unmatched_native_calls: 0, unresolved_native_calls: 0, native_effect_reverified: false, model_account_custody_proven: false, formal_agent_execution_enabled: false };
   const files = ["original-config.json", "original-launcher.json", "agent-sandbox-resources.json", "agent-sandbox-original.json", "agent-sandbox-cleanup.json", "stdout.raw", "stderr.raw", "result.json", "incomplete.json"];
   for (const name of files) {
     const path = join(original.operation, name);
@@ -146,9 +150,22 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
     if (stdout) { try { correlation = correlateAgentWorkspaceSdkOriginals(originals, stdout); } catch { /* Retain bounded raw bytes even if the interrupted SDK stream is incomplete. */ } }
     ipc = { status: originals.status, reason: originals.reason, exchanges: originals.exchanges.length, unresolved: originals.unresolved, correlation,
       correlation_reason: correlation && correlation.links.length > 0 && !correlation.uncorrelated_exchanges && !correlation.unmatched_sdk_calls ? "agent_sdk_originals_correlated" : "agent_sdk_original_correlation_unproven" };
+    if (nativeInputs) {
+      let catalog: unknown;
+      const input = read(join(original.location.run, "input.json")) as Record<string, unknown>;
+      try {
+        if (input.check_catalog_digest !== null && input.check_catalog_digest !== undefined) {
+          const bytes = bytesAt(join(original.operation, "sandbox", "config", "check-catalog.json"), 262144);
+          catalog = copyToolJson(parseGatewayJson(bytes.toString("utf8"), 262144));
+          if (!catalog || (catalog as Record<string, unknown>).catalog_digest !== input.check_catalog_digest) throw Error("Original check catalog changed");
+          artifacts.push({ name: "check-catalog.json", reference: rawReference(root, bytes, "agent_runtime_original_bytes", "check-catalog.json") });
+        }
+        native = readAgentRuntimeNativeResult(root, nativeInputs.project, nativeInputs.record, original.claim.scope, originals, catalog);
+      } catch { native.reason = "agent_native_check_catalog_unproven"; }
+    }
   }
   const fresh = load(root, rawScope);
   if (!isDeepStrictEqual(fresh.claim, original.claim)) fail("agent_runtime_claim_changed");
-  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc,
+  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native,
     domain_observation_produced: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: true as const };
 }
