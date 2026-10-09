@@ -1,4 +1,4 @@
-import { originalTaskResultContract, runOpenCodeWorkspaceRuntime, withinAgentRuntimeTaskBudget, AgentRuntimeModelHost, type AgentRuntimeModelPort } from "@cimiloop/runtime-adapter";
+import { originalTaskResultContract, runOpenCodeWorkspaceRuntime, withinAgentRuntimeTaskBudget, AgentRuntimeModelHost, type AgentRuntimeModelPort, createDedicatedAgentRuntimeModel, type DedicatedAgentAccountPort, type DedicatedModelConnection } from "@cimiloop/runtime-adapter";
 import { LocalAgentRuntimeStart, type AgentRuntimeLaunchInputs, type AgentRuntimeStartContext, type AgentRuntimeStartPort } from "./agent-runtime-start-local.js";
 import { LocalAgentWorkspaceToolService, type AgentWorkspaceToolLocalContext } from "./agent-workspace-tools-local.js";
 import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
@@ -22,6 +22,11 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
   if(!(options.custody instanceof LocalAgentStartCustody)||!(options.checks instanceof LocalAgentCheckAdmission)||typeof options.model?.check!=="function"||typeof options.model?.execute!=="function")
    throw new LocalProjectError("完整原 Runtime、检查及模型账户准入尚未安装","CAPABILITY_UNAVAILABLE","conflict");
   return new LocalAgentRuntimeComposition({...options,model:{admission_digest:options.model.admission_digest,check:options.model.check.bind(options.model),execute:options.model.execute.bind(options.model)}});
+ }
+ static openDedicated(options:Omit<Options,"model"> & {runId:string;connection:DedicatedModelConnection;account:DedicatedAgentAccountPort}){
+  const scope=originalAgentWorkspaceScope(options.local,options.runId);
+  const model=createDedicatedAgentRuntimeModel({root:options.local.location.dataDirectory,repositoryPath:options.local.location.repositoryPath,scope,connection:options.connection,account:options.account});
+  return this.open({local:options.local,binary:options.binary,custody:options.custody,checks:options.checks,model});
  }
  originalScope(runId:string){return structuredClone(originalAgentWorkspaceScope(this.options.local,runId));}
  start(runId:string,beforeLaunch?:()=>void){

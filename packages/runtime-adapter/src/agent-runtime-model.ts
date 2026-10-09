@@ -12,7 +12,8 @@ export interface AgentRuntimeModelResponse {
 }
 // Trusted code only. check must verify the complete original model/account,
 // tariff, held budget and live qualification. No HTTP/CLI can install this port.
-// Token usage is not a bill; the existing dedicated provider factory stays closed.
+// Token usage is not a bill. Default factories stay closed; dedicated code
+// composition requires a separately installed, approved account service.
 export interface AgentRuntimeModelPort {
  admission_digest:string;
  check(scope:AgentWorkspaceToolScope):Promise<void>;

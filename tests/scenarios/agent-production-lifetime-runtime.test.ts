@@ -1,3 +1,8 @@
+import { createServer as createHttpsServer } from "node:https";
+import { connect as tlsConnect } from "node:tls";
+import { fileURLToPath } from "node:url";
+import { GatewayNetworkBoundary } from "../../packages/runtime-adapter/dist/gateway-network.js";
+import { createDedicatedAgentRuntimeModel, type DedicatedAgentAccountPort } from "../../packages/runtime-adapter/dist/index.js";
 import {startWorkbench} from "../../apps/workbench/src/server.js";
 import {createInternalId} from "../../packages/protocol/src/v2/index.js";
 import { mkdtempSync, readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
@@ -105,6 +110,61 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const executionResult=JSON.parse(readFileSync(join(f.dataDirectory,"objects",proof.execution_result_ref.locator),"utf8"));
   expect(executionResult).toMatchObject({format:"cimiloop/original-task-execution-result/1.0.0",run_id:f.reserved.run.id,operation_key:f.scope.operation_key,native_effect_reverified:true,
    model_account_custody_proven:false,costs_reconciled:false,task_acceptance_proven:false,current_workspace_applicability_proven:false,required_checks:[{check_id:"query_test"}],sdk:{final_model_call_id:"model_0003"}});
+  expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(1);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Unknown");
+  expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});expect(f.store.asOfEventSequence()).toBe(sequence+1);
+ });
+ it("joins dedicated HTTPS, original SDK reasoning/tool rounds, Native checks and the Workbench original receipt",async()=>{
+  const f=await setup(),sequence=f.store.asOfEventSequence(),usage=f.task().usage;
+  // Only local TLS and constructed account approval/credential. Never real
+  // model/account qualification, a paid request or S1 acceptance.
+  const certificate=readFileSync(fileURLToPath(new URL("../../packages/runtime-adapter/fixtures/gateway-http-tls/cert.pem",import.meta.url)));
+  const fixtureKey="CIMILOOP_NATIVE_DEDICATED_PUBLIC_FIXTURE_KEY",observed:{request_id:string;body:Record<string,unknown>}[]=[];
+  let credentials=0,holds=0;
+  const upstream=createHttpsServer({cert:certificate,key:readFileSync(fileURLToPath(new URL("../../packages/runtime-adapter/fixtures/gateway-http-tls/key.pem",import.meta.url)))},(request,response)=>{
+   const chunks:Buffer[]=[];request.on("data",chunk=>chunks.push(chunk));request.on("end",()=>{void(async()=>{try{
+    expect(request.headers.authorization).toBe("Bearer "+fixtureKey);expect(request.url).toBe("/api/coding/paas/v4/chat/completions");
+    const body=JSON.parse(Buffer.concat(chunks).toString()) as Record<string,unknown>;observed.push({request_id:String(body.request_id),body});
+    const original=readAgentRuntimeModelOriginals(f.dataDirectory,f.scope).calls.at(-1)!;const receipt=await f.model.execute(original.request),text=receipt.content.filter(p=>p.type==="text").map(p=>p.text).join(""),calls=receipt.content.filter(p=>p.type==="tool-call");
+    response.setHeader("content-type","application/json");response.end(JSON.stringify({id:"native_provider_"+observed.length,model:"glm-fixture",request_id:body.request_id,object:"chat.completion",choices:[{index:0,message:{role:"assistant",content:text||null,reasoning_content:"original constructed reasoning "+observed.length,...(calls.length?{tool_calls:calls.map(p=>({id:p.tool_call_id,type:"function",function:{name:p.tool_name,arguments:p.arguments}}))}:{})},finish_reason:receipt.finish}],usage:{prompt_tokens:receipt.usage.input_tokens,completion_tokens:receipt.usage.output_tokens,total_tokens:receipt.usage.input_tokens+receipt.usage.output_tokens}}));
+   }catch(error){console.error("Constructed local provider reply failed",error);response.destroy();}})();});
+  });
+  await new Promise<void>((done,reject)=>{upstream.once("error",reject);upstream.listen(0,"127.0.0.1",done);});closers.push(async()=>{upstream.closeAllConnections();await new Promise<void>(done=>upstream.close(()=>done()));});const address=upstream.address();if(!address||typeof address==="string")throw Error("Fixture HTTPS missing");
+  const boundary=new GatewayNetworkBoundary({resolve:async()=>[{address:"8.8.8.8",family:4,ttl_seconds:60}],connect:options=>{const socket=tlsConnect({...options,host:"127.0.0.1",port:address.port,ca:certificate});Object.defineProperty(socket,"remoteAddress",{get:()=>"8.8.8.8"});return socket;}});
+  const connection={format:"cimiloop/dedicated-model/1.0.0" as const,provider:"zhipuai-coding-plan" as const,model:"zhipuai-coding-plan/glm-fixture",credential_file:join(tmpdir(),"absent-public-dedicated-fixture-"+f.scope.run_id+".dpapi.json"),credential_digest:digest("fixture only")};
+  const account:DedicatedAgentAccountPort={admission_digest:f.model.admission_digest,profile:{model:"glm-fixture",thinking:"enabled"},check:async scope=>f.model.check(scope),reserve:async(_scope,request,bytes)=>{expect(digest(bytes).value).toBe(request.request_digest);holds++;return {format:"cimiloop/agent-model-budget-hold/1.0.0",...request,account_digest:digest("constructed account").value,approval_digest:digest("constructed approval").value,tariff_digest:digest("constructed tariff").value,cash_upper_micros:30,credit_upper_micro_units:0,input_token_limit:100000,output_token_limit:request.max_output_tokens};},verifyHold:async scope=>f.model.check(scope)};
+  expect(LocalAgentRuntimeComposition.openDedicated({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,runId:f.reserved.run.id,connection,account}).originalScope(f.reserved.run.id)).toEqual(f.scope);
+  const dedicated=createDedicatedAgentRuntimeModel({root:f.dataDirectory,repositoryPath:f.root,scope:f.scope,connection,account},{boundary,readCredential:async()=>{credentials++;return fixtureKey;}});
+  const runtime=LocalAgentRuntimeComposition.open({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,model:dedicated});
+  writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});
+  const server=await startWorkbench({projectDir:f.root,agentRuntimeForRun:()=>runtime});closers.push(()=>server.close());
+  const login=await fetch(server.origin+"/api/session",{method:"POST",headers:{Origin:server.origin,"Content-Type":"application/json"},body:JSON.stringify({bootstrap:new URL(server.bootstrapUrl).hash.slice(1)})});expect(login.status).toBe(200);
+  const cookie=login.headers.get("set-cookie")!.split(";")[0]!,csrf=(await login.json() as {csrf:string}).csrf;
+  const startOriginal=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/start",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:"{}"});const body=await response.json();expect({status:response.status,body}).toMatchObject({status:200});return body;};
+  expect(await startOriginal()).toMatchObject({outcome:"original",completion_proven:false});expect(f.sends()).toBe(3);
+  expect(await startOriginal()).toMatchObject({outcome:"original"});expect(f.sends()).toBe(3);
+  const collected=await collectAgentRuntimeOperation(f.dataDirectory,f.scope,{project:f.project,record:f.reserved.record});
+  expect(collected.model).toMatchObject({status:"Observed",calls:3,unresolved:0,model_account_custody_proven:false,costs_reconciled:false});
+  expect(collected.native).toMatchObject({status:"Verified",matched_calls:2,native_effect_reverified:true});expect(collected.ipc).toMatchObject({exchanges:5,correlation:{uncorrelated_exchanges:0,unmatched_sdk_calls:0}});
+  const original=readAgentRuntimeModelOriginals(f.dataDirectory,f.scope);expect(original.calls[0]!.request.prompt).toBeDefined();expect(original.calls).toHaveLength(3);
+  expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(11);
+  const config=JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"));
+  expect(config.elapsed_ms).toBeGreaterThan(180000);expect(config.elapsed_ms).toBeLessThanOrEqual(600000);
+  expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/5.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
+  expect(readRuntimeBinaryOriginal(f.dataDirectory,config.binary,config.binary_original.sha)).toEqual(config.binary_original);
+  expect(JSON.parse(readFileSync(join(collected.status.operation,"result.json"),"utf8"))).toMatchObject({format:"cimiloop/opencode-workspace-runtime/1.0.0",synthetic_model_responses:null,external_model_requests:null,actual_credentials_read:null,formal_agent_execution_enabled:false});
+  expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
+  const observe={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:"technical_owner",command_type:"RecordRunObservation",target:{object_type:"run",id:f.reserved.run.id},expected_revision:f.store.getRun(f.reserved.run.id)!.revision,payload:{}};
+  const record=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/observe",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:JSON.stringify(observe)});const body=await response.json();expect({status:response.status,body}).toMatchObject({status:200});return body;};
+  const observation=await record();expect(observation).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"unknown",usage:{cost_known:false}}}}});expect(await record()).toEqual(observation);
+  const observationDir=join(f.dataDirectory,"agent-runtime-observations",f.project.id,f.reserved.run.id,observe.command_id),preparedObservation=JSON.parse(readFileSync(join(observationDir,"prepared.json"),"utf8"));
+  const proof=JSON.parse(readFileSync(join(f.dataDirectory,"objects",preparedObservation.proof_ref.locator),"utf8"));expect(proof.execution_result_ref).toBeDefined();
+  const executionResult=JSON.parse(readFileSync(join(f.dataDirectory,"objects",proof.execution_result_ref.locator),"utf8"));
+  expect(executionResult).toMatchObject({format:"cimiloop/original-task-execution-result/1.0.0",run_id:f.reserved.run.id,operation_key:f.scope.operation_key,native_effect_reverified:true,
+   model_account_custody_proven:false,costs_reconciled:false,task_acceptance_proven:false,current_workspace_applicability_proven:false,required_checks:[{check_id:"query_test"}],sdk:{final_model_call_id:"model_0003"}});
+  expect(observed).toHaveLength(3);expect(holds).toBe(3);expect(credentials).toBe(3);
+  expect((observed[1]!.body.messages as {role:string;reasoning_content?:string}[]).filter(m=>m.role==="assistant").map(m=>m.reasoning_content)).toEqual(["original constructed reasoning 1"]);
+  expect((observed[2]!.body.messages as {role:string;reasoning_content?:string}[]).filter(m=>m.role==="assistant").map(m=>m.reasoning_content)).toEqual(["original constructed reasoning 1","original constructed reasoning 2"]);
+  writeFileSync(join(f.dataDirectory,"d255-dedicated-fixture-summary.json"),JSON.stringify({format:"cimiloop/dedicated-native-fixture-summary/1.0.0",provider_fixture_requests:observed.length,constructed_budget_holds:holds,constructed_credentials_read:credentials,real_model_requests:0,real_credentials_read:0,costs_reconciled:false,formal_agent_execution_enabled:false,requests:observed},null,2));
   expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(1);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Unknown");
   expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});expect(f.store.asOfEventSequence()).toBe(sequence+1);
  });

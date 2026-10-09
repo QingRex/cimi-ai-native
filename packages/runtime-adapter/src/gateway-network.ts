@@ -11,8 +11,9 @@ export const DEDICATED_GATEWAY_POLICY_DIGEST = digest(JSON.stringify({ format: "
   port: 443, path: DEDICATED_GATEWAY_PATH, model: "glm-5.3", all_dns_answers_public: true, maximum_addresses: 32,
   maximum_pin_age_ms: 30000, expiry_clock: "monotonic", ttl_origin: "dns_query_start", tls_hostname_verification: true, proxy: false, redirects: false, retries: 0 })).value;
 export interface GatewayDnsAddress { address: string; family: 4 | 6; ttl_seconds: number }
+export type DedicatedGatewayPath = typeof DEDICATED_GATEWAY_PATH | "/api/paas/v4/chat/completions";
 export interface GatewayAddressPin {
-  readonly host: typeof DEDICATED_GATEWAY_HOST; readonly port: 443; readonly path: typeof DEDICATED_GATEWAY_PATH;
+  readonly host: typeof DEDICATED_GATEWAY_HOST; readonly port: 443; readonly path: DedicatedGatewayPath;
   readonly resolved_at: string; readonly expires_at: string; readonly addresses: readonly GatewayDnsAddress[];
   readonly selected: Readonly<GatewayDnsAddress>; readonly digest: string;
 }
@@ -50,7 +51,7 @@ export class GatewayNetworkBoundary {
   private readonly dial: NonNullable<NetworkDependencies["connect"]>;
   private readonly now: () => number;
   private readonly monotonic: () => number;
-  constructor(dependencies: NetworkDependencies = {}) { this.resolver = dependencies.resolve ?? resolvePublicHost; this.dial = dependencies.connect ?? tlsConnect;
+  constructor(dependencies: NetworkDependencies = {}, readonly path: DedicatedGatewayPath = DEDICATED_GATEWAY_PATH) { if (![DEDICATED_GATEWAY_PATH,"/api/paas/v4/chat/completions"].includes(path)) throw new RuntimeAdapterError("gateway_path_denied"); this.resolver = dependencies.resolve ?? resolvePublicHost; this.dial = dependencies.connect ?? tlsConnect;
     this.now = dependencies.now ?? Date.now; this.monotonic = dependencies.monotonic ?? (() => performance.now()); }
   async resolve(deadlineMs = 8000, signal?: AbortSignal): Promise<GatewayAddressPin> {
     if (!Number.isSafeInteger(deadlineMs) || deadlineMs < 25 || deadlineMs > 30000) throw new RuntimeAdapterError("invalid_gateway_network_deadline");
@@ -83,7 +84,7 @@ export class GatewayNetworkBoundary {
     const lifetime = Math.min(30000, ...addresses.map(a => a.ttl_seconds * 1000)), expires = time + lifetime;
     if (this.monotonic() >= started + lifetime) throw new RuntimeAdapterError("gateway_address_pin_expired");
     addresses.forEach(Object.freeze); Object.freeze(addresses);
-    const value = { host: DEDICATED_GATEWAY_HOST, port: 443 as const, path: DEDICATED_GATEWAY_PATH, resolved_at: new Date(time).toISOString(),
+    const value = { host: DEDICATED_GATEWAY_HOST, port: 443 as const, path: this.path, resolved_at: new Date(time).toISOString(),
       expires_at: new Date(expires).toISOString(), addresses, selected: addresses[0]! } as const;
     const pin = Object.freeze({ ...value, digest: digest(JSON.stringify(value)).value });
     this.pins.set(pin, { expires: started + lifetime, consumed: false }); return pin;

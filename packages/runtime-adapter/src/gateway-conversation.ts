@@ -71,7 +71,7 @@ export interface GatewayConversationResponse {
   readonly thinking_usage_verified: false; readonly actual_cost_known: false; readonly billing_admission_ready: false; readonly tool_execution_authorized: false;
 }
 
-const schemaKeys = ["type", "description", "properties", "required", "additionalProperties", "items", "enum", "const", "anyOf", "minLength", "maxLength", "minItems", "maxItems", "minimum", "maximum"];
+const schemaKeys = ["type", "description", "properties", "required", "additionalProperties", "items", "enum", "const", "anyOf", "minLength", "maxLength", "pattern", "minItems", "maxItems", "minimum", "maximum"];
 function validateSchema(schema: unknown, budget: { nodes: number }, depth = 0): asserts schema is ObjectValue {
   if (!object(schema) || depth > 8 || ++budget.nodes > 256 || Object.keys(schema).some(key => !schemaKeys.includes(key))) fail("invalid_gateway_tool_schema");
   if (Object.hasOwn(schema, "description") && !text(schema.description, 4096)) fail("invalid_gateway_tool_schema");
@@ -81,7 +81,7 @@ function validateSchema(schema: unknown, budget: { nodes: number }, depth = 0): 
   }
   if (typeof schema.type !== "string" || !["object", "array", "string", "number", "integer", "boolean", "null"].includes(schema.type)) fail("invalid_gateway_tool_schema");
   const permitted = ["type", "description", "enum", "const", ...(schema.type === "object" ? ["properties", "required", "additionalProperties"] :
-    schema.type === "array" ? ["items", "minItems", "maxItems"] : schema.type === "string" ? ["minLength", "maxLength"] : ["number", "integer"].includes(schema.type) ? ["minimum", "maximum"] : [])];
+    schema.type === "array" ? ["items", "minItems", "maxItems"] : schema.type === "string" ? ["minLength", "maxLength", "pattern"] : ["number", "integer"].includes(schema.type) ? ["minimum", "maximum"] : [])];
   if (Object.keys(schema).some(key => !permitted.includes(key))) fail("invalid_gateway_tool_schema");
   if (schema.enum !== undefined && (!Array.isArray(schema.enum) || !schema.enum.length || schema.enum.length > 32)) fail("invalid_gateway_tool_schema");
   if (schema.type === "object") {
@@ -90,6 +90,7 @@ function validateSchema(schema: unknown, budget: { nodes: number }, depth = 0): 
     if (schema.required !== undefined && (!Array.isArray(schema.required) || schema.required.some(key => typeof key !== "string" || !Object.hasOwn(schema.properties as ObjectValue, key)) || new Set(schema.required).size !== schema.required.length)) fail("invalid_gateway_tool_schema");
     if (schema.additionalProperties !== undefined && typeof schema.additionalProperties !== "boolean") validateSchema(schema.additionalProperties, budget, depth + 1);
   }
+  if (schema.pattern !== undefined && schema.pattern !== "^[a-f0-9]{64}$") fail("invalid_gateway_tool_schema");
   if (schema.type === "array") validateSchema(schema.items, budget, depth + 1);
   for (const [low, high] of [["minLength", "maxLength"], ["minItems", "maxItems"]]) {
     for (const key of [low!, high!]) if (schema[key] !== undefined && !integer(schema[key], 0, GATEWAY_TOOL_ARGUMENT_BYTES)) fail("invalid_gateway_tool_schema");
@@ -115,7 +116,7 @@ function matches(schema: ObjectValue, value: unknown): boolean {
         (object(schema.additionalProperties) && matches(schema.additionalProperties, value[key])));
     }
     case "array": return Array.isArray(value) && value.length >= (schema.minItems as number ?? 0) && value.length <= (schema.maxItems as number ?? Infinity) && value.every(item => matches(schema.items as ObjectValue, item));
-    case "string": return typeof value === "string" && [...value].length >= (schema.minLength as number ?? 0) && [...value].length <= (schema.maxLength as number ?? Infinity);
+    case "string": return (schema.pattern === undefined || typeof value === "string" && /^[a-f0-9]{64}$/.test(value)) && typeof value === "string" && [...value].length >= (schema.minLength as number ?? 0) && [...value].length <= (schema.maxLength as number ?? Infinity);
     case "integer": case "number": return typeof value === "number" && Number.isFinite(value) && (schema.type !== "integer" || Number.isSafeInteger(value)) && value >= (schema.minimum as number ?? -Infinity) && value <= (schema.maximum as number ?? Infinity);
     case "boolean": return typeof value === "boolean";
     case "null": return value === null;
@@ -327,3 +328,6 @@ export function parseGatewayConversation(bytes: Buffer, prepared: PreparedGatewa
     text: content as string | null, tool_calls: accepted, finish_reason: finish as GatewayConversationResponse["finish_reason"], usage: usage(observedUsage, prepared),
     thinking_usage_verified: false, actual_cost_known: false, billing_admission_ready: false, tool_execution_authorized: false });
 }
+
+// Internal dedicated-model codec shares the same schema and call validation.
+export { validateSchema as validateGatewayToolSchema, calls as parseGatewayFunctionCalls };

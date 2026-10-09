@@ -1,3 +1,5 @@
+import { prepareDedicatedAgentRequest, parseDedicatedAgentResponse, type PreparedDedicatedAgentRequest, type DedicatedAgentProfile, type DedicatedAgentReply } from "./agent-dedicated-codec.js";
+import type { parseAgentRuntimeModelRequest } from "./agent-runtime-model.js";
 import { Agent, request as httpsRequest } from "node:https";
 import type { ClientRequest, IncomingMessage } from "node:http";
 import { performance } from "node:perf_hooks";
@@ -68,7 +70,15 @@ const parseResponse = (bytes: Buffer, prepared: PreparedGatewayHttpRequest, apiK
 export class GatewayHttpTransport {
   private readonly prepared = new WeakMap<PreparedGatewayHttpRequest, { body: Buffer; consumed: boolean }>();
   private readonly conversations = new WeakMap<PreparedGatewayConversationRequest, { body: Buffer; consumed: boolean; contract?: GatewayConversationCacheContract; parse?: (bytes: Buffer, key: string) => GatewayConversationResponse }>();
+  private readonly agents = new WeakMap<PreparedDedicatedAgentRequest,{body:Buffer;consumed:boolean}>();
   constructor(private readonly boundary: GatewayNetworkBoundary) {}
+  prepareAgent(request:ReturnType<typeof parseAgentRuntimeModelRequest>,profile:DedicatedAgentProfile,prior:DedicatedAgentReply[]) {
+    const value=prepareDedicatedAgentRequest(request,profile,prior);this.agents.set(value,{body:Buffer.from(value.body),consumed:false});return value;
+  }
+  async sendAgentOriginal(prepared:PreparedDedicatedAgentRequest,connection:GatewayTlsConnection,key:string,deadlineMs=8000,signal?:AbortSignal) {
+    const owned=this.agents.get(prepared);if(!owned||owned.consumed)fail("gateway_http_request_unowned");
+    return this.exchange(owned,connection,key,deadlineMs,signal,"application/json",bytes=>({parsed:parseDedicatedAgentResponse(bytes,prepared,key),bytes:Buffer.from(bytes)}));
+  }
   prepare(input: unknown): PreparedGatewayHttpRequest {
     if (!fields(input, ["request_id", "messages", "input_tokens", "max_output_tokens"]) || typeof input.request_id !== "string" || !uuid.test(input.request_id) ||
       !integer(input.input_tokens, 1, 1048576) || !integer(input.max_output_tokens, 1, 131072) || !Array.isArray(input.messages) || input.messages.length < 1 || input.messages.length > 32)
@@ -155,7 +165,7 @@ export class GatewayHttpTransport {
       const cancel = () => finish("gateway_http_aborted"), timer = setTimeout(() => finish("gateway_http_deadline_exhausted"), deadlineMs);
       signal?.addEventListener("abort", cancel, { once: true });
       try {
-        upstream = httpsRequest({ hostname: DEDICATED_GATEWAY_HOST, port: 443, path: DEDICATED_GATEWAY_PATH, method: "POST", agent,
+        upstream = httpsRequest({ hostname: DEDICATED_GATEWAY_HOST, port: 443, path: this.boundary.path, method: "POST", agent,
           maxHeaderSize: GATEWAY_HTTP_HEADER_BYTES, insecureHTTPParser: false, joinDuplicateHeaders: false,
           headers: { host: DEDICATED_GATEWAY_HOST, "content-type": "application/json", accept: mediaType, "accept-encoding": "identity",
             "content-length": owned.body.length, connection: "close", authorization: `Bearer ${apiKey}` } }, incoming => {

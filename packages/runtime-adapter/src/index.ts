@@ -50,3 +50,8 @@ export type { AgentRuntimeModelPort, AgentRuntimeModelResponse } from "./agent-r
 export { selectAgentRuntimeLifetime, withinAgentRuntimeTaskBudget } from "./agent-runtime-lifetime.js";
 
 export { originalTaskResultContract, verifyOriginalTaskExecutionResult, type OriginalTaskExecutionResult, type OriginalTaskDomainBasis } from "./agent-runtime-completion.js";
+
+export { createDedicatedAgentRuntimeModel } from "./agent-dedicated-model.js";
+export type { DedicatedAgentAccountPort, DedicatedAgentBudgetRequest, DedicatedAgentBudgetHold } from "./agent-dedicated-model.js";
+export type { DedicatedAgentProfile } from "./agent-dedicated-codec.js";
+export type { DedicatedModelConnection } from "./connection.js";
