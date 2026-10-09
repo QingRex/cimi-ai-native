@@ -30,7 +30,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
         if (!existsSync(proof) || JSON.parse(readFileSync(proof, "utf8")).resources_disposed !== true) throw Error("Retain original resources: " + proof);
       }
       if (context.task.result?.state === "fail") { console.error("Retain failed original Runtime fixture: " + root); continue; }
-      rmSync(root, { recursive: true, force: true });
+      // Retain actual original evidence for D-254, including successful cleanup.
     }
   });
   async function setup() {
@@ -131,7 +131,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     expect(f.task().usage).toEqual(usage); expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
     expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
   });
-  it("aborts the original SDK wait immediately when the resumed native controller fails", async () => {
+  it.each(["eof","frame","truncated","utf8"])("aborts the original SDK wait on resumed controller %s without misclassifying damaged input", async kind => {
     const f = await setup(), usage = f.task().usage, sequence = f.store.asOfEventSequence();
     let waitingAt = 0, abortedAfter = 0;
     await expect(runOpenCodeWorkspaceToolRehearsal({ ...f.options, connect: (supervisor, originalSupervisor, originalPeer, nonce, signal) => AgentWorkspaceToolIpc.open({
@@ -140,7 +140,10 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
         waitingAt = Date.now();
         // End only this fixture's original controller input. The controller owns
         // Job termination and cleanup; neither a new Run nor an external kill.
-        supervisor.stdin!.end();
+        if(kind==="frame")supervisor.stdin!.end("{}\n");
+        else if(kind==="truncated")supervisor.stdin!.end("{");
+        else if(kind==="utf8")supervisor.stdin!.end(Buffer.from([0xff,10]));
+        else supervisor.stdin!.end();
         return new Promise<never>((_done, reject) => {
           const stopped = () => { abortedAfter = Date.now() - waitingAt; reject(new RuntimeAdapterError("original_native_exit")); };
           signal.addEventListener("abort", stopped, { once: true }); if (signal.aborted) stopped();
@@ -151,6 +154,8 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     const original = await f.control.collect(f.reserved.run.id);
     expect(original.status).toMatchObject({ status: "Stopped", cancellation_requested: false, resources_disposed: true, completion_proven: false });
     expect(original.native).toMatchObject({ status: "Unknown", native_effect_reverified: false });
+    if(kind==="eof")expect(original.interruption).toMatchObject({status:"Observed",phase:"running",runtime_resumed:true,completion_proven:false,costs_reconciled:false});
+    else {expect(original).not.toHaveProperty("interruption");expect(existsSync(join(original.status.operation,"agent-sandbox-interruption.json"))).toBe(false);expect(readFileSync(join(original.status.operation,"stderr.raw"),"utf8")).toContain("agent-workspace-native-failure");}
     const incomplete = JSON.parse(readFileSync(join(original.status.operation, "incomplete.json"), "utf8"));
     expect(incomplete).toMatchObject({ interruption_reason: "workspace_rehearsal_runtime_failed", completion_proven: false });
     expect(existsSync(join(original.status.operation, "result.json"))).toBe(false);

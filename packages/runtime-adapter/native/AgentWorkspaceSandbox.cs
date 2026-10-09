@@ -26,6 +26,18 @@ partial class AppContainer {
   [StructLayout(LayoutKind.Sequential)] struct AgentSA { public int length; public IntPtr descriptor; [MarshalAs(UnmanagedType.Bool)] public bool inherit; }
   [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr CreateFile(string path,uint access,uint share,ref AgentSA security,uint creation,uint flags,IntPtr template);
   static volatile bool agentParentEnded;
+  static Exception agentInputError;
+  sealed class AgentInputClosedException : Exception { }
+  static void AgentRequireInput(string line,Exception error) {
+    if(AgentTaskExpired()) throw new InvalidDataException();
+    if(error!=null) throw error;
+    if(line==null) throw new AgentInputClosedException();
+  }
+  static void AgentInterruption(bool resumed) {
+    var value=new { format="cimiloop/agent-workspace-interruption/1.0.0",nonce=agentResources["nonce"],scope_digest=agentResources["scope_digest"],config_digest=agentResources["config_digest"],owner=agentResources["owner"],supervisor=agentResources["supervisor"],runtime=agentResources["runtime"],phase=agentResources["phase"],runtime_resumed=resumed,reason="agent_sandbox_parent_ended" };
+    byte[] bytes=new UTF8Encoding(false,true).GetBytes(serializer.Serialize(value));
+    using(var file=new FileStream(Path.Combine(Path.GetDirectoryName(agentResourcePath),"agent-sandbox-interruption.json"),FileMode.CreateNew,FileAccess.Write,FileShare.None)) { file.Write(bytes,0,bytes.Length); file.Flush(true); }
+  }
   [DllImport("kernel32.dll",EntryPoint="GetTickCount64")] static extern ulong AgentTickCount();
   static ulong agentTaskDeadline;
   static bool AgentTaskExpired() { return agentTaskDeadline!=0&&AgentTickCount()>=agentTaskDeadline; }
@@ -58,8 +70,10 @@ partial class AppContainer {
   static void AgentCheckpoint(string phase,IntPtr owner) {
     agentResources["phase"]=phase; AgentResourceSave();
     Console.WriteLine(serializer.Serialize(new { format="cimiloop/agent-workspace-preparation/1.0.0",nonce=agentResources["nonce"],phase=phase,supervisor=agentResources["supervisor"] })); Console.Out.Flush();
-    string line=null; var input=new Thread(delegate() { try { line=AgentLine(2048); } catch { } }); input.IsBackground=true; input.Start();
+    string line=null; Exception inputError=null; var input=new Thread(delegate() { try { line=AgentLine(2048); } catch(Exception error) { inputError=error; } }); input.IsBackground=true; input.Start();
     var watch=Stopwatch.StartNew(); while(!input.Join(25)) if(watch.ElapsedMilliseconds>=10000||WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException();
+    if(watch.ElapsedMilliseconds>=10000) throw new InvalidDataException();
+    AgentRequireInput(line,inputError);
     var reply=serializer.Deserialize<Dictionary<string,object>>(line); AgentKeys(reply,"format","nonce","phase");
     if(reply["format"] as string!="cimiloop/agent-workspace-prepare-continue/1.0.0"||reply["nonce"] as string!=(string)agentResources["nonce"]||reply["phase"] as string!=phase||WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException();
   }
@@ -79,7 +93,7 @@ partial class AppContainer {
   }
   static string AgentLine(int maximum) {
     var input=Console.OpenStandardInput(); using(var bytes=new MemoryStream()) {
-      while(true) { int value=input.ReadByte(); if(value<0) return null; if(value==10) break; if(bytes.Length>=maximum) throw new InvalidDataException(); bytes.WriteByte((byte)value); }
+      while(true) { int value=input.ReadByte(); if(value<0) { if(bytes.Length!=0) throw new InvalidDataException(); return null; } if(value==10) break; if(bytes.Length>=maximum) throw new InvalidDataException(); bytes.WriteByte((byte)value); }
       return new UTF8Encoding(false,true).GetString(bytes.ToArray());
     }
   }
@@ -196,7 +210,7 @@ partial class AppContainer {
   internal static int LaunchAgentWorkspace() {
     Console.OutputEncoding=new UTF8Encoding(false);
     string root=null,binary=null,profile=null,mapping=null,nonce=null; IntPtr sid=IntPtr.Zero,list=IntPtr.Zero,capsMemory=IntPtr.Zero,handles=IntPtr.Zero,job=IntPtr.Zero,jobList=IntPtr.Zero,owner=IntPtr.Zero,nul=IntPtr.Zero;
-    PROCESSINFO process=new PROCESSINFO(); bool started=false,profileCreated=false; int exit=12; ulong? runtimeStoppedUptime=null; string reason="agent_sandbox_unavailable"; var cleanupErrors=new List<string>();
+    PROCESSINFO process=new PROCESSINFO(); bool started=false,profileCreated=false,runtimeResumed=false; int exit=12; ulong? runtimeStoppedUptime=null; string reason="agent_sandbox_unavailable"; var cleanupErrors=new List<string>();
     try {
       string originalConfig=AgentLine(65536); var config=serializer.Deserialize<Dictionary<string,object>>(originalConfig);
       agentTaskDeadline=AgentConfigDeadline(config); if(AgentTaskExpired()) throw new InvalidDataException();
@@ -284,27 +298,35 @@ partial class AppContainer {
       var command=new StringBuilder(Quote(binary)); foreach(string arg in arguments) command.Append(" ").Append(Quote(arg));
       AgentCheckpoint("process_create_intent",owner);
       Check(CreateProcess(binary,command,IntPtr.Zero,IntPtr.Zero,true,0x80000|0x08000000|0x4,IntPtr.Zero,mapping+"\\workspace",ref startup,out process)); started=true;
-      AgentCheckpoint("runtime_created",owner);
       agentResources["runtime"]=new Dictionary<string,object> { {"pid",process.pid},{"creation_ticks",Creation(process.process)},{"image",Image(process.process)} };
+      AgentCheckpoint("runtime_created",owner);
       agentResources["phase"]="suspended"; AgentResourceSave();
       string originalProof=serializer.Serialize(new { format="cimiloop/agent-workspace-sandbox/1.0.0",phase="suspended",nonce=nonce,
         supervisor=Identity(Process.GetCurrentProcess().Id),peer=Identity(process.pid),appcontainer_sid=principal.Value,network_capability_sids=new string[0],active_process_limit=1 });
       Atomic(Path.Combine(Path.GetDirectoryName(root),"agent-sandbox-original.json"),originalProof);
       Console.WriteLine(originalProof); Console.Out.Flush();
-      string resume=null; var resumeWorker=new Thread(delegate() { try { resume=AgentLine(1024); } catch { } }); resumeWorker.IsBackground=true; resumeWorker.Start();
+      string resume=null; Exception resumeError=null; var resumeWorker=new Thread(delegate() { try { resume=AgentLine(1024); } catch(Exception error) { resumeError=error; } }); resumeWorker.IsBackground=true; resumeWorker.Start();
       var watch=Stopwatch.StartNew(); while(!resumeWorker.Join(50)) if(watch.ElapsedMilliseconds>10000||WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException();
+      if(watch.ElapsedMilliseconds>=10000) throw new InvalidDataException();
+      AgentRequireInput(resume,resumeError);
       var release=serializer.Deserialize<Dictionary<string,object>>(resume); AgentKeys(release,"format","nonce"); if(release["format"] as string!="cimiloop/agent-workspace-resume/1.0.0"||release["nonce"] as string!=nonce) throw new InvalidDataException();
-      if(WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException(); Check(ResumeThread(process.thread)!=0xffffffff);
+      if(WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException(); Check(ResumeThread(process.thread)!=0xffffffff); runtimeResumed=true;
       agentResources["phase"]="running"; AgentResourceSave();
-      var inputWatcher=new Thread(delegate() { try { AgentLine(1024); } catch { } finally { agentParentEnded=true; } }); inputWatcher.IsBackground=true; inputWatcher.Start();
+      var inputWatcher=new Thread(delegate() { try { if(AgentLine(1024)!=null) throw new InvalidDataException(); } catch(Exception error) { agentInputError=error; } finally { agentParentEnded=true; } }); inputWatcher.IsBackground=true; inputWatcher.Start();
       watch.Restart(); while(WaitForSingleObject(process.process,50)==258) {
-        if(AgentTaskExpired()||agentParentEnded||WaitForSingleObject(owner,0)!=258||watch.ElapsedMilliseconds>=elapsed) { reason=AgentTaskExpired()?"agent_sandbox_task_deadline":watch.ElapsedMilliseconds>=elapsed?"agent_sandbox_timeout":"agent_sandbox_parent_ended"; Check(TerminateJobObject(job,125)); Check(WaitForSingleObject(process.process,5000)==0); break; }
+        if(AgentTaskExpired()||watch.ElapsedMilliseconds>=elapsed) { reason=AgentTaskExpired()?"agent_sandbox_task_deadline":"agent_sandbox_timeout"; Check(TerminateJobObject(job,125)); Check(WaitForSingleObject(process.process,5000)==0); break; }
+        if(agentParentEnded) { inputWatcher.Join(); AgentRequireInput(null,agentInputError); }
+        if(WaitForSingleObject(owner,0)!=258) { reason="agent_sandbox_parent_ended"; Check(TerminateJobObject(job,125)); Check(WaitForSingleObject(process.process,5000)==0); break; }
       }
       runtimeStoppedUptime=AgentTickCount();
       if(reason=="agent_sandbox_unavailable") { uint code; Check(GetExitCodeProcess(process.process,out code)); exit=(int)code; reason="exited"; }
     } catch(Exception error) {
+      bool closed=error is AgentInputClosedException&&!AgentTaskExpired();
+      if(closed) { try { AgentInterruption(runtimeResumed); reason="agent_sandbox_parent_ended"; exit=125; } catch(Exception proofError) { error=proofError; closed=false; } }
+      if(!closed) {
       reason=AgentTaskExpired()?"agent_sandbox_task_deadline":"agent_sandbox_unavailable";
       Console.Error.WriteLine(serializer.Serialize(new {format="cimiloop/agent-workspace-native-failure/1.0.0",phase=agentResources==null?"config":agentResources["phase"],reason=reason,exception_type=error.GetType().Name,native_error=error is System.ComponentModel.Win32Exception?((System.ComponentModel.Win32Exception)error).NativeErrorCode:0}));
+      }
     }
     finally {
       if(started) { if(!TerminateJobObject(job,125)||WaitForSingleObject(process.process,5000)!=0) cleanupErrors.Add("process"); else if(!runtimeStoppedUptime.HasValue) runtimeStoppedUptime=AgentTickCount(); }

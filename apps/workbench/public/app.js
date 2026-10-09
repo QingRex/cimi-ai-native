@@ -201,7 +201,8 @@ const taskPanel = (task, data) => {
     if (agent) {
       const output = node("div"), observe = async action => {
         const response = await api(`/api/agent-runs/${encodeURIComponent(run.id)}${action ? `/${action}` : ""}`, action ? {} : undefined);
-        output.replaceChildren(paragraph(response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
+        const interruption=response.operation.result?.interruption;
+        output.replaceChildren(paragraph(interruption?.status === "Observed" ? (interruption.runtime_resumed ? "原输入关闭时 SDK 已恢复运行；原中断资料已核对，任务结果和费用仍待核对。" : "原输入在 SDK 恢复前关闭；原中断资料已核对，任务结果和费用仍待核对。") : response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
       };
       const pendingStart=originalStartPending(run.id);
       const start=button(pendingStart.pending ? "核对原启动请求" : "启动原 Agent 运行",()=>startAgent(run.id));

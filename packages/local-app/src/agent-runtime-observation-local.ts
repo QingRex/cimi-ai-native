@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { parseCommand, compileValidator, RawAgentRunObservationSchema, SCHEMA_VERSION, isInternalId,
   type RawAgentRunObservation, type Project, type AgentRunRecord, type AgentContextManifest } from "@cimiloop/protocol/v2";
-import { verifyOriginalTaskExecutionResult, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, agentWorkspaceIpcScopeDigest, bytesAt, directory, digest, parseGatewayJson, type OriginalTaskDomainBasis } from "@cimiloop/runtime-adapter";
+import { verifyCollectedAgentRuntimeInterruption, verifyOriginalTaskExecutionResult, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, agentWorkspaceIpcScopeDigest, bytesAt, directory, digest, parseGatewayJson, type OriginalTaskDomainBasis } from "@cimiloop/runtime-adapter";
 import { LocalEvidenceVerifier, type ContentReference } from "./evidence-local.js";
 import { executeLocalCommand, type LocalCommandInput } from "./project.js";
 import { readHumanOriginalAgentRunInputs, type AgentRuntimeControlContext } from "./agent-runtime-control-local.js";
@@ -23,9 +23,9 @@ interface Proof { format:"cimiloop/agent-unknown-observation-proof/1.0.0"|"cimil
   execution_result_ref?:RawAgentRunObservation["result_proof_ref"]; collection_ref:RawAgentRunObservation["result_proof_ref"]; completion_proven:false; costs_reconciled:false }
 interface Prepared { format:"cimiloop/agent-unknown-observation-prepared/1.0.0";
   raw_result_ref:Extract<ContentReference,{resource_type:"agent_run"}>; proof_ref:RawAgentRunObservation["result_proof_ref"] }
-// IPC journal: 128 exchanges * four artifacts, header, nine Runtime files,
+// IPC journal: 128 exchanges * four artifacts, header, ten Runtime files,
 // optional fixed-check catalog. Match the collector's actual bounded history.
-const MAX_ORIGINAL_ARTIFACTS=128*4+1+9+1;
+const MAX_ORIGINAL_ARTIFACTS=128*4+1+10+1;
 const exact=(value:unknown,keys:string[]):value is Record<string,unknown>=>!!value&&typeof value==="object"&&!Array.isArray(value)&&Object.keys(value).sort().join(",")===keys.sort().join(",");
 // The strict parser uses null-prototype objects. Normalize only after parsing
 // (including duplicate/dangerous-key checks) for persisted value comparisons.
@@ -55,7 +55,7 @@ const reportFor=(proof:Proof,reference:RawAgentRunObservation["result_proof_ref"
  basis:"direct_observation",status:proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"?"failed":"unknown",usage:{cost_known:false},method:proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"?"Original Native negative execution: "+proof.execution_failure:proof.execution_result_ref?"Original SDK task output and Native effects reverified; model/account and billing unproven":"Original Runtime collection; completion and billing unproven",
  observation:proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"?"原Native证明本次执行失败；模型账户、费用与原未决调用继续待核对，不结清预算或满足任务。":proof.execution_result_ref?"原SDK结构化Task产物与独立Native账本已对应核验；真实模型账户、账单与Task验收仍待证明，不结清费用或满足任务。":"原操作采集已保存并核对归属；终态、真实模型账户及费用仍待核对。停止或资源处置不代表任务完成。",resolves_observation_refs:[]});
 const validateCollection=(root:string,identity:Identity,value:unknown)=>{
- if(!exact(value,["format","scope_digest","status","artifacts","missing","ipc","native","domain_observation_produced","formal_agent_execution_enabled","synthetic_model_responses",...(value&&typeof value==="object"&&"model" in value?["model"]:[])])||
+ if(!exact(value,["format","scope_digest","status","artifacts","missing","ipc","native","domain_observation_produced","formal_agent_execution_enabled","synthetic_model_responses",...(value&&typeof value==="object"&&"model" in value?["model"]:[]),...(value&&typeof value==="object"&&"interruption" in value?["interruption"]:[])])||
  value.format!=="cimiloop/agent-runtime-originals/1.0.0"||value.scope_digest!==agentWorkspaceIpcScopeDigest(identity.scope)||(value.synthetic_model_responses!==true&&value.synthetic_model_responses!==null)||
  value.formal_agent_execution_enabled!==false||value.domain_observation_produced!==false||!value.status||typeof value.status!=="object"||
  !("operation" in value.status)||value.status.operation!==identity.operation||!Array.isArray(value.artifacts)||value.artifacts.length>MAX_ORIGINAL_ARTIFACTS+(value.synthetic_model_responses===null?64*3+2:0))throw Error("Original collection mismatch");
@@ -64,6 +64,7 @@ const validateCollection=(root:string,identity:Identity,value:unknown)=>{
  !exact(artifact.reference.digest,["algorithm","value"])||artifact.reference.digest.algorithm!=="sha256"||typeof artifact.reference.digest.value!=="string"||
  !/^[a-f0-9]{64}$/.test(artifact.reference.digest.value)||artifact.reference.locator!==join(resolve(root),"blobs",artifact.reference.digest.value)||
  digest(bytesAt(artifact.reference.locator,4*1024*1024)).value!==artifact.reference.digest.value)throw Error("Original collection bytes unproven");}
+ verifyCollectedAgentRuntimeInterruption({scope_digest:agentWorkspaceIpcScopeDigest(identity.scope),owner:identity.claim.owner,operation:identity.operation,input:identity.input},value as unknown as Parameters<typeof verifyCollectedAgentRuntimeInterruption>[1]);
 };
 
 export class LocalAgentRunResultVerifier {

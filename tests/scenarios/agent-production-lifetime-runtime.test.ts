@@ -128,12 +128,22 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const operations=join(f.dataDirectory,"workspace-tool-rehearsals"),names=readdirSync(operations);expect(names).toHaveLength(1);const operation=join(operations,names[0]!);
   expect(existsSync(join(operation,"result.json"))).toBe(false);expect(JSON.parse(readFileSync(join(operation,"incomplete.json"),"utf8"))).toMatchObject({suspended_observed:true,original_record_present:true});
   // Zero model sends alone could also be a resumed SDK crash. Independently
-  // require the original Native failure before ResumeThread, not a Bun exit.
-  expect(JSON.parse(readFileSync(join(operation,"stderr.raw"),"utf8"))).toMatchObject({format:"cimiloop/agent-workspace-native-failure/1.0.0",phase:"suspended",reason:"agent_sandbox_unavailable"});
+  // require the original controlled EOF before ResumeThread and its held identity.
+  expect(readFileSync(join(operation,"stderr.raw")).length).toBe(0);
+  expect(JSON.parse(readFileSync(join(operation,"agent-sandbox-cleanup.json"),"utf8"))).toMatchObject({reason:"agent_sandbox_parent_ended",exit_code:125});
+  const config=JSON.parse(readFileSync(join(operation,"original-config.json"),"utf8"));
+  expect(JSON.parse(readFileSync(join(operation,"agent-sandbox-interruption.json"),"utf8"))).toMatchObject({format:"cimiloop/agent-workspace-interruption/1.0.0",nonce:config.nonce,scope_digest:config.scope_digest,phase:"suspended",runtime_resumed:false,reason:"agent_sandbox_parent_ended",owner:config.owner});
   expect(JSON.parse(readFileSync(join(operation,"agent-sandbox-cleanup.json"),"utf8"))).toMatchObject({resources_disposed:true,cleanup_errors:[]});
   expect(readAgentRuntimeModelOriginals(f.dataDirectory,f.scope).calls).toHaveLength(0);expect(f.store.listRuns(f.change.id)).toHaveLength(1);expect(f.task().usage.pending_reconciliation).toBe(true);
   expect(existsSync(join(f.dataDirectory,"agent-runtime-starts",f.project.id,f.reserved.run.id,"dispatch.json"))).toBe(true);
   expect(await runtime.start(f.reserved.run.id)).toMatchObject({completion_proven:false});expect(f.sends()).toBe(0);expect(readdirSync(operations)).toEqual(names);
+  const collect=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/collect",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:"{}"});expect(collect.status).toBe(200);
+  expect(await collect.json()).toMatchObject({operation:{result:{interruption:{status:"Observed",phase:"suspended",runtime_resumed:false,completion_proven:false,costs_reconciled:false}}}});
+  f.grant("technical_owner");const command={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:"technical_owner",command_type:"RecordRunObservation",target:{object_type:"run",id:f.reserved.run.id},expected_revision:f.store.getRun(f.reserved.run.id)!.revision,payload:{}};
+  const observe=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/observe",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:JSON.stringify(command)});expect(response.status).toBe(200);return response.json();};
+  const observation=await observe();expect(observation).toMatchObject({data:{observation:{report:{status:"unknown",usage:{cost_known:false}}}}});expect(await observe()).toEqual(observation);
+  expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(1);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Unknown");expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});expect(f.sends()).toBe(0);
+
  });
 
 });

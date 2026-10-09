@@ -1,5 +1,7 @@
 # CimiLoop 领域语言
 
+2026-10-10 D-254：[原Native输入关闭与执行中断](docs/implementation/CimiLoop-原Native输入关闭与执行中断-v0.1.md)已接受控EOF、原进程是否恢复的不可变证明、共享原采集 / Kernel核验及工作台提示；损坏输入仍失败，原Unknown与费用保留。正式默认Agent、真实模型 / Skill / 方法与完整五组S1继续；本批最终验证以新研究记录为准，以下旧批结果保留原范围。
+
 2026-10-10 D-253：[工作台原Agent启动衔接](docs/implementation/CimiLoop-工作台原Agent启动衔接-v0.1.md)已接Human请求核权、共享原组合、唯一启动与HTTP / 页面；Native实际放行前重新核权，丢响应只核对原Run。受信工厂默认未安装、真实模型账户未批准；完整五组S1继续，以下各批仍保留各自历史验证范围。
 
 2026-10-10 D-252：[原执行产物领域依据与Kernel核验](docs/implementation/CimiLoop-原执行产物领域依据与Kernel核验-v0.1.md)已接Kernel、共享观测与Runtime；原固定约定 / 计划 / 任务定义独立全文和结构核验，同ID改正文或外来引用拒绝产物证明。原收据重放、未知费用、242 Schema / 用户库10保持，正式Agent与完整五组S1继续。

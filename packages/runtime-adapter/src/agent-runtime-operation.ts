@@ -1,3 +1,4 @@
+import { verifyAgentRuntimeInterruption } from "./agent-runtime-interruption.js";
 import { readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import { mkdirSync, writeFileSync, openSync, fsyncSync, closeSync, existsSync, lstatSync } from "node:fs";
@@ -163,10 +164,14 @@ export async function recoverAgentRuntimeOperation(root: string, rawScope: unkno
 }
 export async function collectAgentRuntimeOperation(root: string, rawScope: unknown, nativeInputs?: { project: Project; record: AgentRunRecord }) {
   const original = load(root, rawScope), status = await queryAgentRuntimeOperation(root, rawScope), artifacts = [], missing = [];
+  // Optional new immutable evidence; legacy operations keep their exact shape.
+  const interruptionPath=join(original.operation,"agent-sandbox-interruption.json");
+  const optionalBytes=(name:string)=>{const path=join(original.operation,name);assertOrdinaryPath(path);try{lstatSync(path);}catch(error){if(error&&typeof error==="object"&&"code" in error&&error.code==="ENOENT")return undefined;throw error;}return bytesAt(path,65536);};
+  const interruption=verifyAgentRuntimeInterruption({scope_digest:agentWorkspaceIpcScopeDigest(original.claim.scope),owner:original.claim.owner},optionalBytes);
   let stdout: Buffer | undefined;
   let native: ReturnType<typeof readAgentRuntimeNativeResult> = { status: "Unknown", reason: "agent_native_original_inputs_missing", matched_calls: 0,
     unmatched_native_calls: 0, unresolved_native_calls: 0, native_effect_reverified: false, model_account_custody_proven: false, formal_agent_execution_enabled: false };
-  const files = ["original-config.json", "original-launcher.json", "agent-sandbox-resources.json", "agent-sandbox-original.json", "agent-sandbox-cleanup.json", "stdout.raw", "stderr.raw", "result.json", "incomplete.json"];
+  const files = ["original-config.json", "original-launcher.json", "agent-sandbox-resources.json", "agent-sandbox-original.json", "agent-sandbox-cleanup.json", "stdout.raw", "stderr.raw", "result.json", "incomplete.json",...(existsSync(interruptionPath)?["agent-sandbox-interruption.json"]:[])];
   for (const name of files) {
     const path = join(original.operation, name);
     if (!existsSync(path)) { missing.push(name); continue; }
@@ -232,6 +237,6 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
   }
   const fresh = load(root, rawScope);
   if (!isDeepStrictEqual(fresh.claim, original.claim)) fail("agent_runtime_claim_changed");
-  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(model ? {model} : {}),
+  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(model ? {model} : {}), ...(interruption?{interruption}:{}),
     domain_observation_produced: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: original.claim.synthetic_model_responses };
 }

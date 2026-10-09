@@ -1,0 +1,52 @@
+import {mkdtempSync,mkdirSync,rmSync,writeFileSync} from "node:fs";
+import {join} from "node:path";import {tmpdir} from "node:os";
+import {verifyCollectedAgentRuntimeInterruption} from "../src/agent-runtime-interruption.js";
+import {rawReference} from "../src/files.js";
+import {afterEach,describe,it,expect} from "vitest";
+import * as runtime from "../src/index.js";
+import {digest} from "../src/files.js";
+// Constructed bytes exercise the parser; they cannot prove an OS stop, model or Skill.
+const verifier=()=>{const value=(runtime as unknown as Record<string,unknown>).verifyAgentRuntimeInterruption;expect(typeof value).toBe("function");return value as (basis:{scope_digest:string;owner:unknown},read:(name:string)=>Buffer|undefined)=>unknown;};
+function fixture(){
+ const owner={pid:12,creation_ticks:"12",image:process.execPath},supervisor={...owner,pid:13},peer={...owner,pid:14},nonce="11111111-1111-4111-8111-111111111111",scope_digest=digest("scope").value;
+ const config={format:"cimiloop/agent-workspace-sandbox-config/5.0.0",nonce,owner,scope_digest};
+ const config_digest=digest(JSON.stringify(config)).value;
+ const records:Record<string,Record<string,unknown>>={"original-config.json":config,"original-launcher.json":{format:"cimiloop/agent-workspace-launcher/2.0.0",nonce,owner,supervisor},
+ "agent-sandbox-resources.json":{format:"cimiloop/agent-workspace-resources/1.0.0",nonce,scope_digest,config_digest,owner,supervisor,runtime:peer,phase:"ended",resources_disposed:true},
+ "agent-sandbox-original.json":{format:"cimiloop/agent-workspace-sandbox/1.0.0",phase:"suspended",nonce,supervisor,peer},
+ "agent-sandbox-cleanup.json":{format:"cimiloop/agent-workspace-sandbox/1.0.0",phase:"ended",nonce,reason:"agent_sandbox_parent_ended",exit_code:125,resources_disposed:true,cleanup_errors:[],formal_agent_execution_enabled:false},
+ "agent-sandbox-interruption.json":{format:"cimiloop/agent-workspace-interruption/1.0.0",nonce,scope_digest,config_digest,owner,supervisor,runtime:peer,phase:"suspended",runtime_resumed:false,reason:"agent_sandbox_parent_ended"}};
+ return {records,read:(name:string)=>records[name]?Buffer.from(JSON.stringify(records[name])):undefined,basis:{scope_digest,owner}};
+}
+describe("original Native input interruption",()=>{
+ it("reads suspended and resumed historical closure without asserting current OS disposal or Task completion",()=>{const f=fixture(),verify=verifier();expect(verify(f.basis,f.read)).toEqual({status:"Observed",phase:"suspended",runtime_resumed:false,reason:"agent_sandbox_parent_ended",completion_proven:false,costs_reconciled:false});f.records["agent-sandbox-interruption.json"]!.phase="running";f.records["agent-sandbox-interruption.json"]!.runtime_resumed=true;expect(verify(f.basis,f.read)).toMatchObject({phase:"running",runtime_resumed:true});});
+ it("keeps legacy absence distinct from malformed new proof",()=>{const f=fixture(),verify=verifier();delete f.records["agent-sandbox-interruption.json"];expect(verify(f.basis,f.read)).toBeUndefined();f.records["agent-sandbox-interruption.json"]={};expect(()=>verify(f.basis,f.read)).toThrow();});
+ it("binds a runtime_created interruption to its created process even before SDK sandbox proof publication",()=>{const f=fixture(),verify=verifier();f.records["agent-sandbox-interruption.json"]!.phase="runtime_created";delete f.records["agent-sandbox-original.json"];expect(verify(f.basis,f.read)).toMatchObject({phase:"runtime_created",runtime_resumed:false});f.records["agent-sandbox-interruption.json"]!.runtime=null;expect(()=>verify(f.basis,f.read)).toThrow();});
+ it("reads preparation closure with no runtime and never accepts a created process as absent",()=>{const f=fixture(),verify=verifier();f.records["agent-sandbox-interruption.json"]!.phase="granted";f.records["agent-sandbox-interruption.json"]!.runtime=null;f.records["agent-sandbox-resources.json"]!.runtime=null;delete f.records["agent-sandbox-original.json"];expect(verify(f.basis,f.read)).toMatchObject({phase:"granted",runtime_resumed:false});f.records["agent-sandbox-interruption.json"]!.phase="runtime_created";expect(()=>verify(f.basis,f.read)).toThrow();});
+ it.each(["nonce","scope","owner","supervisor","runtime","resume","phase","extra","config_hash","cleanup_exit","cleanup_reason","cleanup_error","cleanup_phase","missing_cleanup","missing_original","legacy_resources","malformed_bytes"])("rejects %s instead of downgrading new evidence",kind=>{const f=fixture(),verify=verifier(),record=f.records["agent-sandbox-interruption.json"]!,cleanup=f.records["agent-sandbox-cleanup.json"]!;
+ if(kind==="nonce")record.nonce="foreign";if(kind==="scope")record.scope_digest=digest("foreign").value;if(kind==="owner")record.owner={pid:99};if(kind==="supervisor")record.supervisor={pid:99};if(kind==="runtime")record.runtime={pid:99};if(kind==="resume")record.runtime_resumed=true;if(kind==="phase")record.phase="ended";if(kind==="extra")record.extra=true;if(kind==="config_hash")record.config_digest=digest("foreign").value;
+ if(kind==="cleanup_exit")cleanup.exit_code=12;if(kind==="cleanup_reason")cleanup.reason="agent_sandbox_task_deadline";if(kind==="cleanup_error")cleanup.cleanup_errors=["process"];if(kind==="cleanup_phase")cleanup.phase="running";if(kind==="missing_cleanup")delete f.records["agent-sandbox-cleanup.json"];if(kind==="missing_original")delete f.records["agent-sandbox-original.json"];if(kind==="legacy_resources")f.records["agent-sandbox-resources.json"]!.runtime=null;
+ expect(()=>verify(f.basis,kind==="malformed_bytes"?name=>name==="agent-sandbox-interruption.json"?Buffer.from("{\"format\":"):f.read(name):f.read)).toThrow();});
+});
+
+// Constructed local files and snapshot blobs; actual retained physical pins are
+// independently checked by the calling local-app Identity reader, not these fixtures.
+describe("immutable original collection binding",()=>{const roots:string[]=[];afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
+ function setup(){const f=fixture(),root=mkdtempSync(join(tmpdir(),"cimiloop-interruption-binding-"));roots.push(root);const operation=join(root,"operation");mkdirSync(operation);const input={binary_original:{constructed:"SDK pin"},sandbox_original:{constructed:"controller pin"}};
+  f.records["original-config.json"]!.binary_original=input.binary_original;f.records["original-launcher.json"]!.launcher_original=input.sandbox_original;
+  const config_digest=digest(JSON.stringify(f.records["original-config.json"])).value;f.records["agent-sandbox-resources.json"]!.config_digest=config_digest;f.records["agent-sandbox-interruption.json"]!.config_digest=config_digest;
+  for(const [name,value] of Object.entries(f.records))writeFileSync(join(operation,name),JSON.stringify(value));
+  const basis={...f.basis,operation,input},metadata=verifier()(basis,f.read);
+  const collection={artifacts:[] as {name:string;reference:ReturnType<typeof rawReference> & {digest:ReturnType<typeof digest>}}[],interruption:metadata};
+  const materialize=()=>{collection.artifacts=Object.entries(f.records).map(([name,value])=>{const reference=rawReference(root,Buffer.from(JSON.stringify(value)),"agent_runtime_original_bytes",name);if(!reference.digest)throw Error("Missing fixture digest");return {name,reference:{...reference,digest:reference.digest}};});};materialize();return {...f,root,basis,collection,materialize};
+ }
+ it("accepts the exact original snapshot and does not require mutable resource bytes to remain at the original phase",()=>{const f=setup();expect(verifyCollectedAgentRuntimeInterruption(f.basis,f.collection)).toEqual(f.collection.interruption);writeFileSync(join(f.basis.operation,"agent-sandbox-resources.json"),JSON.stringify({phase:"recovered"}));expect(verifyCollectedAgentRuntimeInterruption(f.basis,f.collection)).toEqual(f.collection.interruption);});
+ it.each(["config","controller","foreign_set","duplicate","missing_metadata","changed_metadata","changed_blob","missing_original_file"])("rejects %s",kind=>{const f=setup();
+  if(kind==="config"){f.records["original-config.json"]!.elapsed_ms=1234;const hash=digest(JSON.stringify(f.records["original-config.json"])).value;f.records["agent-sandbox-resources.json"]!.config_digest=hash;f.records["agent-sandbox-interruption.json"]!.config_digest=hash;}
+  if(kind==="controller")f.records["original-launcher.json"]!.launcher_original={constructed:"foreign controller pin"};
+  if(kind==="foreign_set"){for(const value of Object.values(f.records))value.nonce="22222222-2222-4222-8222-222222222222";const hash=digest(JSON.stringify(f.records["original-config.json"])).value;f.records["agent-sandbox-resources.json"]!.config_digest=hash;f.records["agent-sandbox-interruption.json"]!.config_digest=hash;}
+  f.materialize();if(kind==="duplicate")f.collection.artifacts.push(f.collection.artifacts[0]!);if(kind==="missing_metadata")delete (f.collection as {interruption?:unknown}).interruption;if(kind==="changed_metadata")f.collection.interruption={status:"Stopped"};if(kind==="changed_blob")writeFileSync(f.collection.artifacts.find(a=>a.name==="agent-sandbox-interruption.json")!.reference.locator,"{}");if(kind==="missing_original_file")rmSync(join(f.basis.operation,"agent-sandbox-interruption.json"));
+  expect(()=>verifyCollectedAgentRuntimeInterruption(f.basis,f.collection)).toThrow();
+ });
+ it("does not accept a declared interruption without its original optional artifact",()=>{const f=setup();f.collection.artifacts=f.collection.artifacts.filter(a=>a.name!=="agent-sandbox-interruption.json");expect(()=>verifyCollectedAgentRuntimeInterruption(f.basis,f.collection)).toThrow();});
+});
