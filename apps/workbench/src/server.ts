@@ -2,7 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { fileURLToPath } from "node:url";
-import { executeLocalCommand, LocalAgentRuntimeControl, LocalProjectError, openLocalProject, type LocalProject } from "@cimiloop/local-app";
+import { executeLocalCommand, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalProjectError, openLocalProject, type LocalProject } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
 
 const MAX_BODY_BYTES = 128 * 1024;
@@ -44,6 +44,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   if (options.port !== undefined && (!Number.isInteger(options.port) || options.port < 0 || options.port > 65535)) throw new Error("Invalid loopback port");
   const context = openLocalProject({ projectDir: options.projectDir });
   const agentRuntime = new LocalAgentRuntimeControl(context);
+  const agentObservation = new LocalAgentRuntimeObservation(context);
   const assets = new Map<string, { type: string; body: Buffer }>();
   try {
     for (const [route, file, type] of [["/", "index.html", "text/html; charset=utf-8"], ["/app.js", "app.js", "text/javascript; charset=utf-8"],
@@ -121,7 +122,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         const result = context.kernel.getObject(decodeURIComponent(objectMatch[1]!), decodeURIComponent(objectMatch[2]!));
         send(response, "code" in result ? statusFor(result) : 200, result); return;
       }
-      const agentMatch = /^\/api\/agent-runs\/([^/]{1,200})(?:\/(collect|stop|cancel|recover))?$/.exec(url.pathname);
+      const agentMatch = /^\/api\/agent-runs\/([^/]{1,200})(?:\/(collect|stop|cancel|recover|observe))?$/.exec(url.pathname);
       if (agentMatch && request.method === "GET" && !agentMatch[2]) {
         send(response, 200, await agentRuntime.query(decodeURIComponent(agentMatch[1]!))); return;
       }
@@ -130,10 +131,11 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         if (closing) throw new HttpFailure(503, "WORKBENCH_CLOSING");
         requireSession(request, true);
         const runId = decodeURIComponent(agentMatch[1]!), action = agentMatch[2];
-        if (action === "stop") {
+        if (action === "stop" || action === "observe") {
           if (!body || typeof body !== "object" || Array.isArray(body) || !("target" in body) || !body.target || typeof body.target !== "object" ||
             !("id" in body.target) || body.target.id !== runId) throw new HttpFailure(400, "INVALID_COMMAND");
-          const result = await agentRuntime.stop(body); send(response, "code" in result ? statusFor(result) : 200, result); return;
+          const result = action === "observe" ? await agentObservation.record(body) : await agentRuntime.stop(body);
+          send(response, "code" in result ? statusFor(result) : 200, result); return;
         }
         if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length) throw new HttpFailure(400, "INVALID_COMMAND");
         const result = action === "collect" ? await agentRuntime.collect(runId) : action === "cancel" ? await agentRuntime.retryCancellation(runId) : await agentRuntime.recover(runId);

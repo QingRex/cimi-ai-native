@@ -1,0 +1,105 @@
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, dirname, join, resolve } from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createInternalId } from "@cimiloop/protocol/v2";
+import { CimiLoopKernel } from "@cimiloop/kernel";
+import { collectAgentRuntimeOperation } from "@cimiloop/runtime-adapter";
+import { rawReference } from "../../runtime-adapter/src/files.js";
+import { claimAgentRuntimeOperation } from "../../runtime-adapter/src/agent-runtime-operation.js";
+import { createAgentRunProject } from "../../../tests/fixtures/agent-run-project.js";
+import { LocalRunVerifier } from "../src/runs-local.js";
+import { LocalAgentRuntimeObservation } from "../src/agent-runtime-observation-local.js";
+import { originalAgentWorkspaceScope } from "../src/agent-workspace-tools-local.js";
+import { executeLocalCommand } from "../src/project.js";
+import type { AgentRuntimeControlContext } from "../src/agent-runtime-control-local.js";
+// Real Kernel/SQLite and original-claim/collection code. Agent qualification,
+// owner identity and incomplete Native claim are explicitly constructed; no OS
+// process, actual model or formal admission is established by these contracts.
+describe("original Agent Unknown observation joins the Kernel receipt",()=>{
+ let root:string,f:ReturnType<typeof createAgentRunProject>,local:AgentRuntimeControlContext,runId:string,claim:ReturnType<typeof claimAgentRuntimeOperation>;
+ const collect=vi.fn<typeof collectAgentRuntimeOperation>();let service:LocalAgentRuntimeObservation;
+ const command=()=>({command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:"technical_owner",command_type:"RecordRunObservation",
+ target:{object_type:"run",id:runId},expected_revision:f.store.getRun(runId)!.revision,payload:{}});
+ const seed=()=>{const scope=originalAgentWorkspaceScope({...local,store:f.store,caller:f.caller,kernel:f.kernel},runId);
+ claim=claimAgentRuntimeOperation(local.location.dataDirectory,scope,{purpose:"constructed-incomplete-original"},{pid:1234,creation_ticks:"123456",image:process.execPath});};
+ beforeEach(()=>{vi.resetAllMocks();root=mkdtempSync(join(tmpdir(),"cimiloop-agent-observation-contract-"));f=createAgentRunProject(root);
+ runId=f.reserveAgent(f.prepareAgent()).run.id;local={store:f.store,instance:{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at},
+ location:{repositoryKind:"git",repositoryPath:root,dataDirectory:dirname(f.path),databasePath:f.path,instancePath:join(dirname(f.path),"instance.json"),suggestedName:"Constructed observation contract"},
+ kernel:new CimiLoopKernel({store:f.store,caller:{kind:"local_operator",project_id:f.project.id,actor_id:f.actor.id},runVerifier:new LocalRunVerifier(root,dirname(f.path))})};
+ collect.mockImplementation(collectAgentRuntimeOperation);service=new LocalAgentRuntimeObservation(local,{collect});},60000);
+ afterEach(()=>{f?.store.close();if(root){if(dirname(root)!==resolve(tmpdir())||!basename(root).startsWith("cimiloop-agent-observation-contract-"))throw Error("Unsafe cleanup");rmSync(root,{recursive:true,force:true});}});
+ it("refuses to manufacture an observation for a Run with no original claim",async()=>{const sequence=f.store.asOfEventSequence();
+ await expect(service.record(command())).rejects.toMatchObject({code:"CAPABILITY_UNAVAILABLE"});expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage.cost_reserved_micros).toBe(100);});
+ it("records only Unknown with unknown cost from the original incomplete operation and replays one receipt across a new service",async()=>{
+ seed();const input=command(),sequence=f.store.asOfEventSequence(),first=await service.record(input);
+ expect(first).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{run_id:runId,status:"unknown",usage:{cost_known:false},producer_actor_id:f.actor.id}}}});
+ expect(await new LocalAgentRuntimeObservation(local,{collect}).record(input)).toEqual(first);expect(collect).toHaveBeenCalledTimes(1);
+ expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+ expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100,attempts_released:0});
+ expect(f.store.getRun(runId)!.status).toBe("Unknown");
+ });
+ it("rejects changes to a reused request, foreign identity, roles and unsupported payloads",async()=>{
+ seed();const input=command();await service.record(input);const sequence=f.store.asOfEventSequence();
+ await expect(service.record({...input,requested_at:new Date(Date.now()+1).toISOString()})).rejects.toMatchObject({code:"COMMAND_ID_REUSED"});
+ await expect(service.record({...command(),actor_id:f.agent.id})).rejects.toMatchObject({code:"INVALID_COMMAND"});
+ await expect(service.record({...command(),payload:{status:"succeeded"}})).rejects.toMatchObject({code:"INVALID_COMMAND"});
+ expect(await service.record({...command(),acting_role:"executor"})).toMatchObject({code:"ROLE_NOT_ASSIGNED"});expect(f.store.asOfEventSequence()).toBe(sequence);
+ });
+ it("rejects imported success, costs, changed proof pins and raw content corruption without releasing the original budget",async()=>{
+ seed();const first=await service.record(command());if(!("command_type" in first)||first.command_type!=="RecordRunObservation")throw Error("Expected observation");
+ const report=first.data.observation.report;if(report.format!=="cimiloop/agent-run/1.0.0")throw Error("Expected Agent report");
+ const content=new LocalRunVerifier(root,local.location.dataDirectory).content,sequence=f.store.asOfEventSequence();
+ for(const changed of [{status:"succeeded"},{usage:{cost_known:true,cost_micros:0,currency:"USD"}},{producer_actor_id:f.agent.id}]) {
+ const forged=content.storeContent(Buffer.from(JSON.stringify({...report,...changed})),"agent_run");
+ expect(executeLocalCommand(local,{...command(),payload:{raw_result_ref:forged}})).toMatchObject({code:"EVIDENCE_MISSING"});}
+ const file=join(local.location.dataDirectory,"objects",report.result_proof_ref.locator),bytes=readFileSync(file);try{writeFileSync(file,'{}');
+ expect(executeLocalCommand(local,{...command(),payload:{raw_result_ref:first.data.observation.raw_result_ref}})).toMatchObject({code:"EVIDENCE_MISSING"});}finally{writeFileSync(file,bytes);}
+ expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage.cost_reserved_micros).toBe(100);
+ });
+ it("recovers a committed response loss without recollecting or depending on later missing original Native files",async()=>{
+ seed();const input=command(),execute=local.kernel.execute.bind(local.kernel),sequence=f.store.asOfEventSequence();let lost=true;
+ local.kernel={getObject:local.kernel.getObject.bind(local.kernel),execute:raw=>{const result=execute(raw);if(lost&&!("code" in result)){lost=false;throw Error("Constructed committed response loss");}return result;}};
+ await expect(new LocalAgentRuntimeObservation(local,{collect}).record(input)).rejects.toThrow("Constructed committed response loss");
+ writeFileSync(join(claim.claimDirectory,"input.json"),'{}');collect.mockRejectedValue(Error("Must not recollect"));
+ expect(await new LocalAgentRuntimeObservation(local,{collect}).record(input)).toMatchObject({command_type:"RecordRunObservation"});
+ expect(collect).toHaveBeenCalledTimes(1);expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.task().usage.pending_reconciliation).toBe(true);
+ });
+ it("retains incomplete preparation after a lost collector response, resumes the same request and does not overwrite the first persisted report",async()=>{
+ seed();const input=command(),sequence=f.store.asOfEventSequence();collect.mockRejectedValueOnce(Error("Constructed collection response loss"));
+ await expect(service.record(input)).rejects.toMatchObject({code:"CAPABILITY_UNAVAILABLE"});expect(f.store.asOfEventSequence()).toBe(sequence);
+ expect(await new LocalAgentRuntimeObservation(local,{collect}).record(input)).toMatchObject({command_type:"RecordRunObservation"});
+ expect(collect).toHaveBeenCalledTimes(2);expect(f.store.asOfEventSequence()).toBe(sequence+1);
+ });
+ it("does not enable default Agent admission or tool execution when installing the original-result reader",()=>{
+ const verifier=new LocalRunVerifier(root,local.location.dataDirectory);expect(()=>verifier.agent!.admitContext(f.project,{} as never)).toThrow();
+ expect(verifier.agent!.checkToolAuthority).toBeUndefined();
+ });
+ it("retains one prepared report and one Kernel effect for simultaneous identical requests",async()=>{
+ seed();const input=command(),sequence=f.store.asOfEventSequence();let release!:()=>void,arrived!:()=>void;
+ const gate=new Promise<void>(done=>{release=done;}),both=new Promise<void>(done=>{arrived=done;});let calls=0;
+ collect.mockImplementation(async(...args)=>{if(++calls===2)arrived();await gate;return collectAgentRuntimeOperation(...args);});
+ const resultsPending=Promise.all([service.record(input),new LocalAgentRuntimeObservation(local,{collect}).record(input)]);
+ // Attach immediately so an early rejection remains an asserted test failure.
+ resultsPending.catch(()=>{});await Promise.race([both,resultsPending]);release();
+ const results=await resultsPending;expect(results[1]).toEqual(results[0]);expect(f.store.asOfEventSequence()).toBe(sequence+1);
+ expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(1);expect(f.task().usage.cost_reserved_micros).toBe(100);
+ });
+ it.each(["request","prepared"])("fails closed on a damaged persisted %s without rewriting it or producing an observation",async name=>{
+ seed();const input=command(),sequence=f.store.asOfEventSequence(),execute=local.kernel.execute.bind(local.kernel);
+ if(name==="request")collect.mockRejectedValueOnce(Error("Constructed collector interruption"));
+ else local.kernel={getObject:local.kernel.getObject.bind(local.kernel),execute:()=>{throw Error("Constructed precommit interruption");}};
+ await expect(service.record(input)).rejects.toThrow();local.kernel={getObject:local.kernel.getObject.bind(local.kernel),execute};
+ const file=join(local.location.dataDirectory,"agent-runtime-observations",f.project.id,runId,input.command_id,name+".json");writeFileSync(file,"broken");
+ await expect(new LocalAgentRuntimeObservation(local,{collect}).record(input)).rejects.toMatchObject({code:"EVIDENCE_MISSING",category:"storage"});
+ expect(readFileSync(file,"utf8")).toBe("broken");expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage.cost_reserved_micros).toBe(100);
+ });
+ it("accepts the bounded maximum IPC history plus original Runtime artifacts without claiming completion",async()=>{
+ seed();collect.mockImplementation(async(...args)=>{const collected=await collectAgentRuntimeOperation(...args);
+ // Constructed raw references exercise capacity, not real IPC/Native evidence.
+ collected.artifacts=Array.from({length:523},(_,index)=>{const name="constructed-history-"+index;
+ return {name,reference:rawReference(local.location.dataDirectory,Buffer.from("constructed-history"),"agent_runtime_original_bytes",name)};});return collected;});
+ expect(await service.record(command())).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"unknown",usage:{cost_known:false}}}}});
+ expect(f.task().usage.cost_reserved_micros).toBe(100);
+ });
+});

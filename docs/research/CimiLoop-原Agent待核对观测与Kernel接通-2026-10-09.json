@@ -1,0 +1,619 @@
+{
+  "decision": "D-235",
+  "date": "2026-10-09",
+  "base_commit": "682020e03c22a6febf42e9e96e65cce3bff6e467",
+  "scope": "Original Native capture -> shared Human observation service -> immutable Unknown RawAgentRunObservation -> Kernel receipt -> Workbench observation and same-command response-loss recovery. Full formal terminal result, live production admission/model-account/billing/quota/recovery and all five S1 groups remain incomplete.",
+  "environment": {
+    "platform": "win32",
+    "architecture": "x64",
+    "node": "24.19.0",
+    "pnpm": "12.4.2",
+    "opencode": "1.18.34",
+    "opencode_sha256": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e",
+    "installation": "D-233 frozen-lockfile installation retained; no dependency/lock changes. Exact pnpm12.4.2 and supported bundled Node24.19.0, ignored builds regenerated.",
+    "git": "main; origin/main refreshed during D-235 with no new remote commit; two previous unpushed local commits. No reset/clean/force push/push."
+  },
+  "engineering": {
+    "typecheck": {
+      "command": "pnpm check",
+      "exit_code": 0
+    },
+    "compiled_cli_help": {
+      "command": "node apps/cli/dist/bin.js --help",
+      "exit_code": 0
+    },
+    "documentation": {
+      "command": "node .cimiloop/new-host-s1/check-d235-docs.mjs",
+      "documents": 14,
+      "utf8": true,
+      "local_file_links": true,
+      "fenced_blocks": true,
+      "exit_code": 0
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    "tdd_red": [
+      {
+        "path": ".cimiloop/new-host-s1/d235-red-contract-fixed.json",
+        "sha256": "e5cc210526f36d284c6d6f529bc6743beda563e98682f0e45ad533742534e6a6",
+        "scope": "Proper red: six NotImplemented application paths and missing default Agent reader, after correcting private claim test import.",
+        "exit_code": 1,
+        "total": 7,
+        "passed": 0,
+        "failed": 7,
+        "pending": 0,
+        "success": false,
+        "files": [
+          {
+            "path": "packages/local-app/test/agent-runtime-observation-local.test.ts",
+            "status": "failed",
+            "tests": 7,
+            "failures": [
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt refuses to manufacture an observation for a Run with no original claim",
+                "reasons": [
+                  "Error: expected Error: NotImplemented to match object { code: 'CAPABILITY_UNAVAILABLE' }\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:32:41"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt records only Unknown with unknown cost from the original incomplete operation and replays one receipt across a new service",
+                "reasons": [
+                  "Error: NotImplemented\n    at LocalAgentRuntimeObservation.record (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-observation-local.ts:3:54)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:34:88\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt rejects changes to a reused request, foreign identity, roles and unsupported payloads",
+                "reasons": [
+                  "Error: NotImplemented\n    at LocalAgentRuntimeObservation.record (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-observation-local.ts:3:54)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:42:45\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt rejects imported success, costs, changed proof pins and raw content corruption without releasing the original budget",
+                "reasons": [
+                  "Error: NotImplemented\n    at LocalAgentRuntimeObservation.record (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-observation-local.ts:3:54)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:49:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt recovers a committed response loss without recollecting or depending on later missing original Native files",
+                "reasons": [
+                  "Error: expected [Function] to throw error including 'Constructed committed response loss' but got 'NotImplemented'\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:62:79"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt retains incomplete preparation after a lost collector response, resumes the same request and does not overwrite the first persisted report",
+                "reasons": [
+                  "Error: expected Error: NotImplemented to match object { code: 'CAPABILITY_UNAVAILABLE' }\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:69:37"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt does not enable default Agent admission or tool execution when installing the original-result reader",
+                "reasons": [
+                  "TypeError: Cannot read properties of undefined (reading 'checkToolAuthority')\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:75:25\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)"
+                ]
+              }
+            ]
+          }
+        ],
+        "command": "pnpm exec vitest run packages/local-app/test/agent-runtime-observation-local.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d235-red-contract-fixed.json"
+      },
+      {
+        "path": ".cimiloop/new-host-s1/d235-identity-red.json",
+        "sha256": "0eddee64077beeb9dd811a3fbc7e9fe8671aa5e369c9825680f5d982cb517f66",
+        "scope": "Proper red: original-identity reader absent, two new failures with five existing passes.",
+        "exit_code": 1,
+        "total": 7,
+        "passed": 5,
+        "failed": 2,
+        "pending": 0,
+        "success": false,
+        "files": [
+          {
+            "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+            "status": "failed",
+            "tests": 7,
+            "failures": [
+              {
+                "name": "one original Runtime claim per native Run and operation key reads the original identity and full input without starting or updating an operation",
+                "reasons": [
+                  "TypeError: (0 , __vite_ssr_import_6__.readAgentRuntimeOriginalIdentity) is not a function\n    at D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts:55:22\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)"
+                ]
+              },
+              {
+                "name": "one original Runtime claim per native Run and operation key does not return original identity for replaced input or a foreign scope",
+                "reasons": [
+                  "AssertionError: expected [Function] to throw error including 'agent_runtime_claim_unproven' but got '(0 , __vite_ssr_import_6__.readAgentR…'\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2277:114)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)\n    at Proxy.methodWrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)\n    at D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts:64:104\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35"
+                ]
+              }
+            ]
+          }
+        ],
+        "command": "pnpm exec vitest run packages/runtime-adapter/test/agent-runtime-operation.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d235-identity-red.json"
+      },
+      {
+        "path": ".cimiloop/new-host-s1/d235-http-ui-red.json",
+        "sha256": "9ccd876055720f6f889aeb14b642ffa1a0e0bf92a359fe45e58717391849ee16",
+        "scope": "Proper red: missing observe endpoint/button; seven preexisting passes and three new failures.",
+        "exit_code": 1,
+        "total": 10,
+        "passed": 7,
+        "failed": 3,
+        "pending": 0,
+        "success": false,
+        "files": [
+          {
+            "path": "apps/workbench/test/agent-runtime-control.test.ts",
+            "status": "failed",
+            "tests": 8,
+            "failures": [
+              {
+                "name": "Workbench controls original Agent Runs with Human Kernel authority refuses to invent an observation without the original registration and rejects report/caller overrides",
+                "reasons": [
+                  "AssertionError: expected { ok: false, code: 'ROUTE_NOT_FOUND' } to match object { code: 'CAPABILITY_UNAVAILABLE' }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2040:10)\n    at Proxy.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:1934:14)\n    at Proxy.methodWrapper (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)\n    at D:/cc/cimi-ai-native/apps/workbench/test/agent-runtime-control.test.ts:87:76"
+                ]
+              },
+              {
+                "name": "Workbench controls original Agent Runs with Human Kernel authority records one original Unknown observation with the Human identity and keeps cancellation and budget pending",
+                "reasons": [
+                  "AssertionError: expected 404 to be 200 // Object.is equality\n    at D:/cc/cimi-ai-native/apps/workbench/test/agent-runtime-control.test.ts:99:26\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+                ]
+              }
+            ]
+          },
+          {
+            "path": "apps/workbench/test/agent-runtime-frontend.test.ts",
+            "status": "failed",
+            "tests": 2,
+            "failures": [
+              {
+                "name": "Agent stop survives browser response loss retains the exact observe command and Agent endpoint across reload, then replays one Kernel effect",
+                "reasons": [
+                  "TypeError: Cannot read properties of undefined (reading 'click')\n    at D:/cc/cimi-ai-native/apps/workbench/test/agent-runtime-frontend.test.ts:48:56\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+                ]
+              }
+            ]
+          }
+        ],
+        "command": "pnpm exec vitest run apps/workbench/test/agent-runtime-control.test.ts apps/workbench/test/agent-runtime-frontend.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d235-http-ui-red.json"
+      },
+      {
+        "path": ".cimiloop/new-host-s1/d235-capacity-red-fixed.json",
+        "sha256": "5169bbab52c71fcc5f1e7c2e1039a0158b2fcad5b0d61f382ecc4c14759dfcb8",
+        "scope": "Proper targeted capacity red after strict JSON prototype correction: 523 original artifacts rejected by old256 bound. Ten filtered contracts are intentionally unselected, not Native skips or acceptance passes.",
+        "exit_code": 1,
+        "total": 11,
+        "passed": 0,
+        "failed": 1,
+        "pending": 10,
+        "success": false,
+        "files": [
+          {
+            "path": "packages/local-app/test/agent-runtime-observation-local.test.ts",
+            "status": "failed",
+            "tests": 11,
+            "failures": [
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt accepts the bounded maximum IPC history plus original Runtime artifacts without claiming completion",
+                "reasons": [
+                  "Error: 原操作观测尚未形成可核对资料；保留原请求与预算\n    at LocalAgentRuntimeObservation.record (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-observation-local.ts:108:17)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:102:9\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+                ]
+              }
+            ]
+          }
+        ],
+        "command": "pnpm exec vitest run packages/local-app/test/agent-runtime-observation-local.test.ts -t 'bounded maximum IPC history' --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d235-capacity-red-fixed.json"
+      }
+    ],
+    "tdd_setup_errors": [
+      {
+        "report": "d235-red.json",
+        "reason": "Initial missing module produced no actual contract tests; not valid red evidence."
+      },
+      {
+        "report": "d235-red-contract.json",
+        "reason": "Test import attempted private claim at package public index; corrected direct test-only source import before proper red."
+      },
+      {
+        "reason": "Initial typecheck diagnostics in test narrowing/export import corrected; no green assertion based on these attempts."
+      }
+    ],
+    "preliminary": [
+      {
+        "path": ".cimiloop/new-host-s1/d235-capacity-red.json",
+        "sha256": "5259275fa43fe803aae31235ef2279d6acf8c47b386074ee1ce98ff6aab6a058",
+        "scope": "Initial implementation: strict parser null-prototype objects compared to standard intent caused COMMAND_ID_REUSED; repaired by normalization only after strict key/UTF8 checks. Concurrent test had two unhandled rejections; attach Promise.all rejection immediately before waiting at collector barrier.",
+        "exit_code": 1,
+        "total": 18,
+        "passed": 9,
+        "failed": 9,
+        "pending": 0,
+        "success": false,
+        "files": [
+          {
+            "path": "packages/local-app/test/agent-runtime-observation-local.test.ts",
+            "status": "failed",
+            "tests": 11,
+            "failures": [
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt refuses to manufacture an observation for a Run with no original claim",
+                "reasons": [
+                  "Error: expected Error: 同Command ID的原观测输入已改变 { …(3) } to match object { code: 'CAPABILITY_UNAVAILABLE' }\n(2 matching properties omitted from actual)\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt records only Unknown with unknown cost from the original incomplete operation and replays one receipt across a new service",
+                "reasons": [
+                  "Error: 同Command ID的原观测输入已改变\n    at LocalAgentRuntimeObservation.record (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-observation-local.ts:94:45)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:35:88\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt rejects changes to a reused request, foreign identity, roles and unsupported payloads",
+                "reasons": [
+                  "Error: 同Command ID的原观测输入已改变\n    at LocalAgentRuntimeObservation.record (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-observation-local.ts:94:45)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:43:45\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt rejects imported success, costs, changed proof pins and raw content corruption without releasing the original budget",
+                "reasons": [
+                  "Error: 同Command ID的原观测输入已改变\n    at LocalAgentRuntimeObservation.record (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-observation-local.ts:94:45)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:50:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt recovers a committed response loss without recollecting or depending on later missing original Native files",
+                "reasons": [
+                  "Error: expected [Function] to throw error including 'Constructed committed response loss' but got '同Command ID的原观测输入已改变'\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:63:79"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt retains incomplete preparation after a lost collector response, resumes the same request and does not overwrite the first persisted report",
+                "reasons": [
+                  "Error: expected Error: 同Command ID的原观测输入已改变 { …(3) } to match object { code: 'CAPABILITY_UNAVAILABLE' }\n(2 matching properties omitted from actual)\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt retains one prepared report and one Kernel effect for simultaneous identical requests",
+                "reasons": [
+                  "Error: Test timed out in 15000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n    at task (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2681:43)\n    at Object.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2698:16)\n    at Object.<anonymous> (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2471:28)\n    at chain (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1859:14)"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt fails closed on a damaged persisted prepared without rewriting it or producing an observation",
+                "reasons": [
+                  "Error: expected Error: 同Command ID的原观测输入已改变 { …(3) } to match object { code: 'EVIDENCE_MISSING', …(1) }\n(1 matching property omitted from actual)\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)"
+                ]
+              },
+              {
+                "name": "original Agent Unknown observation joins the Kernel receipt accepts the bounded maximum IPC history plus original Runtime artifacts without claiming completion",
+                "reasons": [
+                  "Error: 同Command ID的原观测输入已改变\n    at LocalAgentRuntimeObservation.record (D:/cc/cimi-ai-native/packages/local-app/src/agent-runtime-observation-local.ts:94:45)\n    at D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts:100:23\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20"
+                ]
+              }
+            ]
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "tests": 7,
+            "failures": []
+          }
+        ],
+        "command": "pnpm exec vitest run packages/local-app/test/agent-runtime-observation-local.test.ts packages/runtime-adapter/test/agent-runtime-operation.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d235-capacity-red.json"
+      },
+      {
+        "path": ".cimiloop/new-host-s1/d235-focused.json",
+        "sha256": "074456d9e8b506f1cb0612180fd50de3a08383732aa5d9650dfe5692854f3815",
+        "scope": "Four affected application/identity/HTTP/DOM files, all28 passed. Constructed positive qualification/incomplete original owner/history; no OS/model admission.",
+        "exit_code": 0,
+        "total": 28,
+        "passed": 28,
+        "failed": 0,
+        "pending": 0,
+        "success": true,
+        "files": [
+          {
+            "path": "apps/workbench/test/agent-runtime-control.test.ts",
+            "status": "passed",
+            "tests": 8,
+            "failures": []
+          },
+          {
+            "path": "apps/workbench/test/agent-runtime-frontend.test.ts",
+            "status": "passed",
+            "tests": 2,
+            "failures": []
+          },
+          {
+            "path": "packages/local-app/test/agent-runtime-observation-local.test.ts",
+            "status": "passed",
+            "tests": 11,
+            "failures": []
+          },
+          {
+            "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+            "status": "passed",
+            "tests": 7,
+            "failures": []
+          }
+        ],
+        "command": "pnpm exec vitest run apps/workbench/test/agent-runtime-control.test.ts apps/workbench/test/agent-runtime-frontend.test.ts packages/local-app/test/agent-runtime-observation-local.test.ts packages/runtime-adapter/test/agent-runtime-operation.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d235-focused.json"
+      }
+    ],
+    "final": {
+      "path": ".cimiloop/new-host-s1/d235-final-regression.json",
+      "sha256": "2f186669c0ce24014b470173b4b7ce7f52b5fd3fc33d2ccf5c622266e3380c86",
+      "scope": "Frozen source: original Runtime identity, shared control/observation, Kernel/SQLite agent/tool authority, real CLI/HTTP/DOM, actual Windows checks/budget/Run/IPC/workspace integration. Affected scope, not whole repository or S1 acceptance.",
+      "exit_code": 1,
+      "total": 111,
+      "passed": 110,
+      "failed": 1,
+      "pending": 0,
+      "success": false,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-check-admission-runtime.test.ts",
+          "status": "passed",
+          "tests": 6,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+          "status": "failed",
+          "tests": 4,
+          "failures": [
+            {
+              "name": "native Task budget and original Windows clock caps a longer new host lifetime at the original native Task deadline",
+              "reasons": [
+                "Error: expected [Function] to throw error matching /workspace_rehearsal_deadline|agent_ru…/ but got 'native_control_unavailable'\n    at _Assertion.__VITEST_REJECTS__ (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/vitest@5.0.1_@types+node@24_d684638e37c0ff1b044c785ed16fa573/node_modules/vitest/dist/chunks/index.m3L2HgmY.js:2453:33)\n    at _Assertion.propertyGetter (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///D:/cc/cimi-ai-native/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at D:/cc/cimi-ai-native/tests/scenarios/agent-run-budget-runtime.test.ts:102:8"
+              ]
+            }
+          ]
+        },
+        {
+          "path": "tests/scenarios/agent-runtime-operation.test.ts",
+          "status": "passed",
+          "tests": 4,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+          "status": "passed",
+          "tests": 9,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/agent-workspace-tool-runtime.test.ts",
+          "status": "passed",
+          "tests": 8,
+          "failures": []
+        },
+        {
+          "path": "tests/scenarios/run-cli.test.ts",
+          "status": "passed",
+          "tests": 1,
+          "failures": []
+        },
+        {
+          "path": "apps/workbench/test/agent-runtime-control.test.ts",
+          "status": "passed",
+          "tests": 8,
+          "failures": []
+        },
+        {
+          "path": "apps/workbench/test/agent-runtime-frontend.test.ts",
+          "status": "passed",
+          "tests": 2,
+          "failures": []
+        },
+        {
+          "path": "apps/workbench/test/frontend.test.ts",
+          "status": "passed",
+          "tests": 3,
+          "failures": []
+        },
+        {
+          "path": "apps/workbench/test/server.test.ts",
+          "status": "passed",
+          "tests": 15,
+          "failures": []
+        },
+        {
+          "path": "packages/local-app/test/agent-runtime-control-local.test.ts",
+          "status": "passed",
+          "tests": 7,
+          "failures": []
+        },
+        {
+          "path": "packages/local-app/test/agent-runtime-observation-local.test.ts",
+          "status": "passed",
+          "tests": 11,
+          "failures": []
+        },
+        {
+          "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+          "status": "passed",
+          "tests": 7,
+          "failures": []
+        },
+        {
+          "path": "packages/store-sqlite/test/agent-runs.test.ts",
+          "status": "passed",
+          "tests": 11,
+          "failures": []
+        },
+        {
+          "path": "packages/store-sqlite/test/agent-tool-authority.test.ts",
+          "status": "passed",
+          "tests": 15,
+          "failures": []
+        }
+      ],
+      "command": "pnpm exec vitest run tests/scenarios/agent-check-admission-runtime.test.ts tests/scenarios/agent-run-budget-runtime.test.ts tests/scenarios/agent-runtime-operation.test.ts tests/scenarios/agent-workspace-ipc-runtime.test.ts tests/scenarios/agent-workspace-tool-runtime.test.ts tests/scenarios/run-cli.test.ts apps/workbench/test/agent-runtime-control.test.ts apps/workbench/test/agent-runtime-frontend.test.ts apps/workbench/test/frontend.test.ts apps/workbench/test/server.test.ts packages/local-app/test/agent-runtime-control-local.test.ts packages/local-app/test/agent-runtime-observation-local.test.ts packages/runtime-adapter/test/agent-runtime-operation.test.ts packages/store-sqlite/test/agent-runs.test.ts packages/store-sqlite/test/agent-tool-authority.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d235-final-regression.json"
+    },
+    "source_freeze": {
+      "manifest_sha256": "98254408688ba98466e2436270b7f1f2338460d542d7b40bbd225ae5f46770b4",
+      "source_files": 306,
+      "after_run_changed": 0
+    },
+    "independent_review": {
+      "status": "Engineering read-only review completed; capacity256 mismatch corrected to actual523 bound and contracts added; strict JSON prototype normalization reviewed without further required changes.",
+      "method": "requesting-code-review explicitly authorized reviewer subagent; this ordinary code review is NOT real Matt/V1-22 qualification."
+    },
+    "same_source_failure_recheck": {
+      "path": ".cimiloop/new-host-s1/d235-failure-recheck.json",
+      "sha256": "a0d7bcfbeb909398f73dedd26776fbbb27e9c0a3446035260d983ba2d1ded44f",
+      "scope": "Only failed files rechecked with same frozen source; does not replace original final failure evidence.",
+      "exit_code": 0,
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "pending": 0,
+      "success": true,
+      "files": [
+        {
+          "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+          "status": "passed",
+          "tests": 4,
+          "failures": []
+        }
+      ],
+      "command": "pnpm exec vitest run tests/scenarios/agent-run-budget-runtime.test.ts --maxWorkers=1 --reporter=default --reporter=json --outputFile=.cimiloop/new-host-s1/d235-failure-recheck.json"
+    }
+  },
+  "implementation": {
+    "entry": "Human fixed Project/instance -> canonical original Agent Run/record/context -> original unique claim/input -> Native collector -> immutable collection/proof/report -> prepared journal -> shared Kernel RecordRunObservation -> Workbench original receipt",
+    "kernel_authority": "Kernel owns Human role/time/pin/current-context/CAS/report/budget/receipt validation. Default LocalRunVerifier agent rejects admission and has no tool-authority port.",
+    "report": "Always Unknown, cost_known false, direct Human observation, original Run/operation/pins. No success/status/cost/caller/rawref HTTP overrides.",
+    "response_loss": "Persist request and first prepared refs with wx+fsync. Exact prepared retry never recollects. Committed Kernel receipt returns even after later original Native input damage; new import still requires full original proof.",
+    "concurrent": "Simultaneous identical collection is read-only; first prepared wins, Kernel creates one domain effect. Same Command ID changed request rejected; damaged request/prepared files retained and fail closed with storage errors.",
+    "history": "523 artifacts =128exchanges*4+IPCheader+9Runtimefiles+checkcatalog; each bounded4MiB. Explicit constructed maximum-history contract, not historical storage quota/capacity acceptance.",
+    "json": "fatal UTF8, strict duplicate/dangerous-key rejecting parser before structuredClone normalizes null-prototype parsed objects for exact persisted value checks.",
+    "compatibility": "242 Schema/format10/lockfile unchanged, no migrations or user DB upgrades. Browser-only transport marker stripped before Kernel; existing Human commands/Agent stops retain their original paths."
+  },
+  "native_boundary": {
+    "actual": "Extended real Windows Workbench scenario: actual SDK IPC wait -> Human Kernel cancellation -> original stop/collection/recovery -> one Unknown RunObservation and exact same-command receipt replay; pending budget, unchanged file, one Run.",
+    "constructed": "Positive Agent qualification, model replies and IPC waiting test hook remain constructed; application/HTTP/DOM incomplete owner claims and max523 raw refs explicitly constructed.",
+    "not_proven": "Formal success/failed terminal import or bill settlement; actual model/account/skill/Matt/Superpowers admission; production launch/resume; complete quota/history retention/recovery/S1. D-233/D-234 startup failures and historical Unknown resources stay separate even if later fixtures pass.",
+    "final_native_failure": "Existing original Task deadline scenario expected bounded deadline/budget interruption but received native_control_unavailable. Root cause unproven; does not establish successful original deadline scenario or resolved Native startup stability.",
+    "retained_failed_own_fixtures": [],
+    "retention": "Owned actual resource fixtures are removed only after original disposal proof; failed or ambiguous fixtures retained. No bulk Temp/profile/mapping or historical Unknown cleanup."
+  },
+  "evidence_boundaries": {
+    "actual_credentials_read": 0,
+    "external_model_requests": 0,
+    "paid_requests": 0,
+    "real_skill_calls": 0,
+    "model_account_custody_proven": false,
+    "formal_agent_execution_enabled": false,
+    "domain_observation_produced": true,
+    "domain_observation_kind": "Human Unknown from original collection only",
+    "costs_reconciled": false,
+    "s1_accepted": false,
+    "schema_count": 242,
+    "schema_v1": 18,
+    "schema_v2": 224,
+    "database_format": 10,
+    "user_database_upgraded": false
+  },
+  "remaining": {
+    "V1_09": "Complete formal Runtime admission/composition and terminal result/model/account custody, approved model/plan/cash/points/bills, physical quota/history capacity, original reservation clock/full recovery and new-host Native stability.",
+    "V1_21": "Real skills and pre-Plan/Task Human/Matt clarification.",
+    "V1_22": "Real Matt independent complete review, current-source fresh Superpowers and actual behavior comparison.",
+    "V1_10": "Original control and Unknown observation now usable; formal Agent launch/execution resumption/full lifecycle still required.",
+    "V1_11": "Real ordinary Change->ReadyForDelivery with real skills/interruption recovery/S1/operator guide."
+  },
+  "changed_files": [
+    {
+      "path": "CONTEXT.md",
+      "sha256": "486a352648fb8ae4bc724be568a4053c4f8cb68b4c86ae801dd8fa8d4bfddf05"
+    },
+    {
+      "path": "README.md",
+      "sha256": "dd402cdfc3bec854c6cd3305e7c6f8f3ec1fda3283bedc617577ea01a4b9b8a1"
+    },
+    {
+      "path": "apps/workbench/public/app.js",
+      "sha256": "0a23dd2083321f1d7e7439d9fe5afd81230adf7a95faa81e3f617df3293d7d06"
+    },
+    {
+      "path": "apps/workbench/src/server.ts",
+      "sha256": "bfa88d9fe6b1de98b7ea5214bc1859a4fd78214d1134ada8ee3caa6906b5ab61"
+    },
+    {
+      "path": "apps/workbench/test/agent-runtime-control.test.ts",
+      "sha256": "fb667f55b31ae3f1278f03be54a377bb4150d8d693f0a3f75b320ae295f785fc"
+    },
+    {
+      "path": "apps/workbench/test/agent-runtime-frontend.test.ts",
+      "sha256": "aff624c89a8744da52d7e9dedb8fd3f48d3f29ad11e7d938b77ddd75ad1d0a94"
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "27eb5a8bf5b18a8a5473ebf543eb84299912a1281821ee4a39a1721c63939fdf"
+    },
+    {
+      "path": "docs/architecture/CimiLoop整体能力架构-v0.1.md",
+      "sha256": "1efa673164232f00db385441423f37f7c34f0e1620810dd446a520ac657cfa5e"
+    },
+    {
+      "path": "docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md",
+      "sha256": "9c9bc527619d16ad1b2bb9a6b0a48a0db26d8e2c8663d116cba457b64edfddd5"
+    },
+    {
+      "path": "docs/implementation/README.md",
+      "sha256": "2ef04560cefa1b152140ddb483d6bf90129cc3ffe8a8d6c6372dec84f0540cb6"
+    },
+    {
+      "path": "docs/plans/2026-09-18-cimiloop-capability-architecture-discussion-plan.md",
+      "sha256": "2a72e9a65383d503124fa8a09e6c3a1ce8101da9f0ffcb93ba3f0e5d882ea21c"
+    },
+    {
+      "path": "docs/plans/2026-10-09-cimiloop-S1跨电脑接续.md",
+      "sha256": "dd2278cdd9dca7c7bb0502104550438b128e390b2447278ba1d1bddfab345a37"
+    },
+    {
+      "path": "docs/research/README.md",
+      "sha256": "dd02df2ded156c0b98c81c196e84c16e15ed27cac2f078d958a00fc45eed71ba"
+    },
+    {
+      "path": "packages/local-app/src/agent-runtime-control-local.ts",
+      "sha256": "205036c9f838f7a170c870fc986ee851c6abc60364cb90d682b6c04d2ee427b6"
+    },
+    {
+      "path": "packages/local-app/src/index.ts",
+      "sha256": "f6c4daee56be567870c8196a57dfcf599b0204cd69f7d744de66eb45784ed663"
+    },
+    {
+      "path": "packages/local-app/src/runs-local.ts",
+      "sha256": "4d6024fa90db43ec10be2822fa58e24ebaf09a2c1303ff4ab620ced2f71c0291"
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-runtime-operation.ts",
+      "sha256": "d9a635b506e5be73c902b22aeeb8c324027b0d34d07a02c5dd8eb139dffb12f8"
+    },
+    {
+      "path": "packages/runtime-adapter/src/index.ts",
+      "sha256": "2d3b9bc0954aec6b677bcab56dc038faf10fcd96c5f0a73d92af7622ac3dd622"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+      "sha256": "634664401ff82c2c56140eed57567a3437896c3452559984467ce8d37e48d486"
+    },
+    {
+      "path": "tests/scenarios/agent-runtime-operation.test.ts",
+      "sha256": "ea79fd6728e0e4386ff06acd381d1ce851b3ea9645f11e2876ca4cf94ffa4d44"
+    },
+    {
+      "path": "docs/implementation/CimiLoop-原Agent待核对观测与Kernel接通-v0.1.md",
+      "sha256": "f481dfb87b008975e3d9e046a9e36aaf79dbd564d87f6b437c094f61b35667f2"
+    },
+    {
+      "path": "packages/local-app/src/agent-runtime-observation-local.ts",
+      "sha256": "aefa6ba843441e076c6d50c590fba8e910803480637704adbbff17477e8266a9"
+    },
+    {
+      "path": "packages/local-app/test/agent-runtime-observation-local.test.ts",
+      "sha256": "ee1493b6617ff9bb2eeff8910666ea1f0a58e8591ccd3cc7eb42ce7079d317fa"
+    }
+  ]
+}

@@ -113,7 +113,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     expect(f.task().usage).toEqual(usage); expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
     expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
   });
-  it("joins Human Workbench cancellation to the actual original SDK wait, collection and resource recovery", async () => {
+  it("joins Human Workbench cancellation, collection, Unknown observation and receipt replay to the actual original SDK wait", async () => {
     const f = await setup();
     writeInstance(join(f.dataDirectory, "instance.json"), { schema_version: "1.0.0", instance_id: f.project.instance_id,
       project_id: f.project.id, actor_id: f.actor.id, created_at: f.project.created_at });
@@ -152,8 +152,15 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     const collected = await request("collect", {});
     expect(collected).toMatchObject({ operation: { outcome: "observed", result: { native: { status: "Unknown" }, domain_observation_produced: false } } });
     expect(await request("recover", {})).toMatchObject({ operation: { outcome: "observed", result: { outcome: "recovered", resources_disposed: true, completion_proven: false } } });
-    expect(f.store.asOfEventSequence()).toBe(sequence + 1); expect(f.store.listRuns(f.change.id)).toHaveLength(1);
-    expect(f.store.listRuntimeRecords("run_observation", f.change.id)).toHaveLength(0);
+    const observe = { command_id: createInternalId(), requested_at: new Date().toISOString(), acting_role: "technical_owner", command_type: "RecordRunObservation",
+      target: { object_type: "run", id: f.reserved.run.id }, expected_revision: f.store.getRun(f.reserved.run.id)!.revision, payload: {} };
+    const observation = await request("observe", observe);
+    expect(observation).toMatchObject({ command_type: "RecordRunObservation", data: { observation: { report: { run_id: f.reserved.run.id,
+      status: "unknown", producer_actor_id: f.actor.id, usage: { cost_known: false } } } } });
+    expect(await request("observe", observe)).toEqual(observation);
+    expect(f.store.asOfEventSequence()).toBe(sequence + 2); expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+    expect(f.store.listRuntimeRecords("run_observation", f.change.id)).toHaveLength(1);
+    expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Unknown");
     expect(f.task().usage).toMatchObject({ pending_reconciliation: true, cost_reserved_micros: 100 });
     expect(readFileSync(join(f.root, "src/query.ts"), "utf8")).toBe("export const query = () => 1;\n");
   });

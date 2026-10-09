@@ -6,6 +6,8 @@ import { createInternalId } from "@cimiloop/protocol/v2";
 import { writeInstance } from "@cimiloop/local-app";
 import { createAgentRunProject } from "../../../tests/fixtures/agent-run-project.js";
 import { startWorkbench, type WorkbenchServer } from "../src/server.js";
+import { claimAgentRuntimeOperation } from "../../../packages/runtime-adapter/src/agent-runtime-operation.js";
+import { originalAgentWorkspaceScope } from "../../../packages/local-app/src/agent-workspace-tools-local.js";
 
 // Actual HTTP/SQLite control with constructed Agent qualification, no OS Run
 // or model effect. Missing original Native registration must remain Unknown.
@@ -79,5 +81,24 @@ describe("Workbench controls original Agent Runs with Human Kernel authority", (
       expect(result.status).toBe(200);expect(result.body.operation.outcome).toBe("unknown");expect(result.body.starts_run).toBe(false);
     }
     expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+  });
+  it("refuses to invent an observation without the original registration and rejects report/caller overrides",async()=>{
+    const sequence=f.store.asOfEventSequence(),input={...stop(),command_type:"RecordRunObservation",payload:{}};
+    expect((await request(`/api/agent-runs/${runId}/observe`,input)).body).toMatchObject({code:"CAPABILITY_UNAVAILABLE"});
+    expect((await request(`/api/agent-runs/${runId}/observe`,{...input,actor_id:f.agent.id})).status).toBe(400);
+    expect((await request(`/api/agent-runs/${runId}/observe`,{...input,payload:{status:"succeeded"}})).status).toBe(400);
+    expect(f.store.asOfEventSequence()).toBe(sequence);
+  });
+  it("records one original Unknown observation with the Human identity and keeps cancellation and budget pending",async()=>{
+    // Constructed original claim only, no Native process or model effect.
+    const scope=originalAgentWorkspaceScope({store:f.store,kernel:f.kernel,caller:f.caller,location:{repositoryKind:"git",repositoryPath:root,
+      dataDirectory:dirname(f.path),databasePath:f.path,instancePath:join(dirname(f.path),"instance.json"),suggestedName:"Constructed Unknown HTTP claim"}},runId);
+    claimAgentRuntimeOperation(dirname(f.path),scope,{purpose:"constructed-incomplete-http-claim"},{pid:1234,creation_ticks:"123456",image:process.execPath});
+    const input={...stop(),command_type:"RecordRunObservation",payload:{}},sequence=f.store.asOfEventSequence();
+    const first=await request(`/api/agent-runs/${runId}/observe`,input),second=await request(`/api/agent-runs/${runId}/observe`,input);
+    expect(first.status).toBe(200);expect(second.body).toEqual(first.body);
+    expect(first.body).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"unknown",producer_actor_id:f.actor.id,usage:{cost_known:false}}}}});
+    expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(1);
+    expect(f.store.getRun(runId)!.cancel_requested).toBe(true);expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});
   });
 });

@@ -1,7 +1,7 @@
 export { IsolatedProbeAdapter, normalizeOpenCode, validateOperationInput, validateOperationRequest, parseRuntimeOperation, openProbeOperation } from "./operations.js";
 export type { ProbeOperationInput, ProbeDriver, NativeProof, OperationRequest } from "./operations.js";
 export { runOpenCodeProbe, parseRuntimeProbe } from "./probe.js";
-export { RuntimeAdapterError, digest } from "./files.js";
+export { RuntimeAdapterError, digest, bytesAt, directory } from "./files.js";
 export { copyToolJson } from "./tool-journal.js";
 export { recoverProbeOperation, parseRuntimeRecovery } from "./recovery.js";
 export { parseExecutionPolicy, requireSupportedExecutionPolicy, defaultExecutionPolicy } from "./execution-policy.js";
@@ -34,6 +34,6 @@ export { openWindowsAgentRunClock, parseAgentRunClock } from "./agent-run-clock.
 export type { AgentRunClockReading } from "./agent-run-clock.js";
 export { AgentRunBudget } from "./agent-run-budget.js";
 export type { AgentRunBudgetBasis, AgentRunBudgetPorts } from "./agent-run-budget.js";
-export { queryAgentRuntimeOperation, requestAgentRuntimeCancellation, recoverAgentRuntimeOperation, collectAgentRuntimeOperation } from "./agent-runtime-operation.js";
+export { queryAgentRuntimeOperation, requestAgentRuntimeCancellation, recoverAgentRuntimeOperation, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity } from "./agent-runtime-operation.js";
 export { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } from "./agent-workspace-ipc-journal.js";
 export { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";

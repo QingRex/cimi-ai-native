@@ -73,7 +73,8 @@ const replay = async () => {
   let committed = false;
   try {
     const { agent_runtime_control, ...command } = state.pending;
-    const path = agent_runtime_control === true ? `/api/agent-runs/${encodeURIComponent(command.target.id)}/stop` : "/api/commands";
+    const action = command.command_type === "RecordRunObservation" ? "observe" : "stop";
+    const path = agent_runtime_control === true ? `/api/agent-runs/${encodeURIComponent(command.target.id)}/${action}` : "/api/commands";
     const result = await api(path, command); state.pending = null; committed = true;
     try { sessionStorage.removeItem(`cimiloop.pending.${state.context.project_id}`); } catch {}
     showNotice(result.operation?.outcome === "unknown" ? "停止请求已记录，原运行状态仍待核对。正在刷新项目事实。" : "动作已记录，正在刷新项目事实。");
@@ -168,8 +169,9 @@ const taskPanel = (task, data) => {
         output.replaceChildren(paragraph(response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
       };
       result.append(node("div", { class: "row" }, button("查询原运行", () => observe("")), button("采集原资料", () => observe("collect")),
+        button("记录待核对观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
         ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,
-        paragraph("正式 Agent 执行尚未启用。这里控制已有原运行；恢复原资源后仍须核对任务结果与费用。"));
+        paragraph("正式 Agent 执行尚未启用。原采集可记录为待核对观测；任务结果与费用未确认前，预算继续保留。"));
     }
     result.append(form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision,
       agent ? "technical_owner" : "executor", agent), input("reason", "停止理由", { required: true }), submit(agent ? "请求停止原运行" : "请求停止运行")));

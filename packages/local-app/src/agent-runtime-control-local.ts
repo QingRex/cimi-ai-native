@@ -19,20 +19,23 @@ export type AgentRuntimeControlContext = Pick<LocalProject, "location" | "instan
 };
 const defaults: AgentRuntimeControlPort = { query: queryAgentRuntimeOperation, collect: collectAgentRuntimeOperation,
   requestCancellation: requestAgentRuntimeCancellation, recover: recoverAgentRuntimeOperation };
+export const readHumanOriginalAgentRunInputs = (local: AgentRuntimeControlContext, runId: string) => {
+  const { store, instance, location } = local, project = store.getProject(), operator = store.getActor(instance.actor_id);
+  if (!project || project.id !== instance.project_id || project.instance_id !== instance.instance_id || operator?.actor_type !== "human" ||
+    operator.project_id !== project.id || resolve(project.repository_path) !== resolve(location.repositoryPath)) {
+    throw new LocalProjectError("当前 Human 入口与原项目不符", "CALLER_IDENTITY_MISMATCH", "forbidden");
+  }
+  const read = local.kernel.getObject("run", runId); if ("code" in read) throw read;
+  try { return readOriginalAgentRunInputs(local, runId); }
+  catch { throw new LocalProjectError("原 Agent 运行资料缺失或固定关系不符", "CAPABILITY_UNAVAILABLE", "conflict"); }
+};
 // Human project control never impersonates the original Agent. Cancellation
 // authority is the Kernel command; this service only joins its original effect.
 // No start/resume entry, domain observation or cost settlement is installed.
 export class LocalAgentRuntimeControl {
   constructor(private readonly local: AgentRuntimeControlContext, private readonly port: AgentRuntimeControlPort = defaults) {}
   private original(runId: string) {
-    const { store, instance, location } = this.local, project = store.getProject(), operator = store.getActor(instance.actor_id);
-    if (!project || project.id !== instance.project_id || project.instance_id !== instance.instance_id || operator?.actor_type !== "human" ||
-      operator.project_id !== project.id || resolve(project.repository_path) !== resolve(location.repositoryPath)) {
-      throw new LocalProjectError("当前 Human 入口与原项目不符", "CALLER_IDENTITY_MISMATCH", "forbidden");
-    }
-    const read = this.local.kernel.getObject("run", runId); if ("code" in read) throw read;
-    try { return readOriginalAgentRunInputs(this.local, runId); }
-    catch { throw new LocalProjectError("原 Agent 运行资料缺失或固定关系不符", "CAPABILITY_UNAVAILABLE", "conflict"); }
+    return readHumanOriginalAgentRunInputs(this.local, runId);
   }
   private async observe(original: ReturnType<LocalAgentRuntimeControl["original"]>, action: () => unknown | Promise<unknown>) {
     let operation: Operation;

@@ -1,5 +1,7 @@
 # CimiLoop
 
+2026-10-09 D-235：原Agent采集已接共享应用服务、工作台和Kernel Unknown RunObservation；固定原请求及rawref，响应丢失重放同一Kernel回执，不重开Run、不结清费用或释放预算。默认启动与工具权限仍关闭，完整正式终态 / 模型账户 / 配额 / 全恢复及五组S1继续实施，242 Schema / 格式10保持，见[原待核对观测](docs/implementation/CimiLoop-原Agent待核对观测与Kernel接通-v0.1.md).
+
 2026-10-09 D-234：共享应用服务与工作台已接 Human 对原 Agent Run 的查询、采集、Kernel 取消后原停止标记重送及原资源恢复；浏览器丢响应后保留同一 Command ID 和 Agent 控制入口。停止不产生领域结果或结清预算，恢复资源不重启 Run。正式启动 / 接续执行与完整 S1 继续实施，242 Schema / 格式10保持，见[原运行控制](docs/implementation/CimiLoop-工作台原Agent运行控制-v0.1.md)。
 
 2026-10-09 D-233：原操作采集与共享应用服务已接独立 Native 原回执核验，重读文件账本、固定检查 dispatch / 原归属 / 策略 / 二进制及原快照，并与完整 IPC 输入 / 回执对应。丢响应、损坏或未结资料保留 Unknown；历史回执一致不代表当前源码通过、模型账户批准或费用结清。正式 Agent / RunObservation 与完整 S1 仍待接通，242 Schema / 格式10保持，见[实现与边界](docs/implementation/CimiLoop-Native原回执独立核验-v0.1.md)。

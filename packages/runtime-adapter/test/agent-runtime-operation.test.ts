@@ -4,7 +4,7 @@ import { join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { digest } from "../src/files.js";
-import { claimAgentRuntimeOperation, requestAgentRuntimeCancellation, queryAgentRuntimeOperation, recoverAgentRuntimeOperation } from "../src/agent-runtime-operation.js";
+import { claimAgentRuntimeOperation, requestAgentRuntimeCancellation, queryAgentRuntimeOperation, recoverAgentRuntimeOperation, readAgentRuntimeOriginalIdentity } from "../src/agent-runtime-operation.js";
 
 // Constructed scope and owner contract inputs only; no OS or model qualification.
 describe("one original Runtime claim per native Run and operation key", () => {
@@ -49,5 +49,21 @@ describe("one original Runtime claim per native Run and operation key", () => {
     const f = setup(), parent = join(f.root, "agent-runtime-claims", f.scope.project_id, "runs"); mkdirSync(join(parent, f.scope.run_id), { recursive: true });
     expect(() => claimAgentRuntimeOperation(f.root, f.scope, f.input, f.owner)).toThrow("agent_runtime_claim_incomplete");
     expect(existsSync(join(parent, f.scope.run_id, "claim.json"))).toBe(false);
+  });
+  it("reads the original identity and full input without starting or updating an operation", () => {
+    const f = setup(), claim = claimAgentRuntimeOperation(f.root, f.scope, f.input, f.owner), bytes = readFileSync(join(claim.claimDirectory,"claim.json"));
+    const original = readAgentRuntimeOriginalIdentity(f.root, f.scope);
+    expect(original).toMatchObject({ operation: claim.operation, operation_id: claim.operationId, scope: f.scope, input: f.input,
+      claim: { owner: f.owner, synthetic_model_responses: true, formal_agent_execution_enabled: false } });
+    if(!original.input||typeof original.input!=="object"||!("original" in original.input))throw Error("Expected original input");
+    original.input.original = "Detached mutation";
+    expect(readAgentRuntimeOriginalIdentity(f.root, f.scope).input).toEqual(f.input);
+    expect(readFileSync(join(claim.claimDirectory,"claim.json"))).toEqual(bytes);expect(existsSync(claim.operation)).toBe(false);
+  });
+  it("does not return original identity for replaced input or a foreign scope", () => {
+    const f = setup(), claim = claimAgentRuntimeOperation(f.root, f.scope, f.input, f.owner);
+    expect(()=>readAgentRuntimeOriginalIdentity(f.root,{...f.scope,context_digest:digest("foreign")})).toThrow("agent_runtime_claim_unproven");
+    writeFileSync(join(claim.claimDirectory,"input.json"),'{}');
+    expect(()=>readAgentRuntimeOriginalIdentity(f.root,f.scope)).toThrow("agent_runtime_input_unproven");
   });
 });

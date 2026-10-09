@@ -39,6 +39,14 @@ function load(root: string, rawScope: unknown) {
 }
 // No Run is started here. This original claim precedes native process creation.
 // Incomplete or conflicting claims are retained; there is no reset/restart API.
+// Read-only identity for an original observation. It grants no live process,
+// tool, model or billing authority, and never repairs a partial claim.
+export function readAgentRuntimeOriginalIdentity(root: string, rawScope: unknown) {
+  const original = load(root, rawScope), input = read(join(original.location.run, "input.json"));
+  const value = { scope: original.claim.scope, operation: original.operation, operation_id: original.claim.operation_id, claim: original.claim, input };
+  if (!isDeepStrictEqual(load(root, rawScope).claim, original.claim)) fail("agent_runtime_claim_changed");
+  return structuredClone({ ...value, identity_digest: digest(JSON.stringify(value)) });
+}
 export function claimAgentRuntimeOperation(root: string, rawScope: unknown, input: unknown, owner: CreditProcessIdentity) {
   const scope = parseAgentWorkspaceToolScope(rawScope), originalInput = copyToolJson(input), inputDigest = digest(JSON.stringify(originalInput)).value;
   if (!validWorkspaceWorkerIdentity(owner)) fail("agent_runtime_owner_unproven");

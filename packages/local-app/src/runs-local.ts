@@ -5,14 +5,21 @@ import { requestDigest, type RunVerifierPort } from "@cimiloop/kernel";
 import { compileValidator, WorkspaceManifestSchema, type Project, type SourceSnapshot, type WorkspaceManifest, type WorkspaceSnapshot, type RunObservation } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { readWorkspaceToolRunFacts } from "@cimiloop/runtime-adapter";
+import { LocalAgentRunResultVerifier } from "./agent-runtime-observation-local.js";
 
 const digest = (value: unknown) => ({ algorithm: "sha256" as const, value: requestDigest(value) });
 const bounded = (path: string) => !!path && !/[\\:%\x00-\x1f*?]/.test(path) && !path.startsWith("/") && path.split("/").every(p => !!p && p !== "." && p !== ".." && ![".git", ".cimiloop"].includes(p.toLowerCase()) && p === p.trim() && !p.endsWith(".") && !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(p));
 const contains = (allowed: string, path: string) => bounded(path) && (allowed === path || (allowed.endsWith("/**") && path.startsWith(allowed.slice(0, -2))));
 export class LocalRunVerifier implements RunVerifierPort {
   readonly content: LocalEvidenceVerifier;
+  readonly agent: NonNullable<RunVerifierPort["agent"]>;
   readonly tools: NonNullable<RunVerifierPort["tools"]> = { facts: (project, record) => readWorkspaceToolRunFacts(this.dataDirectory, project, record) };
-  constructor(readonly repositoryPath: string, readonly dataDirectory: string) { this.content = new LocalEvidenceVerifier(repositoryPath, dataDirectory); }
+  constructor(readonly repositoryPath: string, readonly dataDirectory: string) {
+    this.content = new LocalEvidenceVerifier(repositoryPath, dataDirectory);
+    const results = new LocalAgentRunResultVerifier(repositoryPath, dataDirectory);
+    this.agent = { admitContext: () => { throw new Error("Agent live admission unavailable"); },
+      readRunResult: (project, record, context, reference) => results.readRunResult(project, record, context, reference) };
+  }
   sourceDigest(project: Project, commitId: string) { return this.content.sourceDigest(project, commitId); }
   sourceIsCurrent(project: Project, snapshot: SourceSnapshot) { return this.content.sourceIsCurrent(project, snapshot); }
   #git(args: string[]): Buffer {
