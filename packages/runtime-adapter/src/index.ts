@@ -48,4 +48,4 @@ export type { AgentRuntimeModelPort, AgentRuntimeModelResponse } from "./agent-r
 
 export { selectAgentRuntimeLifetime, withinAgentRuntimeTaskBudget } from "./agent-runtime-lifetime.js";
 
-export { originalTaskResultContract, verifyOriginalTaskExecutionResult, type OriginalTaskExecutionResult } from "./agent-runtime-completion.js";
+export { originalTaskResultContract, verifyOriginalTaskExecutionResult, type OriginalTaskExecutionResult, type OriginalTaskDomainBasis } from "./agent-runtime-completion.js";

@@ -1,5 +1,6 @@
 import { isDeepStrictEqual } from "node:util";
-import { compileValidator, TaskDefinitionRecordSchema, type Project, type AgentRunRecord, type AgentContextManifest, type TaskDefinitionRecord } from "@cimiloop/protocol/v2";
+import { compileValidator, TaskDefinitionRecordSchema, ContractVersionSchema, PlanVersionSchema, TaskSchema, WorkItemSchema,
+  type Project, type AgentRunRecord, type AgentContextManifest, type TaskDefinitionRecord, type ContractVersion, type PlanVersion, type Task, type WorkItem } from "@cimiloop/protocol/v2";
 import { bytesAt, digest, RuntimeAdapterError } from "./files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { agentWorkspaceIpcScopeDigest } from "./agent-workspace-ipc.js";
@@ -29,13 +30,17 @@ export interface OriginalTaskExecutionResult {
   required_checks: { check_id: string; call_id: string; source_digest: string; source_basis_digest: string | null }[];
   native_effect_reverified: true; model_account_custody_proven: false; costs_reconciled: false; task_acceptance_proven: false; current_workspace_applicability_proven: false;
 }
+// Supplied independently from the Kernel's immutable records, never from the
+// Runtime packet or model answer. These pins describe the original Run's basis,
+// not the currently active Plan or a Task acceptance decision.
+export interface OriginalTaskDomainBasis { definition: TaskDefinitionRecord; contract: ContractVersion; plan: PlanVersion }
 
 // Historical execution-result verification, wired into the shared observation
 // service. Re-reads independent original Native ledgers; no call/Run is launched.
 // It cannot turn constructed model admission or token usage into account/bills,
 // nor can it substitute for Kernel Task evaluation or current source verification.
 export function verifyOriginalTaskExecutionResult(root: string, project: Project, record: AgentRunRecord, context: AgentContextManifest,
-  original: Original, collection: Collection): OriginalTaskExecutionResult | null {
+  original: Original, collection: Collection, domain?: OriginalTaskDomainBasis): OriginalTaskExecutionResult | null {
   try {
     const scope = original.scope, input = object(original.input), packet = object(json(Buffer.from(String(input.prompt)), 32768));
     if (collection.scope_digest !== agentWorkspaceIpcScopeDigest(scope) || collection.status.operation !== original.operation ||
@@ -44,7 +49,19 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
       collection.status.status !== "Stopped" || collection.status.resources_disposed !== true || collection.status.cancellation_requested !== false ||
       collection.synthetic_model_responses !== null || collection.model?.status !== "Observed" || collection.model.unresolved !== 0 ||
       collection.ipc?.status !== "Observed" || collection.ipc.unresolved !== 0 || collection.ipc.correlation?.uncorrelated_exchanges !== 0 || collection.ipc.correlation.unmatched_sdk_calls !== 0) return null;
-    const definition = compileValidator<TaskDefinitionRecord>(TaskDefinitionRecordSchema)(packet.definition), task = object(packet.task), item = object(packet.work_item), contract = object(packet.result_contract);
+    if (!domain) return null;
+    const definition = compileValidator<TaskDefinitionRecord>(TaskDefinitionRecordSchema)(packet.definition),
+      contractVersion = compileValidator<ContractVersion>(ContractVersionSchema)(packet.contract), plan = compileValidator<PlanVersion>(PlanVersionSchema)(packet.plan),
+      task = compileValidator<Task>(TaskSchema)(packet.task), item = compileValidator<WorkItem>(WorkItemSchema)(packet.work_item), contract = object(packet.result_contract);
+    if (!same(definition, domain.definition) || !same(contractVersion, domain.contract) || !same(plan, domain.plan) ||
+      [task, item, definition, contractVersion, plan].some(value => value.project_id !== project.id || value.change_id !== record.change_id) ||
+      contractVersion.id !== record.contract_ref.id || contractVersion.version !== record.contract_ref.domain_version ||
+      plan.id !== record.plan_ref.id || plan.version !== record.plan_ref.domain_version || !same(plan.body.contract_ref, record.contract_ref) ||
+      definition.body.version !== definition.version || !same(task.scope, definition.body.scope) || !same(item.scope, task.scope) ||
+      !same(item.definition_ref, record.definition_ref) || !same(item.contract_ref, record.contract_ref) || !same(item.plan_ref, record.plan_ref) ||
+      item.task_id !== record.task_id || !same(item.executor_ref, record.executor_ref) || !same(task.definition_ref, record.definition_ref) ||
+      plan.body.task_definitions.filter(value => value.task_id === record.task_id && value.version === definition.version).length !== 1 ||
+      !plan.body.task_definitions.some(value => same(value, definition.body))) return null;
     if (task.id !== record.task_id || item.id !== record.work_item_ref.id || definition.task_id !== record.task_id || definition.body.task_id !== record.task_id ||
       definition.project_id !== project.id || definition.change_id !== record.change_id || definition.id !== record.definition_ref.id || definition.version !== record.definition_ref.domain_version || !same(task.definition_ref, record.definition_ref) ||
       !same(definition.plan_ref, record.plan_ref) || !same(task.plan_ref, record.plan_ref) || !same(task.contract_ref, record.contract_ref) || !same(object(packet.plan).contract_ref, record.contract_ref)) return null;

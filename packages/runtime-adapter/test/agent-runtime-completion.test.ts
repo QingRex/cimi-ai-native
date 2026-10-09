@@ -53,7 +53,7 @@ describe("original structured Task execution result", () => {
       status: { status: "Stopped", operation: root, resources_disposed: true, cancellation_requested: false }, artifacts: [], synthetic_model_responses: null,
       model: { status: "Observed", calls: 2, unresolved: 0 }, ipc: { status: "Observed", unresolved: 0, correlation: null }, native: { status: "Verified" } };
   });
-  function verify(options: { packet?: any; refreshTerminal?: boolean; disposal?: any; result?: any; originalChange?: (root: string) => void; ipcChange?: () => void; snapshotChange?: () => void } = {}) {
+  function verify(options: { packet?: any; omitDomain?: boolean; refreshTerminal?: boolean; disposal?: any; result?: any; originalChange?: (root: string) => void; ipcChange?: () => void; snapshotChange?: () => void } = {}) {
     if (options.refreshTerminal !== false) { responses[1].content[0].text = JSON.stringify(terminal); events.find(event => event.type === "text").part.text = JSON.stringify(terminal); }
     collection.artifacts = []; const artifact = (name: string, value: any, raw = false) => { const bytes = Buffer.from(raw ? value : JSON.stringify(value)); collection.artifacts.push({ name, reference: rawReference(root, bytes, "agent_runtime_original_bytes", name) }); };
     const prompt = JSON.stringify(options.packet ?? base.packet), owner = { pid: 1234, creation_ticks: "1", image: process.execPath }, admission = digest("constructed unapproved model/account").value;
@@ -80,8 +80,39 @@ describe("original structured Task execution result", () => {
     collection.ipc.correlation = correlateAgentWorkspaceSdkOriginals(ipc, Buffer.from(stdout));
     options.originalChange?.(modelRoot); options.ipcChange?.(); options.snapshotChange?.();
     const original = { operation: root, scope: base.scope, input: { prompt, provider_options: { admission_digest: admission } }, claim: { owner } };
-    return verifyOriginalTaskExecutionResult(modelRoot, f.project, base.record, base.context, original as any, collection);
+    return (verifyOriginalTaskExecutionResult as (...args: any[]) => any)(modelRoot, f.project, base.record, base.context, original, collection,
+      options.omitDomain ? undefined : { definition: base.packet.definition, contract: base.packet.contract, plan: base.packet.plan });
   }
+  it("requires independent Kernel domain records rather than trusting mutually consistent Runtime bytes", () => {
+    expect(verify()).not.toBeNull();
+    expect(verify({ omitDomain: true })).toBeNull();
+  });
+  it.each(["contract", "plan", "definition"] as const)("rejects substituted %s body even when collected Runtime evidence agrees", field => {
+      const packet = structuredClone(base.packet);
+      if (field === "contract") packet.contract.body.goal = "Substituted formal contract with unchanged ID";
+      if (field === "plan") packet.plan.body.approach = "Substituted formal plan with unchanged ID";
+      if (field === "definition") {
+        packet.definition.body.outputs = ["Substituted Task output with unchanged ID"];
+        packet.plan.body.task_definitions = packet.plan.body.task_definitions.map((item: any) => item.task_id === packet.definition.task_id ? structuredClone(packet.definition.body) : item);
+        packet.result_contract = originalTaskResultContract(base.scope, base.record.definition_ref, packet.definition.body.outputs, ["query_test"]);
+      }
+      expect(verify({ packet })).toBeNull();
+  });
+  it("rejects foreign domain versions and mismatched WorkItem/Task ownership before Native result verification", () => {
+    const changes = [
+      (p: any) => p.contract.id = base.record.task_id,
+      (p: any) => p.plan.id = base.record.task_id,
+      (p: any) => p.work_item.task_id = base.record.run_id,
+      (p: any) => p.work_item.definition_ref.domain_version++,
+      (p: any) => p.task.project_id = base.record.task_id,
+      (p: any) => p.task.change_id = base.record.task_id,
+      (p: any) => p.task.definition_ref.domain_version++
+    ];
+    for (const change of changes) {
+      const packet = structuredClone(base.packet); change(packet); ports.native.mockClear();
+      expect(verify({ packet })).toBeNull(); expect(ports.native).not.toHaveBeenCalled();
+    }
+  });
   it("matches original SDK/model output, every fixed Task output and fresh independent Native receipts without claiming billing or acceptance", () => {
     expect(verify()).toMatchObject({ native_effect_reverified: true, model_account_custody_proven: false, costs_reconciled: false, task_acceptance_proven: false,
       outputs: [{ output_index: 0, requirement: base.packet.definition.body.outputs[0] }], sdk: { final_model_call_id: "model_0002" } });

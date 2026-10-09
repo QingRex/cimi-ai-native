@@ -145,12 +145,20 @@ describe("V1-07 native Human run lifecycle", () => {
     const proof = flowSuccess(f.reviewerKernel.execute(f.command("CheckResumption", "work_item", wi.id, { handoff_ref: { object_type: "handoff_record", id: saved.data.handoff.id }, context_ref: { object_type: "context_manifest", id: prepared.context.id }, input_digest: prepared.context.input_digest }, "executor", f.reviewer.id)));
     if (proof.command_type !== "CheckResumption") throw new Error("proof expected"); expect(f.reserve(wi, prepared, undefined, proof.data.resumption).record.attempt_no).toBe(2);
   }, 45_000);
-  it("denies a genuinely bound Agent executor while preserving its authorized WorkItem for the later adapter", () => {
+  it("denies Human-shaped input and unqualified Agent pins while preserving the original authorized WorkItem", () => {
     const f = fixture(), provider = { provider: "test-runtime", resource_type: "session", locator: "agent-session" };
     const result = flowSuccess(f.kernel.execute(f.projectCommand("RegisterActor", { actor_type: "agent", identity_source: "runtime_binding", display_name: "Bound Agent", provider_identity_ref: provider }))); if (result.command_type !== "RegisterActor") throw new Error("agent expected");
     const actor = result.data.actor, source = f.capture(), item = f.authorize(3, undefined, ["src/query.ts"], actor.id);
     const kernel = new CimiLoopKernel({ store: f.store, caller: { kind: "agent", project_id: f.project.id, actor_id: actor.id, provider_identity_ref: provider }, now: () => flowTime, runVerifier: f.runPort, evidenceVerifier: f.port });
-    expect(kernel.execute({ ...f.command("PrepareRunContext", "work_item", item.id, { source_snapshot_ref: { object_type: "source_snapshot", id: source.id } }, "executor", actor.id), source: { origin: "agent", producer: "test-runtime" } })).toMatchObject({ code: "CAPABILITY_UNAVAILABLE" }); expect(f.task().usage.attempts_consumed).toBe(0);
+    const before = f.store.asOfEventSequence(), sourceRef = { object_type: "source_snapshot", id: source.id };
+    const denied = kernel.execute({ ...f.command("PrepareRunContext", "work_item", item.id, { source_snapshot_ref: sourceRef }, "executor", actor.id), source: { origin: "agent", producer: "test-runtime" } });
+    expect(denied, JSON.stringify(denied)).toMatchObject({ code: "INPUT_CHANGED" });
+    const missingAdmission = kernel.execute({ ...f.command("PrepareRunContext", "work_item", item.id, { source_snapshot_ref: sourceRef,
+      runtime_binding: { binding_ref: { object_type: "provider_binding", id: v2.createInternalId() }, digest: { algorithm: "sha256", value: "a".repeat(64) } }, skill_bindings: [] }, "executor", actor.id),
+      source: { origin: "agent", producer: "test-runtime" } });
+    expect(missingAdmission, JSON.stringify(missingAdmission)).toMatchObject({ code: "CAPABILITY_UNAVAILABLE" });
+    expect(f.task().usage.attempts_consumed).toBe(0); expect(f.store.getExecutionObject("work_item", item.id)).toEqual(item);
+    expect(f.store.listRuntimeRecords("context_manifest", f.change.id)).toHaveLength(0); expect(f.store.asOfEventSequence()).toBe(before);
   });
   it("checks real paused execution and its uncommitted handoff before resuming, with capacity enforced atomically", () => {
     const f = setup(), run = f.reserve(f.item, f.prepared).run;

@@ -1,7 +1,8 @@
 import { SCHEMA_VERSION, compileValidator, RawHumanRunObservationSchema, RawAgentRunObservationSchema, AgentHostAdmissionReferenceSchema, WorkspaceManifestSchema,
   type AnyCommand, type CommandSuccess, type DomainError, type Project, type SourceSnapshot, type Digest,
   type Task, type WorkItem, type Run, type RunRecord, type ContextManifest, type WorkspaceSnapshot, type WorkspaceManifest,
-  type RawRunObservation, type RunObservation, type HandoffRecord, type ResumptionRecord, type AgentRunBindings, type AgentContextManifest, type AgentRunRecord, type AgentToolAuthorityRequest } from "@cimiloop/protocol/v2";
+  type RawRunObservation, type RunObservation, type HandoffRecord, type ResumptionRecord, type AgentRunBindings, type AgentContextManifest, type AgentRunRecord, type AgentToolAuthorityRequest,
+  type TaskDefinitionRecord, type ContractVersion, type PlanVersion } from "@cimiloop/protocol/v2";
 import type { StoreTransaction } from "@cimiloop/store";
 import { assignmentIsEffective } from "./authorization.js";
 import { admissionFailure, contentDigest, IntentFailure, type IntentContext } from "./intent.js";
@@ -19,6 +20,7 @@ export interface AgentRunAdmissionInput extends AgentRunBindings {
   source: SourceSnapshot;
   workspace: WorkspaceSnapshot;
 }
+export interface AgentRunResultDomainBasis { definition: TaskDefinitionRecord; contract: ContractVersion; plan: PlanVersion }
 export interface AgentRunVerifierPort {
   skills?: SkillInvocationVerifierPort;
   // Independent, side-effect-free launch admission. Re-read original model,
@@ -39,7 +41,7 @@ export interface AgentRunVerifierPort {
   admitContext(project: Project, input: AgentRunAdmissionInput): AgentContextManifest["host_admission_ref"];
   // Verify original operation ownership and raw SDK/tool/native/billing proofs;
   // preserve Unknown when any original effect or cost cannot be reconciled.
-  readRunResult(project: Project, record: AgentRunRecord, context: AgentContextManifest, reference: Extract<RunObservation, { report: { format: "cimiloop/agent-run/1.0.0" } }>["raw_result_ref"]): unknown;
+  readRunResult(project: Project, record: AgentRunRecord, context: AgentContextManifest, reference: Extract<RunObservation, { report: { format: "cimiloop/agent-run/1.0.0" } }>["raw_result_ref"], domain: AgentRunResultDomainBasis): unknown;
 }
 export interface AgentRunToolAuthorityInput extends AgentRunAdmissionInput {
   request: AgentToolAuthorityRequest; record: AgentRunRecord; context: AgentContextManifest;
@@ -256,7 +258,17 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
       if (!manifest || !("runtime_binding" in manifest) || !equal(record!.runtime_binding, manifest.runtime_binding) || !equal(record!.skill_bindings, manifest.skill_bindings) || !equal(record!.host_admission_ref, manifest.host_admission_ref)) throw new Error("Agent context pins mismatch");
       // Recording/reconciling past effects remains possible after approval or
       // WorkItem revocation. It never authorizes a new effect.
-      raw = compileValidator<RawRunObservation>(RawAgentRunObservationSchema)(host.agent.readRunResult(context.project, structuredClone(record!), structuredClone(manifest), command.payload.raw_result_ref));
+      const definition = tx.getExecutionRecord("task_definition", record!.definition_ref.id),
+        contract = tx.getIntentRecord("contract_version", record!.contract_ref.id), plan = tx.getIntentRecord("plan_version", record!.plan_ref.id);
+      if (!definition || !contract || !plan || [definition, contract, plan].some(value => value.project_id !== context.project.id || value.change_id !== record!.change_id) ||
+        definition.version !== record!.definition_ref.domain_version || contract.version !== record!.contract_ref.domain_version || plan.version !== record!.plan_ref.domain_version ||
+        definition.task_id !== record!.task_id || definition.body.task_id !== record!.task_id || definition.body.version !== definition.version ||
+        !equal(definition.plan_ref, record!.plan_ref) || !equal(plan.contract_ref, record!.contract_ref) || !equal(plan.body.contract_ref, record!.contract_ref) ||
+        [definition, contract, plan].some(value => !equal(value.content_digest, contentDigest(value.body))) ||
+        plan.body.task_definitions.filter(value => value.task_id === record!.task_id && value.version === definition.version).length !== 1 ||
+        !plan.body.task_definitions.some(value => equal(value, definition.body))) throw new Error("Original Agent domain basis mismatch");
+      raw = compileValidator<RawRunObservation>(RawAgentRunObservationSchema)(host.agent.readRunResult(context.project, structuredClone(record!), structuredClone(manifest), command.payload.raw_result_ref,
+        structuredClone({ definition, contract, plan })));
       if (raw.format !== "cimiloop/agent-run/1.0.0" || !equal(raw.context_ref, record!.context_ref) || !equal(raw.runtime_binding, record!.runtime_binding) || !equal(raw.skill_bindings, record!.skill_bindings) || !equal(raw.host_admission_ref, record!.host_admission_ref)) throw new Error("Agent report pins mismatch");
     } else {
       if (command.payload.raw_result_ref.resource_type !== "manual_run") throw new Error("Human result reference required");

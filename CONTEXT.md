@@ -1,5 +1,7 @@
 # CimiLoop 领域语言
 
+2026-10-10 D-252：[原执行产物领域依据与Kernel核验](docs/implementation/CimiLoop-原执行产物领域依据与Kernel核验-v0.1.md)已接Kernel、共享观测与Runtime；原固定约定 / 计划 / 任务定义独立全文和结构核验，同ID改正文或外来引用拒绝产物证明。原收据重放、未知费用、242 Schema / 用户库10保持，正式Agent与完整五组S1继续。
+
 2026-10-10 D-251：[Human计划澄清与原候选恢复](docs/implementation/CimiLoop-Human计划澄清与原候选恢复-v0.1.md)已接共享应用服务、CLI与工作台的当前正式约定问答和原Plan候选；丢响应不重复候选或Task。旧记录1原义 / 字节保持，新记录2显式target=plan，用户库10 / 242 Schema不变。真实Matt、全面前置证据约束、正式Agent与完整五组S1继续。
 
 2026-10-09 D-249：[原恢复控制器保留与编译配方](docs/implementation/CimiLoop-原恢复控制器保留与编译配方-v0.1.md)已接共享Runtime与原操作恢复；tools缓存丢失仍用原物理控制器，缺失 / 中断拒绝重编译，launcher2冻结原件证明。正式默认入口关闭，完整五组S1继续，242 Schema / 用户库10保持。

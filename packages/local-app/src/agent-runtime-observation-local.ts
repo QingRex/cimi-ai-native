@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { parseCommand, compileValidator, RawAgentRunObservationSchema, SCHEMA_VERSION, isInternalId,
   type RawAgentRunObservation, type Project, type AgentRunRecord, type AgentContextManifest } from "@cimiloop/protocol/v2";
-import { verifyOriginalTaskExecutionResult, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, agentWorkspaceIpcScopeDigest, bytesAt, directory, digest, parseGatewayJson } from "@cimiloop/runtime-adapter";
+import { verifyOriginalTaskExecutionResult, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, agentWorkspaceIpcScopeDigest, bytesAt, directory, digest, parseGatewayJson, type OriginalTaskDomainBasis } from "@cimiloop/runtime-adapter";
 import { LocalEvidenceVerifier, type ContentReference } from "./evidence-local.js";
 import { executeLocalCommand, type LocalCommandInput } from "./project.js";
 import { readHumanOriginalAgentRunInputs, type AgentRuntimeControlContext } from "./agent-runtime-control-local.js";
@@ -69,7 +69,7 @@ const validateCollection=(root:string,identity:Identity,value:unknown)=>{
 export class LocalAgentRunResultVerifier {
  private readonly content:LocalEvidenceVerifier;
  constructor(private readonly repositoryPath:string,private readonly dataDirectory:string){this.content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);}
- readRunResult(project:Project,record:AgentRunRecord,context:AgentContextManifest,reference:Prepared["raw_result_ref"]):RawAgentRunObservation {
+ readRunResult(project:Project,record:AgentRunRecord,context:AgentContextManifest,reference:Prepared["raw_result_ref"],domain:OriginalTaskDomainBasis):RawAgentRunObservation {
   if(resolve(project.repository_path)!==resolve(this.repositoryPath))throw Error("Original result project mismatch");
   const report=compileValidator<RawAgentRunObservation>(RawAgentRunObservationSchema)(parsed(this.content.readContent(reference)));
   const proof=readProof(this.content,report.result_proof_ref),intent=proof.intent;
@@ -81,7 +81,7 @@ export class LocalAgentRunResultVerifier {
     !isDeepStrictEqual(read(join(pathFor(this.dataDirectory,project.id,record.run_id,intent.request.command_id),"request.json")),intent))throw Error("Original prepared result mismatch");
   const collection=parsed(this.content.readContent(proof.collection_ref));
   validateCollection(this.dataDirectory,proof.original,collection);
-  if(proof.execution_result_ref){const verified=verifyOriginalTaskExecutionResult(this.dataDirectory,project,record,context,proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>);
+  if(proof.execution_result_ref){const verified=verifyOriginalTaskExecutionResult(this.dataDirectory,project,record,context,proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>,domain);
     if(!verified||!isDeepStrictEqual(parsed(this.content.readContent(proof.execution_result_ref)),verified))throw Error("Original task execution result unproven");}
   if(proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"&&classifyOriginalAgentExecutionFailure(proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>)!==proof.execution_failure)throw Error("Original failed execution unproven");
   return report;
@@ -111,7 +111,13 @@ export class LocalAgentRuntimeObservation {
     if(!isDeepStrictEqual(intentFor(this.local,request,fresh),intentFor(this.local,request,original))||!isDeepStrictEqual(identity,readAgentRuntimeOriginalIdentity(this.local.location.dataDirectory,original.scope)))throw Error("Original observation inputs changed");
     validateCollection(this.local.location.dataDirectory,identity,collection);
     const failure=classifyOriginalAgentExecutionFailure(identity,collection);
-    const execution=failure?null:verifyOriginalTaskExecutionResult(this.local.location.dataDirectory,original.project,original.record,original.context,identity,collection);
+    // Query the immutable versions named by the original Run, never current
+    // Change pins or mutable Task usage. HTTP/model input cannot supply them.
+    const definition=this.local.kernel.getObject("task_definition",original.record.definition_ref.id),
+      contract=this.local.kernel.getObject("contract_version",original.record.contract_ref.id),plan=this.local.kernel.getObject("plan_version",original.record.plan_ref.id);
+    const domain="code" in definition||"code" in contract||"code" in plan?undefined:
+      {definition:definition.object,contract:contract.object,plan:plan.object} as OriginalTaskDomainBasis;
+    const execution=failure?null:verifyOriginalTaskExecutionResult(this.local.location.dataDirectory,original.project,original.record,original.context,identity,collection,domain);
     const proof:Proof={format:failure?"cimiloop/agent-failed-observation-proof/1.0.0":"cimiloop/agent-unknown-observation-proof/1.0.0",...(failure?{execution_failure:failure}:{}),intent,original:identity,observed_at:new Date().toISOString(),
       collection_ref:this.content.storeContent(Buffer.from(JSON.stringify(collection)),"agent_run_proof"),
       ...(execution?{execution_result_ref:this.content.storeContent(Buffer.from(JSON.stringify(execution)),"agent_run_proof")}:{}),completion_proven:false,costs_reconciled:false};

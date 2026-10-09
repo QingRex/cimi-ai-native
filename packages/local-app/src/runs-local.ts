@@ -18,7 +18,7 @@ export class LocalRunVerifier implements RunVerifierPort {
     this.content = new LocalEvidenceVerifier(repositoryPath, dataDirectory);
     const results = new LocalAgentRunResultVerifier(repositoryPath, dataDirectory);
     this.agent = { admitContext: () => { throw new Error("Agent live admission unavailable"); },
-      readRunResult: (project, record, context, reference) => results.readRunResult(project, record, context, reference) };
+      readRunResult: (project, record, context, reference, domain) => results.readRunResult(project, record, context, reference, domain) };
   }
   sourceDigest(project: Project, commitId: string) { return this.content.sourceDigest(project, commitId); }
   sourceIsCurrent(project: Project, snapshot: SourceSnapshot) { return this.content.sourceIsCurrent(project, snapshot); }

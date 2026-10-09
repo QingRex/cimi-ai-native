@@ -16,6 +16,23 @@ const fixture = (scope: "task_execution" | "isolated_provider_probe" = "task_exe
   const directory = mkdtempSync(join(tmpdir(), "cimiloop-agent-run-")); dirs.push(directory); const f = createAgentRunProject(directory, scope, cost); stores.push(f.store); return f;
 };
 describe("Agent native records with constructed qualification and trusted port", () => {
+  it("provides original immutable Kernel domain records to the result verifier without granting current-plan authority", () => {
+    const f = fixture(), prepared = f.prepareAgent(), reserved = f.reserveAgent(prepared);
+    if (reserved.record.run_kind !== "agent") throw Error("Agent expected");
+    const expected = { definition: f.store.getExecutionRecord("task_definition", reserved.record.definition_ref.id),
+      contract: f.store.getIntentRecord("contract_version", reserved.record.contract_ref.id),
+      plan: f.store.getIntentRecord("plan_version", reserved.record.plan_ref.id) };
+    const read = f.runPort.agent!.readRunResult.bind(f.runPort.agent), seen: unknown[] = [];
+    f.runPort.agent!.readRunResult = ((...args: any[]) => {
+      seen.push(structuredClone(args[4]));
+      if (args[4]) args[4].definition.body.goal = "Verifier must receive a detached copy";
+      return (read as (...args: any[]) => unknown)(...args);
+    }) as typeof read;
+    flowSuccess(f.agentObserve(reserved.run, "unknown", { usage: { cost_known: false } }));
+    expect(seen).toEqual([expected]);
+    expect(f.store.getExecutionRecord("task_definition", reserved.record.definition_ref.id)).toEqual(expected.definition);
+    expect(f.task().usage.pending_reconciliation).toBe(true); expect(f.task().status).toBe("InProgress");
+  });
   it("pins Context and Run, reserves one original operation and replays/reopens without another admission or attempt", () => {
     const f = fixture(), prepared = f.prepareAgent(), command = f.reserveCommand(prepared), result = flowSuccess(f.kernel.execute(command));
     if (result.command_type !== "ReserveRun") throw new Error("Reservation expected");
