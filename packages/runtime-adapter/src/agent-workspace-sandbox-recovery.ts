@@ -22,7 +22,8 @@ export function readOriginalAgentWorkspaceOperation(raw: { root: string; operati
   const config = record(join(operation, "original-config.json"));
   const fields = ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options"];
   const oldConfig = exact(config, fields) && config.format === "cimiloop/agent-workspace-sandbox-config/1.0.0";
-  const newConfig = exact(config, [...fields, "deadline_uptime_ms"]) && config.format === "cimiloop/agent-workspace-sandbox-config/2.0.0" &&
+  const newConfig = (exact(config, [...fields, "deadline_uptime_ms"]) && config.format === "cimiloop/agent-workspace-sandbox-config/2.0.0" ||
+    exact(config, [...fields, "deadline_uptime_ms", "prompt"]) && config.format === "cimiloop/agent-workspace-sandbox-config/3.0.0" && typeof config.prompt === "string") &&
     (config.deadline_uptime_ms === null || Number.isSafeInteger(config.deadline_uptime_ms) && Number(config.deadline_uptime_ms) > 0);
   if (!config || !oldConfig && !newConfig || !uuid(config.nonce) || !uuid(config.pipe_nonce) || config.root !== join(operation, "sandbox") ||
     typeof config.binary !== "string" || !validWorkspaceWorkerIdentity(config.owner) || config.scope_digest !== agentWorkspaceIpcScopeDigest(scope)) fail();
@@ -40,7 +41,7 @@ export function readOriginalAgentWorkspaceOperation(raw: { root: string; operati
   if (!exact(metadata, ["digest"]) || !exact(metadata.digest, ["algorithm", "value"]) || metadata.digest.algorithm !== "sha256" || metadata.digest.value !== launch.launcher_digest) fail();
   if (!exact(resources, ["format", "nonce", "root", "binary", "profile", "scope_digest", "config_digest", "owner", "supervisor", "runtime", "mapping", "job_name", "job_assignment", "phase", "profile_intent", "profile_was_absent", "grants_intent", "resources_disposed", "user_sid", "session_id", "logon_luid"]) ||
     resources.format !== "cimiloop/agent-workspace-resources/1.0.0" || resources.nonce !== config.nonce || resources.root !== config.root || resources.binary !== config.binary ||
-    resources.config_digest !== digest(bytesAt(join(operation, "original-config.json"), 32768)).value || resources.scope_digest !== config.scope_digest ||
+    resources.config_digest !== digest(bytesAt(join(operation, "original-config.json"), 65536)).value || resources.scope_digest !== config.scope_digest ||
     !isDeepStrictEqual(resources.owner, config.owner) || !isDeepStrictEqual(resources.supervisor, launch.supervisor) ||
     resources.profile !== "CimiLoop.AgentWorkspace." + config.nonce.replaceAll("-", "") || resources.job_name !== "Local\\" + resources.profile ||
     resources.job_assignment !== "atomic_on_create" || !["registered", "profile_intent", "grants_intent", "granted", "mapped", "process_create_intent", "runtime_created", "suspended", "running", "ended", "recovered"].includes(String(resources.phase)) ||

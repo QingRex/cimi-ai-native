@@ -10,6 +10,7 @@ import { parseWorkspaceToolInvocation, validWorkspaceWorkerIdentity, type Worksp
 import type { WorkspaceToolReceipt } from "./workspace-tool-journal.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { parseWorkspaceCheckCatalog, parseWorkspaceCheckCall, type WorkspaceCheckCatalog, type WorkspaceCheckCall, type WorkspaceCheckReceipt } from "./workspace-checks.js";
+import { AgentRuntimeModelHost } from "./agent-runtime-model.js";
 import { AgentWorkspaceIpcJournal } from "./agent-workspace-ipc-journal.js";
 
 const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join(",") === [...keys].sort().join(",");
@@ -45,9 +46,10 @@ interface Options {
   nonce?: string; signal?: AbortSignal | undefined;
   execute: (input: WorkspaceToolInvocation) => Promise<{ receipt: WorkspaceToolReceipt; replay: boolean }>;
   checks?: { catalog: WorkspaceCheckCatalog; execute: (input: WorkspaceCheckCall) => Promise<{ receipt: WorkspaceCheckReceipt; replay: boolean }> };
+  model?: AgentRuntimeModelHost;
   cancel: () => Promise<void>;
 }
-export interface AgentWorkspaceIpcEndpoint { pipe: string; scope_digest: string; check_catalog_digest: string | null; peer: CreditProcessIdentity; supervisor: CreditProcessIdentity; appcontainer_sid: string | null }
+export interface AgentWorkspaceIpcEndpoint { pipe: string; scope_digest: string; check_catalog_digest: string | null; peer: CreditProcessIdentity; supervisor: CreditProcessIdentity; appcontainer_sid: string | null; model_admission_digest?: string }
 // Separate native controller, never installed by the public probe or Human CLI.
 // Held original process handles and the pipe's OS client PID establish the peer.
 export class AgentWorkspaceToolIpc {
@@ -89,7 +91,7 @@ export class AgentWorkspaceToolIpc {
               !validWorkspaceWorkerIdentity(event.peer) || !isDeepStrictEqual({ ...event.peer }, options.originalPeer) ||
               !validWorkspaceWorkerIdentity(event.supervisor) || !isDeepStrictEqual({ ...event.supervisor }, options.originalSupervisor) || event.appcontainer_sid !== null &&
               (typeof event.appcontainer_sid !== "string" || !/^S-1-15-2-(?:[0-9]+-)*[0-9]+$/.test(event.appcontainer_sid))) fail("agent_ipc_native_unproven");
-            this.endpoint = { pipe: event.pipe, scope_digest: event.scope_digest, check_catalog_digest: event.check_catalog_digest as string | null, peer: { ...event.peer }, supervisor: { ...event.supervisor }, appcontainer_sid: event.appcontainer_sid };
+            this.endpoint = { pipe: event.pipe, scope_digest: event.scope_digest, check_catalog_digest: event.check_catalog_digest as string | null, peer: { ...event.peer }, supervisor: { ...event.supervisor }, appcontainer_sid: event.appcontainer_sid, ...(options.model ? {model_admission_digest: options.model.admissionDigest} : {}) };
             this.originals = AgentWorkspaceIpcJournal.create(options.toolsDirectory, this.scope, this.endpoint, this.nonce, binaryDigest);
             clearTimeout(timer); readyResolve(structuredClone(this.endpoint));
           } else if (event.phase === "request") {
@@ -142,11 +144,15 @@ export class AgentWorkspaceToolIpc {
   private async respond(bytes: Buffer, requestDigest: string) {
     if (!this.originals) fail("agent_ipc_originals_unproven");
     const ticket = this.originals.request(bytes, requestDigest);
-    let receipt: WorkspaceToolReceipt | WorkspaceCheckReceipt | null = null, replay = false, reason: string | null = null, callId: string | null = null;
+    let receipt: WorkspaceToolReceipt | WorkspaceCheckReceipt | Awaited<ReturnType<AgentRuntimeModelHost["execute"]>>["receipt"] | null = null, replay = false, reason: string | null = null, callId: string | null = null;
     try {
       const frame = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(bytes), TOOL_RECORD_BYTES) as Record<string, unknown>;
       if (this.stopped) fail("agent_ipc_closed");
-      if (frame && frame.tool === "run_check") {
+      if (frame && frame.tool === "model_step") {
+        if (!(this.options.model instanceof AgentRuntimeModelHost)) fail("agent_model_admission_unavailable");
+        callId = typeof frame.call_id === "string" ? frame.call_id : null;
+        const result = await this.options.model.execute(frame, this.options.signal); receipt = result.receipt; replay = result.replay;
+      } else if (frame && frame.tool === "run_check") {
         if (!this.options.checks) fail("agent_ipc_frame_denied");
         const input = agentWorkspaceIpcCheckInvocation(this.scope, this.options.checks.catalog, frame); callId = input.call_id;
         const result = await this.options.checks.execute(input); receipt = result.receipt; replay = result.replay;

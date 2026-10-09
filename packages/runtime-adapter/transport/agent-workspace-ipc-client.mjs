@@ -29,6 +29,9 @@ function json(source) {
   visit(0); ws(); if (at !== source.length) throw Error("invalid"); return JSON.parse(source);
 }
 function receiptValid(value, frame) {
+  if (frame.tool === "model_step") return exact(value, ["content", "usage", "finish"]) && Array.isArray(value.content) && value.content.length > 0 && value.content.length <= 8 &&
+    exact(value.usage, ["input_tokens", "output_tokens"]) && [value.usage.input_tokens, value.usage.output_tokens].every(n => Number.isSafeInteger(n) && n >= 0 && n <= 1000000) &&
+    value.usage.output_tokens <= frame.max_output_tokens && ["stop", "tool_calls"].includes(value.finish);
   if (frame.tool === "run_check") return exact(value, ["format", "input_digest", "run_id", "call_id", "profile", "entry", "outcome", "exit_code", "reason", "stdout_digest", "stderr_digest", "source_digest", "formal_agent_execution_enabled"]) &&
     value.format === "cimiloop/workspace-check-receipt/1.0.0" && typeof value.run_id === "string" && value.call_id === frame.call_id &&
     [value.input_digest, value.stdout_digest, value.stderr_digest, value.source_digest].every(sha) && value.formal_agent_execution_enabled === false &&
@@ -46,14 +49,14 @@ function receiptValid(value, frame) {
       hash(native.text) === frame.expected_digest && native.after_digest === frame.expected_digest && same(native.file_identity, native.after_file_identity) :
       native.text === null && identity(native.replacement_identity) && same(native.replacement_identity, native.after_file_identity) && native.after_digest === hash(frame.replacement_utf8));
 }
-export const exchangeAgentWorkspaceToolFrame = (pipe, request, signal) => new Promise((done, fail) => {
+const exchangeFrame = (pipe, request, signal, model) => new Promise((done, fail) => {
   let frame, payload;
   try {
     payload = Buffer.from(JSON.stringify(request)); frame = json(payload.toString("utf8"));
     if (!/^\\\\\.\\pipe\\CimiLoop\.AgentWorkspace\.[a-f0-9-]{36}$/.test(pipe) || payload.length < 1 || payload.length > maximum || signal?.aborted ||
-      !exact(frame, ["format", "scope_digest", "call_id", "tool", ...(frame.tool === "run_check" ? ["check_id", "check_catalog_digest"] : ["path", "expected_digest", ...(frame.tool === "replace_file" ? ["replacement_utf8"] : [])])]) ||
-      frame.format !== "cimiloop/agent-workspace-tool-request/1.0.0" || !sha(frame.scope_digest) || typeof frame.call_id !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(frame.call_id) ||
-      !(frame.tool === "run_check" ? typeof frame.check_id === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(frame.check_id) && sha(frame.check_catalog_digest) :
+      !exact(frame, ["format", "scope_digest", "call_id", "tool", ...(model ? ["admission_digest", "prompt", "tools", "max_output_tokens"] : frame.tool === "run_check" ? ["check_id", "check_catalog_digest"] : ["path", "expected_digest", ...(frame.tool === "replace_file" ? ["replacement_utf8"] : [])])]) ||
+      frame.format !== (model ? "cimiloop/agent-runtime-model-request/1.0.0" : "cimiloop/agent-workspace-tool-request/1.0.0") || !sha(frame.scope_digest) || typeof frame.call_id !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(frame.call_id) ||
+      !(model ? sha(frame.admission_digest) && frame.tool === "model_step" && Array.isArray(frame.prompt) && Array.isArray(frame.tools) && Number.isSafeInteger(frame.max_output_tokens) && frame.max_output_tokens > 0 && frame.max_output_tokens <= 512 : frame.tool === "run_check" ? typeof frame.check_id === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(frame.check_id) && sha(frame.check_catalog_digest) :
         ["read_file", "replace_file"].includes(frame.tool) && typeof frame.path === "string" && sha(frame.expected_digest) && (frame.tool !== "replace_file" ||
           typeof frame.replacement_utf8 === "string" && Buffer.byteLength(frame.replacement_utf8) <= 16384))) throw Error("invalid");
   } catch { fail(Error("agent_ipc_request_denied")); return; }
@@ -92,3 +95,6 @@ export const createAgentWorkspaceToolClient = endpoint => {
     return exchangeAgentWorkspaceToolFrame(pipe, { ...args, tool: "run_check", format: "cimiloop/agent-workspace-tool-request/1.0.0", scope_digest: scopeDigest }, signal);
   } });
 };
+
+export const exchangeAgentWorkspaceToolFrame = (pipe, request, signal) => exchangeFrame(pipe, request, signal, false);
+export const exchangeAgentWorkspaceModelFrame = (pipe, request, signal) => exchangeFrame(pipe, request, signal, true);

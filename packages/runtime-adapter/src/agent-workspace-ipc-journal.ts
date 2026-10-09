@@ -20,7 +20,7 @@ const encode = (value: unknown) => Buffer.from(JSON.stringify(value));
 function location(root: string, scope: AgentWorkspaceToolScope, nonce: string) { if (!uuid(nonce)) fail(); return join(root, "agent-workspace-ipc-originals", scope.project_id, scope.run_id, nonce); }
 function endpoint(raw: unknown, scope: AgentWorkspaceToolScope, nonce: string): AgentWorkspaceIpcEndpoint {
   const value = copyToolJson(raw);
-  if (!exact(value, ["pipe", "scope_digest", "check_catalog_digest", "peer", "supervisor", "appcontainer_sid"]) || value.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${nonce}` ||
+  if (!exact(value, ["pipe", "scope_digest", "check_catalog_digest", "peer", "supervisor", "appcontainer_sid", ...(value && typeof value === "object" && "model_admission_digest" in value ? ["model_admission_digest"] : [])]) || value.model_admission_digest !== undefined && !sha(value.model_admission_digest) || value.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${nonce}` ||
     value.scope_digest !== scopeDigest(scope) || value.check_catalog_digest !== null && !sha(value.check_catalog_digest) || !validWorkspaceWorkerIdentity(value.peer) ||
     !validWorkspaceWorkerIdentity(value.supervisor) || value.peer.pid === value.supervisor.pid && !isDeepStrictEqual(value.peer, value.supervisor) || value.appcontainer_sid !== null &&
     (typeof value.appcontainer_sid !== "string" || !/^S-1-15-2-(?:[0-9]+-)*[0-9]+$/.test(value.appcontainer_sid))) fail();
@@ -114,7 +114,7 @@ export function correlateAgentWorkspaceSdkOriginals(originals: ReturnType<typeof
     const callId = "sdk_" + digest(JSON.stringify([part.sessionID, part.messageID, part.callID])).value;
     if (parts.has(callId) || parts.size >= 128) fail(); parts.set(callId, part);
   }
-  const links = originals.exchanges.map(exchange => {
+  const links = originals.exchanges.filter(exchange => !(exchange.request && typeof exchange.request === "object" && "tool" in exchange.request && exchange.request.tool === "model_step")).map(exchange => {
     const request = exchange.request as Record<string, unknown> | null, reply = exchange.reply as Record<string, unknown> | null, part = request && parts.get(String(request.call_id));
     let correlated = false;
     if (request && reply && part && request.scope_digest === (originals.header?.endpoint as AgentWorkspaceIpcEndpoint).scope_digest) {

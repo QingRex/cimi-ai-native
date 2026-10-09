@@ -1,3 +1,4 @@
+import { readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
 import { mkdirSync, writeFileSync, openSync, fsyncSync, closeSync, existsSync, lstatSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -15,12 +16,12 @@ import { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } f
 import type { Project, AgentRunRecord } from "@cimiloop/protocol/v2";
 import { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
 
-interface Claim { format: "cimiloop/agent-runtime-operation-claim/1.0.0"; scope: AgentWorkspaceToolScope; input_digest: string; operation_id: string; owner: CreditProcessIdentity; synthetic_model_responses: true; formal_agent_execution_enabled: false }
+interface Claim { format: "cimiloop/agent-runtime-operation-claim/1.0.0"; scope: AgentWorkspaceToolScope; input_digest: string; operation_id: string; owner: CreditProcessIdentity; synthetic_model_responses: true | null; formal_agent_execution_enabled: false }
 const exact = (raw: unknown, keys: string[]): raw is Record<string, unknown> => !!raw && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw).sort().join(",") === [...keys].sort().join(",");
 const sha = (raw: unknown): raw is string => typeof raw === "string" && /^[a-f0-9]{64}$/.test(raw);
 const uuid = (raw: unknown): raw is string => typeof raw === "string" && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(raw);
 const fail = (reason: string): never => { throw new RuntimeAdapterError(reason); };
-const read = (path: string) => copyToolJson(parseGatewayJson(bytesAt(path, 32768).toString("utf8"), 32768));
+const read = (path: string) => copyToolJson(parseGatewayJson(bytesAt(path, 65536).toString("utf8"), 65536));
 const save = (path: string, value: unknown) => { writeFileSync(path, JSON.stringify(value), { flag: "wx" }); const fd = openSync(path, "r+"); try { fsyncSync(fd); } finally { closeSync(fd); } };
 function paths(root: string, scope: AgentWorkspaceToolScope) {
   return { run: join(root, "agent-runtime-claims", scope.project_id, "runs", scope.run_id), key: join(root, "agent-runtime-claims", scope.project_id, "keys", scope.operation_key) };
@@ -30,9 +31,9 @@ function load(root: string, rawScope: unknown) {
   const scope = parseAgentWorkspaceToolScope(rawScope), location = paths(root, scope), raw = read(join(location.run, "claim.json"));
   if (!exact(raw, ["format", "scope", "input_digest", "operation_id", "owner", "synthetic_model_responses", "formal_agent_execution_enabled"]) ||
     raw.format !== "cimiloop/agent-runtime-operation-claim/1.0.0" || !sha(raw.input_digest) || !uuid(raw.operation_id) || !validWorkspaceWorkerIdentity(raw.owner) ||
-    raw.synthetic_model_responses !== true || raw.formal_agent_execution_enabled !== false || !isDeepStrictEqual(parseAgentWorkspaceToolScope(raw.scope), scope)) fail("agent_runtime_claim_unproven");
+    (raw.synthetic_model_responses !== true && raw.synthetic_model_responses !== null) || raw.formal_agent_execution_enabled !== false || !isDeepStrictEqual(parseAgentWorkspaceToolScope(raw.scope), scope)) fail("agent_runtime_claim_unproven");
   const claim = raw as unknown as Claim, key = read(join(location.key, "original.json"));
-  if (digest(bytesAt(join(location.run, "input.json"), 32768)).value !== claim.input_digest) fail("agent_runtime_input_unproven");
+  if (digest(bytesAt(join(location.run, "input.json"), 65536)).value !== claim.input_digest) fail("agent_runtime_input_unproven");
   if (!exact(key, ["run_id", "operation_id", "scope_digest", "input_digest"]) || key.run_id !== scope.run_id || key.operation_id !== claim.operation_id ||
     key.scope_digest !== agentWorkspaceIpcScopeDigest(scope) || key.input_digest !== claim.input_digest) fail("agent_runtime_key_unproven");
   return { claim, location, operation: join(root, "workspace-tool-rehearsals", claim.operation_id) };
@@ -64,6 +65,7 @@ export function inspectAgentRuntimeOriginalRegistration(root: string, rawScope: 
 }
 export function claimAgentRuntimeOperation(root: string, rawScope: unknown, input: unknown, owner: CreditProcessIdentity) {
   const scope = parseAgentWorkspaceToolScope(rawScope), originalInput = copyToolJson(input), inputDigest = digest(JSON.stringify(originalInput)).value;
+  if (Buffer.byteLength(JSON.stringify(originalInput)) > 65536) fail("agent_runtime_input_limit");
   if (!validWorkspaceWorkerIdentity(owner)) fail("agent_runtime_owner_unproven");
   root = directory(root); const location = paths(root, scope);
   directory(join(root, "agent-runtime-claims", scope.project_id, "runs")); directory(join(root, "agent-runtime-claims", scope.project_id, "keys"));
@@ -79,7 +81,7 @@ export function claimAgentRuntimeOperation(root: string, rawScope: unknown, inpu
     if (!(error && typeof error === "object" && "code" in error && error.code === "EEXIST")) throw error;
     fail("agent_runtime_operation_key_conflict");
   }
-  const claim: Claim = { format: "cimiloop/agent-runtime-operation-claim/1.0.0", scope, input_digest: inputDigest, operation_id: randomUUID(), owner: { ...owner }, synthetic_model_responses: true, formal_agent_execution_enabled: false };
+  const claim: Claim = { format: "cimiloop/agent-runtime-operation-claim/1.0.0", scope, input_digest: inputDigest, operation_id: randomUUID(), owner: { ...owner }, synthetic_model_responses: (input as Record<string, unknown>).purpose === "agent_runtime" ? null : true, formal_agent_execution_enabled: false };
   save(join(location.key, "original.json"), { run_id: scope.run_id, operation_id: claim.operation_id, scope_digest: agentWorkspaceIpcScopeDigest(scope), input_digest: inputDigest });
   save(join(location.run, "input.json"), originalInput); save(join(location.run, "claim.json"), claim);
   return { operation: join(root, "workspace-tool-rehearsals", claim.operation_id), claimDirectory: location.run, operationId: claim.operation_id };
@@ -101,7 +103,7 @@ export function requestAgentRuntimeCancellation(root: string, rawScope: unknown)
 export async function queryAgentRuntimeOperation(root: string, rawScope: unknown) {
   const original = load(root, rawScope), scopeDigest = agentWorkspaceIpcScopeDigest(original.claim.scope), launcherPath = join(original.operation, "original-launcher.json"), resourcesPath = join(original.operation, "agent-sandbox-resources.json");
   const summary = { operation: original.operation, input_digest: original.claim.input_digest, cancellation_requested: agentRuntimeCancellationRequested(root, rawScope),
-    completion_proven: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: true as const };
+    completion_proven: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: original.claim.synthetic_model_responses };
   if (!existsSync(launcherPath) || !existsSync(resourcesPath)) return { ...summary, status: "Unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false };
   const checked = readOriginalAgentWorkspaceOperation({ root, operation: original.operation, scope: original.claim.scope });
   if (!checked.launch || !checked.resources) return { ...summary, status: "Unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false };
@@ -111,7 +113,7 @@ export async function queryAgentRuntimeOperation(root: string, rawScope: unknown
     typeof launcher.launcher_path !== "string" || !uuid(launcher.nonce) || !resources || typeof resources !== "object" || Array.isArray(resources)) fail("agent_runtime_original_unproven");
   const ledger = resources as Record<string, unknown>, config = read(join(original.operation, "original-config.json")) as Record<string, unknown>;
   if (ledger.format !== "cimiloop/agent-workspace-resources/1.0.0" || ledger.nonce !== launcher.nonce || ledger.scope_digest !== scopeDigest || config.scope_digest !== scopeDigest ||
-    ledger.config_digest !== digest(bytesAt(join(original.operation, "original-config.json"), 32768)).value || !isDeepStrictEqual(ledger.supervisor, launcher.supervisor) ||
+    ledger.config_digest !== digest(bytesAt(join(original.operation, "original-config.json"), 65536)).value || !isDeepStrictEqual(ledger.supervisor, launcher.supervisor) ||
     !isDeepStrictEqual(ledger.owner, original.claim.owner) || config.nonce !== launcher.nonce || !isDeepStrictEqual(config.owner, original.claim.owner) ||
     ledger.resources_disposed !== false && ledger.resources_disposed !== true) fail("agent_runtime_original_unproven");
   // OS observation uses the independent pinned identity reader. Persisted phase,
@@ -187,8 +189,29 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
       } catch { native.reason = "agent_native_check_catalog_unproven"; }
     }
   }
+  let model: {status:string; reason:string; calls:number; unresolved:number; model_account_custody_proven:false; costs_reconciled:false; formal_agent_execution_enabled:false} | undefined;
+  if(original.claim.synthetic_model_responses===null){
+    model={status:"Unknown",reason:"agent_model_originals_unproven",calls:0,unresolved:0,model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false};
+    try {
+      const originals=readAgentRuntimeModelOriginals(root,original.claim.scope);
+      const input=read(join(original.location.run,"input.json")) as Record<string,unknown>,config=read(configPath) as Record<string,unknown>;
+      const admitted=(input.provider_options as Record<string,unknown>)?.admission_digest;
+      const pipe=readAgentWorkspaceIpcOriginals(root,original.claim.scope,String(config.pipe_nonce));
+      if(typeof input.prompt!=="string"||originals.task_packet_digest!==digest(input.prompt).value||config.prompt!==input.prompt)fail("agent_model_task_packet_mismatch");
+      if(!sha(admitted)||originals.admission_digest!==admitted||(config.provider_options as Record<string,unknown>)?.admission_digest!==admitted||pipe.header?.endpoint.model_admission_digest!==admitted)fail("agent_model_admission_mismatch");
+      const steps=pipe.exchanges.filter(exchange=>exchange.request&&typeof exchange.request==="object"&&"tool" in exchange.request&&exchange.request.tool==="model_step");
+      const matched=new Set<string>();
+      for(const exchange of steps){const request=exchange.request as Record<string,unknown>,reply=exchange.reply as Record<string,unknown>|null;
+        const call=originals.calls.find(call=>call.call_id===request.call_id);
+        if(!call||!isDeepStrictEqual(call.request,request)||reply?.outcome==="completed"&&!isDeepStrictEqual(call.response,reply.receipt))fail("agent_model_ipc_original_mismatch");matched.add(call!.call_id);
+      }
+      if(originals.calls.some(call=>!matched.has(call.call_id)))fail("agent_model_ipc_original_mismatch");
+      for(const artifact of originals.artifacts){const bytes=bytesAt(artifact.path,114688);if(digest(bytes).value!==artifact.digest)fail("agent_model_original_unproven");artifacts.push({name:"model/"+artifact.name,reference:rawReference(root,bytes,"agent_runtime_original_bytes","model/"+artifact.name)});}
+      model={...model,status:originals.status,reason:"agent_model_original_bytes_read",calls:originals.calls.length,unresolved:originals.calls.filter(c=>c.state==="unknown").length};
+    } catch { /* Missing originals remain Unknown, never reinitialized here. */ }
+  }
   const fresh = load(root, rawScope);
   if (!isDeepStrictEqual(fresh.claim, original.claim)) fail("agent_runtime_claim_changed");
-  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native,
-    domain_observation_produced: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: true as const };
+  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(model ? {model} : {}),
+    domain_observation_produced: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: original.claim.synthetic_model_responses };
 }

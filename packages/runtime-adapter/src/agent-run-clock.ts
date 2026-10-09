@@ -31,8 +31,26 @@ export async function openWindowsAgentRunClock(root: string, signal?: AbortSigna
   }
   const expected = (readJson(metadata) as { digest?: { value?: string } }).digest?.value;
   if (!expected || expected !== digest(bytesAt(output)).value) throw new RuntimeAdapterError("agent_run_clock_binary_changed");
+  // WMI boot identity is sampled once for this live host process. Subsequent
+  // native reads prove its exact OS creation time before reusing that boot pin.
+  // A restarted host creates a new factory and must independently sample WMI;
+  // copied Task anchors never supply this process-continuity permission.
+  let anchor:Promise<{reading:AgentRunClockReading;owner_creation_ticks:string}>|undefined;
   return { read: async (stop?: AbortSignal): Promise<AgentRunClockReading> => {
     if (digest(bytesAt(output)).value !== expected) throw new RuntimeAdapterError("agent_run_clock_binary_changed");
-    stop?.throwIfAborted(); return parseAgentRunClock((await nativeControl(output, [], stop)).value);
+    stop?.throwIfAborted();
+    if(!anchor){
+      anchor=nativeControl(output,["--anchor",String(process.pid)],stop).then(({value})=>{
+        const raw=value as {format?:unknown;reading?:unknown;owner_creation_ticks?:unknown};
+        if(!raw||typeof raw!=="object"||Object.keys(raw).sort().join(",")!=="format,owner_creation_ticks,reading"||raw.format!=="cimiloop/agent-run-clock-owner-anchor/1.0.0"||typeof raw.owner_creation_ticks!=="string"||!/^\d{1,19}$/.test(raw.owner_creation_ticks))throw new RuntimeAdapterError("agent_run_clock_owner_unproven");
+        return {reading:parseAgentRunClock(raw.reading),owner_creation_ticks:raw.owner_creation_ticks};
+      });
+      void anchor.catch(()=>{});
+      const original=await anchor;stop?.throwIfAborted();return original.reading;
+    }
+    const original=await anchor;stop?.throwIfAborted();
+    const reading=parseAgentRunClock((await nativeControl(output,["--continuous",String(process.pid),original.owner_creation_ticks,original.reading.boot_utc],stop)).value);
+    if(reading.machine_digest!==original.reading.machine_digest||reading.boot_utc!==original.reading.boot_utc||reading.uptime_ms<original.reading.uptime_ms)throw new RuntimeAdapterError("agent_run_clock_owner_unproven");
+    return reading;
   } };
 }

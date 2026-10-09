@@ -41,3 +41,7 @@ export type { AgentRunBudgetBasis, AgentRunBudgetPorts } from "./agent-run-budge
 export { queryAgentRuntimeOperation, requestAgentRuntimeCancellation, recoverAgentRuntimeOperation, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity } from "./agent-runtime-operation.js";
 export { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } from "./agent-workspace-ipc-journal.js";
 export { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
+
+export { runOpenCodeWorkspaceRuntime } from "./opencode-workspace-runtime.js";
+export { AgentRuntimeModelHost, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
+export type { AgentRuntimeModelPort, AgentRuntimeModelResponse } from "./agent-runtime-model.js";

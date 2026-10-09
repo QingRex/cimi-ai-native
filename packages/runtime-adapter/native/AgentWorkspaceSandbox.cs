@@ -32,8 +32,9 @@ partial class AppContainer {
   static ulong AgentConfigDeadline(Dictionary<string,object> config) {
     string format=config["format"] as string;
     if(format=="cimiloop/agent-workspace-sandbox-config/1.0.0") { AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options"); return 0; }
-    if(format!="cimiloop/agent-workspace-sandbox-config/2.0.0") throw new InvalidDataException();
-    AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms");
+    if(format=="cimiloop/agent-workspace-sandbox-config/3.0.0") AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt");
+    else if(format=="cimiloop/agent-workspace-sandbox-config/2.0.0") AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms");
+    else throw new InvalidDataException();
     object value=config["deadline_uptime_ms"]; if(value==null) return 0;
     if(!(value is int)&&!(value is long)) throw new InvalidDataException();
     long deadline=Convert.ToInt64(value); if(deadline<=0||deadline>9007199254740991L) throw new InvalidDataException(); return (ulong)deadline;
@@ -185,7 +186,7 @@ partial class AppContainer {
     string root=null,binary=null,profile=null,mapping=null,nonce=null; IntPtr sid=IntPtr.Zero,list=IntPtr.Zero,capsMemory=IntPtr.Zero,handles=IntPtr.Zero,job=IntPtr.Zero,jobList=IntPtr.Zero,owner=IntPtr.Zero,nul=IntPtr.Zero;
     PROCESSINFO process=new PROCESSINFO(); bool started=false,profileCreated=false; int exit=12; ulong? runtimeStoppedUptime=null; string reason="agent_sandbox_unavailable"; var cleanupErrors=new List<string>();
     try {
-      string originalConfig=AgentLine(32768); var config=serializer.Deserialize<Dictionary<string,object>>(originalConfig);
+      string originalConfig=AgentLine(65536); var config=serializer.Deserialize<Dictionary<string,object>>(originalConfig);
       agentTaskDeadline=AgentConfigDeadline(config); if(AgentTaskExpired()) throw new InvalidDataException();
       Guid guid,pipeGuid;
       if(!Guid.TryParseExact(config["nonce"] as string,"D",out guid)||
@@ -198,8 +199,13 @@ partial class AppContainer {
         !String.Equals(Image(owner),(string)originalOwner["image"],StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
       int elapsed=Convert.ToInt32(config["elapsed_ms"]); if(elapsed<1000||elapsed>180000) throw new InvalidDataException();
       var options=(Dictionary<string,object>)config["provider_options"];
-      bool checksOnly=options.ContainsKey("check_only");
-      if(checksOnly) {
+      bool production=config["format"] as string=="cimiloop/agent-workspace-sandbox-config/3.0.0",checksOnly=options.ContainsKey("check_only");
+      if(production) {
+        AgentKeys(options,"admission_digest");
+        if(!(options["admission_digest"] is string)||!System.Text.RegularExpressions.Regex.IsMatch((string)options["admission_digest"],"^[a-f0-9]{64}$")||agentTaskDeadline==0) throw new InvalidDataException();
+        string prompt=config["prompt"] as string;
+        if(String.IsNullOrWhiteSpace(prompt)||new UTF8Encoding(false,true).GetByteCount(prompt)>32768||File.ReadAllText(Path.Combine(modules,"task-packet.txt"),new UTF8Encoding(false,true))!=prompt) throw new InvalidDataException();
+      } else if(checksOnly) {
         AgentKeys(options,"check_id","check_only"); if(!(options["check_only"] is bool)||!(bool)options["check_only"]) throw new InvalidDataException();
       } else if(options.ContainsKey("check_id")) {
         AgentKeys(options,"path","expectedDigest","replacement","check_id");
@@ -240,13 +246,15 @@ partial class AppContainer {
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_PRIVATE_CANARY",Path.Combine(Path.GetDirectoryName(root),"workspace-private-canary.txt"));
       var permission=new Dictionary<string,object> { {"*","deny"} };
       if(!checksOnly) { permission.Add("cimi_read","allow"); permission.Add("cimi_replace","allow"); }
-      if(options.ContainsKey("check_id")) permission.Add("cimi_check","allow");
-      var model=new { name="Constructed workspace tool responses",tool_call=true,limit=new { context=65536,output=512 } };
-      var models=new Dictionary<string,object> { {"workspace-fixture",model} };
-      var providers=new Dictionary<string,object> { {"cimiloop-workspace-fixture",new { npm="file:///"+mapping+"/config/opencode-workspace-provider-fixture.mjs",options=options,models=models }} };
+      if(production||options.ContainsKey("check_id")) permission.Add("cimi_check","allow");
+      string providerId=production?"cimiloop-host-gateway":"cimiloop-workspace-fixture",modelId=production?"host-approved":"workspace-fixture";
+      string modelRoute=providerId+"/"+modelId,providerModule=production?"opencode-host-gateway-provider.mjs":"opencode-workspace-provider-fixture.mjs";
+      var model=new { name=production?"Original host-approved model":"Constructed workspace tool responses",tool_call=true,limit=new { context=65536,output=512 } };
+      var models=new Dictionary<string,object> { {modelId,model} };
+      var providers=new Dictionary<string,object> { {providerId,new { npm="file:///"+mapping+"/config/"+providerModule,options=options,models=models }} };
       Environment.SetEnvironmentVariable("OPENCODE_CONFIG_CONTENT",serializer.Serialize(new { autoupdate=false,share="disabled",snapshot=false,plugin=new string[0],
-        enabled_providers=new string[] {"cimiloop-workspace-fixture"},model="cimiloop-workspace-fixture/workspace-fixture",small_model="cimiloop-workspace-fixture/workspace-fixture",provider=providers,
-        permission=permission,agent=new { cimi=new { mode="primary",steps=4,description="Fixed workspace tool rehearsal",permission=permission } },default_agent="cimi" }));
+        enabled_providers=new string[] {providerId},model=modelRoute,small_model=modelRoute,provider=providers,
+        permission=permission,agent=new { title=new { disable=true },summary=new { disable=true },compaction=new { disable=true },cimi=new { mode="primary",steps=production?64:4,description=production?"Admitted original Agent workspace execution":"Fixed workspace tool rehearsal",permission=permission } },compaction=new { auto=false,prune=false },default_agent="cimi" }));
       // Runtime cannot consume the supervisor's private resume/cancel input.
       var sa=new AgentSA { length=Marshal.SizeOf(typeof(AgentSA)),inherit=true }; nul=CreateFile("NUL",0x80000000,3,ref sa,3,0,IntPtr.Zero); Check(nul!=new IntPtr(-1));
       var caps=new CAPS { sid=sid }; capsMemory=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(CAPS))); Marshal.StructureToPtr(caps,capsMemory,false);
@@ -258,7 +266,10 @@ partial class AppContainer {
       job=AgentCreateJob(IntPtr.Zero,(string)agentResources["job_name"]); int jobError=Marshal.GetLastWin32Error(); Check(job!=IntPtr.Zero); if(jobError==183) throw new InvalidDataException();
       var limits=new JOBLIMIT(); limits.basic.flags=0x2000|0x8|0x200; limits.basic.active=1; limits.jobMem=new UIntPtr(2147483648UL); Check(SetInformationJobObject(job,9,ref limits,Marshal.SizeOf(typeof(JOBLIMIT))));
       jobList=Marshal.AllocHGlobal(IntPtr.Size); Marshal.WriteIntPtr(jobList,job); Check(UpdateProcThreadAttribute(list,0,new IntPtr(0x2000d),jobList,new IntPtr(IntPtr.Size),IntPtr.Zero,IntPtr.Zero));
-      var command=new StringBuilder(Quote(binary)); foreach(string arg in new string[] {"run","--pure","--format","json","--model","cimiloop-workspace-fixture/workspace-fixture","--agent","cimi","Execute the fixed workspace tool rehearsal."}) command.Append(" ").Append(Quote(arg));
+      var arguments=new List<string>(new string[] {"run","--pure","--format","json","--model",modelRoute,"--agent","cimi"});
+      if(production) { arguments.Add("--file"); arguments.Add(mapping+"\\config\\task-packet.txt"); arguments.Add("--"); }
+      arguments.Add(production?"Execute the original admitted task packet through the fixed tools.":"Execute the fixed workspace tool rehearsal.");
+      var command=new StringBuilder(Quote(binary)); foreach(string arg in arguments) command.Append(" ").Append(Quote(arg));
       AgentCheckpoint("process_create_intent",owner);
       Check(CreateProcess(binary,command,IntPtr.Zero,IntPtr.Zero,true,0x80000|0x08000000|0x4,IntPtr.Zero,mapping+"\\workspace",ref startup,out process)); started=true;
       AgentCheckpoint("runtime_created",owner);
@@ -279,7 +290,10 @@ partial class AppContainer {
       }
       runtimeStoppedUptime=AgentTickCount();
       if(reason=="agent_sandbox_unavailable") { uint code; Check(GetExitCodeProcess(process.process,out code)); exit=(int)code; reason="exited"; }
-    } catch { reason=AgentTaskExpired()?"agent_sandbox_task_deadline":"agent_sandbox_unavailable"; }
+    } catch(Exception error) {
+      reason=AgentTaskExpired()?"agent_sandbox_task_deadline":"agent_sandbox_unavailable";
+      Console.Error.WriteLine(serializer.Serialize(new {format="cimiloop/agent-workspace-native-failure/1.0.0",phase=agentResources==null?"config":agentResources["phase"],reason=reason,exception_type=error.GetType().Name,native_error=error is System.ComponentModel.Win32Exception?((System.ComponentModel.Win32Exception)error).NativeErrorCode:0}));
+    }
     finally {
       if(started) { if(!TerminateJobObject(job,125)||WaitForSingleObject(process.process,5000)!=0) cleanupErrors.Add("process"); else if(!runtimeStoppedUptime.HasValue) runtimeStoppedUptime=AgentTickCount(); }
       if(process.thread!=IntPtr.Zero) CloseHandle(process.thread); if(process.process!=IntPtr.Zero) CloseHandle(process.process); if(job!=IntPtr.Zero) CloseHandle(job); if(owner!=IntPtr.Zero) CloseHandle(owner); if(nul!=IntPtr.Zero&&nul!=new IntPtr(-1)) CloseHandle(nul);

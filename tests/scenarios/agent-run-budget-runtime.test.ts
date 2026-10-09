@@ -26,7 +26,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("native T
         const proof = join(operations, name, "agent-sandbox-cleanup.json");
         if (!existsSync(proof) || JSON.parse(readFileSync(proof, "utf8")).resources_disposed !== true) throw Error("Retain original resources: " + proof);
       }
-      rmSync(root, { recursive: true, force: true });
+      console.error("Retain original Task-clock fixture: " + root);
     }
   });
   function setup() {
@@ -45,6 +45,10 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("native T
     const f = setup(), budget = await openLocalAgentRunBudget(f.local, f.reserved.run.id), original = readFileSync(budget.anchorPath), before = await budget.remaining();
     const clock = await openWindowsAgentRunClock(f.dataDirectory), reading = await clock.read();
     expect(Date.parse(reading.boot_utc)).toBeLessThan(Date.parse(f.task().usage.first_started_at!)); expect(reading.uptime_ms).toBeGreaterThan(0);
+    const helper=join(f.dataDirectory,"tools","agent-run-clock-"+digest(readFileSync(resolve("packages/runtime-adapter/native/AgentRunClock.cs"))).value,"AgentRunClock.exe");
+    for(const pid of [String(process.pid),"2147483647"]){
+      await expect(promisify(execFile)(helper,["--continuous",pid,"1",reading.boot_utc],{windowsHide:true,timeout:15000})).rejects.toMatchObject({code:2,stdout:""});
+    }
     const module = pathToFileURL(resolve("packages/runtime-adapter/dist/index.js")).href;
     const code = `import { AgentRunBudget,openWindowsAgentRunClock } from ${JSON.stringify(module)}; const input=JSON.parse(process.argv[1]); const clock=await openWindowsAgentRunClock(input.root); const budget=await AgentRunBudget.open(input.root,{basis:()=>input.basis,readClock:clock.read}); console.log(JSON.stringify({remaining:await budget.remaining(),digest:budget.anchorDigest}));`;
     const child = await promisify(execFile)(process.execPath, ["--input-type=module", "-e", code, JSON.stringify({ root: f.dataDirectory, basis: budget.basis })], { windowsHide: true, timeout: 15000 });

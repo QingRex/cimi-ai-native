@@ -54,10 +54,10 @@ const reportFor=(proof:Proof,reference:RawAgentRunObservation["result_proof_ref"
  basis:"direct_observation",status:"unknown",usage:{cost_known:false},method:"Original Runtime collection; completion and billing unproven",
  observation:"原操作采集已保存并核对归属；终态、真实模型账户及费用仍待核对。停止或资源处置不代表任务完成。",resolves_observation_refs:[]});
 const validateCollection=(root:string,identity:Identity,value:unknown)=>{
- if(!exact(value,["format","scope_digest","status","artifacts","missing","ipc","native","domain_observation_produced","formal_agent_execution_enabled","synthetic_model_responses"])||
- value.format!=="cimiloop/agent-runtime-originals/1.0.0"||value.scope_digest!==agentWorkspaceIpcScopeDigest(identity.scope)||value.synthetic_model_responses!==true||
+ if(!exact(value,["format","scope_digest","status","artifacts","missing","ipc","native","domain_observation_produced","formal_agent_execution_enabled","synthetic_model_responses",...(value&&typeof value==="object"&&"model" in value?["model"]:[])])||
+ value.format!=="cimiloop/agent-runtime-originals/1.0.0"||value.scope_digest!==agentWorkspaceIpcScopeDigest(identity.scope)||(value.synthetic_model_responses!==true&&value.synthetic_model_responses!==null)||
  value.formal_agent_execution_enabled!==false||value.domain_observation_produced!==false||!value.status||typeof value.status!=="object"||
- !("operation" in value.status)||value.status.operation!==identity.operation||!Array.isArray(value.artifacts)||value.artifacts.length>MAX_ORIGINAL_ARTIFACTS)throw Error("Original collection mismatch");
+ !("operation" in value.status)||value.status.operation!==identity.operation||!Array.isArray(value.artifacts)||value.artifacts.length>MAX_ORIGINAL_ARTIFACTS+(value.synthetic_model_responses===null?64*3+2:0))throw Error("Original collection mismatch");
  for(const artifact of value.artifacts){if(!exact(artifact,["name","reference"])||typeof artifact.name!=="string"||!exact(artifact.reference,["provider","resource_type","locator","digest","version"])||
  artifact.reference.provider!=="cimiloop-runtime-probe"||artifact.reference.resource_type!=="agent_runtime_original_bytes"||artifact.reference.version!==artifact.name||
  !exact(artifact.reference.digest,["algorithm","value"])||artifact.reference.digest.algorithm!=="sha256"||typeof artifact.reference.digest.value!=="string"||

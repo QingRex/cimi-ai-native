@@ -10,7 +10,7 @@ import type { ContentReference } from "../../packages/local-app/src/evidence-loc
 // current qualification commands, and prove no live model/OS/billing admission.
 export const createAgentRunProject = (directory: string, scope: "task_execution" | "isolated_provider_probe" = "task_execution", cost: number | undefined = 100,
   runtimeResources: v2.ExternalReference[] = [{ provider: "cimiloop_workspace", resource_type: "repository_path", locator: "src/query.ts", version: "1.0.0" }],
-  runtimeActions: v2.WorkItem["allowed_actions"] = ["read_files"], workItemResources: string[] = ["src/query.ts"], allowedChanges?: string[]) => {
+  runtimeActions: v2.WorkItem["allowed_actions"] = ["read_files"], workItemResources: string[] = ["src/query.ts"], allowedChanges?: string[], maxElapsedMs=60_000) => {
   const f = createRunProject(directory, allowedChanges);
   const metadata = () => ({ schema_version: v2.SCHEMA_VERSION, id: v2.createInternalId(), project_id: f.project.id, created_at: flowTime, producer_actor_id: f.actor.id });
   const content = <T extends ContentReference["resource_type"]>(value: unknown, kind: T) => f.runPort.content.storeContent(Buffer.from(JSON.stringify(value)), kind);
@@ -62,7 +62,7 @@ export const createAgentRunProject = (directory: string, scope: "task_execution"
   const kernel = new CimiLoopKernel({ store: f.store, caller, now: () => flowTime, runVerifier: runPort });
   const source = f.capture(), work = flowSuccess(f.kernel.execute(f.taskCommand("CreateWorkItem", f.task().id, { definition_ref: f.task().definition_ref,
     executor_ref: { object_type: "actor", id: agent.id }, allowed_actions: runtimeActions, allowed_resources: workItemResources,
-    budget: { max_attempts: 3, max_elapsed_ms: 60_000, ...(cost ? { max_cost: { currency: "USD", amount_micros: cost } } : {}) },
+    budget: { max_attempts: 3, max_elapsed_ms: maxElapsedMs, ...(cost ? { max_cost: { currency: "USD", amount_micros: cost } } : {}) },
     stop_conditions: ["任务边界改变即停止"], reason: "有界构造 Agent 运行测试" }, f.actor.id, "technical_owner")));
   if (work.command_type !== "CreateWorkItem") throw Error("WorkItem expected"); const item = work.data.work_item;
   const command = (kind: string, type: "task" | "work_item" | "run", id: string, payload: unknown) => ({ ...f.command(kind, type, id, payload, "executor", agent.id), source: { origin: "agent", producer: "constructed-host" } });

@@ -33,3 +33,4 @@ export type { LocalSkillMethodPlan, LocalSkillMethodQualificationPort } from "./
 
 export { LocalPrePlanClarification } from "./clarification-local.js";
 export type { ClarificationBegin, ClarificationAction, ClarificationSession } from "./clarification-local.js";
+export { LocalAgentRuntimeComposition } from "./agent-runtime-composition-local.js";

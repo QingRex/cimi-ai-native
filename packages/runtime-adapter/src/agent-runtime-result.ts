@@ -29,7 +29,7 @@ export function readAgentRuntimeNativeResult(root: string, project: Pick<Project
     result.unresolved_native_calls = original.files.facts.unresolved + original.checks.facts.unresolved;
     for (const exchange of originals.exchanges) {
       const frame = exchange.request as Record<string, unknown> | null, reply = exchange.reply as Record<string, unknown> | null;
-      if (!frame || !reply || reply.outcome !== "completed") continue;
+      if (!frame || !reply || reply.outcome !== "completed" || frame.tool === "model_step") continue;
       if (frame.tool === "run_check") {
         if (!catalog || catalog.catalog_digest !== originals.header?.endpoint.check_catalog_digest) continue;
         const input = agentWorkspaceIpcCheckInvocation(scope, catalog, frame), call = original.checks.calls.find(call => call.call.call_id === input.call_id);
@@ -50,7 +50,7 @@ export function readAgentRuntimeNativeResult(root: string, project: Pick<Project
     // rather than reporting a completion assembled from different Native states.
     if (!isDeepStrictEqual(read(), original)) throw Error("Native originals changed during verification");
     if (originals.status === "Observed" && !originals.unresolved && result.matched_calls > 0 &&
-      result.matched_calls === originals.exchanges.length && !result.unmatched_native_calls && !result.unresolved_native_calls) {
+      result.matched_calls === originals.exchanges.filter(exchange => !(exchange.request && typeof exchange.request === "object" && "tool" in exchange.request && exchange.request.tool === "model_step")).length && !result.unmatched_native_calls && !result.unresolved_native_calls) {
       result.status = "Verified"; result.native_effect_reverified = true; result.reason = "agent_native_originals_reverified";
     }
   } catch (error) { result.reason = error instanceof RuntimeAdapterError ? error.reason : "agent_native_originals_unproven"; }
