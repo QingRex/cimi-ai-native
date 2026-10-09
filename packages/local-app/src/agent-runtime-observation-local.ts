@@ -8,8 +8,9 @@ import { LocalEvidenceVerifier, type ContentReference } from "./evidence-local.j
 import { executeLocalCommand, type LocalCommandInput } from "./project.js";
 import { readHumanOriginalAgentRunInputs, type AgentRuntimeControlContext } from "./agent-runtime-control-local.js";
 import { LocalProjectError } from "./errors.js";
+import {classifyOriginalAgentExecutionFailure,type OriginalAgentExecutionFailure} from "./agent-runtime-failure-local.js";
 
-// This observation version can attest only an original Unknown. It does not
+// Original Unknown and independently pinned negative execution facts. It does not
 // implement live admission, terminal result/model custody or bill settlement.
 // Native collection is a trusted code port; JSON/HTTP cannot install it.
 export interface AgentRuntimeObservationPort { collect: typeof collectAgentRuntimeOperation }
@@ -18,7 +19,7 @@ type Identity = ReturnType<typeof readAgentRuntimeOriginalIdentity>;
 type Request = Omit<LocalCommandInput,"command_type"|"payload"> & { command_type:"RecordRunObservation"; target:{object_type:"run";id:string}; payload:Record<string,never> };
 interface Intent { format:"cimiloop/agent-unknown-observation-request/1.0.0"; project_id:string; actor_id:string; request:Request;
   scope:Original["scope"]; context_id:string; record_digest:string; context_digest:string }
-interface Proof { format:"cimiloop/agent-unknown-observation-proof/1.0.0"; intent:Intent; original:Identity; observed_at:string;
+interface Proof { format:"cimiloop/agent-unknown-observation-proof/1.0.0"|"cimiloop/agent-failed-observation-proof/1.0.0"; execution_failure?:OriginalAgentExecutionFailure; intent:Intent; original:Identity; observed_at:string;
   collection_ref:RawAgentRunObservation["result_proof_ref"]; completion_proven:false; costs_reconciled:false }
 interface Prepared { format:"cimiloop/agent-unknown-observation-prepared/1.0.0";
   raw_result_ref:Extract<ContentReference,{resource_type:"agent_run"}>; proof_ref:RawAgentRunObservation["result_proof_ref"] }
@@ -51,8 +52,8 @@ const reportFor=(proof:Proof,reference:RawAgentRunObservation["result_proof_ref"
  operation_key:proof.intent.scope.operation_key,producer_actor_id:proof.intent.actor_id,observed_at:proof.observed_at,input_digest:proof.intent.scope.context_digest,
  context_ref:{object_type:"context_manifest",id:proof.intent.context_id},runtime_binding:proof.intent.scope.runtime_binding,
  skill_bindings:proof.intent.scope.skill_bindings,host_admission_ref:proof.intent.scope.host_admission_ref,result_proof_ref:reference,
- basis:"direct_observation",status:"unknown",usage:{cost_known:false},method:"Original Runtime collection; completion and billing unproven",
- observation:"原操作采集已保存并核对归属；终态、真实模型账户及费用仍待核对。停止或资源处置不代表任务完成。",resolves_observation_refs:[]});
+ basis:"direct_observation",status:proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"?"failed":"unknown",usage:{cost_known:false},method:proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"?"Original Native negative execution: "+proof.execution_failure:"Original Runtime collection; completion and billing unproven",
+ observation:proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"?"原Native证明本次执行失败；模型账户、费用与原未决调用继续待核对，不结清预算或满足任务。":"原操作采集已保存并核对归属；终态、真实模型账户及费用仍待核对。停止或资源处置不代表任务完成。",resolves_observation_refs:[]});
 const validateCollection=(root:string,identity:Identity,value:unknown)=>{
  if(!exact(value,["format","scope_digest","status","artifacts","missing","ipc","native","domain_observation_produced","formal_agent_execution_enabled","synthetic_model_responses",...(value&&typeof value==="object"&&"model" in value?["model"]:[])])||
  value.format!=="cimiloop/agent-runtime-originals/1.0.0"||value.scope_digest!==agentWorkspaceIpcScopeDigest(identity.scope)||(value.synthetic_model_responses!==true&&value.synthetic_model_responses!==null)||
@@ -78,13 +79,16 @@ export class LocalAgentRunResultVerifier {
   const prepared=read(join(pathFor(this.dataDirectory,project.id,record.run_id,intent.request.command_id),"prepared.json")) as Prepared;
   if(!isDeepStrictEqual(prepared.raw_result_ref,reference)||!isDeepStrictEqual(prepared.proof_ref,report.result_proof_ref)||
     !isDeepStrictEqual(read(join(pathFor(this.dataDirectory,project.id,record.run_id,intent.request.command_id),"request.json")),intent))throw Error("Original prepared result mismatch");
-  validateCollection(this.dataDirectory,proof.original,parsed(this.content.readContent(proof.collection_ref)));
+  const collection=parsed(this.content.readContent(proof.collection_ref));
+  validateCollection(this.dataDirectory,proof.original,collection);
+  if(proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"&&classifyOriginalAgentExecutionFailure(proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>)!==proof.execution_failure)throw Error("Original failed execution unproven");
   return report;
  }
 }
 function readProof(content:LocalEvidenceVerifier,reference:RawAgentRunObservation["result_proof_ref"]):Proof {
  const value=parsed(content.readContent(reference));
- if(!exact(value,["format","intent","original","observed_at","collection_ref","completion_proven","costs_reconciled"])||value.format!=="cimiloop/agent-unknown-observation-proof/1.0.0"||
+ const failed=value&&typeof value==="object"&&"format" in value&&value.format==="cimiloop/agent-failed-observation-proof/1.0.0";
+ if(!exact(value,["format","intent","original","observed_at","collection_ref","completion_proven","costs_reconciled",...(failed?["execution_failure"]:[])])||!failed&&value.format!=="cimiloop/agent-unknown-observation-proof/1.0.0"||failed&&!["agent_original_task_deadline","agent_original_runtime_exit_failed"].includes(String(value.execution_failure))||
  value.completion_proven!==false||value.costs_reconciled!==false||typeof value.observed_at!=="string")throw Error("Original Unknown proof unavailable");return value as unknown as Proof;
 }
 
@@ -104,7 +108,8 @@ export class LocalAgentRuntimeObservation {
     const fresh=readHumanOriginalAgentRunInputs(this.local,original.run.id);
     if(!isDeepStrictEqual(intentFor(this.local,request,fresh),intentFor(this.local,request,original))||!isDeepStrictEqual(identity,readAgentRuntimeOriginalIdentity(this.local.location.dataDirectory,original.scope)))throw Error("Original observation inputs changed");
     validateCollection(this.local.location.dataDirectory,identity,collection);
-    const proof:Proof={format:"cimiloop/agent-unknown-observation-proof/1.0.0",intent,original:identity,observed_at:new Date().toISOString(),
+    const failure=classifyOriginalAgentExecutionFailure(identity,collection);
+    const proof:Proof={format:failure?"cimiloop/agent-failed-observation-proof/1.0.0":"cimiloop/agent-unknown-observation-proof/1.0.0",...(failure?{execution_failure:failure}:{}),intent,original:identity,observed_at:new Date().toISOString(),
       collection_ref:this.content.storeContent(Buffer.from(JSON.stringify(collection)),"agent_run_proof"),completion_proven:false,costs_reconciled:false};
     const proof_ref=this.content.storeContent(Buffer.from(JSON.stringify(proof)),"agent_run_proof"),raw_result_ref=this.content.storeContent(Buffer.from(JSON.stringify(reportFor(proof,proof_ref))),"agent_run");
     saveOnce(preparedPath,{format:"cimiloop/agent-unknown-observation-prepared/1.0.0",raw_result_ref,proof_ref});

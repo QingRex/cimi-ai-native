@@ -188,9 +188,9 @@ const taskPanel = (task, data) => {
         output.replaceChildren(paragraph(response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
       };
       result.append(node("div", { class: "row" }, button("查询原运行", () => observe("")), button("采集原资料", () => observe("collect")),
-        button("记录待核对观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
+        button("记录原运行观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
         ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,
-        paragraph("正式 Agent 执行尚未启用。原采集可记录为待核对观测；任务结果与费用未确认前，预算继续保留。"));
+        paragraph("正式 Agent 执行尚未启用。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
     }
     result.append(form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision,
       agent ? "technical_owner" : "executor", agent), input("reason", "停止理由", { required: true }), submit(agent ? "请求停止原运行" : "请求停止运行")));

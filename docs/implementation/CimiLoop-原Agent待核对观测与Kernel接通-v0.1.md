@@ -1,5 +1,7 @@
 # CimiLoop 原 Agent 待核对观测与 Kernel 接通 v0.1
 
+2026-10-09 D-241：共享原Native失败结果已接工作台原观测和Kernel，原身份 / 配置 / 原Task期限 / 退出及不可变字节对应后生成失败报告；费用仍未知并冻结，旧Unknown证明保持原义。见[实现与边界](CimiLoop-原Native失败结果与Kernel观测-v0.1.md)。正式正向领域结果及完整五组S1继续，默认正式Agent关闭，242 Schema / 用户库10保持。
+
 2026-10-09，D-235，V1-09 / V1-10 续批。承接[原运行控制](CimiLoop-工作台原Agent运行控制-v0.1.md)与[原 Native 回执核验](CimiLoop-Native原回执独立核验-v0.1.md)。本批把已有原操作采集接入共享应用服务和 Kernel RecordRunObservation，形成可查询、可按原请求恢复的 Unknown 领域观测。完整正式终态、模型 / 账户、账单、配额、真实技能及 S1 仍须继续完成。
 
 ## 可执行路径

@@ -1,3 +1,5 @@
+import {startWorkbench} from "../../apps/workbench/src/server.js";
+import {createInternalId} from "../../packages/protocol/src/v2/index.js";
 import { mkdtempSync, readFileSync, readdirSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
@@ -6,7 +8,7 @@ import { execFile } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CimiLoopKernel } from "../../packages/kernel/src/index.js";
-import { openLocalAgentRunBudget } from "../../packages/local-app/src/index.js";
+import { LocalAgentRuntimeObservation, LocalRunVerifier, writeInstance, openLocalAgentRunBudget } from "../../packages/local-app/src/index.js";
 import { AgentWorkspaceToolIpc, RuntimeAdapterError, openWindowsAgentRunClock, runOpenCodeWorkspaceToolRehearsal } from "../../packages/runtime-adapter/src/index.js";
 import { createAgentRunProject } from "../fixtures/agent-run-project.js";
 import { flowSuccess } from "../fixtures/flow-project.js";
@@ -115,5 +117,23 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("native T
     await new Promise(resolve => setTimeout(resolve, Math.max(0, Date.parse(usage.first_started_at!) + 60100 - Date.now())));
     await expect(openLocalAgentRunBudget(f.local, f.reserved.run.id)).rejects.toThrow("agent_run_budget_exhausted");
     expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
+    // Actual stopped original Native deadline -> shared Human observation ->
+    // Kernel. Unknown costs retain the one active Run and its held budget.
+    const humanKernel=new CimiLoopKernel({store:f.store,caller:{kind:"local_operator",project_id:f.project.id,actor_id:f.actor.id},runVerifier:new LocalRunVerifier(f.root,f.dataDirectory)});
+    const human={...f.local,kernel:humanKernel,instance:{schema_version:"1.0.0" as const,instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at}};
+    const request={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:"technical_owner",command_type:"RecordRunObservation",target:{object_type:"run",id:f.reserved.run.id},expected_revision:f.store.getRun(f.reserved.run.id)!.revision,payload:{}};
+    writeInstance(human.location.instancePath,human.instance);const server=await startWorkbench({projectDir:f.root});
+    let result:unknown;const sequence=f.store.asOfEventSequence();
+    try{
+     const login=await fetch(server.origin+"/api/session",{method:"POST",headers:{Origin:server.origin,"Content-Type":"application/json"},body:JSON.stringify({bootstrap:new URL(server.bootstrapUrl).hash.slice(1)})});expect(login.status).toBe(200);
+     const cookie=login.headers.get("set-cookie")!.split(";")[0]!,csrf=(await login.json() as {csrf:string}).csrf;
+     const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/observe",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:JSON.stringify(request)});
+     result=await response.json();expect({status:response.status,result}).toMatchObject({status:200});
+    }finally{await server.close();}
+    expect(result).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"failed",usage:{cost_known:false}}}}});
+    expect(await new LocalAgentRuntimeObservation(human).record(request)).toEqual(result);expect(f.store.asOfEventSequence()).toBe(sequence+1);
+    expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Failed");expect(f.task().status).toBe("InProgress");
+    expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_known:false,cost_reserved_micros:100,attempts_consumed:1});
+    expect(f.task().active_run_ref?.id).toBe(f.reserved.run.id);
   });
 });

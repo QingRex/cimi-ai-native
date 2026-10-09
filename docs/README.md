@@ -1,5 +1,7 @@
 # CimiLoop 文档导航
 
+- [原Native失败结果与Kernel观测](implementation/CimiLoop-原Native失败结果与Kernel观测-v0.1.md)：原执行失败核验、共享工作台 / Kernel及未知费用冻结；完整S1继续。
+
 2026-10-09 D-240：共享原启动已组合固定Native / OpenCode宿主模型提供器、完整原任务资料、固定检查及原Task时钟。原模型步骤先登记后唯一发送，SDK完整附件投影与原请求 / 响应 / 工具账本对应；原回复未知不重发。实际验证与限制见[宿主模型与Runtime执行组合](implementation/CimiLoop-宿主模型与正式Runtime执行组合-v0.1.md)。真实账户 / 模型 / 套餐 / 现金积分预算与账单端口尚未批准或安装，正式终态与其余五组S1继续；默认Agent入口关闭，242 Schema / 项目库10保持。
 
 2026-10-09 D-239：[计划前Human澄清与原请求接续](implementation/CimiLoop-计划前Human澄清与原请求接续-v0.1.md)已接共享CLI / 工作台；真实Matt与完整S1继续，正式Agent入口关闭。

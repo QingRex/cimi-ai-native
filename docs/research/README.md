@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+- [原Native失败结果与Kernel观测](../implementation/CimiLoop-原Native失败结果与Kernel观测-v0.1.md)：原执行失败核验、共享工作台 / Kernel及未知费用冻结；完整S1继续。
+
 2026-10-09 D-240：[宿主模型与Runtime执行组合研究记录](CimiLoop-宿主模型与正式Runtime执行组合-2026-10-09.json)区分实际Native / SDK组合、构造模型与账户资格、过程失败及固定源码复验；不计为真实模型 / Skill / S1验收。
 
 2026-10-09 D-239：[Human澄清与原请求接续研究记录](CimiLoop-计划前Human澄清与原请求接续-2026-10-09.json)区分实际共享入口、受控故障注入、首次未处理浏览器回调错误及后续复验；不计为真实Matt / 模型或S1验收。

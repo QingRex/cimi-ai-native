@@ -102,4 +102,39 @@ describe("original Agent Unknown observation joins the Kernel receipt",()=>{
  expect(await service.record(command())).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"unknown",usage:{cost_known:false}}}}});
  expect(f.task().usage.cost_reserved_micros).toBe(100);
  });
+ it("records independently pinned Native deadline failure through Kernel and retains unknown cost and the original budget",async()=>{
+  seed();const config={format:"cimiloop/agent-workspace-sandbox-config/2.0.0",nonce:claim.operationId,owner:{},scope_digest:"constructed",deadline_uptime_ms:60000};
+  const original=await collectAgentRuntimeOperation(local.location.dataDirectory,originalAgentWorkspaceScope({...local,store:f.store,caller:f.caller,kernel:f.kernel},runId));
+  const scope=originalAgentWorkspaceScope({...local,store:f.store,caller:f.caller,kernel:f.kernel},runId);
+  const identity=(await import("@cimiloop/runtime-adapter")).readAgentRuntimeOriginalIdentity(local.location.dataDirectory,scope);
+  // Constructed Native bytes exercise negative-result qualification only. This
+  // contract does not establish actual Windows process or production account.
+  const supervisor={pid:4321,creation_ticks:"4321",image:process.execPath},peer={...supervisor,pid:4322};
+  const actualConfig={...config,owner:identity.claim.owner,scope_digest:original.scope_digest,deadline_uptime_ms:60000};
+  const bytes={"original-config.json":actualConfig,"original-launcher.json":{format:"cimiloop/agent-workspace-launcher/1.0.0",nonce:claim.operationId,owner:identity.claim.owner,supervisor},
+   "agent-sandbox-original.json":{format:"cimiloop/agent-workspace-sandbox/1.0.0",phase:"suspended",nonce:claim.operationId,supervisor,peer},
+   "agent-sandbox-resources.json":{format:"cimiloop/agent-workspace-resources/1.0.0",nonce:claim.operationId,scope_digest:original.scope_digest,config_digest:rawReference(local.location.dataDirectory,Buffer.from(JSON.stringify(actualConfig)),"agent_runtime_original_bytes","original-config.json").digest!.value,owner:identity.claim.owner,supervisor,runtime:peer,phase:"ended",resources_disposed:true},
+   "agent-sandbox-cleanup.json":{format:"cimiloop/agent-workspace-sandbox/1.0.0",phase:"ended",nonce:claim.operationId,reason:"agent_sandbox_task_deadline",exit_code:12,runtime_stopped_uptime_ms:60001,resources_disposed:true,cleanup_errors:[],formal_agent_execution_enabled:false},
+   "incomplete.json":{format:"cimiloop/opencode-workspace-incomplete/1.0.0",nonce:claim.operationId,original_scope_digest:original.scope_digest,native_exit:{code:12,signal:null},interruption_reason:"agent_run_budget_exhausted",completion_proven:false}};
+  // The immutable original input must independently pin the same deadline.
+  const {digest}=await import("../../runtime-adapter/src/files.js");
+  const inputFile=join(claim.claimDirectory,"input.json"),claimFile=join(claim.claimDirectory,"claim.json"),keyFile=join(local.location.dataDirectory,"agent-runtime-claims",f.project.id,"keys",f.store.getRuntimeRecord("run_record",f.store.getRun(runId)!.record_ref.id)!.operation_key,"original.json");
+  const input=JSON.stringify({purpose:"constructed-incomplete-original",deadline_uptime_ms:60000});writeFileSync(inputFile,input);
+  const claimBody=JSON.parse(readFileSync(claimFile,"utf8"));claimBody.input_digest=digest(input).value;writeFileSync(claimFile,JSON.stringify(claimBody));
+  const keyBody=JSON.parse(readFileSync(keyFile,"utf8"));keyBody.input_digest=claimBody.input_digest;writeFileSync(keyFile,JSON.stringify(keyBody));
+  collect.mockResolvedValue({...original,status:{...original.status,status:"Stopped",resources_disposed:true},artifacts:Object.entries(bytes).map(([name,value])=>({name,reference:rawReference(local.location.dataDirectory,Buffer.from(JSON.stringify(value)),"agent_runtime_original_bytes",name)}))});
+  const request=command(),sequence=f.store.asOfEventSequence(),first=await service.record(request);
+  expect(first).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"failed",usage:{cost_known:false}}}}});
+  expect(await new LocalAgentRuntimeObservation(local,{collect}).record(request)).toEqual(first);expect(collect).toHaveBeenCalledTimes(1);
+  expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.store.getRun(runId)!.status).toBe("Failed");
+  expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_known:false,cost_reserved_micros:100,attempts_consumed:1,attempts_released:0});expect(f.task().status).not.toBe("Satisfied");
+  expect(f.task().active_run_ref?.id).toBe(runId);expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+  if(!("command_type" in first)||first.command_type!=="RecordRunObservation")throw Error("Expected original failure observation");
+  const report=first.data.observation.report,content=new LocalRunVerifier(root,local.location.dataDirectory).content;
+  for(const changed of [{status:"succeeded"},{usage:{cost_known:true,cost_micros:0,currency:"USD"}}]){
+   const forged=content.storeContent(Buffer.from(JSON.stringify({...report,...changed})),"agent_run");
+   expect(executeLocalCommand(local,{...command(),payload:{raw_result_ref:forged}})).toMatchObject({code:"EVIDENCE_MISSING"});
+  }
+  expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.task().usage.cost_reserved_micros).toBe(100);
+ });
 });

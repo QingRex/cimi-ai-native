@@ -44,7 +44,7 @@ describe("original Agent controls survive browser response loss",()=>{
     const first=browser(server.bootstrapUrl);await until(()=>first.window.document.querySelector("#operator")?.textContent.includes("Owner"));
     first.window.location.hash=`change/${f.change.id}`;
     await until(()=>[...first.window.document.querySelectorAll("button")].some((button:any)=>button.textContent==="查询原运行"));
-    const control=[...first.window.document.querySelectorAll("button")].find((button:any)=>button.textContent===(action==="stop"?"请求停止原运行":"记录待核对观测")) as any;
+    const control=[...first.window.document.querySelectorAll("button")].find((button:any)=>button.textContent===(action==="stop"?"请求停止原运行":"记录原运行观测")) as any;
     if(action==="stop"){const reason=control.closest("form").querySelector('input[name="reason"]');reason.value="Stop exactly this original Agent";}
     const sequence=f.store.asOfEventSequence();control.click();await until(()=>first.window.document.querySelector("#notice")?.textContent.includes("Constructed control response loss"));
     expect(f.store.getRun(reserved.run.id)!.cancel_requested).toBe(action==="stop");expect(f.store.asOfEventSequence()).toBe(sequence+1);
