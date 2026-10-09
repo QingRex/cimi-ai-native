@@ -14,7 +14,9 @@ export interface AgentRuntimeModelResponse {
 // tariff, held budget and live qualification. No HTTP/CLI can install this port.
 // Token usage is not a bill. Default factories stay closed; dedicated code
 // composition requires a separately installed, approved account service.
+export interface AgentModelOriginalEvidence {kind:"dedicated_zhipu/1.0.0";header_digest:string}
 export interface AgentRuntimeModelPort {
+ original_evidence?:AgentModelOriginalEvidence;
  admission_digest:string;
  check(scope:AgentWorkspaceToolScope):Promise<void>;
  execute(input:ReturnType<typeof parseAgentRuntimeModelRequest>,signal?:AbortSignal):Promise<AgentRuntimeModelResponse>;
@@ -26,6 +28,7 @@ function fail(reason:string):never {throw new RuntimeAdapterError(reason);}
 const bounded=(v:unknown)=>copyToolJson(parseGatewayJson(JSON.stringify(v),TOOL_RECORD_BYTES));
 const read=(path:string)=>bounded(parseGatewayJson(new TextDecoder("utf-8",{fatal:true}).decode(bytesAt(path,TOOL_RECORD_BYTES)),TOOL_RECORD_BYTES));
 const save=(path:string,value:unknown)=>{assertOrdinaryPath(path);const bytes=Buffer.from(JSON.stringify(bounded(value)));const fd=openSync(path,"wx");try{writeFileSync(fd,bytes);fsyncSync(fd);}finally{closeSync(fd);}};
+export function parseAgentModelOriginalEvidence(raw:unknown):AgentModelOriginalEvidence|undefined {if(raw===undefined)return undefined;if(!exact(raw,["kind","header_digest"])||raw.kind!=="dedicated_zhipu/1.0.0"||!sha(raw.header_digest))fail("agent_model_original_evidence_unproven");return structuredClone(raw) as unknown as AgentModelOriginalEvidence;}
 function waitOriginal<T>(promise:Promise<T>,signal?:AbortSignal):Promise<T> {
  if(!signal)return promise;
  return new Promise<T>((done,reject)=>{
@@ -63,12 +66,13 @@ export class AgentRuntimeModelHost {
  private constructor(readonly path:string,private readonly scope:AgentWorkspaceToolScope,private readonly port:AgentRuntimeModelPort,private readonly permitted:string[],private readonly header:unknown,private readonly spine:string,private readonly taskPacket:string|null){}
  static async open(root:string,rawScope:unknown,port:AgentRuntimeModelPort,permitted:string[],taskPacket:string|null=null,signal?:AbortSignal) {
   const scope=parseAgentWorkspaceToolScope(rawScope);
-  port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port)}; permitted=[...permitted];
+  const originalEvidence=parseAgentModelOriginalEvidence(port?.original_evidence);
+  port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{})}; permitted=[...permitted];
   if(!port||!sha(port.admission_digest)||typeof port.check!=="function"||typeof port.execute!=="function"||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||permitted.some(name=>!["cimi_read","cimi_replace","cimi_check"].includes(name)))fail("agent_model_admission_unavailable");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
   signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
   const parent=directory(join(root,"agent-runtime-model-originals",scope.project_id)),path=assertOrdinaryPath(join(parent,scope.run_id));
-  const header={format:"cimiloop/agent-runtime-model-originals/1.0.0",scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
+  const header={format:originalEvidence?"cimiloop/agent-runtime-model-originals/2.0.0":"cimiloop/agent-runtime-model-originals/1.0.0",...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
   const spine=assertOrdinaryPath(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id));
   try{if(!isDeepStrictEqual(read(join(path,"header.json")),header)||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");}catch{fail("agent_model_original_unproven");}
   return new AgentRuntimeModelHost(path,scope,{admission_digest:port.admission_digest,check:port.check.bind(port),execute:port.execute.bind(port)},[...permitted],header,spine,taskPacket);
@@ -77,11 +81,12 @@ export class AgentRuntimeModelHost {
  // immutable separate start/spine refuses recreation of lost ledger/call files.
  static async initialize(root:string,rawScope:unknown,port:AgentRuntimeModelPort,permitted:string[],taskPacket:string|null=null,signal?:AbortSignal) {
   const scope=parseAgentWorkspaceToolScope(rawScope);
-  port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port)}; permitted=[...permitted];
+  const originalEvidence=parseAgentModelOriginalEvidence(port?.original_evidence);
+  port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{})}; permitted=[...permitted];
   if(!port||!sha(port.admission_digest)||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||permitted.some(n=>!["cimi_read","cimi_replace","cimi_check"].includes(n)))fail("agent_model_admission_unavailable");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
   signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
-  const header={format:"cimiloop/agent-runtime-model-originals/1.0.0",scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
+  const header={format:originalEvidence?"cimiloop/agent-runtime-model-originals/2.0.0":"cimiloop/agent-runtime-model-originals/1.0.0",...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
   const parent=directory(join(root,"agent-runtime-model-starts",scope.project_id)),spine=assertOrdinaryPath(join(parent,scope.run_id));
   let created=false;try{mkdirSync(spine);created=true;}catch(error){if(!(error&&typeof error==="object"&&"code" in error&&error.code==="EEXIST"))throw error;}
   if(created){
@@ -92,6 +97,7 @@ export class AgentRuntimeModelHost {
   return this.open(root,scope,port,permitted,taskPacket,signal);
  }
  get taskPacketDigest(){return this.taskPacket===null?null:digest(this.taskPacket).value;}
+ get originalBinding(){const header=this.header as {original_evidence?:AgentModelOriginalEvidence};return header.original_evidence?{format:"cimiloop/agent-model-original-binding/1.0.0" as const,header_digest:digest(JSON.stringify(this.header)).value,original_evidence:structuredClone(header.original_evidence)}:undefined;}
  get admissionDigest(){return this.port.admission_digest;}
  async check(rawScope:unknown,signal?:AbortSignal){if(!isDeepStrictEqual(parseAgentWorkspaceToolScope(rawScope),this.scope))fail("agent_model_scope_mismatch");signal?.throwIfAborted();await waitOriginal(this.port.check(structuredClone(this.scope)),signal);signal?.throwIfAborted();}
  async execute(raw:unknown,signal?:AbortSignal):Promise<{receipt:AgentRuntimeModelResponse;replay:boolean}> {
@@ -145,7 +151,8 @@ export class AgentRuntimeModelHost {
 export function readAgentRuntimeModelOriginals(root:string,rawScope:unknown) {
  const scope=parseAgentWorkspaceToolScope(rawScope),path=assertOrdinaryPath(join(root,"agent-runtime-model-originals",scope.project_id,scope.run_id)),spine=assertOrdinaryPath(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id));
  const header=read(join(path,"header.json"));
- if(!exact(header,["format","scope","admission_digest","permitted","maximum_calls","task_packet_digest"])||header.format!=="cimiloop/agent-runtime-model-originals/1.0.0"||!isDeepStrictEqual(header.scope,scope)||!sha(header.admission_digest)||header.maximum_calls!==64||(header.task_packet_digest!==null&&!sha(header.task_packet_digest))||!Array.isArray(header.permitted)||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");
+ if(!exact(header,["format","scope","admission_digest","permitted","maximum_calls","task_packet_digest",...(header&&typeof header==="object"&&"original_evidence" in header?["original_evidence"]:[])])||(header.original_evidence===undefined?header.format!=="cimiloop/agent-runtime-model-originals/1.0.0":header.format!=="cimiloop/agent-runtime-model-originals/2.0.0")||!isDeepStrictEqual(header.scope,scope)||!sha(header.admission_digest)||header.maximum_calls!==64||(header.task_packet_digest!==null&&!sha(header.task_packet_digest))||!Array.isArray(header.permitted)||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");
+ const originalEvidence=parseAgentModelOriginalEvidence(header.original_evidence);
  const names=[...new Set([...readdirSync(path),...readdirSync(spine)].filter(n=>n!=="header.json"))].sort();
  if(names.length>64||names.some((name,i)=>name!=="model_"+String(i+1).padStart(4,"0")))fail("agent_model_original_unproven");
  const artifacts:{name:string;path:string;digest:string}[]=[];
@@ -164,6 +171,6 @@ export function readAgentRuntimeModelOriginals(root:string,rawScope:unknown) {
  }
  for(const artifact of artifacts)if(digest(bytesAt(artifact.path,TOOL_RECORD_BYTES)).value!==artifact.digest)fail("agent_model_original_unproven");
  if(!isDeepStrictEqual([...new Set([...readdirSync(path),...readdirSync(spine)].filter(n=>n!=="header.json"))].sort(),names))fail("agent_model_original_unproven");
- return {status:calls.length&&calls.every(c=>c.state==="reply_recorded")?"Observed":"Unknown",admission_digest:header.admission_digest,task_packet_digest:header.task_packet_digest,calls,artifacts,
+ return {...(originalEvidence?{original_evidence:originalEvidence}:{}),status:calls.length&&calls.every(c=>c.state==="reply_recorded")?"Observed":"Unknown",admission_digest:header.admission_digest,task_packet_digest:header.task_packet_digest,calls,artifacts,
   model_account_custody_proven:false as const,costs_reconciled:false as const,formal_agent_execution_enabled:false as const};
 }

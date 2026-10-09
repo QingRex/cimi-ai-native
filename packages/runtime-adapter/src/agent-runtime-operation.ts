@@ -1,3 +1,4 @@
+import { readDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary } from "./agent-dedicated-model.js";
 import { verifyAgentRuntimeInterruption } from "./agent-runtime-interruption.js";
 import { readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
@@ -235,8 +236,13 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
       model={...model,status:originals.status,reason:"agent_model_original_bytes_read",calls:originals.calls.length,unresolved:originals.calls.filter(c=>c.state==="unknown").length};
     } catch { /* Missing originals remain Unknown, never reinitialized here. */ }
   }
+  let dedicated_model:DedicatedAgentOriginalSummary|undefined;
+  if(original.claim.synthetic_model_responses===null){
+    try{const dedicated=readDedicatedAgentModelOriginals(root,original.claim.scope);if(dedicated.summary.status!=="NotRegistered"){dedicated_model=dedicated.summary;for(const a of dedicated.artifacts){const bytes=bytesAt(a.path,262144);if(digest(bytes).value!==a.digest)fail("agent_dedicated_original_unproven");const name="dedicated-model/"+a.name;artifacts.push({name,reference:rawReference(root,bytes,"agent_runtime_original_bytes",name)});}}}
+    catch{dedicated_model={status:"Unknown",reason:"agent_dedicated_original_unproven",original_requirement_pinned:false,budget_identity_pinned:false,scope_digest:digest(JSON.stringify(original.claim.scope)).value,calls:0,unresolved:1,budget:{cash_upper_micros:null,credit_upper_micro_units:null,settled:false},model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false};}
+  }
   const fresh = load(root, rawScope);
   if (!isDeepStrictEqual(fresh.claim, original.claim)) fail("agent_runtime_claim_changed");
-  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(model ? {model} : {}), ...(interruption?{interruption}:{}),
+  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(model ? {model} : {}), ...(dedicated_model?{dedicated_model}:{}), ...(interruption?{interruption}:{}),
     domain_observation_produced: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: original.claim.synthetic_model_responses };
 }

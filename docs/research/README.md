@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+- [专用模型原件共同核验研究记录](CimiLoop-专用模型原件共同核验-2026-10-10.json)：独立操作键 / 必需模型原件身份 / 预算锚点、共同采集及 Kernel 再验、分阶段受影响与完整 Windows 回归；公开 TLS / 账户夹具不计真实模型、方法或 S1。
+
 - [专用模型原请求衔接研究记录](CimiLoop-专用模型原请求衔接-2026-10-10.json)：实际 SDK / 本机 HTTPS / 原请求预算占用和响应锚点、Windows 原 Runtime / Workbench 验证；不证明真实模型、账户结算、Skill、Matt、Superpowers或S1。
 
 - [原Native输入关闭与执行中断研究记录](CimiLoop-原Native输入关闭与执行中断-2026-10-10.json)：受控EOF与损坏输入区分、实际原OS身份 / SDK停止、共享原Unknown观测及固定原件拒绝边界；构造资格不计真实模型 / 方法或S1。

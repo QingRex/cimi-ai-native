@@ -161,6 +161,12 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const executionResult=JSON.parse(readFileSync(join(f.dataDirectory,"objects",proof.execution_result_ref.locator),"utf8"));
   expect(executionResult).toMatchObject({format:"cimiloop/original-task-execution-result/1.0.0",run_id:f.reserved.run.id,operation_key:f.scope.operation_key,native_effect_reverified:true,
    model_account_custody_proven:false,costs_reconciled:false,task_acceptance_proven:false,current_workspace_applicability_proven:false,required_checks:[{check_id:"query_test"}],sdk:{final_model_call_id:"model_0003"}});
+  const modelHeader=JSON.parse(readFileSync(join(f.dataDirectory,"agent-runtime-model-starts",f.project.id,f.reserved.run.id,"header.json"),"utf8"));expect(modelHeader).toMatchObject({format:"cimiloop/agent-runtime-model-originals/2.0.0",original_evidence:{kind:"dedicated_zhipu/1.0.0"}});
+  const runtimeInput=JSON.parse(readFileSync(join(f.dataDirectory,"agent-runtime-claims",f.project.id,"runs",f.reserved.run.id,"input.json"),"utf8"));expect(runtimeInput.model_original_binding).toEqual({format:"cimiloop/agent-model-original-binding/1.0.0",header_digest:digest(JSON.stringify(modelHeader)).value,original_evidence:modelHeader.original_evidence});
+  expect(collected).toMatchObject({dedicated_model:{status:"Observed",calls:3,unresolved:0,original_requirement_pinned:true,budget_identity_pinned:true,budget:{cash_upper_micros:90,credit_upper_micro_units:0,settled:false},model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false}});
+  expect(collected.artifacts.filter(a=>a.name.startsWith("dedicated-model/"))).toHaveLength(33);
+  const persistedCollection=JSON.parse(readFileSync(join(f.dataDirectory,"objects",proof.collection_ref.locator),"utf8"));expect(persistedCollection.dedicated_model).toEqual(collected.dedicated_model);
+  expect(persistedCollection.artifacts.filter((a:{name:string})=>a.name.startsWith("dedicated-model/"))).toHaveLength(33);
   expect(observed).toHaveLength(3);expect(holds).toBe(3);expect(credentials).toBe(3);
   expect((observed[1]!.body.messages as {role:string;reasoning_content?:string}[]).filter(m=>m.role==="assistant").map(m=>m.reasoning_content)).toEqual(["original constructed reasoning 1"]);
   expect((observed[2]!.body.messages as {role:string;reasoning_content?:string}[]).filter(m=>m.role==="assistant").map(m=>m.reasoning_content)).toEqual(["original constructed reasoning 1","original constructed reasoning 2"]);

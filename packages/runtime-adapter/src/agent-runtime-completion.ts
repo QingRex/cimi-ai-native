@@ -1,3 +1,4 @@
+import { verifyCollectedDedicatedAgentModelOriginals } from "./agent-dedicated-model.js";
 import { isDeepStrictEqual } from "node:util";
 import { compileValidator, TaskDefinitionRecordSchema, ContractVersionSchema, PlanVersionSchema, TaskSchema, WorkItemSchema,
   type Project, type AgentRunRecord, type AgentContextManifest, type TaskDefinitionRecord, type ContractVersion, type PlanVersion, type Task, type WorkItem } from "@cimiloop/protocol/v2";
@@ -49,6 +50,8 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
       collection.status.status !== "Stopped" || collection.status.resources_disposed !== true || collection.status.cancellation_requested !== false ||
       collection.synthetic_model_responses !== null || collection.model?.status !== "Observed" || collection.model.unresolved !== 0 ||
       collection.ipc?.status !== "Observed" || collection.ipc.unresolved !== 0 || collection.ipc.correlation?.uncorrelated_exchanges !== 0 || collection.ipc.correlation.unmatched_sdk_calls !== 0) return null;
+    verifyCollectedDedicatedAgentModelOriginals(root,scope,collection);
+    if (collection.dedicated_model && collection.dedicated_model.status!=="Observed") return null;
     if (!domain) return null;
     const definition = compileValidator<TaskDefinitionRecord>(TaskDefinitionRecordSchema)(packet.definition),
       contractVersion = compileValidator<ContractVersion>(ContractVersionSchema)(packet.contract), plan = compileValidator<PlanVersion>(PlanVersionSchema)(packet.plan),

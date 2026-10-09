@@ -1,4 +1,4 @@
-import { originalTaskResultContract, runOpenCodeWorkspaceRuntime, withinAgentRuntimeTaskBudget, AgentRuntimeModelHost, type AgentRuntimeModelPort, createDedicatedAgentRuntimeModel, type DedicatedAgentAccountPort, type DedicatedModelConnection } from "@cimiloop/runtime-adapter";
+import { originalTaskResultContract, runOpenCodeWorkspaceRuntime, withinAgentRuntimeTaskBudget, parseAgentModelOriginalEvidence, AgentRuntimeModelHost, type AgentRuntimeModelPort, createDedicatedAgentRuntimeModel, type DedicatedAgentAccountPort, type DedicatedModelConnection } from "@cimiloop/runtime-adapter";
 import { LocalAgentRuntimeStart, type AgentRuntimeLaunchInputs, type AgentRuntimeStartContext, type AgentRuntimeStartPort } from "./agent-runtime-start-local.js";
 import { LocalAgentWorkspaceToolService, type AgentWorkspaceToolLocalContext } from "./agent-workspace-tools-local.js";
 import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
@@ -21,7 +21,8 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
  static open(options:Options){
   if(!(options.custody instanceof LocalAgentStartCustody)||!(options.checks instanceof LocalAgentCheckAdmission)||typeof options.model?.check!=="function"||typeof options.model?.execute!=="function")
    throw new LocalProjectError("完整原 Runtime、检查及模型账户准入尚未安装","CAPABILITY_UNAVAILABLE","conflict");
-  return new LocalAgentRuntimeComposition({...options,model:{admission_digest:options.model.admission_digest,check:options.model.check.bind(options.model),execute:options.model.execute.bind(options.model)}});
+  let originalEvidence;try{originalEvidence=parseAgentModelOriginalEvidence(options.model.original_evidence);}catch{throw new LocalProjectError("原模型证据固定身份无效","CAPABILITY_UNAVAILABLE","conflict");}
+  return new LocalAgentRuntimeComposition({...options,model:{...(originalEvidence?{original_evidence:originalEvidence}:{}),admission_digest:options.model.admission_digest,check:options.model.check.bind(options.model),execute:options.model.execute.bind(options.model)}});
  }
  static openDedicated(options:Omit<Options,"model"> & {runId:string;connection:DedicatedModelConnection;account:DedicatedAgentAccountPort}){
   const scope=originalAgentWorkspaceScope(options.local,options.runId);

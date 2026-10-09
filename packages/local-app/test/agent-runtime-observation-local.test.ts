@@ -1,3 +1,10 @@
+import { LocalAgentRuntimeComposition } from "../src/agent-runtime-composition-local.js";
+import { LocalAgentStartCustody } from "../src/agent-start-custody-local.js";
+import { LocalAgentCheckAdmission } from "../src/agent-check-admission-local.js";
+import { createDedicatedAgentRuntimeModel, readDedicatedAgentModelOriginals } from "../../runtime-adapter/src/agent-dedicated-model.js";
+import { AgentRuntimeModelHost, parseAgentRuntimeModelRequest } from "../../runtime-adapter/src/agent-runtime-model.js";
+import { httpFixture, HTTP_FIXTURE_KEY } from "../../runtime-adapter/test/gateway-http-fixture.js";
+import { digest } from "../../runtime-adapter/src/files.js";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
@@ -38,6 +45,26 @@ describe("original Agent Unknown observation joins the Kernel receipt",()=>{
  expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.store.listRuns(f.change.id)).toHaveLength(1);
  expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100,attempts_released:0});
  expect(f.store.getRun(runId)!.status).toBe("Unknown");
+ });
+ it("uses common dedicated originals in the Kernel observation and refuses stale provider custody without resending",async()=>{
+  const scope=originalAgentWorkspaceScope({...local,store:f.store,caller:f.caller,kernel:f.kernel},runId),admission=digest("constructed dedicated admission").value;
+  const tls=await httpFixture({reply:body=>({content_type:"application/json",chunks:[Buffer.from(JSON.stringify({id:"provider_d256_1",model:"glm-fixture",request_id:(body as {request_id:string}).request_id,choices:[{index:0,message:{role:"assistant",content:"constructed result",reasoning_content:"original reasoning"},finish_reason:"stop"}],usage:{prompt_tokens:5,completion_tokens:5,total_tokens:10}}))]})});let holds=0,credentials=0;
+  try{const model=createDedicatedAgentRuntimeModel({root:local.location.dataDirectory,repositoryPath:root,scope,connection:{format:"cimiloop/dedicated-model/1.0.0",provider:"zhipuai-coding-plan",model:"zhipuai-coding-plan/glm-fixture",credential_file:join(tmpdir(),"d256-absent-public-fixture-"+runId+".dpapi.json"),credential_digest:digest("constructed encrypted identity")},account:{admission_digest:admission,profile:{model:"glm-fixture",thinking:"enabled"},check:async()=>{},reserve:async(_scope,request)=>{holds++;return {format:"cimiloop/agent-model-budget-hold/1.0.0",...request,account_digest:digest("constructed account").value,approval_digest:digest("constructed approval").value,tariff_digest:digest("constructed tariff").value,cash_upper_micros:30,credit_upper_micro_units:10,input_token_limit:100,output_token_limit:request.max_output_tokens};},verifyHold:async()=>{}}},{boundary:tls.boundary,readCredential:async()=>{credentials++;return HTTP_FIXTURE_KEY;}}),host=await AgentRuntimeModelHost.initialize(local.location.dataDirectory,scope,model,["cimi_read"]);
+   const request=parseAgentRuntimeModelRequest(scope,{format:"cimiloop/agent-runtime-model-request/1.0.0",scope_digest:digest(JSON.stringify(scope)).value,admission_digest:admission,call_id:"model_0001",tool:"model_step",prompt:[{role:"user",content:"public constructed Task"}],tools:[],max_output_tokens:512},["cimi_read"]);await host.execute(request);
+   claim=claimAgentRuntimeOperation(local.location.dataDirectory,scope,{purpose:"agent_runtime",model_original_binding:host.originalBinding},{pid:1234,creation_ticks:"123456",image:process.execPath});const input=command(),sequence=f.store.asOfEventSequence(),first=await service.record(input);if(!("command_type" in first)||first.command_type!=="RecordRunObservation")throw Error("Expected observation");
+   expect(first).toMatchObject({data:{observation:{report:{status:"unknown",usage:{cost_known:false}}}}});expect(readDedicatedAgentModelOriginals(local.location.dataDirectory,scope).summary).toMatchObject({status:"Observed",calls:1,original_requirement_pinned:true,budget_identity_pinned:true,budget:{cash_upper_micros:30,credit_upper_micro_units:10,settled:false}});expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});
+   const p=join(local.location.dataDirectory,"agent-dedicated-model-originals",f.project.id,runId,"model_0001/provider-response.json"),original=readFileSync(p);writeFileSync(p,"{}");
+   expect(executeLocalCommand(local,{...command(),expected_revision:f.store.getRun(runId)!.revision,payload:{raw_result_ref:first.data.observation.raw_result_ref}})).toMatchObject({code:"EVIDENCE_MISSING"});expect(f.store.asOfEventSequence()).toBe(sequence+1);
+   expect(await service.record(input)).toEqual(first);expect(holds).toBe(1);expect(credentials).toBe(1);expect(tls.observations).toHaveLength(1);expect(readFileSync(p,"utf8")).toBe("{}");
+   // Restore only this constructed mutation fixture after the failure assertion;
+   // no actual Native/original Run evidence is repaired by a runtime API.
+   writeFileSync(p,original);
+  }finally{await tls.close();}
+ });
+ it("rejects malformed installed model evidence before shared composition can erase it or create effects",()=>{
+  // Public factory boundary only; constructed prototype objects confer no
+  // physical custody, installed checks or production qualification.
+  const sequence=f.store.asOfEventSequence();expect(()=>LocalAgentRuntimeComposition.open({local:{...local,caller:f.caller,store:f.store,kernel:f.kernel},binary:"unused public fixture",custody:Object.create(LocalAgentStartCustody.prototype) as LocalAgentStartCustody,checks:Object.create(LocalAgentCheckAdmission.prototype) as LocalAgentCheckAdmission,model:{admission_digest:digest("constructed admission").value,original_evidence:{kind:"invalid",header_digest:"bad"},check:async()=>{},execute:async()=>({content:[{type:"text",text:"unused"}],usage:{input_tokens:0,output_tokens:0},finish:"stop"})} as never})).toThrow();expect(f.store.asOfEventSequence()).toBe(sequence);
  });
  it("rejects changes to a reused request, foreign identity, roles and unsupported payloads",async()=>{
  seed();const input=command();await service.record(input);const sequence=f.store.asOfEventSequence();

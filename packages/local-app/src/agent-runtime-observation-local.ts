@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { parseCommand, compileValidator, RawAgentRunObservationSchema, SCHEMA_VERSION, isInternalId,
   type RawAgentRunObservation, type Project, type AgentRunRecord, type AgentContextManifest } from "@cimiloop/protocol/v2";
-import { verifyCollectedAgentRuntimeInterruption, verifyOriginalTaskExecutionResult, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, agentWorkspaceIpcScopeDigest, bytesAt, directory, digest, parseGatewayJson, type OriginalTaskDomainBasis } from "@cimiloop/runtime-adapter";
+import { verifyCollectedDedicatedAgentModelOriginals, verifyCollectedAgentRuntimeInterruption, verifyOriginalTaskExecutionResult, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, agentWorkspaceIpcScopeDigest, bytesAt, directory, digest, parseGatewayJson, type OriginalTaskDomainBasis } from "@cimiloop/runtime-adapter";
 import { LocalEvidenceVerifier, type ContentReference } from "./evidence-local.js";
 import { executeLocalCommand, type LocalCommandInput } from "./project.js";
 import { readHumanOriginalAgentRunInputs, type AgentRuntimeControlContext } from "./agent-runtime-control-local.js";
@@ -55,15 +55,17 @@ const reportFor=(proof:Proof,reference:RawAgentRunObservation["result_proof_ref"
  basis:"direct_observation",status:proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"?"failed":"unknown",usage:{cost_known:false},method:proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"?"Original Native negative execution: "+proof.execution_failure:proof.execution_result_ref?"Original SDK task output and Native effects reverified; model/account and billing unproven":"Original Runtime collection; completion and billing unproven",
  observation:proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"?"原Native证明本次执行失败；模型账户、费用与原未决调用继续待核对，不结清预算或满足任务。":proof.execution_result_ref?"原SDK结构化Task产物与独立Native账本已对应核验；真实模型账户、账单与Task验收仍待证明，不结清费用或满足任务。":"原操作采集已保存并核对归属；终态、真实模型账户及费用仍待核对。停止或资源处置不代表任务完成。",resolves_observation_refs:[]});
 const validateCollection=(root:string,identity:Identity,value:unknown)=>{
- if(!exact(value,["format","scope_digest","status","artifacts","missing","ipc","native","domain_observation_produced","formal_agent_execution_enabled","synthetic_model_responses",...(value&&typeof value==="object"&&"model" in value?["model"]:[]),...(value&&typeof value==="object"&&"interruption" in value?["interruption"]:[])])||
+ if(!exact(value,["format","scope_digest","status","artifacts","missing","ipc","native","domain_observation_produced","formal_agent_execution_enabled","synthetic_model_responses",...(value&&typeof value==="object"&&"model" in value?["model"]:[]),...(value&&typeof value==="object"&&"interruption" in value?["interruption"]:[]),...(value&&typeof value==="object"&&"dedicated_model" in value?["dedicated_model"]:[])])||
  value.format!=="cimiloop/agent-runtime-originals/1.0.0"||value.scope_digest!==agentWorkspaceIpcScopeDigest(identity.scope)||(value.synthetic_model_responses!==true&&value.synthetic_model_responses!==null)||
  value.formal_agent_execution_enabled!==false||value.domain_observation_produced!==false||!value.status||typeof value.status!=="object"||
- !("operation" in value.status)||value.status.operation!==identity.operation||!Array.isArray(value.artifacts)||value.artifacts.length>MAX_ORIGINAL_ARTIFACTS+(value.synthetic_model_responses===null?64*3+2:0))throw Error("Original collection mismatch");
- for(const artifact of value.artifacts){if(!exact(artifact,["name","reference"])||typeof artifact.name!=="string"||!exact(artifact.reference,["provider","resource_type","locator","digest","version"])||
+ !("operation" in value.status)||value.status.operation!==identity.operation||!Array.isArray(value.artifacts)||value.artifacts.length>MAX_ORIGINAL_ARTIFACTS+(value.synthetic_model_responses===null?64*3+2:0)+(value&&typeof value==="object"&&"dedicated_model" in value?64*10+3:0))throw Error("Original collection mismatch");
+ const names=new Set<string>();
+ for(const artifact of value.artifacts){if(!exact(artifact,["name","reference"])||typeof artifact.name!=="string"||names.has(artifact.name)||!exact(artifact.reference,["provider","resource_type","locator","digest","version"])||
  artifact.reference.provider!=="cimiloop-runtime-probe"||artifact.reference.resource_type!=="agent_runtime_original_bytes"||artifact.reference.version!==artifact.name||
  !exact(artifact.reference.digest,["algorithm","value"])||artifact.reference.digest.algorithm!=="sha256"||typeof artifact.reference.digest.value!=="string"||
  !/^[a-f0-9]{64}$/.test(artifact.reference.digest.value)||artifact.reference.locator!==join(resolve(root),"blobs",artifact.reference.digest.value)||
- digest(bytesAt(artifact.reference.locator,4*1024*1024)).value!==artifact.reference.digest.value)throw Error("Original collection bytes unproven");}
+ digest(bytesAt(artifact.reference.locator,4*1024*1024)).value!==artifact.reference.digest.value)throw Error("Original collection bytes unproven");names.add(artifact.name);}
+ verifyCollectedDedicatedAgentModelOriginals(root,identity.scope,value as unknown as Parameters<typeof verifyCollectedDedicatedAgentModelOriginals>[2]);
  verifyCollectedAgentRuntimeInterruption({scope_digest:agentWorkspaceIpcScopeDigest(identity.scope),owner:identity.claim.owner,operation:identity.operation,input:identity.input},value as unknown as Parameters<typeof verifyCollectedAgentRuntimeInterruption>[1]);
 };
 

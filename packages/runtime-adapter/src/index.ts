@@ -55,3 +55,7 @@ export { createDedicatedAgentRuntimeModel } from "./agent-dedicated-model.js";
 export type { DedicatedAgentAccountPort, DedicatedAgentBudgetRequest, DedicatedAgentBudgetHold } from "./agent-dedicated-model.js";
 export type { DedicatedAgentProfile } from "./agent-dedicated-codec.js";
 export type { DedicatedModelConnection } from "./connection.js";
+
+export { readDedicatedAgentModelOriginals, verifyCollectedDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary, type DedicatedAgentOriginalCall } from "./agent-dedicated-model.js";
+
+export { parseAgentModelOriginalEvidence, type AgentModelOriginalEvidence } from "./agent-runtime-model.js";
