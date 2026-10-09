@@ -2,6 +2,7 @@ import {resolveWorkspaceCheckSourceBasis} from "./workspace-check-source-basis.j
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import {readWorkspaceFileRunOriginals} from "./workspace-tool-host.js";
 import { spawn } from "node:child_process";
+import { setImmediate as yieldImmediate } from "node:timers/promises";
 import { mkdirSync, writeFileSync, existsSync, readdirSync, realpathSync, unlinkSync, rmdirSync, lstatSync } from "node:fs";
 import { dirname, join, basename } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -171,6 +172,11 @@ export class AgentWorkspaceCheckHost {
   private async authority(recipe: WorkspaceCheckRecipe): Promise<string[]> {
     const result: string[] = [];
     for (const request of this.requests(recipe)) {
+      if (this.abort.signal.aborted) fail("workspace_check_host_closed");
+      // Yield before each fresh assessment, never between final authority and
+      // dispatch. A queued clock reply/stop must not wait for the whole recipe.
+      try { await yieldImmediate(undefined, { signal: this.abort.signal }); }
+      catch (error) { if (!this.abort.signal.aborted) throw error; }
       if (this.abort.signal.aborted) fail("workspace_check_host_closed");
       const assessment = parseAgentToolAssessment(await this.options.assess(structuredClone(request)), request);
       if (assessment.decision !== "ALLOW") fail("tool_authority_denied"); result.push(assessment.authority.basis_digest.value);

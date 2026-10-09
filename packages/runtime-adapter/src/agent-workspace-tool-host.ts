@@ -1,4 +1,5 @@
 import type { AgentToolAuthorityRequest } from "@cimiloop/protocol/v2";
+import { setImmediate as yieldImmediate } from "node:timers/promises";
 import { agentWorkspaceToolAuthorityRequest, parseAgentToolAssessment, parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 import { parseWorkspaceToolInvocation, WindowsWorkspaceFileBroker, type WorkspaceToolInvocation, type PreparedWorkspaceEffect } from "./workspace-files.js";
 import { WorkspaceToolJournal, type WorkspaceToolReceipt } from "./workspace-tool-journal.js";
@@ -26,6 +27,11 @@ export class AgentWorkspaceToolHost {
   private async perform(input: WorkspaceToolInvocation) {
     const { journal, files, assess, phase } = this.options, request = agentWorkspaceToolAuthorityRequest(this.scope, input);
     const checked = async () => {
+      if (this.abort.signal.aborted) throw new RuntimeAdapterError("workspace_tool_host_closed");
+      // Synchronous Kernel/Native validation only yields microtasks. Process
+      // pending supervision I/O first, then obtain fresh authority for effect.
+      try { await yieldImmediate(undefined, { signal: this.abort.signal }); }
+      catch (error) { if (!this.abort.signal.aborted) throw error; }
       if (this.abort.signal.aborted) throw new RuntimeAdapterError("workspace_tool_host_closed");
       const value = parseAgentToolAssessment(await assess(structuredClone(request)), request);
       if (this.abort.signal.aborted) throw new RuntimeAdapterError("workspace_tool_host_closed"); return value;
