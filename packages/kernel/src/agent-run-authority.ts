@@ -4,9 +4,10 @@ import { activeToolScopeProblems } from "./execution.js";
 import { contentDigest } from "./intent.js";
 import { agentRunBindingBlockers } from "./agent-runs.js";
 import { runContextDigest, runIsSettled, type AgentRunLaunchRequest } from "./runs.js";
-import { runSkillInvocationFacts } from "./skill-invocation-facts.js";
+import type { SkillInvocation } from "@cimiloop/protocol/v2";
+import { skillInvocationInputDigest, runSkillInvocationFacts } from "./skill-invocation-facts.js";
 const same = (a: unknown, b: unknown) => contentDigest(a).value === contentDigest(b).value;
-export const originalAgentRunAuthority = (reader: ProjectReader, request: AgentRunLaunchRequest, caller: CallerContext | undefined, now: string) => {
+export const originalAgentRunAuthority = (reader: ProjectReader, request: AgentRunLaunchRequest, caller: CallerContext | undefined, now: string, permittedChild?: SkillInvocation) => {
   const project = reader.getProject(), actor = reader.getActor(request.executor_actor_id);
   if (!project || project.id !== request.project_id || !caller || caller.kind !== "agent" || !actor || !callerMatchesActor(caller, actor)) return { reasons: ["CALLER_IDENTITY_MISMATCH"] };
   const run = reader.getRun(request.run_id), record = run && reader.getRuntimeRecord("run_record", run.record_ref.id), item = run && reader.getExecutionObject("work_item", run.work_item_ref.id);
@@ -27,7 +28,19 @@ export const originalAgentRunAuthority = (reader: ProjectReader, request: AgentR
   const runtime = reader.getProviderBinding(request.runtime_binding.binding_ref.id), skills = request.skill_bindings.map(pin => reader.getProviderBinding(pin.binding_ref.id));
   // A parent request cannot bypass the narrower permissions/current method of
   // an unresolved child. Skill-scoped transport will have its own original pin.
-  if (runSkillInvocationFacts(reader, run).unresolved.length) problems.push("SKILL_TOOL_CONTEXT_UNAVAILABLE");
+  const children = runSkillInvocationFacts(reader, run).unresolved;
+  if (permittedChild) {
+    // Only this exact stored child can cross the child-specific authority path.
+    // Parent callers never supply this parameter, so their guard stays closed.
+    if (children.length !== 1 || !same(children[0]!.invocation, permittedChild) ||
+      !same(permittedChild.input_digest, skillInvocationInputDigest(permittedChild)) ||
+      permittedChild.project_id !== project.id || permittedChild.change_id !== task.change_id || permittedChild.task_id !== task.id ||
+      permittedChild.run_ref.id !== run.id || permittedChild.run_operation_key !== record.operation_key || permittedChild.context_ref.id !== context.id ||
+      permittedChild.executor_ref.id !== actor.id || permittedChild.producer_actor_id !== actor.id || !same(permittedChild.work_item_ref, record.work_item_ref) ||
+      !same(permittedChild.runtime_binding, record.runtime_binding) || !same(permittedChild.host_admission_ref, record.host_admission_ref) ||
+      ['definition_ref', 'contract_ref', 'plan_ref'].some(key => !same(permittedChild[key as 'definition_ref'], record[key as 'definition_ref'])) ||
+      !context.skill_bindings.some(pin => same(pin, permittedChild.skill_binding))) problems.push('SKILL_TOOL_CONTEXT_UNAVAILABLE');
+  } else if (children.length) problems.push('SKILL_TOOL_CONTEXT_UNAVAILABLE');
   const source = reader.getVerificationRecord("source_snapshot", context.source_snapshot_ref.id), workspace = reader.getRuntimeRecord("workspace_snapshot", context.workspace_snapshot_ref.id);
   if (!source || !workspace || source.project_id !== project.id || source.change_id !== task.change_id || source.repository_ref.id !== project.id || workspace.project_id !== project.id ||
     workspace.change_id !== task.change_id || workspace.task_id !== task.id || workspace.work_item_ref.id !== item.id || !same(workspace.source_snapshot_ref, context.source_snapshot_ref) ||

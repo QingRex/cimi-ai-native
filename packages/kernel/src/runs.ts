@@ -55,6 +55,10 @@ export interface AgentRunToolAuthorityInput extends AgentRunAdmissionInput {
 export type AgentRunLaunchRequest = Omit<AgentToolAuthorityRequest, "action" | "resource">;
 export type AgentRunLaunchAuthorityInput = Omit<AgentRunToolAuthorityInput, "request"> & { request: AgentRunLaunchRequest };
 export interface SkillInvocationVerifierPort {
+  // Independent synchronous read-only original child custody. Parent admission,
+  // imported ALLOW and a model-selected method never substitute for this check.
+  // Absence denies execution; no HTTP/CLI request can install this port.
+  checkExecutionAuthority?(project: Project, input: import('./skill-invocation-execution.js').SkillInvocationExecutionAuthorityInput): Digest;
   // Read exact input/package/schema bytes and the real named-method qualification;
   // preparing Native records performs no external effect or model invocation.
   prepare(project: Project, record: AgentRunRecord, context: AgentContextManifest, binding: ProviderBinding,

@@ -47,3 +47,6 @@ export {LocalAgentAccountBilling} from './agent-account-billing-local.js';
 export {LocalHumanAgentAccountBilling} from './agent-account-billing-entry-local.js';
 export{LocalHumanAgentRunCostObservation}from'./agent-run-cost-observation-local.js';
 export type {HumanAgentAccountFactory,AgentAccountBillingLease} from './agent-account-billing-entry-local.js';
+export {LocalSkillInvocationExecution} from './skill-invocation-execution-local.js';
+export type {SkillInvocationExecutionContext,SkillInvocationExecutionInputs,SkillInvocationExecutionPort,SkillInvocationExecutionResult} from './skill-invocation-execution-local.js';
+export {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';

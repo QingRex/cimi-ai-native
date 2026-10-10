@@ -1,3 +1,4 @@
+import { assessSkillInvocationExecution, parseSkillInvocationExecutionRequest, type SkillInvocationExecutionAssessment } from './skill-invocation-execution.js';
 import {
   ProtocolValidationError,
   SCHEMA_VERSION,
@@ -351,6 +352,15 @@ export class CimiLoopKernel {
     } catch { return domainError(this.#id(), "STORE_FAILURE", "无法读取一致的 Agent 启动授权事实", "storage", true); }
   }
 
+  assessSkillInvocationExecution(input: unknown): SkillInvocationExecutionAssessment | DomainError {
+    let request: ReturnType<typeof parseSkillInvocationExecutionRequest>;
+    try { request = parseSkillInvocationExecutionRequest(input); }
+    catch { return domainError(this.#id(), 'PROTOCOL_VALIDATION_FAILED', 'Skill 原调用权限查询不符合固定范围', 'validation'); }
+    try {
+      const at=this.#now(), snapshot=this.#store.readSnapshot(reader=>assessSkillInvocationExecution(reader,request,this.#caller,at,this.#runVerifier));
+      return {...snapshot.value,as_of_event_sequence:snapshot.as_of_event_sequence};
+    } catch { return domainError(this.#id(), 'STORE_FAILURE', '无法读取一致的原 Skill 调用授权事实', 'storage', true); }
+  }
   assessAgentRunModel(input:unknown):AgentRunModelAssessment|DomainError {
     let request:ReturnType<typeof parseAgentRunLaunchRequest>;
     try{request=parseAgentRunLaunchRequest(input);}catch{return domainError(this.#id(),"PROTOCOL_VALIDATION_FAILED","Agent 模型权限查询不符合固定范围","validation");}

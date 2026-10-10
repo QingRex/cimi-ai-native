@@ -11,3 +11,4 @@ export { runContextDigest } from "./runs.js";
 export type { ProviderVerifierPort } from "./provider-assessment.js";
 export {MattClarificationUnavailable} from './planning-clarification.js';
 export type {PlanningCommand,PlanningClarificationBasis,PlanningClarificationPort} from './planning-clarification.js';
+export type {SkillInvocationExecutionRequest,SkillInvocationExecutionAssessment,SkillInvocationExecutionAuthorityInput} from './skill-invocation-execution.js';

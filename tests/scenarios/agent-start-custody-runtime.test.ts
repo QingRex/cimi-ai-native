@@ -58,4 +58,16 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("Windows 
       await expect(openWindowsAgentStartLedger(origin, tools)).rejects.toThrow("agent_start_directory_custody_unproven");
     } finally { ledger.close(); }
   });
+  it('elects one original SkillInvocation dispatcher across actual protected Windows host processes without a new Run', async () => {
+    const root=mkdtempSync(join(tmpdir(),'cimiloop-start-origin-'));roots.push(root);
+    const origin=join(root,'origin'),tools=join(root,'tools'),ledger=await initializeWindowsAgentStartLedger(origin,tools);
+    const id=digest('constructed original child').value,basis={parent_run:createInternalId(),parent_operation_key:createInternalId(),invocation_key:createInternalId(),input_digest:digest('fixed child input')};ledger.close();
+    const module=pathToFileURL(resolve('packages/runtime-adapter/dist/agent-start-origin-windows.js')).href;
+    const code=`import {openWindowsAgentStartLedger} from ${JSON.stringify(module)};const x=JSON.parse(process.argv[1]),l=await openWindowsAgentStartLedger(x.origin,x.tools);try{const result=l.claimExclusiveOnce('skill_invocation_dispatch',x.id,x.basis);console.log(JSON.stringify({...result,original:l.readExclusive('skill_invocation_dispatch',x.id),pid:process.pid}));}finally{l.close();}`;
+    const children=await Promise.all([0,1].map(()=>promisify(execFile)(process.execPath,['--input-type=module','-e',code,JSON.stringify({origin,tools,id,basis})],{windowsHide:true,timeout:45000,env:isolatedEnvironment()})));
+    const results=children.map(child=>JSON.parse(child.stdout));expect(new Set(results.map(value=>value.pid)).size).toBe(2);
+    expect(results.filter(value=>value.created)).toHaveLength(1);expect(results.filter(value=>!value.created)).toHaveLength(1);
+    expect(results[0].ticket).toEqual(results[1].ticket);expect(results.map(value=>value.original.basis)).toEqual([basis,basis]);
+    const reopened=await openWindowsAgentStartLedger(origin,tools);try {expect(reopened.claimExclusiveOnce('skill_invocation_dispatch',id,basis).created).toBe(false);expect(reopened.listExclusive('skill_invocation_dispatch')).toHaveLength(1);} finally {reopened.close();}
+  });
 });

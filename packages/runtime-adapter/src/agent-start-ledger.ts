@@ -160,6 +160,11 @@ export class AgentStartLedger {
     });
   }
   issueExclusive(namespace: string, id: string, rawBasis: unknown): AgentStartTicket {
+    return this.claimExclusiveOnce(namespace, id, rawBasis).ticket;
+  }
+  // Same immutable format1 rows; the insertion result elects exactly one
+  // dispatcher across connections/processes. A replay never grants an effect.
+  claimExclusiveOnce(namespace: string, id: string, rawBasis: unknown): { created: boolean; ticket: AgentStartTicket } {
     if (!/^[a-z][a-z0-9_]{0,63}$/.test(namespace) || !sha.test(id)) fail("agent_start_exclusive_identity_invalid");
     // Keep the check and insert in one writer transaction across processes.
     const body = encoded({ format: "cimiloop/host-exclusive-ticket/1.0.0", namespace, id, basis: rawBasis });
@@ -169,11 +174,11 @@ export class AgentStartLedger {
         return value?.format === "cimiloop/host-exclusive-ticket/1.0.0" && value.namespace === namespace && value.id === id;
       });
       if (matches.length > 1 || matches[0] && matches[0].body !== body) fail("agent_start_exclusive_conflict");
-      if (matches[0]) return { format: "cimiloop/agent-start-ticket/1.0.0", identity_digest: this.identityDigest, ticket_id: String(matches[0].id), basis_digest: String(matches[0].basis_digest) };
+      if (matches[0]) return { created: false, ticket: { format: "cimiloop/agent-start-ticket/1.0.0" as const, identity_digest: this.identityDigest, ticket_id: String(matches[0].id), basis_digest: String(matches[0].basis_digest) } };
       if (rows.length >= 1024) fail("agent_start_ticket_capacity");
       const ticketId = randomUUID(), basis = digest(body).value;
       this.db.prepare("INSERT INTO tickets VALUES (?, ?, ?)").run(ticketId, basis, body);
-      return { format: "cimiloop/agent-start-ticket/1.0.0", identity_digest: this.identityDigest, ticket_id: ticketId, basis_digest: basis };
+      return { created: true, ticket: { format: "cimiloop/agent-start-ticket/1.0.0" as const, identity_digest: this.identityDigest, ticket_id: ticketId, basis_digest: basis } };
     });
   }
   inspect(ticket: AgentStartTicket, rawScope: AgentWorkspaceToolScope): { state: "unclaimed" } | { state: "claimed"; material_digest: Digest; claim_digest: Digest } {
