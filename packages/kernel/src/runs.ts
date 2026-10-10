@@ -29,6 +29,10 @@ export interface AgentRunVerifierPort {
   // missing local files on a new computer never prove no previous dispatch.
   // Tool permission or a JSON/imported approval cannot substitute for this port.
   checkRunAuthority?(project: Project, input: AgentRunLaunchAuthorityInput): Digest;
+  // Independent ongoing model/budget proof: current complete original workspace
+  // and same-Run Native edit/IPC history plus live qualification. First-start
+  // proof or arbitrary tool permission cannot substitute; absent means DENY.
+  checkModelAuthority?(project: Project, input: AgentRunLaunchAuthorityInput): Digest;
   // Side-effect-free live admission check for one original Agent operation/tool.
   // Must re-read original host admission, current qualification/enforcement and
   // run/tool/SDK/account ownership. A model/import cannot install this port.

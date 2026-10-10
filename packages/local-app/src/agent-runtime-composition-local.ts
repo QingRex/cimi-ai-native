@@ -6,6 +6,8 @@ import { LocalAgentCheckAdmission } from "./agent-check-admission-local.js";
 import { openLocalAgentRunBudget } from "./agent-run-budget-local.js";
 import { originalAgentWorkspaceScope } from "./agent-workspace-tools-local.js";
 import { LocalProjectError } from "./errors.js";
+import {DedicatedAgentAccountLedger} from '@cimiloop/runtime-adapter';
+import {LocalAgentDedicatedAccount,type AgentDedicatedModelContext} from './agent-dedicated-account-local.js';
 
 interface Options {
  local:AgentRuntimeStartContext & AgentWorkspaceToolLocalContext;
@@ -28,6 +30,9 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
   const scope=originalAgentWorkspaceScope(options.local,options.runId);
   const model=createDedicatedAgentRuntimeModel({root:options.local.location.dataDirectory,repositoryPath:options.local.location.repositoryPath,scope,connection:options.connection,account:options.account});
   return this.open({local:options.local,binary:options.binary,custody:options.custody,checks:options.checks,model});
+ }
+ static openDedicatedPersistent(options:Omit<Options,"model"> & {local:AgentDedicatedModelContext;runId:string;connection:DedicatedModelConnection;account:DedicatedAgentAccountLedger}){
+  return this.openDedicated({...options,account:LocalAgentDedicatedAccount.open(options.local,options.runId,options.account)});
  }
  originalScope(runId:string){return structuredClone(originalAgentWorkspaceScope(this.options.local,runId));}
  start(runId:string,beforeLaunch?:()=>void){
@@ -61,7 +66,7 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
    signal.throwIfAborted();
    return {launch:async()=>{
     await runOpenCodeWorkspaceRuntime({root:this.options.local.location.dataDirectory,binary:this.options.binary,scope:input.scope,prompt,model,runBudget:budget,checkCatalog:catalog,...(beforeNativeEffect?{beforeNativeEffect}:{}),
-     connect:(supervisor,originalSupervisor,peer,nonce,signal,originalModel)=>service.openIpc(supervisor,originalSupervisor,peer,{nonce,signal,model:originalModel})});
+     connect:(supervisor,originalSupervisor,peer,nonce,signal,originalModel)=>service.openIpc(supervisor,originalSupervisor,peer,{nonce,signal,model:originalModel,runBudget:budget})});
    },dispose:async()=>{try{await service.close();}finally{await budget.close();}}};
   } catch(error){await service.close();throw error;}
   },staged=>staged.dispose());

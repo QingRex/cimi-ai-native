@@ -1,4 +1,4 @@
-import type { AgentRuntimeModelHost } from "@cimiloop/runtime-adapter";
+import type { AgentRuntimeModelHost, AgentRunBudget } from "@cimiloop/runtime-adapter";
 import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
 import { resolve } from "node:path";
 import type { ChildProcess } from "node:child_process";
@@ -104,7 +104,7 @@ export class LocalAgentWorkspaceToolService {
     if (this.checkAdmission) this.admittedChecks(this.checkAdmission);
     return host.getCatalog();
   }
-  openIpc(supervisor: ChildProcess, originalSupervisor: AgentWorkspaceIpcEndpoint["supervisor"], originalPeer: AgentWorkspaceIpcEndpoint["peer"], options: { nonce?: string; signal?: AbortSignal | undefined; model?: AgentRuntimeModelHost } = {}) {
+  openIpc(supervisor: ChildProcess, originalSupervisor: AgentWorkspaceIpcEndpoint["supervisor"], originalPeer: AgentWorkspaceIpcEndpoint["peer"], options: { nonce?: string; signal?: AbortSignal | undefined; model?: AgentRuntimeModelHost; runBudget?: AgentRunBudget } = {}) {
     const { signal, nonce } = options;
     if (signal?.aborted) return Promise.reject(Error("Agent workspace IPC aborted"));
     if (this.ipc) return Promise.reject(Error("Agent workspace IPC original peer already installed"));
@@ -113,7 +113,7 @@ export class LocalAgentWorkspaceToolService {
     this.ipc = (async () => {
       const checks = installed ? { catalog: (await installed).getCatalog(), execute: (input: unknown) => this.runChecks(input) } : undefined;
       return AgentWorkspaceToolIpc.open({ toolsDirectory: this.local.location.dataDirectory, scope: this.scope, supervisor, originalSupervisor, originalPeer, ...(nonce !== undefined ? { nonce } : {}),
-        signal, ...(options.model ? { model: options.model } : {}), ...(checks ? { checks } : {}), execute: input => this.execute(input), cancel: () => this.closeHosts() });
+        signal, ...(options.runBudget?{runBudget:options.runBudget}:{}), ...(options.model ? { model: options.model } : {}), ...(checks ? { checks } : {}), execute: input => this.execute(input), cancel: () => this.closeHosts() });
     })(); return this.ipc;
   }
   private async closeHosts() { await Promise.all([this.checks?.then(host => host.close(), () => undefined), this.execution.host.close()]); }

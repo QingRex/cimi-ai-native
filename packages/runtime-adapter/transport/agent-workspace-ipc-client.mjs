@@ -49,6 +49,9 @@ function receiptValid(value, frame) {
       hash(native.text) === frame.expected_digest && native.after_digest === frame.expected_digest && same(native.file_identity, native.after_file_identity) :
       native.text === null && identity(native.replacement_identity) && same(native.replacement_identity, native.after_file_identity) && native.after_digest === hash(frame.replacement_utf8));
 }
+const originalTaskWait=process.env.CIMILOOP_AGENT_TASK_WAIT_MS;
+if(originalTaskWait!==undefined&&(!/^[1-9][0-9]*$/.test(originalTaskWait)||!Number.isSafeInteger(Number(originalTaskWait))||Number(originalTaskWait)>3600000))throw Error("agent_ipc_task_deadline_invalid");
+const taskWaitDeadline=originalTaskWait===undefined?null:performance.now()+Number(originalTaskWait);
 const exchangeFrame = (pipe, request, signal, model) => new Promise((done, fail) => {
   let frame, payload;
   try {
@@ -60,12 +63,14 @@ const exchangeFrame = (pipe, request, signal, model) => new Promise((done, fail)
         ["read_file", "replace_file"].includes(frame.tool) && typeof frame.path === "string" && sha(frame.expected_digest) && (frame.tool !== "replace_file" ||
           typeof frame.replacement_utf8 === "string" && Buffer.byteLength(frame.replacement_utf8) <= 16384))) throw Error("invalid");
   } catch { fail(Error("agent_ipc_request_denied")); return; }
+  const wait=taskWaitDeadline===null?125000:Math.ceil(taskWaitDeadline-performance.now());
+  if(wait<=0){fail(Error("agent_ipc_task_deadline_exhausted"));return;}
   const requestDigest = hash(payload); let buffered = Buffer.alloc(0), settled = false;
   const socket = createConnection({ path: pipe });
-  const finish = (error, value) => { if (settled) return; settled = true; clearTimeout(timer); signal?.removeEventListener("abort", abort); socket.destroy(); if (error) fail(error); else done(value); };
-  const abort = () => finish(Error("agent_ipc_aborted")), timer = setTimeout(() => finish(Error("agent_ipc_timeout")), 125000);
+  const finish = (error, value) => { if (settled) return; if(!error&&(signal?.aborted||taskWaitDeadline!==null&&performance.now()>=taskWaitDeadline))error=Error(signal?.aborted?"agent_ipc_aborted":"agent_ipc_task_deadline_exhausted"); settled = true; clearTimeout(timer); signal?.removeEventListener("abort", abort); socket.destroy(); if (error) fail(error); else done(value); };
+  const abort = () => finish(Error("agent_ipc_aborted")), timer = setTimeout(() => finish(Error("agent_ipc_timeout")), wait);
   signal?.addEventListener("abort", abort, { once: true });
-  socket.once("connect", () => { const header = Buffer.alloc(4); header.writeUInt32LE(payload.length); socket.write(Buffer.concat([header, payload])); });
+  socket.once("connect", () => { if(settled)return;if(signal?.aborted||taskWaitDeadline!==null&&performance.now()>=taskWaitDeadline){finish(Error(signal?.aborted?"agent_ipc_aborted":"agent_ipc_task_deadline_exhausted"));return;}const header = Buffer.alloc(4); header.writeUInt32LE(payload.length); socket.write(Buffer.concat([header, payload])); });
   socket.on("data", bytes => {
     buffered = Buffer.concat([buffered, bytes]); if (buffered.length > maximum + 4) { finish(Error("agent_ipc_reply_limit")); return; }
     if (buffered.length < 4) return; const length = buffered.readUInt32LE();

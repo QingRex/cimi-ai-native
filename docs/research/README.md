@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+2026-10-10 D-257：持久账户原现金／积分占用、共享 Kernel 账户服务、独立持续模型核权和原 Native／IPC 工作区投影已接入；生产准备／恢复闸口与 IPC 等待接入同一原 Task 固定截止时间。真实 Windows 专用 HTTPS／SDK／Native 读→大小写路径修改→固定检查→模型继续链路通过，响应重放不重开 Run、不增加占用。模型、批准、套餐、费率仍公开构造夹具，真实模型请求与真实Key读取0，费用未结清。正式默认 Agent 仍关闭，完整五组 S1 持续，242 Schema／用户库10／原启动账本1保持。 [实施记录](../implementation/CimiLoop-持久账户原预算与共享组合-v0.1.md)。
+
 - [专用模型原件共同核验研究记录](CimiLoop-专用模型原件共同核验-2026-10-10.json)：独立操作键 / 必需模型原件身份 / 预算锚点、共同采集及 Kernel 再验、分阶段受影响与完整 Windows 回归；公开 TLS / 账户夹具不计真实模型、方法或 S1。
 
 - [专用模型原请求衔接研究记录](CimiLoop-专用模型原请求衔接-2026-10-10.json)：实际 SDK / 本机 HTTPS / 原请求预算占用和响应锚点、Windows 原 Runtime / Workbench 验证；不证明真实模型、账户结算、Skill、Matt、Superpowers或S1。

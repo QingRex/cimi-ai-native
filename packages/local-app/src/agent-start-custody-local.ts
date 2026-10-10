@@ -11,6 +11,7 @@ export interface AgentStartFullCustodyPort {
   // independent trusted port. This start ledger never qualifies any provider.
   admit(project: Project, input: AgentRunAdmissionInput): Reference;
   verifyLaunch(project: Project, input: AgentRunLaunchAuthorityInput, original: Reference): Digest;
+  verifyModel?(project:Project,input:AgentRunLaunchAuthorityInput,original:Reference):Digest;
 }
 const exact = (raw: unknown, fields: string[]): raw is Record<string, unknown> => !!raw && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw).sort().join(",") === [...fields].sort().join(",");
 interface Admission { format: "cimiloop/agent-start-host-admission/1.0.0"; original_host_admission_ref: Reference; ticket: AgentStartTicket }
@@ -78,5 +79,14 @@ export class LocalAgentStartCustody {
     const validation = structuredClone(compileValidator<Digest>(DigestSchema)(this.full.verifyLaunch(structuredClone(project), input, structuredClone(original.admission.original_host_admission_ref))));
     this.ledger.readTicket(original.admission.ticket);
     return { algorithm: "sha256", value: requestDigest({ validation, ticket: original.admission.ticket, original_host_admission_ref: original.admission.original_host_admission_ref }) };
+  }
+  checkModelAuthority(project:Project,rawInput:AgentRunLaunchAuthorityInput):Digest {
+    if(!this.full.verifyModel)fail();
+    const input=structuredClone(rawInput),captured=this.capture(project,input),original=this.original(captured.project,input.record,input.context,input.request);
+    if(!isDeepStrictEqual(this.ledger.readTicket(original.admission.ticket),captured.basis))fail();
+    this.ledger.inspect(original.admission.ticket,original.scope);
+    const validation=structuredClone(compileValidator<Digest>(DigestSchema)(this.full.verifyModel(structuredClone(project),input,structuredClone(original.admission.original_host_admission_ref))));
+    this.ledger.readTicket(original.admission.ticket);
+    return {algorithm:'sha256',value:requestDigest({validation,ticket:original.admission.ticket,original_host_admission_ref:original.admission.original_host_admission_ref})};
   }
 }

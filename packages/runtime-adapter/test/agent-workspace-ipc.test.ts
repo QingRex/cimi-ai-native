@@ -1,6 +1,7 @@
 import { createServer } from "node:net";
 import { randomUUID } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { setTimeout as delay } from "node:timers/promises";
+import { describe, expect, it, vi } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { AgentWorkspaceToolIpc, agentWorkspaceIpcInvocation, agentWorkspaceIpcScopeDigest } from "../src/agent-workspace-ipc.js";
 import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.js";
@@ -18,6 +19,9 @@ describe("fixed original Agent file frames", () => {
   it("rejects an invalid suspended-start nonce before accessing source, scope, processes or the filesystem", async () => {
     await expect(AgentWorkspaceToolIpc.open({ nonce: "foreign", toolsDirectory: "unused" } as any)).rejects.toThrow("agent_ipc_nonce_invalid");
   });
+  it("refuses JSON-shaped Task budgets before accessing source, processes or the filesystem",async()=>{
+    await expect(AgentWorkspaceToolIpc.open({runBudget:{nativeDeadlineUptimeMs:999999999},toolsDirectory:"unused"} as any)).rejects.toThrow("agent_ipc_task_budget_invalid");
+  });
   it("installs original authority pins and only accepts bounded exact file arguments", () => {
     const original = scope(), request = frame(agentWorkspaceIpcScopeDigest(original)), input = agentWorkspaceIpcInvocation(original, request);
     expect(input).toMatchObject({ project_id: original.project_id, run_id: original.run_id, operation_key: original.operation_key, executor_actor_id: original.executor_actor_id, context_digest: original.context_digest });
@@ -32,11 +36,13 @@ describe("fixed original Agent file frames", () => {
 // are independently covered by the Windows scenario; no host is qualified here.
 describe.runIf(process.platform === "win32")("bounded original Agent pipe client", () => {
   async function server(mode: string) {
-    const pipe = `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${randomUUID()}`; let connections = 0;
+    const pipe = `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${randomUUID()}`; let connections = 0, frames = 0;
+    let release: (() => void) | undefined;
     const listener = createServer(socket => {
       connections++; socket.on("error", () => socket.destroy()); let input = Buffer.alloc(0);
       socket.on("data", bytes => {
         input = Buffer.concat([input, bytes]); if (input.length < 4 || input.length < input.readUInt32LE() + 4) return;
+        frames++;
         const payload = input.subarray(4), request = JSON.parse(payload.toString()), fileIdentity = { volume_serial: "12345678", file_index: "1234567890123456" }, inputDigest = digest("constructed invocation").value;
         const receipt = { format: "cimiloop/workspace-tool-receipt/1.0.0", scope: "authorized_workspace", run_id: createInternalId(), call_id: request.call_id,
           input_digest: inputDigest, authority_basis_digest: digest("constructed authority").value, formal_agent_execution_enabled: false,
@@ -52,11 +58,12 @@ describe.runIf(process.platform === "win32")("bounded original Agent pipe client
         if (mode === "lost") { socket.end(); return; }
         let text = JSON.stringify(reply); if (mode === "duplicate") text = text.replace('"outcome":"completed"', '"outcome":"completed","outcome":"completed"');
         const output = Buffer.from(text), header = Buffer.alloc(4); header.writeUInt32LE(output.length); const body = Buffer.concat([header, output]);
+        if (mode === "held") { release = () => socket.end(body); return; }
         socket.write(body.subarray(0, 2)); setTimeout(() => socket.end(body.subarray(2)), 5);
       });
     });
     await new Promise<void>((done, fail) => { listener.once("error", fail); listener.listen(pipe, done); });
-    return { pipe, connections: () => connections, close: () => new Promise<void>(done => listener.close(() => done())) };
+    return { pipe, connections: () => connections, frames: () => frames, release: () => release?.(), close: () => new Promise<void>(done => listener.close(() => done())) };
   }
   it.each(["valid", "denied"])("accepts a fragmented exact %s reply", async mode => {
     const f = await server(mode); try { expect((await exchangeAgentWorkspaceToolFrame(f.pipe, frame())).outcome).toBe(mode === "valid" ? "completed" : "denied"); }
@@ -74,5 +81,49 @@ describe.runIf(process.platform === "win32")("bounded original Agent pipe client
       const client = createAgentWorkspaceToolClient({ pipe: f.pipe, scope_digest: frame().scope_digest });
       await expect(client.execute(frame())).rejects.toThrow("agent_ipc_request_denied"); expect(f.connections()).toBe(1);
     } finally { await f.close(); }
+  });
+  it("consumes one original SDK wait ceiling across requests without renewal",async()=>{
+    const original=process.env.CIMILOOP_AGENT_TASK_WAIT_MS;
+    let current:typeof exchangeAgentWorkspaceToolFrame;
+    try{process.env.CIMILOOP_AGENT_TASK_WAIT_MS="500";current=(await import(moduleUrl+"?original-task="+randomUUID())).exchangeAgentWorkspaceToolFrame;}
+    finally{if(original===undefined)delete process.env.CIMILOOP_AGENT_TASK_WAIT_MS;else process.env.CIMILOOP_AGENT_TASK_WAIT_MS=original;}
+    const f=await server("valid");try{expect((await current!(f.pipe,frame())).outcome).toBe("completed");await new Promise<void>(done=>setTimeout(done,550));await expect(current!(f.pipe,frame())).rejects.toThrow("agent_ipc_task_deadline_exhausted");expect(f.connections()).toBe(1);}finally{await f.close();}
+  });
+  async function timedClient(milliseconds: number) {
+    const original = process.env.CIMILOOP_AGENT_TASK_WAIT_MS;
+    try {
+      process.env.CIMILOOP_AGENT_TASK_WAIT_MS = String(milliseconds);
+      return (await import(moduleUrl + "?late-task=" + randomUUID())).exchangeAgentWorkspaceToolFrame as typeof exchangeAgentWorkspaceToolFrame;
+    } finally {
+      if (original === undefined) delete process.env.CIMILOOP_AGENT_TASK_WAIT_MS;
+      else process.env.CIMILOOP_AGENT_TASK_WAIT_MS = original;
+    }
+  }
+  it("refuses a late connect before writing when the deadline timer has not run", async () => {
+    const f = await server("valid"), current = await timedClient(50);
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const result = current(f.pipe, frame()).catch(error => error);
+      const until = performance.now() + 100;
+      while (performance.now() < until) { /* Hold the event loop past the original ceiling. */ }
+      expect((await result).message).toBe("agent_ipc_task_deadline_exhausted");
+      await delay(10); expect(f.frames()).toBe(0);
+    } finally { vi.useRealTimers(); await f.close(); }
+  });
+  it("refuses a late valid reply when the deadline timer has not run", async () => {
+    const f = await server("held"), current = await timedClient(200);
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const result = current(f.pipe, frame()).catch(error => error);
+      for (let i = 0; i < 20 && f.frames() === 0; i++) await delay(5);
+      expect(f.frames()).toBe(1);
+      const until = performance.now() + 250;
+      while (performance.now() < until) { /* The valid reply arrives before the delayed timer callback. */ }
+      f.release(); expect((await result).message).toBe("agent_ipc_task_deadline_exhausted");
+      expect(f.connections()).toBe(1);
+    } finally { vi.useRealTimers(); f.release(); await f.close(); }
+  });
+  it.each(["0","-1","3600001","Infinity","1.5"])("refuses invalid original SDK wait %s before any connection",async value=>{
+    const original=process.env.CIMILOOP_AGENT_TASK_WAIT_MS;try{process.env.CIMILOOP_AGENT_TASK_WAIT_MS=value;await expect(import(moduleUrl+"?invalid-task="+randomUUID())).rejects.toThrow("agent_ipc_task_deadline_invalid");}finally{if(original===undefined)delete process.env.CIMILOOP_AGENT_TASK_WAIT_MS;else process.env.CIMILOOP_AGENT_TASK_WAIT_MS=original;}
   });
 });

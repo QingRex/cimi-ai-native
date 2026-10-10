@@ -25,6 +25,7 @@ function fail(reason: string): never { throw Error(reason); }
 // actual Context inputs before Run IDs exist. This is only the checks portion
 // of admission; the required original full custody port remains authoritative.
 export class LocalAgentCheckAdmission {
+  verifyInstallation():void {this.installation.verify();}
   private constructor(private readonly options: Options, private readonly installation: WorkspaceCheckInstallation, private readonly runs: LocalRunVerifier) {}
   static async open(raw: Options): Promise<LocalAgentCheckAdmission> {
     if (!Array.isArray(raw.templates) || !raw.templates.length || raw.templates.length > 16 || typeof raw.custody?.admit !== "function" || typeof raw.custody?.verify !== "function") fail("Agent check admission configuration invalid");
@@ -49,7 +50,7 @@ export class LocalAgentCheckAdmission {
       ["definition_ref", "contract_ref", "plan_ref"].some(key => !isDeepStrictEqual(item[key as "definition_ref"], task[key as "definition_ref"]) || !isDeepStrictEqual(workspace[key as "definition_ref"], task[key as "definition_ref"])) ||
       !item.allowed_actions.includes("read_files") || !item.allowed_actions.includes("run_checks")) fail("Agent check admission inputs mismatch");
     this.installation.verify();
-    const manifest = this.runs.readWorkspace(project, workspace);
+    const manifest = this.runs.readAdmittedWorkspace(project, workspace);
     if (!isDeepStrictEqual(manifest.allowed_resources, item.allowed_resources) || manifest.head_commit_id !== source.commit_id || !isDeepStrictEqual(manifest.head_source_digest, source.source_digest)) fail("Agent check admission workspace mismatch");
     const recipes: WorkspaceCheckRecipe[] = this.options.templates.map(template => ({ ...template, ...(template.source_policy ? {editable_inputs:template.inputs.filter(source=>!source.expected_digest).map(source=>source.path)} : {}), inputs: template.inputs.map(required => {
       if (!item.allowed_resources.some(bound => contains(bound, required.path))) fail("Agent check input outside WorkItem");

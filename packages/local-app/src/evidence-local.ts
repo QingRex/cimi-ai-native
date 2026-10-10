@@ -12,6 +12,7 @@ const digest = (bytes: Buffer): Digest => ({ algorithm: "sha256", value: createH
 const safeOid = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
 const limit = 64 * 1024 * 1024;
 export class LocalEvidenceVerifier implements EvidenceVerifierPort {
+  readonly #admittedSources = new Map<string, { tree: Buffer; identities: { type: string; oid: string }[]; expected: Digest }>();
   constructor(readonly repositoryPath: string, readonly dataDirectory: string) {}
   #git(args: string[], input?: Buffer): Buffer {
     const env = { ...process.env }; for (const key of Object.keys(env)) if (key.startsWith("GIT_")) delete env[key];
@@ -39,7 +40,32 @@ export class LocalEvidenceVerifier implements EvidenceVerifierPort {
       offset = end + 1 + size; if (offset >= objects.length || objects[offset] !== 10) throw new Error("Source object truncated"); offset++;
     }
     if (offset !== objects.length) throw new Error("Unexpected source output");
-    return digest(Buffer.concat([commit, Buffer.from("\0"), tree, Buffer.from("\0"), objects]));
+    const result = digest(Buffer.concat([commit, Buffer.from("\0"), tree, Buffer.from("\0"), objects]));
+    this.#admittedSources.set(project.id + ":" + commitId, { tree: Buffer.from(tree), identities: identities.map(identity => ({ ...identity })), expected: { ...result } });
+    return result;
+  }
+  // Reuse only validated immutable topology. Re-read the commit and every
+  // original tree/blob, including objects outside authorized workspace paths.
+  admittedSourceDigest(project: Project, commitId: string): Digest {
+    const original = this.#admittedSources.get(project.id + ":" + commitId);
+    if (!original) return this.sourceDigest(project, commitId);
+    this.#project(project);
+    const algorithm = commitId.length === 40 ? "sha1" : "sha256";
+    const identities = [{ type: "commit", oid: commitId }, ...original.identities];
+    const objects = this.#git(["cat-file", "--batch"], Buffer.from(identities.map(identity => identity.oid).join("\n") + "\n"));
+    let offset = 0, commitEnd = 0, commit: Buffer | undefined;
+    for (const identity of identities) {
+      const end = objects.indexOf(10, offset), match = /^([0-9a-f]+) (commit|blob|tree) (\d+)$/.exec(objects.subarray(offset, end).toString());
+      if (end < offset || match?.[1] !== identity.oid || match[2] !== identity.type || !Number.isSafeInteger(Number(match[3])) || Number(match[3]) > limit) throw new Error("Source object missing");
+      const size = Number(match[3]), body = objects.subarray(end + 1, end + 1 + size);
+      if (body.length !== size || createHash(algorithm).update(`${identity.type} ${size}\0`).update(body).digest("hex") !== identity.oid) throw new Error("Git object identity mismatch");
+      offset = end + 1 + size; if (offset >= objects.length || objects[offset] !== 10) throw new Error("Source object truncated"); offset++;
+      if (identity.type === "commit") { commit = body; commitEnd = offset; }
+    }
+    if (!commit || offset !== objects.length) throw new Error("Unexpected source output");
+    const result = digest(Buffer.concat([commit, Buffer.from("\0"), original.tree, Buffer.from("\0"), objects.subarray(commitEnd)]));
+    if (result.value !== original.expected.value) throw new Error("Original admitted source changed");
+    return result;
   }
   sourceIsCurrent(project: Project, snapshot: SourceSnapshot): boolean {
     this.#project(project);

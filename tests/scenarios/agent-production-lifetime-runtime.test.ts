@@ -2,16 +2,16 @@ import { createServer as createHttpsServer } from "node:https";
 import { connect as tlsConnect } from "node:tls";
 import { fileURLToPath } from "node:url";
 import { GatewayNetworkBoundary } from "../../packages/runtime-adapter/dist/gateway-network.js";
-import { createDedicatedAgentRuntimeModel, type DedicatedAgentAccountPort } from "../../packages/runtime-adapter/dist/index.js";
+import { createDedicatedAgentRuntimeModel,initializeWindowsDedicatedAgentAccountLedger } from "../../packages/runtime-adapter/dist/index.js";
 import {startWorkbench} from "../../apps/workbench/src/server.js";
 import {createInternalId} from "../../packages/protocol/src/v2/index.js";
-import { mkdtempSync, readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
+import { mkdtempSync,mkdirSync, readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CimiLoopKernel } from "../../packages/kernel/src/index.js";
 import { contentDigest } from "../../packages/kernel/src/intent.js";
-import { LocalAgentRuntimeComposition, LocalAgentStartCustody, LocalAgentCheckAdmission, LocalAgentWorkspaceToolService, openLocalAgentRunBudget, writeInstance } from "../../packages/local-app/dist/index.js";
+import { LocalAgentRuntimeComposition, LocalAgentDedicatedAccount,LocalAgentModelAdmission,LocalAgentStartCustody, LocalAgentCheckAdmission, LocalAgentWorkspaceToolService, openLocalAgentRunBudget, writeInstance } from "../../packages/local-app/dist/index.js";
 import { initializeWindowsAgentStartLedger, AgentRuntimeModelHost, runOpenCodeWorkspaceRuntime, collectAgentRuntimeOperation, requestAgentRuntimeCancellation, parseAgentWorkspaceToolScope,
  readAgentRuntimeModelOriginals, type AgentRuntimeModelPort, type WorkspaceCheckTemplate } from "../../packages/runtime-adapter/dist/index.js";
 import { digest } from "../../packages/runtime-adapter/src/files.js";
@@ -25,9 +25,12 @@ vi.setConfig({testTimeout:780000});
 // original host custody and Task clock. Replies/full account qualification are
 // constructed. This is executable-path coverage, never real model or S1 evidence.
 describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lifetime joins the original approved Task",()=>{
+ // Fresh current-user persistent roots, not Temp. Repo-local owned roots on
+ // this host rejected Windows custody; neither historical location is repaired.
+ const fixtureParent=join(process.env.LOCALAPPDATA!,'CimiS1');
  const roots:string[]=[],stores:{close():void}[]=[],closers:(()=>Promise<void>)[]=[];
  afterEach(async context=>{while(closers.length)await closers.pop()!();while(stores.length)stores.pop()!.close();for(const root of roots.splice(0)){
-  if(!resolve(root).startsWith(resolve(tmpdir())+sep+"cimiloop-production-lifetime-runtime-"))throw Error("Unsafe cleanup");
+  if(!resolve(root).startsWith(resolve(fixtureParent)+sep+"cimiloop-production-lifetime-runtime-"))throw Error("Unsafe cleanup");
   const operations=join(root,".git/cimiloop/workspace-tool-rehearsals");if(existsSync(operations))for(const name of readdirSync(operations)){
    const proof=join(operations,name,"agent-sandbox-cleanup.json");if(!existsSync(proof)||JSON.parse(readFileSync(proof,"utf8")).resources_disposed!==true)throw Error("Retain original Native resources: "+root);
   }
@@ -35,16 +38,16 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   // assertion/setup failures whose final state is assigned after afterEach.
   console.error("Retain original host-model fixture: "+root);
  }});
- async function setup(){
-  const root=mkdtempSync(join(tmpdir(),"cimiloop-production-lifetime-runtime-"));roots.push(root);
-  const f=createAgentRunProject(root,"task_execution",100,[{provider:"cimiloop_workspace",resource_type:"repository_path",locator:"src/**",version:"1.0.0"}],["read_files","run_checks"],["src/**"],undefined,600000);stores.push(f.store);
-  const dataDirectory=dirname(f.path),harness="import {query} from './query.ts'; if(query()!==1)throw Error('actual source check');\n";
+ async function setup(editable=false){
+  mkdirSync(fixtureParent,{recursive:true});const root=mkdtempSync(join(fixtureParent,"cimiloop-production-lifetime-runtime-"));roots.push(root);
+  const f=createAgentRunProject(root,"task_execution",editable?150:100,[{provider:"cimiloop_workspace",resource_type:"repository_path",locator:"src/**",version:"1.0.0"}],["read_files","run_checks",...(editable?["edit_files" as const]:[])],["src/**"],editable?["src/**"]:undefined,600000);stores.push(f.store);
+  const dataDirectory=dirname(f.path),harness="import {query} from './query.ts'; if(query()!=="+(editable?2:1)+")throw Error('actual source check');\n";
   writeFileSync(join(root,"src/check.mjs"),harness);f.git("add","src/check.mjs");f.git("commit","--quiet","-m","Actual fixed check input");const source=f.capture();
-  const template:WorkspaceCheckTemplate={check_id:"query_test",profile:"node_test",entry:"src/check.mjs",inputs:[{path:"src/check.mjs",expected_digest:digest(harness).value},{path:"src/query.ts"}],max_elapsed_ms:4000,max_output_bytes:32768};
+  const template:WorkspaceCheckTemplate={check_id:"query_test",profile:"node_test",entry:"src/check.mjs",inputs:[{path:"src/check.mjs",expected_digest:digest(harness).value},{path:"src/query.ts"}],...(editable?{source_policy:"original_run_edits/1.0.0" as const}:{}),max_elapsed_ms:4000,max_output_bytes:32768};
   const checks=await LocalAgentCheckAdmission.open({repositoryPath:root,dataDirectory,nodeBinary:process.execPath,projectId:f.project.id,templates:[template],custody:{admit:f.runPort.agent.admitContext,
    verify:(_project,input,original)=>contentDigest({constructed:true,input,original})}});
   const ledger=await initializeWindowsAgentStartLedger(join(dataDirectory,"start-origin"),join(dataDirectory,"start-tools"));closers.push(async()=>ledger.close());
-  const custody=new LocalAgentStartCustody(root,dataDirectory,ledger,{admit:checks.admit.bind(checks),verifyLaunch:(_project,input,original)=>contentDigest({constructed:true,input,original})});
+  const custody=new LocalAgentStartCustody(root,dataDirectory,ledger,{admit:checks.admit.bind(checks),verifyLaunch:(_project,input,original)=>contentDigest({constructed:true,input,original}),verifyModel:(_project,input,original)=>contentDigest({constructedModel:true,input,original})});
   const authorityChecks:{input_digest:string;validation:unknown;error:string|null}[]=[];
   const originalCheck=custody.checkRunAuthority.bind(custody);
   custody.checkRunAuthority=(project,input)=>{
@@ -53,17 +56,18 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
    finally{authorityChecks.push(record);writeFileSync(join(dataDirectory,"constructed-authority-checks.json"),JSON.stringify(authorityChecks,null,2));}
   };
   f.runPort.agent.admitContext=custody.admit.bind(custody);f.runPort.agent.checkRunAuthority=custody.checkRunAuthority.bind(custody);f.runPort.agent.checkToolAuthority=(project,input)=>{try{return checks.validateTool(project,input,custody);}catch(error){writeFileSync(join(dataDirectory,"constructed-tool-host-failure.json"),JSON.stringify({message:String(error),stack:error instanceof Error?error.stack:null}));throw error;}};
+  const modelAdmission=new LocalAgentModelAdmission(root,dataDirectory,custody,checks);f.runPort.agent.checkModelAuthority=modelAdmission.checkModelAuthority.bind(modelAdmission);
   const kernel=new CimiLoopKernel({store:f.store,caller:f.caller,now:()=>new Date().toISOString(),runVerifier:f.runPort});
   const toolAssessments:unknown[]=[],assessTool=kernel.assessAgentRunTool.bind(kernel);
   kernel.assessAgentRunTool=input=>{const result=assessTool(input);toolAssessments.push(result);writeFileSync(join(dataDirectory,"constructed-tool-assessments.json"),JSON.stringify(toolAssessments,null,2));return result;};
   const prepare=f.prepareCommand();const prepared=flowSuccess(kernel.execute({...prepare,payload:{...f.pins,source_snapshot_ref:{object_type:"source_snapshot",id:source.id}}}));if(prepared.command_type!=="PrepareRunContext"||!("runtime_binding" in prepared.data.context))throw Error("Context expected");
-  const result=flowSuccess(kernel.execute(f.reserveCommand({...prepared.data,context:prepared.data.context})));if(result.command_type!=="ReserveRun"||result.data.record.run_kind!=="agent")throw Error("Agent reserved expected");
+  const result=flowSuccess(kernel.execute(f.reserveCommand({...prepared.data,context:prepared.data.context},editable?150:100)));if(result.command_type!=="ReserveRun"||result.data.record.run_kind!=="agent")throw Error("Agent reserved expected");
   const reserved={...result.data,record:result.data.record},scope=parseAgentWorkspaceToolScope({project_id:f.project.id,run_id:reserved.run.id,operation_key:reserved.record.operation_key,executor_actor_id:f.agent.id,context_digest:reserved.record.input_digest,...f.pins,host_admission_ref:reserved.record.host_admission_ref});
   const local={caller:f.caller,store:f.store,kernel,location:{repositoryKind:"git" as const,repositoryPath:root,dataDirectory,databasePath:f.path,instancePath:join(dataDirectory,"instance.json"),suggestedName:"Actual host model path; constructed account"}};
   const binary=join(process.env.APPDATA!,"npm/node_modules/opencode-ai/node_modules/opencode-windows-x64/bin/opencode.exe");let sends=0;
-  const model:AgentRuntimeModelPort={admission_digest:digest("constructed model/account qualification").value,check:async current=>{expect(current).toEqual(scope);const assessment=kernel.assessAgentRunLaunch(current);if(!("decision" in assessment)||assessment.decision!=="ALLOW")throw Error(JSON.stringify(assessment));},execute:async input=>{
-   expect(JSON.stringify(input.prompt)).toContain("cimiloop/agent-runtime-task-packet/2.0.0");expect(JSON.stringify(input.prompt)).not.toContain("line truncated");sends++;const name=sends===1?"cimi_read":sends===2?"cimi_check":null;
-   if(name)return {content:[{type:"tool-call",tool_call_id:"model_tool_"+sends,tool_name:name,arguments:JSON.stringify(name==="cimi_read"?{path:"src/query.ts",expected_digest:digest(readFileSync(join(root,"src/query.ts"))).value}:{check_id:"query_test"})}],usage:{input_tokens:5,output_tokens:5},finish:"tool_calls"};
+  const model:AgentRuntimeModelPort={admission_digest:digest("constructed model/account qualification").value,check:async current=>{expect(current).toEqual(scope);const assessment=kernel.assessAgentRunModel(current);if(!("decision" in assessment)||assessment.decision!=="ALLOW")throw Error(JSON.stringify(assessment));},execute:async input=>{
+   expect(JSON.stringify(input.prompt)).toContain("cimiloop/agent-runtime-task-packet/2.0.0");expect(JSON.stringify(input.prompt)).not.toContain("line truncated");sends++;const name=sends===1?"cimi_read":editable&&sends===2?"cimi_replace":sends===(editable?3:2)?"cimi_check":null;
+   if(name)return {content:[{type:"tool-call",tool_call_id:"model_tool_"+sends,tool_name:name,arguments:JSON.stringify(name==="cimi_check"?{check_id:"query_test"}:{path:name==="cimi_replace"?"src/QUERY.ts":"src/query.ts",expected_digest:digest(readFileSync(join(root,"src/query.ts"))).value,...(name==="cimi_replace"?{replacement_utf8:"export const query = () => 2;\n"}:{})})}],usage:{input_tokens:5,output_tokens:5},finish:"tool_calls"};
    const outputs:{call_id:string}[]=[];
    const visit=(value:unknown):void=>{
     if(typeof value==="string"){if(value.trim().startsWith("{"))try{visit(JSON.parse(value));}catch{}return;}
@@ -79,10 +83,12 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
     outputs:definition.body.outputs.map((_,output_index)=>({output_index,evidence_call_ids:[outputs[0]!.call_id]})),summary:"Constructed model result referencing actual original SDK fixed-check output"};
    return {content:[{type:"text",text:JSON.stringify(terminal)}],usage:{input_tokens:5,output_tokens:5},finish:"stop"};
   }};
-  return {...f,root,dataDirectory,kernel,reserved,scope,local,binary,custody,checks,model,sends:()=>sends};
+  return {...f,root,dataDirectory,kernel,reserved,scope,local,binary,custody,checks,ledger,model,sends:()=>sends};
  }
  it("completes actual SDK model/read/check steps within a newly approved ten-minute Task and retains the original Run",async()=>{
   const f=await setup(),sequence=f.store.asOfEventSequence(),usage=f.task().usage;
+  let delayed=false;const originalCheck=f.model.check;
+  f.model.check=async scope=>{await originalCheck(scope);const path=join(f.dataDirectory,'workspace-tool-rehearsals');if(!delayed&&existsSync(path)&&readdirSync(path).some(name=>existsSync(join(path,name,'agent-sandbox-original.json')))){delayed=true;await new Promise<void>(done=>setTimeout(done,12000));}};
   const runtime=LocalAgentRuntimeComposition.open({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,model:f.model});
   writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});
   const server=await startWorkbench({projectDir:f.root,agentRuntimeForRun:()=>runtime});closers.push(()=>server.close());
@@ -90,6 +96,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const cookie=login.headers.get("set-cookie")!.split(";")[0]!,csrf=(await login.json() as {csrf:string}).csrf;
   const startOriginal=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/start",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:"{}"});const body=await response.json();expect({status:response.status,body}).toMatchObject({status:200});return body;};
   expect(await startOriginal()).toMatchObject({outcome:"original",completion_proven:false});expect(f.sends()).toBe(3);
+  expect(delayed).toBe(true);
   expect(await startOriginal()).toMatchObject({outcome:"original"});expect(f.sends()).toBe(3);
   const collected=await collectAgentRuntimeOperation(f.dataDirectory,f.scope,{project:f.project,record:f.reserved.record});
   expect(collected.model).toMatchObject({status:"Observed",calls:3,unresolved:0,model_account_custody_proven:false,costs_reconciled:false});
@@ -114,12 +121,12 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});expect(f.store.asOfEventSequence()).toBe(sequence+1);
  });
  it("joins dedicated HTTPS, original SDK reasoning/tool rounds, Native checks and the Workbench original receipt",async()=>{
-  const f=await setup(),sequence=f.store.asOfEventSequence(),usage=f.task().usage;
+  const f=await setup(true),sequence=f.store.asOfEventSequence(),usage=f.task().usage;
   // Only local TLS and constructed account approval/credential. Never real
   // model/account qualification, a paid request or S1 acceptance.
   const certificate=readFileSync(fileURLToPath(new URL("../../packages/runtime-adapter/fixtures/gateway-http-tls/cert.pem",import.meta.url)));
   const fixtureKey="CIMILOOP_NATIVE_DEDICATED_PUBLIC_FIXTURE_KEY",observed:{request_id:string;body:Record<string,unknown>}[]=[];
-  let credentials=0,holds=0;
+  let credentials=0;
   const upstream=createHttpsServer({cert:certificate,key:readFileSync(fileURLToPath(new URL("../../packages/runtime-adapter/fixtures/gateway-http-tls/key.pem",import.meta.url)))},(request,response)=>{
    const chunks:Buffer[]=[];request.on("data",chunk=>chunks.push(chunk));request.on("end",()=>{void(async()=>{try{
     expect(request.headers.authorization).toBe("Bearer "+fixtureKey);expect(request.url).toBe("/api/coding/paas/v4/chat/completions");
@@ -131,8 +138,13 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   await new Promise<void>((done,reject)=>{upstream.once("error",reject);upstream.listen(0,"127.0.0.1",done);});closers.push(async()=>{upstream.closeAllConnections();await new Promise<void>(done=>upstream.close(()=>done()));});const address=upstream.address();if(!address||typeof address==="string")throw Error("Fixture HTTPS missing");
   const boundary=new GatewayNetworkBoundary({resolve:async()=>[{address:"8.8.8.8",family:4,ttl_seconds:60}],connect:options=>{const socket=tlsConnect({...options,host:"127.0.0.1",port:address.port,ca:certificate});Object.defineProperty(socket,"remoteAddress",{get:()=>"8.8.8.8"});return socket;}});
   const connection={format:"cimiloop/dedicated-model/1.0.0" as const,provider:"zhipuai-coding-plan" as const,model:"zhipuai-coding-plan/glm-fixture",credential_file:join(tmpdir(),"absent-public-dedicated-fixture-"+f.scope.run_id+".dpapi.json"),credential_digest:digest("fixture only")};
-  const account:DedicatedAgentAccountPort={admission_digest:f.model.admission_digest,profile:{model:"glm-fixture",thinking:"enabled"},check:async scope=>f.model.check(scope),reserve:async(_scope,request,bytes)=>{expect(digest(bytes).value).toBe(request.request_digest);holds++;return {format:"cimiloop/agent-model-budget-hold/1.0.0",...request,account_digest:digest("constructed account").value,approval_digest:digest("constructed approval").value,tariff_digest:digest("constructed tariff").value,cash_upper_micros:30,credit_upper_micro_units:0,input_token_limit:100000,output_token_limit:request.max_output_tokens};},verifyHold:async scope=>f.model.check(scope)};
-  expect(LocalAgentRuntimeComposition.openDedicated({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,runId:f.reserved.run.id,connection,account}).originalScope(f.reserved.run.id)).toEqual(f.scope);
+  const accountParent=mkdtempSync(join(tmpdir(),"cimiloop-native-original-account-")),accountRoot=join(accountParent,"account");
+  // Actual external Windows-protected persistent service; policy/full admission
+  // remain constructed. This does not approve a real model/package or tariff.
+  const ledger=await initializeWindowsDedicatedAgentAccountLedger({origin:f.ledger,repositoryPath:f.root,root:accountRoot,toolsRoot:join(f.dataDirectory,"start-tools"),connection,admission:{check:async(scope,fixed,policy)=>{expect(scope).toEqual(f.scope);expect(fixed).toEqual(connection);expect(policy).toMatchObject({admission_digest:f.model.admission_digest,profile:{model:"glm-fixture",thinking:"enabled"}});}},policy:{format:"cimiloop/dedicated-agent-account/1.0.0",host_identity_digest:f.ledger.identityDigest,account_digest:digest("constructed account").value,approval_digest:digest("constructed approval").value,package_digest:digest("constructed package").value,tariff_digest:digest("constructed tariff").value,admission_digest:f.model.admission_digest,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:"glm-fixture",thinking:"enabled"},cash_limit_micros:150,credit_limit_micro_units:0,cash_per_call_upper_micros:30,credit_per_call_upper_micro_units:0,input_token_limit:1000000,output_token_limit:512}});
+  closers.push(async()=>ledger.close());console.error("Retain original external account fixture: "+accountParent);
+  const account=LocalAgentDedicatedAccount.open(f.local,f.reserved.run.id,ledger);
+  expect(LocalAgentRuntimeComposition.openDedicatedPersistent({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,runId:f.reserved.run.id,connection,account:ledger}).originalScope(f.reserved.run.id)).toEqual(f.scope);
   const dedicated=createDedicatedAgentRuntimeModel({root:f.dataDirectory,repositoryPath:f.root,scope:f.scope,connection,account},{boundary,readCredential:async()=>{credentials++;return fixtureKey;}});
   const runtime=LocalAgentRuntimeComposition.open({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,model:dedicated});
   writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});
@@ -140,13 +152,13 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const login=await fetch(server.origin+"/api/session",{method:"POST",headers:{Origin:server.origin,"Content-Type":"application/json"},body:JSON.stringify({bootstrap:new URL(server.bootstrapUrl).hash.slice(1)})});expect(login.status).toBe(200);
   const cookie=login.headers.get("set-cookie")!.split(";")[0]!,csrf=(await login.json() as {csrf:string}).csrf;
   const startOriginal=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/start",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:"{}"});const body=await response.json();expect({status:response.status,body}).toMatchObject({status:200});return body;};
-  expect(await startOriginal()).toMatchObject({outcome:"original",completion_proven:false});expect(f.sends()).toBe(3);
-  expect(await startOriginal()).toMatchObject({outcome:"original"});expect(f.sends()).toBe(3);
+  expect(await startOriginal()).toMatchObject({outcome:"original",completion_proven:false});expect(f.sends()).toBe(4);
+  expect(await startOriginal()).toMatchObject({outcome:"original"});expect(f.sends()).toBe(4);
   const collected=await collectAgentRuntimeOperation(f.dataDirectory,f.scope,{project:f.project,record:f.reserved.record});
-  expect(collected.model).toMatchObject({status:"Observed",calls:3,unresolved:0,model_account_custody_proven:false,costs_reconciled:false});
-  expect(collected.native).toMatchObject({status:"Verified",matched_calls:2,native_effect_reverified:true});expect(collected.ipc).toMatchObject({exchanges:5,correlation:{uncorrelated_exchanges:0,unmatched_sdk_calls:0}});
-  const original=readAgentRuntimeModelOriginals(f.dataDirectory,f.scope);expect(original.calls[0]!.request.prompt).toBeDefined();expect(original.calls).toHaveLength(3);
-  expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(11);
+  expect(collected.model).toMatchObject({status:"Observed",calls:4,unresolved:0,model_account_custody_proven:false,costs_reconciled:false});
+  expect(collected.native).toMatchObject({status:"Verified",matched_calls:3,native_effect_reverified:true});expect(collected.ipc).toMatchObject({exchanges:7,correlation:{uncorrelated_exchanges:0,unmatched_sdk_calls:0}});
+  const original=readAgentRuntimeModelOriginals(f.dataDirectory,f.scope);expect(original.calls[0]!.request.prompt).toBeDefined();expect(original.calls).toHaveLength(4);
+  expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(14);
   const config=JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"));
   expect(config.elapsed_ms).toBeGreaterThan(180000);expect(config.elapsed_ms).toBeLessThanOrEqual(600000);
   expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/5.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
@@ -160,19 +172,20 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const proof=JSON.parse(readFileSync(join(f.dataDirectory,"objects",preparedObservation.proof_ref.locator),"utf8"));expect(proof.execution_result_ref).toBeDefined();
   const executionResult=JSON.parse(readFileSync(join(f.dataDirectory,"objects",proof.execution_result_ref.locator),"utf8"));
   expect(executionResult).toMatchObject({format:"cimiloop/original-task-execution-result/1.0.0",run_id:f.reserved.run.id,operation_key:f.scope.operation_key,native_effect_reverified:true,
-   model_account_custody_proven:false,costs_reconciled:false,task_acceptance_proven:false,current_workspace_applicability_proven:false,required_checks:[{check_id:"query_test"}],sdk:{final_model_call_id:"model_0003"}});
+   model_account_custody_proven:false,costs_reconciled:false,task_acceptance_proven:false,current_workspace_applicability_proven:false,required_checks:[{check_id:"query_test"}],sdk:{final_model_call_id:"model_0004"}});
   const modelHeader=JSON.parse(readFileSync(join(f.dataDirectory,"agent-runtime-model-starts",f.project.id,f.reserved.run.id,"header.json"),"utf8"));expect(modelHeader).toMatchObject({format:"cimiloop/agent-runtime-model-originals/2.0.0",original_evidence:{kind:"dedicated_zhipu/1.0.0"}});
   const runtimeInput=JSON.parse(readFileSync(join(f.dataDirectory,"agent-runtime-claims",f.project.id,"runs",f.reserved.run.id,"input.json"),"utf8"));expect(runtimeInput.model_original_binding).toEqual({format:"cimiloop/agent-model-original-binding/1.0.0",header_digest:digest(JSON.stringify(modelHeader)).value,original_evidence:modelHeader.original_evidence});
-  expect(collected).toMatchObject({dedicated_model:{status:"Observed",calls:3,unresolved:0,original_requirement_pinned:true,budget_identity_pinned:true,budget:{cash_upper_micros:90,credit_upper_micro_units:0,settled:false},model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false}});
-  expect(collected.artifacts.filter(a=>a.name.startsWith("dedicated-model/"))).toHaveLength(33);
+  expect(collected).toMatchObject({dedicated_model:{status:"Observed",calls:4,unresolved:0,original_requirement_pinned:true,budget_identity_pinned:true,budget:{cash_upper_micros:120,credit_upper_micro_units:0,settled:false},model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false}});
+  expect(collected.artifacts.filter(a=>a.name.startsWith("dedicated-model/"))).toHaveLength(43);
   const persistedCollection=JSON.parse(readFileSync(join(f.dataDirectory,"objects",proof.collection_ref.locator),"utf8"));expect(persistedCollection.dedicated_model).toEqual(collected.dedicated_model);
-  expect(persistedCollection.artifacts.filter((a:{name:string})=>a.name.startsWith("dedicated-model/"))).toHaveLength(33);
-  expect(observed).toHaveLength(3);expect(holds).toBe(3);expect(credentials).toBe(3);
+  expect(persistedCollection.artifacts.filter((a:{name:string})=>a.name.startsWith("dedicated-model/"))).toHaveLength(43);
+  expect(observed).toHaveLength(4);const holds=ledger.snapshot().holds;expect(holds).toBe(4);expect(credentials).toBe(4);expect(ledger.snapshot()).toMatchObject({cash_held_micros:120,credit_held_micro_units:0,costs_reconciled:false});
+  expect(f.ledger.listExclusive("dedicated_account_hold")).toHaveLength(4);
   expect((observed[1]!.body.messages as {role:string;reasoning_content?:string}[]).filter(m=>m.role==="assistant").map(m=>m.reasoning_content)).toEqual(["original constructed reasoning 1"]);
   expect((observed[2]!.body.messages as {role:string;reasoning_content?:string}[]).filter(m=>m.role==="assistant").map(m=>m.reasoning_content)).toEqual(["original constructed reasoning 1","original constructed reasoning 2"]);
-  writeFileSync(join(f.dataDirectory,"d255-dedicated-fixture-summary.json"),JSON.stringify({format:"cimiloop/dedicated-native-fixture-summary/1.0.0",provider_fixture_requests:observed.length,constructed_budget_holds:holds,constructed_credentials_read:credentials,real_model_requests:0,real_credentials_read:0,costs_reconciled:false,formal_agent_execution_enabled:false,requests:observed},null,2));
+  writeFileSync(join(f.dataDirectory,"d257-dedicated-fixture-summary.json"),JSON.stringify({format:"cimiloop/dedicated-native-fixture-summary/1.0.0",account_root:accountRoot,original_account_snapshot:ledger.snapshot(),provider_fixture_requests:observed.length,constructed_budget_holds:holds,constructed_credentials_read:credentials,real_model_requests:0,real_credentials_read:0,costs_reconciled:false,formal_agent_execution_enabled:false,requests:observed},null,2));
   expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(1);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Unknown");
-  expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});expect(f.store.asOfEventSequence()).toBe(sequence+1);
+  expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:150});expect(f.store.asOfEventSequence()).toBe(sequence+1);
  });
  it("rechecks Human permission after the final awaited model admission and never resumes the original SDK",async()=>{
   const f=await setup();let entered!:()=>void,release!:()=>void,paused=false;

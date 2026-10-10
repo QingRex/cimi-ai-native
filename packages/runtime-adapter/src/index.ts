@@ -22,7 +22,7 @@ export type { GatewayCreditPolicy, GatewayCreditConversationOriginalOptions, Cre
 export { parseGatewayJson } from "./gateway-conversation.js";
 export { WindowsWorkspaceFileBroker, parseWorkspaceToolInvocation } from "./workspace-files.js";
 export type { WorkspaceToolInvocation, WorkspaceFileIdentity, WorkspaceNativePreparation, WorkspaceNativeCompletion, PreparedWorkspaceEffect, WorkspaceStagingOutcome } from "./workspace-files.js";
-export { WorkspaceToolHost, openWorkspaceToolHost, readWorkspaceToolRunFacts } from "./workspace-tool-host.js";
+export { WorkspaceToolHost, openWorkspaceToolHost, readWorkspaceToolRunFacts, readWorkspaceFileRunOriginals } from "./workspace-tool-host.js";
 export type { WorkspaceToolPhase } from "./workspace-tool-host.js";
 export type { WorkspaceToolPolicy, WorkspaceToolReceipt } from "./workspace-tool-journal.js";
 export { AgentWorkspaceToolHost, openAgentWorkspaceToolHost } from "./agent-workspace-tool-host.js";
@@ -53,9 +53,12 @@ export { originalTaskResultContract, verifyOriginalTaskExecutionResult, type Ori
 
 export { createDedicatedAgentRuntimeModel } from "./agent-dedicated-model.js";
 export type { DedicatedAgentAccountPort, DedicatedAgentBudgetRequest, DedicatedAgentBudgetHold } from "./agent-dedicated-model.js";
+export { DedicatedAgentAccountLedger, initializeWindowsDedicatedAgentAccountLedger, openWindowsDedicatedAgentAccountLedger } from "./agent-dedicated-account.js";
+export type { DedicatedAgentAccountPolicy, DedicatedAgentAccountAdmission, DedicatedAgentAccountCustody } from "./agent-dedicated-account.js";
 export type { DedicatedAgentProfile } from "./agent-dedicated-codec.js";
 export type { DedicatedModelConnection } from "./connection.js";
 
 export { readDedicatedAgentModelOriginals, verifyCollectedDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary, type DedicatedAgentOriginalCall } from "./agent-dedicated-model.js";
 
 export { parseAgentModelOriginalEvidence, type AgentModelOriginalEvidence } from "./agent-runtime-model.js";
+export {resolveOriginalWorkspaceFileChain} from './workspace-check-source-basis.js';

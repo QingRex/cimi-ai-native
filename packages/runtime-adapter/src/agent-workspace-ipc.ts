@@ -12,6 +12,7 @@ import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { parseWorkspaceCheckCatalog, parseWorkspaceCheckCall, type WorkspaceCheckCatalog, type WorkspaceCheckCall, type WorkspaceCheckReceipt } from "./workspace-checks.js";
 import { AgentRuntimeModelHost } from "./agent-runtime-model.js";
 import { AgentWorkspaceIpcJournal } from "./agent-workspace-ipc-journal.js";
+import { AgentRunBudget } from "./agent-run-budget.js";
 
 const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join(",") === [...keys].sort().join(",");
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
@@ -44,6 +45,7 @@ interface Options {
   // Trusted suspended-start composition chooses this before creating the peer.
   // It grants no authority; FIRST_PIPE_INSTANCE and original OS identity remain required.
   nonce?: string; signal?: AbortSignal | undefined;
+  runBudget?: AgentRunBudget;
   execute: (input: WorkspaceToolInvocation) => Promise<{ receipt: WorkspaceToolReceipt; replay: boolean }>;
   checks?: { catalog: WorkspaceCheckCatalog; execute: (input: WorkspaceCheckCall) => Promise<{ receipt: WorkspaceCheckReceipt; replay: boolean }> };
   model?: AgentRuntimeModelHost;
@@ -67,7 +69,7 @@ export class AgentWorkspaceToolIpc {
   private failure: string | null = null;
   private readonly peerEnded = () => { void this.close(); };
   private readonly aborted = () => { this.failure ??= "agent_ipc_aborted"; void this.close(); };
-  private constructor(private readonly options: Options, binary: string, binaryDigest: string) {
+  private constructor(private readonly options: Options, binary: string, binaryDigest: string, taskDeadline?: number) {
     this.nonce = options.nonce ?? randomUUID();
     this.scope = parseAgentWorkspaceToolScope(options.scope);
     this.child = spawn(binary, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
@@ -120,13 +122,16 @@ export class AgentWorkspaceToolIpc {
     options.supervisor.once("close", this.peerEnded);
     options.signal?.addEventListener("abort", this.aborted, { once: true });
     if (options.signal?.aborted) this.aborted();
-    this.child.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-ipc-config/1.0.0", nonce: this.nonce, scope_digest: agentWorkspaceIpcScopeDigest(this.scope),
+    this.child.stdin.write(JSON.stringify({ format: taskDeadline===undefined?"cimiloop/agent-workspace-ipc-config/1.0.0":"cimiloop/agent-workspace-ipc-config/2.0.0", ...(taskDeadline===undefined?{}:{deadline_uptime_ms:taskDeadline}), nonce: this.nonce, scope_digest: agentWorkspaceIpcScopeDigest(this.scope),
       check_catalog_digest: options.checks?.catalog.catalog_digest ?? null, peer: options.originalPeer, supervisor: options.originalSupervisor, owner_pid: process.pid }) + "\n");
   }
   static async open(options: Options): Promise<AgentWorkspaceToolIpc> {
     if (options.signal?.aborted) fail("agent_ipc_aborted");
     if (options.nonce !== undefined && !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(options.nonce)) fail("agent_ipc_nonce_invalid");
+    if(options.runBudget!==undefined&&!(options.runBudget instanceof AgentRunBudget))fail("agent_ipc_task_budget_invalid");
     const scope = parseAgentWorkspaceToolScope(options.scope), originalPeer = copyToolJson(options.originalPeer), originalSupervisor = copyToolJson(options.originalSupervisor);
+    const budget=options.runBudget;budget?.assertScope(scope);const taskDeadline=budget?.nativeDeadlineUptimeMs;
+    if(taskDeadline!==undefined&&(!Number.isSafeInteger(taskDeadline)||taskDeadline<=0))fail("agent_ipc_task_budget_invalid");
     if (!validWorkspaceWorkerIdentity(originalPeer) || originalPeer.pid === process.pid || !validWorkspaceWorkerIdentity(originalSupervisor) ||
       originalSupervisor.pid !== options.supervisor.pid || options.supervisor.pid === process.pid || options.supervisor.exitCode !== null ||
       options.supervisor.signalCode !== null || options.supervisor.killed) fail("agent_ipc_peer_unproven");
@@ -136,9 +141,10 @@ export class AgentWorkspaceToolIpc {
       ...(options.checks ? { checks: { catalog: parseWorkspaceCheckCatalog(options.checks.catalog, scope), execute: options.checks.execute } } : {}) };
     const binary = await buildWindowsAgentWorkspaceTransport(captured.toolsDirectory, captured.signal);
     if (captured.signal?.aborted) fail("agent_ipc_aborted");
+    budget?.assertScope(scope);if(budget?.nativeDeadlineUptimeMs!==taskDeadline)fail("agent_ipc_task_budget_changed");
     if (captured.supervisor.exitCode !== null || captured.supervisor.signalCode !== null || captured.supervisor.killed) fail("agent_ipc_peer_unproven");
     if (digest(bytesAt(binary.path)).value !== binary.digest.value) fail("agent_ipc_binary_changed");
-    const host = new AgentWorkspaceToolIpc(captured, binary.path, binary.digest.value);
+    const host = new AgentWorkspaceToolIpc(captured, binary.path, binary.digest.value, taskDeadline);
     try { await host.ready; return host; } catch (error) { await host.close(); throw error; }
   }
   private async respond(bytes: Buffer, requestDigest: string) {

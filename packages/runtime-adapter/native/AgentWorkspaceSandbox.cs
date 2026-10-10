@@ -40,6 +40,9 @@ partial class AppContainer {
   }
   [DllImport("kernel32.dll",EntryPoint="GetTickCount64")] static extern ulong AgentTickCount();
   static ulong agentTaskDeadline;
+  static bool agentProductionTask;
+  // Production control consumes the same frozen Task uptime deadline.
+  static bool AgentControlExpired(Stopwatch watch) { return AgentTaskExpired()||(!agentProductionTask&&watch.ElapsedMilliseconds>=10000); }
   static bool AgentTaskExpired() { return agentTaskDeadline!=0&&AgentTickCount()>=agentTaskDeadline; }
   static ulong AgentConfigDeadline(Dictionary<string,object> config) {
     string format=config["format"] as string;
@@ -71,8 +74,8 @@ partial class AppContainer {
     agentResources["phase"]=phase; AgentResourceSave();
     Console.WriteLine(serializer.Serialize(new { format="cimiloop/agent-workspace-preparation/1.0.0",nonce=agentResources["nonce"],phase=phase,supervisor=agentResources["supervisor"] })); Console.Out.Flush();
     string line=null; Exception inputError=null; var input=new Thread(delegate() { try { line=AgentLine(2048); } catch(Exception error) { inputError=error; } }); input.IsBackground=true; input.Start();
-    var watch=Stopwatch.StartNew(); while(!input.Join(25)) if(watch.ElapsedMilliseconds>=10000||WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException();
-    if(watch.ElapsedMilliseconds>=10000) throw new InvalidDataException();
+    var watch=Stopwatch.StartNew(); while(!input.Join(25)) if(AgentControlExpired(watch)||WaitForSingleObject(owner,0)!=258) throw new InvalidDataException();
+    if(AgentControlExpired(watch)) throw new InvalidDataException();
     AgentRequireInput(line,inputError);
     var reply=serializer.Deserialize<Dictionary<string,object>>(line); AgentKeys(reply,"format","nonce","phase");
     if(reply["format"] as string!="cimiloop/agent-workspace-prepare-continue/1.0.0"||reply["nonce"] as string!=(string)agentResources["nonce"]||reply["phase"] as string!=phase||WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException();
@@ -224,6 +227,7 @@ partial class AppContainer {
       owner=OpenProcess(0x1000|0x100000,false,ownerPid); if(owner==IntPtr.Zero||WaitForSingleObject(owner,0)!=258||Creation(owner)!=(string)originalOwner["creation_ticks"]||
         !String.Equals(Image(owner),(string)originalOwner["image"],StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException();
       int elapsed=Convert.ToInt32(config["elapsed_ms"]); bool taskPolicy=config.ContainsKey("lifetime_policy")&&config["lifetime_policy"] as string=="agent_task/1.0.0"; if(elapsed<1000||elapsed>(taskPolicy?3600000:180000)) throw new InvalidDataException();
+      agentProductionTask=taskPolicy&&agentTaskDeadline!=0;
       var options=(Dictionary<string,object>)config["provider_options"];
       bool production=taskPolicy||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/3.0.0",checksOnly=options.ContainsKey("check_only");
       if(production) {
@@ -269,6 +273,9 @@ partial class AppContainer {
       Environment.SetEnvironmentVariable("npm_config_ignore_scripts","true");
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_PIPE","\\\\.\\pipe\\CimiLoop.AgentWorkspace."+pipeGuid.ToString("D"));
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_SCOPE",(string)config["scope_digest"]);
+      // One SDK wait ceiling, never renewed per model/tool request. The original
+      // Native Task deadline remains authoritative, including JS startup delay.
+      if(agentProductionTask) { ulong now=AgentTickCount();Check(now<agentTaskDeadline);Environment.SetEnvironmentVariable("CIMILOOP_AGENT_TASK_WAIT_MS",Math.Min(agentTaskDeadline-now,3600000UL).ToString(System.Globalization.CultureInfo.InvariantCulture)); }
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_PRIVATE_CANARY",Path.Combine(Path.GetDirectoryName(root),"workspace-private-canary.txt"));
       var permission=new Dictionary<string,object> { {"*","deny"} };
       if(!checksOnly) { permission.Add("cimi_read","allow"); permission.Add("cimi_replace","allow"); }
@@ -306,8 +313,8 @@ partial class AppContainer {
       Atomic(Path.Combine(Path.GetDirectoryName(root),"agent-sandbox-original.json"),originalProof);
       Console.WriteLine(originalProof); Console.Out.Flush();
       string resume=null; Exception resumeError=null; var resumeWorker=new Thread(delegate() { try { resume=AgentLine(1024); } catch(Exception error) { resumeError=error; } }); resumeWorker.IsBackground=true; resumeWorker.Start();
-      var watch=Stopwatch.StartNew(); while(!resumeWorker.Join(50)) if(watch.ElapsedMilliseconds>10000||WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException();
-      if(watch.ElapsedMilliseconds>=10000) throw new InvalidDataException();
+      var watch=Stopwatch.StartNew(); while(!resumeWorker.Join(50)) if(AgentControlExpired(watch)||WaitForSingleObject(owner,0)!=258) throw new InvalidDataException();
+      if(AgentControlExpired(watch)) throw new InvalidDataException();
       AgentRequireInput(resume,resumeError);
       var release=serializer.Deserialize<Dictionary<string,object>>(resume); AgentKeys(release,"format","nonce"); if(release["format"] as string!="cimiloop/agent-workspace-resume/1.0.0"||release["nonce"] as string!=nonce) throw new InvalidDataException();
       if(WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException(); Check(ResumeThread(process.thread)!=0xffffffff); runtimeResumed=true;

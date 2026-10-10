@@ -36,3 +36,6 @@ export type { ClarificationBegin, ClarificationAction, ClarificationSession } fr
 export { LocalHumanAgentRuntimeStart } from "./agent-runtime-human-start-local.js";
 export type { HumanAgentRuntimeFactory } from "./agent-runtime-human-start-local.js";
 export { LocalAgentRuntimeComposition } from "./agent-runtime-composition-local.js";
+export { LocalAgentDedicatedAccount } from "./agent-dedicated-account-local.js";
+export type {AgentDedicatedModelContext} from './agent-dedicated-account-local.js';
+export {LocalAgentModelAdmission} from './agent-model-admission-local.js';

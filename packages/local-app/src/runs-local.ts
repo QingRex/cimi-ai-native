@@ -1,16 +1,18 @@
 import { execFileSync } from "node:child_process";
+import {isDeepStrictEqual} from 'node:util';
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import { resolve, relative, sep } from "node:path";
 import { requestDigest, type RunVerifierPort } from "@cimiloop/kernel";
 import { compileValidator, WorkspaceManifestSchema, type Project, type SourceSnapshot, type WorkspaceManifest, type WorkspaceSnapshot, type RunObservation } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
-import { readWorkspaceToolRunFacts } from "@cimiloop/runtime-adapter";
+import { readWorkspaceToolRunFacts,resolveOriginalWorkspaceFileChain,bytesAt,digest as byteDigest,type readWorkspaceFileRunOriginals } from "@cimiloop/runtime-adapter";
 import { LocalAgentRunResultVerifier } from "./agent-runtime-observation-local.js";
 
 const digest = (value: unknown) => ({ algorithm: "sha256" as const, value: requestDigest(value) });
 const bounded = (path: string) => !!path && !/[\\:%\x00-\x1f*?]/.test(path) && !path.startsWith("/") && path.split("/").every(p => !!p && p !== "." && p !== ".." && ![".git", ".cimiloop"].includes(p.toLowerCase()) && p === p.trim() && !p.endsWith(".") && !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(p));
 const contains = (allowed: string, path: string) => bounded(path) && (allowed === path || (allowed.endsWith("/**") && path.startsWith(allowed.slice(0, -2))));
 export class LocalRunVerifier implements RunVerifierPort {
+  readonly #admittedWorkspaces=new Map<string,WorkspaceManifest>();
   readonly content: LocalEvidenceVerifier;
   readonly agent: NonNullable<RunVerifierPort["agent"]>;
   readonly tools: NonNullable<RunVerifierPort["tools"]> = { facts: (project, record) => readWorkspaceToolRunFacts(this.dataDirectory, project, record) };
@@ -77,7 +79,46 @@ export class LocalRunVerifier implements RunVerifierPort {
     for (const file of manifest.files) if (file.state === "present") this.content.readContent(file.content_ref);
     return manifest;
   }
+  // Cache only independently validated immutable source metadata, not current
+  // authority, permissions, workspace bytes, installation or qualification.
+  // Every original content-addressed artifact is still read and hashed afresh.
+  readAdmittedWorkspace(project:Project,snapshot:WorkspaceSnapshot):WorkspaceManifest {
+    const key=requestDigest({project_id:project.id,repository_path:project.repository_path,snapshot}),cached=this.#admittedWorkspaces.get(key);
+    if(!cached){const original=this.readWorkspace(project,snapshot);this.#admittedWorkspaces.set(key,structuredClone(original));return original;}
+    if(resolve(project.repository_path)!==resolve(this.repositoryPath)||!isDeepStrictEqual(JSON.parse(this.content.readContent(snapshot.manifest_ref).toString('utf8')),cached))throw Error('Original admitted workspace changed');
+    if(this.content.admittedSourceDigest(project,cached.head_commit_id).value!==cached.head_source_digest.value)throw Error('Original admitted source changed');
+    this.content.readContent(cached.worktree_diff_ref);this.content.readContent(cached.index_diff_ref);
+    for(const file of cached.files)if(file.state==='present')this.content.readContent(file.content_ref);
+    return structuredClone(cached);
+  }
   workspaceIsCurrent(project: Project, snapshot: WorkspaceSnapshot): boolean { const old = this.readWorkspace(project, snapshot); return digest(this.captureWorkspace(project, old.allowed_resources).manifest).value === snapshot.state_digest.value; }
+  // Read-only whole original resource projection. Only independently verified
+  // same-Run Native replacements may change content. Never capture a new base.
+  modelWorkspace(project:Project,snapshot:WorkspaceSnapshot,calls:ReturnType<typeof readWorkspaceFileRunOriginals>["calls"],editable:string[],validated?:WorkspaceManifest) {
+    const old=validated??this.readWorkspace(project,snapshot),present=old.files.filter(f=>f.state==='present');
+    if(validated&&this.content.admittedSourceDigest(project,old.head_commit_id).value!==old.head_source_digest.value)throw Error('Original admitted source changed');
+    if(!isDeepStrictEqual(JSON.parse(this.content.readContent(snapshot.manifest_ref).toString('utf8')),old)||requestDigest(old)!==snapshot.state_digest.value)throw Error('Original manifest changed');
+    for(const file of present)this.content.readContent(file.content_ref);
+    if(new Set(old.files.map(f=>f.path.toUpperCase())).size!==old.files.length)throw Error('Original workspace has ambiguous path casing');
+    if(calls.some(call=>!present.some(f=>f.path.toUpperCase()===call.input.path.toUpperCase())))throw Error('Native call outside original workspace');
+    const expected=resolveOriginalWorkspaceFileChain(present.map(f=>({path:f.path,expected_digest:f.content_ref.digest.value})),editable,calls);
+    const projection=()=>{
+      const status=this.#git(['status','--porcelain=v2','--branch','--untracked-files=all','-z']).toString('utf8').split('\0').filter(Boolean);
+      if(!status.includes('# branch.oid '+old.head_commit_id)||!this.#git(['diff','--cached','--no-ext-diff','--no-textconv','--binary','--full-index','--no-renames','HEAD','--']).equals(this.content.readContent(old.index_diff_ref)))throw Error('Original commit or index changed');
+      const dirty:string[]=[];
+      for(const entry of status){if(entry.startsWith('# '))continue;if(entry.startsWith('? ')){dirty.push(entry.slice(2));continue;}const match=/^1 (\S+) (\S+) (\d+) (\d+) (\d+) (\S+) (\S+) (.+)$/.exec(entry);if(!match||match[3]!==match[4]||match[4]!==match[5])throw Error('Workspace mode, rename or type changed');dirty.push(match[8]!);}
+      if(dirty.some(path=>!old.allowed_resources.some(r=>contains(r,path))))throw Error('Dirty files exceed original resources');
+      const canonical=new Map(old.files.map(file=>[file.path.toUpperCase(),file.path])),paths=new Set(old.files.map(file=>file.path)),seen=new Map<string,{path:string;dev:string;ino:string}>();
+      const walk=(path:string)=>{const full=this.#path(path);if(!existsSync(full)){paths.add(path);return;}const stat=lstatSync(full);if(stat.isDirectory()){for(const entry of readdirSync(full))walk(path+'/'+entry);}else if(stat.isFile()){const physical=lstatSync(full,{bigint:true}),key=path.toUpperCase(),prior=seen.get(key);if(prior&&prior.path!==path&&(prior.dev!==String(physical.dev)||prior.ino!==String(physical.ino)||process.platform!=='win32'))throw Error('Ambiguous physical workspace path');seen.set(key,{path,dev:String(physical.dev),ino:String(physical.ino)});paths.add(canonical.get(key)??path);}else throw Error('Unsupported workspace entry');if(paths.size>10000)throw Error('Workspace file limit');};
+      for(const bound of old.allowed_resources)walk(bound.endsWith('/**')?bound.slice(0,-3):bound);
+      for(const path of dirty)paths.add(canonical.get(path.toUpperCase())??path);
+      const files=[...paths].sort().map(path=>{const full=this.#path(path);if(!existsSync(full))return {path,state:'deleted' as const};const stat=lstatSync(full);if(!stat.isFile()||stat.nlink!==1)throw Error('Ordinary unique file required');return{path,state:'present' as const,digest:byteDigest(bytesAt(full,8*1024*1024)).value};});
+      if(files.length!==old.files.length||files.some(file=>{const original=old.files.find(f=>f.path===file.path);return!original||file.state!==original.state||file.state==='present'&&file.digest!==expected.sources.find(f=>f.path===file.path)?.digest;}))throw Error('Current workspace has no complete original Native chain');
+      return files;
+    };
+    const current=projection();
+    return {manifest_ref:snapshot.manifest_ref,current,original_file_calls:expected.original_file_calls};
+  }
   readRunResult(project: Project, reference: RunObservation["raw_result_ref"]): unknown {
     if (resolve(project.repository_path) !== resolve(this.repositoryPath)) throw new Error("Project mismatch");
     return JSON.parse(this.content.readContent(reference).toString("utf8"));

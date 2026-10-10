@@ -130,6 +130,52 @@ export class AgentStartLedger {
     if (!row || typeof row.body !== "string" || row.basis_digest !== ticket.basis_digest || digest(row.body).value !== ticket.basis_digest) fail("agent_start_ticket_unproven");
     return object(row.body);
   }
+  // Prospective exclusive host resources reuse immutable format1 tickets.
+  // Not a new user/host database schema and never provider qualification.
+  listExclusive(namespace: string): { id: string; ticket: AgentStartTicket; basis: unknown }[] {
+    if (!/^[a-z][a-z0-9_]{0,63}$/.test(namespace)) fail("agent_start_exclusive_identity_invalid");
+    return this.transaction(() => {
+      const seen = new Set<string>();
+      return this.db.prepare("SELECT id,basis_digest,body FROM tickets").all().flatMap(row => {
+        const value = object(String(row.body)) as Record<string, unknown>;
+        if (value?.format !== "cimiloop/host-exclusive-ticket/1.0.0" || value.namespace !== namespace) return [];
+        if (Object.keys(value).sort().join(",") !== "basis,format,id,namespace" || typeof value.id !== "string" || !sha.test(value.id) || seen.has(value.id)) fail("agent_start_exclusive_conflict");
+        seen.add(value.id);
+        return [{ id: value.id, ticket: { format: "cimiloop/agent-start-ticket/1.0.0" as const, identity_digest: this.identityDigest, ticket_id: String(row.id), basis_digest: String(row.basis_digest) }, basis: structuredClone(value.basis) }];
+      });
+    });
+  }
+  readExclusive(namespace: string, id: string): { ticket: AgentStartTicket; basis: unknown } | null {
+    if (!/^[a-z][a-z0-9_]{0,63}$/.test(namespace) || !sha.test(id)) fail("agent_start_exclusive_identity_invalid");
+    return this.transaction(() => {
+      const matches = this.db.prepare("SELECT id,basis_digest,body FROM tickets").all().filter(row => {
+        const value = object(String(row.body)) as Record<string, unknown>;
+        return value?.format === "cimiloop/host-exclusive-ticket/1.0.0" && value.namespace === namespace && value.id === id;
+      });
+      if (matches.length > 1) fail("agent_start_exclusive_conflict");
+      if (!matches.length) return null;
+      const row = matches[0]!, value = object(String(row.body)) as Record<string, unknown>;
+      if (Object.keys(value).sort().join(",") !== "basis,format,id,namespace") fail("agent_start_exclusive_conflict");
+      return { ticket: { format: "cimiloop/agent-start-ticket/1.0.0", identity_digest: this.identityDigest, ticket_id: String(row.id), basis_digest: String(row.basis_digest) }, basis: structuredClone(value.basis) };
+    });
+  }
+  issueExclusive(namespace: string, id: string, rawBasis: unknown): AgentStartTicket {
+    if (!/^[a-z][a-z0-9_]{0,63}$/.test(namespace) || !sha.test(id)) fail("agent_start_exclusive_identity_invalid");
+    // Keep the check and insert in one writer transaction across processes.
+    const body = encoded({ format: "cimiloop/host-exclusive-ticket/1.0.0", namespace, id, basis: rawBasis });
+    return this.transaction(() => {
+      const rows = this.db.prepare("SELECT id,basis_digest,body FROM tickets").all(), matches = rows.filter(row => {
+        const value = object(String(row.body)) as Record<string, unknown>;
+        return value?.format === "cimiloop/host-exclusive-ticket/1.0.0" && value.namespace === namespace && value.id === id;
+      });
+      if (matches.length > 1 || matches[0] && matches[0].body !== body) fail("agent_start_exclusive_conflict");
+      if (matches[0]) return { format: "cimiloop/agent-start-ticket/1.0.0", identity_digest: this.identityDigest, ticket_id: String(matches[0].id), basis_digest: String(matches[0].basis_digest) };
+      if (rows.length >= 1024) fail("agent_start_ticket_capacity");
+      const ticketId = randomUUID(), basis = digest(body).value;
+      this.db.prepare("INSERT INTO tickets VALUES (?, ?, ?)").run(ticketId, basis, body);
+      return { format: "cimiloop/agent-start-ticket/1.0.0", identity_digest: this.identityDigest, ticket_id: ticketId, basis_digest: basis };
+    });
+  }
   inspect(ticket: AgentStartTicket, rawScope: AgentWorkspaceToolScope): { state: "unclaimed" } | { state: "claimed"; material_digest: Digest; claim_digest: Digest } {
     this.readTicket(ticket); const scope = parseAgentWorkspaceToolScope(rawScope), body = encoded(scope);
     const row = this.db.prepare("SELECT * FROM claims WHERE run_id=? OR operation_key=?").get(scope.run_id, scope.operation_key);

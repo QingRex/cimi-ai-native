@@ -6,5 +6,6 @@ export { providerBindingIdentity } from "./providers.js";
 export type { EvidenceVerifierPort } from "./verification.js";
 export type { RunVerifierPort, AgentRunVerifierPort, AgentRunAdmissionInput, AgentRunToolAuthorityInput, AgentRunLaunchRequest, AgentRunLaunchAuthorityInput, AgentRunResultDomainBasis, SkillInvocationVerifierPort } from "./runs.js";
 export type { AgentRunLaunchAssessment } from "./agent-run-launch.js";
+export type {AgentRunModelAssessment} from './agent-run-model.js';
 export { runContextDigest } from "./runs.js";
 export type { ProviderVerifierPort } from "./provider-assessment.js";

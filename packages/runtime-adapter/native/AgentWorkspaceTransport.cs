@@ -29,10 +29,19 @@ class AgentWorkspaceTransport {
   [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern SafePipeHandle CreateNamedPipe(string name,uint access,uint mode,uint instances,uint output,uint input,uint timeout,ref PA attributes);
   [DllImport("kernel32.dll",SetLastError=true)] static extern bool GetNamedPipeClientProcessId(SafePipeHandle pipe,out uint pid);
   [DllImport("kernel32.dll",SetLastError=true)] static extern bool CancelIoEx(SafePipeHandle pipe,IntPtr overlapped);
+  [DllImport("kernel32.dll")] static extern ulong GetTickCount64();
   static readonly JavaScriptSerializer json=new JavaScriptSerializer { MaxJsonLength=LineMaximum,RecursionLimit=32 };
   static readonly BlockingCollection<string> replies=new BlockingCollection<string>(1);
   static NamedPipeServerStream pipe;
   static volatile bool stopped;
+  static ulong taskDeadline;
+  static bool TaskExpired() { return taskDeadline!=0&&GetTickCount64()>=taskDeadline; }
+  static string Reply() {
+    string line;
+    if(taskDeadline==0) { Require(replies.TryTake(out line,119000),"agent_ipc_reply_timeout"); return line; }
+    while(!stopped&&!TaskExpired()) if(replies.TryTake(out line,100)) { Require(!TaskExpired(),"agent_ipc_task_deadline"); return line; }
+    throw new InvalidDataException("agent_ipc_task_deadline");
+  }
   static void Require(bool value,string reason) { if(!value) throw new InvalidDataException(reason); }
   static void Emit(object value) { Console.WriteLine(json.Serialize(value)); Console.Out.Flush(); }
   static void Keys(Dictionary<string,object> value,params string[] names) { Require(value!=null&&value.Count==names.Length,"agent_ipc_contract_invalid"); foreach(string key in names) Require(value.ContainsKey(key),"agent_ipc_contract_invalid"); }
@@ -68,9 +77,14 @@ class AgentWorkspaceTransport {
     IntPtr peer=IntPtr.Zero,owner=IntPtr.Zero,supervisor=IntPtr.Zero;
     try {
       string first=Line(8192); Require(first!=null,"agent_ipc_parent_ended"); var config=json.Deserialize<Dictionary<string,object>>(first);
-      Keys(config,"format","nonce","scope_digest","check_catalog_digest","peer","supervisor","owner_pid");
+      bool task=config["format"] as string=="cimiloop/agent-workspace-ipc-config/2.0.0";
+      if(task) {
+        Keys(config,"format","nonce","scope_digest","check_catalog_digest","peer","supervisor","owner_pid","deadline_uptime_ms");
+        object deadline=config["deadline_uptime_ms"]; Require(deadline is int||deadline is long||deadline is decimal,"agent_ipc_contract_invalid");
+        decimal value=Convert.ToDecimal(deadline);Require(value>0&&value<=9007199254740991M&&Decimal.Truncate(value)==value,"agent_ipc_contract_invalid");taskDeadline=(ulong)value;Require(!TaskExpired(),"agent_ipc_task_deadline");
+      } else Keys(config,"format","nonce","scope_digest","check_catalog_digest","peer","supervisor","owner_pid");
       Require(config["check_catalog_digest"]==null||config["check_catalog_digest"] is string&&System.Text.RegularExpressions.Regex.IsMatch((string)config["check_catalog_digest"],"^[a-f0-9]{64}$"),"agent_ipc_contract_invalid");
-      Guid nonce=Guid.Empty; Require(config["format"] as string=="cimiloop/agent-workspace-ipc-config/1.0.0"&&Guid.TryParseExact(config["nonce"] as string,"D",out nonce)&&
+      Guid nonce=Guid.Empty; Require((task||config["format"] as string=="cimiloop/agent-workspace-ipc-config/1.0.0")&&Guid.TryParseExact(config["nonce"] as string,"D",out nonce)&&
         config["scope_digest"] is string&&System.Text.RegularExpressions.Regex.IsMatch((string)config["scope_digest"],"^[a-f0-9]{64}$")&&
         config["peer"] is Dictionary<string,object>&&config["supervisor"] is Dictionary<string,object>&&config["owner_pid"] is int,"agent_ipc_contract_invalid");
       var original=(Dictionary<string,object>)config["peer"]; Keys(original,"pid","creation_ticks","image");
@@ -96,7 +110,7 @@ class AgentWorkspaceTransport {
       } finally { LocalFree(descriptor); }
       Emit(new { format="cimiloop/agent-workspace-ipc-native/1.0.0",phase="ready",nonce=nonce.ToString("D"),scope_digest=config["scope_digest"],check_catalog_digest=config["check_catalog_digest"],pipe=name,peer=identity,supervisor=supervisorIdentity,appcontainer_sid=sid });
       var inputWorker=new Thread(delegate() { try { while(!stopped) { string line=Line(LineMaximum); if(line==null) break; if(!replies.TryAdd(line,1000)) break; } } catch { } finally { Stop(); } }); inputWorker.IsBackground=true; inputWorker.Start();
-      using(var alive=new Timer(delegate { if(WaitForSingleObject(peer,0)!=258||WaitForSingleObject(owner,0)!=258||WaitForSingleObject(supervisor,0)!=258) Stop(); },null,100,100)) {
+      using(var alive=new Timer(delegate { if(TaskExpired()||WaitForSingleObject(peer,0)!=258||WaitForSingleObject(owner,0)!=258||WaitForSingleObject(supervisor,0)!=258) Stop(); },null,100,100)) {
         for(int attempt=0;attempt<128&&!stopped;attempt++) {
           pipe.WaitForConnection(); uint pid;
           try {
@@ -104,17 +118,17 @@ class AgentWorkspaceTransport {
             if(pid!=(uint)peerPid||WaitForSingleObject(peer,0)!=258||WaitForSingleObject(owner,0)!=258||WaitForSingleObject(supervisor,0)!=258) {
               Emit(new { format="cimiloop/agent-workspace-ipc-native/1.0.0",phase="rejected",reason="agent_ipc_peer_mismatch" }); continue;
             }
-            using(var deadline=new Timer(delegate { Stop(); },null,120000,Timeout.Infinite)) {
+            using(var deadline=new Timer(delegate { Stop(); },null,task?Timeout.Infinite:120000,Timeout.Infinite)) {
               byte[] bytes;
               try { bytes=Frame(pipe); new UTF8Encoding(false,true).GetString(bytes); }
               catch(InvalidDataException) { Emit(new { format="cimiloop/agent-workspace-ipc-native/1.0.0",phase="rejected",reason="agent_ipc_frame_limit" }); continue; }
               catch(DecoderFallbackException) { Emit(new { format="cimiloop/agent-workspace-ipc-native/1.0.0",phase="rejected",reason="agent_ipc_utf8_invalid" }); continue; }
-              string hash=Hash(bytes); Require(WaitForSingleObject(peer,0)==258&&WaitForSingleObject(owner,0)==258&&WaitForSingleObject(supervisor,0)==258,"agent_ipc_peer_unproven");
+              string hash=Hash(bytes); Require(!stopped&&!TaskExpired()&&WaitForSingleObject(peer,0)==258&&WaitForSingleObject(owner,0)==258&&WaitForSingleObject(supervisor,0)==258,"agent_ipc_peer_unproven");
               Emit(new { format="cimiloop/agent-workspace-ipc-native/1.0.0",phase="request",nonce=nonce.ToString("D"),scope_digest=config["scope_digest"],peer=identity,request_digest=hash,frame_base64=Convert.ToBase64String(bytes) });
-              string replyLine; Require(replies.TryTake(out replyLine,119000),"agent_ipc_reply_timeout"); var reply=json.Deserialize<Dictionary<string,object>>(replyLine);
+              string replyLine=Reply(); var reply=json.Deserialize<Dictionary<string,object>>(replyLine);
               Keys(reply,"format","request_digest","reply_base64"); Require(reply["format"] as string=="cimiloop/agent-workspace-ipc-host/1.0.0"&&reply["request_digest"] as string==hash&&reply["reply_base64"] is string,"agent_ipc_reply_unproven");
               byte[] output=Convert.FromBase64String((string)reply["reply_base64"]); Require(output.Length>0&&output.Length<=Maximum&&Convert.ToBase64String(output)==(string)reply["reply_base64"],"agent_ipc_reply_unproven");
-              Require(WaitForSingleObject(peer,0)==258&&WaitForSingleObject(owner,0)==258&&WaitForSingleObject(supervisor,0)==258,"agent_ipc_peer_unproven");
+              Require(!stopped&&!TaskExpired()&&WaitForSingleObject(peer,0)==258&&WaitForSingleObject(owner,0)==258&&WaitForSingleObject(supervisor,0)==258,"agent_ipc_peer_unproven");
               pipe.Write(BitConverter.GetBytes(output.Length),0,4); pipe.Write(output,0,output.Length); pipe.Flush(); pipe.WaitForPipeDrain();
             }
           } finally { try { if(!stopped&&pipe.IsConnected) pipe.Disconnect(); } catch { if(!stopped) throw; } }

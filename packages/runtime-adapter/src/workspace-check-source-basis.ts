@@ -5,15 +5,20 @@ type Calls=ReturnType<typeof readWorkspaceFileRunOriginals>["calls"];
 // Receives independently verified original Native records, never model claims.
 // A conservative unique digest chain avoids inventing order from SDK IDs.
 export function resolveWorkspaceCheckSourceBasis(recipe:WorkspaceCheckRecipe,calls:Calls) {
+ return resolveOriginalWorkspaceFileChain(recipe.inputs,recipe.editable_inputs??[],calls);
+}
+// Full original workspace callers supply all present files, not a fake check
+// recipe. The same unique Native digest-chain rules apply to every input.
+export function resolveOriginalWorkspaceFileChain(inputs:{path:string;expected_digest:string}[],editableInputs:string[],calls:Calls) {
  const deny=():never=>{throw new RuntimeAdapterError("workspace_check_source_unproven");};
  const ids=new Set<string>(),original_file_calls:{call_id:string;receipt_digest:string}[]=[];
  for(const call of calls) {
   if(ids.has(call.input.call_id))deny();ids.add(call.input.call_id);
   if(["reserved","executing","unknown"].includes(call.state))deny();
  }
- const sources=recipe.inputs.map(source=>{
+ const sources=inputs.map(source=>{
   const writes=calls.filter(call=>call.input.tool==="replace_file"&&call.input.path.toUpperCase()===source.path.toUpperCase()&&call.state!=="not_started");
-  if(writes.length&&!recipe.editable_inputs?.includes(source.path))deny();
+  if(writes.length&&!editableInputs.includes(source.path))deny();
   for(const call of writes) {
    if(!call.receipt||call.state!=="completed"||call.receipt.call_id!==call.input.call_id||call.receipt.native.before_digest!==call.input.expected_digest)deny();
    original_file_calls.push({call_id:call.input.call_id,receipt_digest:digest(JSON.stringify(call.receipt)).value});
