@@ -38,7 +38,7 @@ export type {OriginalHumanPlanClarification} from './clarification-local.js';
 export {LocalPlanningClarificationAdmission} from './planning-clarification-local.js';
 export type {MattPlanClarificationVerification,LocalPlanningClarificationOptions} from './planning-clarification-local.js';
 export { LocalHumanAgentRuntimeStart } from "./agent-runtime-human-start-local.js";
-export type { HumanAgentRuntimeFactory } from "./agent-runtime-human-start-local.js";
+export type { HumanAgentRuntimeFactory, AgentRuntimeLease } from "./agent-runtime-human-start-local.js";
 export { LocalAgentRuntimeComposition } from "./agent-runtime-composition-local.js";
 export { LocalAgentDedicatedAccount } from "./agent-dedicated-account-local.js";
 export type {AgentDedicatedModelContext} from './agent-dedicated-account-local.js';

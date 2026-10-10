@@ -1,25 +1,52 @@
-import {isDeepStrictEqual} from "node:util";
-import type {LocalProject} from "./project.js";
-import {readHumanOriginalAgentRunInputs} from "./agent-runtime-control-local.js";
-import {LocalAgentRuntimeComposition} from "./agent-runtime-composition-local.js";
-import {LocalProjectError} from "./errors.js";
-// Trusted installation only. The factory may stage an original composition; it
-// must not launch effects. HTTP never supplies callers, credentials or ports.
-export type HumanAgentRuntimeFactory=(runId:string,local:LocalProject)=>LocalAgentRuntimeComposition|Promise<LocalAgentRuntimeComposition>;
+import {isDeepStrictEqual} from 'node:util';
+import type {LocalProject} from './project.js';
+import {readHumanOriginalAgentRunInputs} from './agent-runtime-control-local.js';
+import {readLocalAgentRuntimeStartOriginal} from './agent-runtime-start-local.js';
+import {LocalAgentRuntimeComposition} from './agent-runtime-composition-local.js';
+import {LocalProjectError} from './errors.js';
+// Trusted staging only: no effects, account creation or credential export.
+// Release closes owned application handles AFTER start settles. It must not
+// stop/dispose the original Native operation or erase any original evidence.
+export interface AgentRuntimeLease {runtime:LocalAgentRuntimeComposition;release():void|Promise<void>}
+export type HumanAgentRuntimeFactory=(runId:string,local:LocalProject)=>LocalAgentRuntimeComposition|AgentRuntimeLease|Promise<LocalAgentRuntimeComposition|AgentRuntimeLease>;
+const unavailable=()=>new LocalProjectError('原 Agent 完整组合或资源释放尚待核对；保留原操作','CAPABILITY_UNAVAILABLE','conflict');
 export class LocalHumanAgentRuntimeStart {
  constructor(private readonly local:LocalProject,private readonly factory?:HumanAgentRuntimeFactory){}
- async start(runId:string){
+ async start(runId:string,requestGuard?:()=>void){
   const original=readHumanOriginalAgentRunInputs(this.local,runId);
-  const authorized=this.local.kernel.authorizeAgentRunStart(runId);if("code" in authorized)throw authorized;
-  if(!this.factory)throw new LocalProjectError("原 Agent 的完整生产组合尚未安装","CAPABILITY_UNAVAILABLE","conflict");
-  const runtime=await this.factory(runId,this.local);
-  if(!(runtime instanceof LocalAgentRuntimeComposition)||!isDeepStrictEqual(runtime.originalScope(runId),original.scope))
-   throw new LocalProjectError("宿主组合与原 Agent 身份或项目不符","CALLER_IDENTITY_MISMATCH","forbidden");
-  const check=()=>{
-   const fresh=this.local.kernel.authorizeAgentRunStart(runId);if("code" in fresh)throw fresh;
+  const authorized=this.local.kernel.authorizeAgentRunStart(runId);if('code' in authorized)throw authorized;
+  let checkError:unknown;
+  const check=()=>{try{
+   requestGuard?.();
+   const fresh=this.local.kernel.authorizeAgentRunStart(runId);if('code' in fresh)throw fresh;
    if(!isDeepStrictEqual(fresh,authorized)||!isDeepStrictEqual(readHumanOriginalAgentRunInputs(this.local,runId).scope,original.scope))
-    throw new LocalProjectError("原启动请求权限或固定范围已改变","INPUT_CHANGED","conflict");
-  };
-  check();return runtime.start(runId,check);
+    throw new LocalProjectError('原启动请求权限或固定范围已改变','INPUT_CHANGED','conflict');
+  }catch(error){checkError=error;throw error;}};
+  check();
+  // Read-only recovery does not need a new model/account/custody factory.
+  // Absence grants nothing: the first-start path still requires full custody.
+  const prior=readLocalAgentRuntimeStartOriginal(this.local.location.dataDirectory,original.scope);check();if(prior)return prior;
+  if(!this.factory)throw unavailable();
+  let staged:Awaited<ReturnType<HumanAgentRuntimeFactory>>;
+  try{staged=await this.factory(runId,this.local);}catch{check();throw unavailable();}
+  let runtime:LocalAgentRuntimeComposition,release:(()=>void|Promise<void>)|undefined;
+  try{
+   try{
+    if(staged instanceof LocalAgentRuntimeComposition)runtime=staged;
+    else {const method=staged?.release;if(typeof method!=='function')throw unavailable();release=method.bind(staged);runtime=staged.runtime;}
+   }catch{throw unavailable();}
+   check();
+   let scope:ReturnType<LocalAgentRuntimeComposition['originalScope']>;
+   if(!(runtime instanceof LocalAgentRuntimeComposition))throw new LocalProjectError('宿主组合与原 Agent 身份或项目不符','CALLER_IDENTITY_MISMATCH','forbidden');
+   try{scope=runtime.originalScope(runId);}catch{throw unavailable();}
+   if(!isDeepStrictEqual(scope,original.scope))
+    throw new LocalProjectError('宿主组合与原 Agent 身份或项目不符','CALLER_IDENTITY_MISMATCH','forbidden');
+   try{return await runtime.start(runId,check);}catch(error){if(error===checkError)throw error;throw unavailable();}
+  }finally{
+   let releaseFailed=false;
+   try{await release?.();}catch{releaseFailed=true;}
+   // Both staging and release may await; never return a stale authority result.
+   check();if(releaseFailed)throw unavailable();
+  }
  }
 }

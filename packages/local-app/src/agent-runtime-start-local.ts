@@ -41,6 +41,15 @@ export interface AgentRuntimeStartPort {
   prepare(inputs: AgentRuntimeLaunchInputs): Promise<{ launch(): Promise<void>; dispose(): Promise<void> | void }>;
 }
 type StartResult = { ok: true; run_id: string; outcome: "original" | "unknown"; completion_proven: false; operation_id?: string; reason?: string };
+// Internal shared read only; callers validate Human/Agent identity before use.
+export function readLocalAgentRuntimeStartOriginal(root:string,scope:ReturnType<typeof originalAgentWorkspaceScope>):StartResult|undefined {
+  const registration=inspectAgentRuntimeOriginalRegistration(root,scope);
+  if(registration.status==='original')return {ok:true,run_id:scope.run_id,outcome:'original',completion_proven:false,operation_id:registration.identity.operation_id};
+  if(registration.status==='unknown')return unknown(scope.run_id);
+  const parent=join(root,'agent-runtime-starts',scope.project_id,scope.run_id);
+  try{assertOrdinaryPath(parent);lstatSync(parent);return unknown(scope.run_id);}
+  catch(error){if(!(error&&typeof error==='object'&&'code' in error&&error.code==='ENOENT'))return unknown(scope.run_id);}
+}
 const inflight = new Map<string, Promise<StartResult>>();
 const unknown = (runId: string): StartResult => ({ ok: true, run_id: runId, outcome: "unknown", completion_proven: false, reason: "agent_original_start_unproven" });
 // Kernel supplies domain authority. Durable dispatch precedes the only call to
@@ -54,11 +63,8 @@ export class LocalAgentRuntimeStart {
     const scope = this.scope(runId); return { scope, parent: join(this.local.location.dataDirectory, "agent-runtime-starts", scope.project_id, scope.run_id) };
   }
   private original(runId: string): StartResult | undefined {
-    const { scope, parent } = this.paths(runId), registration = inspectAgentRuntimeOriginalRegistration(this.local.location.dataDirectory, scope);
-    if (registration.status === "original") return { ok: true, run_id: runId, outcome: "original", completion_proven: false, operation_id: registration.identity.operation_id };
-    if (registration.status === "unknown") return unknown(runId);
-    try { assertOrdinaryPath(parent); lstatSync(parent); return unknown(runId); }
-    catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "ENOENT")) return unknown(runId); }
+    const { scope } = this.paths(runId), prior = readLocalAgentRuntimeStartOriginal(this.local.location.dataDirectory,scope);
+    if(prior)return prior;
     if (!(this.port?.custody instanceof LocalAgentStartCustody)) throw unavailable();
     const original = readOriginalAgentRunInputs(this.local, runId);
     try { if (this.port.custody.inspectOriginal(original.project, original.record, original.context, scope).state === "claimed") return unknown(runId); }

@@ -184,8 +184,9 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
           send(response, "code" in result ? statusFor(result) : 200, result); return;
         }
         if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length) throw new HttpFailure(400, "INVALID_COMMAND");
-        const result = action === "start" ? await agentStart.start(runId) : action === "collect" ? await agentRuntime.collect(runId) : action === "cancel" ? await agentRuntime.retryCancellation(runId) : await agentRuntime.recover(runId);
-        send(response, 200, result); return;
+        const guard=()=>{if(closing)throw new HttpFailure(503,"WORKBENCH_CLOSING");requireSession(request,true);};
+        const result = action === "start" ? await agentStart.start(runId,guard) : action === "collect" ? await agentRuntime.collect(runId) : action === "cancel" ? await agentRuntime.retryCancellation(runId) : await agentRuntime.recover(runId);
+        guard();send(response, 200, result); return;
       }
       if (url.pathname === "/api/commands" && request.method === "POST") {
         const body = await readBody(request);

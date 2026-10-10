@@ -231,7 +231,7 @@ const taskPanel = (task, data) => {
       const costRecord=button('记录原账单费用',()=>mutation('RecordRunObservation',{}, {object_type:'run',id:run.id},run.revision,'technical_owner',false,true));costRecord.disabled=state.context.agent_costs_available!==true;
       const resultReconcile=button('核对原执行与费用',()=>mutation('ReconcileRun',{}, {object_type:'run',id:run.id},run.revision,'technical_owner',false,false,true));resultReconcile.disabled=state.context.agent_costs_available!==true;
       const start=button(pendingStart.pending ? "核对原启动请求" : "启动原 Agent 运行",()=>startAgent(run.id));
-      start.disabled=state.context.agent_start_available!==true || !pendingStart.available;
+      start.disabled=(state.context.agent_start_available!==true && !pendingStart.pending) || !pendingStart.available;
       if(!pendingStart.available)result.append(paragraph("浏览器无法读取原启动身份，启动暂不可用；仍可查询和停止原运行。"));
       result.append(node("div", { class: "row" }, start, button("查询原运行", () => observe("")), costQuery, costRecord, resultReconcile, button("采集原资料", () => observe("collect")),
         button("记录原运行观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
