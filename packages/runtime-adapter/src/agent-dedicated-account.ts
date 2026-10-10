@@ -11,6 +11,7 @@ import {parseAgentWorkspaceToolScope,type AgentWorkspaceToolScope} from "./agent
 import type {DedicatedAgentAccountPort,DedicatedAgentBudgetRequest,DedicatedAgentBudgetHold} from "./agent-dedicated-model.js";
 import {AccountBillingStore,captureBillVerification,type AccountBillingOrigin,type DedicatedAgentBillVerification} from "./agent-account-bills.js";
 import {openWindowsAgentStartCustody} from "./agent-start-custody-native.js";
+import {LegacyAccountBillingAttachment} from './agent-legacy-account-billing.js';
 
 export interface DedicatedAgentAccountPolicy {
  format:"cimiloop/dedicated-agent-account/1.0.0";host_identity_digest:string;account_digest:string;approval_digest:string;package_digest:string;tariff_digest:string;
@@ -58,10 +59,16 @@ const billingAccountDdl=[...ddl,
 export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  readonly admission_digest:string;
  private closed=false;
- private readonly bills:AccountBillingStore|undefined;
- private constructor(private readonly options:OpenOptions,private readonly original:AccountOrigin,private readonly ticket:AgentStartTicket,private readonly db:DatabaseSync){this.admission_digest=original.policy.admission_digest;
-  this.bills=original.format==="cimiloop/dedicated-agent-account-origin/2.0.0"?AccountBillingStore.open(original.root,original.billing!,original.policy,options.billing,options.origin):undefined;
+ private bills:AccountBillingStore|undefined;
+ private attachment:LegacyAccountBillingAttachment|undefined;
+ private billingOrigin:AccountBillingOrigin|undefined;
+ private constructor(private readonly options:OpenOptions,private readonly original:AccountOrigin,private readonly ticket:AgentStartTicket,private readonly db:DatabaseSync,private attachmentRecovery=false){this.admission_digest=original.policy.admission_digest;
+  try{
+  this.attachment=original.format==="cimiloop/dedicated-agent-account-origin/1.0.0"&&!attachmentRecovery?LegacyAccountBillingAttachment.open(original,ticket,options.origin,options.custody):undefined;
+  this.billingOrigin=original.billing??this.attachment?.billing;
+  this.bills=this.billingOrigin?AccountBillingStore.open(original.root,this.billingOrigin,original.policy,options.billing,options.origin):undefined;
   if(!this.bills&&options.billing)fail("agent_account_billing_requires_new_origin");
+  }catch(e){this.attachment?.close();throw e;}
   this.options={origin:options.origin,accountDigest:options.accountDigest,connection:copy(options.connection),admission:{check:options.admission.check.bind(options.admission)},custody:{protect:options.custody.protect.bind(options.custody),verify:options.custody.verify.bind(options.custody)}};
  }
  get profile():DedicatedAgentProfile{return copy(this.original.policy.profile);}
@@ -86,6 +93,22 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   }catch(error){if(ledger)ledger.close();else db.close();throw error;}
  }
  static open(options:OpenOptions):DedicatedAgentAccountLedger {
+  return this.openInternal(options);
+ }
+ // Explicit trusted installation; no JSON/HTTP field or ordinary-open upgrade.
+ static attachOriginalBilling(options:OpenOptions & {billing:DedicatedAgentBillVerification}):DedicatedAgentAccountLedger {
+  if(!(options.origin instanceof AgentStartLedger)||!sha.test(options.accountDigest))fail('agent_account_installation_unavailable');
+  captureBillVerification(options.billing);
+  if(options.origin.readExclusive('dedicated_account_billing_attachment',options.accountDigest))return this.open(options);
+  const ledger=this.openInternal({...options,billing:undefined},true);
+  try{ledger.read(()=>{
+   ledger.attachment=LegacyAccountBillingAttachment.attach(ledger.original,ledger.ticket,options.origin,options.custody,options.billing);
+   ledger.billingOrigin=ledger.attachment.billing;
+   ledger.bills=AccountBillingStore.open(ledger.original.root,ledger.billingOrigin,ledger.original.policy,options.billing,options.origin);
+   ledger.attachmentRecovery=false;
+  },true);return ledger;}catch(e){ledger.close();throw e;}
+ }
+ private static openInternal(options:OpenOptions,attachmentRecovery=false):DedicatedAgentAccountLedger {
   if(!(options.origin instanceof AgentStartLedger)||!sha.test(options.accountDigest)||typeof options.admission?.check!=="function"||typeof options.custody?.verify!=="function")fail("agent_account_installation_unavailable");
   const registration=options.origin.readExclusive(namespace,options.accountDigest);if(!registration)fail("agent_account_original_missing");
   const original=copy(registration.basis) as AccountOrigin;
@@ -96,7 +119,7 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   // Stat before opening SQLite: absent originals must never create a new DB.
   try{if(physical(original.root,true)!==original.directory_identity||physical(join(original.root,"account.sqlite"),false)!==original.file_identity)fail();}catch{fail("agent_account_original_missing");}
   options.custody.verify(original.root);for(const suffix of ["-wal","-shm","-journal"])assertOrdinaryPath(join(original.root,"account.sqlite")+suffix);
-  const db=new DatabaseSync(join(original.root,"account.sqlite"),{timeout:5000});let ledger:DedicatedAgentAccountLedger|undefined;try{db.exec("PRAGMA synchronous=FULL; PRAGMA wal_autocheckpoint=128; PRAGMA max_page_count=32768;");ledger=new DedicatedAgentAccountLedger({...options,connection},original,registration.ticket,db);ledger.read(()=>undefined);return ledger;}catch(error){if(ledger)ledger.close();else db.close();throw error;}
+  const db=new DatabaseSync(join(original.root,"account.sqlite"),{timeout:5000});let ledger:DedicatedAgentAccountLedger|undefined;try{db.exec("PRAGMA synchronous=FULL; PRAGMA wal_autocheckpoint=128; PRAGMA max_page_count=32768;");ledger=new DedicatedAgentAccountLedger({...options,connection},original,registration.ticket,db,attachmentRecovery);ledger.read(()=>undefined);return ledger;}catch(error){if(ledger)ledger.close();else db.close();throw error;}
  }
  private request(scope:AgentWorkspaceToolScope,raw:DedicatedAgentBudgetRequest,bytes:Uint8Array):DedicatedAgentBudgetRequest {
   const fields=["scope_digest","admission_digest","connection_digest","call_id","request_id","request_digest","input_bytes","max_output_tokens"],p=this.original.policy;
@@ -111,7 +134,9 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   const registration=this.options.origin.readExclusive(namespace,this.options.accountDigest);
   if(!registration||!isDeepStrictEqual(registration.ticket,this.ticket)||!isDeepStrictEqual(registration.basis,this.original)||this.original.policy.host_identity_digest!==this.options.origin.identityDigest||physical(this.original.root,true)!==this.original.directory_identity||physical(join(this.original.root,"account.sqlite"),false)!==this.original.file_identity)fail();
   const schema=this.db.prepare("SELECT sql FROM sqlite_schema WHERE sql IS NOT NULL ORDER BY sql").all().map(r=>String(r.sql));
-  if(this.db.prepare("PRAGMA application_id").get()?.application_id!==appId||this.db.prepare("PRAGMA user_version").get()?.user_version!==(this.bills?2:1)||!isDeepStrictEqual(schema,[...(this.bills?billingAccountDdl:ddl)].sort())||this.db.prepare("PRAGMA quick_check").get()?.quick_check!=="ok")fail("agent_account_corrupt");
+  const sql2=this.original.account_database_version===2;
+  if(this.db.prepare("PRAGMA application_id").get()?.application_id!==appId||this.db.prepare("PRAGMA user_version").get()?.user_version!==(sql2?2:1)||!isDeepStrictEqual(schema,[...(sql2?billingAccountDdl:ddl)].sort())||this.db.prepare("PRAGMA quick_check").get()?.quick_check!=="ok")fail("agent_account_corrupt");
+  if(!sql2&&!this.attachmentRecovery){if(this.attachment)this.attachment.seals();else LegacyAccountBillingAttachment.assertAbsent(this.original,this.ticket,this.options.origin,this.options.custody);}
   const origin=this.db.prepare("SELECT body,digest FROM account_origin WHERE singleton=1").get();if(typeof origin?.body!=="string"||origin.digest!==digest(origin.body).value||!isDeepStrictEqual(parse(origin.body),this.original))fail();
   const rows=this.db.prepare("SELECT * FROM account_holds ORDER BY request_id").all();if(rows.length>1023)fail("agent_account_corrupt");let cash=0n,credits=0n;
   // Complete bidirectional audit, not just this call's anchor. A missing
@@ -160,15 +185,16 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   overBudget||=cashHeld+cashCharged>BigInt(this.original.policy.cash_limit_micros)||creditHeld+creditCharged>BigInt(this.original.policy.credit_limit_micro_units);
   return{cashHeld,creditHeld,cashCharged,creditCharged,overBudget,billed,records};
  }
- private seals(){return this.db.prepare("SELECT id,body,digest FROM account_bills ORDER BY id").all().map(r=>({id:r.id,body:r.body,digest:r.digest}));}
- observeBill(bytes:Uint8Array){if(!this.bills)fail("agent_account_bill_verifier_unavailable");return this.read(rows=>this.bills!.observe(bytes,rows.map(r=>parse(String(r.hold)) as DedicatedAgentBudgetHold),()=>this.seals(),(id,body,hash)=>{this.db.prepare("INSERT INTO account_bills VALUES(?,?,?)").run(id,body,hash);}),true);}
+ private seals(){return this.attachment?this.attachment.seals():this.db.prepare("SELECT id,body,digest FROM account_bills ORDER BY id").all().map(r=>({id:r.id,body:r.body,digest:r.digest}));}
+ observeBill(bytes:Uint8Array){if(!this.bills)fail("agent_account_bill_verifier_unavailable");return this.read(rows=>this.bills!.observe(bytes,rows.map(r=>parse(String(r.hold)) as DedicatedAgentBudgetHold),()=>this.seals(),(id,body,hash)=>{if(this.attachment)this.attachment.seal(id,body,hash);else this.db.prepare("INSERT INTO account_bills VALUES(?,?,?)").run(id,body,hash);}),true);}
  readRunCosts(raw:AgentWorkspaceToolScope){const scope=parseAgentWorkspaceToolScope(raw),scopeDigest=digest(JSON.stringify(scope)).value;return this.read((rows,funds)=>{
   if(rows.some(r=>{const other=parseAgentWorkspaceToolScope(parse(String(r.scope)));return(other.run_id===scope.run_id||other.operation_key===scope.operation_key)&&r.scope_digest!==scopeDigest;}))fail("agent_account_scope_conflict");
   const selected=rows.filter(r=>r.scope_digest===scopeDigest),items=funds.records.flatMap(r=>r.projection.items).filter(i=>i.scope_digest===scopeDigest),unresolved=selected.length-items.length;
-  return{account_digest:this.options.accountDigest,scope_digest:scopeDigest,currency:this.original.billing?.currency??null,credit_unit:this.original.billing?.credit_unit??null,holds:selected.length,unresolved,costs_reconciled:!!this.bills&&selected.length>0&&unresolved===0,cash_charged_micros:Number(items.reduce((n,i)=>n+BigInt(i.cash_charged_micros),0n)),credit_charged_micro_units:Number(items.reduce((n,i)=>n+BigInt(i.credit_charged_micro_units),0n)),bill_originals:funds.records.filter(r=>r.projection.items.some(i=>i.scope_digest===scopeDigest)).map(r=>({bill_id:r.projection.bill_id,bytes_digest:r.bytes_digest,projection_digest:digest(JSON.stringify(r.projection)).value})),starts_run:false as const};
+  return{account_digest:this.options.accountDigest,scope_digest:scopeDigest,currency:this.billingOrigin?.currency??null,credit_unit:this.billingOrigin?.credit_unit??null,holds:selected.length,unresolved,costs_reconciled:!!this.bills&&selected.length>0&&unresolved===0,cash_charged_micros:Number(items.reduce((n,i)=>n+BigInt(i.cash_charged_micros),0n)),credit_charged_micro_units:Number(items.reduce((n,i)=>n+BigInt(i.credit_charged_micro_units),0n)),bill_originals:funds.records.filter(r=>r.projection.items.some(i=>i.scope_digest===scopeDigest)).map(r=>({bill_id:r.projection.bill_id,bytes_digest:r.bytes_digest,projection_digest:digest(JSON.stringify(r.projection)).value})),starts_run:false as const};
  });}
- snapshot(){return this.read((rows,f)=>{const p=this.original.policy;return{account_digest:p.account_digest,holds:rows.length,billed_holds:f.billed.size,currency:this.original.billing?.currency??null,credit_unit:this.original.billing?.credit_unit??null,cash_limit_micros:p.cash_limit_micros,credit_limit_micro_units:p.credit_limit_micro_units,cash_held_micros:Number(f.cashHeld),credit_held_micro_units:Number(f.creditHeld),cash_charged_micros:Number(f.cashCharged),credit_charged_micro_units:Number(f.creditCharged),cash_remaining_micros:Number(BigInt(p.cash_limit_micros)>f.cashHeld+f.cashCharged?BigInt(p.cash_limit_micros)-f.cashHeld-f.cashCharged:0n),credit_remaining_micro_units:Number(BigInt(p.credit_limit_micro_units)>f.creditHeld+f.creditCharged?BigInt(p.credit_limit_micro_units)-f.creditHeld-f.creditCharged:0n),over_budget:f.overBudget,costs_reconciled:!!this.bills&&rows.length>0&&f.billed.size===rows.length,formal_agent_execution_enabled:false as const};});}
- close(){if(!this.closed){this.closed=true;this.bills?.close();this.db.close();}}
+ snapshot(){return this.read((rows,f)=>{const p=this.original.policy;return{account_digest:p.account_digest,holds:rows.length,billed_holds:f.billed.size,currency:this.billingOrigin?.currency??null,credit_unit:this.billingOrigin?.credit_unit??null,cash_limit_micros:p.cash_limit_micros,credit_limit_micro_units:p.credit_limit_micro_units,cash_held_micros:Number(f.cashHeld),credit_held_micro_units:Number(f.creditHeld),cash_charged_micros:Number(f.cashCharged),credit_charged_micro_units:Number(f.creditCharged),cash_remaining_micros:Number(BigInt(p.cash_limit_micros)>f.cashHeld+f.cashCharged?BigInt(p.cash_limit_micros)-f.cashHeld-f.cashCharged:0n),credit_remaining_micro_units:Number(BigInt(p.credit_limit_micro_units)>f.creditHeld+f.creditCharged?BigInt(p.credit_limit_micro_units)-f.creditHeld-f.creditCharged:0n),over_budget:f.overBudget,costs_reconciled:!!this.bills&&rows.length>0&&f.billed.size===rows.length,formal_agent_execution_enabled:false as const};});}
+ close(){if(!this.closed){this.closed=true;this.bills?.close();this.attachment?.close();this.db.close();}}
 }
 export async function initializeWindowsDedicatedAgentAccountLedger(options:Omit<InitializeOptions,"custody"> & {toolsRoot:string},signal?:AbortSignal){const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();return DedicatedAgentAccountLedger.initialize({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}
 export async function openWindowsDedicatedAgentAccountLedger(options:Omit<OpenOptions,"custody"> & {toolsRoot:string},signal?:AbortSignal){const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();return DedicatedAgentAccountLedger.open({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}
+export async function attachWindowsDedicatedAgentAccountBilling(options:Omit<OpenOptions,"custody"> & {billing:DedicatedAgentBillVerification;toolsRoot:string},signal?:AbortSignal){const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();return DedicatedAgentAccountLedger.attachOriginalBilling({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}

@@ -1,5 +1,7 @@
 # CimiLoop 原账户账单与余额核验 v0.1
 
+2026-10-10 D-264：SQL1原账户可显式增加受保护账单与独立意图库，保持旧登记／Schema／扣留／Run身份；旧句柄、无完成物理登记的中断、三方原件丢失均拒绝。当前D-257历史Native／SDK／领域原件独立重读后，经共享Human服务与Kernel按同单位公开受控账单对账为原Run Succeeded、48微现金、预算保留0、尝试1，Task仍InProgress，原请求重放不重复效果。不是实际智谱模型／账单／方法／S1证据；新生产组合和Bun故障未据此宣称通过，正式Agent默认关闭，五组目标持续、零付费。 [实施记录](CimiLoop-旧账户原账单兼容接通-v0.1.md)。
+
 2026-10-10 D-262：原取消控制帧与独立Native取消证明已接入原采集、共享Human／CLI／HTTP／工作台ReconcileRun。Kernel原cancel_requested、完整调用账本与原认证费用同时成立时结清Cancelled原Run，启动次数不返还、Task不自动满足、原命令不重开账户或Run。实际Windows准备／挂起取消、普通EOF及错误取消帧通过；运行中SDK取消与费用结清仍是受控组合，真实模型／Skill／Matt／Superpowers及完整S1未通过。默认正式Agent关闭，库10／242 Schema、零付费及完整五组持续目标保持。 [实施记录](CimiLoop-原取消证明与终态核对-v0.1.md)。
 
 2026-10-10 D-261：原Native终态、独立SDK／领域结果、原IPC／模型调用和认证账单已接入共享Human ReconcileRun、同一编译CLI与工作台原请求恢复。受控组合验证原Run成功／失败、现金12及剩余预算结清，保留启动次数且不自动满足Task；真实Windows已知账单但缺Native原件时拒绝结清，88继续冻结。受控Native／SDK及公开批准／账单不是实际智谱、真实Skill／Matt／Superpowers或S1证据，完整Native故障与四项账户确认仍未解决。默认正式Agent关闭，库10／242 Schema及完整五组目标保持。 [实施记录](CimiLoop-原执行终态与账单核对-v0.1.md)。
@@ -18,7 +20,7 @@ readRunCosts 保留固定Scope和原请求匹配；LocalAgentAccountBilling 为C
 
 ## 显式兼容与不可变历史
 
-新建账单账户：AccountOrigin body2 显式 account_database_version:2，固定仓库外账户根、目录／主库物理身份与独立 billing.sqlite 身份、完整政策、核验器身份、现金币种和积分单位；原身份在Host与账户库共同固定。私有账户 application_id=0x434d4131／SQLite2增加immutable account_bills意图；独立账单 application_id=0x434d4231／SQLite1固定billing_origin及immutable bills。旧body1／SQLite1保持原Schema及未决全上限，没有原位升级／账单安装，重开不能回填。项目库10、242公开Schema及原启动账本1保持，无自动迁移用户库。
+新建账单账户：AccountOrigin body2 显式 account_database_version:2，固定仓库外账户根、目录／主库物理身份与独立 billing.sqlite 身份、完整政策、核验器身份、现金币种和积分单位；原身份在Host与账户库共同固定。私有账户 application_id=0x434d4131／SQLite2增加immutable account_bills意图；独立账单 application_id=0x434d4231／SQLite1固定billing_origin及immutable bills。未显式接入D-264的旧body1／SQLite1保持原Schema及未决全上限，普通open不能安装账单或回填。D-264现允许受信代码显式增加受保护账单库与独立意图库；原账户Schema、原登记及扣留行不变，逐项核验后的真实费用替代未决占用计算，不做原位格式升级。项目库10、242公开Schema及原启动账本1保持，无自动迁移用户库。
 
 仅双向账单库／Host核对不足：自洽删除两边同笔90费用而保留30上限，会错误恢复剩余预算。本批红例复现后增加不属于这两组账单行的账户原意图。父账户BEGIN IMMEDIATE先写原意图，Host提交→账单库提交→父账户最后提交；所有read／reserve／replay完整核对三方数量、身份、原字节、投影和唯一请求。Host已提交后响应丢失，父意图回滚／bill缺行会持续拒绝，不能用重放补写。两方同删、任一方单删、物理原库丢失／复制、核验器撤销或变更均拒绝。管理员损毁所有安全原件后不能宣称证明已恢复。
 
@@ -48,7 +50,7 @@ pnpm exec vitest run tests/scenarios/agent-production-lifetime-runtime.test.ts -
 pnpm cimiloop --help
 ```
 
-真实接入须先得到模型／套餐／现金和积分预算确认，再用现有仓库外安全连接；代码安装真实账单认证端口，其basis包含原固定policy与所有原占用，必须进一步独立对应SDK原请求与提供方账单身份。不得把此文中的构造核验器接成生产默认。新建账单根后丢库或核验器失效必须停在Unknown，不复制根／补历史。费用共享查询可观察原证据，正式Kernel费用结算仍须后续完整适配，不从CLI手工JSON伪造结清。
+真实接入须先得到模型／套餐／现金和积分预算确认，再用现有仓库外安全连接；代码安装真实账单认证端口，其basis包含原固定policy与所有原占用，必须进一步独立对应SDK原请求与提供方账单身份。不得把此文中的构造核验器接成生产默认。新建账单根后丢库或核验器失效必须停在Unknown，不复制根／补历史。费用查询继续共享Kernel读取权限；D-260／D-261已提供原费用观测及独立原终态对账，D-264把旧账户旁库接入同一路径。缺实际账单认证或独立原终态时仍Unknown，不从CLI手工JSON伪造结清。
 
 真实智谱账单认证端口与实际提供方请求ID／SDK原身份独立映射、模型／账户／套餐／费率资格、Kernel费用正式ReconcileRun、物理硬配额和完整恢复仍待完成。只有智谱提供方确认，具体模型、套餐、现金／积分上限待用户确认，确认前付费请求0、真实Key读取0。构造认证不能作为真实账单、Skill、Matt、Superpowers、ReadyForDelivery或S1验收；默认正式Agent关闭。五组V1-09／21／22／10／11全部保留，持续目标active。本批本地提交、不push，不清旧电脑Unknown／历史Temp、映射或Profile。
 
