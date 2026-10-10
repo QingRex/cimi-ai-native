@@ -2,7 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { fileURLToPath } from "node:url";
-import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject } from "@cimiloop/local-app";
+import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
 
 const MAX_BODY_BYTES = 128 * 1024;
@@ -48,6 +48,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   const agentObservation = new LocalAgentRuntimeObservation(context);
   const agentStart = new LocalHumanAgentRuntimeStart(context,options.agentRuntimeForRun);
   const agentBilling = new LocalHumanAgentAccountBilling(context,options.agentAccountForRun);
+  const agentCostObservation = new LocalHumanAgentRunCostObservation(context,options.agentAccountForRun);
   const assets = new Map<string, { type: string; body: Buffer }>();
   try {
     for (const [route, file, type] of [["/", "index.html", "text/html; charset=utf-8"], ["/app.js", "app.js", "text/javascript; charset=utf-8"],
@@ -155,6 +156,17 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         const result=await agentBilling.query(decodeURIComponent(costsMatch[1]!));
         if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
         requireSession(request,false);send(response,200,result);return;
+      }
+      const costObservationMatch = /^\/api\/agent-runs\/([^/]{1,200})\/cost-observation$/.exec(url.pathname);
+      if(costObservationMatch && request.method==='POST'){
+        const body=await readBody(request);
+        if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
+        requireSession(request,true);
+        if(!body||typeof body!=='object'||Array.isArray(body)||!('target' in body)||!body.target||typeof body.target!=='object'||!('id' in body.target)||body.target.id!==decodeURIComponent(costObservationMatch[1]!))throw new HttpFailure(400,'INVALID_COMMAND');
+        const result=await agentCostObservation.record(body);
+        if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
+        requireSession(request,true);
+        send(response,'code' in result?statusFor(result):200,result);return;
       }
       const agentMatch = /^\/api\/agent-runs\/([^/]{1,200})(?:\/(collect|stop|cancel|recover|observe|start))?$/.exec(url.pathname);
       if (agentMatch && request.method === "GET" && !agentMatch[2]) {

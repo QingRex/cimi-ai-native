@@ -59,11 +59,11 @@ const api = async (path, body) => {
   }
   return result;
 };
-const mutation = async (type, payload, target, revision, role = "project_owner", agentRuntimeControl = false) => {
+const mutation = async (type, payload, target, revision, role = "project_owner", agentRuntimeControl = false, agentCostObservation = false) => {
   if (state.pending) { showNotice("上次动作的结果还未核对，请先按原请求核对。", true, button("按原请求核对", replay)); return; }
   state.pending = { command_id: uuid(), requested_at: new Date().toISOString(), acting_role: role, command_type: type,
     ...(target ? { target } : {}), ...(revision === undefined ? {} : { expected_revision: revision }), payload,
-    ...(agentRuntimeControl ? { agent_runtime_control: true } : {}) };
+    ...(agentRuntimeControl ? { agent_runtime_control: true } : {}), ...(agentCostObservation ? {agent_cost_observation:true} : {}) };
   try { sessionStorage.setItem(`cimiloop.pending.${state.context.project_id}`, JSON.stringify(state.pending)); }
   catch { state.pending = null; throw new Error("浏览器无法保留待核对请求，动作尚未发送。请允许当前页面的会话存储后重试。"); }
   await replay();
@@ -105,10 +105,13 @@ const replay = async () => {
       path = "/api/changes/" + pending.change_id + "/clarifications" + (pending.session_id ? "/" + pending.session_id : "");
       command = pending.request;
     } else {
-      const { agent_runtime_control, ...original } = state.pending;
+      const { agent_runtime_control, agent_cost_observation, ...original } = state.pending;
       command = original;
       const action = command.command_type === "RecordRunObservation" ? "observe" : "stop";
-      path = agent_runtime_control === true ? "/api/agent-runs/" + encodeURIComponent(command.target.id) + "/" + action : "/api/commands";
+      if(agent_cost_observation===true){
+        if(agent_runtime_control===true||command.command_type!=="RecordRunObservation"||command.target?.object_type!=="run"||typeof command.target.id!=="string"||!command.payload||Object.keys(command.payload).length)throw new Error('保留的原费用命令格式无效，尚未发送。');
+        path="/api/agent-runs/"+encodeURIComponent(command.target.id)+"/cost-observation";
+      }else path = agent_runtime_control === true ? "/api/agent-runs/" + encodeURIComponent(command.target.id) + "/" + action : "/api/commands";
     }
     const result = await api(path, command); state.pending = null; committed = true;
     try { sessionStorage.removeItem(`cimiloop.pending.${state.context.project_id}`); } catch {}
@@ -222,13 +225,14 @@ const taskPanel = (task, data) => {
         }catch(error){if(generation!==costReadGeneration||!costOutput.isConnected)return;unknownCosts();throw error;}
       };
       const costQuery=button('查询原运行费用',readCosts);costQuery.disabled=state.context.agent_costs_available!==true;
+      const costRecord=button('记录原账单费用',()=>mutation('RecordRunObservation',{}, {object_type:'run',id:run.id},run.revision,'technical_owner',false,true));costRecord.disabled=state.context.agent_costs_available!==true;
       const start=button(pendingStart.pending ? "核对原启动请求" : "启动原 Agent 运行",()=>startAgent(run.id));
       start.disabled=state.context.agent_start_available!==true || !pendingStart.available;
       if(!pendingStart.available)result.append(paragraph("浏览器无法读取原启动身份，启动暂不可用；仍可查询和停止原运行。"));
-      result.append(node("div", { class: "row" }, start, button("查询原运行", () => observe("")), costQuery, button("采集原资料", () => observe("collect")),
+      result.append(node("div", { class: "row" }, start, button("查询原运行", () => observe("")), costQuery, costRecord, button("采集原资料", () => observe("collect")),
         button("记录原运行观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
         ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,costOutput,
-        ...(state.context.agent_costs_available===true?[]:[paragraph('原账户费用查询尚未接入。')]),
+        ...(state.context.agent_costs_available===true?[paragraph('原账单费用记录只更新核定现金用量；执行终态与剩余预算结清继续待核对。')]:[paragraph('原账户费用查询与记录尚未接入。')]),
         paragraph(state.context.agent_start_available===true ? "原启动组合已安装，启动仍核对当前授权、模型账户及预算。结果与费用未结清前继续保留预算。" : "正式 Agent 启动组合尚未安装。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
     }
     result.append(form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision,

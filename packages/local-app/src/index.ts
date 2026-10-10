@@ -41,4 +41,5 @@ export type {AgentDedicatedModelContext} from './agent-dedicated-account-local.j
 export {LocalAgentModelAdmission} from './agent-model-admission-local.js';
 export {LocalAgentAccountBilling} from './agent-account-billing-local.js';
 export {LocalHumanAgentAccountBilling} from './agent-account-billing-entry-local.js';
+export{LocalHumanAgentRunCostObservation}from'./agent-run-cost-observation-local.js';
 export type {HumanAgentAccountFactory,AgentAccountBillingLease} from './agent-account-billing-entry-local.js';

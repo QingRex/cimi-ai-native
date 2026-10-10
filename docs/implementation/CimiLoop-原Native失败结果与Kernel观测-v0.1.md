@@ -1,5 +1,7 @@
 # CimiLoop 原 Native 失败结果与 Kernel 观测 v0.1
 
+2026-10-10 D-260：原模型请求、账户占用和认证账单已逐笔接入共享Human费用观测、Kernel独立再核验、同一编译CLI及工作台原命令恢复。实际Kernel现金记入12、剩余88继续冻结；Run仍Unknown，不满足Task或ReconcileRun结清。真实Windows原账单保管漂移拒绝新观测，已提交回执仍按原命令重放。测试模型／批准／账单认证为公开构造，非真实智谱或SDK完整终态、Skill／Matt／Superpowers／S1证据；专用Native/Bun故障和四项账户确认继续。默认正式Agent关闭，项目库10／242 Schema保持，完整五组持续。 [实施记录](CimiLoop-原账单费用Kernel接通-v0.1.md)。
+
 2026-10-10 D-254：[原Native输入关闭与执行中断](CimiLoop-原Native输入关闭与执行中断-v0.1.md)已接受控EOF、原进程是否恢复的不可变证明、共享原采集 / Kernel核验及工作台提示；损坏输入仍失败，原Unknown与费用保留。正式默认Agent、真实模型 / Skill / 方法与完整五组S1继续；本批最终验证以新研究记录为准，以下旧批结果保留原范围。
 
 2026-10-09 D-249后续负向执行事实读取支持[launcher2原控制器证明](CimiLoop-原恢复控制器保留与编译配方-v0.1.md)，须匹配唯一claim冻结输入，拒绝降级。旧launcher1负向格式兼容保持，不能升级领域成功或结清费用。

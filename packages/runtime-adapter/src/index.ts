@@ -64,3 +64,4 @@ export { parseAgentModelOriginalEvidence, type AgentModelOriginalEvidence } from
 export {resolveOriginalWorkspaceFileChain} from './workspace-check-source-basis.js';
 
 export type {DedicatedAgentBill, DedicatedAgentBillItem, DedicatedAgentBillVerification} from "./agent-account-bills.js";
+export{readOriginalDedicatedAgentRunCosts}from'./agent-run-cost-evidence.js';
