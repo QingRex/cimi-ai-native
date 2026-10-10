@@ -13,6 +13,7 @@ import { parseWorkspaceCheckCatalog, parseWorkspaceCheckCall, type WorkspaceChec
 import { AgentRuntimeModelHost } from "./agent-runtime-model.js";
 import { AgentWorkspaceIpcJournal } from "./agent-workspace-ipc-journal.js";
 import { AgentRunBudget } from "./agent-run-budget.js";
+import {AgentNamedMethodHost,type AgentNamedMethodReceipt} from "./agent-named-method-host.js";
 
 const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join(",") === [...keys].sort().join(",");
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
@@ -49,6 +50,7 @@ interface Options {
   execute: (input: WorkspaceToolInvocation) => Promise<{ receipt: WorkspaceToolReceipt; replay: boolean }>;
   checks?: { catalog: WorkspaceCheckCatalog; execute: (input: WorkspaceCheckCall) => Promise<{ receipt: WorkspaceCheckReceipt; replay: boolean }> };
   model?: AgentRuntimeModelHost;
+  method?: AgentNamedMethodHost;
   cancel: () => Promise<void>;
 }
 export interface AgentWorkspaceIpcEndpoint { pipe: string; scope_digest: string; check_catalog_digest: string | null; peer: CreditProcessIdentity; supervisor: CreditProcessIdentity; appcontainer_sid: string | null; model_admission_digest?: string }
@@ -130,6 +132,7 @@ export class AgentWorkspaceToolIpc {
     if (options.nonce !== undefined && !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(options.nonce)) fail("agent_ipc_nonce_invalid");
     if(options.runBudget!==undefined&&!(options.runBudget instanceof AgentRunBudget))fail("agent_ipc_task_budget_invalid");
     const scope = parseAgentWorkspaceToolScope(options.scope), originalPeer = copyToolJson(options.originalPeer), originalSupervisor = copyToolJson(options.originalSupervisor);
+    if(options.method!==undefined&&(!(options.method instanceof AgentNamedMethodHost)||options.checks||!(options.model instanceof AgentRuntimeModelHost)||JSON.stringify(options.model.toolNames)!==JSON.stringify(["cimi_invoke_skill","cimi_read_method_resource"])))fail("agent_method_scope_denied");options.method?.assertScope(scope);
     const budget=options.runBudget;budget?.assertScope(scope);const taskDeadline=budget?.nativeDeadlineUptimeMs;
     if(taskDeadline!==undefined&&(!Number.isSafeInteger(taskDeadline)||taskDeadline<=0))fail("agent_ipc_task_budget_invalid");
     if (!validWorkspaceWorkerIdentity(originalPeer) || originalPeer.pid === process.pid || !validWorkspaceWorkerIdentity(originalSupervisor) ||
@@ -141,7 +144,7 @@ export class AgentWorkspaceToolIpc {
       ...(options.checks ? { checks: { catalog: parseWorkspaceCheckCatalog(options.checks.catalog, scope), execute: options.checks.execute } } : {}) };
     const binary = await buildWindowsAgentWorkspaceTransport(captured.toolsDirectory, captured.signal);
     if (captured.signal?.aborted) fail("agent_ipc_aborted");
-    budget?.assertScope(scope);if(budget?.nativeDeadlineUptimeMs!==taskDeadline)fail("agent_ipc_task_budget_changed");
+    captured.method?.assertScope(scope);budget?.assertScope(scope);if(budget?.nativeDeadlineUptimeMs!==taskDeadline)fail("agent_ipc_task_budget_changed");
     if (captured.supervisor.exitCode !== null || captured.supervisor.signalCode !== null || captured.supervisor.killed) fail("agent_ipc_peer_unproven");
     if (digest(bytesAt(binary.path)).value !== binary.digest.value) fail("agent_ipc_binary_changed");
     const host = new AgentWorkspaceToolIpc(captured, binary.path, binary.digest.value, taskDeadline);
@@ -150,7 +153,7 @@ export class AgentWorkspaceToolIpc {
   private async respond(bytes: Buffer, requestDigest: string) {
     if (!this.originals) fail("agent_ipc_originals_unproven");
     const ticket = this.originals.request(bytes, requestDigest);
-    let receipt: WorkspaceToolReceipt | WorkspaceCheckReceipt | Awaited<ReturnType<AgentRuntimeModelHost["execute"]>>["receipt"] | null = null, replay = false, reason: string | null = null, callId: string | null = null;
+    let receipt: AgentNamedMethodReceipt | WorkspaceToolReceipt | WorkspaceCheckReceipt | Awaited<ReturnType<AgentRuntimeModelHost["execute"]>>["receipt"] | null = null, replay = false, reason: string | null = null, callId: string | null = null;
     try {
       const frame = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(bytes), TOOL_RECORD_BYTES) as Record<string, unknown>;
       if (this.stopped) fail("agent_ipc_closed");
@@ -158,6 +161,13 @@ export class AgentWorkspaceToolIpc {
         if (!(this.options.model instanceof AgentRuntimeModelHost)) fail("agent_model_admission_unavailable");
         callId = typeof frame.call_id === "string" ? frame.call_id : null;
         const result = await this.options.model.execute(frame, this.options.signal); receipt = result.receipt; replay = result.replay;
+      } else if (frame && ['invoke_skill','read_method_resource'].includes(String(frame.tool))) {
+        if(!(this.options.method instanceof AgentNamedMethodHost))fail('agent_method_effect_denied');
+        callId=typeof frame.call_id==='string'?frame.call_id:null;
+        if(this.options.runBudget)await this.options.runBudget.remaining(this.options.signal);
+        const result=await this.options.method.execute(frame,this.options.signal);receipt=result.receipt;replay=result.replay;
+      } else if (this.options.method) {
+        fail("agent_method_scope_denied");
       } else if (frame && frame.tool === "run_check") {
         if (!this.options.checks) fail("agent_ipc_frame_denied");
         const input = agentWorkspaceIpcCheckInvocation(this.scope, this.options.checks.catalog, frame); callId = input.call_id;

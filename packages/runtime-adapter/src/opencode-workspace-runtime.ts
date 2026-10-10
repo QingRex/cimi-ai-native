@@ -1,6 +1,7 @@
 import {selectAgentRuntimeLifetime} from "./agent-runtime-lifetime.js";
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import { AgentRuntimeModelHost } from "./agent-runtime-model.js";
+import {AgentNamedMethodHost} from "./agent-named-method-host.js";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -31,7 +32,7 @@ export type ProductionOptions = Omit<SharedOptions,"connect"> & {
  connect: (supervisor: ChildProcess, originalSupervisor: CreditProcessIdentity, originalPeer: CreditProcessIdentity, nonce: string, signal: AbortSignal, model: AgentRuntimeModelHost) => Promise<Pick<AgentWorkspaceToolIpc,"getEndpoint"|"snapshot"|"close">>;
  // Trusted installed application guard only; never serialized into a Native config.
  beforeNativeEffect?: () => void;
- mode: "host_gateway"; prompt: string; model: AgentRuntimeModelHost; checkCatalog: WorkspaceCheckCatalog;
+ mode: "host_gateway"; prompt: string; model: AgentRuntimeModelHost; checkCatalog?: WorkspaceCheckCatalog; method?: AgentNamedMethodHost;
  runBudget: NonNullable<SharedOptions["runBudget"]>;
 };
 // Executable SDK/Native composition, not default production activation. The
@@ -50,9 +51,11 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const scope = parseAgentWorkspaceToolScope(options.scope), requestedElapsed = options.maxElapsedMs, checksOnly = options.mode === "checks";
   const production = options.mode === "host_gateway";
   const model = production ? options.model : undefined;
+  const method=production?options.method:undefined;
+  if(method!==undefined&&(!(method instanceof AgentNamedMethodHost)||options.checkCatalog||JSON.stringify(model?.toolNames)!==JSON.stringify(["cimi_invoke_skill","cimi_read_method_resource"])))fail("agent_method_scope_denied");method?.assertScope(scope);
   const beforeNativeEffect = production ? options.beforeNativeEffect : undefined;
   if(beforeNativeEffect !== undefined && typeof beforeNativeEffect !== "function") fail("agent_runtime_start_guard_unavailable");
-  if (production && (!(model instanceof AgentRuntimeModelHost) || !options.runBudget || !options.checkCatalog || typeof options.prompt !== "string" || !options.prompt.isWellFormed() || !options.prompt.trim() || Buffer.byteLength(options.prompt) > 32768 || Buffer.byteLength(JSON.stringify({prompt:options.prompt})) > 48000 || options.prompt.split(/\r?\n/).length > 1000 || options.prompt.split(/\r?\n/).some(line => Buffer.byteLength(line) > 1800))) fail("agent_runtime_production_admission_unavailable");
+  if (production && (!(model instanceof AgentRuntimeModelHost) || !options.runBudget || (!options.checkCatalog && !method) || typeof options.prompt !== "string" || !options.prompt.isWellFormed() || !options.prompt.trim() || Buffer.byteLength(options.prompt) > 32768 || Buffer.byteLength(JSON.stringify({prompt:options.prompt})) > 48000 || options.prompt.split(/\r?\n/).length > 1000 || options.prompt.split(/\r?\n/).some(line => Buffer.byteLength(line) > 1800))) fail("agent_runtime_production_admission_unavailable");
   if (model && production && model.taskPacketDigest !== digest(options.prompt).value) fail("agent_model_task_packet_mismatch");
   if (options.mode !== undefined && !["files", "checks", "host_gateway"].includes(options.mode)) fail("workspace_rehearsal_input_invalid");
 
@@ -80,7 +83,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const identityBinary = await buildWindowsLauncher(root, lifetime.signal);
   lifetime.check();
   const pinned = pinBinary(root, binaryPath), binaryOriginal=readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value); lifetime.check();
-  const originalModules = ["agent-workspace-ipc-client.mjs", "opencode-workspace-tools.js", production ? "opencode-host-gateway-provider.mjs" : "opencode-workspace-provider-fixture.mjs"].map(name => {
+  const originalModules = ["agent-workspace-ipc-client.mjs", method?"opencode-named-method-tools.mjs":"opencode-workspace-tools.js", production ? "opencode-host-gateway-provider.mjs" : "opencode-workspace-provider-fixture.mjs"].map(name => {
     const bytes = bytesAt(fileURLToPath(new URL(`../transport/${name}`, import.meta.url))); return { name, bytes, digest: digest(bytes) };
   });
   const owner = (await nativeControl(identityBinary, ["--identity", String(process.pid)], lifetime.signal)).value;
@@ -88,7 +91,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   budget?.assertScope(scope);
   const claim = claimAgentRuntimeOperation(root, scope, { purpose: production ? "agent_runtime" : "workspace_rehearsal", mode: production ? "host_gateway" : checksOnly ? "checks" : "files", binary_digest: pinned.digest,binary_original:binaryOriginal,
     sandbox_digest: sandboxBinary.digest, sandbox_original:sandboxBinary.original, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
-    provider_options: providerOptions, ...(production ? { prompt: options.prompt,...(model?.originalBinding?{model_original_binding:model.originalBinding}:{}) } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
+    provider_options: providerOptions, ...(method?{method_original_binding:method.originalBinding}:{}), ...(production ? { prompt: options.prompt,...(model?.originalBinding?{model_original_binding:model.originalBinding}:{}) } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
   cancellationWatch = setInterval(() => { try { if (agentRuntimeCancellationRequested(root, scope)) lifetime.stop("workspace_rehearsal_cancel_requested"); }
     catch { lifetime.stop("workspace_rehearsal_claim_unproven"); } }, 100);
   lifetime.check();
@@ -103,7 +106,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   if (checkCatalog) {
     const bytes = JSON.stringify(checkCatalog); writeFileSync(join(config, "check-catalog.json"), bytes, { flag: "wx" }); modules.push({ name: "check-catalog.json", digest: digest(bytes) });
   }
-  const entry = 'import { createOpenCodeWorkspaceTools } from "../opencode-workspace-tools.js";\n' +
+  const entry = method ? 'import {createOpenCodeNamedMethodTools} from "../opencode-named-method-tools.mjs";\nconst tools=createOpenCodeNamedMethodTools({pipe:process.env.CIMILOOP_AGENT_WORKSPACE_PIPE,scope_digest:process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE,profile_digest:'+JSON.stringify(method.profileDigest)+'});\nexport const invoke_skill=tools.invoke_skill;\nexport const read_method_resource=tools.read_method_resource;\n' : 'import { createOpenCodeWorkspaceTools } from "../opencode-workspace-tools.js";\n' +
     (checkCatalog ? 'import { readFileSync } from "node:fs";\nconst catalog = JSON.parse(readFileSync(new URL("../check-catalog.json", import.meta.url), "utf8"));\n' : '') +
     'const tools = createOpenCodeWorkspaceTools({ pipe: process.env.CIMILOOP_AGENT_WORKSPACE_PIPE, scope_digest: process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE }' + (checkCatalog ? ', catalog' : '') + ');\n' +
     (checksOnly ? '' : 'export const read = tools.read;\nexport const replace = tools.replace;\n') + (checkCatalog ? 'export const check = tools.check;\n' : '');
@@ -113,7 +116,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const globalConfig = directory(join(config, "global", "opencode")); writeFileSync(join(globalConfig, ".gitignore"), "node_modules\npackage.json\npackage-lock.json\nbun.lock\n.gitignore\n", { flag: "wx" });
   writeFileSync(join(operation, "workspace-private-canary.txt"), "Synthetic private workspace canary\n", { flag: "wx" });
   const nonce = randomUUID(), pipeNonce = randomUUID(), scopeDigest = agentWorkspaceIpcScopeDigest(scope);
-  const originalConfig = { format:"cimiloop/agent-workspace-sandbox-config/5.0.0", binary_original:binaryOriginal, nonce, root: sandbox, binary: pinned.path, owner,
+  const originalConfig = { format:method?"cimiloop/agent-workspace-sandbox-config/6.0.0":"cimiloop/agent-workspace-sandbox-config/5.0.0", ...(method?{method_tools:"fixed_named_method/1.0.0",method_original_binding:method.originalBinding}:{}), binary_original:binaryOriginal, nonce, root: sandbox, binary: pinned.path, owner,
     pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null, prompt:production?options.prompt:null, lifetime_policy:production?policy.policy:null };
   atomicJson(join(operation, "original-config.json"), originalConfig);
   if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
@@ -221,7 +224,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     const result = { format: production ? "cimiloop/opencode-workspace-runtime/1.0.0" : "cimiloop/opencode-workspace-rehearsal/1.0.0", operation, mode: production ? "host_gateway" : checksOnly ? "checks" : "files", original_scope_digest: scopeDigest, check_catalog_digest: checkCatalog?.catalog_digest ?? null, sandbox: original, modules,
       binary_digest: pinned.digest, stdout_ref: rawReference(root, stdout, "workspace_sdk_original"), stderr_ref: rawReference(root, stderr, "workspace_sdk_stderr"),
       native_exit: exit, disposal, channel: channel.snapshot(), events, source_bytes_unchanged: unchanged, output_limit_exceeded: outputFailure,
-      synthetic_model_responses: production ? null : true, actual_credentials_read: production ? null : 0, external_model_requests: production ? null : 0, model_admission_digest: model?.admissionDigest ?? null, formal_agent_execution_enabled: false };
+      ...(method?{method_original_binding:method.originalBinding}:{}), synthetic_model_responses: production ? null : true, actual_credentials_read: production ? null : 0, external_model_requests: production ? null : 0, model_admission_digest: model?.admissionDigest ?? null, formal_agent_execution_enabled: false };
     atomicJson(join(operation, "result.json"), result);
     if (exit.code !== 0 || exit.signal || outputFailure || !unchanged || !disposal || disposal.format !== "cimiloop/agent-workspace-sandbox/1.0.0" ||
       disposal.phase !== "ended" || disposal.nonce !== nonce || disposal.reason !== "exited" || disposal.exit_code !== 0 || disposal.resources_disposed !== true ||

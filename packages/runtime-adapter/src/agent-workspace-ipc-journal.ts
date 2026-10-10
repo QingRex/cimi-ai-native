@@ -110,7 +110,7 @@ export function correlateAgentWorkspaceSdkOriginals(originals: ReturnType<typeof
     const event = json(Buffer.from(line), 2 * 1024 * 1024) as Record<string, unknown>;
     if (!event || event.type !== "tool_use") continue;
     const part = event.part as Record<string, unknown>;
-    if (!part || !id(part.sessionID) || part.sessionID !== event.sessionID || !id(part.messageID) || !id(part.callID) || !["cimi_read", "cimi_replace", "cimi_check"].includes(String(part.tool))) fail();
+    if (!part || !id(part.sessionID) || part.sessionID !== event.sessionID || !id(part.messageID) || !id(part.callID) || !["cimi_read", "cimi_replace", "cimi_check","cimi_invoke_skill","cimi_read_method_resource"].includes(String(part.tool))) fail();
     const callId = "sdk_" + digest(JSON.stringify([part.sessionID, part.messageID, part.callID])).value;
     if (parts.has(callId) || parts.size >= 128) fail(); parts.set(callId, part);
   }
@@ -118,18 +118,19 @@ export function correlateAgentWorkspaceSdkOriginals(originals: ReturnType<typeof
     const request = exchange.request as Record<string, unknown> | null, reply = exchange.reply as Record<string, unknown> | null, part = request && parts.get(String(request.call_id));
     let correlated = false;
     if (request && reply && part && request.scope_digest === (originals.header?.endpoint as AgentWorkspaceIpcEndpoint).scope_digest) {
-      const state = part.state as Record<string, unknown>, tool = ({ read_file: "cimi_read", replace_file: "cimi_replace", run_check: "cimi_check" } as Record<string, string>)[String(request.tool)];
-      const args = request.tool === "run_check" ? { check_id: request.check_id } : { path: request.path, expected_digest: request.expected_digest, ...(request.tool === "replace_file" ? { replacement_utf8: request.replacement_utf8 } : {}) };
+      const state = part.state as Record<string, unknown>, tool = ({ read_file: "cimi_read", replace_file: "cimi_replace", run_check: "cimi_check",invoke_skill:"cimi_invoke_skill",read_method_resource:"cimi_read_method_resource" } as Record<string, string>)[String(request.tool)];
+      const named=["invoke_skill","read_method_resource"].includes(String(request.tool));
+      const args = named?{[request.tool==="invoke_skill"?"name":"path"]:request.argument}:request.tool === "run_check" ? { check_id: request.check_id } : { path: request.path, expected_digest: request.expected_digest, ...(request.tool === "replace_file" ? { replacement_utf8: request.replacement_utf8 } : {}) };
       if (state && part.tool === tool && isDeepStrictEqual(state.input, args)) {
         if (reply.outcome === "denied") correlated = state.status === "error" && typeof state.error === "string" && state.error.includes(String(reply.reason));
         else if (state.status === "completed" && typeof state.output === "string") {
           const receipt = reply.receipt as Record<string, unknown>, native = receipt?.native as Record<string, unknown>;
-          const expected = request.tool === "run_check" ? { format: receipt.format==="cimiloop/workspace-check-receipt/2.0.0" ? "cimiloop/opencode-check-output/2.0.0" : "cimiloop/opencode-check-output/1.0.0", ...(receipt.format==="cimiloop/workspace-check-receipt/2.0.0"?{source_basis_digest:receipt.source_basis_digest}:{}), call_id: request.call_id, check_id: request.check_id,
+          const expected = named?{...receipt,replay:reply.replay}:request.tool === "run_check" ? { format: receipt.format==="cimiloop/workspace-check-receipt/2.0.0" ? "cimiloop/opencode-check-output/2.0.0" : "cimiloop/opencode-check-output/1.0.0", ...(receipt.format==="cimiloop/workspace-check-receipt/2.0.0"?{source_basis_digest:receipt.source_basis_digest}:{}), call_id: request.call_id, check_id: request.check_id,
             check_catalog_digest: request.check_catalog_digest, outcome: receipt.outcome, exit_code: receipt.exit_code, reason: receipt.reason, source_digest: receipt.source_digest,
             stdout_digest: receipt.stdout_digest, stderr_digest: receipt.stderr_digest, replay: reply.replay, formal_agent_execution_enabled: false } :
             native ? { format: "cimiloop/opencode-workspace-output/1.0.0", call_id: request.call_id, tool: request.tool, path: request.path, before_digest: native.before_digest,
               after_digest: native.after_digest, text: native.text, replay: reply.replay, formal_agent_execution_enabled: false } : null;
-          try { correlated = receipt?.run_id === (originals.header?.scope as AgentWorkspaceToolScope).run_id && receipt.call_id === request.call_id &&
+          try { correlated = (named?receipt?.scope_digest===request.scope_digest&&receipt?.profile_digest===request.profile_digest:receipt?.run_id === (originals.header?.scope as AgentWorkspaceToolScope).run_id) && receipt.call_id === request.call_id &&
             isDeepStrictEqual(json(Buffer.from(state.output)), expected); } catch { correlated = false; }
         }
       }

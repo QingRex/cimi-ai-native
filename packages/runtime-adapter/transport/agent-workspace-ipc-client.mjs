@@ -29,6 +29,7 @@ function json(source) {
   visit(0); ws(); if (at !== source.length) throw Error("invalid"); return JSON.parse(source);
 }
 function receiptValid(value, frame) {
+  if (['invoke_skill','read_method_resource'].includes(frame.tool)) return exact(value,['format','scope_digest','profile_digest','call_id','request_digest','function_name','argument','resource_path','resource_digest','text','formal_agent_execution_enabled']) && value.format==='cimiloop/agent-named-method-receipt/1.0.0' && value.scope_digest===frame.scope_digest && value.profile_digest===frame.profile_digest && value.call_id===frame.call_id && value.request_digest===hash(JSON.stringify(frame)) && value.function_name===frame.tool && value.argument===frame.argument && typeof value.resource_path==='string' && sha(value.resource_digest) && typeof value.text==='string' && value.text.isWellFormed() && Buffer.byteLength(value.text)<=50*1024 && hash(value.text)===value.resource_digest && value.formal_agent_execution_enabled===false;
   if (frame.tool === "model_step") return exact(value, ["content", "usage", "finish"]) && Array.isArray(value.content) && value.content.length > 0 && value.content.length <= 8 &&
     exact(value.usage, ["input_tokens", "output_tokens"]) && [value.usage.input_tokens, value.usage.output_tokens].every(n => Number.isSafeInteger(n) && n >= 0 && n <= 1000000) &&
     value.usage.output_tokens <= frame.max_output_tokens && ["stop", "tool_calls"].includes(value.finish);
@@ -53,13 +54,14 @@ const originalTaskWait=process.env.CIMILOOP_AGENT_TASK_WAIT_MS;
 if(originalTaskWait!==undefined&&(!/^[1-9][0-9]*$/.test(originalTaskWait)||!Number.isSafeInteger(Number(originalTaskWait))||Number(originalTaskWait)>3600000))throw Error("agent_ipc_task_deadline_invalid");
 const taskWaitDeadline=originalTaskWait===undefined?null:performance.now()+Number(originalTaskWait);
 const exchangeFrame = (pipe, request, signal, model) => new Promise((done, fail) => {
+  const method=model==='method'; model=model===true;
   let frame, payload;
   try {
     payload = Buffer.from(JSON.stringify(request)); frame = json(payload.toString("utf8"));
     if (!/^\\\\\.\\pipe\\CimiLoop\.AgentWorkspace\.[a-f0-9-]{36}$/.test(pipe) || payload.length < 1 || payload.length > maximum || signal?.aborted ||
-      !exact(frame, ["format", "scope_digest", "call_id", "tool", ...(model ? ["admission_digest", "prompt", "tools", "max_output_tokens"] : frame.tool === "run_check" ? ["check_id", "check_catalog_digest"] : ["path", "expected_digest", ...(frame.tool === "replace_file" ? ["replacement_utf8"] : [])])]) ||
-      frame.format !== (model ? "cimiloop/agent-runtime-model-request/1.0.0" : "cimiloop/agent-workspace-tool-request/1.0.0") || !sha(frame.scope_digest) || typeof frame.call_id !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(frame.call_id) ||
-      !(model ? sha(frame.admission_digest) && frame.tool === "model_step" && Array.isArray(frame.prompt) && Array.isArray(frame.tools) && Number.isSafeInteger(frame.max_output_tokens) && frame.max_output_tokens > 0 && frame.max_output_tokens <= 512 : frame.tool === "run_check" ? typeof frame.check_id === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(frame.check_id) && sha(frame.check_catalog_digest) :
+      !exact(frame, ["format", "scope_digest", "call_id", "tool", ...(method ? ["profile_digest","argument"] : model ? ["admission_digest", "prompt", "tools", "max_output_tokens"] : frame.tool === "run_check" ? ["check_id", "check_catalog_digest"] : ["path", "expected_digest", ...(frame.tool === "replace_file" ? ["replacement_utf8"] : [])])]) ||
+      frame.format !== (method ? "cimiloop/agent-runtime-method-request/1.0.0" : model ? "cimiloop/agent-runtime-model-request/1.0.0" : "cimiloop/agent-workspace-tool-request/1.0.0") || !sha(frame.scope_digest) || typeof frame.call_id !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(frame.call_id) ||
+      !(method ? sha(frame.profile_digest) && ["invoke_skill","read_method_resource"].includes(frame.tool) && typeof frame.argument==='string' && frame.argument.isWellFormed() && frame.argument.length>0 && frame.argument.length<=240 : model ? sha(frame.admission_digest) && frame.tool === "model_step" && Array.isArray(frame.prompt) && Array.isArray(frame.tools) && Number.isSafeInteger(frame.max_output_tokens) && frame.max_output_tokens > 0 && frame.max_output_tokens <= 512 : frame.tool === "run_check" ? typeof frame.check_id === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(frame.check_id) && sha(frame.check_catalog_digest) :
         ["read_file", "replace_file"].includes(frame.tool) && typeof frame.path === "string" && sha(frame.expected_digest) && (frame.tool !== "replace_file" ||
           typeof frame.replacement_utf8 === "string" && Buffer.byteLength(frame.replacement_utf8) <= 16384))) throw Error("invalid");
   } catch { fail(Error("agent_ipc_request_denied")); return; }
@@ -103,3 +105,5 @@ export const createAgentWorkspaceToolClient = endpoint => {
 
 export const exchangeAgentWorkspaceToolFrame = (pipe, request, signal) => exchangeFrame(pipe, request, signal, false);
 export const exchangeAgentWorkspaceModelFrame = (pipe, request, signal) => exchangeFrame(pipe, request, signal, true);
+
+export const exchangeAgentNamedMethodFrame = (pipe,request,signal)=>exchangeFrame(pipe,request,signal,'method');

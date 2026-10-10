@@ -91,4 +91,4 @@ describe("original host model dispatch", () => {
   const pending=AgentRuntimeModelHost.initialize(f.root,f.scope,f.port,["cimi_read"],null,controller.signal);
   const stopped=expect(pending).rejects.toThrow("agent_model_original_aborted");controller.abort();release();await stopped;
   expect(existsSync(join(f.root,"agent-runtime-model-starts",f.scope.project_id,f.scope.run_id))).toBe(false);expect(f.sends()).toBe(0);
- });});
+ }); it('stages the exact named-method SDK pair without allowing mixed workspace tools',async()=>{const f=fixture();const host=await AgentRuntimeModelHost.initialize(f.root,f.scope,f.port,['cimi_invoke_skill','cimi_read_method_resource']);await host.check(f.scope);expect(f.sends()).toBe(0);const mixed=fixture();await expect(AgentRuntimeModelHost.initialize(mixed.root,mixed.scope,mixed.port,['cimi_invoke_skill','cimi_replace'])).rejects.toThrow('agent_model_admission_unavailable');});});

@@ -1,5 +1,7 @@
 # CimiLoop 原 Skill 子调用专用账户与模型组合 v0.1
 
+2026-10-10 D-268：固定命名方法已接生产 Native/OS IPC/实际 SDK 工具对，并提供原 Skill 共享应用工厂；保留真实父 Run、原 invocation_key/input_digest、父 Task 时钟及同一账户。命名模式独立禁止普通仓库工具，凭据排除整个实际数据根，内部配置6显式兼容和恢复不重开。实际 Native 正向夹具仍是构造模型/方法且直接组合 runtime ports，新 Local 工厂仅验证负向准入，尚无真实 Skill/领域结果/账单/Matt/Superpowers/S1 证明；默认 Agent 关闭、零付费、242 Schema/库10及完整五组 active 保持。最终验证、原二进制失败 Unknown 与后续条件见 [D-268实施记录](CimiLoop-named-method-native-composition-v0.1.md)。
+
 D-267 接入原 SkillInvocation 的专用账户共享应用服务和生产专用模型工厂。子调用保留真实父 Run ID，以原 invocation_key 和 input_digest 区分自己的操作；父子现金、积分在同一账户写事务内共享限额。创建模型端口不会发送请求。本批没有真实付费请求、真实 Key 读取、真实命名 Skill 或完整 Native 子执行，默认正式 Agent 关闭，完整 S1 持续目标保持 active。
 
 ## 已实现接口与接入

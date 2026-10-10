@@ -1,0 +1,3083 @@
+{
+  "record": "D-268",
+  "observed_at": "2026-10-10T15:45:30.500Z",
+  "baseline": {
+    "observed_at": "2026-10-10T15:38:44.291Z",
+    "branch": "main",
+    "head": "fa8bc6424dcd341ad349c6cce58931f91662e7b4",
+    "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+    "fresh_fetch": true,
+    "ahead_behind": "0\t35",
+    "pushed": false
+  },
+  "environment": {
+    "node": "24.19.0",
+    "pnpm": "12.4.2",
+    "public_schema": 242,
+    "project_database_format": 10,
+    "database_migrated": false,
+    "new_internal_native_config": "6.0.0",
+    "legacy_internal_native_configs_preserved": "1-5",
+    "native_fixture_placement": "Final new named Native fixture on D because C free space observed approximately 240 MB; retained C originals untouched."
+  },
+  "scope": {
+    "s1_accepted": false,
+    "continuous_goal_complete": false,
+    "formal_default_agent_enabled": false,
+    "paid_requests": 0,
+    "real_key_reads": 0,
+    "actual_provider_requests": 0,
+    "actual_builtin_skill_calls": 0,
+    "real_named_skill_behavior_qualified": false,
+    "local_positive_start_factory_path_proven": false,
+    "independent_named_domain_result_proven": false,
+    "real_bill_settled": false,
+    "matt_complete_review_proven": false,
+    "superpowers_fresh_verification_proven": false,
+    "full_native_active_orphan_node_loss_recovery_proven": false
+  },
+  "capabilities": {
+    "production_code_installed": [
+      "LocalSkillInvocationNativeComposition using actual inputs/custody/original dedicated account factory",
+      "same real parent Run, original child key/input digest, shared parent Task clock",
+      "fixed materials/physical anchor and bounded original call receipts",
+      "exact custom SDK named tool pair and authenticated broker denial of ordinary effects",
+      "original raw SDK method name/arguments/output correspondence",
+      "whole actual dataDirectory credential boundary and revalidation before actual credential read",
+      "explicit config6 identity/EOF/cancel/failure/resource compatibility without Node loss blocking controller custody"
+    ],
+    "evidence_boundaries": [
+      "Runtime positive Native tests directly compose ports and use constructed model/qualification/method fixture; Local factory only negative staging/install contracts.",
+      "Native/SDK byte correspondence is not independent semantic method effect or domain output qualification.",
+      "Node-loss actual recovery case uses only newly created already-ended owned fixture; not active orphan cleanup or old-machine Unknown disposal.",
+      "Ordinary parent Run terminal domain/bill service remains config5 with original file/check/domain evidence; method config6 cannot be promoted into it."
+    ]
+  },
+  "validation": [
+    {
+      "file": "d268-affected-final.json",
+      "sha256": "9300c37d3943ae42832d5df6e81a14d60308592a5c7f491c735e497fcf4ab252",
+      "purpose": "Final 15 affected files on fixed current source; controlled account/model/qualification boundaries.",
+      "files": 15,
+      "passed": 245,
+      "failed": 0,
+      "skipped_or_filtered": 0,
+      "unhandled": 0,
+      "success": true
+    },
+    {
+      "file": "d268-windows-final.json",
+      "sha256": "fc3baac1122d1da2fdf6c996bbf86df4aa458f09d41bf8c71cb0bcf05447f986",
+      "purpose": "Actual final Windows AppContainer/SDK and OS authenticated broker plus bounded config6 resource read/recovery; constructed method/model, no paid account.",
+      "files": 2,
+      "passed": 11,
+      "failed": 0,
+      "skipped_or_filtered": 0,
+      "unhandled": 0,
+      "success": true
+    }
+  ],
+  "retained_development": [
+    {
+      "file": "d268-host-red.json",
+      "sha256": "314cdd64de3fbfe2cc78119d7cf3083a7f04325a7e257bb3ba9c756d1a6ef212",
+      "purpose": "INVALID fixture admission red; not behavioral evidence",
+      "files": 1,
+      "passed": 0,
+      "failed": 3,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-host-correct-red.json",
+      "sha256": "4473bcfea493a08d16a8b3372cbc3add23be17c48d7da3c01d5230a21864176d",
+      "purpose": "Valid missing-host contract red",
+      "files": 1,
+      "passed": 0,
+      "failed": 3,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-model-red.json",
+      "sha256": "46b66a123835a58ca075641f3bab5496dbb4320cd05a58f7a70dab00e885505c",
+      "purpose": "Exact model method pair denied before support",
+      "files": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped_or_filtered": 12,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-native-red.json",
+      "sha256": "c73622fbb822c96437555b5ce9d9385be54a70d1d3002b6ef6da2f1a5c9de059",
+      "purpose": "INVALID unresolved test import red; not Native behavior evidence",
+      "files": 1,
+      "passed": 0,
+      "failed": 0,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-native-correct-red.json",
+      "sha256": "6dbebe095468004eea5f11f0f0158429f1aaa0f85f8127531a92b789274fd380",
+      "purpose": "Production method admission correctly failed before implementation",
+      "files": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-native-first.json",
+      "sha256": "35a64a12f17003b7fb919393f17bdafadd8e41a61fd987593b68576cedb622f3",
+      "purpose": "Native execution reached 6 constructed model calls and 5 method SDK calls; collection test used nonexistent nonce field",
+      "files": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-native-second.json",
+      "sha256": "0561c75db1af1e9a5729ecbd5b94817900e548f72b3b9fce9866ab4687131c89",
+      "purpose": "Actual original binary retention failed before Native claim; original incomplete reservation retained Unknown",
+      "files": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-local-red.json",
+      "sha256": "80393a12f5710bf09a0114ae888b88c952f899a1d5943b647ef5d586cfddc8f7",
+      "purpose": "Absent production Local composition factory, 2 negative contracts red",
+      "files": 1,
+      "passed": 0,
+      "failed": 2,
+      "skipped_or_filtered": 20,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-guard-red.json",
+      "sha256": "51c402950b684dc8a63527dde8f9f1472637cf8477e314fc555f0169afb3275f",
+      "purpose": "Async guard callbacks wrongly accepted and fixture Promise rejected unhandled before repair",
+      "files": 1,
+      "passed": 3,
+      "failed": 2,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-broker-red.json",
+      "sha256": "a0162159272aaa217562767373591694781d1f78bbb218f215ac65ee40a62004",
+      "purpose": "Authenticated actual OS peer ordinary workspace frame reached forbidden execute before independent broker repair",
+      "files": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped_or_filtered": 9,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-config-red.json",
+      "sha256": "fd3c4e880d540815138144347848cd3547eb0a38fcb1b3fc678711e8e80e682b",
+      "purpose": "Config6 EOF/cancel/negative execution readers failed before explicit compatibility",
+      "files": 3,
+      "passed": 76,
+      "failed": 4,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-config-green.json",
+      "sha256": "015f9b64840a225b56de0e3f8c802f7ae2ac4bf866c5bfe7793ee83d199dae40",
+      "purpose": "93 pass/1 failure due public cancellation reason before normalization; not final pass",
+      "files": 4,
+      "passed": 93,
+      "failed": 1,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-credential-red.json",
+      "sha256": "dd978bc0455f79193f33203619aff33cb36768893dd97511c19ac8e873280dd8",
+      "purpose": "External common Git data root or sibling child credential path accepted before whole-data-root bound",
+      "files": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped_or_filtered": 38,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-windows-before-node-recovery.json",
+      "sha256": "f4b7feb5f18c46d6fe06b7febe51b39a7543f614574c36b8ee04a3dad40cdcdb",
+      "purpose": "10 pass/1 expected missing-Node resource-read regression during development; superseded only by new fixed-source run",
+      "files": 2,
+      "passed": 10,
+      "failed": 1,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-node-recovery-red.json",
+      "sha256": "9e22c02b35d89d46f32e5e45f977f4677e09774f046a285d0c1b748ce0e9afda",
+      "purpose": "Actual config6 Node absence blocked already-ended original controller resource disposition before separation",
+      "files": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": false
+    },
+    {
+      "file": "d268-node-recovery-green.json",
+      "sha256": "9c85b7b92418db9b3206ffce7b475cbe9b02eb147d0ec8eed06a4f2c1d9d9512",
+      "purpose": "Actual independent constructed method Native and ended-node-loss controller recovery pass before moving new fixture root to D",
+      "files": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped_or_filtered": 0,
+      "unhandled": null,
+      "success": true
+    },
+    {
+      "file": "d268-affected-before-resource-separation.json",
+      "sha256": "6a689290845fd9dcffe5dc29078416d9f78e944d448100cb7bf3251829ac544e",
+      "purpose": "234 affected contracts passed before the final resource identity split, not final current-source full pass",
+      "files": 14,
+      "passed": 234,
+      "failed": 0,
+      "skipped_or_filtered": 0,
+      "unhandled": 0,
+      "success": true
+    }
+  ],
+  "original_binary_failure": {
+    "root": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-named-runtime-iHThOJ",
+    "diagnostic": {
+      "file": "d268-binary-readonly-diagnostic.json",
+      "sha256": "aac0ae8f660cf3a1a77026468a6240408b8fc738b3a9ce68d2851b8c483a7a32"
+    },
+    "reservation_present": true,
+    "target_copy_present": false,
+    "sql_retained_row_present": false,
+    "copy_failure_root_cause_proven": false,
+    "resources_disposal_proven": false,
+    "old_originals_repaired_or_deleted": false,
+    "later_new_fixture_success_explains_failure": false
+  },
+  "review": {
+    "kind": "ordinary engineering source review",
+    "skill": "requesting-code-review",
+    "reviewer": "/root/review_native_result",
+    "must_fix_at_last_review": 0,
+    "previous_must_fix_repaired": [
+      "async authorization ignored",
+      "named IPC fell through to ordinary tools",
+      "config6 original cancellation/interruption/failure unsupported",
+      "child credential boundary omitted entire external data root",
+      "resource-only config6 identity incorrectly required missing Node"
+    ],
+    "tests_run_by_reviewer": false,
+    "real_skill_matt_superpowers_proof": false
+  },
+  "checks": {
+    "typecheck": {
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 15235,
+      "args": [
+        "C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-s1-tools\\node_modules\\pnpm\\bin\\pnpm.mjs",
+        "check"
+      ]
+    },
+    "cli_help": {
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1161,
+      "args": [
+        "apps/cli/dist/bin.js",
+        "--help"
+      ]
+    },
+    "schema": {
+      "exported": 242,
+      "tracked": 242,
+      "drift": []
+    },
+    "source": {
+      "files": 686,
+      "drift": [],
+      "hashes": [
+        {
+          "path": "apps\\cli\\package.json",
+          "sha256": "cbef6c41fd41f868fce0fca26a466e6a03b159424049bb6a4ca9a0391484491c"
+        },
+        {
+          "path": "apps\\cli\\src\\agent-account-costs.ts",
+          "sha256": "6b9ba5eda2ff7e177ef207231f4947057e0f80d22ee4f5a36c304cba0f064e5b"
+        },
+        {
+          "path": "apps\\cli\\src\\agent-run-cost-observation.ts",
+          "sha256": "48590770657381475f6b2495c087447e44c3832301d8db1e83f8d3c9439d3243"
+        },
+        {
+          "path": "apps\\cli\\src\\agent-runtime-start.ts",
+          "sha256": "e4810d725a6829016f0aeb95f75ed2e9b2d6eb6a71e47f177ad6e1fddcf534e5"
+        },
+        {
+          "path": "apps\\cli\\src\\bin.ts",
+          "sha256": "6d5347a71ec733c7e2c5f5313be4ed62c1d1bee2f4fd3adf41f45312ed7b7d02"
+        },
+        {
+          "path": "apps\\cli\\src\\commands.ts",
+          "sha256": "9c5abee5f769e91343239d58b24dc8e0370d0d7bbabe403d5d65cecf2a223bc3"
+        },
+        {
+          "path": "apps\\cli\\src\\evidence-local.ts",
+          "sha256": "3175901244fb9ba8c4c2f700fbf3cad4d9a58ba1bec0c487f0a06f14d290e846"
+        },
+        {
+          "path": "apps\\cli\\src\\input.ts",
+          "sha256": "38802077ca0dcefbd86ee583d7ae274fe1a21bd9b1193316fbc30a9df764c323"
+        },
+        {
+          "path": "apps\\cli\\src\\instance.ts",
+          "sha256": "5336394853eea941f50febfa27c5d0501bd08afe940557149bd05b7b71ea70ad"
+        },
+        {
+          "path": "apps\\cli\\src\\location.ts",
+          "sha256": "3ca752fdff05705e0f7ebad0856c788502d19e33aa73b98bff307885c4131eb3"
+        },
+        {
+          "path": "apps\\cli\\src\\output.ts",
+          "sha256": "d516c6ccbfc854dce19daf0ea93ed51341abba84a3b18d9721682bfac179fa74"
+        },
+        {
+          "path": "apps\\cli\\src\\providers-local.ts",
+          "sha256": "3a5eb4974ba9a47e9140694e44f0002b5a73ac1585ff005b08fb18192c27386e"
+        },
+        {
+          "path": "apps\\cli\\src\\runs-local.ts",
+          "sha256": "3acb31dbe92a6d98ee7e6ca26d219b3ab562190adeb1b10d0ec1752641c95749"
+        },
+        {
+          "path": "apps\\cli\\src\\runtime-probe.ts",
+          "sha256": "e7286cf6b316c48c802ca0566019374ec944970e412319eeff42174075684605"
+        },
+        {
+          "path": "apps\\cli\\test\\agent-account-costs.test.ts",
+          "sha256": "2d0000c5bfc5f698beb29131214c38b54c4bc332707f3a55afd0e1ee3fb73a1f"
+        },
+        {
+          "path": "apps\\cli\\test\\agent-run-cost-observation.test.ts",
+          "sha256": "317baa2d299910665d76a2aee03514ad9922a1fa40aa7dc923edd036469616be"
+        },
+        {
+          "path": "apps\\cli\\test\\agent-runtime-start.test.ts",
+          "sha256": "ac369079c7d7be6c558071c7ea1161864428ee2196045f0eecc96219aba99d5c"
+        },
+        {
+          "path": "apps\\cli\\test\\output.test.ts",
+          "sha256": "25a0605394171111199ef6da155ebc90a561a83cb340f451f9ddc45c52b9c785"
+        },
+        {
+          "path": "apps\\cli\\tsconfig.json",
+          "sha256": "af8303d561a978bad62793b9eaff4a3f36e148bfe43cbc44347cb4868bf4ed5c"
+        },
+        {
+          "path": "apps\\demo-web\\package.json",
+          "sha256": "aa71c21805497e987401ceb6fc30ad84e7caff7f4340a78d3d5727c72757f52e"
+        },
+        {
+          "path": "apps\\demo-web\\src\\demo\\commands.ts",
+          "sha256": "d763ad79eb04fbe311a71ce790bd96e649bed20626866879988acee07960edaa"
+        },
+        {
+          "path": "apps\\demo-web\\src\\demo\\reducer.ts",
+          "sha256": "b13e2acb7f4e2d81c30869ff55a0a987083d913c83558977067d161f0cf3ab84"
+        },
+        {
+          "path": "apps\\demo-web\\src\\demo\\scenario.ts",
+          "sha256": "7a0475fdb0e8a809d49ede62f8863a9a85ff69c76b47bf4a10b5bb61941a154a"
+        },
+        {
+          "path": "apps\\demo-web\\src\\demo\\types.ts",
+          "sha256": "2d9523240754d720077663184bb7cf2acdac32828c0760c5d311c04e78ec4335"
+        },
+        {
+          "path": "apps\\demo-web\\src\\tests\\reducer.test.ts",
+          "sha256": "a3cc8780c2ed5a8535b6a1ff99b113844d3db8671154a4c5fd816a9439429bae"
+        },
+        {
+          "path": "apps\\demo-web\\src\\tests\\setup.ts",
+          "sha256": "1ce2b8a77e5a528ab398be9ecda76510164f1652ca1dce812f9dacc1529b314a"
+        },
+        {
+          "path": "apps\\demo-web\\src\\vite-env.d.ts",
+          "sha256": "424faf9241dd699dda995b367ed36665732da1e6ec1f33b2fd40394488ecac92"
+        },
+        {
+          "path": "apps\\demo-web\\tsconfig.json",
+          "sha256": "aa152575b4fcc71ebcae7d2c4db08892d9e54dfcca565cdcfcfd83a4172b041a"
+        },
+        {
+          "path": "apps\\demo-web\\vite.config.ts",
+          "sha256": "2044d81760e1fe31926c25bb6fc085929f737f27e3bba80e1844a4ca17cfcaf7"
+        },
+        {
+          "path": "apps\\workbench\\package.json",
+          "sha256": "d7b2b919669de7c3d252e41b8bf97e5fd78d79a254cd63cc4b9a5c6efdb99a21"
+        },
+        {
+          "path": "apps\\workbench\\public\\app.js",
+          "sha256": "0352d43702cee0056ea6735bbe0ab2ed676cede85d03fbd8686186c4a99dac3a"
+        },
+        {
+          "path": "apps\\workbench\\src\\bin.ts",
+          "sha256": "1228d0d77c4bb8eba0fafe6a1445434826e54a653edffdab4516ddb505e2077c"
+        },
+        {
+          "path": "apps\\workbench\\src\\server.ts",
+          "sha256": "40f9e0495f0ea8bb64fc694ad1acd68c62d05ad309dd731dd2007195dfd5fd81"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-account-billing-frontend.test.ts",
+          "sha256": "7a95d84c098ad739deee56550564cc6ad8bd55d77d503494ecb71cef61823a69"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-account-billing.test.ts",
+          "sha256": "b2047ef9bea712c69e40aab7958d56a4f125998f8795f645c703483515ce26a1"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-run-cost-observation-frontend.test.ts",
+          "sha256": "454f952a2c05c99bdaed1f89a11d9e7aad54b697537a93119fce26c701ee3934"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-run-cost-observation.test.ts",
+          "sha256": "bcec35f0010021642ae05640647da87ff4b35b6d8ee80ccb628c7636c881b73b"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-runtime-control.test.ts",
+          "sha256": "fb667f55b31ae3f1278f03be54a377bb4150d8d693f0a3f75b320ae295f785fc"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-runtime-frontend.test.ts",
+          "sha256": "31bdc1fc3186345c5212f47d053935b68db6955998361976868f4cc30c4fdadf"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-runtime-start-frontend.test.ts",
+          "sha256": "cb1a2920052fa3bab843f87c07ff8fc27f9ae89c80d6daabcce63fe210345c1c"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-runtime-start-ownership.test.ts",
+          "sha256": "d928fea24d87351f18187f6dde8bbdee01c4dbd956a583e1859a2cd55e1ab0f0"
+        },
+        {
+          "path": "apps\\workbench\\test\\agent-runtime-start.test.ts",
+          "sha256": "dd15eb5e11f6602168ac62a2ad19adcb23f02616987dc2eb63ccbc8f720ee8b6"
+        },
+        {
+          "path": "apps\\workbench\\test\\clarification.test.ts",
+          "sha256": "1359621e85167e51e51333bf9ac07d004380361e77d1b8f42262a6af0904f47a"
+        },
+        {
+          "path": "apps\\workbench\\test\\frontend.test.ts",
+          "sha256": "7e6558cfcde546cb88efd0be06e872cc7491856776263c09f1db5d9fc0ae04d4"
+        },
+        {
+          "path": "apps\\workbench\\test\\plan-clarification.test.ts",
+          "sha256": "1e7eebe910db12ac9842f6dc9ee9e81c65f1b9802208cc50cdc86c3cf3a58a8f"
+        },
+        {
+          "path": "apps\\workbench\\test\\planning-clarification-admission.test.ts",
+          "sha256": "bbfe79bc2ca7933017dc13700672bca08bd260c237e3908ea11b195a3305dd75"
+        },
+        {
+          "path": "apps\\workbench\\test\\server.test.ts",
+          "sha256": "588d146b17ea8bef73977b52adeb169cc686e3c0a314f85f714430ac2bfaa37b"
+        },
+        {
+          "path": "apps\\workbench\\tsconfig.json",
+          "sha256": "09e7d1ed6aad9f9dfdc8aee3b50f21fa9742a0939868f3d5b025d30f48e421f0"
+        },
+        {
+          "path": "packages\\kernel\\package.json",
+          "sha256": "49d17ba7235399dd4542d7918a30855992add8afb222cc5cd33d162f83eac409"
+        },
+        {
+          "path": "packages\\kernel\\src\\agent-run-authority.ts",
+          "sha256": "9a1cdd86d4fa102c61aff01b415931b84feacf54d789e15f2d0cd154f79c910a"
+        },
+        {
+          "path": "packages\\kernel\\src\\agent-run-launch.ts",
+          "sha256": "1befb71ba72dfcf2493b4fce7f245a341be218e1a66fa4b942255ee665bb8bed"
+        },
+        {
+          "path": "packages\\kernel\\src\\agent-run-model.ts",
+          "sha256": "c3981fac9df449cd23ddb58ebc3a9664fd6767f0b786ce327b9ec66051503e49"
+        },
+        {
+          "path": "packages\\kernel\\src\\agent-runs.ts",
+          "sha256": "674ac7acafdeca93b0ac6e5bfd905ae0bbd9b3c583a0e11c09e16b811ada92d1"
+        },
+        {
+          "path": "packages\\kernel\\src\\agent-tool-authority.ts",
+          "sha256": "d0e7be36386ff7e70618e760480687e4c6841f43c39d89404fa47466b6d6f06e"
+        },
+        {
+          "path": "packages\\kernel\\src\\authorization.ts",
+          "sha256": "67fa949d1330c86cd42c294b47e0d886048643f623b8ed7e8efb37285e92a910"
+        },
+        {
+          "path": "packages\\kernel\\src\\canonical.ts",
+          "sha256": "2f6c5e1dc01af7e46b5643634202630a1ec2809e81e404800241703378897f23"
+        },
+        {
+          "path": "packages\\kernel\\src\\change.ts",
+          "sha256": "743180dc4748bc91b4c3b134c8cf1806aad2dcfebef5e7eb5efd38dac0dd76f8"
+        },
+        {
+          "path": "packages\\kernel\\src\\execution.ts",
+          "sha256": "312d1c56bedf0827527caf8f0907078d977f013270f584986a466e1ed03523c1"
+        },
+        {
+          "path": "packages\\kernel\\src\\flow.ts",
+          "sha256": "66f0c53e6b14967aa99b4c09a16d76e8bf64f84d19d34e810c404d49711ebb37"
+        },
+        {
+          "path": "packages\\kernel\\src\\governance.ts",
+          "sha256": "3c2ed62ef657cf1b60ebe41648e82052af0d912e0f346e029ad93e36fa460342"
+        },
+        {
+          "path": "packages\\kernel\\src\\index.ts",
+          "sha256": "40333ea8a621810a2a2dcb9f4134386db2e8b5a1c8083e5f7546424f4b2d05da"
+        },
+        {
+          "path": "packages\\kernel\\src\\intent.ts",
+          "sha256": "0d8a5a9093dd56fc88f85706ee08749237ea424ed5918a80138ac20414c4f785"
+        },
+        {
+          "path": "packages\\kernel\\src\\kernel.ts",
+          "sha256": "489d445660f5b5f8758c897a94047649156e979f5cf8bf24c5a2e744b3c0aa71"
+        },
+        {
+          "path": "packages\\kernel\\src\\planning-clarification.ts",
+          "sha256": "ae3b14c1e99702f7c28a4d41098933a71917ee5de994567c3bdd4d6179083904"
+        },
+        {
+          "path": "packages\\kernel\\src\\provider-assessment.ts",
+          "sha256": "7a69bacb464b632459194544b8c4ee46b7732f598b27bdade5d37534d5ead38b"
+        },
+        {
+          "path": "packages\\kernel\\src\\providers.ts",
+          "sha256": "532dfda030ee2317dcf79d5d7c02c9790acad197be1f356c00b9daf7cc34b908"
+        },
+        {
+          "path": "packages\\kernel\\src\\queries.ts",
+          "sha256": "f1f1502568b3d63c91096eaa73e3699020b2b831c3549df0f3ccc1785cc19977"
+        },
+        {
+          "path": "packages\\kernel\\src\\review-facts.ts",
+          "sha256": "94864cb7988f7d62e6784f064f616155aab6a7dde04ca32c256df2bda85dd281"
+        },
+        {
+          "path": "packages\\kernel\\src\\review.ts",
+          "sha256": "5275af5898977707449a6575b58e46a63d126da03188457ac7d2b4d3f514edcf"
+        },
+        {
+          "path": "packages\\kernel\\src\\runs.ts",
+          "sha256": "1c1be5236bb2f8fbd336392ba9506bae00d362e6b96df6ba81be5f7050f956f2"
+        },
+        {
+          "path": "packages\\kernel\\src\\skill-assessment.ts",
+          "sha256": "f9664679be9fa0698689764295d3d0d36ebf4ec035c9aafa6681a89fbf134b44"
+        },
+        {
+          "path": "packages\\kernel\\src\\skill-invocation-execution.ts",
+          "sha256": "328e1d694c767e423fd963d7ceb6fc0d9346ef99169724818ee10cd5fc233029"
+        },
+        {
+          "path": "packages\\kernel\\src\\skill-invocation-facts.ts",
+          "sha256": "580fb5139e47c8d217cf07e7feee87b2bc46017e6260b1fc6c5aeb2c8b41d78a"
+        },
+        {
+          "path": "packages\\kernel\\src\\skill-invocations.ts",
+          "sha256": "7beed6cbbb688b0730d72737b4da5a1ff9f18f31a4110eea0850fcac34cef6b3"
+        },
+        {
+          "path": "packages\\kernel\\src\\tool-authority.ts",
+          "sha256": "025d4eeb9b85928b10d2b66e95de8a787149ac9e76d2fb6b3ef45e6b1a575e0d"
+        },
+        {
+          "path": "packages\\kernel\\src\\v1.ts",
+          "sha256": "b1d6016226d5fd2104fae083fc3efa4ddbeb774705fc20dbddcbe235374c0709"
+        },
+        {
+          "path": "packages\\kernel\\src\\v1\\change.ts",
+          "sha256": "e8c5440e03812a8df3ac1eea772db0b9f43f5ba884b7065e3e87ea032ea0712a"
+        },
+        {
+          "path": "packages\\kernel\\src\\v1\\kernel.ts",
+          "sha256": "36e44adfca355b55d7688ad1521dc3e0e9ed28d952baa5f485f0a7f251031764"
+        },
+        {
+          "path": "packages\\kernel\\src\\verification-facts.ts",
+          "sha256": "c258a4ff999afac5a58e6b820c55568a137cec6433e3e423420ca82c030c2ea8"
+        },
+        {
+          "path": "packages\\kernel\\src\\verification.ts",
+          "sha256": "f12e31f1ea30840feeec69fedfc5517b31b3653518f6ec8e753dabe127c401b8"
+        },
+        {
+          "path": "packages\\kernel\\tsconfig.json",
+          "sha256": "05715e6f29e13acaf52934df2c23764f018b297e6723bc4c06c7965b17a47158"
+        },
+        {
+          "path": "packages\\local-app\\package.json",
+          "sha256": "7e79a1f1b7641722b02361a02e43eed5ddff1255934d7a4fd8467b514190113a"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-account-billing-entry-local.ts",
+          "sha256": "f0b585ac348196f0de825daf8680c93e6279c16b4588e0da58d0353c0b22c802"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-account-billing-local.ts",
+          "sha256": "26421a904cfae39da5551de35bd211ebe6225107c3212981f840c376d6df05e7"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-check-admission-local.ts",
+          "sha256": "6ab6042df9daca605847869c93e06fd9913b262549606125ab37ec2c41168605"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-dedicated-account-local.ts",
+          "sha256": "14feafceb4cc75c33dd7468fdd378122098f8d3d5db8c14c01a8e4ded9cf377a"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-model-admission-local.ts",
+          "sha256": "1a682775cb74ab8339785ad7518567cbc8335ecf6b94b64a007a02c8727738e5"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-run-budget-local.ts",
+          "sha256": "86ee141921eaa9b8ee813f1d8bfddc0bd0d0334d713e104268a57ba3863493f2"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-run-cost-observation-local.ts",
+          "sha256": "bc45052b6682f612054131430ae5ffb17c3f3ec3a6cdb3632408157265453abc"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-composition-local.ts",
+          "sha256": "eefd509e4d687d1fb61d1697970ffd26d49b7455e2736233d552d8c1d2bd58f3"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-control-local.ts",
+          "sha256": "699be1520e9e6be4296c460816a4ed6d65d77f05d9dc98a410bd922a0e852d17"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-failure-local.ts",
+          "sha256": "cd0aac425ff0c05752ab37df7257ce6cdf55fecb337d1f1d6cfc5bbc0a678e30"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-human-start-local.ts",
+          "sha256": "bed6fa5e0cd99ae995f646675075f1dff5b45f558b1fa20235d1e3c29a5db022"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-observation-local.ts",
+          "sha256": "71499f010a325a87bb18669298f83052df6c552db53a0aab8e8fc7db8243c812"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-operations-local.ts",
+          "sha256": "12812dd341e171f27b98a99cc171a28944e9677a0ff3fd993924c2792fd765c6"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-start-local.ts",
+          "sha256": "f458522cdeff7a57a8d39800239cde8185c422caeb042cd7268772ca275c3ead"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-runtime-terminal-local.ts",
+          "sha256": "79547e3f0bd1d79dcae9c1912118f00251752e7a1293e80c0b725b60bf8d45ad"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-start-custody-local.ts",
+          "sha256": "d9a3eedd8536eb408ee0165066d77fe6c7a28545410b4770cbe3dfd51462213d"
+        },
+        {
+          "path": "packages\\local-app\\src\\agent-workspace-tools-local.ts",
+          "sha256": "155a622148cd5e08a02e298f12426f8e05914e9eb99f9bb4467ca2633a678eb8"
+        },
+        {
+          "path": "packages\\local-app\\src\\clarification-local.ts",
+          "sha256": "b11184aae8238be3dd0bc7053c7a00ebcc575275b3ab2bd73e26e5776469cf5b"
+        },
+        {
+          "path": "packages\\local-app\\src\\errors.ts",
+          "sha256": "fbce533807d48c8902f129faaae3ed0d1044f3395d52d815ad6a113c8f18ae8d"
+        },
+        {
+          "path": "packages\\local-app\\src\\evidence-local.ts",
+          "sha256": "1c73f06960b80f5707c5a1188dc62c35a9da6baea8740aab7870446054a072b5"
+        },
+        {
+          "path": "packages\\local-app\\src\\index.ts",
+          "sha256": "2cd7ce6c9b85186a7a584e8a88aae55a056e0b622e11ac637f29088bd350c513"
+        },
+        {
+          "path": "packages\\local-app\\src\\instance.ts",
+          "sha256": "7366cf8b96931ab6305104dfc5a6a25e765e58cc50758a26b65eaec124dacebd"
+        },
+        {
+          "path": "packages\\local-app\\src\\location.ts",
+          "sha256": "a65c5d150ef0498f612cdcbd2abfd707e45e06ba39934e2e12257f72e1b3ec20"
+        },
+        {
+          "path": "packages\\local-app\\src\\planning-clarification-local.ts",
+          "sha256": "6e9dd0831a43fd9200c5766d2589258f651d009992c6b1d846f7b4536b935702"
+        },
+        {
+          "path": "packages\\local-app\\src\\project.ts",
+          "sha256": "893f0212bddeb5fc9b1be8bc69871a180c4e02a9f172fccb0038d5776956edbf"
+        },
+        {
+          "path": "packages\\local-app\\src\\providers-local.ts",
+          "sha256": "09b5df5272539df68abf2d342eb712b61897e6e6a5a2d9ed2d3359e96c613358"
+        },
+        {
+          "path": "packages\\local-app\\src\\runs-local.ts",
+          "sha256": "6bc346f0e43aba68b67b453d1c502964709fdc9bfd1a6f3e24503289bf2dd0c2"
+        },
+        {
+          "path": "packages\\local-app\\src\\skill-invocation-dedicated-account-local.ts",
+          "sha256": "a7f3c54a6eadd5c57bc4af5f46f1f8dcb9b9791a0cbbc9bd59657ea80b8dec57"
+        },
+        {
+          "path": "packages\\local-app\\src\\skill-invocation-execution-local.ts",
+          "sha256": "86ae5940034c44896e4063cd6067671ba3f29df39553c3c11a208150ac7bd16e"
+        },
+        {
+          "path": "packages\\local-app\\src\\skill-invocation-native-composition-local.ts",
+          "sha256": "9831b70d20e643be223b1646fc1443547575c920531029be0a7bd1e4c1dad43a"
+        },
+        {
+          "path": "packages\\local-app\\src\\skill-invocation-start-custody-local.ts",
+          "sha256": "5d851877015a81e944052023d2f4556b5239ef0c88f09ddb1bbc8fed537ad23a"
+        },
+        {
+          "path": "packages\\local-app\\src\\skill-method-assessment-local.ts",
+          "sha256": "3ed433f59054902a0766deea69ea0dd27e12af69979426bd91582609d0718f6e"
+        },
+        {
+          "path": "packages\\local-app\\src\\skill-methods-local.ts",
+          "sha256": "bc2b902fb6233d1e736cfaebfc04c6bbe1080f93ae5888a7c45c6714495c082c"
+        },
+        {
+          "path": "packages\\local-app\\src\\skills-local.ts",
+          "sha256": "d19f90cfca78008256550ad723a658fed1891e2a0cdcef3d84104f0f6cda5a21"
+        },
+        {
+          "path": "packages\\local-app\\src\\workspace-tools-local.ts",
+          "sha256": "6f8315fe931efcfcc21c0ba0e4fedc81a39ac5439fbeaf6f988804afaf7ab0d3"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-account-billing-entry.test.ts",
+          "sha256": "188edf191d35bade440afb4a65b35f1a1c8023a278de83469515c465af7082b0"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-account-billing-local.test.ts",
+          "sha256": "22a72e39b2cf814f4c36ee79894a373c9843e9469ed9f159161cd7c14e99a37f"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-admitted-source-local.test.ts",
+          "sha256": "556523c419a84b9873efd7f7f2a13bafd8b506fdea6271754a6f447bc80eafda"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-dedicated-account-local.test.ts",
+          "sha256": "b80513f2de78f5230f545ecb3c8f8cba37c2307cd1fa838ebf4fff5280ed6e85"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-model-workspace-local.test.ts",
+          "sha256": "89cb987ed2213360846114063def94a6d1c5d27b4b56f5f976f2197212a10df6"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-run-cost-observation.test.ts",
+          "sha256": "78b64f8d5134dfae9b5bb80e842bbf23f725fb5c5cc0b17dfed131e1615c53d0"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-run-reconciliation.test.ts",
+          "sha256": "808aef9db1b6fb971a729ba5317639dc98ca433addc262a80d7d2c2c5b8e9803"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-runtime-control-local.test.ts",
+          "sha256": "d41c6b69b3b582344f1beacd99b912e3230402ff174427e05fd64a27e53e9236"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-runtime-failure-local.test.ts",
+          "sha256": "ea17cf23d0888bf79e0bd389f4f7afaedfc3f9c83723f407afec90e18898a9ba"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-runtime-human-start-local.test.ts",
+          "sha256": "1b2d1e14e3cf5989b429eae16d5bb81121ba9e06042286d4f49a1560dd0ea52d"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-runtime-observation-local.test.ts",
+          "sha256": "fc2d163a473fe128060059133404750eecc0fe0a0e6b051754ed9746e0eedd4d"
+        },
+        {
+          "path": "packages\\local-app\\test\\agent-runtime-start-local.test.ts",
+          "sha256": "4ee6da463c7cdcc3b69a435f5df6e23981684351faa51f8bf21f9f019c39a6ed"
+        },
+        {
+          "path": "packages\\local-app\\test\\planning-clarification.test.ts",
+          "sha256": "165521f97f9e0d3a9bb347a234a440db56877dea8f786c3985c0e0aee3525962"
+        },
+        {
+          "path": "packages\\local-app\\test\\skill-invocation-execution-local.test.ts",
+          "sha256": "8b8a72de8fc1f699136d878567722c1d14b12db0b681e47c9dd47998bc1f735f"
+        },
+        {
+          "path": "packages\\local-app\\tsconfig.json",
+          "sha256": "de11859ea46e80769f9a23fc0b086563ad4f5203d7f9da1d121767ae29aca02e"
+        },
+        {
+          "path": "packages\\protocol\\package.json",
+          "sha256": "40821658df953a84a7f459483a5b36b83c653b499b987768ff92cd701db3a0cb"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\Actor.schema.json",
+          "sha256": "693e1dcab33887f1b035316eef9c3f4d84f4e6b9dbe4697665a1d7613ff57868"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\Assignment.schema.json",
+          "sha256": "e5575efdaca597495be0ed20ceec6830514ce3f745832edbc7af5e0453f3a771"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\Change.schema.json",
+          "sha256": "00e3e1f938f6862e1cb801236cab146fe32b9a89942710cdddb024f40d00d352"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\ChangeListResult.schema.json",
+          "sha256": "8c2d6b2e92329f7d9b88b25c8e2622b03bf96dd5e6c5e2b0526c0e0580f4f0ac"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\ChangeShowResult.schema.json",
+          "sha256": "da2d00d1f53577d966142f23b5b296017c0cc853f3f95102bb28b945fcd2919e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\CommandResult.schema.json",
+          "sha256": "91b7d248f403459e1afcd26121b75fae3a581bb14b20b2aa4e3cc233818f39c6"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\CommandSuccess.schema.json",
+          "sha256": "04fedbd85eddfdb7f5d5445fe8878fc9355e1f4c99a3448b10777d26d303cd97"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\CreateChangeCommand.schema.json",
+          "sha256": "aaf117df5c48f0d2929b0186cc37c9966c47b0b01d5b213fec1e5e79b78b998a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\DoctorResult.schema.json",
+          "sha256": "f570e8380cb26f4b981d8b10fad0a3dafd44608de01369629ce69802ec0e4645"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\DomainError.schema.json",
+          "sha256": "c8f183b69eee3c11049c804c6f5a5db1fda73957fe10540bd6f69b19c1c0a70e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\ErrorResult.schema.json",
+          "sha256": "2539c2576f232b5fb60c42749bf680e00c72feb775f5bd27a5f7fb05f179b47e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\EventEnvelope.schema.json",
+          "sha256": "110def7be986838670f8d291a8cf0b65e6c997ccc985fd551752a700b7f38873"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\InitializeProjectCommand.schema.json",
+          "sha256": "92e3c259708579e906a98e5170fa1c3b0e2e966481cfd8518e00cc33c62d8b29"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\PauseChangeCommand.schema.json",
+          "sha256": "b013cbadae01258f09119f87508f0066def814747fcb741070c535d31f8a0ecc"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\Project.schema.json",
+          "sha256": "bde29afca32500807245d6cb6d432109192cd1cfe2a26f17b265b232b6fcd408"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\ResumeChangeCommand.schema.json",
+          "sha256": "21a5bf48d412e05a475348b2540f6d832f17fcd466e8c9bb5ddad49fb90cff71"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\Role.schema.json",
+          "sha256": "1b728e6e7929daef3677550748859aa61fd7a37bfa2a774a5ad92d66ad5b7597"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\TransitionRecord.schema.json",
+          "sha256": "5a755191b5f6b8741a49909560b26627a07593dfc95cf350a839cbdc25493748"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AcceptanceCriterion.schema.json",
+          "sha256": "104c3973aa08287e1fdf70546885e41d43ea0f60518bbb4123a33d129e2f236f"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ActingRole.schema.json",
+          "sha256": "0b582d7740f3dd74926656297f64123cd61848536bdcea6669734a9475a53966"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Actor.schema.json",
+          "sha256": "d1095ac8c43472c31dcd829303a1bd7a86cad75b3787b5e10e5741ff72ec3f44"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ActorRegistration.schema.json",
+          "sha256": "8c84b0e60941dfa0d055a4adacd7538e4db797e68b599487f09d13cf4e1526d8"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AgentContextManifest.schema.json",
+          "sha256": "f06ab7be7b589215b92d780bfb54724b70e8a5bee1265b3ea2ba7d39a9ae6f8f"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AgentHostAdmissionReference.schema.json",
+          "sha256": "f05ea19f088cb04fda371adf4d4955b0e8544bdc5ec777a1b41e0bccbfab47a2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AgentRunBindings.schema.json",
+          "sha256": "1030fff401cf10836b5e81a0c2f80203691ba1ac61f02383464c01ae60a9954e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AgentRunObservation.schema.json",
+          "sha256": "393e2946a80a0266bb3e73066bc5aa74705c48ff3aa9f637ae71a7863430645a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AgentRunProofReference.schema.json",
+          "sha256": "9cec9f9dc1ee5e11102c8ee8540110d25309a2cae4c1c45222e28060679a2d97"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AgentRunRawReference.schema.json",
+          "sha256": "552565aa2404f32be2c9bd71e163a1436d261fbf4c694a7f25d89d9386ee2750"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AgentRunRecord.schema.json",
+          "sha256": "60eff798258c9b379d3ffd6b0ddd3437d0d7484e23bcbe9e463071f84c736de7"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AgentToolAuthorityAssessment.schema.json",
+          "sha256": "36d598a5529a900c9dc0c5e8e4688023ada02d92ab1897cec77d90b148f513fd"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AgentToolAuthorityRequest.schema.json",
+          "sha256": "58502913c3ab0319e118636df0d344db06d8e967c785f1d9e9f97d2fa55d71b0"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AnyCommand.schema.json",
+          "sha256": "5180c6e033068b0154347cf34732622251f355e0f01b7dd11a4f870b32286902"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ApprovedProviderBinding.schema.json",
+          "sha256": "9693f17c307354eb53b533fda78e6f3afe4bd4676b5cc20eca9c26e1b54de236"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AssignResponsibilityCommand.schema.json",
+          "sha256": "4287932520e5beffa9e4fd74fb1a66982e5a0732d1d02956e0091d1de665885b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Assignment.schema.json",
+          "sha256": "d123ad92a78eafd9799e03155fdf734cc3bef0f4cac2aee0e8c082affcfbe184"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\AuthorizationRevocationRecord.schema.json",
+          "sha256": "7fdaea26fbd9a7ac3f8aff8e077d88dce94b131692be7006ed26f95cea2cf8a8"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CancelRunCommand.schema.json",
+          "sha256": "8eb2d715bb5ce8ab3109820d557aeb54869750348b020835a2161cf92ca6d222"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CapabilityReference.schema.json",
+          "sha256": "82b23d681d82605ec7ee3700024eae190c5b0ea0a3cac5890af89aceb418bcfc"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CaptureSourceSnapshotCommand.schema.json",
+          "sha256": "4a7d44b6619101093fdcf382cb8317ea61d892b44ffadf48bb4001fb466569f9"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Change.schema.json",
+          "sha256": "46853d7c73868cc5fe34a27ee22d601e26e8a96b2d48fabfb9b90f4522cff5ca"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ChangeDependency.schema.json",
+          "sha256": "48c4e74ae7afbedce64a1f9ec090ada5e10372ce29332c749abcab4da8717eec"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ChangeLifecycleState.schema.json",
+          "sha256": "f9e23b1c6701d083040132fb4c9c3ef4560b685c26537362b835829f15ed09a4"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ChangeListResult.schema.json",
+          "sha256": "f0338348d3224850d3bbac90fdcee695d22ebc2b5d01d45ed019245b9a04e9da"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ChangePlanningCommand.schema.json",
+          "sha256": "90dc690dd9e70b7ce4cd37f5fecc67f603f6651ebe73476370cd5d5dbb4a80ce"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ChangeShowResult.schema.json",
+          "sha256": "745eb8a54318e61f4dd9d9ab36d12bde32aa5956340b02ede05928bc03097372"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CheckResumptionCommand.schema.json",
+          "sha256": "8cd15153593caf60e89535de2bf3504f80124c751778189253e089f30739557d"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CloseTargetVersionCommand.schema.json",
+          "sha256": "a289b5725da8e31602b1ae29d1537ff3b76434c4bc4bc1ce5b63ce0a63ed67c7"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ClosureRequirement.schema.json",
+          "sha256": "ad9618a1cf489c83efe3cb86e4af64044f68462dbd09024349cea2299b2b8045"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CommandDiagnostic.schema.json",
+          "sha256": "90bc3d662b132160444340157872bdaa625b5247274323f93f61b4cc64ee8fc8"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CommandResult.schema.json",
+          "sha256": "c20178b69a5452210e5063f391c90bfcdbd92f04ec8bd2deeea60b8e157fc1a9"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CommandSuccess.schema.json",
+          "sha256": "161761a12321991fc64b0343e51826e9f5b62c9212a2a62855e6178fb55a16cd"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ConfirmContractCommand.schema.json",
+          "sha256": "84cee35ced276f777a7920984e679820d5a46470c2e245f2ff2f44768d667575"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ConfirmPlanCommand.schema.json",
+          "sha256": "f4e4c5f5c227ce444b90d61d5dfa283bd7177dd3fe3c432c27ca38704efee88e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ContextManifest.schema.json",
+          "sha256": "26e76a042c3482facf8893923b1ba2cbccbe92ed8272be330a3be985e9d6e940"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ContractBody.schema.json",
+          "sha256": "b79c3519f898a393ed000fa9c339c45bf4d4dedadaad0c5da3af0f84ebe8031d"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ContractProposal.schema.json",
+          "sha256": "90df38b47331437ee51ad024930c863573eb280b3566d2e94ef5b24d94a38b3b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ContractVersion.schema.json",
+          "sha256": "49ae0a6377a5872f5d306d71e34c6378dae15b25f83f2fd167da71f7d9c8faa9"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CreateChangeCommand.schema.json",
+          "sha256": "1d445a16bb270189c16aeb3917a220d4aca30e36e2c6a4bfbe2f88eb97bc9838"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CreateTargetVersionCommand.schema.json",
+          "sha256": "0a714a9f9184913bdb436ecec1ada5407b921b1e069bedb235c1d956e1fc37b4"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\CreateWorkItemCommand.schema.json",
+          "sha256": "9a5cdcd417ddb83ae1e8c74a02ce7b7ed55eccabd53bf73913809e2391500735"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Decision.schema.json",
+          "sha256": "2c0e4f095dabe7e0403ab753fb5e47203085f46a261693844ecbd271f8cc8473"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\DecisionAction.schema.json",
+          "sha256": "a5be406eabeab60d497c106f3973e61839b316917dbd2e33c2517cd30b7a85d7"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\DecisionRequest.schema.json",
+          "sha256": "1c6601b6d19eccfa2c5e70aa796fffe16099563452436ea5baa13e53e800df1e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Digest.schema.json",
+          "sha256": "c1125030f33b2aa377a8b3d0508824e11fa03bad1d2457398e71e0af962c6388"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\DoctorResult.schema.json",
+          "sha256": "99e9d5007719bada501246df750eeef2b897647383a6d3651262de7acecfc0bc"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\DomainError.schema.json",
+          "sha256": "53c9952db2e2986657a7bffddc2463cf5ab6a549642d8db40c051f4fd5782294"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\DomainErrorCode.schema.json",
+          "sha256": "1dad2434e9eea6f80da01c68036cd4d8d11559e8543e078a0a1dc74b366e1b72"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\EndAssignmentCommand.schema.json",
+          "sha256": "b45d942886e6a93c9a76913b4fb222bd550ec4ed3f8d82ab1a9a43abcdca56cb"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ErrorResult.schema.json",
+          "sha256": "56f06a1f2c268592d2e39d57c9bcfc6721f1186366651637e85ea116d745e82c"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\EvaluateIntegrationCommand.schema.json",
+          "sha256": "6357fb9b457fd0f22dab022af7f8daaffb53505489683564746c5825e13cb20a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\EvaluateProviderCommand.schema.json",
+          "sha256": "f0767e5105eb13098a7555c4a85c143f8b0899c16f359e6f7ec777327bd8ada2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\EvaluateTaskCommand.schema.json",
+          "sha256": "c1b93e116efc1fa29e3d22fda8a1fa108f20f8b47447d8e565dffc5b0d67a76b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Evaluation.schema.json",
+          "sha256": "5456510fd9e2e9a7e02a359ebdd9af53ef073cecdef182c99844a9e3138a437b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\EvaluationContext.schema.json",
+          "sha256": "6c7d70d194af88122dc15a6924beda044039da3c399ba1d19d361f76039b4b4a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\EventEnvelope.schema.json",
+          "sha256": "5a1ee54a169fc2308f32c5eea79f37681db1bc612a47625196ae77aa524e16b8"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Evidence.schema.json",
+          "sha256": "e137ae845856932e3bdaf333d6670e3c248e776cf367c11a716f4bed8a8ed4b8"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ExecutionAction.schema.json",
+          "sha256": "44b3fd2b8edd735545bfefcad5eee4ae57689d487811c50a58402e629c29d27b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ExecutionBudget.schema.json",
+          "sha256": "6215db42b6eae8599268b306d69a650574373dff3c3d483dff46b576276e33e2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ExecutionShowResult.schema.json",
+          "sha256": "11a15a4865bc1b22a23a7d7b176b06fe5d4060d6e467d9f6f947efb0e0c618f2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ExternalReference.schema.json",
+          "sha256": "19900f5e1c725e5e1b9c581b43f24f5bf5ac200307b16e5e389dfe5d21df83b4"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\FixedMethodObservation.schema.json",
+          "sha256": "0939cdcd3037b85a05140bff1715e49547d6d64974c798a7823e97b7761b2941"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\FixedMethodProfile.schema.json",
+          "sha256": "186db7210edeed3cd3cfb2b4b1d4d72d81f172a0f788b87913757b30e30adbab"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\FixedMethodProjection.schema.json",
+          "sha256": "b99d857346aecb92202aaac5e1426174e75019f3392b941c80a91b2727d54dbe"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\FixedMethodTranscript.schema.json",
+          "sha256": "7ac6f9b39a59f00bd79ca0fa115a88880990b1bea166ceb0c15221af9fb599cd"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\FlowStatusResult.schema.json",
+          "sha256": "c9693948b6334f2a2e52fb0f345943d8ce639c40397ea5d21821c9dcab8534a8"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\GateOutcome.schema.json",
+          "sha256": "5732ef48dda117ec52157c3406f27641910aba9020a1e75704bb885bebb2e513"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\GovernanceListResult.schema.json",
+          "sha256": "e4190b3e112b266504fe377809749cb80b25bd03d2e73367388b469f1a3799ec"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\HandoffRecord.schema.json",
+          "sha256": "6b2c51520f0ff1cbbf0fd7b863c0c7cce8727c0bbee6a9744080debb9a717139"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\HumanContextManifest.schema.json",
+          "sha256": "5b4b1864874e8767f153179137129f15b78a3dec154ee5fd599552b021f4bc99"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\HumanRunObservation.schema.json",
+          "sha256": "d031ed484f675121a81c55c41aa9e70379be2ec0ab82a04b3d98691abbf74367"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\HumanRunRecord.schema.json",
+          "sha256": "71da1cd5fbcb72982f203aa80c770402b43bd9c5f9ac93a8727a03cdfd82d937"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\InitializePlanTasksCommand.schema.json",
+          "sha256": "1f757be39ec332f07bdd18e0e0e6f47183fa6bcbe37059ed62aeeb2da7d986c3"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\InitializeProjectCommand.schema.json",
+          "sha256": "4eb6b3661a2b06104dfaca66cf5c94908c93c3cc58b69f7d8e45519fcc140b31"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\InspectableObjectType.schema.json",
+          "sha256": "83e53c728eb6b49b19a7d55fe1f8ea7d7b2d707e60738f43500f7665be91cfbc"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\IntegrationReadinessRecord.schema.json",
+          "sha256": "1ee9a51fe1f350843c8d594bfde38c802b45427279a14630af965c1a90d96fa7"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\IntentShowResult.schema.json",
+          "sha256": "c794fc2ec45217cb7680365a772a10256c79570de291a062be5cb8e81244c50b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\InternalId.schema.json",
+          "sha256": "0e5b5105d0adda4fc0489b0ee485129ef169f5f8206704127241deb2bafa29ae"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\LifecycleTransitionRecord.schema.json",
+          "sha256": "091fbc35f995f20319299b31567dd171d83daa432363b7a1afd8c63dceca1326"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\MarkReadyForIntegrationCommand.schema.json",
+          "sha256": "c48e20e802abd975fb6f70aebd9d61b89e9225c89964366d75c7b299b0d40ef5"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\MigrationReport.schema.json",
+          "sha256": "91fb3536614619c8b7522a27159a962274af50c70746c3e5a035a087feeef940"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\NamedSkillMethodAssessment.schema.json",
+          "sha256": "8170d468ec7a953d140afb8589b7eb9a57b225d019bfdba941dd7bccf5e8f03e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\NamedSkillMethodEvidence.schema.json",
+          "sha256": "cac4f5c1cf0612000a71cc749e8acf68f7d40cd2560b3cd3e97751dfd97366c1"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\NamedSkillMethodEvidenceReference.schema.json",
+          "sha256": "2299d42d6db09bdad9cfd47367cf2ad336eab760c364586b838eadb0eb64526a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\NamedSkillMethodRequest.schema.json",
+          "sha256": "b5bc0975d6c81b3045293ba99250569818ccac50d9f88bf35f472c05f4ddf81f"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\NamedSkillMethodSample.schema.json",
+          "sha256": "73943894c525a22f9d775b0140adcf55f62c3b76d45c0a5298a1a9178d816fcf"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ObjectShowResult.schema.json",
+          "sha256": "e0a97b0e39e51b23741b19be15a06f38bdf6a24d69d7d0c86879e39e65b0dca1"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ObjectType.schema.json",
+          "sha256": "dffe90c6aa2bd850c2996edc97acdcbf4f57696cd33f63191a5171f37eaf29f0"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\OutboxMessage.schema.json",
+          "sha256": "4668b4109adde720351a852e7dd5f73abcf8f92b0b9ad64b1c5a24d593be6c59"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PauseChangeCommand.schema.json",
+          "sha256": "2991d4aab76ef05e2eb68b81286cb5020e13c2bdfb66df4c4b4e1a00babad2be"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PermissionSet.schema.json",
+          "sha256": "1c0f02f588f73439e0752ee854121b190e1794c17dbb31b2a8a24edab4e290a2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PlanBody.schema.json",
+          "sha256": "5b464fe372691c6c003179e32ad8d0768441d00bdeda54fc737871501173ac71"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PlanProposal.schema.json",
+          "sha256": "5cf13284e4304486624e627ee0313b1a69cf84ba9b4142e3c13c47960abe8faf"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PlanVersion.schema.json",
+          "sha256": "4a61f0bb690a322459ac55b00a949ad3e735e74cedc629805591990d5a450324"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PlannedWindow.schema.json",
+          "sha256": "c0f822a7d5c7c34873e8bffee6fc47cb1f30ad729468ba3f7d87f1b8f7e5a189"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PolicySnapshot.schema.json",
+          "sha256": "6b7ff1e45d5c3b41996f69e2c4467a05ec6422cbcc60ab6fda868d68424aede4"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PrepareRunContextCommand.schema.json",
+          "sha256": "d4ccd6fde4260990777beda5a6c24d642cd911c63d836f0a063f94c8608604ce"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PrepareTaskEvaluationCommand.schema.json",
+          "sha256": "fb6b77fa97459febc7fd6886ea08a15a99154ae0be8a52848b23469b7eccc2fb"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PriorityOrder.schema.json",
+          "sha256": "6efb34049b0a141985feebae13f3bf1fd6e1eec02d3965cc69df406c2dc50344"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProfessionalFinding.schema.json",
+          "sha256": "039b2ffdb4b0161d26bc1362db04f64710051de651aff4d475cca770c436b23b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProfessionalRawReference.schema.json",
+          "sha256": "fdd98abd49b70d09556e4b55b1002fcfe104436b3fe032f2cdffb43f94a3f61a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProfessionalSubjectReference.schema.json",
+          "sha256": "6f8993ddde5c7cf5a4495310aa07083d1586ecdd66e72909064c670b2db3c6ab"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Project.schema.json",
+          "sha256": "62c1b43c8e0310a92c5a47662de6f0ab278c70b9e107a9949a1dde1dfad1ea9b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProjectSettings.schema.json",
+          "sha256": "907188806b3a5ea4f9d57ca150bda2aaa7087b0275351b4ca55dc14291cb76ef"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProjectSettingsVersion.schema.json",
+          "sha256": "0a1b99091f16188a879a90218a7ded03200a4e5ada391969cd4541bf00087b5e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProposalReference.schema.json",
+          "sha256": "75df153f23412f18a46fdff6bd21b75bc8564b3a7aabd6ec52e9d8eb1d6bee98"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderArtifactReference.schema.json",
+          "sha256": "53b5b078e7c1012f70e61d096259be0e8899f7d18360fbc5a1d3bb7a5d986cb2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderBinding.schema.json",
+          "sha256": "6043a4818a6ab2a9c24ab989738d4d2acff2590aaa5ac3af8e9e1fd6e224282e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderCandidateDescriptor.schema.json",
+          "sha256": "bbd008588ab4aa926dd1717d65c55b861e3eb2495e5a8ee0b8de3c1180afd8a8"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderCatalogResult.schema.json",
+          "sha256": "bd087b4ddf309d80da2864ece31416e44fb38951dbb4fec54faaad5da8f5d74d"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderDependency.schema.json",
+          "sha256": "f98ed8c4d9965139142193f7032972287e01ffb3311ae8ee11edfd04016c6b99"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderDescriptor.schema.json",
+          "sha256": "41ab93f6b60094074a34152624463ce27d7b0a00f0c4ddaf96e3d8bf372a9705"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderEvaluation.schema.json",
+          "sha256": "0231ba8a448c2972d967520197a9fd983172b0d42d5b3cf71e611bbc393075ee"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderEvidence.schema.json",
+          "sha256": "149c02c7a0e87352a5be28366d4c68c470fd3d6e57c5c1dd784fee1281739384"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderProbeReference.schema.json",
+          "sha256": "6dacec018c48095aef9c3c29cdc54d7cf71212d06ec4363ce0d8429806e3bc52"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ProviderRegistration.schema.json",
+          "sha256": "4b04178957a63a102d3558ef1abad5b083e252ef3c28d11b9320724f9c34aa09"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\PublishStandingAuthorizationCommand.schema.json",
+          "sha256": "83b356977fdc90d9cdae34bcd61ed4eec77dcba077deffab4dd16d4060e49a6d"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RawAgentRunObservation.schema.json",
+          "sha256": "75cf6808e083c7b425e2c3cee0ba8ffaa3c2987d3a1c9aea52b036d0bced022f"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RawEvidenceResult.schema.json",
+          "sha256": "de364cda0adf86ae6e164ca99fcd91e4c611e90c33d997d9c6b76048ec4213c2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RawHumanRunObservation.schema.json",
+          "sha256": "7f50c6caf9536de6cd51980eeb5ebd9db7fd91c4923b1f13f049015b886287ce"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RawProfessionalReview.schema.json",
+          "sha256": "c706369ea6c052f168afafa85aeb51bbcf5f41b3f2772643b01ee6fdb9011156"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RawRunObservation.schema.json",
+          "sha256": "253095f285c041ba4110c660e44bffef13c83e00feb32409adbc0cf3d6b4b8f2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RawSkillInvocationObservation.schema.json",
+          "sha256": "44f3cb1acdd541817dfe5a33d96b7fd33591b81f59a44c3055220c6a904fc4c4"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ReconcileRunCommand.schema.json",
+          "sha256": "c3a5270024e5c5f009687a593c3ace3c9f401b2bdc3f8307e99e0cc7fa610100"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ReconcileSkillInvocationCommand.schema.json",
+          "sha256": "444f3f7db1f063f868d8af58efc2d02d192a4fd223706d2e9011a38e428744be"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RecordDecisionCommand.schema.json",
+          "sha256": "494f544d5be7a924a4dc713f07de249cdd896f83daabd7e1e5c92a25e055a346"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RecordEvidenceCommand.schema.json",
+          "sha256": "71587c230936af871ba7ab4cffeb214dc8139898592e9bcc520412950143860e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RecordProviderEvidenceCommand.schema.json",
+          "sha256": "cab3f654e4fdd05528af64a672501ce2d2763e73078a4226a91d808989e9bd90"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RecordRiskAssessmentCommand.schema.json",
+          "sha256": "2961ea69ad27e8898becf69931032dac17f78696f33bcd2b3969a7dcb2ae79df"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RecordRunObservationCommand.schema.json",
+          "sha256": "2ef50ba00422e66d19a74fe1310c8b985e0c0875f8d19baf040b864c2a4da216"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RecordSkillInvocationObservationCommand.schema.json",
+          "sha256": "3f75292ec7c8b9057807d3b008faec9ab1f5ab83543a5f012383b69c0048e371"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RegisterActorCommand.schema.json",
+          "sha256": "83df54063dd4d63b08213a4e6b51d88b1186586ee1b349c5365f61b7fb2b0205"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RegisterProviderBindingCommand.schema.json",
+          "sha256": "d37473404655a9ad83e292c3a4a34759a0d5d0039090dab5074fef40b095692a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RegisterProviderCommand.schema.json",
+          "sha256": "b28287e17c6eb8d17c6145c2a0844af8f00b8b1a82c0fdd580292ad135d5d476"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RequestDecisionCommand.schema.json",
+          "sha256": "0db34c23865e06fd824858685430c75a94911e480556f9437738401fa4bfccfb"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RequirementSetRecord.schema.json",
+          "sha256": "d6d2ebdb726de396201770a8db07d10419a56914a87724a8f6afbc8aebb98b1f"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ReserveRunCommand.schema.json",
+          "sha256": "c9d2c428759926c76870c903a9707049ccc9319f1ae8100860db92927e77bb59"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ReserveSkillInvocationCommand.schema.json",
+          "sha256": "56328ec7c977d383c9f0fd920d7dd467053639a67b8afa54d3d7a6e777114c51"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ResponsibilityRole.schema.json",
+          "sha256": "e40f7b69d10e17345002f82acdb554cac24f5aae2bc965def6b8975c9e105fd3"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ResumeChangeCommand.schema.json",
+          "sha256": "8e5998b93e81d6105fa818e863676ab5573cd3f97ab5ef80b095217c248106cd"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ResumptionRecord.schema.json",
+          "sha256": "94c20e70b15b7d1e36b417827f67df9204f9e02437732a10ccf733ca1111c674"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RevokeStandingAuthorizationCommand.schema.json",
+          "sha256": "ca8ee06a9aba6824414848d4706e3612f6f665c86e7a0b84965d0905a57e11a4"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RevokeWorkItemCommand.schema.json",
+          "sha256": "8c5192489278fbe5f521b06dc86e3ba457f15503b95706178bfd1bc711374ba1"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RiskAssessment.schema.json",
+          "sha256": "f6ebc8ed3f7e013082ae6f29f7fdec041e509a0d7ff98d9f6516d861a78a6ff4"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RiskDeclaration.schema.json",
+          "sha256": "d98f427ed45b2826b494a40f0649867ba3be084bcd5317f04072e5a62e09f1ba"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Role.schema.json",
+          "sha256": "23b845bb656b38abd7e3e97393bf43d1ef4281b58b66ddc0562e4cbf4525870f"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RoleKey.schema.json",
+          "sha256": "a5032475984589e394cf92722a3ca1c711781ad1dd6ca33b6947cd4f62b6534e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Run.schema.json",
+          "sha256": "88e6977b35a0ad634a17b2502c11112af2daecb11b56b5d80c9747ba2823883a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RunBindingPin.schema.json",
+          "sha256": "92522b22ffae4b5a08551680fc203b429e7e444b900f913fe162b5bcf8f6f1ec"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RunObservation.schema.json",
+          "sha256": "87d38e6fada4fd27ee95a5846bb5f73e3f409595cc396e08a35e46719eca8be3"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RunRecord.schema.json",
+          "sha256": "67bf68daae559110d1d3d396928cdb1f806aecb2b4961a6df78ef32c46e06533"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RunShowResult.schema.json",
+          "sha256": "2506a453b9476cb8aa613033065767362e07b98de5ea0016209a77f17c6fd558"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeBoundaryProbe.schema.json",
+          "sha256": "c355ea2cf37be80121c9b4f6c4c16766eebd79e52e40fddd29dc8ffacf2b243b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeDiskLimits.schema.json",
+          "sha256": "b365d20b98341e0ddd08c5ff49ab12960dd79b62e1365644c75619416233b7b2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeExecutionPolicy.schema.json",
+          "sha256": "2408f239430f4a7312aa4f04f28cb63fcf30bebb446241015f4ab1a3e9f91ebb"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeExecutionPolicyObservation.schema.json",
+          "sha256": "6ed96be426b5e31e01237872461ead5d798811c0cb18a6876b0f71dac8a01d5e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeGatewayBridgeObservation.schema.json",
+          "sha256": "31a81542b4777c6b373297040d015f22a2c22544a4aaa478d16e5f852c41ec72"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeGatewayBridgeProbeResult.schema.json",
+          "sha256": "217f1752b3d042706c2122003171f612e113014d6e9b7e6f8be47af0d35a50b9"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeGatewayBudgetSnapshot.schema.json",
+          "sha256": "1454012db603f4e764fc975fc38afb5e3787ff7a1d96a24640ca58079c73dd96"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeGatewayCreditProbeResult.schema.json",
+          "sha256": "23fd20a1e0617e1fe25ee8e6c8abb8ed0412da66d3bcf5093d1f7e0e2f8ca90a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeGatewayCreditSnapshot.schema.json",
+          "sha256": "4bad48340dbb69781c2a952d3f3285817db18661c886c2824df69ee859aba253"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeGatewayNetworkProbeResult.schema.json",
+          "sha256": "662e26a5d4dad05994815c3452dd38bb0bf9b0a2d611257c188447202b75bc89"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeGatewayProbeResult.schema.json",
+          "sha256": "eb4fec1fc6274ef06b2a494d724f4a8c827bff8ff5a219d6a3f3ccc413e9e62d"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeGatewayTransportObservation.schema.json",
+          "sha256": "f2f8ca32cde258f31e813a813097f5c86c20e985baf5664fa9edc5b824752ecf"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeIpcTransportObservation.schema.json",
+          "sha256": "7fa452589465a63726c2c564b49c471f9f09b49d5e9b74596377d2457cc12851"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeOperationResult.schema.json",
+          "sha256": "97a9d7303343e93727577440f99eb26e2bc30d9452e5c8367ab43e17470ea65a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeProbeResult.schema.json",
+          "sha256": "a7938f8947cd37c5cadfb1097cf7f4e709467bbf02f055b860fff42e8dfe4bff"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeProviderEvaluation.schema.json",
+          "sha256": "782b03a01b7a3366b5eafb87839489259e0129224cb5dafa65ef024d09820fb2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeProviderEvidence.schema.json",
+          "sha256": "66792bf5cb5e0821a469ae711fc6ce00a9ae13e76db9c599f3f7ea5a0f76e17a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeRecoveryResult.schema.json",
+          "sha256": "11c283d977d6c8014b1344d879e02d1f36df6d0608253042a707a3c8ed42cebe"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeResourceObservation.schema.json",
+          "sha256": "0b15667b08f3c2f0eddc3af57a12bc1e89f620de81cfb646efdc946e2bf3d0e3"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\RuntimeTransportProbeResult.schema.json",
+          "sha256": "209b54eb5d144801acc85cd1990f4ec5f5b40507e1a1fb62418ef620292f24e4"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SatisfyTaskCommand.schema.json",
+          "sha256": "994204a22f285598631747d13c7b1f51546950f4aa11ffe975a4fa2d6c424a41"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SaveHandoffCommand.schema.json",
+          "sha256": "03bb3a82acc1d56892a0c8a95042957ac21f775e6e2fe9526c56bafc995a3a9e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SchemaReference.schema.json",
+          "sha256": "70b137f62c0844584525a259f1a70d707ca0ae4cc9b80145e4cbd99185915656"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Scope.schema.json",
+          "sha256": "06790673d0aa932b7ca7573beabff3dba358e45022d1f928e4b16cf158e6440d"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SemanticVersion.schema.json",
+          "sha256": "72c19db0364cf7615af4c198cc4c259817b23a8b61e56c3de3d8f73f8337aea9"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillImportSpec.schema.json",
+          "sha256": "ba90bffef4a9c1a5dc7583c8e784d16a739350dc8430acee638fcd1200802f77"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillInvocation.schema.json",
+          "sha256": "b45c814c7538cfbd18bed52cd8f981e7350b1bc3a20827c167653cf752a9a561"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillInvocationObservation.schema.json",
+          "sha256": "5d28775dffabd81b46c2945acfd5eae42d9c934c68db2d390a1b6526f1abc835"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillInvocationPreparation.schema.json",
+          "sha256": "a896f7942d3eb8deb6d9acd982614312d8ed955084d70b4e03846da35249a7ad"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillInvocationProofReference.schema.json",
+          "sha256": "e789e73de0d37a393bd87262ca4591f37c133e9ad78c58a8537a134d5e0c07e7"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillInvocationRawReference.schema.json",
+          "sha256": "3e2b93e72a1a70f0a9371c42abacd1a98435900b8ca8ae17f2ce30b44cef3cab"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillInvocationSample.schema.json",
+          "sha256": "7e24c18803685a09120bd1f66a28a11691752ed1b340ca9280bb5c8be686b9c9"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillMethodInput.schema.json",
+          "sha256": "b705bc4e8c32affaf45197f2ca86efd3cf9e128370e0924c5eeb4fe1d052c9b3"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillMethodInputReference.schema.json",
+          "sha256": "ce90915b647b17b78f5dcaa03daa20a449ce5ec5317af3d5ca3775859549abf3"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillMethodOutput.schema.json",
+          "sha256": "41ed268e5f968ed60f391e1c413874e50e77cedb107e3d98d53d48387c402fb9"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillMethodQualificationReference.schema.json",
+          "sha256": "e4c21d19264f0957dec84232b3e17d262712898e2f1a1a65118ed0ef0293c6bb"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillPackage.schema.json",
+          "sha256": "611b3fb8d2f789105132aeb3d79720dc623aa2d95b74a9179b280a69438261ab"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillPackageInspectionResult.schema.json",
+          "sha256": "a6d67884a9a2278c5c377f15f9697766fd338215e06287b843ff7a59d37afa02"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillPackageReference.schema.json",
+          "sha256": "4e465aabafc5b31585d0d50e62c528b5591009f072723f49aa7e21e97c78efbd"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillProbeResult.schema.json",
+          "sha256": "552e32184a07b167f8a582d1ad486ccaab35a7742239956c4adaef0fd0003cdf"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillProviderEvaluation.schema.json",
+          "sha256": "459d8521de8246ec399d5a9135b4476c19be506a9f293e9e28f31f5abf469aa7"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillProviderEvidence.schema.json",
+          "sha256": "f00b6da1c39aafcb03e58ef22b36a1e0b91283dbe2d7c50e254299b726c51390"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SkillRuntimeProfile.schema.json",
+          "sha256": "f52d92bb578e42973a0497bc061c89e999c2c8c099d06c5f6fb177e0667cbe21"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SourceDescriptor.schema.json",
+          "sha256": "754dac49ff8e0724aa012e57f0d2c2fc4eabb6ad3d1c845c9d4093c96e85aad2"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SourceSnapshot.schema.json",
+          "sha256": "b33bf8d5e6abae3f297faf7e06683b5953dd5d9e4387d9449f7ac3e107e27954"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\StandingAuthorization.schema.json",
+          "sha256": "639a3474f05fa908d60c13a72a51d885ce377e5458e329eb853e7bd23856f29f"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\StandingAuthorizationBody.schema.json",
+          "sha256": "f3692ad34e26a242e235832c1c6a9e689644e04522e9175b0b8a9100ca7b0efe"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\StandingAuthorizationVersion.schema.json",
+          "sha256": "d455d81016681942bf4aa812726f89fc5f8571736776621ba6685abfb82ad99b"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\StartChangeCommand.schema.json",
+          "sha256": "0a9c17ad61373654e236123be9c3655d03f9589825f3b8beecc2773043faf014"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SubmitContractProposalCommand.schema.json",
+          "sha256": "ea4888f38ef2b7bcab6337a642781b2cdbee56d009f3f775ea123132121c7a46"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\SubmitPlanProposalCommand.schema.json",
+          "sha256": "0017b53f221ee0e8cfc77584a5b923e16010ca5fc3f5139109118ddab0aa539a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\TargetVersion.schema.json",
+          "sha256": "e3d41448e5bc8b6dfd35ce168f34ce5b9986ae6dd24a65a88230634518ad7d88"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\Task.schema.json",
+          "sha256": "b09225596187f4551eb687dfc98381078ba6cc2559c5e70fde36b5f6a307d927"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\TaskDefinition.schema.json",
+          "sha256": "ab6c8e6c9a16a4490d09f479b74979a0d4b80b7f73320c109febcdfc036de7c0"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\TaskDefinitionRecord.schema.json",
+          "sha256": "6dca73a867a2c3ca3d2d94b8155248d8e03766a149491b200d4d5e9dbe77a8a8"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\TaskReadiness.schema.json",
+          "sha256": "33ae26d48e3707a45fc0b5fba567517b35c11b4e6c10ef5a1d54e215d1e414da"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\TaskSatisfactionRecord.schema.json",
+          "sha256": "4d2dddb98d93aac61deab1f96e6c080c19fb7bcf596a82c2b1c82e02c4031f9a"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\TaskUsage.schema.json",
+          "sha256": "1d07606d5d4f82c4696663fbaf07c4af263bda84b608d1cc82813a3106e699f6"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ToolAuthorityAssessment.schema.json",
+          "sha256": "6b902311531d5386684649d270aa1fcd829e8911b2a56333537af98f04e9fcba"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\ToolAuthorityRequest.schema.json",
+          "sha256": "cd52cb36c619b8521ad5eaf2e70eb34af6be58b63303837f1c9a5f3a273b3842"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\TransferChangeResponsibilityCommand.schema.json",
+          "sha256": "5d2066418e55ae203a1188a042c8d26fa22f2df82ac8b268a48736bcf9c21ac7"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\TransitionRecord.schema.json",
+          "sha256": "16145c900b86b2928528c37e0305288fddfe31dddb97dc01838d58baaeb67586"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\TypedReference.schema.json",
+          "sha256": "5e2314511a387072ad14f5364b5ec8f555ee0d8ef022a9e938790d22fbec7183"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\UpdateProjectSettingsCommand.schema.json",
+          "sha256": "0afc1958821088c008e202988edce07f6d2d669620ae3aca13fbe6f55773a87e"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\UtcTimestamp.schema.json",
+          "sha256": "5f53b5afc5047c30b43e05d4471efa893c549b8754ed4c041f965f16b58645f9"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\VerificationShowResult.schema.json",
+          "sha256": "56a64aa722c16b8fcde738bcac933ae228861f3e91d07a4c72c98d06ca02be41"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\WorkItem.schema.json",
+          "sha256": "62492fb19e5b60478000a3b6d784dde0d2c633fef6f4fdc8d61dbff08fa58318"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\WorkItemAuthorizationRecord.schema.json",
+          "sha256": "a26723895d833db54da8a6bbbcce1e5fe38cba766b60a8eb2eaba6deab9625af"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\WorkspaceManifest.schema.json",
+          "sha256": "9072f944bdaf932a4d8a43f25c26c76ff2551f9452c6581cea72d7ce33005f88"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\WorkspaceSnapshot.schema.json",
+          "sha256": "4e31db1363e5c7e0a0448293fcf3d7193ebdcb43b05d183a613075795d60b710"
+        },
+        {
+          "path": "packages\\protocol\\schemas\\v2\\WorkspaceToolResourceGrant.schema.json",
+          "sha256": "c895a03ea2aeb5f25b5b83ec006084739c49761b90ebe4c588ed5ecc05772feb"
+        },
+        {
+          "path": "packages\\protocol\\src\\export-schemas.ts",
+          "sha256": "4b6d1bf4a691c8a459edfb59b7bd5f1ae4d9766f68460b14a704d26e20cc5f85"
+        },
+        {
+          "path": "packages\\protocol\\src\\ids.ts",
+          "sha256": "f35a52eb85c640f23f2c3b112130c165ccd77bf31923cce7f76eef4bc79e65a3"
+        },
+        {
+          "path": "packages\\protocol\\src\\index.ts",
+          "sha256": "7a5b11822736d483d3ede9bbe2dfc8c37c4f6cd90524e1cdaa6d23fb57fe6b09"
+        },
+        {
+          "path": "packages\\protocol\\src\\schemas.ts",
+          "sha256": "b1e5f7f12e1fe29e1141ce6724791e24846feb67c9303785b3ad915586b9b6b9"
+        },
+        {
+          "path": "packages\\protocol\\src\\v1\\index.ts",
+          "sha256": "a9544cdf667b2cb07f94eb375c94f5314f37843d6f08eb28bcbf07ec4ab75020"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\agent-tool-authority.ts",
+          "sha256": "e0737123b8b3d395e693bcc5a2d1660523f764a6ebd86033f03933ae7b337c4f"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\commands.ts",
+          "sha256": "66d6d8759eb4b783f86658d185c928e1e0ab411f055841c37b441de6c19c0012"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\common.ts",
+          "sha256": "bcefd17834f896f5af12dc4a343f98edce750fa461e48d7280e61f7c83c9dceb"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\execution.ts",
+          "sha256": "98e285831384dd3967f7fde42ba7c7848f5d8892cfa35d18cb262030d4ece3f2"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\fixed-method.ts",
+          "sha256": "5ae2d6fb99073e2cf3ec0a736a71a9ac02f3830d012078722d26a8323a79483e"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\governance.ts",
+          "sha256": "7b28111b1376dcb6d8e060090c53162806fd9df301bcf903942248439b22caf1"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\index.ts",
+          "sha256": "44aeebfe6eb2c174a3558de7f9ddd6100c5cbeb78990d2725acb56d503614330"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\intent.ts",
+          "sha256": "373b2c812b3f0eefe8863f760989583e8d26b4fea1c1d9733f1f0e8f8bff33bb"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\named-method-assessment.ts",
+          "sha256": "4e8b7576aff7e98e69309ed51c1a81fba91354b2b5a98b42b8291b68328db1bd"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\objects.ts",
+          "sha256": "8120c4033d6d259ca2e585008b616765d594019660b01a8495629bf0d5564c7c"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\provider-assessment.ts",
+          "sha256": "f17ec370984727dfa7d9665e8b0b6d4a80c3a0e3d42f7485a722afd95431671a"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\providers.ts",
+          "sha256": "be381941ac1ce0af9e0af9e30f9b1268612b3d9b38dc989cb5cef40bdf2d0e82"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\queries.ts",
+          "sha256": "8e4853be187c45b7a012052b995c86faad64af21e3e5c3826a4a9afa6bb88c60"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\results.ts",
+          "sha256": "ddd1245b7fb571479ec96ac003728690ace12d2034c8fe6cb8a5be34dfd09dec"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runs.ts",
+          "sha256": "63c562a63a949a31195e05f678048e277c38c47c103e0f1aec132421918fb890"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-gateway-bridge.ts",
+          "sha256": "5128b014108bba6aa49001a2391abaf54075cfefc100c65d2526c19aca1c8b60"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-gateway-credit.ts",
+          "sha256": "c8563c0e251412e270715bb78edbeaec5d612407029513c828fd72f5d9ba21a0"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-gateway-network.ts",
+          "sha256": "c9679eba1941a7df2c4974cb9af0ded104f662a2ced7b32fc9956f8b11c8c566"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-gateway.ts",
+          "sha256": "c57d24f64d10dbcb4aed566558004419c3e46639475d75771a454918745cba24"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\runtime-probe.ts",
+          "sha256": "654d2b6ca1cdca9a4bd03769d1842d5680d9f1df6c971b1b47ebe25b34446355"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\skill-probe.ts",
+          "sha256": "9987786af56977da4886f6d18360ea1faadd94d214f7e486e1d7ffc3fa9ca862"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\skills.ts",
+          "sha256": "51ff43f2d6fbec01cf6cf52a0ab50711d8721b400793c3e1cc28af6cb282471d"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\storage.ts",
+          "sha256": "4247f6b2985a28587a705dcda8a348a78a2681e3ddf35d4fea8c1b7dc707cefd"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\tool-authority.ts",
+          "sha256": "7eb810d0e260e91d95b7fb2aa202b6f9f079d839ce525df3ca64151fd9219d07"
+        },
+        {
+          "path": "packages\\protocol\\src\\v2\\verification.ts",
+          "sha256": "d96d5e972eef174d79bc801e1999212f4e0b3ee7f9caa10c84d66c3d9afd480a"
+        },
+        {
+          "path": "packages\\protocol\\src\\validation.ts",
+          "sha256": "0770aa867ecf015a7885674923a72db9edf4925db7629464c70da7cd97f791d3"
+        },
+        {
+          "path": "packages\\protocol\\src\\versioned.ts",
+          "sha256": "2a493c95cc1397b4de0559e318b9e366fdf316c7ebf6f1394c5e3034bf271f90"
+        },
+        {
+          "path": "packages\\protocol\\test\\agent-runs.test.ts",
+          "sha256": "e0e66e0068a585ff5da7006f73adf45ffeaab980764720d385aa4a528b618fc6"
+        },
+        {
+          "path": "packages\\protocol\\test\\agent-tool-authority.test.ts",
+          "sha256": "06f79278f64b51c09579655a3cee3d75fc42e096c06eb9dfeb4e33e547c4236a"
+        },
+        {
+          "path": "packages\\protocol\\test\\schema.test.ts",
+          "sha256": "be454084b2a14e0b1cd806f2343d742f1149e67b53e9472587e541d448438688"
+        },
+        {
+          "path": "packages\\protocol\\test\\skill-invocations.test.ts",
+          "sha256": "a19d12bbf33410c0a527c558b919971759ea57155c5a5f952ca3898afa40d6d0"
+        },
+        {
+          "path": "packages\\protocol\\test\\tool-authority.test.ts",
+          "sha256": "5c98005f1f501f2241ee238ce20e26a2d18c289d47e4b211fd17cbfc88a45f99"
+        },
+        {
+          "path": "packages\\protocol\\test\\v2.test.ts",
+          "sha256": "2dbb29d357baf02496104fc488791d96d3bd608760542b03423a2442a4e89e3e"
+        },
+        {
+          "path": "packages\\protocol\\tsconfig.json",
+          "sha256": "19dc3d7f8c99e895a07568c95e2fdc28e34fb0a48dbe574e749e3b45c064145d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\native\\AgentRunClock.cs",
+          "sha256": "13651bf41c1ac8bde6ddbba7ad6ecbe83c9ac404786f12069cc9061153f7ec42"
+        },
+        {
+          "path": "packages\\runtime-adapter\\native\\AgentStartCustody.cs",
+          "sha256": "fd6e61b3088dbc90206c5e31d782cf08bcc07ee467ea7729b7de05ee077580fb"
+        },
+        {
+          "path": "packages\\runtime-adapter\\native\\AgentWorkspaceSandbox.cs",
+          "sha256": "b7c873ed39f74cb854a52d0563fb46f05900a3820386722372f3586f4fe43f31"
+        },
+        {
+          "path": "packages\\runtime-adapter\\native\\AgentWorkspaceTransport.cs",
+          "sha256": "b1193a524c8318609bd18911e0308fd5aa640fdfef47edffcb9ad48a3fdeafa1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\native\\AppContainer.cs",
+          "sha256": "7b6f86476ce0b1101c39a0665aa5e914701d500aff70591980afd64a4ea68fbd"
+        },
+        {
+          "path": "packages\\runtime-adapter\\native\\ConversationTransport.cs",
+          "sha256": "c3e4925ffd33114fe767c477ef7dabcde0d3131ad33a21c7fb5f6bfd90466590"
+        },
+        {
+          "path": "packages\\runtime-adapter\\native\\GatewayTransport.cs",
+          "sha256": "3b83cb8d1ab7c95f7f6d9486258d9473057a6a235763c3a32315296d8650bf28"
+        },
+        {
+          "path": "packages\\runtime-adapter\\native\\IpcTransport.cs",
+          "sha256": "77d54eebca9697d4434133e4452aad01abdba9b035c055cdb5879770aa30dc12"
+        },
+        {
+          "path": "packages\\runtime-adapter\\native\\WorkspaceFiles.cs",
+          "sha256": "024811c6ca219212dcbf0d699a5e83791f193ea23cf359da36f0521a072d4a6a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\package.json",
+          "sha256": "5170d628e71f3f6789a95e1409dc60df9a2aaf87665cf903495201c2e2dc1adf"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-account-bills.ts",
+          "sha256": "a8be79c43f1d7333b5a73825c178c28c47a0f9904fd8364739b5f17496068491"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-dedicated-account.ts",
+          "sha256": "276030be8015c36fa90a1eda6623cfde5bee0f285b0ab7dfae4652a5ba29d060"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-dedicated-codec.ts",
+          "sha256": "bf909aa1aae8191b153afd65c27ef0a98a1d9fbeeba02693c32bf166416eaf6d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-dedicated-model.ts",
+          "sha256": "008e6f249cf3e7566fb8f6846d82a2f9986e86b866787038709f31a1727c7350"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-legacy-account-billing.ts",
+          "sha256": "fc757ec60e2e5c1e84619fa1d6a136f29f71878c529b2a5255512c1529c901e1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-named-method-config.ts",
+          "sha256": "6f78dfc4dcaa45c261e0919802981ed9420da4987c955d6db581c9a2fc09ea56"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-named-method-host.ts",
+          "sha256": "2dc5c7ba0e3b6e1ccf31bd98b8e7adb6ac7e2d4db74015c6d5cc03bfda47a855"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-run-budget.ts",
+          "sha256": "5489ba755819d78882d7e3b0cc30e64fa24bac8933541ae55aa16463574e023b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-run-clock-channel.ts",
+          "sha256": "d2902cc38ee2b4a51d5de79ca7d8466bd05029c14af53e6662c2eda68e6db20d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-run-clock.ts",
+          "sha256": "0251c6a806886b1218a7481a9e34eeed88cbbecf1d557eb8a05c6ac797f994be"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-run-cost-evidence.ts",
+          "sha256": "a7d0822d53b958934993864ccf3332de8cd99df875651f24d616868599dc52b2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-runtime-cancellation.ts",
+          "sha256": "32f8c0464254511a7a9b5f71ae7946a82ad9fabca64aa9e3310a12166e038bd7"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-runtime-completion.ts",
+          "sha256": "ee0f17d29881b43d0677d7843c22a909b90db0fff41de1e2df0304d05a046697"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-runtime-interruption.ts",
+          "sha256": "4b5bba775e34c7e709f7120d50f0f3a22c3755771bbc4c3d122bb2b92495a0c5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-runtime-lifetime.ts",
+          "sha256": "0b996414df39d7d86a40b2d467d3642f45f9c3337286355281b6104578f0017c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-runtime-model.ts",
+          "sha256": "6fc23c4fc322fd98b18ed9dce1e7e7dbf0a6113702f5dc5407fbc36ca16fa778"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-runtime-operation.ts",
+          "sha256": "a790345f9bc6fd7a288284976fde0b6b4b3ca13d02ccb9c86804a56d1a26b638"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-runtime-result.ts",
+          "sha256": "b0dc04913d45c323fcbb91bff7abc45b57682e66186d1653205c3549893c7f0e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-sandbox-build-originals.ts",
+          "sha256": "38d4fb60b7bb70cfd378179d8a70f4a4cece0fb806dbcb87c33e3932462de343"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-skill-account-scope.ts",
+          "sha256": "2548d473c65a6755e6107ffaf9f2bb493289b88a5411fcb7d5e16962265d9cff"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-start-custody-native.ts",
+          "sha256": "fca2f269cc3c6b3d4b6cbae20ca589e587aa85f71b3e2236e94f58baec0fee64"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-start-ledger.ts",
+          "sha256": "64613e7cd3a76f5f3dc3c59ac06acf387b1e103ab3b0e7a3c26d3207387d23b3"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-start-origin-windows.ts",
+          "sha256": "b770a9e869a910fe6cc7feab89d912d3b1af7d927f90ea44c48744fc8c5b80a8"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-authority.ts",
+          "sha256": "8a6bcf118b1acacd7c8040b3cb53d6c9f300cf419eccb0e4101a8de84aaf7620"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-ipc-journal.ts",
+          "sha256": "4aa54b038992fa3d9af572b92dc0068c0f86590b5423ea42f35dfdd557bc25f6"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-ipc.ts",
+          "sha256": "80eef37880930a7a0c3ad4bc77d45c4a62cc1eb84195937274e495c779f91f92"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-sandbox-recovery.ts",
+          "sha256": "0931b36942ab5e18bd1e46bf66a21a5dc15bad3c623876f3f0119dd30e83202e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\agent-workspace-tool-host.ts",
+          "sha256": "e64450069c784eb450e21e8de96608788578c09afcde2318fe0a229c830ac2c9"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\connection.ts",
+          "sha256": "6084dac3128e0878e584945109fac4132baa7514d9c771762b504392f361238e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\execution-lifetime.ts",
+          "sha256": "d4312c097c378627c4e855a235d580c57a6269debbdb4733ecc6a4261a25db40"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\execution-policy.ts",
+          "sha256": "680dd6b8f1841e112f9282436f4114124f31e8d7a7ae5d6652d8053e40c6a449"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\files.ts",
+          "sha256": "06ab5bff6f580fab71c7bec26d725196582208f1235b1c7cc9330102d63ab326"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\fixed-method-replay.ts",
+          "sha256": "ec235c0652fc180875dbc236a12dcca7a6076f10e500eaa7d0b253cf203e96b6"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\fixed-method.ts",
+          "sha256": "c9d4d7772432b73e6aa3ad026128dffdc33039ffc68405bc525cbab22433d7d1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-address.ts",
+          "sha256": "546a40fd0baab3b2db701f3f2348dbae70eac3b1464f8e58d9be27cb055a4b07"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-billing.ts",
+          "sha256": "e4d98ef631047a7d015b23b7500b430857da8af8cc4f9357466dd13752cf3305"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-bridge-probe.ts",
+          "sha256": "c5a8f87d91edf41a73e13df4f5b7e13a817e46d6c5e359904a9333af32939325"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-bridge.ts",
+          "sha256": "efb162791874db3eca325089b26a1dc36d0c1d36b7abc77a8efb0e42a313bc1b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-budget.ts",
+          "sha256": "59fa4a5788583ce62d7ac5b5bcb797cb220bc75a02b9e4cfd1f5f782cb5b11c0"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-conversation-bridge.ts",
+          "sha256": "9860aaa65067fb89406d0971ae043f1bf596d94795b0ce1a0ccfb05338a48081"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-conversation-probe.ts",
+          "sha256": "bf90eacc1a970207a36957336dd272a3c902defd1b0a10968ef1b4bcee868f66"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-conversation.ts",
+          "sha256": "c1208b7fe4a944fe4f895a9009557330194b5f67dabe611e11d62adfa1b573be"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-credit-owner.ts",
+          "sha256": "93fa203fc8f7a65fb14897c93bf908782011ce3ea6a29d904e6f14c6c7c023fa"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-credit-probe.ts",
+          "sha256": "569c4c105eadb339df4753e79df264f7c15029d869cbdb1fccf5112c5800d7ce"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-credit.ts",
+          "sha256": "39a6c1983f13e8a8452d39f38a5b98372106988b072be46663affa7cfa395fd2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-fixture.ts",
+          "sha256": "1c63b5ce97b47eb86218e21750845e70577cbe493ac5632ef081871cc33cb9eb"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-host.ts",
+          "sha256": "a012b10553285921cde1027c10186d2771384c944233197a142e8b3d987c7691"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-http.ts",
+          "sha256": "fddabbd24d2e3fe3db5ff408dee2263bd5cd780974a831257a2df1f5c3a235ef"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-network-probe.ts",
+          "sha256": "3b2538ded2de466f984be0e3f695f3e87d426f659317348128b4c31c9b56f641"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-network.ts",
+          "sha256": "7a0c096630474cbbef17db384cde24e3da8bb5f5d012e6cc5b600103ad81a4d7"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\gateway-probe.ts",
+          "sha256": "c28e5707d8d65658ad739fb4d47414c020b8ec561350d4cbe09df0e48bbf670f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\index.ts",
+          "sha256": "70663f831892540b28472455e739acf778565e5b7cadfcc95f96b0ab14fefbc1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\ipc-observation.ts",
+          "sha256": "fdd1c5c9894ee6847a5705ef4d9013ee62da5b63d517613c1ca0732bd4b65318"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\model-gateway.ts",
+          "sha256": "52c31c89d6a5116939c68e45a8c1892874bbc81a535e42b072368451d8174ca2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\named-method-originals.ts",
+          "sha256": "b4f7b6d6c22e030dc99ef2c29e48def71c5a0f6bbf882832e25cd942d9e84155"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\native.ts",
+          "sha256": "9c79345dd83416371e5f503a8f13355fe4b22ff38b73d572cbccb4995c20cf99"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\opencode-workspace-rehearsal.ts",
+          "sha256": "62de656a5488c95b96f170e3c8eeadacb9c58d23d1f3907a1e20b6d4112e8fee"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\opencode-workspace-runtime.ts",
+          "sha256": "5befdeecf77f0ddca6b4ac49862b6bc2687cd17c233a4344d50744c2781bc161"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\operations.ts",
+          "sha256": "05e3e35b8bea2fe49a68af4fa26ec25521c29fe5db6b111dd70925e878f20cce"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\private-cleanup.ts",
+          "sha256": "9b0b6da5b7c8353b4e90b06ecf528d8ecd5258ffcde107f5147b3b2a76d8227c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\probe.ts",
+          "sha256": "1c63161123a6afedd54ebefd06410abda2858e9ff130c222cd30dd418c2be06b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\recovery.ts",
+          "sha256": "d4057aef804036d992767dbc4504764cab246e6f10469415694ef2b3c16f619b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\runtime-binary-originals.ts",
+          "sha256": "807a0c5caa2aabb901e5e06c033bea73c4e1c8d9496f15ea1db7bc3904a5ef14"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\supervise.ts",
+          "sha256": "197145a9b43e0f853a3140a07e43fc360ec54c34ffd50e4f131c31f6c3b6afc5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\tool-host.ts",
+          "sha256": "9ace68c69cdff35239c581f4f4fdc0e43a3fb39b59ba7e9c676da12fa281fd74"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\tool-journal.ts",
+          "sha256": "fe3e98d6a5f635b8d7f11fd5f69b7d779e96b7f051ec10fb74c6ee1d59859aa6"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\transport-probe.ts",
+          "sha256": "2fe992c53ea9c6a5a1e5711ef6a2e4c433e2a59522cad396050ccfbb5013ebcf"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\workspace-check-source-basis.ts",
+          "sha256": "e18172fffbc9b7ed49687a227ee1dc90311e24dde85fd0c6247e49411a4e0a8d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\workspace-checks.ts",
+          "sha256": "b986ea37fa9a90de89ad71d48853fcdfcf66e70e2dd0e527fa4a271252e1ee4b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\workspace-files.ts",
+          "sha256": "0b184ef838d3057368317af3c425089b5b21e331c1b281fde1a21c1292ab7219"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\workspace-tool-host.ts",
+          "sha256": "3c013b8395e6792ca5124dcb53c2db552411b8758e4dabb76cf8c84a39c9f989"
+        },
+        {
+          "path": "packages\\runtime-adapter\\src\\workspace-tool-journal.ts",
+          "sha256": "bda463fe0884571bdf688f4ca6b05311ea08602b402d16b63d9874d7c4bf7ee0"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\adapter.test.ts",
+          "sha256": "94d003ac46a1ef4fb1e8574fed5e983de6c94fa9a98532080006316cbb52f21d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-account-bills.test.ts",
+          "sha256": "0343d1028375d9b85746a2b325f85c4d1bcade24ea80d3dd8d930e21523ac7d4"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-authority-scheduling.test.ts",
+          "sha256": "6105143cb1b47c82c5313dc5f9011bcb4f8e66459e8a4740f2eb3906b3d42179"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-child-claim.test.ts",
+          "sha256": "c643ebe0cf2cd5b28d9078c2d5b55543f808ebb45a1b6c32cdf9b944cf61d5f1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-dedicated-account.test.ts",
+          "sha256": "390c93a1519b3b4553a8a1a3e12302b693df604c3b08f623e13d66ef084dedb1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-dedicated-model.test.ts",
+          "sha256": "972a081af4878624f9d5387b8e342c9eeb8b6a838762cfbd9f85df7e405a212b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-exclusive-snapshot.test.ts",
+          "sha256": "63e800ff213b64358444e46a89bd75830232c3fa76f5d2b9badebd57d0d1d4bc"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-legacy-account-billing.test.ts",
+          "sha256": "158fff564cf9ffe5691ba31d7f79da13f14d9e89b892cb436bec4d363db01199"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-named-method-host.test.ts",
+          "sha256": "2a282de83c7fb30edb4c2d5bea3c2da51a7f7f90ca0ea21f73a6fecca8b80bfc"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-native-input-close.test.ts",
+          "sha256": "6dd748b77d5372dba8ff04117dd63d148c62ed813b26666b1b2d3a8d344144a5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-run-budget.test.ts",
+          "sha256": "f155b9ae0dd9ad8b93b906a885f186423f70c539e871afa722c2f2ccaf703b3e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-run-clock-channel.test.ts",
+          "sha256": "77ee98388d6d75b832181a20e42ef867a5f168fd0cd534fe84b509beb02a4a49"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-run-clock-owner-worker.mjs",
+          "sha256": "1c122db85ea1a3d71373ddba2e6b2c210460f3c85d195ee6f3aec86b9036f114"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-runtime-cancellation.test.ts",
+          "sha256": "7b7af168c2b3b144921c0f46010df53a6769e06db50a45442ea3afbf9add5c4f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-runtime-completion.test.ts",
+          "sha256": "1badd3f6634ca8d1d245fa9b91a52ad05c97e04a4aa8499f0609022b37f4b833"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-runtime-interruption.test.ts",
+          "sha256": "cbaa4e2c12baa4c421d4c901f32e835b39c921f5ecfcb1dc7ecc6ac8fc049a71"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-runtime-lifetime.test.ts",
+          "sha256": "612d2191938e931f2d70f93be4cf28a8ae220a9922149977eea52f2e49c1e81a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-runtime-model.test.ts",
+          "sha256": "88cfed04bf503cb49ddef72f193e7c054055d5f7854fa44efd87403f9ae5a863"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-runtime-operation.test.ts",
+          "sha256": "732bfac707ed7ef3994d59bba58bdbecad43954ec0d75feb1e7b051562d086cd"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-runtime-result.test.ts",
+          "sha256": "f01eb93ef46d00e7f5a76cac204180e081fe165d0609b305cc42e93a7f1e8eef"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-sandbox-build-originals.test.ts",
+          "sha256": "c637304f4083221eb7f935b562a1f4eaa6d9fe9db52244d6c8fd6e35f82808c3"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-sandbox-compile-stop.test.ts",
+          "sha256": "343c6ff68e5c1544f26b02fb457ccb122c9c941b9f1d332cfb2d815e345a159f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-skill-account.test.ts",
+          "sha256": "48f78fe1271139c867ebc3f251fbd15b81f93cc38f8d0e4c433057305f994590"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-start-ledger.test.ts",
+          "sha256": "212212db3bcb5bf0cdd632be6c2793950c6a0de8d1fc9d04c21ef3d5042025a4"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-authority.test.ts",
+          "sha256": "7219815b2d9263708ceb8fac29158a23d751369efa5d5992079a321f6f12c7e4"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-ipc-journal.test.ts",
+          "sha256": "51d7e9e097ae894e2f8c178b94931ce4121b919e545697b381c360e112454463"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-ipc-peer.mjs",
+          "sha256": "877f460dc4efb042edabade9fe03ef9f02a24262da912540330e0f304da4784a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-ipc.test.ts",
+          "sha256": "88d583ebdf3e437a940bbe3586e38633f7fdea4f64bd43ef6c85933d8baa83c5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-startup-worker.mjs",
+          "sha256": "5d797c68efa56eb81cb8f0aff86b6d2d516e15ff0022ebea93be4f35cb145af8"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\agent-workspace-tool-host-worker.mjs",
+          "sha256": "3daa3317d9576d73456b17f9752e54f03d6e47bdceba0467cd7b42bbe7a026a7"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\connection.test.ts",
+          "sha256": "a686f1ecaf3ad0c4d702a5c4627890d4ccd455d7d7cfd76316ae4f7ad9d44198"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\execution-lifetime.test.ts",
+          "sha256": "ed29d54b15260fec442653532d5af64aa6b32b8b22e5024e993a7a1a32e7f218"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\execution-policy.test.ts",
+          "sha256": "0aeee6a6fd7e6cef97940235e1775849cfdcb90745dd5013dcd57a14b6c4b194"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\fixed-method-fixture.ts",
+          "sha256": "f4619c3b1e7fe9e5cc1f39f06d82695539090a4b4d1d6b3c7addda8d3f467306"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\fixed-method-replay.test.ts",
+          "sha256": "02c8f45c412055ce779ebffe7bb1b5067d6cf563b5d01a2e7d5516db54c0dd7e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\fixed-method.test.ts",
+          "sha256": "db5fbc71fc44e996960b7b40743b8295c9a13e0ff3ade43b2823baca01a8e492"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-billing.test.ts",
+          "sha256": "df5434c2efbdd0da1cb061c5de6ca71c3b17141fd3109afd8345401c526e1b53"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-bridge.test.ts",
+          "sha256": "5e0b8a2e75d1f8dd317f988d9cb631635f780e4eb660ab96e3136c8170d306da"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-client.test.ts",
+          "sha256": "f01e29c117e94923abb0c4d3f96c357cb44e950047296a9a7fa46f65b4c37b7b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-bridge.test.ts",
+          "sha256": "8b114783fcc076ecabb662892e0515767df92ac2b44e6161f0ce3cc69a56c7c2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-cache.test.ts",
+          "sha256": "6c0600cc317d422da71755e47679b8632697ae9f443fcac6bdfc7a304b05a1ff"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-client.test.ts",
+          "sha256": "5d72eff6c42770032adea71a8fc8f15329de6afa4d0de07ef41ebb4bf79b920a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-fixture.ts",
+          "sha256": "f2a680e0f76d9a373b37af934eab3708ce1d1f78afdddc93c6ff7cab6e4dd99b"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-host.test.ts",
+          "sha256": "6df4fd579914771783c7db6a4f7b652e166a0cf3989252b60f0d7f1f5407e61a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation-originals.test.ts",
+          "sha256": "7a61677db7b88a6823f25fee84208e155b6c95910e09a1babb93d07c042c084e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-conversation.test.ts",
+          "sha256": "01cb3a016cd0490d214a858927854eb88867b0cebfe427e0a066c96021fe2255"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-credit-cache.test.ts",
+          "sha256": "b36aa08093d2b983c96b762660c91c955248b8e69a6007cd4f14b84890ac658e"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-credit.test.ts",
+          "sha256": "d2c5db80715787738b9e594fbef675fd163c2691e8a20064c3136e245c44b87c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-host-worker.mjs",
+          "sha256": "20a349b8bf03ec976c570fa41405386fe5f27ec936fc12a2813829726601efaa"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-host.test.ts",
+          "sha256": "f55e3f34d2875a49c1686b34c8eb7a7081913a200a744b1d3327b1eea33ab80f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-http-fixture.ts",
+          "sha256": "8498828eb94292fc090ad04a8a42220663c6a22324fa8ee91e5bbd89198ddf7f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-http.test.ts",
+          "sha256": "32335da989ef0c988eba13089cae5514c58a034185d8be6830e342edd23b2577"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\gateway-network.test.ts",
+          "sha256": "a2a78e86351ac5d1986bab10bf6d96331e203ae7b6c4872da43db896fcdf9357"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\ipc-client.test.ts",
+          "sha256": "d6f1b61a4e1c5d511ebe36decd8fe48dbb9f28e2653f1c4acf052a43b9a43c91"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\ipc-transport.test.ts",
+          "sha256": "9a422eaca4ee0b89bde7deb43ce1a82e72506cf0de199dbcc4cb63c7e64a771c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\model-gateway.test.ts",
+          "sha256": "99a98b187df4f9567e41256765833f06b950a948997092b06baf5c3a482c56cf"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\native-control-failure.test.ts",
+          "sha256": "465b1f80883fcc7348d2cedbdcf8c2569f298360063c7fa156fc7893afc632cd"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\native-control-runtime.test.ts",
+          "sha256": "72286094523e331f0307b2499fa1d815d95857bfb6a8a33f966a569605a83911"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\opencode-workspace-tools.test.ts",
+          "sha256": "e332a247dcc2ed47d54b5e27afb112b42c293e39be8af1afa350554592fda2b2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\owned-fixture.ts",
+          "sha256": "701f8d2824bed3044a068a4c7739668bae9e1e12449e816c8d027cbdc55a8471"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\recovery.test.ts",
+          "sha256": "23496913a7524cd90ddb3798a89d7c273e095e0518066f83a28d93d62470ec8d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\runtime-binary-originals.test.ts",
+          "sha256": "2232c99a3cf2837f92160dd6f3a3642148f36a49c60e918cd2e0b11ac2c17db0"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\skill-loader.test.ts",
+          "sha256": "eb4047e723cba82e69f8f198ada5ea501095049ae1d4ca2c536eb70822dbb2c1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\tool-fixture.ts",
+          "sha256": "297008fc912019ff7dc9b68d1d1ebaa15c520580d97ef2b69c9878ccf6e66d60"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\tool-host-worker.mjs",
+          "sha256": "bfb0696d525bce4663b1447bd32c88d658fa2ee54b5665fc3308a36803affcd2"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\tool-host.test.ts",
+          "sha256": "db6fdda87c5f79675cb5697f17dc4b63f252ac0334e2263117aa34ac8501384a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-check-contract.test.ts",
+          "sha256": "f7f9bb25d79988e760664d04b78649232590319f3cf71f932c0f7944edfc20e4"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-check-host-worker.mjs",
+          "sha256": "51b56da44025815a300f236e01bbbc088e4852d736a7bc4ba213a2eea2f24810"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-check-originals.test.ts",
+          "sha256": "c0b4ae45dad538d264d4cd458b92d5c5f8d918e2a8b0da74335f7374c46192ae"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-check-source-basis.test.ts",
+          "sha256": "592952251f7fefde0b109765ba6a51f01b2a8e5406e5d6bfcc67b4f8b0f993a5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-check-template.test.ts",
+          "sha256": "2987e76f8690309d0720f65f6d7bb858f799b6db24eb5abcf4bb7fcf9ab75fa6"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-files.test.ts",
+          "sha256": "e7e62d6a6085a8f53a4ae91ad3db0748ca0686d482ac31feae9de5cb12de3ad5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-resource-recovery.test.ts",
+          "sha256": "9c480733d00da22521affaeedbff8c047eb8c647a45982dbc9bf19d69ed594f5"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-resource-worker.mjs",
+          "sha256": "c64d0c97b29c6cffdb1e69e1986f2291ff0d772b1b1bc1e45e1903d50f774390"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-tool-host-worker.mjs",
+          "sha256": "8bd3d25ef794964f1c7465a6b1061de0e329ae3ade301f91d8832716cb51b23d"
+        },
+        {
+          "path": "packages\\runtime-adapter\\test\\workspace-tool-journal.test.ts",
+          "sha256": "d3482b3e02306688946f5158ae8478eb610c3ab6bad5ac9ff8e97ea471b010e0"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\agent-workspace-ipc-client.mjs",
+          "sha256": "ebc6c7ba124d034dd1537b9cd7fc18d4dc1dd5cca8bc07753c14ddad2df3d9d1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-conversation-probe.mjs",
+          "sha256": "a963007c315926ce59304450c8e5cac647c104c1d2c949a232a38df47f5bbc69"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-gateway-probe.mjs",
+          "sha256": "7f7c5f783e9a4d4cacab0ba4edd50ce245bf793e2f570f15d2c0a75336baf09a"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-host-gateway-provider.mjs",
+          "sha256": "3ea3d1f067f3bb416b28fb061bc7fa986791b759f30d996014f42a9cf39668ba"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-ipc-probe.mjs",
+          "sha256": "fa04aeae81be52b56b1ba6828f62303053ed89cfe802312d109d3ba96a13a14f"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-named-method-tools.mjs",
+          "sha256": "000635dc6ba5f8bf72bc82ad21cb3b61d86be32e6b0d7f8369fabc39d8702ce1"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-workspace-provider-fixture.mjs",
+          "sha256": "938242ace055e6b4d7948802900deba4a841c15ae627396a46aafaae713949aa"
+        },
+        {
+          "path": "packages\\runtime-adapter\\transport\\opencode-workspace-tools.js",
+          "sha256": "a4d4b5e0dcdee928d74dcc228cb3fd7b5dae1ce223d3c60167c426bce109810c"
+        },
+        {
+          "path": "packages\\runtime-adapter\\tsconfig.json",
+          "sha256": "b66cf44b8005cf6b4fc73472c158e87532c230dfee5182e59e697f20909638fe"
+        },
+        {
+          "path": "packages\\skill-adapter\\candidates\\matt-clarification.json",
+          "sha256": "a1633dcc43ccebf26e1cd6c6fe90078286ad7287f072cf6ff3f4fc3b8bbddec4"
+        },
+        {
+          "path": "packages\\skill-adapter\\candidates\\matt-review.json",
+          "sha256": "fab2c293f380e0a8bd42c13a98bbe79559303263f5e7b560849f47404befdefc"
+        },
+        {
+          "path": "packages\\skill-adapter\\candidates\\superpowers-verification.json",
+          "sha256": "026a74806ad3a81f1a7054ee05670fb5f37eda28d6b1ba05201fef6d23c6e44c"
+        },
+        {
+          "path": "packages\\skill-adapter\\package.json",
+          "sha256": "99dcff19bb6630823aa0de3ad8de528734e9bd49752bcb555d0b22d8f9bd79a7"
+        },
+        {
+          "path": "packages\\skill-adapter\\src\\fixed-method.ts",
+          "sha256": "6af3453039b29c6c83bb1aff02150262e7debbb9ed049c7277c0edf10ef0e32c"
+        },
+        {
+          "path": "packages\\skill-adapter\\src\\index.ts",
+          "sha256": "56f336be8be70f7e2d16577f232406c3dab730ce6d4882045bbbd822592a2778"
+        },
+        {
+          "path": "packages\\skill-adapter\\src\\invocation.ts",
+          "sha256": "9f6a36a1f6b7c44aaf63df0c47bf56fe88b956ad40ba8ce543d8e99adc6dc1a4"
+        },
+        {
+          "path": "packages\\skill-adapter\\src\\package.ts",
+          "sha256": "4c6122dcee020ee2da24cfe69a35b9f5e4d773869d1bbdbd819ba7a36d3c20da"
+        },
+        {
+          "path": "packages\\skill-adapter\\test\\package.test.ts",
+          "sha256": "ac20e23945305bafd7ee707d2cef09651e4aa8f501bd42a68a92c480ecaf6edb"
+        },
+        {
+          "path": "packages\\skill-adapter\\tsconfig.json",
+          "sha256": "ffde1b3a85ca31160195645849a396d0e7cb6c6bf6c6f692a82b32852a41293e"
+        },
+        {
+          "path": "packages\\store-sqlite\\package.json",
+          "sha256": "ce58e0daa222f4768e549b9b543d94dc211079dc7c32bd86b33ad0202e2b8dcc"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\database-format.ts",
+          "sha256": "17ddadb032474fd7c2c1174a029fb15da286a9a3c832c951388ed19786b25a36"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\format2-preflight.ts",
+          "sha256": "4569a703de4782535f43b467fcbedf9f04176e076b38e9cee474936eec3d052f"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\index.ts",
+          "sha256": "787acd46d17a12dc22358e972d786ff9cc968db05f788fe7e0c9c8cac5605bbb"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\migration-runner.ts",
+          "sha256": "065649d3b98f5c84ac041c189584c17ddc802e556faa55a72dadc0bd2abab853"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\project-store.ts",
+          "sha256": "a715b6399e3d63784a869f8802c5289e150e7d9c52e469fe424d97f769b22a87"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\registry.ts",
+          "sha256": "18097c94aa5f8e1888e93e35252a952e4912d3d3e2615871a23b6098faaf9916"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\v1.ts",
+          "sha256": "dfeec5692e5ac5a7f3ba4c474edcbc13072c49548676035f33d829017d736998"
+        },
+        {
+          "path": "packages\\store-sqlite\\src\\v1\\project-store.ts",
+          "sha256": "a6d9847625638fecb441af8c349f8fa85d90699bd130d2edffd55c127a0c1621"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\agent-run-launch.test.ts",
+          "sha256": "fe2cadeece31f5a00d190b16a7362e36f8720662f2864e0139e0d06e0ac5707e"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\agent-run-model.test.ts",
+          "sha256": "e5623ebecbfa27459530c1e9892b736621fa1c0bd42962d5dffbd99e8f70610f"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\agent-runs.test.ts",
+          "sha256": "9ed62dfa1a8d5e458d5726e4493f5b6f3a1e0566b27f319909f4054a8126b613"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\agent-tool-authority.test.ts",
+          "sha256": "187cc325af3796314464cd11601d62979f7dc9d2735cced20319a90b7ba0eecc"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\current-store.test.ts",
+          "sha256": "fcc377cd14f7079b77c59e9bd876bef9387c417e616f1de6d4a8ac4931b95b2e"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\execution.test.ts",
+          "sha256": "2f8b2d768cbc768f2264fca30fee023e51e679fbd873b8627feb31bd3e0d0bb8"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\flow.test.ts",
+          "sha256": "ed64c14b10ee521fe3f8b3f23fafe939e877d484dc255f00273a6e8c6a04cf2a"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format10-migration.test.ts",
+          "sha256": "4237601651e171c40b0e1b4358eea8b8cdea64a118cac26e01c2db31161a17b7"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format3-migration.test.ts",
+          "sha256": "b3021fa74b33c96a2281c11893cda31d93cf4d5d1933def21ab13165bc1bd712"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format4-migration.test.ts",
+          "sha256": "27f10bfee49fdefea6cf0cb291aaa4c9175b2072b881dbe83e4105c1397b868f"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format5-migration.test.ts",
+          "sha256": "ff2a7c385c88432dfffe22a1bd3a4423b730f1734a2dcba0c7bfa1d3e104ecce"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format6-migration.test.ts",
+          "sha256": "d4af4d08b7b2683734633db9953161c1fb40283e19a2db7ab1ce5c1a32dd83d2"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format7-migration.test.ts",
+          "sha256": "5f3bd164a8ff8297a7dc76f49e519bad765bad2c24396f6c00cf2f28e6d21732"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format8-migration.test.ts",
+          "sha256": "12841ed1fc460dd9b7c8326988654deda6a4d71fe9a31f9a738a2494989bd0aa"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\format9-migration.test.ts",
+          "sha256": "fc3201c0ffea55d1a2fb5c3ae7f57a0305f3d0d69b4496dfcc3c81bfa56f2fad"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\governance.test.ts",
+          "sha256": "0fe4568ffb9a1a26660177a800b7b394fcba479f49eca895c42f2aafc89a51f0"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\intent.test.ts",
+          "sha256": "349c6983433a0edfa206bb8a74a045b0c94b43bb2bf429c16546516e8c538323"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\migration.test.ts",
+          "sha256": "d4960b5bb50ee66b3b643d966f1d9c3cbb51304f6c18a67700183934cbdb19bc"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\project-store.contract.test.ts",
+          "sha256": "526b0cae0b201b7504ac8977dc6554f88df6164dbda80225b032c4938b8ae688"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\review.test.ts",
+          "sha256": "9e13bc72b6450b2abf31c098dff992102394057c86fc326c42ac95db904ee680"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\runs.test.ts",
+          "sha256": "2b6d55b345a2c9972d9231ef080a79d025ba34c3651047b23f71430ca463f717"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\skill-invocations.test.ts",
+          "sha256": "974a0f13633cc4473ee931048fcab0b0970959fec8f762658907b7357fc5a858"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\tool-authority.test.ts",
+          "sha256": "14dc73c4e6d7ee2efa714ff040ec5941d37c9f0991118028bea602eede0fe5ca"
+        },
+        {
+          "path": "packages\\store-sqlite\\test\\verification.test.ts",
+          "sha256": "56b5ebc39390a8a1c1fc9c7c011c46238f4d4dbc0cb0aa0d8593115ef6531942"
+        },
+        {
+          "path": "packages\\store-sqlite\\tsconfig.json",
+          "sha256": "572131151484c0f17aa216d15af8c80d657ff1c27803077f33ece1657e725dea"
+        },
+        {
+          "path": "packages\\store\\package.json",
+          "sha256": "f8b3414e3a384f44da95476f3bcc5ddbf43f232984f4a0e442eda4a1e5f4f4e9"
+        },
+        {
+          "path": "packages\\store\\src\\index.ts",
+          "sha256": "35307e538b99ee1c57e97ea2deefb31228e9166fc3465b31649f87f038eb9db7"
+        },
+        {
+          "path": "packages\\store\\src\\v1.ts",
+          "sha256": "ac5ce7d602ec733e6502a78d52fde22ebc7a8e148a4817f5afef5bd214962241"
+        },
+        {
+          "path": "packages\\store\\tsconfig.json",
+          "sha256": "099d9585e4504eb725ba43098b1bfdb544753424fe6f22633629194dd191b3c2"
+        },
+        {
+          "path": "tests\\contracts\\project-store.contract.ts",
+          "sha256": "d714e916aa702577373d18d7d63c5319f700e75e9a7944f120913ec03100cf01"
+        },
+        {
+          "path": "tests\\fixtures\\agent-account-billing-entry.ts",
+          "sha256": "e46016da541f358b532340c529ff6400deb963afc72b0b36dabab4fbf42f4b55"
+        },
+        {
+          "path": "tests\\fixtures\\agent-run-cost-observation.ts",
+          "sha256": "f72bb58950cd07ff3f09161ce1858ba96de664f4e4ca0e12c56fae51c827e2a9"
+        },
+        {
+          "path": "tests\\fixtures\\agent-run-project.ts",
+          "sha256": "f2fad984f40bd82e556e9fd827c318f379cf0e1527d558e09ec963aa31af8b17"
+        },
+        {
+          "path": "tests\\fixtures\\capacity-client.mjs",
+          "sha256": "c77199452ab04ce06ef4a740a07f55a3f6de073a4ca192abdd266656ebcfb924"
+        },
+        {
+          "path": "tests\\fixtures\\flow-project.ts",
+          "sha256": "72e7c0d8f2482aec8915ecdaeba55b9e4cee4a8cb7ffa73926bb990e78c93ec4"
+        },
+        {
+          "path": "tests\\fixtures\\format2-history.ts",
+          "sha256": "8da3aa8555bedfd08dad1f78ec1e23d3c264d8eeee01f0b230380b5fc6d33556"
+        },
+        {
+          "path": "tests\\fixtures\\governance-client.mjs",
+          "sha256": "7f4df3b2017e7f8cee915516cc144e9173514cd6c5829054fdaeae95f6671265"
+        },
+        {
+          "path": "tests\\fixtures\\intent-project.ts",
+          "sha256": "41c2ca83f2a60cee47701bb0394e9e719346f6d9f4f77599e13d049c71307073"
+        },
+        {
+          "path": "tests\\fixtures\\m0-database.ts",
+          "sha256": "a5098eca313e1a48ab3e854d2cccdda105bdc6f0795c02ab7d9a0d44901da277"
+        },
+        {
+          "path": "tests\\fixtures\\migration-crash.mjs",
+          "sha256": "50f4c3c512d83bebd89e8b35191483b44b0da7f8cb1ad482f63912f6d478145c"
+        },
+        {
+          "path": "tests\\fixtures\\named-method-transcript.ts",
+          "sha256": "991e13757dfbef64c89ff26aac56af37b07fcf8cca72a50519ddfa822addb5e9"
+        },
+        {
+          "path": "tests\\fixtures\\provider-probe.ts",
+          "sha256": "6d939b91bc149e402b3665cf3b7a0f7bed425c57f37ec0124bd89d17dd1fe2b4"
+        },
+        {
+          "path": "tests\\fixtures\\run-client.mjs",
+          "sha256": "5a5955b965728bfa7f10c9bb1c137a9901812158d19b63bc67e9fcd733f0aa00"
+        },
+        {
+          "path": "tests\\fixtures\\run-project.ts",
+          "sha256": "59037b098b66691a531cee0a8da627b7d2ad0847fd3bac3a0d5dcfdbbafcca05"
+        },
+        {
+          "path": "tests\\fixtures\\skill-invocation-project.ts",
+          "sha256": "fdede9b4e2a35b78e008dc1743aea2743012349eee3194bec0dc4d155c77904c"
+        },
+        {
+          "path": "tests\\fixtures\\skill-probe.ts",
+          "sha256": "fac63b608a23c6480cec94ccd94398ed4dd3718125fd4a272e37aa8b506b4737"
+        },
+        {
+          "path": "tests\\fixtures\\verification-client.mjs",
+          "sha256": "be762e61b0fc3f73666d094c8812cbf7a3388ff672430a94a45bbb8ac98dfbcc"
+        },
+        {
+          "path": "tests\\fixtures\\verification-project.ts",
+          "sha256": "1e238788d6f834f0666a85841a2fc056aaa0fa24149c1d01891169255f64c75d"
+        },
+        {
+          "path": "tests\\scenarios\\agent-account-billing-entry-runtime.test.ts",
+          "sha256": "176b6d2b162de38648d0785c22567974e74cbf9806fe3d73da9707eddeab012e"
+        },
+        {
+          "path": "tests\\scenarios\\agent-account-bills-custody.test.ts",
+          "sha256": "b553456e61a7035d1f58d2294e4ebd42c35191e1a02edfcda539546e72c604f8"
+        },
+        {
+          "path": "tests\\scenarios\\agent-check-admission-runtime.test.ts",
+          "sha256": "2580685571c1a127e181a90c007a63bb3a4da0c6dc8e51cbb28bd50deed4d846"
+        },
+        {
+          "path": "tests\\scenarios\\agent-dedicated-account-custody.test.ts",
+          "sha256": "d4d6d2cec6eb222b8413c31ba4b7b15962baaa3cf01560a36cdcad5beb0cd7d5"
+        },
+        {
+          "path": "tests\\scenarios\\agent-host-model-runtime.test.ts",
+          "sha256": "67e13f8f4bc5ca4c5b556fd8e4fc8b40c749f506f41229e52d1516b8cec31d86"
+        },
+        {
+          "path": "tests\\scenarios\\agent-ipc-task-budget.test.ts",
+          "sha256": "2241be0c5b36a16126e28f806f595021ded1829eda6b5ca336a6da1c4d682e2d"
+        },
+        {
+          "path": "tests\\scenarios\\agent-named-method-runtime.test.ts",
+          "sha256": "eaeb03d562cfb493767867705f13020e9844bcf887bb927ba0464b2ffb183d15"
+        },
+        {
+          "path": "tests\\scenarios\\agent-original-edit-check-runtime.test.ts",
+          "sha256": "c1324333060d886f3c3af6249840e0597ce6e4eed27c201ea6b6631b5e0ee364"
+        },
+        {
+          "path": "tests\\scenarios\\agent-production-lifetime-runtime.test.ts",
+          "sha256": "5d5fd1be892007c32954a69a5da17875c8f1ce8c989a5d7201e52f3f561529f9"
+        },
+        {
+          "path": "tests\\scenarios\\agent-run-budget-runtime.test.ts",
+          "sha256": "82c7e94244ddb162c6159bec7980128fda2841496362950c4949a482d8a7fffd"
+        },
+        {
+          "path": "tests\\scenarios\\agent-run-clock-channel-runtime.test.ts",
+          "sha256": "87b8c7d020c83f05222704254ed246fd92e24ffb634d8f0db80ad57837aeefe2"
+        },
+        {
+          "path": "tests\\scenarios\\agent-run-cost-observation-custody.test.ts",
+          "sha256": "030f35f1a00af037598237607cbfe703efe3b00f36d255f76dd921c558d777dd"
+        },
+        {
+          "path": "tests\\scenarios\\agent-runtime-cancellation-native.test.ts",
+          "sha256": "6732aed7473602aeb3517c680ef1cfa0f5ff8cfa42d67d452db97e5f6558f3dc"
+        },
+        {
+          "path": "tests\\scenarios\\agent-runtime-operation.test.ts",
+          "sha256": "5f1b1f08ed052a410d73b1ef0f12181f6e2ff63ed772cabb3ed1370d653026b9"
+        },
+        {
+          "path": "tests\\scenarios\\agent-start-custody-clock-runtime.test.ts",
+          "sha256": "37adf4235dcb9eda283f94e8f8684ba9a527be8b483dce0ed8482a5db1714e98"
+        },
+        {
+          "path": "tests\\scenarios\\agent-start-custody-runtime.test.ts",
+          "sha256": "a351183d51e5ea8de5a01a04729d9710ef1538e6299ee521609c5a54c59803b0"
+        },
+        {
+          "path": "tests\\scenarios\\agent-workspace-ipc-runtime.test.ts",
+          "sha256": "2ab4dc87d1c830bd0d4f37ffc9aae766dae7a6d6e95c7c7d47aa2874bde1d672"
+        },
+        {
+          "path": "tests\\scenarios\\agent-workspace-tool-runtime.test.ts",
+          "sha256": "14f39b582a6a7485969ea42008b43b1c00cbe54aa09b1c4bccf457f9f8bff376"
+        },
+        {
+          "path": "tests\\scenarios\\cli-query.test.ts",
+          "sha256": "74c5518a49f2adc15951ce7dd93f92867d60a1bddd77a26709c69f72d65cd2bb"
+        },
+        {
+          "path": "tests\\scenarios\\cli.test.ts",
+          "sha256": "7230f5f386a4b07bd8babf0c8f48801b845d35ecf0e111102dba5a7a932deb73"
+        },
+        {
+          "path": "tests\\scenarios\\m0-reliability.test.ts",
+          "sha256": "b6193770dba17130d7b6ae8d041aa8157ce864e9a168c2dacf484b0146ec8066"
+        },
+        {
+          "path": "tests\\scenarios\\m0.test.ts",
+          "sha256": "7fa788c6e3b034ec9099275cc9442e98f05f5066e627114afe9ae5bb3776162f"
+        },
+        {
+          "path": "tests\\scenarios\\named-skill-method-assessment.test.ts",
+          "sha256": "36ef98cb24b939d152515ad82e252d6288fb6fa08ba09b210ff6ebf5c688b5ca"
+        },
+        {
+          "path": "tests\\scenarios\\opencode-check-runtime.test.ts",
+          "sha256": "fb47756fb20d72e42f138d04da778fbd0ffd0755fdbabba93fdffa2d4d41e58f"
+        },
+        {
+          "path": "tests\\scenarios\\opencode-lifetime-runtime.test.ts",
+          "sha256": "4ea3ff8a29e31dd3f28de4c3d0b17eac738b4938b5a13f33a7dd999b243ba8db"
+        },
+        {
+          "path": "tests\\scenarios\\opencode-startup-recovery.test.ts",
+          "sha256": "dd1bfebdfe37e53fcfc176282483ce60c4a28423e4a371e1e2d53a49b33af5de"
+        },
+        {
+          "path": "tests\\scenarios\\opencode-workspace-runtime.test.ts",
+          "sha256": "956030274d17780c80ea1a6497b8ab7ad19da61500645ebbd157790f8bf5dddf"
+        },
+        {
+          "path": "tests\\scenarios\\provider-assessment.test.ts",
+          "sha256": "92c1abf8546cb3672c06ea0f7621f9b18a3b8988f58014b54d6a6c54a2913de8"
+        },
+        {
+          "path": "tests\\scenarios\\provider-catalog.test.ts",
+          "sha256": "c61b8c981e9566e4d1c0cdb146bc3adbffa9e46df90e6273d429b45db017e9f0"
+        },
+        {
+          "path": "tests\\scenarios\\run-cli.test.ts",
+          "sha256": "6588676416d3e9aa872f333aa5d645e0034e9323c31738da99440205b6be7cf3"
+        },
+        {
+          "path": "tests\\scenarios\\runtime-probe-cli.test.ts",
+          "sha256": "f3569bbfa815dd1369e761d06b8b897b0e909a439c4b3be27ed3eedd9ca0d0d3"
+        },
+        {
+          "path": "tests\\scenarios\\skill-method-inputs.test.ts",
+          "sha256": "537b1f8542f4bef7450f928fc6534e8de261ba73da0dd1ef2219635d83226c9f"
+        },
+        {
+          "path": "tests\\scenarios\\skill-package-cli.test.ts",
+          "sha256": "d38d75b6aa22e38ee6e8d05c8bb12092ad09c4a3f3bc346dc6e878883ed60092"
+        },
+        {
+          "path": "tests\\scenarios\\skill-provider-assessment.test.ts",
+          "sha256": "bf9eaeb40a02f91876b9a83de04e500603f558f343cb2e600c6824edd6a77ab4"
+        },
+        {
+          "path": "tests\\scenarios\\verification-cli.test.ts",
+          "sha256": "3eac5a18d0f70c3828db7089d15b4a2a40e056222e176bdd1e2bd5489d93d927"
+        },
+        {
+          "path": "tests\\scenarios\\workspace-check-original-edits.test.ts",
+          "sha256": "53d2316fd272ef929c31a94432ff28d189028dce6bae33fa5b464fd6663da7bb"
+        },
+        {
+          "path": "tests\\scenarios\\workspace-check-runtime.test.ts",
+          "sha256": "faf49b083f9b78ea3f79e56681fb0671a015786c93e2ceedaa1aa3cbf116ea1a"
+        },
+        {
+          "path": "tests\\scenarios\\workspace-tool-runtime.test.ts",
+          "sha256": "21e423e9ba873f406f80bf60100d447e1fe85d3e3701c15b182884859df2c60c"
+        }
+      ]
+    }
+  },
+  "remaining": [
+    "Actual immutable-method-input positive LocalSkillInvocationExecution.start through the new production factory",
+    "Independent exact named materials/effect/output Schema and original Skill/RunObservation/domain verification",
+    "Real approved model/package/cash and credit limits before any paid requests, safe external credential setup",
+    "Real account/model qualification and authenticated real billing",
+    "Complete Task clock/cancellation during existing synchronous account writer wait",
+    "Real Human/Matt pre-Plan/Task clarification, independent complete Matt review and fresh Superpowers source verification",
+    "Formal workbench execution/query/stop/original continuation and real ordinary Change to ReadyForDelivery/S1 guide",
+    "Historical D265 controller fault, D258 Bun crashes and old-machine Unknown are not declared fixed"
+  ]
+}

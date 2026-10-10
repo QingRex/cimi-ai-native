@@ -52,3 +52,5 @@ export type {SkillInvocationExecutionContext,SkillInvocationExecutionInputs,Skil
 export {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
 
 export {LocalSkillInvocationDedicatedAccount} from './skill-invocation-dedicated-account-local.js';
+
+export { LocalSkillInvocationNativeComposition } from './skill-invocation-native-composition-local.js';

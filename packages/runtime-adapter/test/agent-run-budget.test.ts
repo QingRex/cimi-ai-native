@@ -23,6 +23,7 @@ describe("original Task elapsed budget survives host and Run replacement", () =>
     const ports = { basis: () => basis, readClock: async () => reading };
     return { root, basis, ports, clock: (next: Partial<AgentRunClockReading>) => { reading = { ...reading, ...next }; } };
   }
+  it('shares the same Task anchor and remaining time with an original Skill child without creating another Run',async()=>{const f=fixture(),parent=await AgentRunBudget.open(f.root,f.ports),anchor=readFileSync(parent.anchorPath);f.clock({utc:'2026-10-08T00:00:30.000Z',uptime_ms:86430000});const child={...f.basis,scope:{...f.basis.scope,operation_key:createInternalId(),context_digest:digest('original child input')}};const budget=await AgentRunBudget.open(f.root,{basis:()=>child,readClock:f.ports.readClock});expect(budget.anchorPath).toBe(parent.anchorPath);expect(budget.anchorDigest).toBe(parent.anchorDigest);expect(child.scope.run_id).toBe(f.basis.scope.run_id);expect(await budget.remaining()).toBeLessThanOrEqual(30000);expect(readFileSync(parent.anchorPath)).toEqual(anchor);budget.assertScope(child.scope);expect(()=>budget.assertScope(f.basis.scope)).toThrow();await budget.close();await parent.close();});
   it("closes its owned clock once without renewing the original Task anchor",async()=>{
     const f=fixture(),closeClock=vi.fn(async()=>{}),readClock=vi.fn(f.ports.readClock);
     const budget=await AgentRunBudget.open(f.root,{...f.ports,readClock,closeClock}),anchor=readFileSync(budget.anchorPath);

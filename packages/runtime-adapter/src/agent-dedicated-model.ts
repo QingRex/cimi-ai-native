@@ -23,7 +23,7 @@ export interface DedicatedAgentAccountPort {
  reserve(scope:AgentWorkspaceToolScope,request:DedicatedAgentBudgetRequest,originalBody:Uint8Array):Promise<DedicatedAgentBudgetHold>;
  verifyHold(scope:AgentWorkspaceToolScope,hold:DedicatedAgentBudgetHold):Promise<void>;
 }
-interface Options {root:string;repositoryPath:string;scope:AgentWorkspaceToolScope;connection:DedicatedModelConnection;account:DedicatedAgentAccountPort}
+interface Options {root:string;repositoryPath:string;credentialBoundaryRoot?:string;scope:AgentWorkspaceToolScope;connection:DedicatedModelConnection;account:DedicatedAgentAccountPort}
 // Code-only test/trusted composition seams; not exported as wire configuration.
 interface Dependencies {boundary?:GatewayNetworkBoundary;readCredential?:(connection:DedicatedModelConnection)=>Promise<string>}
 const sha=(v:unknown)=>typeof v==="string"&&/^[a-f0-9]{64}$/.test(v);
@@ -51,14 +51,16 @@ function verifyCredentialLocation(repository:string,root:string,secret:string){
 
 export function createDedicatedAgentRuntimeModel(options:Options,dependencies:Dependencies={}):AgentRuntimeModelPort{
  if(typeof options.repositoryPath!=="string"||!isAbsolute(options.repositoryPath))fail("agent_dedicated_repository_unproven");
+ const modelRoot=assertOrdinaryPath(options.root),repositoryPath=assertOrdinaryPath(options.repositoryPath),credentialBoundaryRoot=assertOrdinaryPath(options.credentialBoundaryRoot??options.root);
  const scope=parseAgentWorkspaceToolScope(options.scope),connection=structuredClone(validateModelConnection(options.connection)),port=options.account,profile=parseDedicatedAgentProfile(port?.profile);
  if(!sha(port?.admission_digest)||typeof port.check!=="function"||typeof port.reserve!=="function"||typeof port.verifyHold!=="function"||connection.model!==connection.provider+"/"+profile.model)fail("agent_dedicated_account_unavailable");
- verifyCredentialLocation(options.repositoryPath,options.root,connection.credential_file);
+ verifyCredentialLocation(repositoryPath,modelRoot,connection.credential_file);
+ verifyCredentialLocation(repositoryPath,credentialBoundaryRoot,connection.credential_file);
  const account={admission_digest:port.admission_digest,check:port.check.bind(port),reserve:port.reserve.bind(port),verifyHold:port.verifyHold.bind(port)},scopeDigest=digest(JSON.stringify(scope)).value,connectionDigest=digest(JSON.stringify(connection)).value;
  const path=connection.provider==="zhipuai"?"/api/paas/v4/chat/completions":"/api/coding/paas/v4/chat/completions";
  const boundary=dependencies.boundary??new GatewayNetworkBoundary({},path as DedicatedGatewayPath);if(!(boundary instanceof GatewayNetworkBoundary)||boundary.path!==path)fail("agent_dedicated_connection_mismatch");
  const transport=new GatewayHttpTransport(boundary),credential=dependencies.readCredential??readDedicatedApiKey;
- const root=assertOrdinaryPath(options.root),spine=join(root,"agent-dedicated-model-starts",scope.project_id,scope.run_id),originals=join(root,"agent-dedicated-model-originals",scope.project_id,scope.run_id);
+ const root=modelRoot,spine=join(root,"agent-dedicated-model-starts",scope.project_id,scope.run_id),originals=join(root,"agent-dedicated-model-originals",scope.project_id,scope.run_id);
  const header={format:"cimiloop/agent-dedicated-model-originals/1.0.0",scope,admission_digest:account.admission_digest,connection_digest:connectionDigest,profile};
  const check=async(raw:AgentWorkspaceToolScope)=>{if(!isDeepStrictEqual(parseAgentWorkspaceToolScope(raw),scope))fail("agent_model_scope_mismatch");try{await account.check(structuredClone(scope),structuredClone(connection));}catch{fail("agent_dedicated_account_unavailable");}};
  const initialize=(request:ReturnType<typeof parseAgentRuntimeModelRequest>)=>{
@@ -99,7 +101,8 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
   const claim=join(spine,request.call_id),body=join(originals,request.call_id);try{mkdirSync(claim);}catch{fail("agent_dedicated_original_unknown");}save(join(claim,"request.json"),request);mkdirSync(body);save(join(body,"request.json"),request);
   let held:DedicatedAgentBudgetHold;try{held=structuredClone(await account.reserve(structuredClone(scope),structuredClone(budget),Buffer.from(prepared.body)));}catch{fail("agent_dedicated_budget_unproven");}const hold=held;verifyHold(hold,budget);save(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id,request.call_id,"dedicated-budget-hold.json"),{format:"cimiloop/agent-dedicated-budget-original/1.0.0",hold_digest:digest(JSON.stringify(hold)).value});save(join(body,"budget-hold.json"),hold);prepared.input_token_limit=hold.input_token_limit;
   signal?.throwIfAborted();await check(scope);await holdCheck(hold);signal?.throwIfAborted();
-  verifyCredentialLocation(options.repositoryPath,options.root,connection.credential_file);
+  verifyCredentialLocation(repositoryPath,modelRoot,connection.credential_file);
+ verifyCredentialLocation(repositoryPath,credentialBoundaryRoot,connection.credential_file);
   let key:string;try{key=await credential(connection);}catch{fail("dedicated_credential_unavailable");}
   if(!/^[a-zA-Z0-9._-]{8,512}$/.test(key))fail("invalid_gateway_http_credential");if(prepared.body.includes(Buffer.from(key))||JSON.stringify(parseGatewayJson(prepared.body.toString(),65536)).includes(key))fail("gateway_credential_in_request");
   save(join(body,"provider-request.json"),prepared.body);signal?.throwIfAborted();await check(scope);await holdCheck(hold);signal?.throwIfAborted();

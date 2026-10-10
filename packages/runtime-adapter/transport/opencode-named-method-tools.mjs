@@ -1,0 +1,12 @@
+// Fixed SDK custom named-method bridge. No builtin Skill or workspace grant.
+import {createHash} from 'node:crypto';import {exchangeAgentNamedMethodFrame} from './agent-workspace-ipc-client.mjs';
+const id=x=>typeof x==='string'&&/^[a-zA-Z0-9_-]{1,128}$/.test(x),sha=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x),hash=x=>createHash('sha256').update(x).digest('hex');
+export function createOpenCodeNamedMethodTools(endpoint){
+ if(!endpoint||Object.keys(endpoint).sort().join(',')!=='pipe,profile_digest,scope_digest'||!/^\\\\\.\\pipe\\CimiLoop\.AgentWorkspace\.[a-f0-9-]{36}$/.test(endpoint.pipe)||!sha(endpoint.scope_digest)||!sha(endpoint.profile_digest))throw Error('agent_method_endpoint_denied');
+ endpoint=Object.freeze({...endpoint});const definition=tool=>Object.freeze({description:tool==='invoke_skill'?'Load only an original fixed named entry or declared dependency. This is a named host method, not builtin Skill.':'Read only an original fixed request, input, reference or artifact.',args:{[tool==='invoke_skill'?'name':'path']:{type:'string',minLength:1,maxLength:240}},async execute(args,context){
+ const key=tool==='invoke_skill'?'name':'path';if(!args||Object.keys(args).join(',')!==key||Object.values(Object.getOwnPropertyDescriptors(args)).some(d=>!Object.hasOwn(d,'value'))||typeof args[key]!=='string'||!args[key].isWellFormed()||!args[key]||args[key].length>240||!context||!id(context.sessionID)||!id(context.messageID)||!id(context.callID))throw Error('agent_method_call_denied');
+ const call_id='sdk_'+hash(JSON.stringify([context.sessionID,context.messageID,context.callID])),signal=context.abort;signal?.throwIfAborted();
+ const reply=await exchangeAgentNamedMethodFrame(endpoint.pipe,{format:'cimiloop/agent-runtime-method-request/1.0.0',scope_digest:endpoint.scope_digest,profile_digest:endpoint.profile_digest,call_id,tool,argument:args[key]},signal);if(reply.outcome!=='completed')throw Error(reply.reason);
+ return {title:reply.receipt.resource_path,output:JSON.stringify({...reply.receipt,replay:reply.replay}),metadata:{call_id,function_name:tool,replay:reply.replay}};
+ }});return Object.freeze({invoke_skill:definition('invoke_skill'),read_method_resource:definition('read_method_resource')});
+}

@@ -1,5 +1,5 @@
 import {isDeepStrictEqual} from "node:util";
-import {bytesAt,digest,parseGatewayJson,type collectAgentRuntimeOperation,type readAgentRuntimeOriginalIdentity} from "@cimiloop/runtime-adapter";
+import {bytesAt,digest,parseGatewayJson,assertAgentNamedMethodConfig,type collectAgentRuntimeOperation,type readAgentRuntimeOriginalIdentity} from "@cimiloop/runtime-adapter";
 type Identity=ReturnType<typeof readAgentRuntimeOriginalIdentity>;
 type Collection=Awaited<ReturnType<typeof collectAgentRuntimeOperation>>;
 export type OriginalAgentExecutionFailure="agent_original_task_deadline"|"agent_original_runtime_exit_failed";
@@ -17,13 +17,14 @@ export function classifyOriginalAgentExecutionFailure(identity:Identity,collecti
   };
   const config=read("original-config.json"),launcher=read("original-launcher.json"),resources=read("agent-sandbox-resources.json"),native=read("agent-sandbox-original.json"),cleanup=read("agent-sandbox-cleanup.json"),incomplete=read("incomplete.json");
   const same=isDeepStrictEqual,nonce=config.nonce,deadline=config.deadline_uptime_ms,input=identity.input as Record<string,unknown>;
+  assertAgentNamedMethodConfig(config,input);
   // Native serializes DWORD via int; Node may expose the same bits unsigned.
   // Preserve both original numbers and compare only valid signed/unsigned32.
   const exitBits=(v:unknown)=>typeof v==="number"&&Number.isSafeInteger(v)&&v>=-2147483648&&v<=4294967295?v>>>0:null;
   const nativeExit=incomplete.native_exit,exit=exitBits(cleanup.exit_code);
   const worker=(v:unknown)=>!!v&&typeof v==="object"&&!Array.isArray(v)&&"pid" in v&&Number.isSafeInteger(v.pid)&&(v.pid as number)>0&&"creation_ticks" in v&&typeof v.creation_ticks==="string"&&/^[0-9]+$/.test(v.creation_ticks)&&"image" in v&&typeof v.image==="string"&&!!v.image;
-  if(!["cimiloop/agent-workspace-sandbox-config/2.0.0","cimiloop/agent-workspace-sandbox-config/3.0.0","cimiloop/agent-workspace-sandbox-config/4.0.0","cimiloop/agent-workspace-sandbox-config/5.0.0"].includes(String(config.format))||
-   config.format==="cimiloop/agent-workspace-sandbox-config/5.0.0"&&(!same(config.binary_original,input.binary_original)||!config.binary_original||
+  if(!["cimiloop/agent-workspace-sandbox-config/2.0.0","cimiloop/agent-workspace-sandbox-config/3.0.0","cimiloop/agent-workspace-sandbox-config/4.0.0","cimiloop/agent-workspace-sandbox-config/5.0.0","cimiloop/agent-workspace-sandbox-config/6.0.0"].includes(String(config.format))||
+   ["cimiloop/agent-workspace-sandbox-config/5.0.0","cimiloop/agent-workspace-sandbox-config/6.0.0"].includes(String(config.format))&&(!same(config.binary_original,input.binary_original)||!config.binary_original||
     !(typeof config.prompt==="string"&&config.lifetime_policy==="agent_task/1.0.0"&&input.lifetime_policy===config.lifetime_policy||config.prompt===null&&config.lifetime_policy===null))||
    config.format==="cimiloop/agent-workspace-sandbox-config/4.0.0"&&(config.lifetime_policy!=="agent_task/1.0.0"||input.lifetime_policy!==config.lifetime_policy)||
    typeof nonce!=="string"||!/^([a-f0-9]{8}-)(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(nonce)||config.scope_digest!==collection.scope_digest||

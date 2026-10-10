@@ -32,8 +32,9 @@ describe("original Native input interruption",()=>{
 // Constructed local files and snapshot blobs; actual retained physical pins are
 // independently checked by the calling local-app Identity reader, not these fixtures.
 describe("immutable original collection binding",()=>{const roots:string[]=[];afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
- function setup(){const f=fixture(),root=mkdtempSync(join(tmpdir(),"cimiloop-interruption-binding-"));roots.push(root);const operation=join(root,"operation");mkdirSync(operation);const input={binary_original:{constructed:"SDK pin"},sandbox_original:{constructed:"controller pin"}};
+ function setup(named=false){const f=fixture(),root=mkdtempSync(join(tmpdir(),"cimiloop-interruption-binding-"));roots.push(root);const operation=join(root,"operation");mkdirSync(operation);const input:Record<string,unknown>={binary_original:{constructed:"SDK pin"},sandbox_original:{constructed:"controller pin"}};
   f.records["original-config.json"]!.binary_original=input.binary_original;f.records["original-launcher.json"]!.launcher_original=input.sandbox_original;
+  if(named){const config=f.records['original-config.json']!;config.format='cimiloop/agent-workspace-sandbox-config/6.0.0';config.method_tools='fixed_named_method/1.0.0';config.method_original_binding={format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('header').value,anchor_digest:digest('anchor').value};config.lifetime_policy='agent_task/1.0.0';config.prompt='Fixed method';config.deadline_uptime_ms=1000;Object.assign(input,{method_original_binding:structuredClone(config.method_original_binding),lifetime_policy:config.lifetime_policy,deadline_uptime_ms:1000});}
   const config_digest=digest(JSON.stringify(f.records["original-config.json"])).value;f.records["agent-sandbox-resources.json"]!.config_digest=config_digest;f.records["agent-sandbox-interruption.json"]!.config_digest=config_digest;
   for(const [name,value] of Object.entries(f.records))writeFileSync(join(operation,name),JSON.stringify(value));
   const basis={...f.basis,operation,input},metadata=verifier()(basis,f.read);
@@ -49,4 +50,5 @@ describe("immutable original collection binding",()=>{const roots:string[]=[];af
   expect(()=>verifyCollectedAgentRuntimeInterruption(f.basis,f.collection)).toThrow();
  });
  it("does not accept a declared interruption without its original optional artifact",()=>{const f=setup();f.collection.artifacts=f.collection.artifacts.filter(a=>a.name!=="agent-sandbox-interruption.json");expect(()=>verifyCollectedAgentRuntimeInterruption(f.basis,f.collection)).toThrow();});
+it('binds config6 EOF closure to the original named materials and shared Task clock',()=>{const f=setup(true);expect(verifyCollectedAgentRuntimeInterruption(f.basis,f.collection)).toMatchObject({status:'Observed',completion_proven:false});f.basis.input.method_original_binding={format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('header').value,anchor_digest:digest('anchor').value};(f.basis.input.method_original_binding as Record<string,unknown>).anchor_digest=digest('foreign').value;expect(()=>verifyCollectedAgentRuntimeInterruption(f.basis,f.collection)).toThrow();});
 });

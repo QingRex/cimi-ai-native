@@ -62,8 +62,12 @@ partial class AppContainer {
   static ulong AgentConfigDeadline(Dictionary<string,object> config) {
     string format=config["format"] as string;
     if(format=="cimiloop/agent-workspace-sandbox-config/1.0.0") { AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options"); return 0; }
-    if(format=="cimiloop/agent-workspace-sandbox-config/5.0.0") {
-      AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy","binary_original");
+    if(format=="cimiloop/agent-workspace-sandbox-config/5.0.0"||format=="cimiloop/agent-workspace-sandbox-config/6.0.0") {
+      if(format=="cimiloop/agent-workspace-sandbox-config/6.0.0") {
+        AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy","binary_original","method_tools","method_original_binding");
+        if(config["method_tools"] as string!="fixed_named_method/1.0.0"||!(config["prompt"] is string)||config["lifetime_policy"] as string!="agent_task/1.0.0"||config["deadline_uptime_ms"]==null)throw new InvalidDataException();
+        var method=config["method_original_binding"] as Dictionary<string,object>;if(method==null)throw new InvalidDataException();AgentKeys(method,"format","profile_digest","header_digest","anchor_digest");if(method["format"] as string!="cimiloop/agent-named-method-binding/1.0.0")throw new InvalidDataException();foreach(string key in new[]{"profile_digest","header_digest","anchor_digest"})if(!System.Text.RegularExpressions.Regex.IsMatch(method[key] as string??"","^[a-f0-9]{64}$"))throw new InvalidDataException();
+      } else AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy","binary_original");
       if(!((config["prompt"] is string&&config["lifetime_policy"] as string=="agent_task/1.0.0")||(config["prompt"]==null&&config["lifetime_policy"]==null))) throw new InvalidDataException();
       var binaryProof=config["binary_original"] as Dictionary<string,object>; if(binaryProof==null||binaryProof["path"] as string!=config["binary"] as string||binaryProof["format"] as string!="cimiloop/runtime-binary-original-proof/1.0.0") throw new InvalidDataException();
     }
@@ -293,8 +297,10 @@ partial class AppContainer {
       if(agentProductionTask) { ulong now=AgentTickCount();Check(now<agentTaskDeadline);Environment.SetEnvironmentVariable("CIMILOOP_AGENT_TASK_WAIT_MS",Math.Min(agentTaskDeadline-now,3600000UL).ToString(System.Globalization.CultureInfo.InvariantCulture)); }
       Environment.SetEnvironmentVariable("CIMILOOP_AGENT_WORKSPACE_PRIVATE_CANARY",Path.Combine(Path.GetDirectoryName(root),"workspace-private-canary.txt"));
       var permission=new Dictionary<string,object> { {"*","deny"} };
-      if(!checksOnly) { permission.Add("cimi_read","allow"); permission.Add("cimi_replace","allow"); }
-      if(production||options.ContainsKey("check_id")) permission.Add("cimi_check","allow");
+      bool namedMethod=config.ContainsKey("method_tools")&&config["method_tools"] as string=="fixed_named_method/1.0.0";
+      if(namedMethod) { if(!production)throw new InvalidDataException();permission.Add("cimi_invoke_skill","allow");permission.Add("cimi_read_method_resource","allow"); }
+      else if(!checksOnly) { permission.Add("cimi_read","allow"); permission.Add("cimi_replace","allow"); }
+      if(!namedMethod&&(production||options.ContainsKey("check_id"))) permission.Add("cimi_check","allow");
       string providerId=production?"cimiloop-host-gateway":"cimiloop-workspace-fixture",modelId=production?"host-approved":"workspace-fixture";
       string modelRoute=providerId+"/"+modelId,providerModule=production?"opencode-host-gateway-provider.mjs":"opencode-workspace-provider-fixture.mjs";
       var model=new { name=production?"Original host-approved model":"Constructed workspace tool responses",tool_call=true,limit=new { context=65536,output=512 } };

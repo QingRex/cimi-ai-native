@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+2026-10-10 D-268：固定命名方法已接生产 Native/OS IPC/实际 SDK 工具对，并提供原 Skill 共享应用工厂；保留真实父 Run、原 invocation_key/input_digest、父 Task 时钟及同一账户。命名模式独立禁止普通仓库工具，凭据排除整个实际数据根，内部配置6显式兼容和恢复不重开。实际 Native 正向夹具仍是构造模型/方法且直接组合 runtime ports，新 Local 工厂仅验证负向准入，尚无真实 Skill/领域结果/账单/Matt/Superpowers/S1 证明；默认 Agent 关闭、零付费、242 Schema/库10及完整五组 active 保持。最终验证、原二进制失败 Unknown 与后续条件见 [D-268实施记录](../implementation/CimiLoop-named-method-native-composition-v0.1.md)。
+
 2026-10-10 D-267：原 Skill 子账户及专用模型工厂已接共享应用服务，保留原父 Run 与原 invocation_key/input_digest；同一账户总额覆盖父子现金/积分，独立四份登记原件、当前 Kernel 与子账户准入、完整家庭费用投影阻断漏算、撤权及原件丢失后的补建。默认 Agent 关闭、零付费；完整 Native 子方法、领域结果/真实账单、真实 Human/Matt/Skill/Superpowers/S1仍待接通。项目库10/242 Schema及完整五组目标保持；实际验证范围、Windows锁失败、未定根因与当前复验见 [D-267实施记录](../implementation/CimiLoop-skill-account-composition-v0.1.md)。
 
 2026-10-10 D-266：原 SkillInvocation 已有 Kernel 独立子评估、共享准备/启动/回读及预约时固定原宿主票据；独立不可覆盖派发锚与 Host 格式1原子登记阻断换根、两侧登记丢失及响应中断后的重发。父 Run 未结清子调用限制保留，缺旧原件不补建，无工厂可回读。最终受影响13文件121项通过；实际Windows受保护Host1文件3项通过，均0跳过。不是生产Native子Skill/真实模型/资格/账单/Matt/Superpowers/S1证明；旧Native故障未覆盖、默认Agent关闭、零付费、242 Schema/库10/完整五组目标保持。 [实施记录](../implementation/CimiLoop-original-skill-execution-v0.1.md)。

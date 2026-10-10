@@ -24,6 +24,7 @@ export interface AgentRuntimeModelPort {
 const exact=(v:unknown,keys:string[]):v is Record<string,unknown>=>!!v&&typeof v==="object"&&!Array.isArray(v)&&Object.keys(v).sort().join(",")===keys.sort().join(",");
 const id=(v:unknown):v is string=>typeof v==="string"&&/^[a-zA-Z0-9_-]{1,128}$/.test(v);
 const sha=(v:unknown):v is string=>typeof v==="string"&&/^[a-f0-9]{64}$/.test(v);
+const permittedTools=(names:string[])=>names.every(name=>["cimi_read","cimi_replace","cimi_check"].includes(name))||names.length===2&&names.includes("cimi_invoke_skill")&&names.includes("cimi_read_method_resource");
 function fail(reason:string):never {throw new RuntimeAdapterError(reason);}
 const bounded=(v:unknown)=>copyToolJson(parseGatewayJson(JSON.stringify(v),TOOL_RECORD_BYTES));
 const read=(path:string)=>bounded(parseGatewayJson(new TextDecoder("utf-8",{fatal:true}).decode(bytesAt(path,TOOL_RECORD_BYTES)),TOOL_RECORD_BYTES));
@@ -68,7 +69,7 @@ export class AgentRuntimeModelHost {
   const scope=parseAgentWorkspaceToolScope(rawScope);
   const originalEvidence=parseAgentModelOriginalEvidence(port?.original_evidence);
   port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{})}; permitted=[...permitted];
-  if(!port||!sha(port.admission_digest)||typeof port.check!=="function"||typeof port.execute!=="function"||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||permitted.some(name=>!["cimi_read","cimi_replace","cimi_check"].includes(name)))fail("agent_model_admission_unavailable");
+  if(!port||!sha(port.admission_digest)||typeof port.check!=="function"||typeof port.execute!=="function"||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||!permittedTools(permitted))fail("agent_model_admission_unavailable");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
   signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
   const parent=directory(join(root,"agent-runtime-model-originals",scope.project_id)),path=assertOrdinaryPath(join(parent,scope.run_id));
@@ -83,7 +84,7 @@ export class AgentRuntimeModelHost {
   const scope=parseAgentWorkspaceToolScope(rawScope);
   const originalEvidence=parseAgentModelOriginalEvidence(port?.original_evidence);
   port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{})}; permitted=[...permitted];
-  if(!port||!sha(port.admission_digest)||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||permitted.some(n=>!["cimi_read","cimi_replace","cimi_check"].includes(n)))fail("agent_model_admission_unavailable");
+  if(!port||!sha(port.admission_digest)||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||!permittedTools(permitted))fail("agent_model_admission_unavailable");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
   signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
   const header={format:originalEvidence?"cimiloop/agent-runtime-model-originals/2.0.0":"cimiloop/agent-runtime-model-originals/1.0.0",...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
@@ -96,6 +97,7 @@ export class AgentRuntimeModelHost {
   }
   return this.open(root,scope,port,permitted,taskPacket,signal);
  }
+ get toolNames(){return [...this.permitted];}
  get taskPacketDigest(){return this.taskPacket===null?null:digest(this.taskPacket).value;}
  get originalBinding(){const header=this.header as {original_evidence?:AgentModelOriginalEvidence};return header.original_evidence?{format:"cimiloop/agent-model-original-binding/1.0.0" as const,header_digest:digest(JSON.stringify(this.header)).value,original_evidence:structuredClone(header.original_evidence)}:undefined;}
  get admissionDigest(){return this.port.admission_digest;}

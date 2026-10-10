@@ -1,3 +1,5 @@
+import {AgentNamedMethodHost,AgentRuntimeModelHost} from '../../packages/runtime-adapter/src/index.js';
+import {fixedMethodFixture} from '../../packages/runtime-adapter/test/fixed-method-fixture.js';
 import { spawn, type ChildProcess } from "node:child_process";
 import { createConnection } from "node:net";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -141,4 +143,5 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     expect(readFileSync(join(f.root, f.frame.path), "utf8")).toBe("export const query = () => 1;\n");
     if (phase === "dispatch_committed") expect(f.agentObserve(f.reserved.run, "succeeded")).toMatchObject({ code: "RECOVERY_CONDITIONS_UNMET" });
   });
+it('independently rejects ordinary workspace frames in named method mode at the authenticated broker',async()=>{const f=await setup(),fixed=fixedMethodFixture();fixed.request.invocation_key=f.scope.operation_key;fixed.profile.invocation_key=f.scope.operation_key;fixed.profile.request_digest=digest(JSON.stringify(fixed.request));fixed.files.find(x=>x.path==='skill-request.json')!.content=JSON.stringify(fixed.request,null,2);for(const r of fixed.profile.resources)r.digest=digest(fixed.files.find(x=>x.path===r.path)!.content);const method=AgentNamedMethodHost.initialize(f.dataDirectory,f.scope,fixed.profile,fixed.files,()=>{}),port={admission_digest:digest('constructed method model').value,check:async()=>{},execute:async()=>{throw Error('No model request');}};const model=await AgentRuntimeModelHost.initialize(f.dataDirectory,f.scope,port,['cimi_invoke_skill','cimi_read_method_resource'],'Controlled method');let writes=0;const channel=await AgentWorkspaceToolIpc.open({toolsDirectory:f.dataDirectory,scope:f.scope,supervisor:f.peer,originalSupervisor:f.identity,originalPeer:f.identity,method,model,execute:async()=>{writes++;throw Error('PRIVATE workspace effect');},cancel:async()=>{}});closers.push(()=>channel.close());const answer=await f.send(channel.getEndpoint().pipe,f.frame);expect(answer.reply).toMatchObject({outcome:'denied',reason:'agent_method_scope_denied'});expect(writes).toBe(0);expect(readFileSync(join(f.root,f.frame.path),'utf8')).toBe('export const query = () => 1;\n');});
 });

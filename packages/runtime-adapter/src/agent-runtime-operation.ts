@@ -1,3 +1,4 @@
+import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
 import { readDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary } from "./agent-dedicated-model.js";
 import { verifyAgentRuntimeInterruption } from "./agent-runtime-interruption.js";
 import {verifyAgentRuntimeCancellation} from './agent-runtime-cancellation.js';
@@ -41,6 +42,7 @@ function load(root: string, rawScope: unknown) {
   const input=read(join(location.run,"input.json")) as Record<string,unknown>,configPath=join(root,"workspace-tool-rehearsals",claim.operation_id,"original-config.json");
   if(input&&typeof input==="object"&&"binary_original" in input&&existsSync(configPath)){
     const config=read(configPath) as Record<string,unknown>,proof=input.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;
+    assertAgentNamedMethodConfig(config,input);
     if(!proof||config.binary!==proof.path||!isDeepStrictEqual(config.binary_original,proof))fail("agent_runtime_binary_original_unproven");
   }
   const launcherPath=join(root,"workspace-tool-rehearsals",claim.operation_id,"original-launcher.json");
@@ -56,9 +58,9 @@ function load(root: string, rawScope: unknown) {
 // Incomplete or conflicting claims are retained; there is no reset/restart API.
 // Read-only identity for an original observation. It grants no live process,
 // tool, model or billing authority, and never repairs a partial claim.
-export function readAgentRuntimeOriginalIdentity(root: string, rawScope: unknown) {
+function readOriginalIdentity(root: string, rawScope: unknown,verifyExecutionBinary:boolean) {
   const original = load(root, rawScope), input = read(join(original.location.run, "input.json"));
-  if(input&&typeof input==="object"&&"binary_original" in input){
+  if(verifyExecutionBinary&&input&&typeof input==="object"&&"binary_original" in input){
     const proof=input.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;
     if(!proof||!isDeepStrictEqual(readRuntimeBinaryOriginal(root,proof.path,proof.sha),proof))fail("agent_runtime_binary_original_unproven");
   }
@@ -70,6 +72,10 @@ export function readAgentRuntimeOriginalIdentity(root: string, rawScope: unknown
   if (!isDeepStrictEqual(load(root, rawScope).claim, original.claim)) fail("agent_runtime_claim_changed");
   return structuredClone({ ...value, identity_digest: digest(JSON.stringify(value)) });
 }
+// Result observations require execution bytes. Resource-only recovery retains
+// claim/input/key and controller custody even after Node loss; no Run restarts.
+export function readAgentRuntimeOriginalIdentity(root:string,scope:unknown){return readOriginalIdentity(root,scope,true);}
+export function readAgentRuntimeOriginalResourceIdentity(root:string,scope:unknown){return readOriginalIdentity(root,scope,false);}
 // Only an explicit ENOENT for BOTH original identities permits a first claim.
 // Unreadable/partial/foreign registrations remain Unknown, never "not found".
 export function inspectAgentRuntimeOriginalRegistration(root: string, rawScope: unknown) {
