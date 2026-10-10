@@ -1,5 +1,7 @@
 # CimiLoop 原 SkillInvocation 执行与宿主固定 v0.1
 
+2026-10-10 D-267：原 Skill 子账户及专用模型工厂已接共享应用服务，保留原父 Run 与原 invocation_key/input_digest；同一账户总额覆盖父子现金/积分，独立四份登记原件、当前 Kernel 与子账户准入、完整家庭费用投影阻断漏算、撤权及原件丢失后的补建。默认 Agent 关闭、零付费；完整 Native 子方法、领域结果/真实账单、真实 Human/Matt/Skill/Superpowers/S1仍待接通。项目库10/242 Schema及完整五组目标保持；实际验证范围、Windows锁失败、未定根因与当前复验见 [D-267实施记录](CimiLoop-skill-account-composition-v0.1.md)。
+
 D-266 接通内部 Kernel 子调用评估、共享应用执行服务、原宿主预约票据及不可覆盖派发锚。实际可调用的接口是 `assessSkillInvocationExecution`、`LocalSkillInvocationStartCustody.bindPreparation/originalQualification/inspect`、`LocalSkillInvocationExecution.start/query`。这是一段已实现的执行编排；真实命名 Skill 的生产 Native/SDK/模型/账户组合尚未安装，正式 Agent 默认入口关闭。本批受控执行器不构成真实方法、模型、账单或 S1 验收。
 
 ## 原身份与权限

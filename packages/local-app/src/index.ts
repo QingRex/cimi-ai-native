@@ -50,3 +50,5 @@ export type {HumanAgentAccountFactory,AgentAccountBillingLease} from './agent-ac
 export {LocalSkillInvocationExecution} from './skill-invocation-execution-local.js';
 export type {SkillInvocationExecutionContext,SkillInvocationExecutionInputs,SkillInvocationExecutionPort,SkillInvocationExecutionResult} from './skill-invocation-execution-local.js';
 export {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
+
+export {LocalSkillInvocationDedicatedAccount} from './skill-invocation-dedicated-account-local.js';

@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { compileValidator, SkillInvocationPreparationSchema, SkillMethodQualificationReferenceSchema, InternalIdSchema, type Project, type AgentRunRecord, type AgentContextManifest, type ProviderBinding, type SkillInvocation, type SkillInvocationPreparation } from '@cimiloop/protocol/v2';
 import { requestDigest } from '@cimiloop/kernel';
-import { AgentStartLedger, parseAgentWorkspaceToolScope, assertOrdinaryPath, bytesAt, parseGatewayJson, type AgentStartTicket, type AgentWorkspaceToolScope } from '@cimiloop/runtime-adapter';
+import { AgentStartLedger, parseDedicatedAgentSkillAccountScope, parseAgentWorkspaceToolScope, assertOrdinaryPath, bytesAt, parseGatewayJson, type AgentStartTicket, type AgentWorkspaceToolScope, type DedicatedAgentSkillScope } from '@cimiloop/runtime-adapter';
 import { LocalEvidenceVerifier } from './evidence-local.js';
 const fail=():never=>{throw Error('Original Skill start custody unavailable');};
 const sha=(value:unknown):value is string=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
@@ -66,6 +66,10 @@ export class LocalSkillInvocationStartCustody {
   if(!stored||stored.format!=='cimiloop/host-exclusive-ticket/1.0.0'||stored.namespace!=='skill_invocation_admission'||stored.id!==path.id||!stored.basis||typeof stored.basis.record_id!=='string')fail();
   if(!equal(stored.basis,expected))fail();
   return {path,ticket:structuredClone(raw.ticket),original};
+ }
+ accountScope(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string):DedicatedAgentSkillScope {
+  const original=this.original(project,invocation,parent,recordId);
+  return {parent:structuredClone(parent),child:parseDedicatedAgentSkillAccountScope({...parent,operation_key:invocation.invocation_key,context_digest:invocation.input_digest}),invocation_id:invocation.id,admission_ticket:original.ticket};
  }
  originalQualification(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string) {return structuredClone(this.original(project,invocation,parent,recordId).original);}
  inspect(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string) {

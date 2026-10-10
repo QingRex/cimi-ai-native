@@ -34,21 +34,23 @@ const fail=()=>new LocalProjectError('原 Skill 调用执行范围、宿主或�
 // Shared application service: only Kernel reserves/observes/settles business
 // state. A dispatch or successful launch acknowledgement is not a domain result
 // or a bill. No parent Run id/context is manufactured for the child operation.
-export class LocalSkillInvocationExecution {
- constructor(private readonly local:SkillInvocationExecutionContext,private readonly port?:SkillInvocationExecutionPort|null) {}
- private original(invocationId:string) {
-  try { return this.local.store.readSnapshot(reader=>{
+export function readOriginalSkillInvocation(local:SkillInvocationExecutionContext,invocationId:string) {
+  try { return local.store.readSnapshot(reader=>{
    const invocation=structuredClone(compileValidator<SkillInvocation>(SkillInvocationSchema)(reader.getRuntimeRecord('skill_invocation',invocationId)));
    if(requestDigest((({input_digest:_,...body})=>body)(invocation))!==invocation.input_digest.value)throw fail();
-   const parent=originalAgentWorkspaceScope({location:this.local.location,caller:this.local.caller,store:reader},invocation.run_ref.id);
+   const parent=originalAgentWorkspaceScope({location:local.location,caller:local.caller,store:reader},invocation.run_ref.id);
    const project=reader.getProject(), binding=reader.getProviderBinding(invocation.skill_binding.binding_ref.id), descriptor=binding&&reader.getProviderDescriptor(binding.descriptor_ref.id);
-   if(!project||resolve(project.repository_path)!==resolve(this.local.location.repositoryPath)||invocation.project_id!==project.id||!descriptor||descriptor.project_id!==project.id||
+   if(!project||resolve(project.repository_path)!==resolve(local.location.repositoryPath)||invocation.project_id!==project.id||!descriptor||descriptor.project_id!==project.id||
     invocation.run_operation_key!==parent.operation_key||invocation.executor_ref.id!==parent.executor_actor_id||
     !isDeepStrictEqual(invocation.runtime_binding,parent.runtime_binding)||!isDeepStrictEqual(invocation.host_admission_ref,parent.host_admission_ref)||!parent.skill_bindings.some(pin=>isDeepStrictEqual(pin,invocation.skill_binding)))throw fail();
    const record_id=reader.getRun(invocation.run_ref.id)!.record_ref.id;
    return {project,invocation,descriptor,record_id,request:{parent,invocation_ref:{object_type:'skill_invocation' as const,id:invocation.id},input_digest:invocation.input_digest},id:requestDigest({project_id:project.id,invocation_key:invocation.invocation_key})};
   }).value; } catch { throw fail(); }
  }
+
+export class LocalSkillInvocationExecution {
+ constructor(private readonly local:SkillInvocationExecutionContext,private readonly port?:SkillInvocationExecutionPort|null) {}
+ private original(invocationId:string) {return readOriginalSkillInvocation(this.local,invocationId);}
  private installed():SkillInvocationExecutionPort {
   if(!this.port||!(this.port.custody instanceof LocalSkillInvocationStartCustody))throw fail();
   return this.port;

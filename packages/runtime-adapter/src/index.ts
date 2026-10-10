@@ -67,3 +67,6 @@ export {resolveOriginalWorkspaceFileChain} from './workspace-check-source-basis.
 
 export type {DedicatedAgentBill, DedicatedAgentBillItem, DedicatedAgentBillVerification} from "./agent-account-bills.js";
 export{readOriginalDedicatedAgentRunCosts}from'./agent-run-cost-evidence.js';
+
+export type {DedicatedAgentSkillScope} from './agent-skill-account-scope.js';
+export {parseDedicatedAgentSkillAccountScope} from './agent-skill-account-scope.js';

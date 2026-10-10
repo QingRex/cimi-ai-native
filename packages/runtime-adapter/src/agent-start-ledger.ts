@@ -133,15 +133,21 @@ export class AgentStartLedger {
   // Prospective exclusive host resources reuse immutable format1 tickets.
   // Not a new user/host database schema and never provider qualification.
   listExclusive(namespace: string): { id: string; ticket: AgentStartTicket; basis: unknown }[] {
-    if (!/^[a-z][a-z0-9_]{0,63}$/.test(namespace)) fail("agent_start_exclusive_identity_invalid");
-    return this.transaction(() => {
-      const seen = new Set<string>();
-      return this.db.prepare("SELECT id,basis_digest,body FROM tickets").all().flatMap(row => {
-        const value = object(String(row.body)) as Record<string, unknown>;
-        if (value?.format !== "cimiloop/host-exclusive-ticket/1.0.0" || value.namespace !== namespace) return [];
-        if (Object.keys(value).sort().join(",") !== "basis,format,id,namespace" || typeof value.id !== "string" || !sha.test(value.id) || seen.has(value.id)) fail("agent_start_exclusive_conflict");
-        seen.add(value.id);
-        return [{ id: value.id, ticket: { format: "cimiloop/agent-start-ticket/1.0.0" as const, identity_digest: this.identityDigest, ticket_id: String(row.id), basis_digest: String(row.basis_digest) }, basis: structuredClone(value.basis) }];
+    return this.readExclusiveNamespaces([namespace]).map(({namespace:_,...row})=>row);
+  }
+  // One verified immutable Host cut for code-installed original readers.
+  // Not a caller-controlled approval, write transaction or retained cache.
+  readExclusiveNamespaces(names: string[]): {namespace:string;id:string;ticket:AgentStartTicket;basis:unknown}[] {
+    if(!Array.isArray(names)||!names.length||names.length>16||new Set(names).size!==names.length||names.some(n=>typeof n!=='string'||!/^[a-z][a-z0-9_]{0,63}$/.test(n)))fail('agent_start_exclusive_identity_invalid');
+    const selected=new Set(names);
+    return this.transaction(()=>{
+      const seen=new Set<string>();
+      return this.db.prepare('SELECT id,basis_digest,body FROM tickets').all().flatMap(row=>{
+        const value=object(String(row.body)) as Record<string,unknown>;
+        if(value?.format!=='cimiloop/host-exclusive-ticket/1.0.0'||typeof value.namespace!=='string'||!selected.has(value.namespace))return [];
+        const key=value.namespace+'/'+String(value.id);
+        if(Object.keys(value).sort().join(',')!=='basis,format,id,namespace'||typeof value.id!=='string'||!sha.test(value.id)||seen.has(key))fail('agent_start_exclusive_conflict');
+        seen.add(key);return [{namespace:value.namespace,id:value.id,ticket:{format:'cimiloop/agent-start-ticket/1.0.0' as const,identity_digest:this.identityDigest,ticket_id:String(row.id),basis_digest:String(row.basis_digest)},basis:structuredClone(value.basis)}];
       });
     });
   }

@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as localApp from '../src/index.js';
 import { CimiLoopKernel } from '../../kernel/src/index.js';
 import { contentDigest } from '../../kernel/src/intent.js';
-import { AgentStartLedger } from '@cimiloop/runtime-adapter';
+import { AgentStartLedger, DedicatedAgentAccountLedger,digest } from '@cimiloop/runtime-adapter';
 import { createSkillInvocationProject } from '../../../tests/fixtures/skill-invocation-project.js';
 import { flowSuccess, flowTime } from '../../../tests/fixtures/flow-project.js';
 // Constructed method/qualification/runtime only; actual Kernel and SQLite.
@@ -128,4 +128,33 @@ describe('original child Skill execution', () => {
   await expect(service().start(invocation.id)).rejects.toMatchObject({ code: 'CAPABILITY_UNAVAILABLE' }); expect(prepare).not.toHaveBeenCalled(); expect(ledger.listExclusive('skill_invocation_dispatch')).toHaveLength(0);
   prepare.mockRejectedValueOnce(Error('secret account path')); await expect(service().start(invocation.id)).rejects.toMatchObject({ code: 'CAPABILITY_UNAVAILABLE' }); expect(ledger.listExclusive('skill_invocation_dispatch')).toHaveLength(0);
  });
+ const accountFixture=()=>{
+  const accountRoot=mkdtempSync(join(tmpdir(),'cimiloop-child-account-'));
+  const connection={format:'cimiloop/dedicated-model/1.0.0' as const,provider:'zhipuai-coding-plan' as const,model:'zhipuai-coding-plan/glm-fixture',credential_file:join(accountRoot,'absent.dpapi.json'),credential_digest:digest('controlled encrypted identity')};
+  const policy={format:'cimiloop/dedicated-agent-account/1.0.0' as const,host_identity_digest:ledger.identityDigest,account_digest:digest(accountRoot).value,approval_digest:digest('controlled approval').value,package_digest:digest('controlled package').value,tariff_digest:digest('controlled tariff').value,admission_digest:digest('controlled admission').value,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:'glm-fixture',thinking:'enabled' as const},cash_limit_micros:60,credit_limit_micro_units:20,cash_per_call_upper_micros:30,credit_per_call_upper_micro_units:10,input_token_limit:1000000,output_token_limit:512};
+  let callback=async()=>{};
+  const account=DedicatedAgentAccountLedger.initialize({origin:ledger,repositoryPath:root,root:join(accountRoot,'account'),policy,connection,admission:{check:async()=>{},checkSkillScope:()=>callback()},custody:{protect:()=>{},verify:()=>{}}} as any);
+  const Factory=(localApp as any).LocalSkillInvocationDedicatedAccount;
+  return {account,connection,open:()=>Factory.open(local,invocation.id,account,port.custody),onCheck:(fn:()=>Promise<void>)=>{callback=fn;}};
+ };
+ it('mounts the production dedicated model and account on the original child without broadening parent authority',async()=>{
+  const a=accountFixture();try{const s=await a.open(),scope=s.scope;
+   expect(scope).toEqual({...request.parent,operation_key:invocation.invocation_key,context_digest:invocation.input_digest});
+   expect(scope.run_id).toBe(f.currentRun().id);const model=s.createModel(a.connection);await model.check(scope);
+   const body=Buffer.from('original child model body'),q={scope_digest:digest(JSON.stringify(scope)).value,admission_digest:a.account.admission_digest,connection_digest:digest(JSON.stringify(a.connection)).value,call_id:'model_0001',request_id:digest(invocation.id).value,request_digest:digest(body).value,input_bytes:body.length,max_output_tokens:512};
+   const hold=await s.reserve(scope,q,body);expect(await s.reserve(scope,q,body)).toEqual(hold);expect(a.account.snapshot().holds).toBe(1);
+   expect(()=>a.account.readRunCosts(request.parent)).toThrow('agent_account_family_costs_required');expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+   expect(local.kernel.assessAgentRunModel(request.parent)).toMatchObject({decision:'DENY'});expect(readDatabaseFormat(f.path)).toBe(10);
+  }finally{a.account.close();}
+ },240000);
+ it('does not register or reserve a child after Human cancellation during awaited dedicated admission',async()=>{
+  const a=accountFixture();try{a.onCheck(async()=>{flowSuccess(f.humanKernel.execute(f.humanCommand('CancelRun','run',f.currentRun().id,{reason:'cancel child account admission'},'technical_owner')));});
+   await expect(a.open()).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(ledger.listExclusive('dedicated_account_skill_scope')).toHaveLength(0);expect(a.account.snapshot().holds).toBe(0);
+  }finally{a.account.close();}
+ },240000);
+ it('denies an unbound original Skill reservation instead of retrofitting an account permission',async()=>{
+  const a=accountFixture();try{const alternate=AgentStartLedger.initialize(join(dirname(f.path),'account-alternate-host'),{machine_digest:contentDigest('constructed child machine').value,principal_digest:contentDigest('constructed child principal').value});
+   try{await expect((localApp as any).LocalSkillInvocationDedicatedAccount.open(local,invocation.id,a.account,new localApp.LocalSkillInvocationStartCustody(root,dirname(f.path),alternate))).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(a.account.snapshot().holds).toBe(0);}finally{alternate.close();}
+  }finally{a.account.close();}
+ },240000);
 });

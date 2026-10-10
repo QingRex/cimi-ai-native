@@ -34,9 +34,11 @@ public static class AgentStartCustody {
           if(rule==null||rule.IdentityReference.Value!=sid.Value||rule.AccessControlType!=AccessControlType.Allow||
             rule.FileSystemRights!=FileSystemRights.FullControl||rule.InheritanceFlags!=(InheritanceFlags.ContainerInherit|InheritanceFlags.ObjectInherit)||
             rule.PropagationFlags!=PropagationFlags.None||rule.IsInherited)return 2;
-          foreach(string name in new[]{"starts.sqlite","starts.sqlite-wal","starts.sqlite-shm","starts.sqlite-journal",
+          var names=new System.Collections.Generic.List<string>(new[]{"starts.sqlite","starts.sqlite-wal","starts.sqlite-shm","starts.sqlite-journal",
             "account.sqlite","account.sqlite-wal","account.sqlite-shm","account.sqlite-journal", "billing.sqlite", "billing.sqlite-wal", "billing.sqlite-shm", "billing.sqlite-journal",
-            "billing-attachment.sqlite","billing-attachment.sqlite-wal","billing-attachment.sqlite-shm","billing-attachment.sqlite-journal"}){
+            "billing-attachment.sqlite","billing-attachment.sqlite-wal","billing-attachment.sqlite-shm","billing-attachment.sqlite-journal"});
+          names.AddRange(Array.ConvertAll(Directory.GetFiles(root,"skill-scope-*",SearchOption.TopDirectoryOnly),path=>Path.GetFileName(path)));
+          foreach(string name in names){
             string path=Path.Combine(root,name);
             if(!File.Exists(path))continue;
             if((File.GetAttributes(path)&FileAttributes.ReparsePoint)!=0)return 2;

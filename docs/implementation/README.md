@@ -1,5 +1,7 @@
 # CimiLoop 实施设计
 
+2026-10-10 D-267：原 Skill 子账户及专用模型工厂已接共享应用服务，保留原父 Run 与原 invocation_key/input_digest；同一账户总额覆盖父子现金/积分，独立四份登记原件、当前 Kernel 与子账户准入、完整家庭费用投影阻断漏算、撤权及原件丢失后的补建。默认 Agent 关闭、零付费；完整 Native 子方法、领域结果/真实账单、真实 Human/Matt/Skill/Superpowers/S1仍待接通。项目库10/242 Schema及完整五组目标保持；实际验证范围、Windows锁失败、未定根因与当前复验见 [D-267实施记录](CimiLoop-skill-account-composition-v0.1.md)。
+
 2026-10-10 D-266：原 SkillInvocation 已有 Kernel 独立子评估、共享准备/启动/回读及预约时固定原宿主票据；独立不可覆盖派发锚与 Host 格式1原子登记阻断换根、两侧登记丢失及响应中断后的重发。父 Run 未结清子调用限制保留，缺旧原件不补建，无工厂可回读。最终受影响13文件121项通过；实际Windows受保护Host1文件3项通过，均0跳过。不是生产Native子Skill/真实模型/资格/账单/Matt/Superpowers/S1证明；旧Native故障未覆盖、默认Agent关闭、零付费、242 Schema/库10/完整五组目标保持。 [实施记录](CimiLoop-original-skill-execution-v0.1.md)。
 
 2026-10-10 D-265：原启动已接同一编译CLI与共享Human服务，生产组合lease等待一次释放，工厂/释放等待后的角色、会话和关闭检查贯穿Native效果之前；原登记重放不调用工厂，页面可在工厂缺失时核对原pending身份。最终受影响12文件92通过；实际Windows首轮3文件9通过1失败、无跳过，取消文件同源码独立4项通过，不覆盖初次控制器访问违例3221225477，根因/清理未证明、失败夹具保留Unknown。历史D-257同一CLI两次返回原operation_id，4次模型原件和Kernel状态不变，不再验领域/账单。默认首次Agent关闭、零付费、库10/242 Schema及完整五组目标保持。 [实施记录](CimiLoop-original-start-ownership-v0.1.md)。
