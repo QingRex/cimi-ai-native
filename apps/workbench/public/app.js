@@ -205,12 +205,30 @@ const taskPanel = (task, data) => {
         output.replaceChildren(paragraph(interruption?.status === "Observed" ? (interruption.runtime_resumed ? "原输入关闭时 SDK 已恢复运行；原中断资料已核对，任务结果和费用仍待核对。" : "原输入在 SDK 恢复前关闭；原中断资料已核对，任务结果和费用仍待核对。") : response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
       };
       const pendingStart=originalStartPending(run.id);
+      const costOutput=node('div',{'data-agent-costs':run.id},paragraph('尚未读取原运行费用。'));
+      let costReadGeneration=0;
+      const unknownCosts=()=>costOutput.replaceChildren(paragraph('原账户费用尚待核对。原运行与预算继续保留。'));
+      const readCosts=async()=>{
+        const generation=++costReadGeneration;
+        costOutput.replaceChildren(paragraph('正在读取原运行费用…'));
+        try{
+          const response=await api(`/api/agent-runs/${encodeURIComponent(run.id)}/costs`),costs=response.costs;
+          if(generation!==costReadGeneration||!costOutput.isConnected)return;
+          if(response.run_id!==run.id||response.starts_run!==false||response.domain_observation_produced!==false||response.kernel_costs_reconciled!==false||response.outcome!=='observed'||!costs||!Array.isArray(costs.bill_originals)){unknownCosts();return;}
+          const hasBills=costs.bill_originals.length>0;
+          costOutput.replaceChildren(paragraph(hasBills?(costs.costs_reconciled?'原请求账单已齐；任务结果与预算结算仍待核对。':'部分原账单已核定，其余费用继续待核对。'):'尚无核定账单，费用未知；原运行与预算继续保留。'),
+            facts([['原请求占用',costs.holds],['未决请求',costs.unresolved],['核定现金',hasBills?`${(costs.cash_charged_micros/1_000_000).toLocaleString(undefined,{maximumFractionDigits:6})} ${costs.currency}`:'待核对'],['积分费用（微单位）',hasBills?costs.credit_charged_micro_units:'待核对']]),
+            details('原费用查询记录',response));
+        }catch(error){if(generation!==costReadGeneration||!costOutput.isConnected)return;unknownCosts();throw error;}
+      };
+      const costQuery=button('查询原运行费用',readCosts);costQuery.disabled=state.context.agent_costs_available!==true;
       const start=button(pendingStart.pending ? "核对原启动请求" : "启动原 Agent 运行",()=>startAgent(run.id));
       start.disabled=state.context.agent_start_available!==true || !pendingStart.available;
       if(!pendingStart.available)result.append(paragraph("浏览器无法读取原启动身份，启动暂不可用；仍可查询和停止原运行。"));
-      result.append(node("div", { class: "row" }, start, button("查询原运行", () => observe("")), button("采集原资料", () => observe("collect")),
+      result.append(node("div", { class: "row" }, start, button("查询原运行", () => observe("")), costQuery, button("采集原资料", () => observe("collect")),
         button("记录原运行观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
-        ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,
+        ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,costOutput,
+        ...(state.context.agent_costs_available===true?[]:[paragraph('原账户费用查询尚未接入。')]),
         paragraph(state.context.agent_start_available===true ? "原启动组合已安装，启动仍核对当前授权、模型账户及预算。结果与费用未结清前继续保留预算。" : "正式 Agent 启动组合尚未安装。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
     }
     result.append(form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision,

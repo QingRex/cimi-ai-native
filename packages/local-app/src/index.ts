@@ -40,3 +40,5 @@ export { LocalAgentDedicatedAccount } from "./agent-dedicated-account-local.js";
 export type {AgentDedicatedModelContext} from './agent-dedicated-account-local.js';
 export {LocalAgentModelAdmission} from './agent-model-admission-local.js';
 export {LocalAgentAccountBilling} from './agent-account-billing-local.js';
+export {LocalHumanAgentAccountBilling} from './agent-account-billing-entry-local.js';
+export type {HumanAgentAccountFactory,AgentAccountBillingLease} from './agent-account-billing-entry-local.js';
