@@ -157,13 +157,13 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
         requireSession(request,false);send(response,200,result);return;
       }
-      const costObservationMatch = /^\/api\/agent-runs\/([^/]{1,200})\/cost-observation$/.exec(url.pathname);
+      const costObservationMatch = /^\/api\/agent-runs\/([^/]{1,200})\/(cost-observation|reconcile-original)$/.exec(url.pathname);
       if(costObservationMatch && request.method==='POST'){
         const body=await readBody(request);
         if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
         requireSession(request,true);
         if(!body||typeof body!=='object'||Array.isArray(body)||!('target' in body)||!body.target||typeof body.target!=='object'||!('id' in body.target)||body.target.id!==decodeURIComponent(costObservationMatch[1]!))throw new HttpFailure(400,'INVALID_COMMAND');
-        const result=await agentCostObservation.record(body);
+        const result=await(costObservationMatch[2]==='reconcile-original'?agentCostObservation.reconcile(body):agentCostObservation.record(body));
         if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
         requireSession(request,true);
         send(response,'code' in result?statusFor(result):200,result);return;

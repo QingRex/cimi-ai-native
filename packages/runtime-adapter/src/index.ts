@@ -42,6 +42,7 @@ export { verifyAgentRuntimeInterruption, verifyCollectedAgentRuntimeInterruption
 export { queryAgentRuntimeOperation, requestAgentRuntimeCancellation, recoverAgentRuntimeOperation, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity } from "./agent-runtime-operation.js";
 export { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } from "./agent-workspace-ipc-journal.js";
 export { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
+export { readOriginalAgentWorkspaceOperation } from "./agent-workspace-sandbox-recovery.js";
 
 export { runOpenCodeWorkspaceRuntime } from "./opencode-workspace-runtime.js";
 export { AgentRuntimeModelHost, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";

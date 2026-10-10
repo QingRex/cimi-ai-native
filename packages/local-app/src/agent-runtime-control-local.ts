@@ -15,7 +15,7 @@ export interface AgentRuntimeControlPort {
 type Operation = { outcome: "observed"; result: unknown } | { outcome: "unknown"; reason: string };
 export type AgentRuntimeControlContext = Pick<LocalProject, "location" | "instance"> & {
   store: Pick<LocalProject["store"], "getProject" | "getActor" | "getRun" | "getRuntimeRecord">;
-  kernel: Pick<LocalProject["kernel"], "getObject" | "execute">;
+  kernel: Pick<LocalProject["kernel"], "getObject" | "execute"> & Partial<Pick<LocalProject["kernel"],"getRuns">>;
 };
 const defaults: AgentRuntimeControlPort = { query: queryAgentRuntimeOperation, collect: collectAgentRuntimeOperation,
   requestCancellation: requestAgentRuntimeCancellation, recover: recoverAgentRuntimeOperation };

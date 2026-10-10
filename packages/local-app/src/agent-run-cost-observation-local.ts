@@ -1,16 +1,18 @@
 import{isDeepStrictEqual}from'node:util';
-import{LocalAgentRuntimeObservation,parseLocalAgentObservationRequest}from'./agent-runtime-observation-local.js';
+import{LocalAgentRuntimeObservation,parseLocalAgentObservationRequest,parseLocalAgentReconciliationRequest}from'./agent-runtime-observation-local.js';
 import{readHumanOriginalAgentRunInputs}from'./agent-runtime-control-local.js';
 import{openLocalProject,type LocalProject}from'./project.js';import{LocalProjectError}from'./errors.js';
 import type{HumanAgentAccountFactory,AgentAccountBillingLease}from'./agent-account-billing-entry-local.js';
 // Kernel records fees; this service grants no execution/bill-write authority.
 export class LocalHumanAgentRunCostObservation{
  constructor(private readonly local:LocalProject,private readonly factory?:HumanAgentAccountFactory){}
- async record(raw:unknown){
-  const request=parseLocalAgentObservationRequest(raw,this.local),original=readHumanOriginalAgentRunInputs(this.local,request.target.id);
+ async record(raw:unknown){return this.execute(raw,false);}
+ async reconcile(raw:unknown){return this.execute(raw,true);}
+ private async execute(raw:unknown,reconciling:boolean){
+  const request=(reconciling?parseLocalAgentReconciliationRequest:parseLocalAgentObservationRequest)(raw,this.local),original=readHumanOriginalAgentRunInputs(this.local,request.target.id);
   // The Kernel still compares the exact original request and caller. An
   // immutable receipt replay requires no new account or original collection.
-  if(this.local.store.transaction(tx=>!!tx.getCommandReceipt(request.command_id)))return new LocalAgentRuntimeObservation(this.local).recordCosts(request);
+  if(this.local.store.transaction(tx=>!!tx.getCommandReceipt(request.command_id))){const observer=new LocalAgentRuntimeObservation(this.local);return reconciling?observer.reconcileCosts(request):observer.recordCosts(request);}
   if(!this.factory)throw new LocalProjectError('原账单费用观测尚未接入','CAPABILITY_UNAVAILABLE','conflict');
   const human=structuredClone(this.local.instance);
   let lease:AgentAccountBillingLease|undefined,inner:LocalProject|undefined,release:(()=>void|Promise<void>)|undefined;
@@ -23,7 +25,8 @@ export class LocalHumanAgentRunCostObservation{
    if(!isDeepStrictEqual(human,this.local.instance)||!isDeepStrictEqual({scope:original.scope,record:original.record,context:original.context},{scope:fresh.scope,record:fresh.record,context:fresh.context})||!lease)throw Error('Original fee input changed');
    inner=openLocalProject({projectDir:this.local.location.repositoryPath,agentRunCostAccount:id=>{if(id!==original.run.id)throw Error('Foreign fee scope');return lease!.account;}});
    if(!isDeepStrictEqual(inner.instance,this.local.instance))throw Error('Original Human entry changed');
-   return await new LocalAgentRuntimeObservation(inner).recordCosts(request,lease.account);
+   const observer=new LocalAgentRuntimeObservation(inner);
+   return await(reconciling?observer.reconcileCosts(request,lease.account):observer.recordCosts(request,lease.account));
   }catch{throw new LocalProjectError('原账单费用与模型请求尚不可核对；保留原请求与预算','CAPABILITY_UNAVAILABLE','conflict');}
   finally{
    inner?.store.close();
