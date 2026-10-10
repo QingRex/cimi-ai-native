@@ -39,3 +39,4 @@ export { LocalAgentRuntimeComposition } from "./agent-runtime-composition-local.
 export { LocalAgentDedicatedAccount } from "./agent-dedicated-account-local.js";
 export type {AgentDedicatedModelContext} from './agent-dedicated-account-local.js';
 export {LocalAgentModelAdmission} from './agent-model-admission-local.js';
+export {LocalAgentAccountBilling} from './agent-account-billing-local.js';

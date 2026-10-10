@@ -35,7 +35,7 @@ public static class AgentStartCustody {
             rule.FileSystemRights!=FileSystemRights.FullControl||rule.InheritanceFlags!=(InheritanceFlags.ContainerInherit|InheritanceFlags.ObjectInherit)||
             rule.PropagationFlags!=PropagationFlags.None||rule.IsInherited)return 2;
           foreach(string name in new[]{"starts.sqlite","starts.sqlite-wal","starts.sqlite-shm","starts.sqlite-journal",
-            "account.sqlite","account.sqlite-wal","account.sqlite-shm","account.sqlite-journal"}){
+            "account.sqlite","account.sqlite-wal","account.sqlite-shm","account.sqlite-journal", "billing.sqlite", "billing.sqlite-wal", "billing.sqlite-shm", "billing.sqlite-journal"}){
             string path=Path.Combine(root,name);
             if(!File.Exists(path))continue;
             if((File.GetAttributes(path)&FileAttributes.ReparsePoint)!=0)return 2;

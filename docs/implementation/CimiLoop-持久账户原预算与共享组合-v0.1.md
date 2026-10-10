@@ -1,5 +1,7 @@
 # CimiLoop 持久账户原预算与共享组合 v0.1
 
+2026-10-10 D-258：原账单字节经受信端口核验后追加到账户意图／Host／独立账单库，完整三方历史核对、现金积分实际费用与未决占用计算、超额冻结和同原件重放已实现。共享 Human 原 Run 费用查询复用 Kernel 读取权限，取消后可读，不产生正式结算。仅新账单账户使用私有账户格式2，旧账户格式1拒绝原位升级；项目库10／242 Schema／原启动账本1保持。实际 Windows账单保管／并发回归通过；完整Native三轮均2通过1失败，末两轮专用组合Bun段错误，尚未接通Native四轮→账单→Human查询，不能算组合通过。构造模型、账单认证及批准不是实际智谱／Skill／S1证据。正式默认Agent关闭，完整五组持续。 [实施记录](CimiLoop-原账户账单与余额核验-v0.1.md)。
+
 D-257，2026-10-10。2026-10-10 D-257：持久账户原现金／积分占用、共享 Kernel 账户服务、独立持续模型核权和原 Native／IPC 工作区投影已接入；生产准备／恢复闸口与 IPC 等待接入同一原 Task 固定截止时间。真实 Windows 专用 HTTPS／SDK／Native 读→大小写路径修改→固定检查→模型继续链路通过，响应重放不重开 Run、不增加占用。模型、批准、套餐、费率仍公开构造夹具，真实模型请求与真实Key读取0，费用未结清。正式默认 Agent 仍关闭，完整五组 S1 持续，242 Schema／用户库10／原启动账本1保持。
 
 实际可用入口是受信代码安装的 DedicatedAgentAccountLedger、Windows 工厂、LocalAgentDedicatedAccount、LocalAgentModelAdmission 和 LocalAgentRuntimeComposition.openDedicatedPersistent。共享应用服务复用 Kernel；Human HTTP／CLI／Agent JSON不能选择账户根、安装端口、选择调用者或批准模型策略。真实完整资格缺失时拒绝，默认无构造回复回退。
