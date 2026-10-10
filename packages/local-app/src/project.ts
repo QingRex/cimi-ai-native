@@ -10,6 +10,7 @@ import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
 import type{DedicatedAgentAccountLedger}from'@cimiloop/runtime-adapter';
+import {LocalPlanningClarificationAdmission,type LocalPlanningClarificationOptions} from './planning-clarification-local.js';
 
 export interface LocalProject {
   location: ProjectLocation;
@@ -20,7 +21,7 @@ export interface LocalProject {
 
 // Only a trusted local launcher supplies the project directory and operator.
 // HTTP requests never select a database, filesystem path or caller identity.
-export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger } = {}): LocalProject => {
+export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions } = {}): LocalProject => {
   const start = options.projectDir ? resolve(options.projectDir) : process.cwd();
   const location = locateProject(start, Boolean(options.projectDir) || existsSync(join(start, ".cimiloop", "instance.json")));
   if (!existsSync(location.instancePath) || !existsSync(location.databasePath)) {
@@ -38,7 +39,8 @@ export const openLocalProject = (options: { projectDir?: string; agentRunCostAcc
     const kernel = new CimiLoopKernel({ store, caller: { kind: "local_operator", project_id: project.id, actor_id: actor.id },
       evidenceVerifier: new LocalEvidenceVerifier(location.repositoryPath, location.dataDirectory),
       runVerifier: new LocalRunVerifier(location.repositoryPath, location.dataDirectory,options.agentRunCostAccount),
-      providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory) });
+      providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory),
+      ...(options.planningClarification?{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification)}:{}) });
     return { location, instance, store, kernel };
   } catch (error) { store.close(); throw error; }
 };

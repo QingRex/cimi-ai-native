@@ -32,6 +32,7 @@ import { FlowStatusResultSchema, type FlowStatusResult } from "@cimiloop/protoco
 import { IntentShowResultSchema, type IntentShowResult } from "@cimiloop/protocol/v2";
 import { executeIntent, IntentFailure, requestIsCurrent, admissionFailure } from "./intent.js";
 import { executeExecution, executionReadiness } from "./execution.js";
+import type {PlanningClarificationPort} from './planning-clarification.js';
 import { ExecutionShowResultSchema, type ExecutionShowResult } from "@cimiloop/protocol/v2";
 import { VerificationShowResultSchema, type VerificationShowResult } from "@cimiloop/protocol/v2";
 import { executeVerification, type EvidenceVerifierPort } from "./verification.js";
@@ -74,6 +75,7 @@ export interface KernelDependencies {
   evidenceVerifier?: EvidenceVerifierPort;
   runVerifier?: RunVerifierPort;
   providerVerifier?: ProviderVerifierPort;
+  planningClarification?:PlanningClarificationPort;
 }
 
 const defaultClock = (): string => new Date().toISOString();
@@ -97,6 +99,7 @@ export class CimiLoopKernel {
   readonly #evidenceVerifier: EvidenceVerifierPort | undefined;
   readonly #runVerifier: RunVerifierPort | undefined;
   readonly #providerVerifier: ProviderVerifierPort | undefined;
+  readonly #planningClarification:PlanningClarificationPort|undefined;
 
   constructor(dependencies: KernelDependencies) {
     this.#store = dependencies.store;
@@ -106,6 +109,7 @@ export class CimiLoopKernel {
     this.#evidenceVerifier = dependencies.evidenceVerifier;
     this.#runVerifier = dependencies.runVerifier;
     this.#providerVerifier = dependencies.providerVerifier;
+    this.#planningClarification=dependencies.planningClarification;
   }
 
   execute(input: unknown): KernelResult {
@@ -467,7 +471,7 @@ export class CimiLoopKernel {
       case "InitializePlanTasks": case "PublishStandingAuthorization": case "RevokeStandingAuthorization": case "CreateWorkItem": case "RevokeWorkItem": {
         const project = transaction.getProject(command.project_id);
         if (!project) return domainError(command.correlation_id, "PROJECT_NOT_FOUND", "未找到Project", "not_found");
-        const now = this.#now(), mutation = executeExecution(transaction, command, { project, actorId: command.actor_id, now, id: this.#id });
+        const now = this.#now(), mutation = executeExecution(transaction, command, { project, actorId: command.actor_id, now, id: this.#id },this.#planningClarification);
         const event = this.#appendEvent(transaction, { ...mutation, project_id: project.id, aggregate_revision: mutation.revision, actor_id: command.actor_id, command, occurred_at: now });
         return this.#success(command, mutation.aggregate, mutation.revision, [event], mutation.data);
       }
@@ -486,7 +490,7 @@ export class CimiLoopKernel {
         const now = this.#now(), context = { project, actorId: command.actor_id, now, id: this.#id };
         const isReview = command.command_type === "RequestDecision" ? professionalAction(command.payload.action) : command.command_type === "RecordDecision" &&
           professionalAction(transaction.getIntentRecord("decision_request", command.payload.request_id)?.action ?? "confirm_contract");
-        const mutation = isReview && (command.command_type === "RequestDecision" || command.command_type === "RecordDecision") ? executeReview(transaction, command, context, this.#evidenceVerifier) : executeIntent(transaction, command, context, this.#evidenceVerifier);
+        const mutation = isReview && (command.command_type === "RequestDecision" || command.command_type === "RecordDecision") ? executeReview(transaction, command, context, this.#evidenceVerifier) : executeIntent(transaction, command, context, this.#evidenceVerifier,this.#planningClarification);
         const event = this.#appendEvent(transaction, { ...mutation, project_id: project.id, aggregate_revision: mutation.revision, actor_id: command.actor_id, command, occurred_at: now });
         return this.#success(command, mutation.aggregate, mutation.revision, [event], mutation.data);
       }

@@ -33,6 +33,10 @@ export type { LocalSkillMethodPlan, LocalSkillMethodQualificationPort } from "./
 
 export { LocalPrePlanClarification } from "./clarification-local.js";
 export type { ClarificationBegin, ClarificationAction, ClarificationSession } from "./clarification-local.js";
+export {readOriginalHumanPlanClarification} from './clarification-local.js';
+export type {OriginalHumanPlanClarification} from './clarification-local.js';
+export {LocalPlanningClarificationAdmission} from './planning-clarification-local.js';
+export type {MattPlanClarificationVerification,LocalPlanningClarificationOptions} from './planning-clarification-local.js';
 export { LocalHumanAgentRuntimeStart } from "./agent-runtime-human-start-local.js";
 export type { HumanAgentRuntimeFactory } from "./agent-runtime-human-start-local.js";
 export { LocalAgentRuntimeComposition } from "./agent-runtime-composition-local.js";

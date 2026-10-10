@@ -7,6 +7,7 @@ import { requestDigest } from "./canonical.js";
 import { conditionProofs, professionalAction } from "./review-facts.js";
 import { verifyReviewRaw } from "./review.js";
 import type { EvidenceVerifierPort } from "./verification.js";
+import {verifyPlanningClarification,type PlanningClarificationPort} from './planning-clarification.js';
 
 export class IntentFailure extends Error {
   constructor(readonly result: DomainError) { super(result.message); }
@@ -128,7 +129,7 @@ export const lifecycleRecord = (change: Change, toState: Change["lifecycle_state
   actor_id: context.actorId, acting_role: command.acting_role, reason, basis_refs: basisRefs
 });
 
-export const executeIntent = (tx: StoreTransaction, command: IntentCommand, context: IntentContext, port?: EvidenceVerifierPort): Mutation => {
+export const executeIntent = (tx: StoreTransaction, command: IntentCommand, context: IntentContext, port?: EvidenceVerifierPort, planning?:PlanningClarificationPort): Mutation => {
   const change = tx.getChange(command.target.id);
   if (!change || change.project_id !== context.project.id) reject(command, "CHANGE_NOT_FOUND", "未找到当前Project Change", {}, "not_found");
   if (change!.revision !== command.expected_revision) reject(command, "REVISION_CONFLICT", "Change已变化", { current_revision: change!.revision });
@@ -148,6 +149,7 @@ export const executeIntent = (tx: StoreTransaction, command: IntentCommand, cont
     const latest = tx.listIntentRecords(kind, current.id).at(-1), sameChain = command.payload.proposal_id !== undefined;
     if (sameChain && (latest?.proposal_id !== command.payload.proposal_id || command.payload.expected_proposal_revision !== latest?.proposal_revision)) reject(command, "PROPOSAL_REVISION_CONFLICT", "候选修订基准已变化");
     if (!sameChain && command.payload.expected_proposal_revision !== undefined && command.payload.expected_proposal_revision !== 0) reject(command, "PROPOSAL_REVISION_CONFLICT", "新候选期望修订只能是0");
+    if(command.command_type==='SubmitPlanProposal')verifyPlanningClarification(tx,command,context.project,current,command.payload.body,planning);
     const proposal = { ...meta(current, context), proposal_id: command.payload.proposal_id ?? context.id(), proposal_revision: sameChain ? latest!.proposal_revision + 1 : 1,
       content_digest: contentDigest(command.payload.body), base_version_ref: command.payload.base_version_ref, body: command.payload.body,
       ...(sameChain ? { predecessor_ref: { object_type: kind, id: latest!.id, domain_version: latest!.proposal_revision } } : {}) };
@@ -232,6 +234,7 @@ export const executeIntent = (tx: StoreTransaction, command: IntentCommand, cont
   const contract = currentContract(tx, current);
   if (!contract) reject(command, "CONTRACT_NOT_FOUND", "当前正式约定不存在");
   const body = (proposal as PlanProposal).body, problem = planProblem(body, contract!, current, tx); if (problem) reject(command, "PLAN_INVALID", problem);
+  verifyPlanningClarification(tx,command,context.project,current,body,planning,proposal as PlanProposal);
   const version: PlanVersion = { ...meta(current, context), version: (tx.listIntentRecords("plan_version", current.id).at(-1)?.version ?? 0) + 1,
     proposal_ref: actualRequest.target_ref as PlanVersion["proposal_ref"], content_digest: proposal.content_digest, body, contract_ref: body.contract_ref,
     confirmation_decision_ref: command.payload.decision_ref, ...conditionRefs, ...(current.plan_ref ? { predecessor_ref: current.plan_ref } : {}) };

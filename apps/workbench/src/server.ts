@@ -2,7 +2,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { fileURLToPath } from "node:url";
-import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject } from "@cimiloop/local-app";
+import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
 
 const MAX_BODY_BYTES = 128 * 1024;
@@ -37,12 +37,12 @@ const checked = <T>(value: T | DomainError): T => {
   return value as T;
 };
 
-export interface WorkbenchOptions { projectDir: string; port?: number; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory }
+export interface WorkbenchOptions { projectDir: string; port?: number; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions }
 export interface WorkbenchServer { origin: string; bootstrapUrl: string; close(): Promise<void> }
 
 export const startWorkbench = async (options: WorkbenchOptions): Promise<WorkbenchServer> => {
   if (options.port !== undefined && (!Number.isInteger(options.port) || options.port < 0 || options.port > 65535)) throw new Error("Invalid loopback port");
-  const context = openLocalProject({ projectDir: options.projectDir });
+  const context = openLocalProject({ projectDir: options.projectDir,...(options.planningClarification?{planningClarification:options.planningClarification}:{}) });
   const clarification = new LocalPrePlanClarification(context);
   const agentRuntime = new LocalAgentRuntimeControl(context);
   const agentObservation = new LocalAgentRuntimeObservation(context);

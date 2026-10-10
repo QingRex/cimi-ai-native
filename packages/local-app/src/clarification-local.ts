@@ -7,6 +7,7 @@ import { ChangeSchema, ContractBodySchema, PlanBodySchema, compileValidator, typ
 import { assertOrdinaryPath, directory, parseGatewayJson } from "@cimiloop/runtime-adapter";
 import { executeLocalCommand, type LocalProject } from "./project.js";
 import { LocalProjectError } from "./errors.js";
+import {requestDigest,type PlanningClarificationBasis} from '@cimiloop/kernel';
 
 const FORMAT = "cimiloop/pre-plan-clarification/1.0.0", APP_ID = 0x43494d43;
 const PLAN_FORMAT = "cimiloop/pre-plan-clarification/2.0.0";
@@ -313,4 +314,42 @@ export class LocalPrePlanClarification {
       return { ok: true, session: ledger.session(sessionId, request.expected_head + 1), command_result };
     } finally { ledger.close(); }
   }
+}
+
+export interface OriginalHumanPlanClarification {
+ format:'cimiloop/human-plan-clarification-original/1.0.0';session_id:string;
+ basis:ClarificationSession['basis'];questions:ClarificationSession['questions'];
+ candidate:Extract<ClarificationAction,{kind:'plan_candidate'}>;input_digest:string;
+}
+// Reads existing immutable private format 2. This is not a Matt invocation or
+// qualification, and never creates/repairs historical sessions or databases.
+export function readOriginalHumanPlanClarification(dataDirectory:string,basis:PlanningClarificationBasis):OriginalHumanPlanClarification {
+ const path=join(dataDirectory,'pre-plan-clarifications','originals.sqlite');assertOrdinaryPath(path);if(!existsSync(path))corrupt();
+ const ledger=new ClarificationLedger(path,false);
+ try {
+  const {command,project,change,body,proposal}=basis;
+  let session:ClarificationSession,request:ClarificationAction;
+  if(command.command_type==='SubmitPlanProposal'){
+   const original=ledger.request(command.command_id);if(!original)corrupt();session=ledger.session(original!.sessionId);request=original!.request;
+   if(original!.step||!session.pending||original!.seq!==session.head||command.actor_id!==session.actor_id||command.expected_revision!==session.basis.change.revision||
+    request.kind!=='plan_candidate'||command.requested_at!==request.requested_at||command.payload.base_version_ref!==null||command.payload.proposal_id!==undefined)corrupt();
+  }else{
+   if(!proposal||proposal.project_id!==project.id||proposal.change_id!==change.id||!isDeepStrictEqual(proposal.body,body))corrupt();
+   const matches=ledger.list(change.id).flatMap(item=>item.steps.flatMap(step=>{
+    const result=step.command_result;return step.request.kind==='plan_candidate'&&result&&'ok'in result&&'command_type'in result&&result.command_type==='SubmitPlanProposal'&&
+     result.data.proposal.id===proposal!.id&&isDeepStrictEqual(result.data.proposal,proposal)?[{session:item,request:step.request}]:[];
+   }));
+   if(matches.length!==1)corrupt();session=matches[0]!.session;request=matches[0]!.request;
+   if(!session.submitted||session.pending||proposal!.producer_actor_id!==session.actor_id)corrupt();
+  }
+  if(request.kind!=='plan_candidate')corrupt();const candidate=request as Extract<ClarificationAction,{kind:'plan_candidate'}>;
+  if(session.basis.format!==PLAN_FORMAT||session.basis.request.target!=='plan'||session.project_id!==project.id||session.change_id!==change.id||
+   session.basis.change.lifecycle_state!=='IntentReady'||session.basis.change.plan_ref||session.basis.change.operating_status!=='Active'||
+   session.basis.change.owner_actor_id!==change.owner_actor_id||session.basis.change.requirement_owner_actor_id!==change.requirement_owner_actor_id||
+   !isDeepStrictEqual(session.basis.change.contract_ref,change.contract_ref)||!isDeepStrictEqual(candidate.body,body)||
+   !session.questions.length||session.unanswered.length||session.questions.some(question=>!question.answer)||
+   session.steps.some(step=>step.request.expected_head>=candidate.expected_head&&step.request.kind!=='plan_candidate'))corrupt();
+  const original={format:'cimiloop/human-plan-clarification-original/1.0.0' as const,session_id:session.id,basis:session.basis,questions:session.questions,candidate};
+  return {...structuredClone(original),input_digest:requestDigest(original)};
+ }finally{ledger.close();}
 }

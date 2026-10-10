@@ -5,6 +5,7 @@ import type { ProjectReader, StoreTransaction } from "@cimiloop/store";
 import { assignmentIsEffective } from "./authorization.js";
 import { admissionFailure, contentDigest, IntentFailure, type IntentContext } from "./intent.js";
 import { currentTaskEvaluation } from "./verification-facts.js";
+import {verifyPlanningClarification,type PlanningClarificationPort} from './planning-clarification.js';
 
 type ExecutionCommand = Extract<AnyCommand, { command_type: "InitializePlanTasks" | "PublishStandingAuthorization" | "RevokeStandingAuthorization" | "CreateWorkItem" | "RevokeWorkItem" }>;
 type Reader = Pick<ProjectReader, "getActor" | "listAssignments" | "getChange" | "getIntentRecord" | "listIntentRecords" | "getExecutionObject" | "listExecutionObjects" | "getExecutionRecord" | "listExecutionRecords" | "getVerificationRecord" | "listVerificationRecords" | "listRuns">;
@@ -115,7 +116,7 @@ export const activeToolScopeProblems = (reader: Reader, task: Task, item: WorkIt
   return reasons;
 };
 
-export const executeExecution = (tx: StoreTransaction, command: ExecutionCommand, context: IntentContext): Mutation => {
+export const executeExecution = (tx: StoreTransaction, command: ExecutionCommand, context: IntentContext, planning?:PlanningClarificationPort): Mutation => {
   const mutation = (event_type: string, object_type: Mutation["aggregate"]["object_type"], id: string, revision: number, data: Record<string, unknown>, payload = data): Mutation =>
     ({ event_type, aggregate: { object_type, id } as Mutation["aggregate"], revision, data: data as Mutation["data"], payload });
   const checkRevision = (actual: number) => { if (actual !== command.expected_revision) fail(command, "REVISION_CONFLICT", "目标对象已变化"); };
@@ -157,6 +158,7 @@ export const executeExecution = (tx: StoreTransaction, command: ExecutionCommand
     if (change!.operating_status !== "Active" || !["IntentReady", "Executing"].includes(change!.lifecycle_state) || !equal(change!.plan_ref, command.payload.plan_ref)) fail(command, "CHANGE_STATE_INVALID", "只能初始化有效正式计划中的需求任务");
     const problem = admissionFailure(tx, command, change!, false); if (problem) throw new IntentFailure(problem);
     const plan = tx.getIntentRecord("plan_version", change!.plan_ref!.id)!, tasks: Task[] = [], definitions: TaskDefinitionRecord[] = []; let changed = false;
+    verifyPlanningClarification(tx,command,context.project,change!,plan.body,planning,tx.getIntentRecord('plan_proposal',plan.proposal_ref.id),plan);
     for (const body of plan.body.task_definitions) {
       const old = tx.getExecutionObject("task", body.task_id);
       if (old && (old.change_id !== change!.id || old.project_id !== change!.project_id)) fail(command, "SCOPE_INVALID", "任务ID不能被另一条需求复用");
