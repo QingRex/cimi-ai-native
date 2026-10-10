@@ -28,15 +28,30 @@ partial class AppContainer {
   static volatile bool agentParentEnded;
   static Exception agentInputError;
   sealed class AgentInputClosedException : Exception { }
+  sealed class AgentCancellationException : Exception { public readonly string operation,digest; public AgentCancellationException(string operation,string digest) { this.operation=operation;this.digest=digest; } }
   static void AgentRequireInput(string line,Exception error) {
     if(AgentTaskExpired()) throw new InvalidDataException();
     if(error!=null) throw error;
     if(line==null) throw new AgentInputClosedException();
+    var value=serializer.Deserialize<Dictionary<string,object>>(line);
+    if(value!=null&&value.ContainsKey("format")&&value["format"] as string=="cimiloop/agent-workspace-cancel/1.0.0") {
+      AgentKeys(value,"format","nonce","scope_digest","operation_id","cancellation_digest");
+      string marker=value["cancellation_digest"] as string,operation=value["operation_id"] as string;Guid id;
+      if(agentResources==null||value["nonce"] as string!=(string)agentResources["nonce"]||value["scope_digest"] as string!=(string)agentResources["scope_digest"]||
+        !Guid.TryParseExact(operation,"D",out id)||operation!=new DirectoryInfo(Path.GetDirectoryName(agentResourcePath)).Name||marker==null||marker.Length!=64)throw new InvalidDataException();
+      foreach(char c in marker)if(!(c>='0'&&c<='9'||c>='a'&&c<='f'))throw new InvalidDataException();
+      throw new AgentCancellationException(operation,marker);
+    }
   }
   static void AgentInterruption(bool resumed) {
     var value=new { format="cimiloop/agent-workspace-interruption/1.0.0",nonce=agentResources["nonce"],scope_digest=agentResources["scope_digest"],config_digest=agentResources["config_digest"],owner=agentResources["owner"],supervisor=agentResources["supervisor"],runtime=agentResources["runtime"],phase=agentResources["phase"],runtime_resumed=resumed,reason="agent_sandbox_parent_ended" };
     byte[] bytes=new UTF8Encoding(false,true).GetBytes(serializer.Serialize(value));
     using(var file=new FileStream(Path.Combine(Path.GetDirectoryName(agentResourcePath),"agent-sandbox-interruption.json"),FileMode.CreateNew,FileAccess.Write,FileShare.None)) { file.Write(bytes,0,bytes.Length); file.Flush(true); }
+  }
+  static void AgentCancellation(AgentCancellationException stop,bool resumed) {
+    var value=new {format="cimiloop/agent-workspace-cancellation/1.0.0",nonce=agentResources["nonce"],operation_id=stop.operation,cancellation_digest=stop.digest,scope_digest=agentResources["scope_digest"],config_digest=agentResources["config_digest"],owner=agentResources["owner"],supervisor=agentResources["supervisor"],runtime=agentResources["runtime"],phase=agentResources["phase"],runtime_resumed=resumed,reason="agent_sandbox_cancel_requested"};
+    byte[] bytes=new UTF8Encoding(false,true).GetBytes(serializer.Serialize(value));
+    using(var file=new FileStream(Path.Combine(Path.GetDirectoryName(agentResourcePath),"agent-sandbox-cancellation.json"),FileMode.CreateNew,FileAccess.Write,FileShare.None)) {file.Write(bytes,0,bytes.Length);file.Flush(true);}
   }
   [DllImport("kernel32.dll",EntryPoint="GetTickCount64")] static extern ulong AgentTickCount();
   static ulong agentTaskDeadline;
@@ -319,7 +334,7 @@ partial class AppContainer {
       var release=serializer.Deserialize<Dictionary<string,object>>(resume); AgentKeys(release,"format","nonce"); if(release["format"] as string!="cimiloop/agent-workspace-resume/1.0.0"||release["nonce"] as string!=nonce) throw new InvalidDataException();
       if(WaitForSingleObject(owner,0)!=258||AgentTaskExpired()) throw new InvalidDataException(); Check(ResumeThread(process.thread)!=0xffffffff); runtimeResumed=true;
       agentResources["phase"]="running"; AgentResourceSave();
-      var inputWatcher=new Thread(delegate() { try { if(AgentLine(1024)!=null) throw new InvalidDataException(); } catch(Exception error) { agentInputError=error; } finally { agentParentEnded=true; } }); inputWatcher.IsBackground=true; inputWatcher.Start();
+      var inputWatcher=new Thread(delegate() { try { AgentRequireInput(AgentLine(2048),null); throw new InvalidDataException(); } catch(Exception error) { agentInputError=error; } finally { agentParentEnded=true; } }); inputWatcher.IsBackground=true; inputWatcher.Start();
       watch.Restart(); while(WaitForSingleObject(process.process,50)==258) {
         if(AgentTaskExpired()||watch.ElapsedMilliseconds>=elapsed) { reason=AgentTaskExpired()?"agent_sandbox_task_deadline":"agent_sandbox_timeout"; Check(TerminateJobObject(job,125)); Check(WaitForSingleObject(process.process,5000)==0); break; }
         if(agentParentEnded) { inputWatcher.Join(); AgentRequireInput(null,agentInputError); }
@@ -328,9 +343,10 @@ partial class AppContainer {
       runtimeStoppedUptime=AgentTickCount();
       if(reason=="agent_sandbox_unavailable") { uint code; Check(GetExitCodeProcess(process.process,out code)); exit=(int)code; reason="exited"; }
     } catch(Exception error) {
-      bool closed=error is AgentInputClosedException&&!AgentTaskExpired();
-      if(closed) { try { AgentInterruption(runtimeResumed); reason="agent_sandbox_parent_ended"; exit=125; } catch(Exception proofError) { error=proofError; closed=false; } }
-      if(!closed) {
+      bool cancelled=error is AgentCancellationException&&!AgentTaskExpired(),closed=error is AgentInputClosedException&&!AgentTaskExpired();
+      if(cancelled) {try {AgentCancellation((AgentCancellationException)error,runtimeResumed);reason="agent_sandbox_cancel_requested";exit=130;}catch(Exception proofError){error=proofError;cancelled=false;}}
+      else if(closed) { try { AgentInterruption(runtimeResumed); reason="agent_sandbox_parent_ended"; exit=125; } catch(Exception proofError) { error=proofError; closed=false; } }
+      if(!closed&&!cancelled) {
       reason=AgentTaskExpired()?"agent_sandbox_task_deadline":"agent_sandbox_unavailable";
       Console.Error.WriteLine(serializer.Serialize(new {format="cimiloop/agent-workspace-native-failure/1.0.0",phase=agentResources==null?"config":agentResources["phase"],reason=reason,exception_type=error.GetType().Name,native_error=error is System.ComponentModel.Win32Exception?((System.ComponentModel.Win32Exception)error).NativeErrorCode:0}));
       }

@@ -17,7 +17,7 @@ import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { parseWorkspaceCheckCatalog, type WorkspaceCheckCatalog } from "./workspace-checks.js";
 import { ExecutionLifetime } from "./execution-lifetime.js";
 import type { AgentRunBudget } from "./agent-run-budget.js";
-import { claimAgentRuntimeOperation, agentRuntimeCancellationRequested } from "./agent-runtime-operation.js";
+import { claimAgentRuntimeOperation, agentRuntimeCancellationRequested,readAgentRuntimeCancellationOriginal } from "./agent-runtime-operation.js";
 
 export interface SharedOptions {
   root: string; binary: string; scope: AgentWorkspaceToolScope;
@@ -126,7 +126,13 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   let resumed = false;
   let resolveReady!: (value: Record<string, unknown>) => void, rejectReady!: (error: unknown) => void;
   const ready = new Promise<Record<string, unknown>>((done, reject) => { resolveReady = done; rejectReady = reject; }); void ready.catch(() => {});
-  const cancel = () => native.stdin.end();
+  const cancel = () => {
+    if(native.stdin.writableEnded||native.stdin.destroyed)return;
+    if(!outputFailure&&lifetime.interruptionReason==='workspace_rehearsal_cancel_requested'){
+      try{const original=readAgentRuntimeCancellationOriginal(root,scope);if(original){native.stdin.end(JSON.stringify({format:'cimiloop/agent-workspace-cancel/1.0.0',nonce,scope_digest:scopeDigest,operation_id:original.record.operation_id,cancellation_digest:original.digest.value})+'\n');return;}}catch{/* Missing/corrupt marker is not explicit cancellation proof. */}
+    }
+    native.stdin.end();
+  };
   lifetime.signal.addEventListener("abort", cancel, { once: true });
   const capture = (bytes: Buffer, into: Buffer[]) => { total += bytes.length; if (total > 2 * 1024 * 1024) { outputFailure = true; cancel(); } else into.push(bytes); };
   native.stdout.on("data", (bytes: Buffer) => {

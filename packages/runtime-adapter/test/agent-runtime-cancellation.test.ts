@@ -1,0 +1,34 @@
+import{describe,it,expect}from'vitest';import*as runtime from'../src/index.js';import{digest}from'../src/files.js';
+import{mkdtempSync,mkdirSync,writeFileSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';
+// Constructed bytes exercise original binding only, never prove actual OS stop.
+const verify=(basis:{scope_digest:string;owner:unknown;operation_id:string;cancellation_digest:string|null},read:(name:string)=>Buffer|undefined)=>{const fn=Reflect.get(runtime,'verifyAgentRuntimeCancellation');expect(fn).toBeTypeOf('function');return fn(basis,read);};
+function fixture(){
+ const owner={pid:12,creation_ticks:'12',image:process.execPath},supervisor={...owner,pid:13},peer={...owner,pid:14},nonce='11111111-1111-4111-8111-111111111111',operation_id='22222222-2222-4222-8222-222222222222',scope_digest=digest('PUBLIC scope').value;
+ const marker={format:'cimiloop/agent-runtime-cancel/1.0.0',operation_id,scope_digest},markerBytes=Buffer.from(JSON.stringify(marker)),cancellation_digest=digest(markerBytes).value;
+ const config={format:'cimiloop/agent-workspace-sandbox-config/5.0.0',nonce,owner,scope_digest},config_digest=digest(JSON.stringify(config)).value;
+ const records:Record<string,Record<string,unknown>>={'original-config.json':config,'original-launcher.json':{format:'cimiloop/agent-workspace-launcher/2.0.0',nonce,owner,supervisor},
+  'agent-sandbox-resources.json':{format:'cimiloop/agent-workspace-resources/1.0.0',nonce,scope_digest,config_digest,owner,supervisor,runtime:peer,phase:'ended',resources_disposed:true},
+  'agent-sandbox-original.json':{format:'cimiloop/agent-workspace-sandbox/1.0.0',phase:'suspended',nonce,supervisor,peer},
+  'agent-sandbox-cleanup.json':{format:'cimiloop/agent-workspace-sandbox/1.0.0',phase:'ended',nonce,reason:'agent_sandbox_cancel_requested',exit_code:130,resources_disposed:true,cleanup_errors:[],formal_agent_execution_enabled:false},
+  'agent-sandbox-cancellation.json':{format:'cimiloop/agent-workspace-cancellation/1.0.0',nonce,operation_id,cancellation_digest,scope_digest,config_digest,owner,supervisor,runtime:peer,phase:'suspended',runtime_resumed:false,reason:'agent_sandbox_cancel_requested'}};
+ return{records,markerBytes,basis:{scope_digest,owner,operation_id,cancellation_digest},read:(name:string)=>name==='agent-runtime-cancel.json'?markerBytes:records[name]?Buffer.from(JSON.stringify(records[name])):undefined};
+}
+describe('Native original cancellation binding',()=>{
+ it('distinguishes an explicit held/resumed cancellation from parent loss and never claims billing or Task completion',()=>{const f=fixture();expect(verify(f.basis,f.read)).toMatchObject({status:'Observed',phase:'suspended',runtime_resumed:false,reason:'agent_sandbox_cancel_requested',completion_proven:false,costs_reconciled:false});f.records['agent-sandbox-cancellation.json']!.phase='running';f.records['agent-sandbox-cancellation.json']!.runtime_resumed=true;expect(verify(f.basis,f.read)).toMatchObject({phase:'running',runtime_resumed:true});});
+ it('keeps legacy absence distinct from a corrupt new cancellation proof',()=>{const f=fixture();delete f.records['agent-sandbox-cancellation.json'];expect(verify(f.basis,f.read)).toBeUndefined();f.records['agent-sandbox-cancellation.json']={};expect(()=>verify(f.basis,f.read)).toThrow();});
+ it.each(['scope','nonce','operation','marker','owner','supervisor','runtime','resume','phase','extra','cleanup_reason','cleanup_exit','cleanup_errors','missing_marker','missing_original','config_digest'])('rejects %s before any cancellation settlement',kind=>{
+  const f=fixture(),proof=f.records['agent-sandbox-cancellation.json']!,cleanup=f.records['agent-sandbox-cleanup.json']!;
+  if(kind==='scope')proof.scope_digest=digest('PUBLIC foreign').value;if(kind==='nonce')proof.nonce='foreign';if(kind==='operation')proof.operation_id='foreign';if(kind==='marker')proof.cancellation_digest=digest('PUBLIC foreign').value;if(kind==='owner')proof.owner={pid:99};if(kind==='supervisor')proof.supervisor={pid:99};if(kind==='runtime')proof.runtime={pid:99};if(kind==='resume')proof.runtime_resumed=true;if(kind==='phase')proof.phase='ended';if(kind==='extra')proof.extra=true;if(kind==='cleanup_reason')cleanup.reason='agent_sandbox_parent_ended';if(kind==='cleanup_exit')cleanup.exit_code=125;if(kind==='cleanup_errors')cleanup.cleanup_errors=['process'];if(kind==='missing_original')delete f.records['agent-sandbox-original.json'];if(kind==='config_digest')proof.config_digest=digest('PUBLIC foreign').value;
+  expect(()=>verify(f.basis,kind==='missing_marker'?name=>name==='agent-runtime-cancel.json'?undefined:f.read(name):f.read)).toThrow();
+ });
+ it.each(['valid','omitted_proof','omitted_metadata','different_metadata','changed_marker','changed_resources','changed_native','different_input'])('reverifies collected %s bytes against the same original operation',kind=>{
+  const f=fixture(),operation=mkdtempSync(join(tmpdir(),'cimiloop-cancel-reader-')),blobs=join(operation,'PUBLIC-blobs');mkdirSync(blobs);
+  const binary_original={format:'PUBLIC constructed binary binding'},sandbox_original={format:'PUBLIC constructed controller binding'};
+  f.records['original-config.json']!.binary_original=binary_original;f.records['original-launcher.json']!.launcher_original=sandbox_original;
+  const config_digest=digest(JSON.stringify(f.records['original-config.json'])).value;f.records['agent-sandbox-cancellation.json']!.config_digest=config_digest;f.records['agent-sandbox-resources.json']!.config_digest=config_digest;
+  const artifacts=[...Object.keys(f.records),'agent-runtime-cancel.json'].map(name=>{const bytes=f.read(name)!,hash=digest(bytes);writeFileSync(join(operation,name),bytes);const locator=join(blobs,hash.value);writeFileSync(locator,bytes);return{name,reference:{locator,digest:hash}};});
+  const collection:{artifacts:typeof artifacts;cancellation?:unknown}={artifacts,cancellation:verify(f.basis,f.read)},basis={...f.basis,operation,input:{binary_original,sandbox_original},markerBytes:f.markerBytes};
+  if(kind==='omitted_proof')collection.artifacts=artifacts.filter(a=>a.name!=='agent-sandbox-cancellation.json');if(kind==='omitted_metadata')delete collection.cancellation;if(kind==='different_metadata')collection.cancellation={};if(kind==='changed_marker')basis.markerBytes=Buffer.from('PUBLIC changed marker');if(kind==='changed_resources')writeFileSync(join(operation,'agent-sandbox-resources.json'),'{}');if(kind==='changed_native')writeFileSync(join(operation,'agent-sandbox-cancellation.json'),'{}');if(kind==='different_input')basis.input.binary_original={format:'PUBLIC foreign binding'};
+  if(kind==='valid')expect(runtime.verifyCollectedAgentRuntimeCancellation(basis,collection)).toEqual(collection.cancellation);else expect(()=>runtime.verifyCollectedAgentRuntimeCancellation(basis,collection)).toThrow('agent_runtime_cancellation_original_unproven');
+ });
+});

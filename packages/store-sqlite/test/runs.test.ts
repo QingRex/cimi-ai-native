@@ -14,7 +14,9 @@ import { flowSuccess, flowTime } from "../../../tests/fixtures/flow-project.js";
 
 const dirs: string[] = [], stores: { close(): void }[] = [];
 // Real Git captures include before/after snapshots and content verification.
-vi.setConfig({ testTimeout: 45_000 });
+// Match the Windows integration command's wait for Git/SQLite custody checks.
+// Domain clocks and Run budgets remain independently asserted below.
+vi.setConfig({ testTimeout: process.platform === "win32" ? 120_000 : 45_000 });
 afterEach(() => { while (stores.length) stores.pop()!.close(); while (dirs.length) rmSync(dirs.pop()!, { recursive: true, force: true }); });
 const fixture = () => { const directory = mkdtempSync(join(tmpdir(), "cimiloop-runs-")); dirs.push(directory); const f = createRunProject(directory); stores.push(f.store); return f; };
 const setup = (attempts = 3, cost?: number) => { const f = fixture(), source = f.capture(), item = f.authorize(attempts, cost), prepared = f.prepareContext(item, source); return { ...f, source, item, prepared }; };
@@ -112,7 +114,9 @@ describe("V1-07 native Human run lifecycle", () => {
     writeFileSync(join(f.directory, "src", "new.ts"), "untracked\n"); const proof = flowSuccess(f.kernel.execute(f.command("CheckResumption", "work_item", item.id, payload))); if (proof.command_type !== "CheckResumption") throw new Error("proof expected");
     expect(f.reserve(item, prepared, undefined, proof.data.resumption).record.resumption_ref?.id).toBe(proof.data.resumption.id);
     expect(existsSync(join(dirname(f.path), "objects", file.content_ref.locator))).toBe(true);
-  }, 30_000);
+  // Windows Git/SQLite custody checks can exceed the harness's old 30 seconds.
+  // This changes only the test wait, never a Task clock or execution budget.
+  }, 60_000);
   it("does not reset elapsed budget across a handoff or a process restart", () => {
     const f = setup(), run = f.reserve(f.item, f.prepared).run; flowSuccess(f.observe(run, "succeeded"));
     f.setTime("2026-10-03T00:01:00.000Z"); expect(f.kernel.execute(f.command("PrepareRunContext", "work_item", f.item.id, { source_snapshot_ref: { object_type: "source_snapshot", id: f.source.id } }))).toMatchObject({ code: "BUDGET_EXCEEDED" }); expect(f.task().usage.first_started_at).toBe(flowTime);

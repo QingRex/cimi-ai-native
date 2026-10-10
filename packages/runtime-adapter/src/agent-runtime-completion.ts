@@ -1,7 +1,7 @@
 import { verifyCollectedDedicatedAgentModelOriginals } from "./agent-dedicated-model.js";
 import { isDeepStrictEqual } from "node:util";
 import { compileValidator, TaskDefinitionRecordSchema, ContractVersionSchema, PlanVersionSchema, TaskSchema, WorkItemSchema,
-  type Project, type AgentRunRecord, type AgentContextManifest, type TaskDefinitionRecord, type ContractVersion, type PlanVersion, type Task, type WorkItem } from "@cimiloop/protocol/v2";
+  type Project, type AgentRunRecord, type AgentContextManifest, type TaskDefinitionRecord, type ContractVersion, type PlanVersion, type Task, type WorkItem, type Run } from "@cimiloop/protocol/v2";
 import { bytesAt, digest, RuntimeAdapterError } from "./files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { agentWorkspaceIpcScopeDigest } from "./agent-workspace-ipc.js";
@@ -34,7 +34,7 @@ export interface OriginalTaskExecutionResult {
 // Supplied independently from the Kernel's immutable records, never from the
 // Runtime packet or model answer. These pins describe the original Run's basis,
 // not the currently active Plan or a Task acceptance decision.
-export interface OriginalTaskDomainBasis { definition: TaskDefinitionRecord; contract: ContractVersion; plan: PlanVersion }
+export interface OriginalTaskDomainBasis { definition: TaskDefinitionRecord; contract: ContractVersion; plan: PlanVersion; run?: Run }
 
 // Historical execution-result verification, wired into the shared observation
 // service. Re-reads independent original Native ledgers; no call/Run is launched.

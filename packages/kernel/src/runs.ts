@@ -20,7 +20,7 @@ export interface AgentRunAdmissionInput extends AgentRunBindings {
   source: SourceSnapshot;
   workspace: WorkspaceSnapshot;
 }
-export interface AgentRunResultDomainBasis { definition: TaskDefinitionRecord; contract: ContractVersion; plan: PlanVersion }
+export interface AgentRunResultDomainBasis { definition: TaskDefinitionRecord; contract: ContractVersion; plan: PlanVersion; run?: Run }
 export interface AgentRunVerifierPort {
   skills?: SkillInvocationVerifierPort;
   // Independent, side-effect-free launch admission. Re-read original model,
@@ -272,7 +272,7 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
         plan.body.task_definitions.filter(value => value.task_id === record!.task_id && value.version === definition.version).length !== 1 ||
         !plan.body.task_definitions.some(value => equal(value, definition.body))) throw new Error("Original Agent domain basis mismatch");
       raw = compileValidator<RawRunObservation>(RawAgentRunObservationSchema)(host.agent.readRunResult(context.project, structuredClone(record!), structuredClone(manifest), command.payload.raw_result_ref,
-        structuredClone({ definition, contract, plan })));
+        structuredClone({ definition, contract, plan, run: original })));
       if (raw.format !== "cimiloop/agent-run/1.0.0" || !equal(raw.context_ref, record!.context_ref) || !equal(raw.runtime_binding, record!.runtime_binding) || !equal(raw.skill_bindings, record!.skill_bindings) || !equal(raw.host_admission_ref, record!.host_admission_ref)) throw new Error("Agent report pins mismatch");
     } else {
       if (command.payload.raw_result_ref.resource_type !== "manual_run") throw new Error("Human result reference required");

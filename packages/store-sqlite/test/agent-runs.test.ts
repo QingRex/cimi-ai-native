@@ -21,16 +21,17 @@ describe("Agent native records with constructed qualification and trusted port",
     if (reserved.record.run_kind !== "agent") throw Error("Agent expected");
     const expected = { definition: f.store.getExecutionRecord("task_definition", reserved.record.definition_ref.id),
       contract: f.store.getIntentRecord("contract_version", reserved.record.contract_ref.id),
-      plan: f.store.getIntentRecord("plan_version", reserved.record.plan_ref.id) };
+      plan: f.store.getIntentRecord("plan_version", reserved.record.plan_ref.id), run: reserved.run };
     const read = f.runPort.agent!.readRunResult.bind(f.runPort.agent), seen: unknown[] = [];
     f.runPort.agent!.readRunResult = ((...args: any[]) => {
       seen.push(structuredClone(args[4]));
-      if (args[4]) args[4].definition.body.goal = "Verifier must receive a detached copy";
+      if (args[4]) { args[4].definition.body.goal = "Verifier must receive a detached copy"; args[4].run.cancel_requested = true; }
       return (read as (...args: any[]) => unknown)(...args);
     }) as typeof read;
     flowSuccess(f.agentObserve(reserved.run, "unknown", { usage: { cost_known: false } }));
     expect(seen).toEqual([expected]);
     expect(f.store.getExecutionRecord("task_definition", reserved.record.definition_ref.id)).toEqual(expected.definition);
+    expect(f.store.getRun(reserved.run.id)!.cancel_requested).toBe(false);
     expect(f.task().usage.pending_reconciliation).toBe(true); expect(f.task().status).toBe("InProgress");
   });
   it("pins Context and Run, reserves one original operation and replays/reopens without another admission or attempt", () => {

@@ -2,7 +2,7 @@ import {join} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
 import {bytesAt,digest,readOriginalAgentWorkspaceOperation,readAgentWorkspaceIpcOriginals,readAgentRuntimeModelOriginals,
  readWorkspaceFileRunOriginals,AgentWorkspaceCheckHost,readAgentRuntimeNativeResult,parseGatewayJson,
- verifyOriginalTaskExecutionResult,type collectAgentRuntimeOperation,type readAgentRuntimeOriginalIdentity,type OriginalTaskDomainBasis} from '@cimiloop/runtime-adapter';
+ verifyOriginalTaskExecutionResult,readAgentRuntimeCancellationOriginal,verifyCollectedAgentRuntimeCancellation,agentWorkspaceIpcScopeDigest,type collectAgentRuntimeOperation,type readAgentRuntimeOriginalIdentity,type OriginalTaskDomainBasis} from '@cimiloop/runtime-adapter';
 import type {Project,AgentRunRecord,AgentContextManifest} from '@cimiloop/protocol/v2';
 import {classifyOriginalAgentExecutionFailure} from './agent-runtime-failure-local.js';
 type Identity=ReturnType<typeof readAgentRuntimeOriginalIdentity>;
@@ -13,14 +13,17 @@ export function readOriginalAgentTerminal(root:string,project:Project,record:Age
  identity:Identity,collection:Collection,domain?:OriginalTaskDomainBasis){
  const registered=readOriginalAgentWorkspaceOperation({root,operation:identity.operation,scope:identity.scope});
  const {config,launch,resources}=registered,input=identity.input as Record<string,unknown>;
+ const marker=readAgentRuntimeCancellationOriginal(root,identity.scope);
+ const cancellation=verifyCollectedAgentRuntimeCancellation({scope_digest:agentWorkspaceIpcScopeDigest(identity.scope),owner:identity.claim.owner,operation_id:identity.claim.operation_id,cancellation_digest:marker?.digest.value??null,operation:identity.operation,input:identity.input,...(marker?{markerBytes:marker.bytes}:{})},collection);
+ if(cancellation&&(!domain?.run||domain.run.id!==record.run_id||domain.run.project_id!==project.id||domain.run.record_ref.id!==record.id||domain.run.cancel_requested!==true))throw Error('Kernel original cancellation unproven');
  if(config.format!=='cimiloop/agent-workspace-sandbox-config/5.0.0'||launch?.format!=='cimiloop/agent-workspace-launcher/2.0.0'||
   !same(config.binary_original,input.binary_original)||!input.binary_original||!same(launch.launcher_original,input.sandbox_original)||!input.sandbox_original||
   config.prompt!==input.prompt||config.lifetime_policy!=='agent_task/1.0.0'||config.lifetime_policy!==input.lifetime_policy||config.deadline_uptime_ms!==input.deadline_uptime_ms||
   !same(config.owner,identity.claim.owner)||resources?.resources_disposed!==true||!['ended','recovered'].includes(String(resources.phase))||
-  collection.status.status!=='Stopped'||collection.status.resources_disposed!==true||collection.status.cancellation_requested!==false||
+  collection.status.status!=='Stopped'||collection.status.resources_disposed!==true||collection.status.cancellation_requested!==!!cancellation||
   collection.synthetic_model_responses!==null||collection.model?.status!=='Observed'||collection.model.unresolved!==0||collection.ipc.status!=='Observed'||collection.ipc.unresolved!==0)throw Error('Original retained terminal unavailable');
- const failure=classifyOriginalAgentExecutionFailure(identity,collection);
- const names=['original-config.json','original-launcher.json','agent-sandbox-resources.json','agent-sandbox-original.json','agent-sandbox-cleanup.json','stdout.raw','stderr.raw',failure?'incomplete.json':'result.json'];
+ const failure=cancellation?null:classifyOriginalAgentExecutionFailure(identity,collection);
+ const names=['original-config.json','original-launcher.json','agent-sandbox-resources.json','agent-sandbox-original.json','agent-sandbox-cleanup.json','stdout.raw','stderr.raw',failure||cancellation?'incomplete.json':'result.json',...(cancellation?['agent-sandbox-cancellation.json']:[])];
  const native_bytes=names.map(name=>{
   const artifact=collection.artifacts.find(a=>a.name===name);if(!artifact)throw Error('Original terminal bytes missing');
   const current=digest(bytesAt(join(identity.operation,name),4*1024*1024));
@@ -30,7 +33,8 @@ export function readOriginalAgentTerminal(root:string,project:Project,record:Age
  const suspended=json('agent-sandbox-original.json'),cleanup=json('agent-sandbox-cleanup.json');
  if(suspended.format!=='cimiloop/agent-workspace-sandbox/1.0.0'||suspended.phase!=='suspended'||suspended.nonce!==config.nonce||!same(suspended.supervisor,launch.supervisor)||!same(suspended.peer,resources.runtime)||
   cleanup.format!=='cimiloop/agent-workspace-sandbox/1.0.0'||cleanup.phase!=='ended'||cleanup.nonce!==config.nonce||cleanup.resources_disposed!==true||cleanup.formal_agent_execution_enabled!==false||
-  !Array.isArray(cleanup.cleanup_errors)||cleanup.cleanup_errors.length||!failure&&(cleanup.reason!=='exited'||cleanup.exit_code!==0))throw Error('Original Native cleanup unproven');
+  !Array.isArray(cleanup.cleanup_errors)||cleanup.cleanup_errors.length||!failure&&!cancellation&&(cleanup.reason!=='exited'||cleanup.exit_code!==0))throw Error('Original Native cleanup unproven');
+ if(cancellation){const incomplete=json('incomplete.json');if(incomplete.format!=='cimiloop/opencode-workspace-incomplete/1.0.0'||incomplete.nonce!==config.nonce||incomplete.original_scope_digest!==config.scope_digest||!same(incomplete.native_exit,{code:130,signal:null})||incomplete.interruption_reason!=='workspace_rehearsal_cancel_requested'||incomplete.completion_proven!==false)throw Error('Original cancelled execution unproven');}
  const read=()=>({ipc:readAgentWorkspaceIpcOriginals(root,identity.scope,String(config.pipe_nonce)),model:readAgentRuntimeModelOriginals(root,identity.scope),
   files:readWorkspaceFileRunOriginals(root,project,record),checks:AgentWorkspaceCheckHost.readRunOriginals(root,project,record)});
  const original=read();
@@ -44,9 +48,10 @@ export function readOriginalAgentTerminal(root:string,project:Project,record:Age
  const native=readAgentRuntimeNativeResult(root,project,record,identity.scope,original.ipc,catalog);
  const frames=original.ipc.exchanges.length-calls.length;
  if(frames>0?(native.status!=='Verified'||native.matched_calls!==frames||native.unmatched_native_calls!==0||native.unresolved_native_calls!==0):original.files.calls.length!==0||original.checks.calls.length!==0)throw Error('Original Native/IPC effects unproven');
- const execution=failure?null:verifyOriginalTaskExecutionResult(root,project,record,context,identity,collection,domain);
- if(!failure&&!execution)throw Error('Original domain execution unproven');
+ const execution=failure||cancellation?null:verifyOriginalTaskExecutionResult(root,project,record,context,identity,collection,domain);
+ if(!failure&&!cancellation&&!execution)throw Error('Original domain execution unproven');
  if(!same(read(),original)||!same(readOriginalAgentWorkspaceOperation({root,operation:identity.operation,scope:identity.scope}),registered)||native_bytes.some(b=>!same(digest(bytesAt(join(identity.operation,b.name),4*1024*1024)),b.digest)))throw Error('Original terminal changed during verification');
+ if(cancellation){const again=readAgentRuntimeCancellationOriginal(root,identity.scope);if(!same(marker,again))throw Error('Original cancellation changed during verification');return {format:'cimiloop/agent-original-terminal/2.0.0' as const,status:'cancelled' as const,cancellation,native_bytes,original_calls_digest:digest(JSON.stringify(original)),failure:null,execution:null};}
  return {format:'cimiloop/agent-original-terminal/1.0.0' as const,status:failure?'failed' as const:'succeeded' as const,native_bytes,
   original_calls_digest:digest(JSON.stringify(original)),failure,execution};
 }

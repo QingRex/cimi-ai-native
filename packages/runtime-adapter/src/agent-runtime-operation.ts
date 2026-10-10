@@ -1,5 +1,6 @@
 import { readDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary } from "./agent-dedicated-model.js";
 import { verifyAgentRuntimeInterruption } from "./agent-runtime-interruption.js";
+import {verifyAgentRuntimeCancellation} from './agent-runtime-cancellation.js';
 import { readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import { mkdirSync, writeFileSync, openSync, fsyncSync, closeSync, existsSync, lstatSync } from "node:fs";
@@ -107,13 +108,14 @@ export function claimAgentRuntimeOperation(root: string, rawScope: unknown, inpu
   save(join(location.run, "input.json"), originalInput); save(join(location.run, "claim.json"), claim);
   return { operation: join(root, "workspace-tool-rehearsals", claim.operation_id), claimDirectory: location.run, operationId: claim.operation_id };
 }
-export function agentRuntimeCancellationRequested(root: string, rawScope: unknown): boolean {
-  const original = load(root, rawScope), path = join(original.location.run, "cancel.json"); if (!existsSync(path)) return false;
-  const marker = read(path);
+export function readAgentRuntimeCancellationOriginal(root:string,rawScope:unknown){
+  const original = load(root, rawScope), path = join(original.location.run, "cancel.json"); if (!existsSync(path)) return null;
+  const bytes=bytesAt(path,65536),marker=copyToolJson(parseGatewayJson(bytes.toString('utf8'),65536));
   if (!exact(marker, ["format", "operation_id", "scope_digest"]) || marker.format !== "cimiloop/agent-runtime-cancel/1.0.0" ||
     marker.operation_id !== original.claim.operation_id || marker.scope_digest !== agentWorkspaceIpcScopeDigest(original.claim.scope)) fail("agent_runtime_cancellation_unproven");
-  return true;
+  return {record:{format:'cimiloop/agent-runtime-cancel/1.0.0' as const,operation_id:original.claim.operation_id,scope_digest:agentWorkspaceIpcScopeDigest(original.claim.scope)},bytes,digest:digest(bytes)};
 }
+export function agentRuntimeCancellationRequested(root: string, rawScope: unknown): boolean {return readAgentRuntimeCancellationOriginal(root,rawScope)!==null;}
 export function requestAgentRuntimeCancellation(root: string, rawScope: unknown) {
   const original = load(root, rawScope), path = join(original.location.run, "cancel.json");
   try { save(path, { format: "cimiloop/agent-runtime-cancel/1.0.0", operation_id: original.claim.operation_id, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope) }); }
@@ -169,10 +171,11 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
   const interruptionPath=join(original.operation,"agent-sandbox-interruption.json");
   const optionalBytes=(name:string)=>{const path=join(original.operation,name);assertOrdinaryPath(path);try{lstatSync(path);}catch(error){if(error&&typeof error==="object"&&"code" in error&&error.code==="ENOENT")return undefined;throw error;}return bytesAt(path,65536);};
   const interruption=verifyAgentRuntimeInterruption({scope_digest:agentWorkspaceIpcScopeDigest(original.claim.scope),owner:original.claim.owner},optionalBytes);
+  const cancelOriginal=readAgentRuntimeCancellationOriginal(root,rawScope),cancellation=verifyAgentRuntimeCancellation({scope_digest:agentWorkspaceIpcScopeDigest(original.claim.scope),owner:original.claim.owner,operation_id:original.claim.operation_id,cancellation_digest:cancelOriginal?.digest.value??null},name=>name==='agent-runtime-cancel.json'?cancelOriginal?.bytes:optionalBytes(name));
   let stdout: Buffer | undefined;
   let native: ReturnType<typeof readAgentRuntimeNativeResult> = { status: "Unknown", reason: "agent_native_original_inputs_missing", matched_calls: 0,
     unmatched_native_calls: 0, unresolved_native_calls: 0, native_effect_reverified: false, model_account_custody_proven: false, formal_agent_execution_enabled: false };
-  const files = ["original-config.json", "original-launcher.json", "agent-sandbox-resources.json", "agent-sandbox-original.json", "agent-sandbox-cleanup.json", "stdout.raw", "stderr.raw", "result.json", "incomplete.json",...(existsSync(interruptionPath)?["agent-sandbox-interruption.json"]:[])];
+  const files = ["original-config.json", "original-launcher.json", "agent-sandbox-resources.json", "agent-sandbox-original.json", "agent-sandbox-cleanup.json", "stdout.raw", "stderr.raw", "result.json", "incomplete.json",...(existsSync(interruptionPath)?["agent-sandbox-interruption.json"]:[]),...(cancellation?['agent-sandbox-cancellation.json']:[])];
   for (const name of files) {
     const path = join(original.operation, name);
     if (!existsSync(path)) { missing.push(name); continue; }
@@ -243,6 +246,7 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
   }
   const fresh = load(root, rawScope);
   if (!isDeepStrictEqual(fresh.claim, original.claim)) fail("agent_runtime_claim_changed");
-  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(model ? {model} : {}), ...(dedicated_model?{dedicated_model}:{}), ...(interruption?{interruption}:{}),
+  if(cancellation&&cancelOriginal)artifacts.push({name:'agent-runtime-cancel.json',reference:rawReference(root,cancelOriginal.bytes,'agent_runtime_original_bytes','agent-runtime-cancel.json')});
+  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(model ? {model} : {}), ...(dedicated_model?{dedicated_model}:{}), ...(interruption?{interruption}:{}),...(cancellation?{cancellation}:{}),
     domain_observation_produced: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: original.claim.synthetic_model_responses };
 }
