@@ -1,3 +1,4 @@
+import {readOriginalAgentJobObservation} from './agent-job-policy.js';
 import {join} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
 import type {SkillMethodOutput,Digest} from '@cimiloop/protocol/v2';
@@ -31,6 +32,8 @@ export function readAgentRuntimeNamedMethodResult(root:string,rawScope:unknown,i
   const critical=['original-config.json','original-launcher.json','agent-sandbox-resources.json','agent-sandbox-original.json','result.json'].map(name=>{const path=join(identity.operation,name),bytes=bytesAt(path,name==='result.json'?4*1024*1024:65536);return {name,path,digest:digest(bytes).value,bytes};});
   const original=readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}),config=original.config,input=identity.input as Record<string,unknown>;
   if(config.format!=='cimiloop/agent-workspace-sandbox-config/6.0.0'||!original.launch||!original.resources)fail();
+  const job=readOriginalAgentJobObservation(root,identity.operation,input,config,original.launch,original.resources);
+  if(job)critical.push({name:'agent-job-observation.json',path:join(identity.operation,'agent-job-observation.json'),digest:job.digest.value,bytes:job.bytes});
   const method=readAgentNamedMethodOriginals(root,scope,inputs.profile,inputs.files,config.method_original_binding);
   const model=readAgentRuntimeModelOriginals(root,scope),ipc=readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce));
   if(ipc.status!=='Observed'||ipc.unresolved||!ipc.header||model.status!=='Observed'||model.calls.some(c=>!c.response)||input.prompt!==config.prompt||model.task_packet_digest!==digest(String(input.prompt)).value)fail();

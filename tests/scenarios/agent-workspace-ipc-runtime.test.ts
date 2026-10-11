@@ -121,8 +121,15 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("original
     expect(readWorkspaceToolRunFacts(f.dataDirectory, f.project, f.reserved.record)).toEqual({ invocations: 1, unresolved: 0, has_effect: true });
   });
   it("preserves completed original effects after socket reply loss and explicitly replays them through a fresh host without writing again", async () => {
-    const f = await setup(), { channel, endpoint } = await open(f), sequence = f.store.asOfEventSequence(), usage = f.task().usage;
-    expect((await f.send(endpoint.pipe, { bytes_base64: Buffer.from(JSON.stringify(f.frame)).toString("base64") }, "drop")).reply.dropped).toBe(true);
+    const f=await setup(),sequence=f.store.asOfEventSequence(),usage=f.task().usage;
+    const execution=await openAgentWorkspaceToolHost({repositoryPath:f.root,dataDirectory:f.dataDirectory,scope:f.scope,assess:request=>f.kernel.assessAgentRunTool(request)});closers.push(()=>execution.host.close());
+    let endpoint:ReturnType<AgentWorkspaceToolIpc['getEndpoint']>,completed=false;
+    const channel=await AgentWorkspaceToolIpc.open({toolsDirectory:f.dataDirectory,scope:f.scope,supervisor:f.peer,originalSupervisor:f.identity,originalPeer:f.identity,
+      execute:async input=>{const result=await execution.host.execute(input);completed=true;
+       // Original Native effect is durable. Drop this exact peer socket while
+       // the host still holds the response, never before dispatch or completion.
+       expect((await f.send(endpoint.pipe,{drop_key:'original_completed'},'drop_original')).reply.dropped).toBe(true);return result;},cancel:()=>execution.host.close()});closers.push(()=>channel.close());endpoint=channel.getEndpoint();
+    expect((await f.send(endpoint.pipe,{bytes_base64:Buffer.from(JSON.stringify(f.frame)).toString('base64'),drop_key:'original_completed'},'drop_after_effect')).reply.dropped).toBe(true);expect(completed).toBe(true);
     await f.until(() => channel.snapshot().closed); await channel.close();
     expect(readWorkspaceToolRunFacts(f.dataDirectory, f.project, f.reserved.record)).toEqual({ invocations: 1, unresolved: 0, has_effect: true });
     expect(readFileSync(join(f.root, f.frame.path), "utf8")).toBe(f.frame.replacement_utf8);

@@ -1,3 +1,4 @@
+import {agentRuntimeClaimFormat} from './agent-job-policy.js';
 import {readAgentRuntimeNamedMethodResult,type AgentNamedMethodResultInputs} from './agent-named-method-result.js';
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
 import { readDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary } from "./agent-dedicated-model.js";
@@ -22,7 +23,7 @@ import { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } f
 import type { Project, AgentRunRecord } from "@cimiloop/protocol/v2";
 import { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
 
-interface Claim { format: "cimiloop/agent-runtime-operation-claim/1.0.0"; scope: AgentWorkspaceToolScope; input_digest: string; operation_id: string; owner: CreditProcessIdentity; synthetic_model_responses: true | null; formal_agent_execution_enabled: false }
+interface Claim { format: ReturnType<typeof agentRuntimeClaimFormat>; scope: AgentWorkspaceToolScope; input_digest: string; operation_id: string; owner: CreditProcessIdentity; synthetic_model_responses: true | null; formal_agent_execution_enabled: false }
 const exact = (raw: unknown, keys: string[]): raw is Record<string, unknown> => !!raw && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw).sort().join(",") === [...keys].sort().join(",");
 const sha = (raw: unknown): raw is string => typeof raw === "string" && /^[a-f0-9]{64}$/.test(raw);
 const uuid = (raw: unknown): raw is string => typeof raw === "string" && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(raw);
@@ -36,11 +37,12 @@ function load(root: string, rawScope: unknown) {
   root = assertOrdinaryPath(root);
   const scope = parseAgentWorkspaceToolScope(rawScope), location = paths(root, scope), raw = read(join(location.run, "claim.json"));
   if (!exact(raw, ["format", "scope", "input_digest", "operation_id", "owner", "synthetic_model_responses", "formal_agent_execution_enabled"]) ||
-    raw.format !== "cimiloop/agent-runtime-operation-claim/1.0.0" || !sha(raw.input_digest) || !uuid(raw.operation_id) || !validWorkspaceWorkerIdentity(raw.owner) ||
+    !["cimiloop/agent-runtime-operation-claim/1.0.0","cimiloop/agent-runtime-operation-claim/2.0.0"].includes(String(raw.format)) || !sha(raw.input_digest) || !uuid(raw.operation_id) || !validWorkspaceWorkerIdentity(raw.owner) ||
     (raw.synthetic_model_responses !== true && raw.synthetic_model_responses !== null) || raw.formal_agent_execution_enabled !== false || !isDeepStrictEqual(parseAgentWorkspaceToolScope(raw.scope), scope)) fail("agent_runtime_claim_unproven");
   const claim = raw as unknown as Claim, key = read(join(location.key, "original.json"));
   if (digest(bytesAt(join(location.run, "input.json"), 65536)).value !== claim.input_digest) fail("agent_runtime_input_unproven");
   const input=read(join(location.run,"input.json")) as Record<string,unknown>,configPath=join(root,"workspace-tool-rehearsals",claim.operation_id,"original-config.json");
+  if(agentRuntimeClaimFormat(input)!==claim.format)fail("agent_runtime_job_policy_unproven");
   if(input&&typeof input==="object"&&"binary_original" in input&&existsSync(configPath)){
     const config=read(configPath) as Record<string,unknown>,proof=input.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;
     assertAgentNamedMethodConfig(config,input);
@@ -96,6 +98,7 @@ export function claimAgentRuntimeOperation(root: string, rawScope: unknown, inpu
   const scope = parseAgentWorkspaceToolScope(rawScope), originalInput = copyToolJson(input), inputDigest = digest(JSON.stringify(originalInput)).value;
   if (Buffer.byteLength(JSON.stringify(originalInput)) > 65536) fail("agent_runtime_input_limit");
   if (!validWorkspaceWorkerIdentity(owner)) fail("agent_runtime_owner_unproven");
+  const claimFormat=agentRuntimeClaimFormat(originalInput);
   root = directory(root); const location = paths(root, scope);
   directory(join(root, "agent-runtime-claims", scope.project_id, "runs")); directory(join(root, "agent-runtime-claims", scope.project_id, "keys"));
   try { mkdirSync(location.run); } catch (error) {
@@ -110,7 +113,7 @@ export function claimAgentRuntimeOperation(root: string, rawScope: unknown, inpu
     if (!(error && typeof error === "object" && "code" in error && error.code === "EEXIST")) throw error;
     fail("agent_runtime_operation_key_conflict");
   }
-  const claim: Claim = { format: "cimiloop/agent-runtime-operation-claim/1.0.0", scope, input_digest: inputDigest, operation_id: randomUUID(), owner: { ...owner }, synthetic_model_responses: (input as Record<string, unknown>).purpose === "agent_runtime" ? null : true, formal_agent_execution_enabled: false };
+  const claim: Claim = { format: claimFormat, scope, input_digest: inputDigest, operation_id: randomUUID(), owner: { ...owner }, synthetic_model_responses: (input as Record<string, unknown>).purpose === "agent_runtime" ? null : true, formal_agent_execution_enabled: false };
   save(join(location.key, "original.json"), { run_id: scope.run_id, operation_id: claim.operation_id, scope_digest: agentWorkspaceIpcScopeDigest(scope), input_digest: inputDigest });
   save(join(location.run, "input.json"), originalInput); save(join(location.run, "claim.json"), claim);
   return { operation: join(root, "workspace-tool-rehearsals", claim.operation_id), claimDirectory: location.run, operationId: claim.operation_id };
@@ -182,7 +185,7 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
   let stdout: Buffer | undefined;
   let native: ReturnType<typeof readAgentRuntimeNativeResult> = { status: "Unknown", reason: "agent_native_original_inputs_missing", matched_calls: 0,
     unmatched_native_calls: 0, unresolved_native_calls: 0, native_effect_reverified: false, model_account_custody_proven: false, formal_agent_execution_enabled: false };
-  const files = ["original-config.json", "original-launcher.json", "agent-sandbox-resources.json", "agent-sandbox-original.json", "agent-sandbox-cleanup.json", "stdout.raw", "stderr.raw", "result.json", "incomplete.json",...(existsSync(interruptionPath)?["agent-sandbox-interruption.json"]:[]),...(cancellation?['agent-sandbox-cancellation.json']:[])];
+  const files = ["original-config.json", "original-launcher.json", "agent-sandbox-resources.json", "agent-sandbox-original.json", "agent-sandbox-cleanup.json", "stdout.raw", "stderr.raw", "result.json", "incomplete.json",...(existsSync(interruptionPath)?["agent-sandbox-interruption.json"]:[]),...(cancellation?['agent-sandbox-cancellation.json']:[]),...(Object.hasOwn(read(join(original.location.run,'input.json')) as object,'job_resource_policy')?['agent-job-observation.json']:[])];
   for (const name of files) {
     const path = join(original.operation, name);
     if (!existsSync(path)) { missing.push(name); continue; }

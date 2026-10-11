@@ -15,6 +15,9 @@ const fail=()=>new LocalProjectError('原 Skill 结果及不可变证据不能�
 // calls,64 model calls,128 IPC exchanges,10 dedicated artifacts/model call.
 export const SKILL_RESULT_CAPTURE_LIMITS=Object.freeze({artifacts:9+(2+32+128*2)+(2+64*3)+(1+128*4)+(3+64*10),proof_bytes:8*1024*1024,
  total_bytes:2*4*1024*1024+5*65536+(2+128*2)*114688+32*50*1024+(2+64*3)*114688+114688+128*(2*114688+2*1024)+(3+64*10)*262144});
+// Only an independently verified new Job artifact earns the additional capacity.
+export function skillResultCaptureLimits(originalJobPolicy:boolean){return originalJobPolicy?Object.freeze({...SKILL_RESULT_CAPTURE_LIMITS,artifacts:SKILL_RESULT_CAPTURE_LIMITS.artifacts+1,total_bytes:SKILL_RESULT_CAPTURE_LIMITS.total_bytes+65536}):SKILL_RESULT_CAPTURE_LIMITS;}
+const limitsFor=(artifacts:Artifact[])=>skillResultCaptureLimits(artifacts.some(a=>a.name==='method/agent-job-observation.json'));
 export function parseSkillResultCaptureBytes(bytes:Buffer):unknown {
  if(!bytes.length||bytes.length>SKILL_RESULT_CAPTURE_LIMITS.proof_bytes)throw fail();
  const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes),value:unknown=JSON.parse(text);
@@ -47,7 +50,7 @@ export class LocalSkillInvocationResultCollection {
   const result=readAgentRuntimeNamedMethodResult(root,relation.child,plan),provider=readDedicatedAgentModelOriginals(root,relation.child),model=readAgentRuntimeModelOriginals(root,relation.child);
   if(result.status!=='Observed'||!result.method_result_reverified||!result.output||provider.summary.status!=='Observed'||!provider.summary.original_requirement_pinned||!provider.summary.budget_identity_pinned||provider.summary.unresolved||!provider.calls.length||model.status!=='Observed'||!same(provider.calls.map(c=>c.call_id),model.calls.map(c=>c.call_id)))throw fail();
   const artifacts:Artifact[]=[...result.artifacts.map(a=>({...a,name:'method/'+a.name})),...provider.artifacts.map(a=>({...a,name:'provider/'+a.name}))];
-  if(artifacts.length>SKILL_RESULT_CAPTURE_LIMITS.artifacts||new Set(artifacts.map(a=>a.name)).size!==artifacts.length)throw fail();
+  if(artifacts.length>limitsFor(artifacts).artifacts||new Set(artifacts.map(a=>a.name)).size!==artifacts.length)throw fail();
   for(const a of artifacts){const rel=relative(resolve(root),resolve(a.path));if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../')||digest(bytesAt(a.path,4*1024*1024)).value!==a.digest)throw fail();}
   let cost_evidence:ReturnType<typeof readOriginalDedicatedAgentRunCosts>|undefined;
   if(billed){
@@ -73,7 +76,7 @@ export class LocalSkillInvocationResultCollection {
  private captureOriginal(invocationId:string,billed:boolean):ReturnType<LocalSkillInvocationResultCollection['capture']>{
   try{
    const facts=this.facts(invocationId,false,billed),content=this.options.inputs.packages.content;let bytes=0;
-   const copies=facts.artifacts.map(a=>{const body=bytesAt(a.path,4*1024*1024);bytes+=body.length;if(bytes>SKILL_RESULT_CAPTURE_LIMITS.total_bytes||digest(body).value!==a.digest)throw fail();return {...a,reference:content.storeContent(body,'provider_probe_artifact')};});
+   const copies=facts.artifacts.map(a=>{const body=bytesAt(a.path,4*1024*1024);bytes+=body.length;if(bytes>limitsFor(facts.artifacts).total_bytes||digest(body).value!==a.digest)throw fail();return {...a,reference:content.storeContent(body,'provider_probe_artifact')};});
    if(!same(this.facts(invocationId,false,billed),facts))throw fail();
    // Final bills observed later cannot inherit an earlier unknown-fee time.
    const timeKey=invocationId+':'+(billed?'billed':'unbilled'),observed_at=this.times.get(timeKey)??new Date().toISOString();this.times.set(timeKey,observed_at);
@@ -95,7 +98,7 @@ export class LocalSkillInvocationResultCollection {
    if(!proof||typeof proof!=='object'||!Array.isArray(proof.artifacts)||proof.artifacts.length!==facts.artifacts.length)throw fail();
    let total=0;for(const [i,a] of proof.artifacts.entries()){
     const expected=facts.artifacts[i]!,body=bytesAt(expected.path,4*1024*1024);total+=body.length;
-    if(total>SKILL_RESULT_CAPTURE_LIMITS.total_bytes||a.reference.resource_type!=='provider_probe_artifact'||!same(a,{...expected,reference:a.reference})||digest(body).value!==expected.digest||!content.readContent(a.reference).equals(body))throw fail();
+    if(total>limitsFor(facts.artifacts).total_bytes||a.reference.resource_type!=='provider_probe_artifact'||!same(a,{...expected,reference:a.reference})||digest(body).value!==expected.digest||!content.readContent(a.reference).equals(body))throw fail();
    }
    if(!same(proof,{...facts,observed_at:raw.observed_at,artifacts:proof.artifacts})||!same(this.facts(invocation.id,true,billed),facts))throw fail();
    const expected={format:'cimiloop/skill-invocation/1.0.0',invocation_ref:{object_type:'skill_invocation',id:invocation.id},invocation_key:invocation.invocation_key,run_ref:invocation.run_ref,run_operation_key:invocation.run_operation_key,producer_actor_id:invocation.executor_ref.id,input_digest:invocation.input_digest,observed_at:raw.observed_at,basis:'direct_observation',status:'unknown',usage:this.usage(facts),result_proof_ref:raw.result_proof_ref,resolves_observation_refs:[]};

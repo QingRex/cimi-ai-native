@@ -8,6 +8,7 @@ import {pinBinary} from "../src/native.js";
 import {readRuntimeBinaryOriginal} from "../src/runtime-binary-originals.js";
 import { claimAgentRuntimeOperation, requestAgentRuntimeCancellation, queryAgentRuntimeOperation, recoverAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, inspectAgentRuntimeOriginalRegistration } from "../src/agent-runtime-operation.js";
 
+import {AGENT_JOB_RESOURCE_POLICY} from '../src/agent-job-policy.js';
 // Constructed scope and owner contract inputs only; no OS or model qualification.
 describe("one original Runtime claim per native Run and operation key", () => {
   const roots: string[] = [];
@@ -20,6 +21,15 @@ describe("one original Runtime claim per native Run and operation key", () => {
     const owner = { pid: 1234, creation_ticks: "123456", image: process.execPath }, input = { mode: "constructed_claim_contract", original: "value" };
     return { root, scope, owner, input };
   }
+  it('registers new Job policy as claim2, refuses downgrade and keeps cancellation without observer bytes',()=>{
+    const f=setup(),source=join(f.root,'constructed-observer.exe');writeFileSync(source,'constructed observer binary');const pinned=pinBinary(f.root,source),input={...f.input,job_resource_policy:AGENT_JOB_RESOURCE_POLICY,job_observer_original:readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value)},original=claimAgentRuntimeOperation(f.root,f.scope,input,f.owner),path=join(original.claimDirectory,'claim.json'),claim=JSON.parse(readFileSync(path,'utf8'));
+    expect(claim.format).toBe('cimiloop/agent-runtime-operation-claim/2.0.0');expect(readAgentRuntimeOriginalIdentity(f.root,f.scope).input).toEqual(input);
+    writeFileSync(path,JSON.stringify({...claim,format:'cimiloop/agent-runtime-operation-claim/1.0.0'}));expect(()=>requestAgentRuntimeCancellation(f.root,f.scope)).toThrow('agent_runtime_job_policy_unproven');
+    writeFileSync(path,JSON.stringify(claim));rmSync(pinned.path);expect(requestAgentRuntimeCancellation(f.root,f.scope)).toMatchObject({requested:true,stopped_proven:false});expect(existsSync(original.operation)).toBe(false);
+  });
+  it('rejects partial or widened Job input before registering any Run',()=>{
+    for(const input of [{job_resource_policy:AGENT_JOB_RESOURCE_POLICY},{job_resource_policy:{...AGENT_JOB_RESOURCE_POLICY,active_process_limit:2},job_observer_original:{path:'constructed'}}]){const f=setup();expect(()=>claimAgentRuntimeOperation(f.root,f.scope,input,f.owner)).toThrow('agent_runtime_job_policy_unproven');expect(inspectAgentRuntimeOriginalRegistration(f.root,f.scope)).toEqual({status:'absent'});}
+  });
   it("refuses a second owner, changed input and rebinding the same Run", () => {
     const f = setup(), original = claimAgentRuntimeOperation(f.root, f.scope, f.input, f.owner), bytes = readFileSync(join(original.claimDirectory, "claim.json"));
     expect(() => claimAgentRuntimeOperation(f.root, f.scope, f.input, { ...f.owner, pid: 2345 })).toThrow("agent_runtime_already_claimed");

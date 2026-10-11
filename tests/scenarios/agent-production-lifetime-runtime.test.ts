@@ -2,7 +2,7 @@ import { createServer as createHttpsServer } from "node:https";
 import { connect as tlsConnect } from "node:tls";
 import { fileURLToPath } from "node:url";
 import { GatewayNetworkBoundary } from "../../packages/runtime-adapter/dist/gateway-network.js";
-import { createDedicatedAgentRuntimeModel,initializeWindowsDedicatedAgentAccountLedger } from "../../packages/runtime-adapter/dist/index.js";
+import { createDedicatedAgentRuntimeModel,initializeWindowsDedicatedAgentAccountLedger,readAgentRuntimeOriginalIdentity,readOriginalAgentJobObservation,AGENT_JOB_RESOURCE_POLICY } from "../../packages/runtime-adapter/dist/index.js";
 import {startWorkbench} from "../../apps/workbench/src/server.js";
 import {createInternalId} from "../../packages/protocol/src/v2/index.js";
 import { mkdtempSync,mkdirSync, readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
@@ -27,6 +27,12 @@ vi.setConfig({testTimeout:780000});
 describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lifetime joins the original approved Task",()=>{
  // Fresh current-user persistent roots, not Temp. Repo-local owned roots on
  // this host rejected Windows custody; neither historical location is repaired.
+ function originalJob(root:string,scope:unknown,operation:string){
+  const identity=readAgentRuntimeOriginalIdentity(root,scope),input=identity.input as Record<string,unknown>,read=(name:string)=>JSON.parse(readFileSync(join(operation,name),'utf8'));
+  expect(identity.claim.format).toBe('cimiloop/agent-runtime-operation-claim/2.0.0');expect(input.job_resource_policy).toEqual(AGENT_JOB_RESOURCE_POLICY);
+  const observed=readOriginalAgentJobObservation(root,operation,input,read('original-config.json'),read('original-launcher.json'),read('agent-sandbox-resources.json'));
+  expect(observed).not.toBeNull();expect(observed!.proof).toMatchObject({limit_flags:8712,active_process_limit:1,job_memory_limit_bytes:2147483648,process_memory_limit_bytes:0,peer_in_job:true});return observed!;
+ }
  const fixtureParent=join(process.env.LOCALAPPDATA!,'CimiS1');
  const roots:string[]=[],stores:{close():void}[]=[],closers:(()=>Promise<void>)[]=[];
  afterEach(async context=>{while(closers.length)await closers.pop()!();while(stores.length)stores.pop()!.close();for(const root of roots.splice(0)){
@@ -105,6 +111,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const original=readAgentRuntimeModelOriginals(f.dataDirectory,f.scope);expect(original.calls[0]!.request.prompt).toBeDefined();expect(original.calls).toHaveLength(3);
   expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(11);
   const config=JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"));
+  expect(collected.artifacts.some(a=>a.name==="agent-job-observation.json")).toBe(true);originalJob(f.dataDirectory,f.scope,collected.status.operation);
   expect(config.elapsed_ms).toBeGreaterThan(180000);expect(config.elapsed_ms).toBeLessThanOrEqual(600000);
   expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/5.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
   expect(readRuntimeBinaryOriginal(f.dataDirectory,config.binary,config.binary_original.sha)).toEqual(config.binary_original);
@@ -167,6 +174,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const original=readAgentRuntimeModelOriginals(f.dataDirectory,f.scope);expect(original.calls[0]!.request.prompt).toBeDefined();expect(original.calls).toHaveLength(4);
   expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(14);
   const config=JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"));
+  expect(collected.artifacts.some(a=>a.name==="agent-job-observation.json")).toBe(true);originalJob(f.dataDirectory,f.scope,collected.status.operation);
   expect(config.elapsed_ms).toBeGreaterThan(180000);expect(config.elapsed_ms).toBeLessThanOrEqual(600000);
   expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/5.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
   expect(readRuntimeBinaryOriginal(f.dataDirectory,config.binary,config.binary_original.sha)).toEqual(config.binary_original);
@@ -214,6 +222,9 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
     const cleanupPath=join(operation,"agent-sandbox-cleanup.json"),cleanup=readFileSync(cleanupPath);if(kind==="missing_cleanup")writeFileSync(cleanupPath,"{}");
     try{expect((await post(server,session,"reconcile-original",humanCommand("ReconcileRun"))).status).not.toBe(200);expect(f.store.asOfEventSequence()).toBe(sequence+2);expect(f.task().usage.cost_reserved_micros).toBe(102);expect(observed).toHaveLength(4);}finally{writeFileSync(cleanupPath,cleanup);writeFileSync(nativePath,originalNative);writeFileSync(stdoutPath,originalStdout);writeFileSync(resultPath,originalResult);}
   }}finally{writeFileSync(nativePath,originalNative);writeFileSync(stdoutPath,originalStdout);writeFileSync(resultPath,originalResult);}
+  const jobPath=join(operation,'agent-job-observation.json'),jobBytes=readFileSync(jobPath),job=originalJob(f.dataDirectory,f.scope,operation);
+  writeFileSync(jobPath,JSON.stringify({...job.proof,job_memory_limit_bytes:4294967296}));
+  try{expect((await post(server,session,'reconcile-original',humanCommand('ReconcileRun'))).status).not.toBe(200);expect(f.store.asOfEventSequence()).toBe(sequence+2);expect(f.task().usage.cost_reserved_micros).toBe(102);expect(observed).toHaveLength(4);}finally{writeFileSync(jobPath,jobBytes);}
   const unknowns=f.store.listRuntimeRecords("run_observation",f.change.id).filter(o=>o.run_ref.id===f.reserved.run.id),reconcileCommand=humanCommand("ReconcileRun"),settled=await post(server,session,"reconcile-original",reconcileCommand);
   expect(settled).toMatchObject({status:200,body:{command_type:"ReconcileRun",data:{run:{status:"Succeeded",cost_known:true,cost_charged_micros:48,reservation_released:false},observation:{report:{basis:"reconciliation",status:"succeeded",usage:{cost_known:true,cost_micros:48,currency:"USD"}}}}}});
   expect((settled.body as {data:{observation:{report:{resolves_observation_refs:{id:string}[]}}}}).data.observation.report.resolves_observation_refs.map((r:{id:string})=>r.id).sort()).toEqual(unknowns.map(o=>o.id).sort());
@@ -225,6 +236,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const session2={cookie:login2.headers.get("set-cookie")!.split(";")[0]!,csrf:(await login2.json() as {csrf:string}).csrf},cleanupPath=join(operation,"agent-sandbox-cleanup.json"),cleanup=readFileSync(cleanupPath),beforeReplay=accountReleases;
   writeFileSync(cleanupPath,"{}");try{expect(await post(recovered,session2,"reconcile-original",reconcileCommand)).toEqual(settled);}finally{writeFileSync(cleanupPath,cleanup);}
   expect(accountReleases).toBe(beforeReplay);expect(f.store.asOfEventSequence()).toBe(sequence+3);expect(observed).toHaveLength(4);expect(f.sends()).toBe(4);expect(credentials).toBe(4);expect(f.ledger.listExclusive("dedicated_account_bill")).toHaveLength(1);expect(ledger.snapshot()).toMatchObject({cash_charged_micros:48,cash_held_micros:0});
+  writeFileSync(join(f.dataDirectory,'d274-job-settlement-summary.json'),JSON.stringify({format:'cimiloop/constructed-job-settlement/1.0.0',run_id:f.reserved.run.id,operation,job_observation:job.proof,job_observation_digest:job.digest,retained_observer:job.observer,job_counterexamples:1,actual_parent_native:true,actual_sdk:true,shared_workbench_original_reconciliation:true,receipt_replayed_after_restart:true,kernel_task_usage:f.task().usage,real_model:false,real_skill:false,real_approval:false,real_bill:false,s1_accepted:false},null,2));
   writeFileSync(join(f.dataDirectory,"d273-parent-settlement-summary.json"),JSON.stringify({format:"cimiloop/constructed-parent-native-settlement/1.0.0",run_id:f.reserved.run.id,operation,source_digest:digest(readFileSync(join(f.root,"src/query.ts"))).value,actual_parent_native:true,actual_sdk:true,actual_fixed_check:true,shared_workbench_fee_observation:true,shared_workbench_original_reconciliation:true,receipt_replayed_after_restart:true,native_counterexamples:5,kernel_event_delta:3,kernel_task_usage:f.task().usage,task_accepted:false,model_requests:4,account_bills:1,real_model:false,real_skill:false,real_approval:false,real_bill:false,s1_accepted:false},null,2));
  });
  it("rechecks Human permission after the final awaited model admission and never resumes the original SDK",async()=>{

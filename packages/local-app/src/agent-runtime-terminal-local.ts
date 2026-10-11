@@ -1,6 +1,6 @@
 import {join} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
-import {isOriginalAgentNativeSuspension,bytesAt,digest,readOriginalAgentWorkspaceOperation,readAgentWorkspaceIpcOriginals,readAgentRuntimeModelOriginals,
+import {readOriginalAgentJobObservation,isOriginalAgentNativeSuspension,bytesAt,digest,readOriginalAgentWorkspaceOperation,readAgentWorkspaceIpcOriginals,readAgentRuntimeModelOriginals,
  readWorkspaceFileRunOriginals,AgentWorkspaceCheckHost,readAgentRuntimeNativeResult,parseGatewayJson,
  verifyOriginalTaskExecutionResult,readAgentRuntimeCancellationOriginal,verifyCollectedAgentRuntimeCancellation,agentWorkspaceIpcScopeDigest,type collectAgentRuntimeOperation,type readAgentRuntimeOriginalIdentity,type OriginalTaskDomainBasis} from '@cimiloop/runtime-adapter';
 import type {Project,AgentRunRecord,AgentContextManifest} from '@cimiloop/protocol/v2';
@@ -24,6 +24,7 @@ export function readOriginalAgentTerminal(root:string,project:Project,record:Age
   collection.synthetic_model_responses!==null||collection.model?.status!=='Observed'||collection.model.unresolved!==0||collection.ipc.status!=='Observed'||collection.ipc.unresolved!==0)throw Error('Original retained terminal unavailable');
  const failure=cancellation?null:classifyOriginalAgentExecutionFailure(identity,collection);
  const names=['original-config.json','original-launcher.json','agent-sandbox-resources.json','agent-sandbox-original.json','agent-sandbox-cleanup.json','stdout.raw','stderr.raw',failure||cancellation?'incomplete.json':'result.json',...(cancellation?['agent-sandbox-cancellation.json']:[])];
+ const job=readOriginalAgentJobObservation(root,identity.operation,input,config,launch!,resources!);if(job)names.push('agent-job-observation.json');
  const native_bytes=names.map(name=>{
   const artifact=collection.artifacts.find(a=>a.name===name);if(!artifact)throw Error('Original terminal bytes missing');
   const current=digest(bytesAt(join(identity.operation,name),4*1024*1024));

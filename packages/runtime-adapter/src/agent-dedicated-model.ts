@@ -1,3 +1,4 @@
+import {agentRuntimeClaimFormat} from './agent-job-policy.js';
 import { existsSync, realpathSync, lstatSync, mkdirSync, openSync, writeFileSync, fsyncSync, closeSync, readdirSync } from "node:fs";
 import { join, resolve, relative, isAbsolute, sep, dirname, basename } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -143,7 +144,7 @@ export function readDedicatedAgentModelOriginals(root:string,rawScope:unknown):{
   if(present(runRoot)||present(keyRoot)){
    const source=(p:string)=>{const bytes=bytesAt(p,65536);frozenSnapshots.push({path:p,digest:digest(bytes).value});return JSON.parse(JSON.stringify(parseGatewayJson(new TextDecoder("utf-8",{fatal:true}).decode(bytes),65536))) as Record<string,unknown>;};
    const input=source(frozenInput),claim=source(join(runRoot,"claim.json")),key=source(join(keyRoot,"original.json")),inputDigest=frozenSnapshots[0]!.digest;
-   if(claim.format!=="cimiloop/agent-runtime-operation-claim/1.0.0"||claim.input_digest!==inputDigest||!isDeepStrictEqual(claim.scope,scope)||!sha(inputDigest)||
+   if(claim.format!==agentRuntimeClaimFormat(input)||claim.input_digest!==inputDigest||!isDeepStrictEqual(claim.scope,scope)||!sha(inputDigest)||
      !key||Object.keys(key).sort().join(",")!==["run_id","operation_id","scope_digest","input_digest"].sort().join(",")||key.input_digest!==inputDigest||key.run_id!==scope.run_id||key.operation_id!==claim.operation_id||key.scope_digest!==digest(JSON.stringify(scope)).value)fail();
    frozenBinding=input.model_original_binding;
   }

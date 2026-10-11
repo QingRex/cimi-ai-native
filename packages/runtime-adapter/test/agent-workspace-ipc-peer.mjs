@@ -3,12 +3,15 @@
 import { createConnection } from "node:net";
 import { exchangeAgentWorkspaceToolFrame } from "../transport/agent-workspace-ipc-client.mjs";
 
+const completedDrops=new Map();
 process.on("message", async message => {
   if (message.kind === "quit") { process.disconnect(); process.exit(0); }
   try {
+    if(message.kind==='drop_original'){const drop=completedDrops.get(message.drop_key);if(!drop)throw Error('Original drop socket missing');drop();process.send({id:message.id,reply:{dropped:true}});return;}
     const reply = message.kind === "frame" ? await exchangeAgentWorkspaceToolFrame(message.pipe, message.frame) : await new Promise((done, fail) => {
       const socket = createConnection(message.pipe), timer = setTimeout(() => { socket.destroy(); fail(Error("raw_timeout")); }, 25000);
       socket.once("connect", () => { const bytes = Buffer.from(message.bytes_base64, "base64"), header = Buffer.alloc(4); header.writeUInt32LE(message.length ?? bytes.length);
+        if(message.kind==='drop_after_effect')completedDrops.set(message.drop_key,()=>{clearTimeout(timer);completedDrops.delete(message.drop_key);socket.destroy();done({dropped:true});});
         socket.write(Buffer.concat([header, bytes]), () => { if (message.kind === "drop") { clearTimeout(timer); socket.destroy(); done({ dropped: true }); } }); });
       let input = Buffer.alloc(0); socket.on("data", bytes => { input = Buffer.concat([input, bytes]);
         if (input.length >= 4 && input.length === 4 + input.readUInt32LE()) { clearTimeout(timer); socket.destroy(); done({ raw: input.toString("base64") }); } });

@@ -1,6 +1,9 @@
 import {describe,it,expect} from 'vitest';
-import {SKILL_RESULT_CAPTURE_LIMITS,parseSkillResultCaptureBytes} from '../src/skill-invocation-result-local.js';
+import {SKILL_RESULT_CAPTURE_LIMITS,skillResultCaptureLimits,parseSkillResultCaptureBytes} from '../src/skill-invocation-result-local.js';
 describe('complete original Skill capture capacity',()=>{
+ it('adds exactly one retained Job original to new input capacity while keeping historical limits',()=>{
+  expect(skillResultCaptureLimits(false)).toEqual(SKILL_RESULT_CAPTURE_LIMITS);const next=skillResultCaptureLimits(true);expect(next.artifacts).toBe(SKILL_RESULT_CAPTURE_LIMITS.artifacts+1);expect(next.total_bytes).toBe(SKILL_RESULT_CAPTURE_LIMITS.total_bytes+65536);expect(next.proof_bytes).toBe(SKILL_RESULT_CAPTURE_LIMITS.proof_bytes);
+ });
  it('covers the reachable25step/24tool ledger and the entire upstream64step/128exchange contract',()=>{
   expect(SKILL_RESULT_CAPTURE_LIMITS.artifacts).toBeGreaterThanOrEqual(584);
   expect(SKILL_RESULT_CAPTURE_LIMITS.artifacts).toBeGreaterThanOrEqual(9+34+256+194+513+643);

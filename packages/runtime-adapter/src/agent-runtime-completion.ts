@@ -1,3 +1,4 @@
+import {readOriginalAgentJobObservation} from './agent-job-policy.js';
 import {isOriginalAgentNativeSuspension} from "./agent-native-suspension.js";
 import { verifyCollectedDedicatedAgentModelOriginals } from "./agent-dedicated-model.js";
 import { isDeepStrictEqual } from "node:util";
@@ -88,6 +89,8 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     const ipc = readAgentWorkspaceIpcOriginals(root, scope, String(config.pipe_nonce));
     if (ipc.status !== "Observed" || ipc.unresolved !== 0 || !isOriginalAgentNativeSuspension(suspended,{nonce:config.nonce,supervisor:launch.supervisor,peer:resources.runtime,appcontainer_sid:ipc.header?.endpoint.appcontainer_sid}) ||
       !same(suspended.supervisor,ipc.header?.endpoint.supervisor)||!same(suspended.peer,ipc.header?.endpoint.peer)||resources.phase!=="ended"||resources.resources_disposed!==true) return null;
+    const job=readOriginalAgentJobObservation(root,original.operation,input,config,launch,resources);
+    if(job&&!job.bytes.equals(artifact('agent-job-observation.json',65536)))return null;
     const native = readAgentRuntimeNativeResult(root, project, record, scope, ipc, catalog);
     if (native.status !== "Verified" || !native.native_effect_reverified || native.unresolved_native_calls || native.unmatched_native_calls) return null;
     const steps: { session_id: string; message_id: string; text: string; reason: unknown; closed: boolean; tools: Record<string, unknown>[] }[] = [];

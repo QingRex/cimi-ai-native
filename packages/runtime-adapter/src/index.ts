@@ -81,3 +81,6 @@ export {validateFixedMethodOutput} from "./fixed-method.js";
 
 export {readAgentRuntimeNamedMethodResult} from "./agent-named-method-result.js";
 export type {AgentNamedMethodResultInputs,AgentNamedMethodResult} from "./agent-named-method-result.js";
+
+export {AGENT_JOB_RESOURCE_POLICY,verifyAgentJobObservation,readOriginalAgentJobObservation} from "./agent-job-policy.js";
+export type {AgentJobObservationBasis,AgentJobObservation} from "./agent-job-policy.js";

@@ -1,9 +1,10 @@
+import {AGENT_JOB_RESOURCE_POLICY,verifyAgentJobObservation} from './agent-job-policy.js';
 import {selectAgentRuntimeLifetime} from "./agent-runtime-lifetime.js";
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import { AgentRuntimeModelHost } from "./agent-runtime-model.js";
 import {AgentNamedMethodHost} from "./agent-named-method-host.js";
 import { spawn, type ChildProcess } from "node:child_process";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, writeFileSync, openSync, fsyncSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
@@ -11,7 +12,7 @@ import { isDeepStrictEqual } from "node:util";
 import { agentWorkspaceIpcScopeDigest, type AgentWorkspaceToolIpc } from "./agent-workspace-ipc.js";
 import { parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 import { validWorkspaceWorkerIdentity } from "./workspace-files.js";
-import { buildWindowsAgentWorkspaceSandbox, buildWindowsLauncher, nativeControl, pinBinary, isolatedEnvironment,assertAgentRuntimeNativeRoot } from "./native.js";
+import { buildWindowsAgentJobObserver, buildWindowsAgentWorkspaceSandbox, buildWindowsLauncher, nativeControl, pinBinary, isolatedEnvironment,assertAgentRuntimeNativeRoot } from "./native.js";
 import { bytesAt, digest, directory, atomicJson, rawReference, RuntimeAdapterError } from "./files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
@@ -82,6 +83,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const root = directory(rootPath), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root, lifetime.signal);
   lifetime.check();
   const identityBinary = await buildWindowsLauncher(root, lifetime.signal);
+  const jobObserver = await buildWindowsAgentJobObserver(root,lifetime.signal);
   lifetime.check();
   const pinned = pinBinary(root, binaryPath), binaryOriginal=readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value); lifetime.check();
   const originalModules = ["agent-workspace-ipc-client.mjs", method?"opencode-named-method-tools.mjs":"opencode-workspace-tools.js", production ? "opencode-host-gateway-provider.mjs" : "opencode-workspace-provider-fixture.mjs"].map(name => {
@@ -92,7 +94,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   budget?.assertScope(scope);
   const claim = claimAgentRuntimeOperation(root, scope, { purpose: production ? "agent_runtime" : "workspace_rehearsal", mode: production ? "host_gateway" : checksOnly ? "checks" : "files", binary_digest: pinned.digest,binary_original:binaryOriginal,
     sandbox_digest: sandboxBinary.digest, sandbox_original:sandboxBinary.original, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
-    provider_options: providerOptions, ...(method?{method_original_binding:method.originalBinding}:{}), ...(production ? { prompt: options.prompt,...(model?.originalBinding?{model_original_binding:model.originalBinding}:{}) } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
+    job_resource_policy:AGENT_JOB_RESOURCE_POLICY,job_observer_original:jobObserver.original, provider_options: providerOptions, ...(method?{method_original_binding:method.originalBinding}:{}), ...(production ? { prompt: options.prompt,...(model?.originalBinding?{model_original_binding:model.originalBinding}:{}) } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
   cancellationWatch = setInterval(() => { try { if (agentRuntimeCancellationRequested(root, scope)) lifetime.stop("workspace_rehearsal_cancel_requested"); }
     catch { lifetime.stop("workspace_rehearsal_claim_unproven"); } }, 100);
   lifetime.check();
@@ -213,6 +215,13 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     if (production && endpoint.model_admission_digest !== model?.admissionDigest) fail("agent_model_admission_mismatch");
     if (endpoint.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${pipeNonce}` || endpoint.scope_digest !== scopeDigest || endpoint.check_catalog_digest !== (checkCatalog?.catalog_digest ?? null) || endpoint.appcontainer_sid !== original.appcontainer_sid ||
       !isDeepStrictEqual(endpoint.peer, { ...original.peer as CreditProcessIdentity }) || !isDeepStrictEqual(endpoint.supervisor, { ...original.supervisor as CreditProcessIdentity })) fail("workspace_rehearsal_channel_unproven");
+    if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,jobObserver.path,jobObserver.digest.value),jobObserver.original))fail('agent_job_observation_unproven');
+    const jobBasis={policy:AGENT_JOB_RESOURCE_POLICY,nonce,scope_digest:scopeDigest,owner,supervisor:original.supervisor as CreditProcessIdentity,peer:original.peer as CreditProcessIdentity,job_name:'Local\\CimiLoop.AgentWorkspace.'+nonce.replaceAll('-',''),observer_path:jobObserver.path,deadline_uptime_ms:budget?.nativeDeadlineUptimeMs??null};
+    const queried=await lifetime.wait(nativeControl(jobObserver.path,[JSON.stringify({format:'cimiloop/agent-job-query/1.0.0',nonce,scope_digest:scopeDigest,owner,supervisor:jobBasis.supervisor,peer:jobBasis.peer,job_name:jobBasis.job_name,deadline_uptime_ms:jobBasis.deadline_uptime_ms})],lifetime.signal));
+    verifyAgentJobObservation(jobBasis,queried.value);
+    if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,jobObserver.path,jobObserver.digest.value),jobObserver.original))fail('agent_job_observation_unproven');
+    writeFileSync(join(operation,'agent-job-observation.json'),queried.bytes,{flag:'wx'});
+    const jobReceiptFile=openSync(join(operation,'agent-job-observation.json'),'r+');try{fsyncSync(jobReceiptFile);}finally{closeSync(jobReceiptFile);}
     if (model) await lifetime.wait(model.check(scope,lifetime.signal));
     beforeNativeEffect?.();
     resumed = true; native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-resume/1.0.0", nonce }) + "\n");

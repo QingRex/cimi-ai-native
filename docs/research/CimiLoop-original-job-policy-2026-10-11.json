@@ -1,0 +1,1146 @@
+{
+  "record": "D-274",
+  "recorded_at": "2026-10-11T08:25:07.102Z",
+  "base_commit": "303ac68f377eec9a02155294a6627582af5453eb",
+  "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "origin_refresh": {
+    "path": ".cimiloop/new-host-s1/d274-origin-final-refresh.json",
+    "sha256": "e85423b4bf415a8ade5fab8c93be967041e39a25a781163db0fe11eecb033fec"
+  },
+  "branch": "main",
+  "commits_ahead_before_batch": 41,
+  "commits_behind": 0,
+  "pushed": false,
+  "goal_status": "active",
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "user_approved_provider_only": "zhipuai",
+  "remaining_model_approval": [
+    "specific model",
+    "package",
+    "cash limit and currency",
+    "credit limit"
+  ],
+  "database_format": 10,
+  "protocol_schema_count": 242,
+  "environment": {
+    "selected_node": "v24.19.0",
+    "ordinary_path_node": "24.14.0 not used",
+    "pnpm": "12.4.2",
+    "lockfile_install_completed_previously": true,
+    "se_manage_volume_privilege_present": false,
+    "privilege_original": {
+      "path": ".cimiloop/new-host-s1/d274-current-token-privileges.txt",
+      "sha256": "420ff8f9d2b0411a6686415fa79d273f9b4cec043edca2a58046230a2b353b75"
+    }
+  },
+  "capabilities": [
+    "Prospective Claim2 freezes exact original single-process/kill-on-close/2GiB Job policy and physically retained independent query observer; claim1 has exact historical meaning without backfill",
+    "Read-only original Job OS query while SDK suspended holds owner/supervisor/peer handles and checks original identity, live Job membership, exact four limits and original monotonic deadline; persists+fsync before final permission/account gate and resume",
+    "Original collection, domain success, parent success/failure/cancellation terminal and named Skill result require the exact same original Job observation and original observer custody for new input",
+    "Historical strict JSON parses then normalizes, duplicate keys still rejected; cancellation intent remains possible without observer bytes and cannot prove cleanup/settlement",
+    "Only new claim collection has one extra artifact; independently verified new method Job original earns one artifact+65536 bytes of Skill capacity; old limits and proof8MiB preserved"
+  ],
+  "compatibility": {
+    "host_private_new_claim_format": "cimiloop/agent-runtime-operation-claim/2.0.0",
+    "old_claim_format": "cimiloop/agent-runtime-operation-claim/1.0.0",
+    "old_readers_reject_new_claim": true,
+    "old_claim_with_new_policy_rejected": true,
+    "user_database_upgraded": false,
+    "public_schema_changed": false,
+    "historical_evidence_rewritten": false
+  },
+  "constructed_parent_fixture": {
+    "format": "cimiloop/constructed-job-settlement/1.0.0",
+    "run_id": "01a12a03-3f86-75c6-88dc-85ff06eda79a",
+    "operation": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-K7gTn8\\.git\\cimiloop\\workspace-tool-rehearsals\\1b5e6429-cd44-4b20-b8ea-e584cf79f44e",
+    "job_observation": {
+      "format": "cimiloop/agent-job-observation/1.0.0",
+      "nonce": "0925bb3d-9bd0-4537-8456-ca99ebb4b193",
+      "scope_digest": "12bc2054c23e031807d362500b6a3cb16c0f30549644d38080aa52259df12eb5",
+      "owner": {
+        "pid": 65036,
+        "creation_ticks": "134361796275828808",
+        "image": "C:\\Users\\hector.he\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe"
+      },
+      "supervisor": {
+        "pid": 63696,
+        "creation_ticks": "134361798697809837",
+        "image": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-K7gTn8\\.git\\cimiloop\\runtime-binary-originals\\effcfbaf201a228234d1501df8db66e15fd296f6ea70f962484449e97fdbc076\\runtime.exe"
+      },
+      "peer": {
+        "pid": 53080,
+        "creation_ticks": "134361799157144053",
+        "image": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-K7gTn8\\.git\\cimiloop\\runtime-binary-originals\\5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e\\runtime.exe"
+      },
+      "observer": {
+        "pid": 65264,
+        "creation_ticks": "134361799249511289",
+        "image": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-K7gTn8\\.git\\cimiloop\\runtime-binary-originals\\5dd42b4edaf944f249045cc826e4834d4732589561b4f4fb59eefa52a11eabc9\\runtime.exe"
+      },
+      "job_name": "Local\\CimiLoop.AgentWorkspace.0925bb3d9bd045378456ca99ebb4b193",
+      "limit_flags": 8712,
+      "active_process_limit": 1,
+      "job_memory_limit_bytes": 2147483648,
+      "process_memory_limit_bytes": 0,
+      "peer_in_job": true,
+      "sampled_uptime_ms": 287236859
+    },
+    "job_observation_digest": {
+      "algorithm": "sha256",
+      "value": "d6584c8cae76a27d08de100206e911fa58bbed07a8cc06330faca963e3123aaa"
+    },
+    "retained_observer": {
+      "format": "cimiloop/runtime-binary-original-proof/1.0.0",
+      "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-K7gTn8\\.git\\cimiloop\\runtime-binary-originals\\5dd42b4edaf944f249045cc826e4834d4732589561b4f4fb59eefa52a11eabc9\\runtime.exe",
+      "sha": "5dd42b4edaf944f249045cc826e4834d4732589561b4f4fb59eefa52a11eabc9",
+      "bytes": 14336,
+      "origin": "retained",
+      "physical": {
+        "dev": "509015961",
+        "ino": "281474980043286",
+        "birthtime_ns": "1791706267508016800"
+      },
+      "registry_digest": "0bd2a7b7a37eef6b3ec94871d2368ff48e0d105ec847f92c97367e8912ba4e34",
+      "reservation_digest": "b4d27fa6c319259fdf03c14a6b041c59a76dc4b25beaf05c2e5ac2c8d75114a5",
+      "retention_digest": "aa9e5f5ac7e6b6d9f4e67584469be7f6d4fdf689e60396d515e0bc64c0e4aee6",
+      "prior_custody_proven": false,
+      "physical_quota_enforced": false
+    },
+    "job_counterexamples": 1,
+    "actual_parent_native": true,
+    "actual_sdk": true,
+    "shared_workbench_original_reconciliation": true,
+    "receipt_replayed_after_restart": true,
+    "kernel_task_usage": {
+      "attempts_consumed": 1,
+      "cost_known": true,
+      "cost_consumed_micros": 48,
+      "pending_reconciliation": false,
+      "first_started_at": "2026-10-11T08:10:12.978Z",
+      "cost_reserved_micros": 0,
+      "attempts_released": 0,
+      "attempt_releases_reversed": 0,
+      "cost_currency": "USD"
+    },
+    "real_model": false,
+    "real_skill": false,
+    "real_approval": false,
+    "real_bill": false,
+    "s1_accepted": false,
+    "summary": {
+      "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-K7gTn8\\.git\\cimiloop\\d274-job-settlement-summary.json",
+      "sha256": "5801ae0602ae94cff4dd7859d20ac694663c05c7099251b9a468e7bacb38e8d2"
+    }
+  },
+  "verification": {
+    "affected": {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d274-r2-affected-final.json",
+        "sha256": "5d0691c9feafd8f2bea5e04c36af649aa8b1b420e40de7b7baa3ca5fffe0e453"
+      },
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-family-cost-proof-capacity.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-cost-observation.test.ts",
+          "passed": 9,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-reconciliation.test.ts",
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-failure-local.test.ts",
+          "passed": 20,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-human-start-local.test.ts",
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts",
+          "passed": 14,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts",
+          "passed": 12,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+          "passed": 23,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-account-bills.test.ts",
+          "passed": 18,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+          "passed": 12,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+          "passed": 42,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+          "passed": 17,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-host.test.ts",
+          "passed": 9,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-result.test.ts",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-budget.test.ts",
+          "passed": 14,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+          "passed": 28,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+          "passed": 19,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+          "passed": 32,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-model.test.ts",
+          "passed": 13,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+          "passed": 13,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-build-originals.test.ts",
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-compile-stop.test.ts",
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts",
+          "passed": 17,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-start-ledger.test.ts",
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+          "passed": 20,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/fixed-method.test.ts",
+          "passed": 17,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/gateway-http.test.ts",
+          "passed": 39,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/gateway-network.test.ts",
+          "passed": 28,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-failure.test.ts",
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/runtime-binary-originals.test.ts",
+          "passed": 10,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/windows-original-paths.test.ts",
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "passed": 518,
+      "failed": 0,
+      "skipped": 0,
+      "unhandled": 0,
+      "success": true
+    },
+    "actual_windows": {
+      "reports": [
+        {
+          "path": ".cimiloop/new-host-s1/d274-r3-windows-final.json",
+          "sha256": "d1354f1e7b588d43756b1f696e9476864e5cb28f75dd19ea27ed7d010b18e1a9"
+        },
+        {
+          "path": ".cimiloop/new-host-s1/d274-r4-parent-final.json",
+          "sha256": "c7ba9626b7781cd029dc9555bf0c91775305da5b82ba561079dd587b9287042b"
+        },
+        {
+          "path": ".cimiloop/new-host-s1/d274-r4-named-final.json",
+          "sha256": "efbf4475deefe3711fbc9ea67ad749277e61b74efcdf9a6f85339c7f84c0b155"
+        }
+      ],
+      "parent": {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-r4-parent-final.json",
+          "sha256": "c7ba9626b7781cd029dc9555bf0c91775305da5b82ba561079dd587b9287042b"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      "named": {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-r4-named-final.json",
+          "sha256": "efbf4475deefe3711fbc9ea67ad749277e61b74efcdf9a6f85339c7f84c0b155"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+          "passed": 10,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/workspace-tool-runtime.test.ts",
+          "passed": 16,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "unhandled": 0,
+      "success": true,
+      "previous_full_report_failed": true,
+      "previous_failed_total": {
+        "files": 7,
+        "passed": 35,
+        "failed": 2,
+        "skipped": 0
+      },
+      "previous_parent_failure_preserved": true,
+      "previous_named_native_control_failure_preserved": true
+    },
+    "process_history": [
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-job-policy-red.json",
+          "sha256": "242231b806408fd935b3c45ab6ae526584a4fc9bde7bb953546806381195cc11"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+            "passed": 0,
+            "failed": 16,
+            "skipped": 0
+          }
+        ],
+        "passed": 0,
+        "failed": 16,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-job-completion-red.json",
+          "sha256": "5c936365e1fba0631aa58603a7bf198aafc1fcf78167bd398e5f053fe3848554"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+            "passed": 18,
+            "failed": 1,
+            "skipped": 0
+          }
+        ],
+        "passed": 18,
+        "failed": 1,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-job-policy-green.json",
+          "sha256": "d05a47eef3ecfdcb99fd3bae1f8a000af8954f0e75e4c06a75ab974e71e02d32"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+            "passed": 14,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 33,
+        "failed": 1,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-job-policy-green-r2.json",
+          "sha256": "94957e1677c59dcafbd107d1608e01635d6971eff71181a84c61c9883fdc4223"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+            "passed": 15,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 34,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-compat-reader-red.json",
+          "sha256": "16efd4023314191d4572ed2c24248c08b4a3104316b7ac5161aa3dd0482a1eff"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+            "passed": 2,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+            "passed": 15,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+            "passed": 11,
+            "failed": 2,
+            "skipped": 0
+          }
+        ],
+        "passed": 28,
+        "failed": 4,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-compat-reader-green.json",
+          "sha256": "c25602a1853347756d65e912e130644698a0e6d30b47c8fb78265201ddb87822"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+            "passed": 16,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 51,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-job-native-r1.json",
+          "sha256": "48189c74a671a910d22661910af03d62a668fab3497c43085c5b064c45c145cf"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-native-basis-unit-red.json",
+          "sha256": "0259103165f4858841f4306f7c8c6a8b45c41d04caa3f96ef848c8f871d12b6f"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+            "passed": 16,
+            "failed": 1,
+            "skipped": 0
+          }
+        ],
+        "passed": 16,
+        "failed": 1,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-native-basis-unit-green.json",
+          "sha256": "cf2e5eae832e9b068b9fb15092b660a39e4df4f5b2f74fde97bcb93bd701b691"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+            "passed": 17,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-affected-final.json",
+          "sha256": "7abeb733433f7e6f87e67ee670642d9ac54ea2a3c0345a83ccc932f4f2ab1fcf"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-family-cost-proof-capacity.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-cost-observation.test.ts",
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-reconciliation.test.ts",
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-failure-local.test.ts",
+            "passed": 20,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-human-start-local.test.ts",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts",
+            "passed": 14,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts",
+            "passed": 12,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+            "passed": 23,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-account-bills.test.ts",
+            "passed": 18,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+            "passed": 12,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+            "passed": 42,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+            "passed": 16,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-host.test.ts",
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-result.test.ts",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-budget.test.ts",
+            "passed": 14,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+            "passed": 6,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+            "passed": 28,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+            "passed": 32,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-model.test.ts",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-build-originals.test.ts",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-compile-stop.test.ts",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts",
+            "passed": 17,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-start-ledger.test.ts",
+            "passed": 8,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+            "passed": 8,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+            "passed": 20,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/fixed-method.test.ts",
+            "passed": 17,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/gateway-http.test.ts",
+            "passed": 39,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/gateway-network.test.ts",
+            "passed": 28,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-failure.test.ts",
+            "passed": 6,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/runtime-binary-originals.test.ts",
+            "passed": 10,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/windows-original-paths.test.ts",
+            "passed": 6,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 517,
+        "failed": 1,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-windows-final.json",
+          "sha256": "c4df4d3c03c487e0b65389de6cfbe8455d42e33d9ee2c10209b9a1257f6a732a"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+            "passed": 0,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts",
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+            "passed": 9,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+            "passed": 0,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/workspace-tool-runtime.test.ts",
+            "passed": 16,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 31,
+        "failed": 6,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d274-r3-windows-final.json",
+          "sha256": "d1354f1e7b588d43756b1f696e9476864e5cb28f75dd19ea27ed7d010b18e1a9"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+            "passed": 0,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts",
+            "passed": 2,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+            "passed": 10,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/workspace-tool-runtime.test.ts",
+            "passed": 16,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 35,
+        "failed": 2,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      }
+    ],
+    "pnpm_check": {
+      "path": ".cimiloop/new-host-s1/d274-r3-check-final.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    "pnpm_check_meta": {
+      "path": ".cimiloop/new-host-s1/d274-r3-check-final.meta.json",
+      "sha256": "c43140caa223d2f90b4cc54a3b8cb2f6bfce40be448e308f06f42c9b501fdfcd"
+    },
+    "parent_latest_meta": {
+      "path": ".cimiloop/new-host-s1/d274-r4-parent-final.meta.json",
+      "sha256": "e90b08417df6af6621da60aa84c62fb9312315ff8a7b9ae6d609e48fb02b699b"
+    },
+    "cli_help": {
+      "path": ".cimiloop/new-host-s1/d274-r3-cli-help-final.log",
+      "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+    },
+    "cli_help_meta": {
+      "path": ".cimiloop/new-host-s1/d274-r3-cli-help-final.meta.json",
+      "sha256": "dafe6bb59afb91ebbfbf1f0db8bc945306cd78eb3a084af6929013b9e9dea34d"
+    },
+    "schema": {
+      "exported": 242,
+      "tracked": 242,
+      "drift": []
+    },
+    "source_before": {
+      "path": ".cimiloop/new-host-s1/d274-r3-source-before.json",
+      "sha256": "ab842931fe0ae5a734c5a8aed19388a6b4a0a27955be27da67cb78759ad275dd"
+    },
+    "affected_source_before": {
+      "path": ".cimiloop/new-host-s1/d274-r2-source-before.json",
+      "sha256": "9705a72325be8b65a027b6db4d410b93552b4b35a418cbcc55d270b33334ce91"
+    },
+    "affected_scope_difference": {
+      "path": ".cimiloop/new-host-s1/d274-r2-r3-scope-difference.json",
+      "sha256": "db79e9d28f98617d54c8b4fd7db424ded5f0b86aeb3ed0cb0c15dd13cee7e036"
+    },
+    "native_source_before": {
+      "path": ".cimiloop/new-host-s1/d274-r3-source-before.json",
+      "sha256": "ab842931fe0ae5a734c5a8aed19388a6b4a0a27955be27da67cb78759ad275dd"
+    },
+    "source_after": {
+      "path": ".cimiloop/new-host-s1/d274-r3-source-after.json",
+      "sha256": "ab842931fe0ae5a734c5a8aed19388a6b4a0a27955be27da67cb78759ad275dd"
+    },
+    "source_files": 702,
+    "source_drift": [],
+    "native_latest_per_file_basis": "Five complete files from r3 full report, named complete file r4 and parent complete file r4; r3 aggregate35pass2fail retained",
+    "affected_scope_source_change_only": [
+      "packages/runtime-adapter/test/agent-workspace-ipc-peer.mjs",
+      "tests/scenarios/agent-workspace-ipc-runtime.test.ts"
+    ],
+    "affected_product_and_test_sources_unchanged": true,
+    "engineering_review": "Readonly ordinary agent review; two mandatory fixes closed; NOT independent Matt/Superpowers or S1",
+    "documentation": {
+      "markdown_files": 7,
+      "local_links_checked": 354,
+      "anchors_checked": 0,
+      "failures": [],
+      "report": {
+        "path": ".cimiloop/new-host-s1/d274-doc-validation-r2.json",
+        "sha256": "e83e6b77bd67b7ce0657e43f187835e7d28f9721f3d20a1c7eab1afa8959a09e"
+      }
+    }
+  },
+  "limits": [
+    "Physical disk hard quota remains unimplemented; do not equate Job memory/logical file bounds to disk quota",
+    "Observer self-reported creation identity is not externally separately pinned or cryptographically signed",
+    "Response-loss Native test now explicitly drops original socket after durable effect and before execute returns its receipt; production IPC unchanged",
+    "Small32MiB Job refuses actual64MiB committed allocation, only OS mechanism fixture; production fixed2GiB query is distinct",
+    "All model/approval/credential/billing fixtures are constructed; no real Skill/model/S1 evidence",
+    "Named full file rerun1passed0failed0skipped without source change; prior native_control_unavailable during resource recovery retained and root cause unproven",
+    "Latest parent full file is rerun alone after prior780s outer-test timeout; original600s Task and780s outer limits unchanged, no old operation repaired",
+    "First D274 full diagnostic started before the live basis normalization fix; source changed during diagnostics, never final frozen verification; failed operation originals kept",
+    "Earlier Bun crash/DNS expiry/Unknown and D269 irrecoverable log gap remain; no old state repaired or bulk-cleaned",
+    "Full V1-09/21/22/10/11 goal remains active"
+  ],
+  "remaining_groups": {
+    "V1-09": [
+      "real approved model/account/bills",
+      "physical disk quota",
+      "complete history and abnormal recovery"
+    ],
+    "V1-21": [
+      "real Skill",
+      "Human/Matt clarification before Plan/Task"
+    ],
+    "V1-22": [
+      "independent complete Matt review",
+      "fresh current-source Superpowers",
+      "real behavior comparison"
+    ],
+    "V1-10": [
+      "formal approved default Workbench Agent execution and original recovery"
+    ],
+    "V1-11": [
+      "real normal Change to ReadyForDelivery",
+      "real interruption recovery and S1 acceptance"
+    ]
+  }
+}

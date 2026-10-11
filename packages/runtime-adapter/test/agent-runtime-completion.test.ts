@@ -53,7 +53,7 @@ describe("original structured Task execution result", () => {
       status: { status: "Stopped", operation: root, resources_disposed: true, cancellation_requested: false }, artifacts: [], synthetic_model_responses: null,
       model: { status: "Observed", calls: 2, unresolved: 0 }, ipc: { status: "Observed", unresolved: 0, correlation: null }, native: { status: "Verified" } };
   });
-  function verify(options: { packet?: any; omitDomain?: boolean; refreshTerminal?: boolean; disposal?: any; result?: any; suspended?: any; envelope?: (events: any[]) => any[]; originalChange?: (root: string) => void; ipcChange?: () => void; snapshotChange?: () => void } = {}) {
+  function verify(options: { packet?: any; omitDomain?: boolean; refreshTerminal?: boolean; disposal?: any; result?: any; suspended?: any; envelope?: (events: any[]) => any[]; originalChange?: (root: string) => void; ipcChange?: () => void; snapshotChange?: () => void; jobBinding?: boolean } = {}) {
     if (options.refreshTerminal !== false) { responses[1].content[0].text = JSON.stringify(terminal); events.find(event => event.type === "text").part.text = JSON.stringify(terminal); }
     collection.artifacts = []; const artifact = (name: string, value: any, raw = false) => { const bytes = Buffer.from(raw ? value : JSON.stringify(value)); collection.artifacts.push({ name, reference: rawReference(root, bytes, "agent_runtime_original_bytes", name) }); };
     const prompt = JSON.stringify(options.packet ?? base.packet), owner = { pid: 1234, creation_ticks: "1", image: process.execPath }, admission = digest("constructed unapproved model/account").value;
@@ -83,10 +83,11 @@ describe("original structured Task execution result", () => {
     ipc.exchanges.forEach((exchange: any, i: number) => exchange.ordinal = String(i + 1).padStart(4, "0"));
     collection.ipc.correlation = correlateAgentWorkspaceSdkOriginals(ipc, Buffer.from(stdout));
     options.originalChange?.(modelRoot); options.ipcChange?.(); options.snapshotChange?.();
-    const original = { operation: root, scope: base.scope, input: { prompt, provider_options: { admission_digest: admission } }, claim: { owner } };
+    const original = { operation: root, scope: base.scope, input: { prompt, provider_options: { admission_digest: admission }, ...(options.jobBinding?{job_resource_policy:{format:"cimiloop/agent-job-resource-policy/1.0.0",limit_flags:8712,active_process_limit:1,job_memory_limit_bytes:2147483648,process_memory_limit_bytes:0},job_observer_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",path:process.execPath,sha:digest("constructed missing observer").value}}:{}) }, claim: { owner } };
     return (verifyOriginalTaskExecutionResult as (...args: any[]) => any)(modelRoot, f.project, base.record, base.context, original, collection,
       options.omitDomain ? undefined : { definition: base.packet.definition, contract: base.packet.contract, plan: base.packet.plan });
   }
+  it("refuses success without independent Job evidence when the new original input froze a resource policy",()=>{expect(verify()).not.toBeNull();expect(verify({jobBinding:true})).toBeNull();});
   it.each([{active_process_limit:2},{network_capability_sids:["S-1-15-3-1"]},{extra:true}])("rejects mutually consistent unsafe Native policy %j",suspended=>{expect(verify()).not.toBeNull();expect(verify({suspended})).toBeNull();});
   it.each([{operation:"foreign-original-operation"},{sandbox:{phase:"suspended",active_process_limit:1}}])("rejects a result paired with another original %j",result=>{expect(verify()).not.toBeNull();expect(verify({result})).toBeNull();});
   it("requires unique matching Native suspension before SDK and cleanup after SDK",()=>{

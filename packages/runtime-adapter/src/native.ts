@@ -185,3 +185,12 @@ export const buildWindowsAgentWorkspaceSandbox = async (root: string, signal?: A
     return candidate;
   });
 };
+
+// Independent read-only Job query, retained by the same immutable recipe/store.
+export async function buildWindowsAgentJobObserver(root:string,signal?:AbortSignal){
+ signal?.throwIfAborted();if(process.platform!=='win32'||process.arch!=='x64')throw new RuntimeAdapterError('windows_x64_agent_sandbox_required');assertAgentRuntimeNativeRoot(root);
+ const source=fileURLToPath(new URL('../native/AgentJobObserver.cs',import.meta.url)),frozen=bytesAt(source,1024*1024),compiler=resolve(process.env.SystemRoot??'C:\\Windows','Microsoft.NET','Framework64','v4.0.30319','csc.exe');if(!existsSync(compiler))throw new RuntimeAdapterError('native_compiler_unavailable');
+ const compilerDigest=digest(bytesAt(compiler)),options=['/nologo','/target:exe','/main:AgentJobObserver','/reference:System.Web.Extensions.dll'];
+ const recipe={format:'cimiloop/agent-job-observer-build-recipe/1.0.0',platform:'windows_x64',compiler:{path:compiler,digest:compilerDigest},options,sources:[{name:'AgentJobObserver.cs',digest:digest(frozen)}]};
+ return retainAgentSandboxBuild(root,recipe,async build=>{signal?.throwIfAborted();const copied=join(build,'AgentJobObserver.cs'),candidate=join(build,'observer.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+candidate,copied],signal);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return candidate;});
+}
