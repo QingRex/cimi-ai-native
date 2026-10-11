@@ -1,0 +1,461 @@
+{
+  "record": "D-276",
+  "recorded_at": "2026-10-11T13:01:40.693Z",
+  "base_commit": "dd83e138dce4bfa7b9c379018c87ea461b323afb",
+  "branch": "main",
+  "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "origin_refresh": {
+    "path": ".cimiloop/new-host-s1/d276-r4-origin-final-refresh.json",
+    "sha256": "0b343f33a0f907070b5c8f0b59b9ed81885e187950da1cd216c097eacb4345df"
+  },
+  "commits_ahead_before_batch": 43,
+  "commits_behind": 0,
+  "pushed": false,
+  "goal_status": "active",
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "user_approved_provider_only": "zhipuai",
+  "remaining_model_approval": [
+    "specific model",
+    "package",
+    "cash limit and currency",
+    "credit limit"
+  ],
+  "database_format": 10,
+  "protocol_schema_count": 242,
+  "environment": {
+    "selected_node": "v24.19.0",
+    "pnpm": "12.4.2",
+    "ordinary_path_node": "v24.14.0 invalid and not used",
+    "lockfile_install_completed_previously": true
+  },
+  "capabilities": [
+    "Independently closed original Native/SDK/IPC/Job and all model calls with invalid fixed-method final text now prove specific method-output failure; raw text digest preserved and method_result_reverified remains false",
+    "All missing, mismatched, truncated or drifting originals remain Unknown; independent reread repeats full original identity, operation, method, model and IPC",
+    "Original Skill collector requires pinned historical qualification, complete final cash/credit account bills and Human authority before Failed reconciliation; no output emitted or accepted",
+    "Existing shared service and Workbench HTTP commit original child Failed through Kernel and replay exact original command receipt after response loss/restart without new collector/Run/model effect",
+    "Successful old reports retain their existing formats and shapes; Failed private formats added explicitly without public Schema or DB changes"
+  ],
+  "compatibility": {
+    "new_private_formats": [
+      "cimiloop/original-skill-result-failed-candidate/1.0.0",
+      "cimiloop/original-skill-result-failed-billed-candidate/1.0.0",
+      "cimiloop/original-skill-result-failed-reconciliation/1.0.0"
+    ],
+    "old_success_and_unknown_unchanged": true,
+    "public_schema_changed": false,
+    "user_database_upgraded": false,
+    "historical_evidence_rewritten": false
+  },
+  "constructed_skill_fixtures": [
+    {
+      "actual_native": true,
+      "actual_sdk": true,
+      "actual_http_kernel": true,
+      "original_command_replayed_after_restart": true,
+      "constructed_qualification": true,
+      "constructed_model": true,
+      "constructed_bill": true,
+      "real_skill": false,
+      "s1_accepted": false,
+      "expected_status": "succeeded",
+      "invocation_id": "01a12afd-6201-7376-8bfd-bc15da967f1a",
+      "model_requests": 8,
+      "fee_micros": 96,
+      "reservation_released": false,
+      "task_accepted": false,
+      "root": {
+        "fixture": "D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-application-fixtures\\cimiloop-skill-application-Zz8hS0",
+        "repository": "D:\\cc\\cimi-ai-native\\_nw8DSz"
+      },
+      "summary": {
+        "path": "D:\\cc\\cimi-ai-native\\_nw8DSz\\.git\\cimiloop\\d275-child-terminal-summary.json",
+        "sha256": "e6669411dce8ae09ec472677939c4f4a4f89bf03cb0de962c2046e369c32c429"
+      }
+    },
+    {
+      "actual_native": true,
+      "actual_sdk": true,
+      "actual_http_kernel": true,
+      "original_command_replayed_after_restart": true,
+      "constructed_qualification": true,
+      "constructed_model": true,
+      "constructed_bill": true,
+      "real_skill": false,
+      "s1_accepted": false,
+      "expected_status": "failed",
+      "invocation_id": "01a12b04-9bb4-712f-883b-14b5a132d428",
+      "model_requests": 8,
+      "fee_micros": 96,
+      "reservation_released": false,
+      "task_accepted": false,
+      "root": {
+        "fixture": "D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-application-fixtures\\cimiloop-skill-application-QEwoUJ",
+        "repository": "D:\\cc\\cimi-ai-native\\_7UlPAZ"
+      },
+      "summary": {
+        "path": "D:\\cc\\cimi-ai-native\\_7UlPAZ\\.git\\cimiloop\\d276-child-failure-summary.json",
+        "sha256": "8922381691fbafcdc4d27b8c72d2188a070df2624cdf788d61d4b3e3537366f9"
+      }
+    }
+  ],
+  "verification": {
+    "affected": {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d276-r3-affected-final.json",
+        "sha256": "b26b607e982e5b42f15a9420e2a39fccf9163f12e7f0caf285d3f1d0371ef032"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d276-r3-affected-final.log",
+        "sha256": "156db7bc6981deaed95c5e07c928ab2b1648d2eca1ff4159ee926d68562fb5b5"
+      },
+      "meta": {
+        "path": ".cimiloop/new-host-s1/d276-r3-affected-final.meta.json",
+        "sha256": "d35a7f4dc4f24aa24903e50cd20657c296cf6e29911dbf1ce5dd1cf69a57daff"
+      },
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+          "passed": 19,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-reconciliation.test.ts",
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-failure-local.test.ts",
+          "passed": 20,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts",
+          "passed": 14,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-result.test.ts",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+          "passed": 28,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+          "passed": 32,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/fixed-method.test.ts",
+          "passed": 17,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "passed": 158,
+      "failed": 0,
+      "skipped": 0,
+      "unhandled": 0,
+      "success": true
+    },
+    "actual_windows": {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d276-r4-windows-final.json",
+        "sha256": "3ffa2c9f8659efd9bc653bcfd0eb7240422cf93b44cff77865d3fcf49cc72ab4"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d276-r4-windows-final.log",
+        "sha256": "af3f84bec5028e567d1cd0475e24d4dc74dcd37356ccb74e0a996c674da74399"
+      },
+      "meta": {
+        "path": ".cimiloop/new-host-s1/d276-r4-windows-final.meta.json",
+        "sha256": "796878f75264529d03eb34ebbd127889f91a20f4bcec2ae06929541ac1f2ce78"
+      },
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "unhandled": 0,
+      "success": true
+    },
+    "earlier_windows_failure": {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d276-r3-windows-final.json",
+        "sha256": "8a55d79711799fa75230b39af2c3a306de40524222e5432b90a34a7a224164e2"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d276-r3-windows-final.log",
+        "sha256": "2c5340d32d1ce00d0cfa6e4f34c5315ee6461ab5b68095fe68a5b41edd67b2b4"
+      },
+      "meta": {
+        "path": ".cimiloop/new-host-s1/d276-r3-windows-final.meta.json",
+        "sha256": "32ad37e83082975800bf5c4c842262997c7247ef60f9ae981257d6870f802117"
+      },
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+          "passed": 1,
+          "failed": 1,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "unhandled": 0,
+      "success": false
+    },
+    "preserved_earlier_windows_roots": [
+      {
+        "fixture": "D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-application-fixtures\\cimiloop-skill-application-H1ZbAF",
+        "repository": "D:\\cc\\cimi-ai-native\\_Swi4GA"
+      },
+      {
+        "fixture": "D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-application-fixtures\\cimiloop-skill-application-rKFoSL",
+        "repository": "D:\\cc\\cimi-ai-native\\_vmEIcx"
+      }
+    ],
+    "affected_frozen_source_before": {
+      "path": ".cimiloop/new-host-s1/d276-r3-source-before.json",
+      "sha256": "bf50be5908b2beb47e94a657d1647e9fec82aa3bd8bf8462d7aba611640af7f8"
+    },
+    "affected_frozen_source_after": {
+      "path": ".cimiloop/new-host-s1/d276-r3-source-after.json",
+      "sha256": "bf50be5908b2beb47e94a657d1647e9fec82aa3bd8bf8462d7aba611640af7f8"
+    },
+    "final_source_difference": {
+      "path": ".cimiloop/new-host-s1/d276-r4-source-difference.json",
+      "sha256": "83dd89718140881d2095840731c05f906be4a5d5e18338511a3cb0b62452688b"
+    },
+    "final_source_snapshot_captured_after_driver_start": true,
+    "final_source_snapshot_note": "Initial diagnostic compared Windows backslash path to slash string and rejected exactly the expected Native test-only difference before saving; no source changed after final driver launch; saved corrected snapshot during run and final reread checks unchanged. Production and affected11 unchanged from initial frozen705 tree.",
+    "pnpm_check": {
+      "path": ".cimiloop/new-host-s1/d276-r4-check-final.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    "pnpm_check_meta": {
+      "path": ".cimiloop/new-host-s1/d276-r4-check-final.meta.json",
+      "sha256": "6410086e8cdb7f9a7c5464bc5445553e4538706b8a5100b9cc37c2a77aea3abe"
+    },
+    "cli_help": {
+      "path": ".cimiloop/new-host-s1/d276-r4-cli-help-final.log",
+      "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+    },
+    "cli_help_meta": {
+      "path": ".cimiloop/new-host-s1/d276-r4-cli-help-final.meta.json",
+      "sha256": "7718a63c26863c28e4ed72aac31d5910519ada11b19ba1a65aa40baad1ab10ca"
+    },
+    "schema": {
+      "exported": 242,
+      "tracked": 242,
+      "drift": []
+    },
+    "source_before": {
+      "path": ".cimiloop/new-host-s1/d276-r4-source-before.json",
+      "sha256": "6761855a9e607013da0366988359f568b9e0d1f4923f73fdf7bc2ab2c83a10b2"
+    },
+    "source_after": {
+      "path": ".cimiloop/new-host-s1/d276-r4-source-after.json",
+      "sha256": "6761855a9e607013da0366988359f568b9e0d1f4923f73fdf7bc2ab2c83a10b2"
+    },
+    "source_files": 705,
+    "source_drift": [],
+    "behavior_red": [
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d276-local-red.json",
+          "sha256": "b2a5f69622b1debb92a3e39c496cfc84fac4b661ee4409730179e1e6ffe4c48b"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d276-local-red.log",
+          "sha256": "5dc91fb901377afb2a13622eb2a4815478946d1b466edf1327216da69434ea36"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d276-local-red.meta.json",
+          "sha256": "54af50b4f488b328c3a64b72af2cdf8e182b4af3f7030fed5c66abd4898b928d"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 0,
+            "failed": 2,
+            "skipped": 9
+          }
+        ],
+        "passed": 0,
+        "failed": 2,
+        "skipped": 9,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d276-native-red.json",
+          "sha256": "f8ad5c4ae99b35e34b3f27063ce1e1e6b9f3ea61cb7787e458b6390dd4496ba2"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d276-native-red.log",
+          "sha256": "9227e7113eeb1eafd9c57b8596bc5dea48ed3d0616f803b11c0d8c5d077bd8d6"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d276-native-red.meta.json",
+          "sha256": "a20c570c17c70014a5d6ddafb6d17fd83f0935f041761fb03f9efd86d838b24d"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+            "passed": 0,
+            "failed": 1,
+            "skipped": 1
+          }
+        ],
+        "passed": 0,
+        "failed": 1,
+        "skipped": 1,
+        "unhandled": 0,
+        "success": false
+      }
+    ],
+    "red_source_before": {
+      "path": ".cimiloop/new-host-s1/d276-red-source-before.json",
+      "sha256": "911caf9b921572b5db8f31e6186de7748025523403f60ef44ad345edddcd5bb2"
+    },
+    "red_source_after": {
+      "path": ".cimiloop/new-host-s1/d276-red-source-after.json",
+      "sha256": "911caf9b921572b5db8f31e6186de7748025523403f60ef44ad345edddcd5bb2"
+    },
+    "earlier_check_failure": {
+      "log": {
+        "path": ".cimiloop/new-host-s1/d276-r1-check-final.log",
+        "sha256": "4e02231928c61c13e56c4dcfeac0deacbd862349aa9c7f6af0d0e43d194283a9"
+      },
+      "meta": {
+        "path": ".cimiloop/new-host-s1/d276-r1-check-final.meta.json",
+        "sha256": "430d22d9108a119fb6788a075201936c2e759e5a6b7450a8d28628a952a8177f"
+      },
+      "reason": "TS2379 optional account in newly added counterexample closure; local test type corrected before final check"
+    },
+    "review_correction": "Readonly review caught generation changed to Failed but independent reader still expected Succeeded/output. Reader aligned before frozen final regression. Documentation review corrected required acting_role/command_type fields and distinguished initial lease guard no-capture from final precommit guard no-Kernel-event with preserved prepared originals.",
+    "engineering_review": "Ordinary readonly agent review; final proof consistency fix and fail-closed boundary reviewed. NOT Matt/Superpowers/S1",
+    "native_counterexamples": [
+      "Truncated this fresh fixture-owned stdout remains Unknown and rejects failure reconciliation",
+      "Forged this fresh fixture-owned SDK final text mismatching original model remains Unknown and rejects failure reconciliation",
+      "Missing original qualification, incomplete cash/credit bills, swapped fee/proof/original copy and ambiguous failure flags reject"
+    ],
+    "preserved_native_red_roots": [
+      {
+        "fixture": "D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-application-fixtures\\cimiloop-skill-application-IK1HqP",
+        "repository": "D:\\cc\\cimi-ai-native\\_tMTFen"
+      }
+    ]
+  },
+  "limits": [
+    "Public constructed model/qualification verifier/account bill fixtures are not genuine approved model, Skill or S1 evidence",
+    "Method-output contract failure only; child cancellation/not_started/nonzero SDK exit need their own independent closed original proofs",
+    "Parent Run stays Unknown, reservation remains held and Task unaccepted; no full-family automatic settlement",
+    "No child CLI/page action added; existing Human shared service and HTTP supply terminal reconciliation",
+    "Physical disk hard quota, history capacity and full recovery remain; Job process/memory proof alone is insufficient",
+    "Earlier Bun crash/DNS expiry/Unknown/resources/D27532MiB blank output root and D269 overwritten original check log gap remain; no old evidence repaired or cleanup inferred",
+    "Red filtered cases contain deliberately skipped unrelated tests and are diagnostic red only; final affected and full Windows files have no skips",
+    "Full V1-09/21/22/10/11 remains active"
+  ],
+  "remaining_groups": {
+    "V1-09": [
+      "approved real model/account/bills",
+      "physical disk hard quota",
+      "history and full abnormal recovery"
+    ],
+    "V1-21": [
+      "genuine Skill and qualification originals",
+      "Human/Matt before Plan/Task"
+    ],
+    "V1-22": [
+      "independent complete Matt review",
+      "fresh current-source Superpowers",
+      "real behavior comparison"
+    ],
+    "V1-10": [
+      "formal default Workbench Agent execution",
+      "full original stop/recovery"
+    ],
+    "V1-11": [
+      "real ordinary Change to ReadyForDelivery",
+      "real Skill interruption recovery",
+      "S1 acceptance and actionable integration guide"
+    ]
+  }
+}

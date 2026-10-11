@@ -10,7 +10,7 @@ import {SCHEMA_VERSION,createInternalId,type SkillImportSpec,type ProviderBindin
 import {LocalNamedSkillMethodAssessment,LocalSkillMethodInputs,LocalSkillInvocationStartCustody,LocalSkillInvocationExecution,LocalSkillInvocationNativeComposition,LocalSkillInvocationDedicatedAccount,LocalSkillInvocationResultCollection,LocalHumanAgentRunCostObservation,LocalAgentRuntimeObservation,openLocalProject,writeInstance} from '../../packages/local-app/dist/index.js';
 import {readOriginalSkillInvocation,type SkillInvocationExecutionContext} from '../../packages/local-app/src/skill-invocation-execution-local.js';
 import {readOriginalLocalAgentRunCosts,type LocalAgentRunFamilyReader} from '../../packages/local-app/src/agent-run-family-costs-local.js';
-import {AgentStartLedger,DedicatedAgentAccountLedger,parseDedicatedAgentSkillAccountScope,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,digest} from '../../packages/runtime-adapter/dist/index.js';
+import {AgentStartLedger,DedicatedAgentAccountLedger,parseDedicatedAgentSkillAccountScope,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,readAgentRuntimeOriginalIdentity,digest} from '../../packages/runtime-adapter/dist/index.js';
 import {claimAgentRuntimeOperation} from '../../packages/runtime-adapter/src/agent-runtime-operation.js';
 import {AgentRuntimeModelHost,parseAgentRuntimeModelRequest} from '../../packages/runtime-adapter/src/agent-runtime-model.js';
 import {createDedicatedAgentRuntimeModel} from '../../packages/runtime-adapter/src/agent-dedicated-model.js';
@@ -23,7 +23,7 @@ import {flowSuccess,flowTime} from '../fixtures/flow-project.js';
 // OS IPC and SDK tools. Qualification/account approval/provider replies/address
 // and credential are constructed; this proves neither real Skill nor S1.
 describe.runIf(process.platform==='win32'&&process.arch==='x64')('original Skill application to Native composition',()=>{
-it('executes the original reserved child and queries/retries without another Native or model request',async()=>{
+it.each(['succeeded','failed'] as const)('executes the original reserved child with %s output and queries/retries without another Native or model request',async expectedStatus=>{
  const parent=join(process.cwd(),'.cimiloop','new-host-s1','skill-application-fixtures');mkdirSync(parent,{recursive:true});
  // CLR physical executable paths must stay below MAX_PATH. Use a fresh bounded
  // retained repository, not aliases/copies of a previously failed original Run.
@@ -80,7 +80,7 @@ it('executes the original reserved child and queries/retries without another Nat
   // Kernel already owns this reservation; an account-only empty family is not complete.
   expect(()=>readOriginalLocalAgentRunCosts(repository,dataDirectory,relation.parent,account!,f.store as unknown as LocalAgentRunFamilyReader)).toThrow();
   const actions=[...plan.profile.modules.map(m=>({name:'cimi_invoke_skill',args:{name:m.name}})),...plan.profile.resources.filter(r=>r.kind!=='definition').map(r=>({name:'cimi_read_method_resource',args:{path:r.path}}))];let sends=0,credentialReads=0;
-  const output={purpose:'review',findings:[],limitations:['Constructed method/provider reply; not actual method qualification.']};
+  const validOutput={purpose:'review',findings:[],limitations:['Constructed method/provider reply; not actual method qualification.']},output=expectedStatus==='succeeded'?validOutput:{...validOutput,unapproved_extra_field:true};
   tls=await httpFixture({reply:raw=>{const body=raw as {request_id:string},action=actions[sends++],response={id:'public_original_'+sends,object:'chat.completion',model:'glm-fixture',request_id:body.request_id,choices:[{index:0,message:{role:'assistant',content:action?null:JSON.stringify(output),reasoning_content:'Public controlled reasoning',...(action?{tool_calls:[{id:'public_call_'+sends,type:'function',function:{name:action.name,arguments:JSON.stringify(action.args)}}]}:{})},finish_reason:action?'tool_calls':'stop'}],usage:{prompt_tokens:7,completion_tokens:9,total_tokens:16}};return {content_type:'application/json',chunks:[Buffer.from(JSON.stringify(response))]};}});
   const network=tls;vi.spyOn(LocalSkillInvocationDedicatedAccount.prototype,'createModel').mockImplementation(function(this:LocalSkillInvocationDedicatedAccount,connection){return createDedicatedAgentRuntimeModel({root:this.modelRoot,repositoryPath:repository,credentialBoundaryRoot:dataDirectory,scope:this.scope,connection,account:this,methodTools:'fixed_named_method/1.0.0'},{boundary:network.boundary,readCredential:async()=>{credentialReads++;return HTTP_FIXTURE_KEY;}});});
   const installed=LocalSkillInvocationNativeComposition.open({local,custody,inputs,account,connection,binary:join(process.env.APPDATA!,'npm/node_modules/opencode-ai/node_modules/opencode-windows-x64/bin/opencode.exe')});
@@ -91,7 +91,7 @@ it('executes the original reserved child and queries/retries without another Nat
   const returned=vi.spyOn(custody,'markReturned').mockImplementationOnce(()=>{throw Error('PUBLIC constructed lost completion ACK');});
   expect(await service.start(invocation.id)).toMatchObject({outcome:'unknown',completion_proven:false,invocation_key:invocation.invocation_key});
   const modelRoot=join(dataDirectory,'skill-runtime-originals',f.project.id,invocation.invocation_key);
-  expect(readAgentRuntimeNamedMethodResult(modelRoot,relation.child,plan)).toMatchObject({status:'Observed',method_result_reverified:true,output});
+  expect(readAgentRuntimeNamedMethodResult(modelRoot,relation.child,plan)).toMatchObject(expectedStatus==='succeeded'?{status:'Observed',method_result_reverified:true,output}:{status:'Observed',method_result_reverified:false,method_failure_reverified:true,failure:{code:'agent_named_method_output_invalid',returned_text_digest:digest(JSON.stringify(output))}});
   expect(readDedicatedAgentModelOriginals(modelRoot,relation.child).summary).toMatchObject({status:'Observed',original_requirement_pinned:true,budget_identity_pinned:true,costs_reconciled:false});
   expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);expect(account.snapshot().holds).toBe(sends+1);
   const replay=new LocalSkillInvocationExecution(local,{custody});expect(replay.query(invocation.id)).toMatchObject({outcome:'unknown'});expect(await replay.start(invocation.id)).toMatchObject({outcome:'unknown'});expect(sends).toBe(actions.length+1);
@@ -107,7 +107,7 @@ it('executes the original reserved child and queries/retries without another Nat
   const forgedBill=inputs.packages.content.storeContent(Buffer.from(JSON.stringify({...captured.report,usage:{cost_known:true,cost_micros:0,currency:'USD'}})),'skill_invocation_report');
   expect(()=>collector.readResult(f.project,invocation,forgedBill)).toThrow();
   const proof=JSON.parse(inputs.packages.content.readContent(captured.report.result_proof_ref).toString()),originalProof=structuredClone(proof);
-  proof.method.output.limitations=['Self-consistent forged candidate'];
+  if(expectedStatus==='succeeded')proof.method.output.limitations=['Self-consistent forged candidate'];else proof.method.failure.returned_text_digest=digest('PUBLIC forged original failed text');
   const falseProof=inputs.packages.content.storeContent(Buffer.from(JSON.stringify(proof)),'skill_invocation_proof'),falseReport=inputs.packages.content.storeContent(Buffer.from(JSON.stringify({...captured.report,result_proof_ref:falseProof})),'skill_invocation_report');
   expect(()=>collector.readResult(f.project,invocation,falseReport)).toThrow();
   const copied=originalProof.artifacts[0],replacement=inputs.packages.content.storeContent(Buffer.from('PUBLIC self-consistent replaced copy'),'provider_probe_artifact');copied.reference=replacement;
@@ -135,7 +135,7 @@ it('executes the original reserved child and queries/retries without another Nat
   expect(Date.parse(fees.report.observed_at)).toBeGreaterThan(Date.parse(beforeBills.report.observed_at));
   expect(billed.capture(invocation.id)).toEqual(beforeBills);
   const feesProof=JSON.parse(inputs.packages.content.readContent(fees.report.result_proof_ref).toString());
-  expect(feesProof).toMatchObject({format:'cimiloop/original-skill-result-billed-candidate/1.0.0',bills_reverified:true,qualification_reverified:false,model_account_custody_proven:false,costs_reconciled:false,cost_evidence:{costs:{cash_charged_micros:modelCalls.length*12,credit_charged_micro_units:modelCalls.length*4,costs_reconciled:true},scope:relation.child,starts_run:false,kernel_costs_reconciled:false}});
+  expect(feesProof).toMatchObject({format:expectedStatus==='succeeded'?'cimiloop/original-skill-result-billed-candidate/1.0.0':'cimiloop/original-skill-result-failed-billed-candidate/1.0.0',bills_reverified:true,qualification_reverified:false,model_account_custody_proven:false,costs_reconciled:false,cost_evidence:{costs:{cash_charged_micros:modelCalls.length*12,credit_charged_micro_units:modelCalls.length*4,costs_reconciled:true},scope:relation.child,starts_run:false,kernel_costs_reconciled:false}});
   expect(account.snapshot()).toEqual(accountBefore);expect(f.store.asOfEventSequence()).toBe(sequenceBeforeCosts);
   expect(()=>collector.readResult(f.project,invocation,fees.reference)).toThrow();
   const foreign=createAccountBillingEntry({currency,credentialOutside:true});try{const wrong=new LocalSkillInvocationResultCollection({local,custody,inputs,...{account:foreign.account}});expect(()=>wrong.captureCosts(invocation.id)).toThrow();expect(()=>wrong.readResult(f.project,invocation,fees.reference)).toThrow();}finally{foreign.close();}
@@ -153,6 +153,14 @@ it('executes the original reserved child and queries/retries without another Nat
   expect(billedCapture()).toEqual(fees);expect(new LocalSkillInvocationResultCollection({local,custody,inputs,...{account}}).readResult(f.project,invocation,fees.reference)).toEqual(fees.report);
   expect(billed.readResult(f.project,invocation,captured.reference)).toEqual(captured.report);expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);expect(account.snapshot()).toEqual(accountBefore);
 
+  if(expectedStatus==='failed'){
+   const identity=readAgentRuntimeOriginalIdentity(modelRoot,relation.child),stdoutPath=join(identity.operation,'stdout.raw'),retainedStdout=stdoutPath+'.test-owned-original',stdout=readFileSync(stdoutPath);
+   const replaceAndCheck=(body:Buffer)=>{renameSync(stdoutPath,retainedStdout);writeFileSync(stdoutPath,body,{flag:'wx'});try{expect(readAgentRuntimeNamedMethodResult(modelRoot,relation.child,plan)).toMatchObject({status:'Unknown',method_result_reverified:false});expect(()=>new LocalSkillInvocationResultCollection({local,custody,inputs,account:account!,qualificationOriginals}).captureReconciliation(invocation.id,f.actor.id)).toThrow();}finally{unlinkSync(stdoutPath);renameSync(retainedStdout,stdoutPath);}};
+   replaceAndCheck(stdout.subarray(0,Math.floor(stdout.length/2)));
+   const altered=stdout.toString('utf8').replaceAll('unapproved_extra_field','forged_extra_field');expect(altered).not.toBe(stdout.toString('utf8'));replaceAndCheck(Buffer.from(altered));
+   expect(readAgentRuntimeNamedMethodResult(modelRoot,relation.child,plan)).toMatchObject({status:'Observed',method_failure_reverified:true});
+  }
+
   // Reconciliation through the actual shared Human HTTP service. The new
   // historical qualification samples above are CONSTRUCTED; Native/SDK/IPC,
   // original byte rereads, authenticated fixture bills and Kernel are actual.
@@ -163,10 +171,10 @@ it('executes the original reserved child and queries/retries without another Nat
   const session=await login(wb),reconcile={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:'technical_owner',command_type:'ReconcileSkillInvocation',target:{object_type:'run',id:invocation.run_ref.id},expected_revision:f.store.getRun(invocation.run_ref.id)!.revision,payload:{invocation_ref:{object_type:'skill_invocation',id:invocation.id}}};
   const post=async(server:typeof wb,auth:typeof session)=>{const response=await fetch(server.origin+'/api/skill-invocations/'+invocation.id+'/reconcile-original',{method:'POST',headers:{Origin:server.origin,Cookie:auth.cookie,'X-CimiLoop-CSRF':auth.csrf,'Content-Type':'application/json',Connection:'close'},body:JSON.stringify(reconcile)});return {status:response.status,body:await response.json()};};
   const beforeTerminal=f.store.asOfEventSequence(),beforeAccount=account.snapshot();let receipt:Awaited<ReturnType<typeof post>>;
-  try{receipt=await post(wb,session);expect(receipt).toMatchObject({status:200,body:{command_type:'ReconcileSkillInvocation',data:{observation:{resulting_status:'Succeeded',report:{basis:'reconciliation',status:'succeeded',output,usage:{cost_known:true,cost_micros:modelCalls.length*12,currency}}},run:{status:'Unknown',reservation_released:false}}}});expect(await post(wb,session)).toEqual(receipt);}finally{await wb.close();}
+  try{receipt=await post(wb,session);if(expectedStatus==='failed')expect(receipt.body).not.toHaveProperty('data.observation.report.output');expect(receipt).toMatchObject({status:200,body:{command_type:'ReconcileSkillInvocation',data:{observation:{resulting_status:expectedStatus==='succeeded'?'Succeeded':'Failed',report:{basis:'reconciliation',status:expectedStatus,...(expectedStatus==='succeeded'?{output}:{}),usage:{cost_known:true,cost_micros:modelCalls.length*12,currency}}},run:{status:'Unknown',reservation_released:false}}}});expect(await post(wb,session)).toEqual(receipt);}finally{await wb.close();}
   const restarted=await startWorkbench({projectDir:repository});try{expect(await post(restarted,await login(restarted))).toEqual(receipt!);}finally{await restarted.close();}
   expect(opens).toBe(1);expect(releases).toBe(1);expect(f.store.asOfEventSequence()).toBe(beforeTerminal+1);expect(account.snapshot()).toEqual(beforeAccount);expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);expect(f.task().status).not.toBe('Satisfied');expect(f.task().usage.pending_reconciliation).toBe(true);
-  writeFileSync(join(dataDirectory,'d275-child-terminal-summary.json'),JSON.stringify({actual_native:true,actual_sdk:true,actual_http_kernel:true,original_command_replayed_after_restart:true,constructed_qualification:true,constructed_model:true,constructed_bill:true,real_skill:false,s1_accepted:false,invocation_id:invocation.id,model_requests:sends,fee_micros:modelCalls.length*12,reservation_released:false,task_accepted:false},null,2));
+  writeFileSync(join(dataDirectory,expectedStatus==='succeeded'?'d275-child-terminal-summary.json':'d276-child-failure-summary.json'),JSON.stringify({actual_native:true,actual_sdk:true,actual_http_kernel:true,original_command_replayed_after_restart:true,constructed_qualification:true,constructed_model:true,constructed_bill:true,real_skill:false,s1_accepted:false,expected_status:expectedStatus,invocation_id:invocation.id,model_requests:sends,fee_micros:modelCalls.length*12,reservation_released:false,task_accepted:false},null,2));
 
   // Full family fees enter the shared Human application. Neither this direct
   // parent model fixture nor fee evidence may manufacture a parent terminal.

@@ -1,5 +1,7 @@
 # CimiLoop V1 可执行设计与实施计划 v0.1
 
+2026-10-11 D-276：完整原Native/SDK/IPC/Job与模型文本闭合但固定方法输出契约无效时，可独立证明原Skill方法失败，经历史资格和最终现金/积分账单接共享Human/工作台Kernel Failed核对，失败无output；父Unknown/预算和Task待验收保持，原command跨重启重放不重开。最终受影响11文件158项、实际Windows4文件9项通过0跳过，705源码核对、check/CLI/242 Schema通过。构造模型/资格/账单非真实Skill/Matt/Superpowers/S1；取消/未启动/完整恢复及五组继续，默认Agent关闭、零付费、库10、不push。[D-276实施记录](CimiLoop-原Skill方法输出失败与费用核对-v0.1.md)。
+
 2026-10-11 D-275：原成功Skill的Native/SDK/IPC/Job、原账单及预约固定历史资格已接共享Human ReconcileSkillInvocation和工作台HTTP；子Succeeded仍保留父Unknown/预算和Task待验收。原命令跨重启无需collector工厂重放，HTTP回调私有错误隔离已复现修补。最终受影响4文件36项、实际Windows4文件8项通过0跳过，705源码冻结、check/CLI/242 Schema通过。模型/资格核验器/账单仍构造，非真实Skill/Matt/Superpowers/S1；失败/取消子终态、物理磁盘配额及完整五组继续，默认Agent关闭、零付费、库10、不push。[D-275实施记录](CimiLoop-原Skill终态与历史资格核对-v0.1.md)。
 
 2026-10-11 D-274：新Runtime原Job单进程/2 GiB内存策略经独立OS查询、原件冻结并接入领域/成功失败取消结清及Skill结果；Claim2显式隔离旧读者，旧Claim1不补证，原取消意图在观察器缺失时仍可登记。实际共享工作台拒绝放宽内存策略后，同Run原账单/领域结清及跨重启回执重放通过。受影响37文件518项、实际Windows按最新完整文件汇总7文件37项通过0跳过，702源码冻结、check/CLI/242 Schema通过。仅内存/进程策略，磁盘硬配额及真实模型/Skill/Matt/Superpowers/完整S1仍缺；五组active、默认Agent关闭、零付费、库10、不push保持。[D-274实施记录](CimiLoop-原Job内存策略核验与结清-v0.1.md)。

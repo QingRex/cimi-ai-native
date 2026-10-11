@@ -14,6 +14,8 @@ export interface AgentNamedMethodResultInputs {profile:unknown;files:{path:strin
 export interface AgentNamedMethodResult {
  status:'Observed'|'Unknown';reason:string;matched_calls:number;method_result_reverified:boolean;
  output?:SkillMethodOutput;output_digest?:Digest;
+ // Present only for a closed original whose final text fails the fixed contract.
+ method_failure_reverified?:true;failure?:{code:'agent_named_method_output_invalid';returned_text_digest:Digest};
  artifacts:{name:string;path:string;digest:string}[];
  model_account_custody_proven:false;costs_reconciled:false;domain_observation_produced:false;formal_agent_execution_enabled:false;
 }
@@ -75,10 +77,18 @@ export function readAgentRuntimeNamedMethodResult(root:string,rawScope:unknown,i
    const response=model.calls[i]!.response!,tools=response.content.filter(c=>c.type==='tool-call');if(step.finish!==(response.finish==='stop'?'stop':'tool-calls')||step.text!==response.content.filter(c=>c.type==='text').map(c=>c.text).join('')||step.tools.length!==tools.length||response.finish==='stop'&&i!==steps.length-1)fail();
    for(const [n,tool] of tools.entries()){const part=step.tools[n]!,state=part.state as Record<string,unknown>;if(part.callID!==tool.tool_call_id||part.tool!==tool.tool_name||!state||state.status!=='completed'||!same(state.input,json(Buffer.from(tool.arguments))))fail();}
   }
-  const last=steps.at(-1);if(!last||last.finish!=='stop'||last.tools.length||!last.text)fail();const output=validateFixedMethodOutput(json(Buffer.from(last.text),32768),method.context.request.input);
+  const last=steps.at(-1);if(!last||last.finish!=='stop'||last.tools.length)fail();
+  let output:SkillMethodOutput|undefined,failure:AgentNamedMethodResult['failure'];
+  // Only the original final text contract is negative evidence. Every custody,
+  // Native/SDK/IPC/model/Job and reread failure remains Unknown outside this catch.
+  try{output=validateFixedMethodOutput(json(Buffer.from(last.text),32768),method.context.request.input);}catch{failure={code:'agent_named_method_output_invalid',returned_text_digest:digest(last.text)};}
   const artifacts=[...critical.map(({bytes:_,...a})=>a),...method.artifacts.map(a=>({...a,name:'method/'+a.name})),...model.artifacts.map(a=>({...a,name:'model/'+a.name})),...ipc.artifacts.map(a=>({...a,name:'ipc/'+a.name})),{name:'stdout.raw',path:stdoutPath,digest:digest(stdout).value},{name:'agent-sandbox-cleanup.json',path:cleanupPath,digest:digest(cleanupBytes).value}];
   for(const a of artifacts)if(digest(bytesAt(a.path,['stdout.raw','result.json'].includes(a.name)?4*1024*1024:114688)).value!==a.digest)fail();
-  if(!same(readAgentRuntimeOriginalIdentity(root,scope),identity))fail();readAgentNamedMethodOriginals(root,scope,inputs.profile,inputs.files,config.method_original_binding);
-  return {...summary,status:'Observed',reason:'agent_named_method_result_reverified',matched_calls:seen.size,method_result_reverified:true,output,output_digest:digest(JSON.stringify(output)),artifacts};
+  if(!same(readAgentRuntimeOriginalIdentity(root,scope),identity)||
+    !same(readAgentNamedMethodOriginals(root,scope,inputs.profile,inputs.files,config.method_original_binding),method)||
+    !same(readAgentRuntimeModelOriginals(root,scope),model)||!same(readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce)),ipc)||
+    !same(readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}),original))fail();
+  if(failure)return {...summary,status:'Observed',reason:'agent_named_method_output_invalid',matched_calls:seen.size,method_failure_reverified:true,failure,artifacts};
+  if(!output)fail();return {...summary,status:'Observed',reason:'agent_named_method_result_reverified',matched_calls:seen.size,method_result_reverified:true,output,output_digest:digest(JSON.stringify(output)),artifacts};
  }catch{return summary;}
 }
