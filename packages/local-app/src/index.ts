@@ -54,3 +54,4 @@ export {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody
 export {LocalSkillInvocationDedicatedAccount} from './skill-invocation-dedicated-account-local.js';
 
 export { LocalSkillInvocationNativeComposition } from './skill-invocation-native-composition-local.js';
+export { LocalSkillInvocationResultCollection } from './skill-invocation-result-local.js';

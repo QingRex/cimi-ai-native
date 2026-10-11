@@ -1,0 +1,639 @@
+{
+  "record": "D-270",
+  "recorded_at": "2026-10-11T02:40:22.322Z",
+  "base_commit": "b96a0b090b99d4054a6fa7a9756c939c5267400a",
+  "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "branch": "main",
+  "commits_ahead_before_batch": 37,
+  "commits_behind": 0,
+  "pushed": false,
+  "goal_status": "active",
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "user_approved_provider_only": "zhipuai",
+  "remaining_model_approval": [
+    "specific model",
+    "package",
+    "cash limit and currency",
+    "credit limit"
+  ],
+  "database_format": 10,
+  "protocol_schema_count": 242,
+  "environment": {
+    "selected_node": "v24.19.0",
+    "ordinary_path_node": "24.14.0 not used for checks",
+    "pnpm": "12.4.2",
+    "lockfile_install_completed_previously": true,
+    "actual_windows_native_regressions_not_skipped": true
+  },
+  "capabilities": [
+    "original shared Skill Native execution, account/model scope and original custody path",
+    "independent complete method/Native/SDK/IPC/model/provider originals copied as immutable content",
+    "Kernel existing SkillInvocationObservation receives conservative Unknown with original child/parent identity and budget retained",
+    "loss and late return of original launch ACK does not redispatch, resend, or invalidate historical candidate proof",
+    "Kernel writer reuses current Reader without nested transaction",
+    "Windows namespaced SQLite driver paths, frozen short CSharp compile projection, CLR preflight and strict old/new IPC build layout compatibility",
+    "bounded complete artifact metadata accepts over 1MiB, strict canonical 8MiB ceiling and original-copy substitution rejection"
+  ],
+  "capture_limits": {
+    "artifacts": 1649,
+    "proof_bytes": 8388608,
+    "total_bytes": 260489216,
+    "nodes": 100000,
+    "depth": 64,
+    "physical_quota_proven": false,
+    "historical_capacity_proven": false
+  },
+  "evidence_boundary": "Actual shared Local application/Windows Native/AppContainer/OS IPC/SDK named tools/immutable capture/Kernel observation, with eight constructed local TLS model steps and seven actual named tool calls. Constructed qualification, admission, account address, fake credential and provider replies are not real Zhipu/model/Skill/Matt/Superpowers/bill/S1 evidence. Native candidate is not domain success.",
+  "verification": {
+    "affected": {
+      "path": ".cimiloop/new-host-s1/d270-affected-final.json",
+      "sha256": "280b47567c08bdae4aad84883308c1df4e692eb0a5361bd04221083e9130b968",
+      "files": [
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-failure-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-host.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-result.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-budget.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-model.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-build-originals.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-compile-stop.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/fixed-method.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-failure.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/runtime-binary-originals.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/windows-original-paths.test.ts"
+      ],
+      "passed": 299,
+      "failed": 0,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d270-affected-final.meta.json",
+        "sha256": "c861ad1aa7b9e9c4b6befa64470a33963221616f879740a01dd704990cf202ed"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d270-affected-final.log",
+        "sha256": "e037d945c33b7c753acc665e9d44988a663b69555a179666811fdbe186facbf7"
+      },
+      "exit_code": 0,
+      "elapsed_ms": 563661,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true,
+        "exit_code_zero": true
+      }
+    },
+    "windows": {
+      "path": ".cimiloop/new-host-s1/d270-windows-final.json",
+      "sha256": "e9512b4c7e811786dbe1e7c676bab7a2e757d870509eefa2b4e1d933079b1984",
+      "files": [
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+        "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+        "D:/cc/cimi-ai-native/tests/scenarios/workspace-tool-runtime.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts"
+      ],
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d270-windows-final.meta.json",
+        "sha256": "e980365d8f02a16983e7516a22f91e01822b5a642fc96943f8a2f5fe2df5a557"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d270-windows-final.log",
+        "sha256": "3dc7832d9b227a03ad316d756104ac049e17f594be6b1e2e6a3d12dc70e240c9"
+      },
+      "exit_code": 0,
+      "elapsed_ms": 587637,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true,
+        "exit_code_zero": true
+      }
+    },
+    "check": {
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d270-check-final.meta.json",
+        "sha256": "d788c1733907287a2ce9d451ed79a9cdb0a28300eb1cdaa53e181dc192eac1cb"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d270-check-final.log",
+        "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+      },
+      "exit_code": 0
+    },
+    "cli_help": {
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d270-cli-help-final.meta.json",
+        "sha256": "9dfd40d06944bfa4876230380be7ad901ae73bed138670c3acdb268f95b19000"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d270-cli-help-final.log",
+        "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+      },
+      "exit_code": 0
+    },
+    "schema": {
+      "path": ".cimiloop/new-host-s1/d270-schema-final.json",
+      "sha256": "404b95734cf390d2105b3ddd723941caa33f818fa935af339093d96646398db8",
+      "exported": 242,
+      "tracked": 242,
+      "drift": []
+    },
+    "source_freeze": {
+      "before": {
+        "path": ".cimiloop/new-host-s1/d270-source-final-before.json",
+        "sha256": "4049445058b06baa00da631a677e65f34a5ba8712ba013b7f2c13464b3dd6dd8"
+      },
+      "after": {
+        "path": ".cimiloop/new-host-s1/d270-source-final-after.json",
+        "sha256": "4049445058b06baa00da631a677e65f34a5ba8712ba013b7f2c13464b3dd6dd8"
+      },
+      "files": 693,
+      "drift": []
+    },
+    "whole_repository": false,
+    "full_s1": false,
+    "documentation": {
+      "path": ".cimiloop/new-host-s1/d270-doc-validation.json",
+      "sha256": "2eb94afc119939ea51881ca04fff09ce3e2ae2728573c9ef53a37afff1919b40",
+      "markdown_files": 9,
+      "local_links_checked": 338,
+      "failures": []
+    },
+    "git_diff_check_passed": true
+  },
+  "retained_original_fixture": "Retain original Skill application Native fixture: D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-application-fixtures\\cimiloop-skill-application-D9QE2T; repository: D:\\cc\\cimi-ai-native\\_GPwhoF",
+  "diagnostic_records": [
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-after-compiler-fix.json",
+      "sha256": "01d83afc4dbea66f83238475c00a694f4327c56db43ac75b5d32c3a1b317eabb"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-after-compiler-fix.log",
+      "sha256": "faf7af7246638eb8495d5267fae8b0ac0925093688211c6cccafa5fa7d6cb778"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-after-compiler-fix.meta.json",
+      "sha256": "4d9cda1bc4a396973aa89ef8076b72fe41c8836b8971bded863c59f923189367"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-after-path-fix.json",
+      "sha256": "ddc4daa95321d4bbf8e945eb074f21c48c51dff7c77587b6207414b54f29d3ab"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-after-path-fix.log",
+      "sha256": "c1f26fbc43f831840875de4f19d73f88296e6f3c50c1ee4d55c43b890bcd981a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-after-path-fix.meta.json",
+      "sha256": "dab0d71354bdff48cbd87f68bfe2976b1549ed9d324ffcc3ad1bbc1872e7acf3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-bounded.json",
+      "sha256": "aa1112c66c9ce4f42d507bd55b379af9d8f9f3936bb1ea246b4c17ad224d3015"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-bounded.log",
+      "sha256": "b230a9a48c7b1a49ef0793e5b4e485ad9797e23390af47fe6437daf7dc608694"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-bounded.meta.json",
+      "sha256": "489b0101d9bb9262153becafb7394d371b661b2fd92d6a76a94d75d676a2f515"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-diagnostic.json",
+      "sha256": "c2eb5148cdb4f207784098e035de811c5dde8a54bde64ca23e006a6412ecc226"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-diagnostic.log",
+      "sha256": "ac0f2809f3ba75c24e4f8166e9ef9c63b41d6633f2c39609370d930602dc346c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-diagnostic.meta.json",
+      "sha256": "49ea51f20b795cb98dcb20a7fd2678e4df5a5bce653b801acad1ad75888b5702"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-diagnostic2.json",
+      "sha256": "43ca4cfff2482dcc0d955d309b320948c728f16a97dacb3f7e250fa4ee265049"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-diagnostic2.log",
+      "sha256": "7fd1517f288af23eb75e6f46691e8bd3b094e42d7a3cfbd6eeced0e9fb1f306f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-diagnostic2.meta.json",
+      "sha256": "b972322c5d6fe4bd13fb7feceb64b5e7d92e250962dd0e8eaba36eb3432ecf51"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-ipc-layout.json",
+      "sha256": "81e4754ced0c936754ce893308081182e8dc11fd14a1dcd3b0c87c4db9a540fb"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-ipc-layout.log",
+      "sha256": "5cc23d660de683f81e30ae13862d5070e969cee56ca051e6d43b0d32ea15ffad"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-ipc-layout.meta.json",
+      "sha256": "3742183606d3a80c435136dfec7c82902e79a4a85804803abc0337cafef5727c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-red.json",
+      "sha256": "2b2c72d7d7c1e135593dc0c73c5f393a3d122f344f8c71feb056f55dbc751e8d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-red.log",
+      "sha256": "a05b2f949ca302eba35da22b7d53bd751ac01cd5a448083fc7f1b259c9d19c08"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-red2.json",
+      "sha256": "bdd1717fb7e55c6855b6a1da96f9849ee148a1509d6a218c0a7713532a1687e0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-red2.log",
+      "sha256": "49b4b11abe8f197a72048c8da4bd1a4aa0b42eb659d4381f8ec21544cb79c350"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-red2.meta.json",
+      "sha256": "b383a4342b37c1fbe27f873cba2e977e9fbaf6b47bb569915161bc12264b8c41"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-red3.json",
+      "sha256": "083b4eb4ded0a0d2af52a4e84de85a3b1a5babaadc41e80db7f05228b6c149c6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-red3.log",
+      "sha256": "88f15875383e1145a1f6b752b386ea21b08a2aa2b5c00aea946821326cdf7915"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-application-red3.meta.json",
+      "sha256": "117b510837b49c4fac7fd3c3d89114b269c91e0223f0e03a5a102d43c4c12310"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-adversarial.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-adversarial.meta.json",
+      "sha256": "22a14c94df35730476f24a5ed71f69a74dcde9e801a6cdaaf9dc38fdc8080295"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-capacity.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-capacity.meta.json",
+      "sha256": "6a41e858431c0df167082ca27be37df09c85657ab69485982271f0bcfeb98bd6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-contract.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-contract.meta.json",
+      "sha256": "1eb0562a045a2025f9b59620b6c88fdcab4f394087c345792e47a30ff2930f1c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-implementation.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-implementation.meta.json",
+      "sha256": "1099898514aa757d45c24ffa14d932cdfc73d92b46d78641a849dfd1c0f0b879"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-transaction.log",
+      "sha256": "3074497d443e63f2129e2558248934dc46eedfc203733f5c099497e064bb1692"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-collection-transaction.meta.json",
+      "sha256": "a043b749d4c83c05bcae4daf15cd3918052a4ec14e51e2c4f0602e847c2b4841"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-compiler-fix.log",
+      "sha256": "8aeddf09691c3ac5a69e375553705af261ab5ad4c558df48fd7c425e997045db"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-compiler-fix.meta.json",
+      "sha256": "980218be6dfbbdcc63daecc33f4d358a96b2dc70d1278c1129d20ea7de0db4bb"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-compiler-fix2.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-compiler-fix2.meta.json",
+      "sha256": "6280c646216b0a641d599f36037475323afb84828c1594a87eb129c9bd3a9f16"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-fixture-overwrote-d269.log",
+      "sha256": "2497c137d1e0db40ffc2441f1d4f7e43fe119799c02bf8170570ec9fcd3ec8a4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-fixture-overwrote-d269.meta.json",
+      "sha256": "0b38d3506b32725c813cb46397efa52197f4c614e24edeac3835826bcf8568ac"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-fixture.log",
+      "sha256": "9d1da7fb696b97389dbbcadf9e9197a829d07359d0df447fc1b0f78b08d143d9"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-fixture2.log",
+      "sha256": "75e0dfcbd21237078b5a0bd0f7c6059cbad17845db56b63cfddcaff21fe3a4f4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-fixture2.meta.json",
+      "sha256": "5d1cbb1cf7c551e4e6a72b9a0a9f76213a50fe2fa6f297e204f308db278dd1bc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-fixture3.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-fixture3.meta.json",
+      "sha256": "492bba9bdb9a3eeee5d585e7b3714ede6de3199efa5854c2b9dc53380529b6a4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-ipc-layout.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-ipc-layout.meta.json",
+      "sha256": "c97036e60c74bb1a41ba08d71b4ac2e53e508621679b779299681e23a7b287ae"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-path-fix.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-path-fix.meta.json",
+      "sha256": "70ae77fc4e1797bfd2db836ccdc4a8dde519386b7b46a4db22b9bc328e628e2d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-preflight.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-check-preflight.meta.json",
+      "sha256": "88fc668c2f6b9c190104783272d7245d904ca591edd104681e7cda28f46eaae8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-clr-length-diagnostic.json",
+      "sha256": "51bc0b2f5c59aac2d6413e6c99b9501ff33e5f34fa4cbcefb8b4115c97ee962d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-ack-red.json",
+      "sha256": "91fd7b63473d0effa55d0ace93cbb5f7b31a018c97590a9a4db8831d3fbd4e4c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-ack-red.log",
+      "sha256": "b4523942903849d05bf480bed3d04bbaa31c11b033269ab84ee0da977210b994"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-ack-red.meta.json",
+      "sha256": "99cbe26b8800c274c5286d9562991e00ef10dc7a3b6375d73a8e26e46d570112"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-contract-green.json",
+      "sha256": "bf655fa76730a59d099d5004a6e8a949dab37d08ef11217c0cce799b68c395d9"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-contract-green.log",
+      "sha256": "f35848888a9067ff2ff6e8cc7f4352ffba8343805a09e9de0234646492a2fdf5"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-green.json",
+      "sha256": "1f20a8e53e8c329ea678d757b666dd5e3cb45ccfb1e8e2233ff1899d46adff63"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-green.log",
+      "sha256": "0a0dc22b6ce2cbe7d83b0d2ae6ecd65652f08a8bd9141b278e6b288fbf34b13b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-green.meta.json",
+      "sha256": "98d7a56f5623d23f43038d086249fb315314cf8e1430687e47fc406ec422d79b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-red.json",
+      "sha256": "d0bc5cf167c545a4bbf9237249d86a8bac38ccbe09d67c123fe9ec877190d185"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-red.log",
+      "sha256": "25876f7528807e2a7ffd5dbae523677c585f0ecdbf31012fcca6d3c57eb15707"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-red.meta.json",
+      "sha256": "a717bfa195b93f3167a090d9e8fa7236f87c5510e9af114cb20bdfcf84897677"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-transaction-green.json",
+      "sha256": "40398c8f5b83e0e64792d3f3aebed6587a04c7bcee4bcdc4ca3b088acb8b7ce2"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-transaction-green.log",
+      "sha256": "4ab481ed803bd9a1e567e5126bee5b5334269fe2cfaf2792a0bec052e6b0c089"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-collection-transaction-green.meta.json",
+      "sha256": "f309d57bd373598bae2df823856e2eb7d04b73eca4809c70f284c5367e45d83e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-compiler-green.json",
+      "sha256": "99870e517af18c6f0c13e4f333a7be0c88f6b408fbb738820dacf5aa218872b3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-compiler-green.log",
+      "sha256": "3ba3b8d6e4e3d6dc2c90d179b4880cdaac47ee22f8862abf4116f41742ed2516"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-compiler-green2.json",
+      "sha256": "559e36bee7200feda6f737871f200ff8e969a78cd4dfe984eeb1b6745b2e751c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-compiler-green2.log",
+      "sha256": "2e0b43d69ad652d7b066a1da1a2d2db46c237cfd8eaf4e45f5c948ef5d180cab"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-compiler-path-diagnostic.log",
+      "sha256": "b4cab6c98cd1d0407012cb7015bd4d0eed39ccfac7c8fdf0c48ca920e0b50a46"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-compiler-red.json",
+      "sha256": "920439e71732f1a64a5d52c8d3da029980f127b17accc66b46b5f76189e2709d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-compiler-red.log",
+      "sha256": "89ebeca218c343f46ee4376065f9cc949436882c084cc3c4c466ee83116a04ea"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-ipc-layout-green.json",
+      "sha256": "3b792a5f8ddd09236dd5669fbfb499922168f426aace31dffa3b8bb501b62568"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-ipc-layout-green.log",
+      "sha256": "ce579dbb7c6ec9aa1c73bf682b4b9a33f7c0fab27076fb91e50654ba143a5a8d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-ipc-layout-red.json",
+      "sha256": "dbab517cacdef58c49d0b3fda8e6b908775b57d2d46db26756b85a0590e14527"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-ipc-layout-red.log",
+      "sha256": "1313ad14261902daa059266894593f619ff3b941bf2598f7ea0184a819bf9618"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-ipc-load-diagnostic.json",
+      "sha256": "e1cb1d4ee89f8e2ee6fb325afecaf7dd698e6d8e6eb168a9b9198cc1b6fba0d6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-observer-diagnostic.json",
+      "sha256": "58914f1df57eeeffec7571f65432afec1a0dac023154a1f98c59ab63a2e51b23"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-observer-red.json",
+      "sha256": "26040021e4bf1386f1f38dadfc7456ded1122e75b63f6b4f38fa1f174bf22dfc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-observer-red.log",
+      "sha256": "ad0e5caba15fdcfcdad7588737f353ce2057176fd244cbcbebe3b3a2f75650da"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-observer-relative-diagnostic.json",
+      "sha256": "06ae5d1f03fa783f88434a9ff7842c595132df67c51d8fc5d3cf770cf273db09"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-path-green.json",
+      "sha256": "db3b3bd2493712b99d60995a0a02e24c0146ccd89c150cea200070951ae5d058"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-path-green.log",
+      "sha256": "0bf204b945e69c109cba0f2e593bbc2c13548d133cb8346c8f8d46f1a8cd1e11"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-path-red.json",
+      "sha256": "d17db5ea6023dfc941825cd223b2a136bdd5d080157848b3199f9959c83e77ae"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-path-red.log",
+      "sha256": "6d7ba64b746219a75746c3f4865667f7bc85c528877a07bd65f237984d6392d6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-preflight-green.json",
+      "sha256": "9c5a08ab1dcc8a0b2d806db1077b9f71958b47322fb5d38b4220bb989f72c100"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-preflight-green.log",
+      "sha256": "de999a87b4384aa20dc5af998ca5f01896c16d1ab196539d980916caef9ba7c8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-root-preflight-red.json",
+      "sha256": "d401ba4f991408d4d6ed9275ac0bb0beccfbae672ca47ddc170888da6d1764f2"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d270-root-preflight-red.log",
+      "sha256": "8f6da9d598280deeaf1b6a1b4860b95540fdc8351ed1a54c0cfb3a7603bff083"
+    }
+  ],
+  "failures_preserved": [
+    {
+      "stage": "src/dist account class identity and test setup failures",
+      "valid_target_red": false
+    },
+    {
+      "stage": "long ordinary SQLite driver path refused before Native; extended driver spelling only",
+      "valid_target_red": true
+    },
+    {
+      "stage": "original CSharp long output refused; frozen short compile projection fixed without replacing original identity",
+      "valid_target_red": true
+    },
+    {
+      "stage": "identity/CLR helper executable path unsupported; preflight refuses before effects; diagnostics do not alias or reexecute original Run",
+      "valid_target_red": true
+    },
+    {
+      "stage": "actual original IPC exe length259 fails before Main; public copied diagnostics252 passes and253 fails; short new strict layout fixes fresh build, partial legacy remains refused",
+      "valid_target_red": true
+    },
+    {
+      "stage": "completed actual Native with missing shared result collection API",
+      "valid_target_red": true
+    },
+    {
+      "stage": "Kernel writer nested readSnapshot invalidated observation transaction",
+      "valid_target_red": true
+    },
+    {
+      "stage": "complete over1MiB capture metadata exceeds former gateway parser nodes",
+      "valid_target_red": true
+    },
+    {
+      "stage": "late registration of same original dispatch ACK invalidates mutable-state-bound old proof",
+      "valid_target_red": true
+    },
+    {
+      "stage": "intermediate source-mutated or setup/type failures excluded from final verification",
+      "valid_target_red": false
+    }
+  ],
+  "historical_evidence_gap": {
+    "record": "D-269",
+    "cause": "Accidentally ran old run-d269.mjs check during D270 fixture setup and overwrote ignored d269-check-final.log and its meta with a D270 failed check.",
+    "affected": [
+      ".cimiloop/new-host-s1/d269-check-final.log",
+      ".cimiloop/new-host-s1/d269-check-final.meta.json"
+    ],
+    "overwritten_contents_preserved": [
+      {
+        "path": ".cimiloop/new-host-s1/d270-check-fixture-overwrote-d269.log",
+        "sha256": "2497c137d1e0db40ffc2441f1d4f7e43fe119799c02bf8170570ec9fcd3ec8a4"
+      },
+      {
+        "path": ".cimiloop/new-host-s1/d270-check-fixture-overwrote-d269.meta.json",
+        "sha256": "0b38d3506b32725c813cb46397efa52197f4c614e24edeac3835826bcf8568ac"
+      }
+    ],
+    "original_historical_check_log_recovered": false,
+    "tracked_research_changed": false,
+    "old_regression_reports_changed": false,
+    "current_check_does_not_repair_historical_evidence": true
+  },
+  "preservation": {
+    "old_unknown_cleanup_proven": false,
+    "bulk_temp_profile_or_mapping_deleted": false,
+    "user_dirty_files_read_or_deleted": false,
+    "user_dirty_paths": [
+      "QA5363D6C.tmp",
+      "QF192D3E3.tmp"
+    ],
+    "schema_changed": false,
+    "user_database_upgraded": false
+  },
+  "engineering_review": {
+    "agent": "/root/review_native_result",
+    "must_fix_remaining": 0,
+    "ordinary_engineering_only": true,
+    "real_matt": false,
+    "real_superpowers": false
+  },
+  "remaining": [
+    "V1-09 complete real model/account approval, independent qualified domain success, real bill/budgets, physical quota, historical capacity and complete exceptional recovery",
+    "ordinary parent Runtime actual SDK step_finish compatibility still needs fresh verification",
+    "V1-21 real Skill and Human/Matt clarification before Plan/Task",
+    "V1-22 independent complete Matt, fresh current-source Superpowers and real behavior comparison",
+    "V1-10 formal workbench execute/query/stop/original continuation via shared Kernel services",
+    "V1-11 real ordinary Change to ReadyForDelivery with real skills, interruption/recovery, S1 acceptance and usable integration guide"
+  ]
+}

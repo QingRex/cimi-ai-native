@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname, basename } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as localApp from '../src/index.js';
+import {readOriginalSkillInvocationFromReader} from '../src/skill-invocation-execution-local.js';
 import { CimiLoopKernel } from '../../kernel/src/index.js';
 import { contentDigest } from '../../kernel/src/intent.js';
 import { AgentStartLedger, DedicatedAgentAccountLedger,digest } from '@cimiloop/runtime-adapter';
@@ -16,6 +17,11 @@ describe('original child Skill execution', () => {
  let root: string, f: ReturnType<typeof createSkillInvocationProject>, invocation: ReturnType<ReturnType<typeof createSkillInvocationProject>['reserveSkill']>['invocation'];
  let ledger: AgentStartLedger, local: any, request: any, port: any, inputs: any;
  const qualify = vi.fn(), prepare = vi.fn(), launch = vi.fn(), dispose = vi.fn();
+ it('reads the original child inside the Kernel writer transaction without opening or ending a nested snapshot',()=>{
+  const before=f.store.asOfEventSequence(),snapshot=vi.spyOn(f.store,'readSnapshot'),original=readOriginalSkillInvocationFromReader(local,f.store,invocation.id);
+  expect(f.store.transaction(()=>readOriginalSkillInvocationFromReader(local,f.store,invocation.id))).toEqual(original);
+  expect(snapshot).not.toHaveBeenCalled();expect(f.store.asOfEventSequence()).toBe(before);expect(f.store.getRun(invocation.run_ref.id)).toBeDefined();
+ });
  beforeEach(() => {
   vi.resetAllMocks(); root = mkdtempSync(join(tmpdir(), 'cimiloop-child-execution-')); f = createSkillInvocationProject(root);
   ledger = AgentStartLedger.initialize(join(dirname(f.path), 'child-host'), { machine_digest: contentDigest('constructed child machine').value, principal_digest: contentDigest('constructed child principal').value });

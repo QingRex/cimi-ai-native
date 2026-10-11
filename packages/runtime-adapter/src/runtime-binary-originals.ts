@@ -1,6 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
 import { constants, mkdirSync, existsSync, copyFileSync, openSync, closeSync, fsyncSync, writeFileSync, lstatSync, readdirSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, resolve, toNamespacedPath } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { bytesAt, digest, assertOrdinaryPath, directory, RuntimeAdapterError } from "./files.js";
 const applicationId=0x4349424f, maximumEntries=128, maximumBytes=4*1024*1024*1024, fileLimit=512*1024*1024;
@@ -25,7 +25,9 @@ function open(root:string,create:boolean){
   mkdirSync(base);mkdirSync(claims);
  } else if(!existsSync(assertOrdinaryPath(database))||!existsSync(assertOrdinaryPath(claims)))fail();
  for(const path of [database,database+"-wal",database+"-shm",database+"-journal"])assertOrdinaryPath(path);
- const db=new DatabaseSync(database,{timeout:5000,readOnly:!create});
+ // Canonical names and physical custody remain unchanged. Only the Windows
+ // driver filename uses its extended spelling for nested child operation roots.
+ const db=new DatabaseSync(toNamespacedPath(database),{timeout:5000,readOnly:!create});
  try{
   if(!registered){
    db.exec("PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL;"+schema.map(x=>x[2]+";").join("")+`PRAGMA application_id=${applicationId}; PRAGMA user_version=1;`);

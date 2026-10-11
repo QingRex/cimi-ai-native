@@ -11,7 +11,7 @@ import { isDeepStrictEqual } from "node:util";
 import { agentWorkspaceIpcScopeDigest, type AgentWorkspaceToolIpc } from "./agent-workspace-ipc.js";
 import { parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 import { validWorkspaceWorkerIdentity } from "./workspace-files.js";
-import { buildWindowsAgentWorkspaceSandbox, buildWindowsLauncher, nativeControl, pinBinary, isolatedEnvironment } from "./native.js";
+import { buildWindowsAgentWorkspaceSandbox, buildWindowsLauncher, nativeControl, pinBinary, isolatedEnvironment,assertAgentRuntimeNativeRoot } from "./native.js";
 import { bytesAt, digest, directory, atomicJson, rawReference, RuntimeAdapterError } from "./files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
@@ -67,6 +67,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const providerOptions = options.mode === "host_gateway" ? { admission_digest: options.model.admissionDigest } : options.mode === "checks" ? { check_id: options.checkId, check_only: true } :
     { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement, ...(checkCatalog ? { check_id: options.checkId! } : {}) };
   const binaryPath = options.binary, rootPath = options.root, prepare = options.prepare, externalSignal = options.signal;
+  assertAgentRuntimeNativeRoot(rootPath);
   const budget = options.runBudget;
   budget?.assertScope(scope);
   const policy=selectAgentRuntimeLifetime(production?"production":"rehearsal",requestedElapsed,budget?await budget.remaining(externalSignal):undefined);

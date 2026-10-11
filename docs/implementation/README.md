@@ -1,5 +1,7 @@
 # CimiLoop 实施设计
 
+2026-10-11 D-270：共享原 Skill 应用已实际接 Native/SDK/专用账本、不可变结果采集和 Kernel Unknown 观察；丢失及迟到启动回执沿用同一原操作，候选采集不完成 Task、不结算费用。修复 Windows 原路径、C# 编译及新旧 IPC 缓存组合，242 Schema/库10、默认Agent关闭与完整五组active保持。D-269 本地旧类型检查日志被误覆盖的证据缺口已明确记录，详见 [D-270实施记录](CimiLoop-Skill原应用执行与结果采集-v0.1.md)。
+
 2026-10-11 D-269：原命名方法已接只读独立结果采集，联合固定材料/物理原锚、原模型、IPC因果顺序、实际SDK步骤、严格输出和原Native退出/处置/策略证明；专用模型固定命名工具模式已修补，内部原件2兼容旧1，受控本地TLS可到发送边界且原预算只占用一次。真实模型/账户/技能资格、费用结清和Kernel子领域观察仍未证明；Local工厂完整正向及普通父Run实际step_finish兼容继续。默认Agent关闭、零付费、242 Schema/库10及完整五组active保持，详见 [D-269实施记录](CimiLoop-named-method-independent-result-v0.1.md)。
 
 2026-10-10 D-268：固定命名方法已接生产 Native/OS IPC/实际 SDK 工具对，并提供原 Skill 共享应用工厂；保留真实父 Run、原 invocation_key/input_digest、父 Task 时钟及同一账户。命名模式独立禁止普通仓库工具，凭据排除整个实际数据根，内部配置6显式兼容和恢复不重开。实际 Native 正向夹具仍是构造模型/方法且直接组合 runtime ports，新 Local 工厂仅验证负向准入，尚无真实 Skill/领域结果/账单/Matt/Superpowers/S1 证明；默认 Agent 关闭、零付费、242 Schema/库10及完整五组 active 保持。最终验证、原二进制失败 Unknown 与后续条件见 [D-268实施记录](CimiLoop-named-method-native-composition-v0.1.md)。

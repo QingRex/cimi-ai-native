@@ -1,5 +1,5 @@
-import {isDeepStrictEqual as same} from 'node:util';
-import {AgentRunBudget,openWindowsAgentRunClock,AgentNamedMethodHost,AgentRuntimeModelHost,AgentWorkspaceToolIpc,DedicatedAgentAccountLedger,validateFixedMethodContext,runOpenCodeWorkspaceRuntime,withinAgentRuntimeTaskBudget,type DedicatedModelConnection} from '@cimiloop/runtime-adapter';
+import {isDeepStrictEqual as same} from 'node:util';import {join} from 'node:path';
+import {assertAgentRuntimeNativeRoot,AgentRunBudget,openWindowsAgentRunClock,AgentNamedMethodHost,AgentRuntimeModelHost,AgentWorkspaceToolIpc,DedicatedAgentAccountLedger,validateFixedMethodContext,runOpenCodeWorkspaceRuntime,withinAgentRuntimeTaskBudget,type DedicatedModelConnection} from '@cimiloop/runtime-adapter';
 import {readOriginalSkillInvocation,type SkillInvocationExecutionContext,type SkillInvocationExecutionInputs,type SkillInvocationExecutionPort} from './skill-invocation-execution-local.js';
 import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
 import {LocalSkillInvocationDedicatedAccount} from './skill-invocation-dedicated-account-local.js';
@@ -28,6 +28,7 @@ export class LocalSkillInvocationNativeComposition implements SkillInvocationExe
    };
    guard();validateFixedMethodContext(input.plan.profile,input.plan.files,original.invocation.invocation_key);
    const relation=this.custody.accountScope(original.project,original.invocation,original.request.parent,original.record_id);
+   assertAgentRuntimeNativeRoot(join(this.options.local.location.dataDirectory,'skill-runtime-originals',relation.parent.project_id,relation.child.operation_key));
    const basis=()=>{guard();const parent=readLocalAgentRunBudgetBasis(this.options.local,original.invocation.run_ref.id);if(!same(parent.scope,relation.parent))throw fail();return {...parent,scope:relation.child};};
    const expected=basis(),clock=await openWindowsAgentRunClock(this.options.local.location.dataDirectory);
    try {if(!same(expected,basis()))throw fail();budget=await AgentRunBudget.open(this.options.local.location.dataDirectory,{basis,readClock:clock.read,closeClock:clock.close});}catch(error){await clock.close();throw error;}

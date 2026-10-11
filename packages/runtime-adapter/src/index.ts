@@ -46,6 +46,7 @@ export { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
 export { readOriginalAgentWorkspaceOperation } from "./agent-workspace-sandbox-recovery.js";
 
 export { runOpenCodeWorkspaceRuntime } from "./opencode-workspace-runtime.js";
+export { assertAgentRuntimeNativeRoot } from './native.js';
 export { AgentRuntimeModelHost, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
 export type { AgentRuntimeModelPort, AgentRuntimeModelResponse } from "./agent-runtime-model.js";
 

@@ -4,3 +4,5 @@ coverage/
 .vitest/
 *.tsbuildinfo
 .cimiloop/
+# Bounded, retained Windows Native scenario repositories (one fresh name/run).
+/_??????/

@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 import {existsSync,mkdirSync,lstatSync,readdirSync,writeFileSync,openSync,fsyncSync,closeSync} from "node:fs";
-import {join} from "node:path";
+import {join,toNamespacedPath} from "node:path";
 import {isDeepStrictEqual} from "node:util";
 import {assertOrdinaryPath,directory,bytesAt,digest,RuntimeAdapterError} from "./files.js";
 import {retainRuntimeBinary,readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
@@ -20,7 +20,10 @@ function open(root:string){
  if(!registered){if(existsSync(assertOrdinaryPath(base))||existsSync(assertOrdinaryPath(claims)))fail();mkdirSync(base);mkdirSync(claims);}
  else if(!existsSync(assertOrdinaryPath(dbPath))||!existsSync(assertOrdinaryPath(claims)))fail();
  for(const p of [dbPath,dbPath+"-journal",dbPath+"-wal",dbPath+"-shm"])assertOrdinaryPath(p);
- const db=new DatabaseSync(dbPath,{timeout:5000});
+ // Validate canonical paths/sidecars above and persist only those names. The
+ // Windows SQLite driver needs an extended filename for nested child roots;
+ // this aliases the same physical file, without relocation or format changes.
+ const db=new DatabaseSync(toNamespacedPath(dbPath),{timeout:5000});
  try{
   if(!registered){db.exec("PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL;"+schema.map(x=>x[2]+";").join("")+`PRAGMA application_id=${app}; PRAGMA user_version=1;`);
    save(marker,{format:"cimiloop/agent-sandbox-build-registry/1.0.0",root,base:physical(base,true),claims:physical(claims,true),database:physical(dbPath),maximum_recipes:maximum,physical_quota_enforced:false});}
