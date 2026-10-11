@@ -11,6 +11,7 @@ import {AgentStartLedger,DedicatedAgentAccountLedger,readAgentRuntimeNamedMethod
 import {createDedicatedAgentRuntimeModel} from '../../packages/runtime-adapter/src/agent-dedicated-model.js';
 import {httpFixture,HTTP_FIXTURE_KEY} from '../../packages/runtime-adapter/test/gateway-http-fixture.js';
 import {createAgentRunProject} from '../fixtures/agent-run-project.js';
+import {createAccountBillingEntry} from '../fixtures/agent-account-billing-entry.js';
 import {flowSuccess,flowTime} from '../fixtures/flow-project.js';
 
 // Actual Git package bytes, Kernel, SQLite, application factory, Windows Native,
@@ -53,7 +54,8 @@ it('executes the original reserved child and queries/retries without another Nat
   const original=readOriginalSkillInvocation(local,invocation.id),relation=custody.accountScope(original.project,invocation,original.request.parent,original.record_id),plan=inputs.readInvocation(f.project,descriptor,invocation);
   const connection={format:'cimiloop/dedicated-model/1.0.0' as const,provider:'zhipuai-coding-plan' as const,model:'zhipuai-coding-plan/glm-fixture',credential_file:join(root,'PUBLIC-absent.dpapi.json'),credential_digest:digest('public constructed credential identity')};
   const policy={format:'cimiloop/dedicated-agent-account/1.0.0' as const,host_identity_digest:origin.identityDigest,account_digest:digest(root).value,approval_digest:digest('constructed approval').value,package_digest:digest('constructed package').value,tariff_digest:digest('constructed tariff').value,admission_digest:digest('constructed admission').value,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:'glm-fixture',thinking:'enabled' as const},cash_limit_micros:500,credit_limit_micro_units:200,cash_per_call_upper_micros:30,credit_per_call_upper_micro_units:10,input_token_limit:1000000,output_token_limit:512};
-  account=DedicatedAgentAccountLedger.initialize({origin,repositoryPath:repository,root:join(root,'public-account'),policy,connection,admission:{check:async()=>{},checkSkillScope:async()=>{}},custody:{protect:()=>{},verify:()=>{}}});
+  const currency=f.store.getRuntimeRecord('run_record',original.record_id)!.cost_currency!,billProjections=new Map<string,unknown>();
+  account=DedicatedAgentAccountLedger.initialize({origin,repositoryPath:repository,root:join(root,'public-account'),policy,connection,admission:{check:async()=>{},checkSkillScope:async()=>{}},custody:{protect:()=>{},verify:()=>{}},billing:{identity_digest:digest('PUBLIC constructed Skill bill verifier').value,currency,credit_unit:'coding_request_micro_units',verifyOriginal:bytes=>{const projection=billProjections.get(digest(bytes).value);if(!projection)throw Error('PUBLIC original bill authentication absent');return projection;}}});
   const actions=[...plan.profile.modules.map(m=>({name:'cimi_invoke_skill',args:{name:m.name}})),...plan.profile.resources.filter(r=>r.kind!=='definition').map(r=>({name:'cimi_read_method_resource',args:{path:r.path}}))];let sends=0,credentialReads=0;
   const output={purpose:'review',findings:[],limitations:['Constructed method/provider reply; not actual method qualification.']};
   tls=await httpFixture({reply:raw=>{const body=raw as {request_id:string},action=actions[sends++],response={id:'public_original_'+sends,object:'chat.completion',model:'glm-fixture',request_id:body.request_id,choices:[{index:0,message:{role:'assistant',content:action?null:JSON.stringify(output),reasoning_content:'Public controlled reasoning',...(action?{tool_calls:[{id:'public_call_'+sends,type:'function',function:{name:action.name,arguments:JSON.stringify(action.args)}}]}:{})},finish_reason:action?'tool_calls':'stop'}],usage:{prompt_tokens:7,completion_tokens:9,total_tokens:16}};return {content_type:'application/json',chunks:[Buffer.from(JSON.stringify(response))]};}});
@@ -94,6 +96,40 @@ it('executes the original reserved child and queries/retries without another Nat
   expect(kernel.execute(observationCommand)).toEqual(observed);expect(f.store.listRuntimeRecords('skill_invocation_observation',f.change.id)).toHaveLength(1);
   expect(collector.readResult(f.project,invocation,captured.reference)).toEqual(captured.report);expect(new LocalSkillInvocationResultCollection({local,custody,inputs}).readResult(f.project,invocation,captured.reference)).toEqual(captured.report);expect(collector.capture(invocation.id)).toEqual(captured);
   expect(await replay.start(invocation.id)).toMatchObject({outcome:'original'});expect(sends).toBe(actions.length+1);
+  // Account bills are authenticated by a public controlled code port only;
+  // no real provider bill, model/package approval or S1 qualification here.
+  const billed=new LocalSkillInvocationResultCollection({local,custody,inputs,...{account}}),captureCosts=Reflect.get(billed,'captureCosts');
+  expect(captureCosts).toBeTypeOf('function');
+  const billedCapture=()=>captureCosts.call(billed,invocation.id);
+  const beforeBills=billed.capture(invocation.id);expect(beforeBills.report).toMatchObject({status:'unknown',usage:{cost_known:false}});
+  const modelCalls=readDedicatedAgentModelOriginals(modelRoot,relation.child).calls;
+  const addBill=(calls:typeof modelCalls,index:number)=>{const bytes=Buffer.from('PUBLIC CONSTRUCTED original child final bill '+index);billProjections.set(digest(bytes).value,{format:'cimiloop/dedicated-account-bill/1.0.0',bill_id:'public-child-final-'+index,account_digest:policy.account_digest,approval_digest:policy.approval_digest,package_digest:policy.package_digest,tariff_digest:policy.tariff_digest,connection_digest:policy.connection_digest,currency,credit_unit:'coding_request_micro_units',items:calls.map(call=>{const hold=call.hold!;return {request_id:hold.request_id,scope_digest:hold.scope_digest,call_id:hold.call_id,request_digest:hold.request_digest,hold_digest:digest(JSON.stringify(hold)).value,cash_charged_micros:12,credit_charged_micro_units:4};})});account!.observeBill(bytes);};
+  expect(()=>billedCapture()).toThrow();addBill(modelCalls.slice(0,1),1);expect(()=>billedCapture()).toThrow();
+  expect(collector.readResult(f.project,invocation,captured.reference)).toEqual(captured.report);
+  addBill(modelCalls.slice(1),2);
+  const accountBefore=account.snapshot(),sequenceBeforeCosts=f.store.asOfEventSequence(),fees=billedCapture();
+  expect(fees.report).toMatchObject({status:'unknown',usage:{cost_known:true,cost_micros:modelCalls.length*12,currency}});expect(fees.report).not.toHaveProperty('output');
+  expect(Date.parse(fees.report.observed_at)).toBeGreaterThan(Date.parse(beforeBills.report.observed_at));
+  expect(billed.capture(invocation.id)).toEqual(beforeBills);
+  const feesProof=JSON.parse(inputs.packages.content.readContent(fees.report.result_proof_ref).toString());
+  expect(feesProof).toMatchObject({format:'cimiloop/original-skill-result-billed-candidate/1.0.0',bills_reverified:true,qualification_reverified:false,model_account_custody_proven:false,costs_reconciled:false,cost_evidence:{costs:{cash_charged_micros:modelCalls.length*12,credit_charged_micro_units:modelCalls.length*4,costs_reconciled:true},scope:relation.child,starts_run:false,kernel_costs_reconciled:false}});
+  expect(account.snapshot()).toEqual(accountBefore);expect(f.store.asOfEventSequence()).toBe(sequenceBeforeCosts);
+  expect(()=>collector.readResult(f.project,invocation,fees.reference)).toThrow();
+  const foreign=createAccountBillingEntry({currency,credentialOutside:true});try{const wrong=new LocalSkillInvocationResultCollection({local,custody,inputs,...{account:foreign.account}});expect(()=>wrong.captureCosts(invocation.id)).toThrow();expect(()=>wrong.readResult(f.project,invocation,fees.reference)).toThrow();}finally{foreign.close();}
+  const changedCash=inputs.packages.content.storeContent(Buffer.from(JSON.stringify({...fees.report,usage:{...fees.report.usage,cost_micros:0}})),'skill_invocation_report');expect(()=>billed.readResult(f.project,invocation,changedCash)).toThrow();
+  const changedCurrency=inputs.packages.content.storeContent(Buffer.from(JSON.stringify({...fees.report,usage:{...fees.report.usage,currency:currency==='USD'?'CNY':'USD'}})),'skill_invocation_report');expect(()=>billed.readResult(f.project,invocation,changedCurrency)).toThrow();
+  const changedProof=structuredClone(feesProof);changedProof.cost_evidence.costs.credit_charged_micro_units=0;
+  const changedProofRef=inputs.packages.content.storeContent(Buffer.from(JSON.stringify(changedProof)),'skill_invocation_proof'),changedCredit=inputs.packages.content.storeContent(Buffer.from(JSON.stringify({...fees.report,result_proof_ref:changedProofRef})),'skill_invocation_report');expect(()=>billed.readResult(f.project,invocation,changedCredit)).toThrow();
+  const changedUnit=structuredClone(feesProof);changedUnit.cost_evidence.costs.credit_unit='self_consistent_wrong_unit';
+  const unitProofRef=inputs.packages.content.storeContent(Buffer.from(JSON.stringify(changedUnit)),'skill_invocation_proof'),unitReport=inputs.packages.content.storeContent(Buffer.from(JSON.stringify({...fees.report,result_proof_ref:unitProofRef})),'skill_invocation_report');expect(()=>billed.readResult(f.project,invocation,unitReport)).toThrow();
+  const savedAuth=new Map(billProjections);billProjections.clear();try{expect(()=>billed.readResult(f.project,invocation,fees.reference)).toThrow();expect(()=>billedCapture()).toThrow();}finally{for(const [key,value]of savedAuth)billProjections.set(key,value);}
+  f.runPort.agent.skills!.readResult=billed.readResult.bind(billed);
+  const feeCommand=f.command('RecordSkillInvocationObservation','run',invocation.run_ref.id,{invocation_ref:{object_type:'skill_invocation',id:invocation.id},raw_result_ref:fees.reference}),feeObserved=flowSuccess(kernel.execute(feeCommand));
+  expect(feeObserved).toMatchObject({command_type:'RecordSkillInvocationObservation',data:{run:{status:'Unknown',reservation_released:false},observation:{report:{status:'unknown',usage:{cost_known:true,cost_micros:modelCalls.length*12,currency}}}}});
+  expect(kernel.execute(feeCommand)).toEqual(feeObserved);expect(f.store.listRuntimeRecords('skill_invocation_observation',f.change.id)).toHaveLength(2);expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_known:false});
+  expect(billedCapture()).toEqual(fees);expect(new LocalSkillInvocationResultCollection({local,custody,inputs,...{account}}).readResult(f.project,invocation,fees.reference)).toEqual(fees.report);
+  expect(billed.readResult(f.project,invocation,captured.reference)).toEqual(captured.report);expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);expect(account.snapshot()).toEqual(accountBefore);
+
  } finally {vi.restoreAllMocks();await tls?.close();account?.close();origin?.close();f.store.close();console.error('Retain original Skill application Native fixture: '+root+'; repository: '+repository);}
-},240000);
+},480000);
 });

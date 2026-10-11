@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+2026-10-11 D-271：原 Skill 结果采集已接同一 child 原调用/hold/认证最终账单与父币种，分别核现金和积分；Kernel 可记录已核定子费用，仍保持 Unknown、原预约和 Task 待核对，不能以账单代替成功或父费用结清。旧未知费用证明保持兼容，正式 Agent 关闭、零付费、242 Schema/库10及完整五组active不变，详见 [D-271实施记录](../implementation/CimiLoop-Skill原账单用量与领域观察-v0.1.md)。
+
 2026-10-11 D-270：共享原 Skill 应用已实际接 Native/SDK/专用账本、不可变结果采集和 Kernel Unknown 观察；丢失及迟到启动回执沿用同一原操作，候选采集不完成 Task、不结算费用。修复 Windows 原路径、C# 编译及新旧 IPC 缓存组合，242 Schema/库10、默认Agent关闭与完整五组active保持。D-269 本地旧类型检查日志被误覆盖的证据缺口已明确记录，详见 [D-270实施记录](../implementation/CimiLoop-Skill原应用执行与结果采集-v0.1.md)。
 
 2026-10-11 D-269：原命名方法已接只读独立结果采集，联合固定材料/物理原锚、原模型、IPC因果顺序、实际SDK步骤、严格输出和原Native退出/处置/策略证明；专用模型固定命名工具模式已修补，内部原件2兼容旧1，受控本地TLS可到发送边界且原预算只占用一次。真实模型/账户/技能资格、费用结清和Kernel子领域观察仍未证明；Local工厂完整正向及普通父Run实际step_finish兼容继续。默认Agent关闭、零付费、242 Schema/库10及完整五组active保持，详见 [D-269实施记录](../implementation/CimiLoop-named-method-independent-result-v0.1.md)。

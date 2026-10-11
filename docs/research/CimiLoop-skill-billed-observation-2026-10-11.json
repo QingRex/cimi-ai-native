@@ -1,0 +1,320 @@
+{
+  "record": "D-271",
+  "recorded_at": "2026-10-11T03:21:17.923Z",
+  "base_commit": "d38de7fe72fcd98a6b46ec3a139f7154faefc786",
+  "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "branch": "main",
+  "commits_ahead_before_batch": 38,
+  "commits_behind": 0,
+  "pushed": false,
+  "goal_status": "active",
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "user_approved_provider_only": "zhipuai",
+  "remaining_model_approval": [
+    "specific model",
+    "package",
+    "cash limit and currency",
+    "credit limit"
+  ],
+  "database_format": 10,
+  "protocol_schema_count": 242,
+  "environment": {
+    "selected_node": "v24.19.0",
+    "ordinary_path_node": "24.14.0 not used for checks",
+    "pnpm": "12.4.2",
+    "lockfile_install_completed_previously": true,
+    "actual_windows_native_regressions_not_skipped": true
+  },
+  "capabilities": [
+    "Code-installed original account and complete authenticated child bills join existing shared Skill result collection and Kernel SkillInvocationObservation",
+    "All original calls and holds, request/scope/account/connection/admission digests and final bill authentication independently reverified twice",
+    "Cash currency bound to original parent RunRecord; credits and original units retained separately in immutable cost evidence",
+    "Unknown execution and Known child cash co-exist without adopting candidate output, satisfying Task, releasing parent reservation or settling parent family",
+    "Old unbilled proof remains valid; billed proof is separately immutable; first successful capture time frozen separately per fee mode",
+    "Missing or partial bills, wrong actual account, expired bill authentication, altered cash/currency/credits/unit reject without new effect",
+    "Original launch response loss, late response and command replay preserve original Run and SDK call count"
+  ],
+  "capture_limits": {
+    "artifacts": 1649,
+    "proof_bytes": 8388608,
+    "total_bytes": 260489216,
+    "nodes": 100000,
+    "depth": 64,
+    "physical_quota_proven": false,
+    "historical_capacity_proven": false
+  },
+  "evidence_boundary": "Actual shared Local application/Windows Native/AppContainer/OS IPC/SDK named tools/immutable billed capture/Kernel observation, with eight constructed local TLS model steps and seven actual named tool calls. Constructed qualification, admission, fake credential, model responses and bill authentication are not real Zhipu/model/Skill/Matt/Superpowers/bill/S1 evidence. Child cash evidence does not prove execution success or parent settlement.",
+  "constructed_fixture": {
+    "model_steps": 8,
+    "actual_sdk_named_tool_calls": 7,
+    "cash_charged_micros": 96,
+    "credit_charged_micro_units": 32,
+    "credit_unit": "coding_request_micro_units",
+    "real_provider_bill": false,
+    "real_model_approved": false,
+    "real_skill_qualification": false
+  },
+  "verification": {
+    "affected": {
+      "path": ".cimiloop/new-host-s1/d271-affected-final.json",
+      "sha256": "7190cf87061be90ee0743f3ded979956f8359a224943db85386593131e5554b3",
+      "files": [
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-cost-observation.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-failure-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-host.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-result.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-budget.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-model.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-build-originals.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-compile-stop.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/fixed-method.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-failure.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/runtime-binary-originals.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/windows-original-paths.test.ts"
+      ],
+      "passed": 308,
+      "failed": 0,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d271-affected-final.meta.json",
+        "sha256": "d52194f1a867157a9cf8c74c2b842a46eee7260fa0ad308c37002ca6119056c5"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d271-affected-final.log",
+        "sha256": "2ccde0471252e9153ed99476734842e8601549365cfc7517857ec25567f64cb7"
+      },
+      "exit_code": 0,
+      "elapsed_ms": 626864,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true,
+        "exit_code_zero": true
+      }
+    },
+    "windows": {
+      "path": ".cimiloop/new-host-s1/d271-windows-final.json",
+      "sha256": "7b5dcaa9db85d96c59fb04375c122e797dff54d48883e970db06691dd6cceb10",
+      "files": [
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+        "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+        "D:/cc/cimi-ai-native/tests/scenarios/workspace-tool-runtime.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts"
+      ],
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d271-windows-final.meta.json",
+        "sha256": "70d5642fe39473cdccb91a29ebc1a7c69cff03d2a2a7b79dbfcc85ecfe44f3df"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d271-windows-final.log",
+        "sha256": "27d5c7548111552b48b2cd5b8e5f4b6e612abada3dab3ed8a37f69e2ece200e4"
+      },
+      "exit_code": 0,
+      "elapsed_ms": 822349,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true,
+        "exit_code_zero": true
+      }
+    },
+    "check": {
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d271-check-final.meta.json",
+        "sha256": "94ee64b6b8ce9d0aca650782797adda03d50187e3d749b5dffc31ed3140b037e"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d271-check-final.log",
+        "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+      },
+      "exit_code": 0
+    },
+    "cli_help": {
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d271-cli-help-final.meta.json",
+        "sha256": "12aac00db5970fdeba6409d59019b0fd629314a00d354c6eb792ed7d674d5b6b"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d271-cli-help-final.log",
+        "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+      },
+      "exit_code": 0
+    },
+    "schema": {
+      "path": ".cimiloop/new-host-s1/d271-schema-final.json",
+      "sha256": "404b95734cf390d2105b3ddd723941caa33f818fa935af339093d96646398db8",
+      "exported": 242,
+      "tracked": 242,
+      "drift": []
+    },
+    "source_freeze": {
+      "before": {
+        "path": ".cimiloop/new-host-s1/d271-source-final-before.json",
+        "sha256": "1cedc0cc5524c6f9209d9ae99d39e12e9ca50ec1b4e2c03029f410a7d1018b27"
+      },
+      "after": {
+        "path": ".cimiloop/new-host-s1/d271-source-final-after.json",
+        "sha256": "1cedc0cc5524c6f9209d9ae99d39e12e9ca50ec1b4e2c03029f410a7d1018b27"
+      },
+      "files": 693,
+      "drift": []
+    },
+    "whole_repository": false,
+    "full_s1": false,
+    "markdown": {
+      "path": ".cimiloop/new-host-s1/d271-doc-validation.json",
+      "sha256": "865c086ea593de80d5ac0c7241f189619ab251f2728f91ada05b9d5e2ea90d38",
+      "markdown_files": 8,
+      "local_links_checked": 342,
+      "failures": [],
+      "new_cross_document_anchors_checked": [
+        "本批接入回归命令",
+        "验证及证据边界"
+      ]
+    }
+  },
+  "retained_original_fixture": "Retain original Skill application Native fixture: D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-application-fixtures\\cimiloop-skill-application-csNWi3; repository: D:\\cc\\cimi-ai-native\\_LtNM9J",
+  "diagnostic_records": [
+    {
+      "path": ".cimiloop/new-host-s1/d271-billing-native-green.json",
+      "sha256": "536f620997124240ca8ec894b03ee2d9b575f8f3d72ef5fe58e69fe933ca018e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-billing-native-green.log",
+      "sha256": "47874370a6c73ca4dc073e7d1073fbb99585a7650af5ff351a59b7a8b5a82ac6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-billing-native-green.meta.json",
+      "sha256": "eb60a48d4072822910651f924c9716b39613c889bb6a1b96d169bf0665308981"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-billing-native-red.json",
+      "sha256": "7eb37b8bf43a530cb78d3083fd688aac43690b64df6a9f7ef4ea116349a65ee0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-billing-native-red.log",
+      "sha256": "4054e487e87fd6a401743079833676776074b6811d1f006367cc65ab1c14569b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-billing-native-red.meta.json",
+      "sha256": "275082cb7ec50704c7c84590f30efdc0b66aab9a9f96bffb8ab1ab874ef96b91"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-billing-time-red.json",
+      "sha256": "c3cb2a2fd205a5a40d9a8ff0dbd348db147925ea649f010b22cfbb4476bcc035"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-billing-time-red.log",
+      "sha256": "dae7f204a47c2aabf96c5ebccbcfdd74023bdaefa8be9c38aa205335c700e028"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-billing-time-red.meta.json",
+      "sha256": "0c5bd9c5918e15e6463164d2041e3f9a45a0eef5dff2f5420abb80e9c7a6add6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-check-fixture.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-check-fixture.meta.json",
+      "sha256": "a27cd4baac1be598a68fbcd32e658797a55773ae5210fbe67f80c1f45cbd18fc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-check-implementation.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-check-implementation.meta.json",
+      "sha256": "186aae2d2fc854f118cdc7729484a31bcfa932d1dc072a0eac4f8ccd2298644b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-check-time-fix.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d271-check-time-fix.meta.json",
+      "sha256": "3c4279cf1c806a8cab36c2a67b01fa22eee799912f6bda95c83ae019065d67c7"
+    }
+  ],
+  "tdd": [
+    {
+      "stage": "actual Native path reaches missing captureCosts function",
+      "valid_target_red": true,
+      "report": {
+        "path": ".cimiloop/new-host-s1/d271-billing-native-red.json",
+        "sha256": "7eb37b8bf43a530cb78d3083fd688aac43690b64df6a9f7ef4ea116349a65ee0"
+      }
+    },
+    {
+      "stage": "first basic billing Green before timestamp regression fix",
+      "final_scope": false,
+      "report": {
+        "path": ".cimiloop/new-host-s1/d271-billing-native-green.json",
+        "sha256": "536f620997124240ca8ec894b03ee2d9b575f8f3d72ef5fe58e69fe933ca018e"
+      }
+    },
+    {
+      "stage": "same collector later Known fee report incorrectly inherits Unknown fee timestamp",
+      "valid_target_red": true,
+      "report": {
+        "path": ".cimiloop/new-host-s1/d271-billing-time-red.json",
+        "sha256": "c3cb2a2fd205a5a40d9a8ff0dbd348db147925ea649f010b22cfbb4476bcc035"
+      }
+    },
+    {
+      "stage": "final source scopes include separate billed/unbilled timestamp fix",
+      "final_scope": true
+    }
+  ],
+  "historical_evidence_gap": {
+    "record": "D-269",
+    "reference": "docs/research/CimiLoop-skill-application-result-2026-10-11.json",
+    "original_historical_check_log_recovered": false,
+    "tracked_research_changed": false,
+    "current_check_does_not_repair_historical_evidence": true,
+    "no_old_batch_logs_overwritten_in_D271": true
+  },
+  "preservation": {
+    "old_unknown_cleanup_proven": false,
+    "bulk_temp_profile_or_mapping_deleted": false,
+    "user_dirty_files_read_or_deleted": false,
+    "user_dirty_paths": [
+      "QA5363D6C.tmp",
+      "QF192D3E3.tmp"
+    ],
+    "schema_changed": false,
+    "user_database_upgraded": false
+  },
+  "engineering_review": {
+    "agent": "/root/review_native_result",
+    "must_fix_remaining": 0,
+    "timestamp_issue_reproduced_and_fixed": true,
+    "ordinary_engineering_only": true,
+    "real_matt": false,
+    "real_superpowers": false
+  },
+  "remaining": [
+    "V1-09 independent qualified domain success, full original parent+all children family costs and budget settlement, real model/account approval, real bills, physical quota, historical capacity and complete exceptional recovery",
+    "ordinary parent Runtime actual SDK step_finish compatibility still needs fresh verification",
+    "V1-21 real Skill and Human/Matt clarification before Plan/Task",
+    "V1-22 independent complete Matt, fresh current-source Superpowers and real behavior comparison",
+    "V1-10 formal workbench execute/query/stop/original continuation via shared Kernel services",
+    "V1-11 real ordinary Change to ReadyForDelivery with real skills, interruption/recovery, S1 acceptance and usable integration guide"
+  ]
+}
