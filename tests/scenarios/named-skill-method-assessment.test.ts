@@ -1,3 +1,4 @@
+import {isDeepStrictEqual} from 'node:util';
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -144,4 +145,36 @@ it("recomputes controlled qualification around live admission and binds the curr
   let liveChecks = 0;
   host.admitCurrent = () => { if (++liveChecks === 2) throw new Error("Authority changed during re-read"); };
   expect(() => verifier.verify(f.project, record, context, binding, descriptor, plan)).toThrow("Authority changed during re-read");
+});
+
+// Historical child reconciliation uses actual immutable assessment bytes and the
+// existing evaluator, with explicit constructed originals. No real qualification.
+const historical=(pin:any,originals?:NamedSkillMethodOriginalsPort)=>{
+ const verify=Reflect.get(assessor,'verifyHistoricalQualification');expect(verify).toBeTypeOf('function');return verify.call(assessor,f.project,descriptor,pin,originals);
+};
+const historicalPin=(profile:'method_contract'|'controlled_execution'='controlled_execution')=>{
+ evidence.samples.push(sample());const ref=evidenceRef(),assessment=assessor.evaluate(f.project,descriptor,ref,profile,constructedOriginals());
+ return {runtime_binding:evidence.runtime_binding,request:{method_name:'entry',input:{purpose:'clarification'}},method_qualification_ref:store(assessment,'skill_method_qualification')};
+};
+it('reverifies historical qualification for the original child without live admission or new content',()=>{
+ const pin=historicalPin(),sequence=f.store.asOfEventSequence(),before=assessor.inputs.packages.content.readContent(pin.method_qualification_ref);
+ const verified=historical(pin,constructedOriginals());expect(verified).toMatchObject({qualification_ref:pin.method_qualification_ref,assessment:{profile:'controlled_execution',outcome:'ALLOW',runtime_binding:pin.runtime_binding}});
+ expect(isDeepStrictEqual(verified,JSON.parse(JSON.stringify(verified)))).toBe(true);
+ expect(historical(pin,constructedOriginals())).toEqual(verified);expect(f.store.asOfEventSequence()).toBe(sequence);expect(assessor.inputs.packages.content.readContent(pin.method_qualification_ref)).toEqual(before);
+});
+it('does not promote an imported ALLOW label or public/missing originals to historical qualification',()=>{
+ const pin=historicalPin();expect(()=>historical(pin)).toThrow();expect(()=>historical(pin,constructedOriginals(r=>{r.origin='public_fixture';}))).toThrow();
+ expect(()=>historical(historicalPin('method_contract'),constructedOriginals())).toThrow();
+});
+it('binds original historical qualification to exact runtime method purpose and descriptor',()=>{
+ const pin=historicalPin();for(const changed of [{...pin,runtime_binding:{...pin.runtime_binding,digest:digest('foreign runtime')}},{...pin,request:{...pin.request,method_name:'foreign'}},{...pin,request:{...pin.request,input:{purpose:'review'}}}])expect(()=>historical(changed,constructedOriginals())).toThrow();
+ const original=descriptor;descriptor={...descriptor,version:'different'};try{expect(()=>historical(pin,constructedOriginals())).toThrow();}finally{descriptor=original;}
+});
+it('rejects incomplete historical method behavior and source/qualification drift during original verification',()=>{
+ const pin=historicalPin();expect(()=>historical(pin,constructedOriginals(r=>{r.checks.behavior='inconclusive';}))).toThrow();
+ const path=join(root,'objects',pin.method_qualification_ref.locator),bytes=readFileSync(path);let once=false;
+ try{expect(()=>historical(pin,{verify:(...args)=>{if(!once){once=true;writeFileSync(path,Buffer.from('changed original'));}return constructedOriginals().verify(...args);}})).toThrow();}finally{writeFileSync(path,bytes);}
+});
+it('rejects asynchronous historical original verification and consumes private rejection',async()=>{
+ const pin=historicalPin();expect(()=>historical(pin,{verify:()=>Promise.reject(Error('private historical verifier'))} as unknown as NamedSkillMethodOriginalsPort)).toThrow();await Promise.resolve();
 });

@@ -1,5 +1,7 @@
 # CimiLoop SDK 调用与 IPC 原字节账本 v0.1
 
+2026-10-11 D-275：原成功Skill的Native/SDK/IPC/Job、原账单及预约固定历史资格已接共享Human ReconcileSkillInvocation和工作台HTTP；子Succeeded仍保留父Unknown/预算和Task待验收。原命令跨重启无需collector工厂重放，HTTP回调私有错误隔离已复现修补。最终受影响4文件36项、实际Windows4文件8项通过0跳过，705源码冻结、check/CLI/242 Schema通过。模型/资格核验器/账单仍构造，非真实Skill/Matt/Superpowers/S1；失败/取消子终态、物理磁盘配额及完整五组继续，默认Agent关闭、零付费、库10、不push。[D-275实施记录](CimiLoop-原Skill终态与历史资格核对-v0.1.md)。
+
 2026-10-11 D-274：新Runtime原Job单进程/2 GiB内存策略经独立OS查询、原件冻结并接入领域/成功失败取消结清及Skill结果；Claim2显式隔离旧读者，旧Claim1不补证，原取消意图在观察器缺失时仍可登记。实际共享工作台拒绝放宽内存策略后，同Run原账单/领域结清及跨重启回执重放通过。受影响37文件518项、实际Windows按最新完整文件汇总7文件37项通过0跳过，702源码冻结、check/CLI/242 Schema通过。仅内存/进程策略，磁盘硬配额及真实模型/Skill/Matt/Superpowers/完整S1仍缺；五组active、默认Agent关闭、零付费、库10、不push保持。[D-274实施记录](CimiLoop-原Job内存策略核验与结清-v0.1.md)。
 
 2026-10-11 D-273：普通父Run已完成当前源码实际Windows/AppContainer/SDK/固定检查，经共享工作台与Kernel先记录费用Known，再独立核原领域/Native/终态并结清同一Run；构造48微现金、预约归零、尝试不返还，Task仍待验收。五类原Native反例拒绝；原结清请求跨工作台重启无需Runtime/账户工厂可重放，无重复效果。实际模型/批准/账单仍构造，正式默认Agent关闭、零付费、242 Schema/库10及完整五组active保持。验证36文件497项、实际Windows6文件33通过0失败0跳过；独立专用账户完整结清通过，不覆盖旧Bun段错误、DNS过期或其他失败，不是全仓库/S1。 [D-273实施记录](CimiLoop-原父运行领域核验与结清-v0.1.md)。

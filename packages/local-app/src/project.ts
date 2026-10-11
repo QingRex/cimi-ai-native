@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { CimiLoopKernel, type KernelResult } from "@cimiloop/kernel";
+import { CimiLoopKernel, type KernelResult,type SkillInvocationVerifierPort } from "@cimiloop/kernel";
 import { SCHEMA_VERSION, type ActingRole, type InternalId, type TypedReference } from "@cimiloop/protocol/v2";
 import { SqliteProjectStore } from "@cimiloop/store-sqlite";
 import { readInstance, type SoloInstance } from "./instance.js";
@@ -21,7 +21,7 @@ export interface LocalProject {
 
 // Only a trusted local launcher supplies the project directory and operator.
 // HTTP requests never select a database, filesystem path or caller identity.
-export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions } = {}): LocalProject => {
+export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'> } = {}): LocalProject => {
   const start = options.projectDir ? resolve(options.projectDir) : process.cwd();
   const location = locateProject(start, Boolean(options.projectDir) || existsSync(join(start, ".cimiloop", "instance.json")));
   if (!existsSync(location.instancePath) || !existsSync(location.databasePath)) {
@@ -36,9 +36,11 @@ export const openLocalProject = (options: { projectDir?: string; agentRunCostAcc
       !actor || actor.project_id !== project.id || actor.actor_type !== "human") {
       throw new LocalProjectError("本地入口与项目或 Human 身份不匹配", "CALLER_IDENTITY_MISMATCH", "forbidden");
     }
+    const runVerifier=new LocalRunVerifier(location.repositoryPath,location.dataDirectory,options.agentRunCostAccount,store);
+    if(options.skillInvocationResults){const readResult=options.skillInvocationResults.readResult;if(typeof readResult!=='function')throw Error('Skill historical reader unavailable');runVerifier.agent.skills={prepare:()=>{throw Error('Skill execution unavailable');},readResult};}
     const kernel = new CimiLoopKernel({ store, caller: { kind: "local_operator", project_id: project.id, actor_id: actor.id },
       evidenceVerifier: new LocalEvidenceVerifier(location.repositoryPath, location.dataDirectory),
-      runVerifier: new LocalRunVerifier(location.repositoryPath, location.dataDirectory,options.agentRunCostAccount,store),
+      runVerifier,
       providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory),
       ...(options.planningClarification?{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification)}:{}) });
     return { location, instance, store, kernel };

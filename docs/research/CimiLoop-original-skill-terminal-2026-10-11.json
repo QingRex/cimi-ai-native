@@ -1,0 +1,1104 @@
+{
+  "record": "D-275",
+  "recorded_at": "2026-10-11T12:05:58.680Z",
+  "base_commit": "28c53a395a453b53cb15a52e2364f07b084e1c29",
+  "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "origin_refresh": {
+    "path": ".cimiloop/new-host-s1/d275-r7-origin-final-refresh.json",
+    "sha256": "3dc68a88369abfbab309873ad385ca8e986fe41fa3db9970b853f9f650c2344d"
+  },
+  "branch": "main",
+  "commits_ahead_before_batch": 42,
+  "commits_behind": 0,
+  "pushed": false,
+  "goal_status": "active",
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "user_approved_provider_only": "zhipuai",
+  "remaining_model_approval": [
+    "specific model",
+    "package",
+    "cash limit and currency",
+    "credit limit"
+  ],
+  "database_format": 10,
+  "protocol_schema_count": 242,
+  "environment": {
+    "selected_node": "v24.19.0",
+    "ordinary_path_node": "v24.14.0 invalid and not used",
+    "pnpm": "12.4.2",
+    "lockfile_install_completed_previously": true
+  },
+  "capabilities": [
+    "Historical original controlled_execution qualification rereads fixed method/runtime/purpose, two independent sample originals, SDK/native effects and all model/harness/behavior checks; compares whole pinned assessment without new admission/qualification",
+    "Original successful child method/Native/SDK/IPC/Job, authenticated final account cash+credits and pinned historical qualification feed a new explicit reconciliation proof; independent reader rereads originals/copies, output, bills, unknown/conflict coverage",
+    "Human shared application installs read-only collector lease and exact ReconcileSkillInvocation; private durable original intent/prepared survives response/release errors and Kernel receipt replay needs no factory",
+    "Actual loopback Workbench POST uses same Human/session/CSRF guards and shared Kernel service; rejects evidence/status/account/caller JSON and callback private errors",
+    "Synchronous code-only guard rechecks session/closing immediately after awaited lease and immediately before Kernel commit or receipt replay; denial releases once without capture or effect, original intent remains reusable",
+    "Child Succeeded still leaves parent Unknown, reservation unreleased and Task unaccepted; complete family cash remains separate"
+  ],
+  "compatibility": {
+    "new_private_capture_format": "cimiloop/original-skill-result-reconciliation/1.0.0",
+    "old_unbilled_and_billed_candidates_remain_unknown": true,
+    "public_schema_changed": false,
+    "user_database_upgraded": false,
+    "historical_evidence_rewritten": false
+  },
+  "constructed_skill_fixture": {
+    "actual_native": true,
+    "actual_sdk": true,
+    "actual_http_kernel": true,
+    "original_command_replayed_after_restart": true,
+    "constructed_qualification": true,
+    "constructed_model": true,
+    "constructed_bill": true,
+    "real_skill": false,
+    "s1_accepted": false,
+    "invocation_id": "01a12ad2-e597-7320-a3ad-b86c65ab13b2",
+    "model_requests": 8,
+    "fee_micros": 96,
+    "reservation_released": false,
+    "task_accepted": false,
+    "root": {
+      "fixture": "D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-application-fixtures\\cimiloop-skill-application-YbVFIR",
+      "repository": "D:\\cc\\cimi-ai-native\\_7Uj3i1"
+    },
+    "summary": {
+      "path": "D:\\cc\\cimi-ai-native\\_7Uj3i1\\.git\\cimiloop\\d275-child-terminal-summary.json",
+      "sha256": "282a81474070cf0588c37e7be77339e02a1205b21047a898116c8ad689866d9e"
+    }
+  },
+  "verification": {
+    "affected": {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d275-r7-affected-final.json",
+        "sha256": "6a988abadf9979895ee6dfe3358ec9481b1dbc086ed7dc2a8a8fb7d454ed9d02"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d275-r7-affected-final.log",
+        "sha256": "ac9607fe352f9b325ea04829396275715b4aa02af9a9a33cb844da5e0a80189b"
+      },
+      "meta": {
+        "path": ".cimiloop/new-host-s1/d275-r7-affected-final.meta.json",
+        "sha256": "e26b2199e01f82679d1af0841893eb80622cdb64435d1f899873013160fc1f90"
+      },
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+          "passed": 19,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+          "passed": 9,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "unhandled": 0,
+      "success": true
+    },
+    "initial_frozen_twenty_file_regression": {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d275-affected-final.json",
+        "sha256": "a7c38db9d171d1a1677892d104607e62d58e20f088f1dbb9dc581ac21f67c99a"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d275-affected-final.log",
+        "sha256": "2ce2370b596c2ee4b6ae2c2d030dec62718f17f44d286c089cfc1fef14b6f4e4"
+      },
+      "meta": {
+        "path": ".cimiloop/new-host-s1/d275-affected-final.meta.json",
+        "sha256": "f2e37a0532eaf06c79a7a29e623b9eab9fa96e54b99f9dd1132059da506b86b4"
+      },
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+          "passed": 19,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-method-inputs.test.ts",
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-provider-assessment.test.ts",
+          "passed": 20,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/agent-account-billing.test.ts",
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/agent-run-cost-observation.test.ts",
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/agent-runtime-control.test.ts",
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/agent-runtime-start.test.ts",
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/clarification.test.ts",
+          "passed": 12,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/plan-clarification.test.ts",
+          "passed": 9,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/planning-clarification-admission.test.ts",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/server.test.ts",
+          "passed": 15,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-cost-observation.test.ts",
+          "passed": 9,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-reconciliation.test.ts",
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/planning-clarification.test.ts",
+          "passed": 17,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+          "passed": 23,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/protocol/test/skill-invocations.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/store-sqlite/test/skill-invocations.test.ts",
+          "passed": 9,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "passed": 189,
+      "failed": 0,
+      "skipped": 0,
+      "unhandled": 0,
+      "success": true
+    },
+    "initial_source_before": {
+      "path": ".cimiloop/new-host-s1/d275-source-before.json",
+      "sha256": "897a6d3cfa44c4654468ef26e86853768a998505dc1b49762d47a46361cee85e"
+    },
+    "correction_source_difference": {
+      "path": ".cimiloop/new-host-s1/d275-r7-source-difference.json",
+      "sha256": "090a0cf2d28589134d0476646e66d2456ce0d944417ec9f3335a5e5a7c25c197"
+    },
+    "actual_windows": {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d275-r7-windows-final.json",
+        "sha256": "ead3f0dafe8f98cd7e92ce8d51a668723f1264b29144140f72b8a5b03a6d4b13"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d275-r7-windows-final.log",
+        "sha256": "c3628fa33e9e2af7ec62b4e83acc09868c3ae02f6f8cb32c141e8342d40674b7"
+      },
+      "meta": {
+        "path": ".cimiloop/new-host-s1/d275-r7-windows-final.meta.json",
+        "sha256": "31659a2e854440045f0e44aa86f0baaef1e2c02b4e1b7e33990e620b56372f9e"
+      },
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts",
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "unhandled": 0,
+      "success": true
+    },
+    "process_history": [
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-qualification-red.json",
+          "sha256": "9971834c92389d17d4a4ff6fe11ee0098f9cdb8921af82c3911295fb0608b258"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-qualification-red.log",
+          "sha256": "4e6bb0f2b475ad1feb98ec4f0ddd0bc2498e3aecae6debac750b31071a9c05f4"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-qualification-red.meta.json",
+          "sha256": "46c91945380b5f81c9b37d4a8af753ae147672e8cb7554be32a2553b1f92f5a8"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+            "passed": 18,
+            "failed": 1,
+            "skipped": 0
+          }
+        ],
+        "passed": 18,
+        "failed": 1,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-qualification-green.json",
+          "sha256": "8222a368aefa44dc77ae04c0ce08c3fcee085cfb340ef906886cdf41525aa6fe"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-qualification-green.log",
+          "sha256": "9d4dce647dc27ddc7e933fd4fca1991d8bcf570373bdb5ab9350cd6ce1eb0d65"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-qualification-green.meta.json",
+          "sha256": "9ace057d9eb5234974286ee1ad27cd91de4053b55b19b839d82696de8b8d3780"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 19,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-red.json",
+          "sha256": "565512419954b66506d1795f5f52aa36225a4cefcc6262ea9667c21602bd2cac"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-red.log",
+          "sha256": "99d52dbaa41e6fc38ddcec843c929ed57a712ff2fff41409dc102ccbf0d44035"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-red.meta.json",
+          "sha256": "7091443c22b549a940dc0b93b1bded6eeb25e2e6c2723648eeaa37c6c72b96ea"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 0,
+            "failed": 5,
+            "skipped": 0
+          }
+        ],
+        "passed": 0,
+        "failed": 5,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-red-r2.json",
+          "sha256": "be18168ca0ab53e914334a93b88718774a9798f6eb82677c2f7786e51877dd99"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-red-r2.log",
+          "sha256": "d3e8c6d988a55d165de986e9dbaad46d25b71de9d0738df95aea7c14c2d21b97"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-red-r2.meta.json",
+          "sha256": "6af29ed17cc4cd38d6e691c9aed12cff9743304761ea19ad1b50d66a2c32daf6"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 2,
+            "failed": 3,
+            "skipped": 0
+          }
+        ],
+        "passed": 2,
+        "failed": 3,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-application-red.json",
+          "sha256": "b098f6d7560832cf109fcc469cf05a9a39c2dc9c294b011c74d54c0ab94ef5c3"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-application-red.log",
+          "sha256": "b60128b6f65754f8c351df67d3a1895a50c827dd479c31d2f8d44d64e309584e"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-application-red.meta.json",
+          "sha256": "7c8ab66059a4824465f7a6be59a2403d072a28bd3da2cda38af204925749fa3d"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 0,
+            "failed": 3,
+            "skipped": 5
+          }
+        ],
+        "passed": 0,
+        "failed": 3,
+        "skipped": 5,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-green.json",
+          "sha256": "1e628d3f0251fac46d20b27abc98cdec026567d4049f4ac0509b31af61ba9796"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-green.log",
+          "sha256": "447bd4ef7568d9defe7c73ec0bea3c54fe89ff002f3c186a79740fafca01d7dc"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-green.meta.json",
+          "sha256": "631556fc87269553ff6395bdc9a24ea8021195ecc68ccc90216ac436825b02df"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 4,
+            "failed": 1,
+            "skipped": 3
+          }
+        ],
+        "passed": 4,
+        "failed": 1,
+        "skipped": 3,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-application-green.json",
+          "sha256": "e8f7dcfa7e1b89b9a8af7a6dee2bac85d1033476eed97df9f59a9f8baa68bc9c"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-application-green.log",
+          "sha256": "fdec92456e4167e12a73ce2d5a13eb8951a82993979516f2c238c14a447a2395"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-terminal-application-green.meta.json",
+          "sha256": "ae670598d25bba24f7d2f63f184ed9122ff72feb006192d253a55d8763c8634d"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 8,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-http-red.json",
+          "sha256": "60f50f339be243416a6bfe8fb406793353abe6b8f3e20298b83ad9f57daf5156"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-http-red.log",
+          "sha256": "a5291674474010844a20516ce5fba1b170949ae0d24cb9be43d9b2f50473b1fb"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-http-red.meta.json",
+          "sha256": "7470f38b951a6a3e53cbafea14a19c11d335d2d5f0b97a769bf458a75b10d68a"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+            "passed": 0,
+            "failed": 2,
+            "skipped": 0
+          }
+        ],
+        "passed": 0,
+        "failed": 2,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-http-callback-red.json",
+          "sha256": "c2276b3227e57d6a3d9f189020dfe43b7878c93ffc4be9afab275706d4c9e0b9"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-http-callback-red.log",
+          "sha256": "787eb45ff4e5a907e5c7fa6e60446d83fc028b0b09e6002cb94b521690bbfef8"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-http-callback-red.meta.json",
+          "sha256": "da25afa5e936e01b368901ac52f86a9225d944f8b49a9ad6ae1c92051db8b477"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+            "passed": 2,
+            "failed": 1,
+            "skipped": 0
+          }
+        ],
+        "passed": 2,
+        "failed": 1,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-admission-qualification-red.json",
+          "sha256": "2b20d47891214df48196dd907fd3ae707487f34a9f701ca4642837cbaa82e2aa"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-admission-qualification-red.log",
+          "sha256": "20229327abd0a56c5dff279567bd85a9bc925b5939b036267605581b37e12147"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-admission-qualification-red.meta.json",
+          "sha256": "a8bde1cb3c252e03addca06df6c14972bff0af1c046519ec897a973c5cd4cec0"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 0,
+            "failed": 1,
+            "skipped": 7
+          }
+        ],
+        "passed": 0,
+        "failed": 1,
+        "skipped": 7,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-qualification-prototype-red.json",
+          "sha256": "fe744c19baa2ca71f2c8fee5f01ad9f42816ad67dc41123426acdeb979cb4178"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-qualification-prototype-red.log",
+          "sha256": "d2669a5be96c8a057758e5a884ef03b9dd2dc736ae76c813d7f68ed01480a8d7"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-qualification-prototype-red.meta.json",
+          "sha256": "042a233fecbe2172c4412bb752ec4232dca992c26b331427685798edda2d4afd"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+            "passed": 0,
+            "failed": 1,
+            "skipped": 18
+          }
+        ],
+        "passed": 0,
+        "failed": 1,
+        "skipped": 18,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-authority-guard-red.json",
+          "sha256": "69e0af6677d99d0b0d38c100642b28b34a4279f2aa6e785d28ee7edf07f94c5e"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-authority-guard-red.log",
+          "sha256": "c37c5845d3d5ee9aa021fecce60441a6e6f3b293e0650d1591078c48d0c1c95b"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-authority-guard-red.meta.json",
+          "sha256": "329790d9bf0d716c50ff3c4c420531ecead664dd7d485631ba964cba1720493a"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+            "passed": 0,
+            "failed": 2,
+            "skipped": 3
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 0,
+            "failed": 1,
+            "skipped": 8
+          }
+        ],
+        "passed": 0,
+        "failed": 3,
+        "skipped": 11,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-affected-final.json",
+          "sha256": "a7c38db9d171d1a1677892d104607e62d58e20f088f1dbb9dc581ac21f67c99a"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-affected-final.log",
+          "sha256": "2ce2370b596c2ee4b6ae2c2d030dec62718f17f44d286c089cfc1fef14b6f4e4"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-affected-final.meta.json",
+          "sha256": "f2e37a0532eaf06c79a7a29e623b9eab9fa96e54b99f9dd1132059da506b86b4"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-method-inputs.test.ts",
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-provider-assessment.test.ts",
+            "passed": 20,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/agent-account-billing.test.ts",
+            "passed": 6,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/agent-run-cost-observation.test.ts",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/agent-runtime-control.test.ts",
+            "passed": 8,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/agent-runtime-start.test.ts",
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/clarification.test.ts",
+            "passed": 12,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/plan-clarification.test.ts",
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/planning-clarification-admission.test.ts",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/server.test.ts",
+            "passed": 15,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-cost-observation.test.ts",
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-reconciliation.test.ts",
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/planning-clarification.test.ts",
+            "passed": 17,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+            "passed": 23,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 8,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/protocol/test/skill-invocations.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/store-sqlite/test/skill-invocations.test.ts",
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 189,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-windows-final.json",
+          "sha256": "74ea8670d339794764405c6bea36afc652fd820f7161714b02a884447cf5dda1"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-windows-final.log",
+          "sha256": "cc476924331372f5d62e86f2f8393a0ece1883dbe49269e76dd92e1709f72572"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-windows-final.meta.json",
+          "sha256": "ce00baffe31abb29c7a79675369f837ac817ba09305b5bc6a1d0242631ea8c8e"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+            "passed": 0,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+            "passed": 3,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 6,
+        "failed": 2,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-r3-affected-final.json",
+          "sha256": "b082775f83a30e65cbc4e15a4e41c884f6ee011e6eea356844eb27aa82a53923"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-r3-affected-final.log",
+          "sha256": "6cfd99f4d7c7470b7dba5547298bc557c8ed3a6a74c35357d46dd4e34548f4e9"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-r3-affected-final.meta.json",
+          "sha256": "4c4d3b9774ae3766cbd9a9f98c42c8a758213d0b76777746fd2fad333373ec1f"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 8,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 33,
+        "failed": 0,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": true
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-r3-windows-final.json",
+          "sha256": "0408cbf235543afb9e270515fcef27226b1edd71a1531b897a1d4cd7ddb8eb8e"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-r3-windows-final.log",
+          "sha256": "a71de6c07af271b658e76811ca756cc8e5e3656ff79396300a7790814dee8bd4"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-r3-windows-final.meta.json",
+          "sha256": "86958a4bc97d099f08702e71a1ee1eea11a6c3deafd03867e291c000f54aaf90"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+            "passed": 0,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+            "passed": 4,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 7,
+        "failed": 1,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-r4-affected-final.json",
+          "sha256": "bc70fe9488b8195c245fdd5a8af8cea672847099ed4caa685c653678473c4d82"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-r4-affected-final.log",
+          "sha256": "dbce20dec350d9af45dac7394d97745e43e5ca4b1e65847ad0cf8f9f5edc028b"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-r4-affected-final.meta.json",
+          "sha256": "73f36f075cb26f5d8023878cd5ce371d31424037e1dea6d573a656bba01dc65e"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+            "passed": 3,
+            "failed": 2,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 8,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 33,
+        "failed": 2,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      },
+      {
+        "report": {
+          "path": ".cimiloop/new-host-s1/d275-r5-affected-final.json",
+          "sha256": "16bfc30067dc01a7bb28c9ce2f9141b0cfe810467aa56a5b19eebd2f39a9ebd0"
+        },
+        "log": {
+          "path": ".cimiloop/new-host-s1/d275-r5-affected-final.log",
+          "sha256": "78c9eae3383f9aca2877d3e39c626113b87a59ecf623163559059d61ad30eac1"
+        },
+        "meta": {
+          "path": ".cimiloop/new-host-s1/d275-r5-affected-final.meta.json",
+          "sha256": "3c79e11ccf1bea4c7666db2f9e83bd30ed824ed596b762b2d84fdd4b061715ab"
+        },
+        "files": [
+          {
+            "path": "D:/cc/cimi-ai-native/tests/scenarios/named-skill-method-assessment.test.ts",
+            "passed": 19,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/apps/workbench/test/skill-reconciliation.test.ts",
+            "passed": 4,
+            "failed": 1,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "passed": 9,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "passed": 35,
+        "failed": 1,
+        "skipped": 0,
+        "unhandled": 0,
+        "success": false
+      }
+    ],
+    "pnpm_check": {
+      "path": ".cimiloop/new-host-s1/d275-r7-check-final.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    "pnpm_check_meta": {
+      "path": ".cimiloop/new-host-s1/d275-r7-check-final.meta.json",
+      "sha256": "19e039f6b216773d4ebb8ba5e396e2b4e394c4a8eb73c1af9e1bb6ba44137048"
+    },
+    "cli_help": {
+      "path": ".cimiloop/new-host-s1/d275-r7-cli-help-final.log",
+      "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+    },
+    "cli_help_meta": {
+      "path": ".cimiloop/new-host-s1/d275-r7-cli-help-final.meta.json",
+      "sha256": "d6162268dcfbe2ff4b68b8a953ff20c2a63f323b1804edd44c62b13a471ea09a"
+    },
+    "schema": {
+      "exported": 242,
+      "tracked": 242,
+      "drift": []
+    },
+    "earlier_check_failure": {
+      "log": {
+        "path": ".cimiloop/new-host-s1/d275-r6-check-final.log",
+        "sha256": "c3c33c444782e379f1dcb594342d480e70d42ca512ba8d80873c44e885c8349e"
+      },
+      "meta": {
+        "path": ".cimiloop/new-host-s1/d275-r6-check-final.meta.json",
+        "sha256": "3c24e21fa5768c64f4e2940f797a2d4fca79b6b1d72307d5082101b788513300"
+      },
+      "reason": "Shutdown spy this annotation TS2683; test-only typing corrected before final check"
+    },
+    "source_before": {
+      "path": ".cimiloop/new-host-s1/d275-r7-source-before.json",
+      "sha256": "81a2346e605b0a838b60480364a3c5cfc7e2c15e8cd590adab23197e662df5d9"
+    },
+    "source_after": {
+      "path": ".cimiloop/new-host-s1/d275-r7-source-after.json",
+      "sha256": "81a2346e605b0a838b60480364a3c5cfc7e2c15e8cd590adab23197e662df5d9"
+    },
+    "source_files": 705,
+    "source_drift": [],
+    "diagnostics": {
+      "retained_qualification": {
+        "path": ".cimiloop/new-host-s1/d275-retained-historical-qualification-diagnostic.json",
+        "sha256": "c8fb29e738cf11830d84f10708408d0d65838168aebff140f7e98dc08d72b146"
+      },
+      "qualification_prototype": {
+        "path": ".cimiloop/new-host-s1/d275-retained-qualification-prototype-diagnostic.json",
+        "sha256": "79b2036a98775d8550df7d829dad81d30e829889f429f1f04fcf08cfa4c6ec16"
+      },
+      "job_small": {
+        "path": ".cimiloop/new-host-s1/d275-job-small-diagnostic.json",
+        "sha256": "1fd3839deaacd23272d244353f491aa9fa76a8c9b122d501da2e3cc40de0c50f"
+      }
+    },
+    "engineering_review": "Ordinary readonly agent review; callback error disclosure, custody-wrapper correction verified-result prototype normalization and synchronous pre-commit authority guards reviewed. NOT independent Matt/Superpowers or S1"
+  },
+  "limits": [
+    "Qualification samples and original-model/harness verifier are constructed; production genuine qualifier remains required",
+    "No real approved model/package/account/provider bill/Skill/Matt/Superpowers/S1 evidence",
+    "Only original successful child terminal implemented; failed/cancelled/not_started child proofs remain",
+    "Shared service and HTTP supplied; child terminal ordinary CLI and page action not added this batch",
+    "Physical disk quota, full history capacity and abnormal recovery remain; Job memory proof does not grant disk quota",
+    "Earlier Bun crash/DNS expiry/Unknown/resource-control failures and D269 overwritten log gap remain; no cleanup or repaired evidence inferred",
+    "Initial Windows full scope6passed2failed: wrong custody wrapper treated as assessment and32MiB Job fixture empty output; wrapper root cause reproduced and corrected via exact originalQualification; Job root cause unproven despite three fresh diagnostic successes, source and32/64MiB unchanged",
+    "During r4/r5 preliminary regression source evolved to add delayed-authority regressions and align shutdown assertion with existing closeAllConnections; failing reports are process evidence only, not final frozen suites. r5 expiry check passed; shutdown expected503 but socket was intentionally closed, then corrected to assert UND_ERR_SOCKET plus actual guard WORKBENCH_CLOSING throw, lease release and zero event. Intermediate Windows scope7passed1failed with unchanged Job fixture passing; qualification JSON null prototype versus persisted ordinary object mismatch reproduced by read-only diagnostic and canonical roundtrip behavior red; structuredClone after complete originals checks preserves verified meaning. Final four affected files follow both qualification-wrapper and prototype fixes; initial20file189test report preserved as earlier frozen baseline, not final current-source suite",
+    "Initial terminal-red failed default hooks before behavior; red-r2 and application red supplied actual missing-method assertions but source evolved during diagnostics, not final frozen verification",
+    "Complete V1-09/21/22/10/11 goal remains active"
+  ],
+  "remaining_groups": {
+    "V1-09": [
+      "real model/account/bills",
+      "physical disk quota",
+      "full history and abnormal recovery"
+    ],
+    "V1-21": [
+      "real Skill and genuine qualification originals",
+      "Human/Matt before Plan/Task"
+    ],
+    "V1-22": [
+      "independent complete Matt review",
+      "fresh current-source Superpowers",
+      "real behavior comparison"
+    ],
+    "V1-10": [
+      "approved default formal Workbench Agent execution and original recovery"
+    ],
+    "V1-11": [
+      "real normal Change to ReadyForDelivery",
+      "real Skill interruption recovery and S1 acceptance"
+    ]
+  }
+}

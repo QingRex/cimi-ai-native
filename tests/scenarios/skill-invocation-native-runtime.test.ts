@@ -1,3 +1,5 @@
+import {constructedNamedTranscript} from '../fixtures/named-method-transcript.js';
+import {startWorkbench} from '../../apps/workbench/src/server.js';
 import {execFileSync} from 'node:child_process';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,renameSync,unlinkSync} from 'node:fs';
 import {join,dirname} from 'node:path';
@@ -5,7 +7,7 @@ import {describe,it,expect,vi} from 'vitest';
 import {CimiLoopKernel} from '../../packages/kernel/src/index.js';
 import {contentDigest} from '../../packages/kernel/src/intent.js';
 import {SCHEMA_VERSION,createInternalId,type SkillImportSpec,type ProviderBinding,type ProviderEvidence,type ProviderEvaluation} from '../../packages/protocol/src/v2/index.js';
-import {LocalSkillMethodInputs,LocalSkillInvocationStartCustody,LocalSkillInvocationExecution,LocalSkillInvocationNativeComposition,LocalSkillInvocationDedicatedAccount,LocalSkillInvocationResultCollection,LocalHumanAgentRunCostObservation,LocalAgentRuntimeObservation,openLocalProject,writeInstance} from '../../packages/local-app/src/index.js';
+import {LocalNamedSkillMethodAssessment,LocalSkillMethodInputs,LocalSkillInvocationStartCustody,LocalSkillInvocationExecution,LocalSkillInvocationNativeComposition,LocalSkillInvocationDedicatedAccount,LocalSkillInvocationResultCollection,LocalHumanAgentRunCostObservation,LocalAgentRuntimeObservation,openLocalProject,writeInstance} from '../../packages/local-app/dist/index.js';
 import {readOriginalSkillInvocation,type SkillInvocationExecutionContext} from '../../packages/local-app/src/skill-invocation-execution-local.js';
 import {readOriginalLocalAgentRunCosts,type LocalAgentRunFamilyReader} from '../../packages/local-app/src/agent-run-family-costs-local.js';
 import {AgentStartLedger,DedicatedAgentAccountLedger,parseDedicatedAgentSkillAccountScope,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,digest} from '../../packages/runtime-adapter/dist/index.js';
@@ -47,7 +49,17 @@ it('executes the original reserved child and queries/retries without another Nat
   const preparation=flowSuccess(kernel.execute(f.prepareCommand(pins)));if(preparation.command_type!=='PrepareRunContext'||!('runtime_binding' in preparation.data.context))throw Error('Expected agent context');
   const reservation=flowSuccess(kernel.execute(f.reserveCommand({...preparation.data,context:preparation.data.context},500)));if(reservation.command_type!=='ReserveRun')throw Error('Expected parent Run');
   origin=AgentStartLedger.initialize(join(dataDirectory,'child-host'),{machine_digest:digest('constructed machine').value,principal_digest:digest('constructed principal').value});
-  const custody=new LocalSkillInvocationStartCustody(repository,dataDirectory,origin),prepare=inputs.invocationPreparer(id=>f.store.getProviderDescriptor(id),{verify:()=>inputs.packages.content.storeContent(Buffer.from('Constructed named method qualification only'),'skill_method_qualification')});
+  // This qualification uses complete constructed samples and a PUBLIC fake
+  // original-model/harness verifier. It never proves real method behavior.
+  const qualificationOriginals={verify:()=>({origin:'external_model' as const,checks:{runtime_custody:'passed' as const,independent_context:'passed' as const,provider_dependencies:'passed' as const,permission_intersection:'passed' as const,cost_accounting_and_cap:'passed' as const,invocation_recovery:'passed' as const,behavior:'passed' as const,harness:{invoke_skills:'passed' as const}}})};
+  const assessor=new LocalNamedSkillMethodAssessment(repository,dataDirectory),custody=new LocalSkillInvocationStartCustody(repository,dataDirectory,origin),prepare=inputs.invocationPreparer(id=>f.store.getProviderDescriptor(id),{verify:(project,record,_context,_binding,originalDescriptor,plan)=>{
+    const content=inputs.packages.content,artifact=(value:unknown)=>content.storeContent(Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value)),'provider_probe_artifact');
+    const samples=Array.from({length:2},()=>{const invocation_key=createInternalId(),samplePlan=inputs.read(project,originalDescriptor,{invocation_key,method_name:plan.request.method_name,input_ref:plan.input_ref});
+      const original=constructedNamedTranscript(samplePlan.profile,samplePlan.files,{purpose:'review',findings:[],limitations:['Constructed qualification sample; not actual model/Skill']},samplePlan.prompt);
+      return {invocation_key,input_ref:plan.input_ref,transcript_ref:artifact(original.transcript),stdout_ref:artifact(original.stdout),native_proof_ref:artifact(original.native)};});
+    const evidence={format:'cimiloop/named-skill-method-evidence/1.0.0',project_id:project.id,descriptor_ref:{object_type:'provider_descriptor',id:originalDescriptor.id},descriptor_digest:contentDigest(originalDescriptor),runtime_binding:record.runtime_binding,method_name:plan.request.method_name,purpose:'review',observed_at:new Date().toISOString(),samples};
+    const ref=content.storeContent(Buffer.from(JSON.stringify(evidence)),'named_skill_method_evidence'),assessment=assessor.evaluate(project,originalDescriptor,ref,'controlled_execution',qualificationOriginals);expect(assessment.outcome).toBe('ALLOW');return content.storeContent(Buffer.from(JSON.stringify(assessment)),'skill_method_qualification');
+  }});
   f.runPort.agent.skills={prepare:(...args)=>custody.bindPreparation(...args,prepare(...args)),readResult:()=>{throw Error('Domain result not installed');},checkExecutionAuthority:(_project,request)=>contentDigest({constructed_authority:request})};
   const artifact=inputs.packages.content.storeContent(Buffer.from('Public fixed diff\n'),'workspace_diff'),input_ref=inputs.packages.content.storeContent(Buffer.from(JSON.stringify({purpose:'review',goal:'Review original child',spec:'Fixed public specification',standards:'Fixed public standard',artifact_refs:[artifact]})),'skill_method_input');
   const child=flowSuccess(kernel.execute(f.command('ReserveSkillInvocation','run',reservation.data.run.id,{skill_binding_ref:{object_type:'provider_binding',id:binding.id},method_name:'entry',input_ref})));if(child.command_type!=='ReserveSkillInvocation')throw Error('Expected original child');const invocation=child.data.invocation;
@@ -140,6 +152,21 @@ it('executes the original reserved child and queries/retries without another Nat
   expect(kernel.execute(feeCommand)).toEqual(feeObserved);expect(f.store.listRuntimeRecords('skill_invocation_observation',f.change.id)).toHaveLength(2);expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_known:false});
   expect(billedCapture()).toEqual(fees);expect(new LocalSkillInvocationResultCollection({local,custody,inputs,...{account}}).readResult(f.project,invocation,fees.reference)).toEqual(fees.report);
   expect(billed.readResult(f.project,invocation,captured.reference)).toEqual(captured.report);expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);expect(account.snapshot()).toEqual(accountBefore);
+
+  // Reconciliation through the actual shared Human HTTP service. The new
+  // historical qualification samples above are CONSTRUCTED; Native/SDK/IPC,
+  // original byte rereads, authenticated fixture bills and Kernel are actual.
+  const terminal=new LocalSkillInvocationResultCollection({local,custody,inputs,account,qualificationOriginals});
+  writeInstance(join(dataDirectory,'instance.json'),{schema_version:'1.0.0',instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});
+  let opens=0,releases=0;const wb=await startWorkbench({projectDir:repository,skillReconciliationForInvocation:()=>{opens++;return{collector:terminal,release(){releases++;}};}});
+  const login=async(server:typeof wb)=>{const response=await fetch(server.origin+'/api/session',{method:'POST',headers:{Origin:server.origin,'Content-Type':'application/json',Connection:'close'},body:JSON.stringify({bootstrap:new URL(server.bootstrapUrl).hash.slice(1)})});return {cookie:response.headers.get('set-cookie')!.split(';')[0]!,csrf:(await response.json() as {csrf:string}).csrf};};
+  const session=await login(wb),reconcile={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:'technical_owner',command_type:'ReconcileSkillInvocation',target:{object_type:'run',id:invocation.run_ref.id},expected_revision:f.store.getRun(invocation.run_ref.id)!.revision,payload:{invocation_ref:{object_type:'skill_invocation',id:invocation.id}}};
+  const post=async(server:typeof wb,auth:typeof session)=>{const response=await fetch(server.origin+'/api/skill-invocations/'+invocation.id+'/reconcile-original',{method:'POST',headers:{Origin:server.origin,Cookie:auth.cookie,'X-CimiLoop-CSRF':auth.csrf,'Content-Type':'application/json',Connection:'close'},body:JSON.stringify(reconcile)});return {status:response.status,body:await response.json()};};
+  const beforeTerminal=f.store.asOfEventSequence(),beforeAccount=account.snapshot();let receipt:Awaited<ReturnType<typeof post>>;
+  try{receipt=await post(wb,session);expect(receipt).toMatchObject({status:200,body:{command_type:'ReconcileSkillInvocation',data:{observation:{resulting_status:'Succeeded',report:{basis:'reconciliation',status:'succeeded',output,usage:{cost_known:true,cost_micros:modelCalls.length*12,currency}}},run:{status:'Unknown',reservation_released:false}}}});expect(await post(wb,session)).toEqual(receipt);}finally{await wb.close();}
+  const restarted=await startWorkbench({projectDir:repository});try{expect(await post(restarted,await login(restarted))).toEqual(receipt!);}finally{await restarted.close();}
+  expect(opens).toBe(1);expect(releases).toBe(1);expect(f.store.asOfEventSequence()).toBe(beforeTerminal+1);expect(account.snapshot()).toEqual(beforeAccount);expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);expect(f.task().status).not.toBe('Satisfied');expect(f.task().usage.pending_reconciliation).toBe(true);
+  writeFileSync(join(dataDirectory,'d275-child-terminal-summary.json'),JSON.stringify({actual_native:true,actual_sdk:true,actual_http_kernel:true,original_command_replayed_after_restart:true,constructed_qualification:true,constructed_model:true,constructed_bill:true,real_skill:false,s1_accepted:false,invocation_id:invocation.id,model_requests:sends,fee_micros:modelCalls.length*12,reservation_released:false,task_accepted:false},null,2));
 
   // Full family fees enter the shared Human application. Neither this direct
   // parent model fixture nor fee evidence may manufacture a parent terminal.

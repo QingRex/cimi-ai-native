@@ -1,3 +1,4 @@
+import {LocalHumanSkillInvocationReconciliation,type HumanSkillReconciliationFactory} from '@cimiloop/local-app';
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -37,13 +38,14 @@ const checked = <T>(value: T | DomainError): T => {
   return value as T;
 };
 
-export interface WorkbenchOptions { projectDir: string; port?: number; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions }
+export interface WorkbenchOptions { projectDir: string; port?: number; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions;skillReconciliationForInvocation?:HumanSkillReconciliationFactory }
 export interface WorkbenchServer { origin: string; bootstrapUrl: string; close(): Promise<void> }
 
 export const startWorkbench = async (options: WorkbenchOptions): Promise<WorkbenchServer> => {
   if (options.port !== undefined && (!Number.isInteger(options.port) || options.port < 0 || options.port > 65535)) throw new Error("Invalid loopback port");
   const context = openLocalProject({ projectDir: options.projectDir,...(options.planningClarification?{planningClarification:options.planningClarification}:{}) });
   const clarification = new LocalPrePlanClarification(context);
+  const skillReconciliation=new LocalHumanSkillInvocationReconciliation(context,options.skillReconciliationForInvocation);
   const agentRuntime = new LocalAgentRuntimeControl(context);
   const agentObservation = new LocalAgentRuntimeObservation(context);
   const agentStart = new LocalHumanAgentRuntimeStart(context,options.agentRuntimeForRun);
@@ -149,6 +151,12 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         const result = clarificationMatch[2] ? clarification.advance(changeId, decodeURIComponent(clarificationMatch[2]), body) : clarification.begin(changeId, body);
         const commandResult = "command_result" in result ? result.command_result as ReturnType<typeof executeLocalCommand> | undefined : undefined;
         send(response, commandResult && "code" in commandResult ? statusFor(commandResult) : 200, result); return;
+      }
+      const skillReconciliationMatch=/^\/api\/skill-invocations\/([^/]{1,200})\/reconcile-original$/.exec(url.pathname);
+      if(skillReconciliationMatch&&request.method==='POST'){
+        const body=await readBody(request);if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,true);
+        if(!body||typeof body!=='object'||!('payload'in body)||!body.payload||typeof body.payload!=='object'||!('invocation_ref'in body.payload)||!body.payload.invocation_ref||typeof body.payload.invocation_ref!=='object'||!('id'in body.payload.invocation_ref)||body.payload.invocation_ref.id!==decodeURIComponent(skillReconciliationMatch[1]!))throw new HttpFailure(400,'INVALID_COMMAND');
+        const result=await skillReconciliation.reconcile(body,()=>{if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,true);});if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,true);send(response,'code'in result?statusFor(result):200,result);return;
       }
       const costsMatch = /^\/api\/agent-runs\/([^/]{1,200})\/costs$/.exec(url.pathname);
       if(costsMatch && request.method==='GET'){

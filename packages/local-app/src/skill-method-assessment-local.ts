@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { compileValidator, NamedSkillMethodEvidenceSchema, NamedSkillMethodEvidenceReferenceSchema, NamedSkillMethodAssessmentSchema,
   ProviderArtifactReferenceSchema, type Project, type ProviderDescriptor, type NamedSkillMethodEvidence, type NamedSkillMethodEvidenceReference,
-  type NamedSkillMethodAssessment, type NamedSkillMethodSample, type AgentRunRecord, type AgentContextManifest, type ProviderBinding } from "@cimiloop/protocol/v2";
+  type NamedSkillMethodAssessment, type NamedSkillMethodSample, type AgentRunRecord, type AgentContextManifest, type ProviderBinding, type SkillInvocation } from "@cimiloop/protocol/v2";
 import { requestDigest } from "@cimiloop/kernel";
 import { replayFixedMethodTranscript, verifyFixedMethodSdkEffects, parseGatewayJson, openPublicNamedMethodOriginals,
   type GatewayCreditPolicy, type GatewayCreditConversationOriginalOptions } from "@cimiloop/runtime-adapter";
@@ -122,6 +122,30 @@ export class LocalNamedSkillMethodAssessment {
       runtime_binding: evidence.runtime_binding, method_name: evidence.method_name, purpose: evidence.purpose, evidence_ref,
       input_digest: digest({ rule: "named-skill-method-assessment/1.0.0", profile, descriptor, evidence, originalChecks, assessments }), outcome, assessments,
       builtin_skill_qualified: false, formal_execution_enabled: false });
+  }
+  // Historical only: re-read the qualification pinned before this child was
+  // reserved. Never call admitCurrent, write a new assessment, or infer actual
+  // method behavior from an imported ALLOW label. No originals => no authority.
+  verifyHistoricalQualification(project:Project,descriptor:ProviderDescriptor,
+    invocation:Pick<SkillInvocation,'method_qualification_ref'|'runtime_binding'|'request'>,originals?:NamedSkillMethodOriginalsPort){
+    if(!originals||typeof originals.verify!=='function')throw Error('Original method qualification unavailable');
+    const reference=structuredClone(invocation.method_qualification_ref);
+    if(reference.resource_type!=='skill_method_qualification')throw Error('Original qualification reference mismatch');
+    const bytes=this.inputs.packages.content.readContent(reference);
+    const original=compileValidator<NamedSkillMethodAssessment>(NamedSkillMethodAssessmentSchema)(this.json(bytes,384*1024));
+    if(original.profile!=='controlled_execution'||original.outcome!=='ALLOW'||original.project_id!==project.id||
+      original.descriptor_ref.id!==descriptor.id||!same(original.descriptor_digest,digest(descriptor))||
+      !same(original.runtime_binding,invocation.runtime_binding)||original.method_name!==invocation.request.method_name||
+      original.purpose!==invocation.request.input.purpose)throw Error('Original method qualification binding mismatch');
+    const synchronous:NamedSkillMethodOriginalsPort={verify:(...args)=>{
+      const result=originals.verify(...args),value:unknown=result;
+      if(value&&typeof value==='object'&&'then' in value){void Promise.resolve(value).catch(()=>undefined);throw Error('Synchronous original method verification required');}
+      return result;
+    }};
+    const current=this.evaluate(project,descriptor,original.evidence_ref,'controlled_execution',synchronous);
+    if(!same(current,original)||!this.inputs.packages.content.readContent(reference).equals(bytes))throw Error('Original method qualification changed');
+    // Keep the verified JSON meaning while returning ordinary objects for persisted-proof comparison.
+    return structuredClone({qualification_ref:reference,assessment:current});
   }
   qualificationVerifier(host: NamedSkillMethodExecutionAdmission): LocalSkillMethodQualificationPort {
     return { verify: (project, record, context, binding, descriptor, plan) => {

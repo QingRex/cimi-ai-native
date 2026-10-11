@@ -55,3 +55,6 @@ export {LocalSkillInvocationDedicatedAccount} from './skill-invocation-dedicated
 
 export { LocalSkillInvocationNativeComposition } from './skill-invocation-native-composition-local.js';
 export { LocalSkillInvocationResultCollection } from './skill-invocation-result-local.js';
+
+export {LocalHumanSkillInvocationReconciliation,parseHumanSkillReconciliation} from './skill-invocation-reconciliation-local.js';
+export type {HumanSkillReconciliationFactory,SkillReconciliationLease} from './skill-invocation-reconciliation-local.js';
