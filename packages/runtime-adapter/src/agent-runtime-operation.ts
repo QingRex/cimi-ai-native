@@ -1,3 +1,4 @@
+import {readAgentRuntimeNamedMethodResult,type AgentNamedMethodResultInputs} from './agent-named-method-result.js';
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
 import { readDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary } from "./agent-dedicated-model.js";
 import { verifyAgentRuntimeInterruption } from "./agent-runtime-interruption.js";
@@ -171,7 +172,7 @@ export async function recoverAgentRuntimeOperation(root: string, rawScope: unkno
   if (!existsSync(join(original.operation, "original-config.json"))) return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };
   return recoverOpenCodeWorkspaceToolRehearsal({ root, operation: original.operation, scope: original.claim.scope });
 }
-export async function collectAgentRuntimeOperation(root: string, rawScope: unknown, nativeInputs?: { project: Project; record: AgentRunRecord }) {
+export async function collectAgentRuntimeOperation(root: string, rawScope: unknown, nativeInputs?: { project: Project; record: AgentRunRecord },namedMethodInputs?:AgentNamedMethodResultInputs) {
   const original = load(root, rawScope), status = await queryAgentRuntimeOperation(root, rawScope), artifacts = [], missing = [];
   // Optional new immutable evidence; legacy operations keep their exact shape.
   const interruptionPath=join(original.operation,"agent-sandbox-interruption.json");
@@ -253,6 +254,9 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
   const fresh = load(root, rawScope);
   if (!isDeepStrictEqual(fresh.claim, original.claim)) fail("agent_runtime_claim_changed");
   if(cancellation&&cancelOriginal)artifacts.push({name:'agent-runtime-cancel.json',reference:rawReference(root,cancelOriginal.bytes,'agent_runtime_original_bytes','agent-runtime-cancel.json')});
-  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(model ? {model} : {}), ...(dedicated_model?{dedicated_model}:{}), ...(interruption?{interruption}:{}),...(cancellation?{cancellation}:{}),
+  const namedConfig=existsSync(configPath)&&(read(configPath) as Record<string,unknown>).format==='cimiloop/agent-workspace-sandbox-config/6.0.0';
+  const named_method=namedConfig?readAgentRuntimeNamedMethodResult(root,rawScope,namedMethodInputs):undefined;
+  if(named_method?.method_result_reverified)for(const a of named_method.artifacts){const bytes=bytesAt(a.path,['stdout.raw','result.json'].includes(a.name)?4*1024*1024:114688);if(digest(bytes).value!==a.digest)fail('agent_method_original_unproven');const name='named-method/'+a.name;artifacts.push({name,reference:rawReference(root,bytes,'agent_runtime_original_bytes',name)});}
+  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(named_method?{named_method}:{}), ...(model ? {model} : {}), ...(dedicated_model?{dedicated_model}:{}), ...(interruption?{interruption}:{}),...(cancellation?{cancellation}:{}),
     domain_observation_produced: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: original.claim.synthetic_model_responses };
 }

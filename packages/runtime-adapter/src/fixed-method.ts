@@ -1,7 +1,7 @@
 import { isDeepStrictEqual } from "node:util";
 import { compileValidator, FixedMethodProfileSchema, NamedSkillMethodRequestSchema, FixedMethodObservationSchema,
   SkillMethodOutputSchema, type FixedMethodProfile, type NamedSkillMethodRequest, type FixedMethodObservation,
-  type SkillMethodOutput } from "@cimiloop/protocol/v2";
+  type SkillMethodOutput, type SkillMethodInput } from "@cimiloop/protocol/v2";
 import { digest, RuntimeAdapterError } from "./files.js";
 import { prepareGatewayConversation, parseGatewayJson, type GatewayConversationResponse, type GatewayFunctionCall } from "./gateway-conversation.js";
 
@@ -15,6 +15,13 @@ const exact = (value: unknown, key: string): value is Record<string, string> => 
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
 const freeze = (value: unknown): void => { if (value && typeof value === "object") { Object.values(value).forEach(freeze); Object.freeze(value); } };
 const lines = (content: string) => { const result = content.split(/\r?\n/); if (result.at(-1) === "") result.pop(); return result; };
+
+// Shared pure output contract. This validates neither execution nor qualification.
+export function validateFixedMethodOutput(raw:unknown,input:SkillMethodInput):SkillMethodOutput {
+ const output=parseOutput(structuredClone(raw));
+ if(output.purpose!==input.purpose||output.purpose==='review'&&input.purpose==='review'&&output.findings.some(finding=>finding.basis_refs.some(ref=>!input.artifact_refs.some(actual=>same(actual,ref)))))fail('fixed_method_output_denied');
+ return output;
+}
 
 export const validateFixedMethodContext = (raw: unknown, files: { path: string; content: string }[], operationKey: string) => {
   const profile = parseProfile(structuredClone(raw));
@@ -100,11 +107,7 @@ export class FixedMethodConversationAdapter {
   interrupt(): void { if (this.proof.status === "Pending") { this.proof.status = "Unknown"; this.proof.reason = "fixed_method_completion_unproven"; } }
   private allObserved() { return this.profile.resources.every(resource => this.proof.calls.some(call => call.resource_path === resource.path && call.status === "observed")); }
   private validateOutput(raw: unknown): SkillMethodOutput {
-    const output = parseOutput(raw);
-    const input = this.request.input;
-    if (output.purpose !== input.purpose || output.purpose === "review" && input.purpose === "review" && output.findings.some(finding =>
-      finding.basis_refs.some(ref => !input.artifact_refs.some(actual => same(actual, ref))))) fail("fixed_method_output_denied");
-    return output;
+    return validateFixedMethodOutput(raw,this.request.input);
   }
   private verifyRead(output: string, call: FixedMethodObservation["calls"][number]) {
     const prefix = `<path>${call.sdk_file_path}</path>\n<type>file</type>\n<content>\n`;

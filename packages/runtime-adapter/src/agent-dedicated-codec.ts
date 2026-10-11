@@ -18,8 +18,11 @@ export function parseDedicatedAgentProfile(raw:unknown):DedicatedAgentProfile{
 // Preserved/interleaved reasoning is restored from the host's corresponding
 // original provider replies. The SDK cannot inject or substitute those bytes.
 export function prepareDedicatedAgentRequest(request:Request,rawProfile:DedicatedAgentProfile,prior:DedicatedAgentReply[]):PreparedDedicatedAgentRequest{
+ const requested=request.tools.map(raw=>(raw as {name?:unknown}).name),named=requested.some(n=>n==='cimi_invoke_skill'||n==='cimi_read_method_resource');
+ if(named&&(requested.length!==2||!requested.includes('cimi_invoke_skill')||!requested.includes('cimi_read_method_resource')))fail();
+ const allowed=named?['cimi_invoke_skill','cimi_read_method_resource']:['cimi_read','cimi_replace','cimi_check'];
  const profile=parseDedicatedAgentProfile(rawProfile),tools:GatewayFunctionTool[]=[],names=new Set<string>();
- for(const raw of request.tools){if(!fields(raw,["type","name","description","inputSchema"])||raw.type!=="function"||!id(raw.name)||!["cimi_read","cimi_replace","cimi_check"].includes(raw.name)||names.has(raw.name)||!text(raw.description,4096))fail();
+ for(const raw of request.tools){if(!fields(raw,["type","name","description","inputSchema"])||raw.type!=="function"||!id(raw.name)||!allowed.includes(raw.name)||names.has(raw.name)||!text(raw.description,4096))fail();
   validateGatewayToolSchema(raw.inputSchema,{nodes:0});if(raw.inputSchema.type!=="object")fail();names.add(raw.name);tools.push({type:"function",function:{name:raw.name,description:raw.description,parameters:structuredClone(raw.inputSchema)}});}
  const messages:Record<string,unknown>[]=[],pending=new Map<string,string>(),used=new Set<string>();let assistant=0;
  const contentText=(parts:unknown[])=>{let result="";for(const part of parts){if(!fields(part,["type","text"])||part.type!=="text"||!text(part.text))fail();result+=part.text;}return result;};

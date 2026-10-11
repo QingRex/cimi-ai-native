@@ -23,7 +23,7 @@ export interface DedicatedAgentAccountPort {
  reserve(scope:AgentWorkspaceToolScope,request:DedicatedAgentBudgetRequest,originalBody:Uint8Array):Promise<DedicatedAgentBudgetHold>;
  verifyHold(scope:AgentWorkspaceToolScope,hold:DedicatedAgentBudgetHold):Promise<void>;
 }
-interface Options {root:string;repositoryPath:string;credentialBoundaryRoot?:string;scope:AgentWorkspaceToolScope;connection:DedicatedModelConnection;account:DedicatedAgentAccountPort}
+interface Options {root:string;repositoryPath:string;credentialBoundaryRoot?:string;methodTools?:'fixed_named_method/1.0.0';scope:AgentWorkspaceToolScope;connection:DedicatedModelConnection;account:DedicatedAgentAccountPort}
 // Code-only test/trusted composition seams; not exported as wire configuration.
 interface Dependencies {boundary?:GatewayNetworkBoundary;readCredential?:(connection:DedicatedModelConnection)=>Promise<string>}
 const sha=(v:unknown)=>typeof v==="string"&&/^[a-f0-9]{64}$/.test(v);
@@ -51,6 +51,8 @@ function verifyCredentialLocation(repository:string,root:string,secret:string){
 
 export function createDedicatedAgentRuntimeModel(options:Options,dependencies:Dependencies={}):AgentRuntimeModelPort{
  if(typeof options.repositoryPath!=="string"||!isAbsolute(options.repositoryPath))fail("agent_dedicated_repository_unproven");
+ if(options.methodTools!==undefined&&options.methodTools!=='fixed_named_method/1.0.0')fail('agent_dedicated_contract_unproven');
+ const permitted=options.methodTools?['cimi_invoke_skill','cimi_read_method_resource']:['cimi_read','cimi_replace','cimi_check'];
  const modelRoot=assertOrdinaryPath(options.root),repositoryPath=assertOrdinaryPath(options.repositoryPath),credentialBoundaryRoot=assertOrdinaryPath(options.credentialBoundaryRoot??options.root);
  const scope=parseAgentWorkspaceToolScope(options.scope),connection=structuredClone(validateModelConnection(options.connection)),port=options.account,profile=parseDedicatedAgentProfile(port?.profile);
  if(!sha(port?.admission_digest)||typeof port.check!=="function"||typeof port.reserve!=="function"||typeof port.verifyHold!=="function"||connection.model!==connection.provider+"/"+profile.model)fail("agent_dedicated_account_unavailable");
@@ -61,11 +63,11 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
  const boundary=dependencies.boundary??new GatewayNetworkBoundary({},path as DedicatedGatewayPath);if(!(boundary instanceof GatewayNetworkBoundary)||boundary.path!==path)fail("agent_dedicated_connection_mismatch");
  const transport=new GatewayHttpTransport(boundary),credential=dependencies.readCredential??readDedicatedApiKey;
  const root=modelRoot,spine=join(root,"agent-dedicated-model-starts",scope.project_id,scope.run_id),originals=join(root,"agent-dedicated-model-originals",scope.project_id,scope.run_id);
- const header={format:"cimiloop/agent-dedicated-model-originals/1.0.0",scope,admission_digest:account.admission_digest,connection_digest:connectionDigest,profile};
+ const header={format:options.methodTools?'cimiloop/agent-dedicated-model-originals/2.0.0':'cimiloop/agent-dedicated-model-originals/1.0.0',scope,admission_digest:account.admission_digest,connection_digest:connectionDigest,profile,...(options.methodTools?{method_tools:options.methodTools}:{})};
  const check=async(raw:AgentWorkspaceToolScope)=>{if(!isDeepStrictEqual(parseAgentWorkspaceToolScope(raw),scope))fail("agent_model_scope_mismatch");try{await account.check(structuredClone(scope),structuredClone(connection));}catch{fail("agent_dedicated_account_unavailable");}};
  const initialize=(request:ReturnType<typeof parseAgentRuntimeModelRequest>)=>{
   const hostSpine=join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id),hostBody=join(root,"agent-runtime-model-originals",scope.project_id,scope.run_id);
-  const hostHeader=read(join(hostSpine,"header.json")) as Record<string,unknown>;if(!isDeepStrictEqual(hostHeader.original_evidence,{kind:"dedicated_zhipu/1.0.0",header_digest:digest(JSON.stringify(header)).value})||!isDeepStrictEqual(hostHeader.scope,scope)||hostHeader.admission_digest!==account.admission_digest||!isDeepStrictEqual(hostHeader,read(join(hostBody,"header.json")))||!isDeepStrictEqual(read(join(hostSpine,request.call_id,"request.json")),request)||!isDeepStrictEqual(read(join(hostBody,request.call_id,"request.json")),request))fail();
+  const hostHeader=read(join(hostSpine,"header.json")) as Record<string,unknown>;if(!Array.isArray(hostHeader.permitted)||(options.methodTools?!isDeepStrictEqual(hostHeader.permitted,permitted):hostHeader.permitted.some(n=>!permitted.includes(String(n)))))fail();if(!isDeepStrictEqual(hostHeader.original_evidence,{kind:"dedicated_zhipu/1.0.0",header_digest:digest(JSON.stringify(header)).value})||!isDeepStrictEqual(hostHeader.scope,scope)||hostHeader.admission_digest!==account.admission_digest||!isDeepStrictEqual(hostHeader,read(join(hostBody,"header.json")))||!isDeepStrictEqual(read(join(hostSpine,request.call_id,"request.json")),request)||!isDeepStrictEqual(read(join(hostBody,request.call_id,"request.json")),request))fail();
   const anchor=join(hostSpine,"model_0001","dedicated-registration.json"),registration={format:"cimiloop/agent-dedicated-registration/1.0.0",header_digest:digest(JSON.stringify(header)).value};
   if(existsSync(anchor)){if(!isDeepStrictEqual(read(anchor),registration)||!existsSync(spine)||!existsSync(originals))fail();}
   else {if(request.call_id!=="model_0001"||existsSync(spine)||existsSync(originals))fail();save(anchor,registration);}
@@ -78,7 +80,7 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
   initialize(request);const names=readdirSync(spine).filter(n=>n!=="header.json").sort();if(names.length>64||names.some((n,i)=>n!=="model_"+String(i+1).padStart(4,"0"))||!isDeepStrictEqual(readdirSync(originals).filter(n=>n!=="header.json").sort(),names))fail();
   const prior:DedicatedAgentReply[]=[];
   for(const name of names){const claim=join(spine,name),body=join(originals,name),old=read(join(claim,"request.json"));if(!isDeepStrictEqual(read(join(body,"request.json")),old))fail();
-   const parsed=parseAgentRuntimeModelRequest(scope,old,["cimi_read","cimi_replace","cimi_check"]);if(parsed.call_id!==name||parsed.admission_digest!==account.admission_digest)fail();
+   const parsed=parseAgentRuntimeModelRequest(scope,old,permitted);if(parsed.call_id!==name||parsed.admission_digest!==account.admission_digest)fail();
    if(!existsSync(join(body,"provider-response.json"))||!existsSync(join(body,"receipt.json")))fail("agent_dedicated_original_unknown");
    const prepared=transport.prepareAgent(parsed,profile,prior),budget={scope_digest:scopeDigest,admission_digest:account.admission_digest,connection_digest:connectionDigest,call_id:name,request_id:prepared.request_id,request_digest:prepared.input_digest,input_bytes:prepared.body.length,max_output_tokens:parsed.max_output_tokens};
    const sendIntent={format:"cimiloop/agent-dedicated-send-intent/1.0.0",header_digest:digest(JSON.stringify(header)).value,request_digest:prepared.input_digest,model_request_digest:digest(JSON.stringify(parsed)).value};
@@ -112,7 +114,7 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
    const response=await transport.sendAgentOriginal(prepared,tls,key,8000,signal);save(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id,request.call_id,"dedicated-response.json"),{format:"cimiloop/agent-dedicated-response/1.0.0",response_digest:digest(response.bytes).value,reply_digest:digest(JSON.stringify(response.parsed)).value});save(join(body,"provider-response.json"),response.bytes);save(join(body,"receipt.json"),{response_digest:digest(response.bytes).value,reply:response.parsed});return response.parsed.receipt;
   }finally{key="";tls.socket.destroy();}
  };
- return {original_evidence:{kind:"dedicated_zhipu/1.0.0",header_digest:digest(JSON.stringify(header)).value},admission_digest:account.admission_digest,check,execute:async(raw,signal)=>{const request=parseAgentRuntimeModelRequest(scope,raw,["cimi_read","cimi_replace","cimi_check"]);if(request.admission_digest!==account.admission_digest)fail("agent_model_admission_mismatch");const running=inflight.get(request.call_id);if(running){if(!isDeepStrictEqual(running.request,request))fail("agent_model_input_conflict");return running.promise;}
+ return {original_evidence:{kind:"dedicated_zhipu/1.0.0",header_digest:digest(JSON.stringify(header)).value},admission_digest:account.admission_digest,check,execute:async(raw,signal)=>{const request=parseAgentRuntimeModelRequest(scope,raw,permitted);if(request.admission_digest!==account.admission_digest)fail("agent_model_admission_mismatch");const running=inflight.get(request.call_id);if(running){if(!isDeepStrictEqual(running.request,request))fail("agent_model_input_conflict");return running.promise;}
   const promise=dispatch(request,signal);inflight.set(request.call_id,{request,promise});try{return await promise;}finally{inflight.delete(request.call_id);}}};
 }
 
@@ -146,8 +148,12 @@ export function readDedicatedAgentModelOriginals(root:string,rawScope:unknown):{
   if(!hints){verifyFrozen();return {summary:originalSummary(scope,"NotRegistered","agent_dedicated_not_registered"),calls:[],artifacts:[]};}
   if(!present(spine)||!present(body)||!present(registrationPath))fail();
   const host=readAgentRuntimeModelOriginals(root,scope),rawHeader=read(join(spine,"header.json"));
-  if(!rawHeader||typeof rawHeader!=="object"||Array.isArray(rawHeader)||Object.keys(rawHeader).sort().join(",")!==["format","scope","admission_digest","connection_digest","profile"].sort().join(","))fail();const header=rawHeader as Record<string,unknown>,profile=parseDedicatedAgentProfile(header.profile);
-  if(header.format!=="cimiloop/agent-dedicated-model-originals/1.0.0"||!isDeepStrictEqual(header.scope,scope)||header.admission_digest!==host.admission_digest||!sha(header.connection_digest)||!isDeepStrictEqual(read(join(body,"header.json")),header)||!host.calls.length)fail();
+  if(!rawHeader||typeof rawHeader!=="object"||Array.isArray(rawHeader)||Object.keys(rawHeader).sort().join(",")!==["format","scope","admission_digest","connection_digest","profile",...("method_tools" in rawHeader?["method_tools"]:[])].sort().join(","))fail();const header=rawHeader as Record<string,unknown>,profile=parseDedicatedAgentProfile(header.profile);
+  const named=header.format==='cimiloop/agent-dedicated-model-originals/2.0.0'&&header.method_tools==='fixed_named_method/1.0.0';
+  const legacy=header.format==='cimiloop/agent-dedicated-model-originals/1.0.0'&&header.method_tools===undefined;
+  const hostHeader=read(join(hostSpine,'header.json')) as Record<string,unknown>,historicalPermitted=named?['cimi_invoke_skill','cimi_read_method_resource']:['cimi_read','cimi_replace','cimi_check'];
+  if(!Array.isArray(hostHeader.permitted)||(named?!isDeepStrictEqual(hostHeader.permitted,historicalPermitted):hostHeader.permitted.some(n=>!historicalPermitted.includes(String(n)))))fail();
+  if(!legacy&&!named||!isDeepStrictEqual(header.scope,scope)||header.admission_digest!==host.admission_digest||!sha(header.connection_digest)||!isDeepStrictEqual(read(join(body,"header.json")),header)||!host.calls.length)fail();
   const headerDigest=digest(JSON.stringify(header)).value;
   if(host.original_evidence&&!isDeepStrictEqual(host.original_evidence,{kind:"dedicated_zhipu/1.0.0",header_digest:headerDigest}))fail();
   if(frozenBinding!==undefined&&!isDeepStrictEqual(frozenBinding,{format:"cimiloop/agent-model-original-binding/1.0.0",header_digest:digest(bytesAt(join(hostSpine,"header.json"),114688)).value,original_evidence:host.original_evidence}))fail();

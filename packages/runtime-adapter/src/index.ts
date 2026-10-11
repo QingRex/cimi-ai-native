@@ -70,7 +70,12 @@ export{readOriginalDedicatedAgentRunCosts}from'./agent-run-cost-evidence.js';
 
 export type {DedicatedAgentSkillScope} from './agent-skill-account-scope.js';
 export {parseDedicatedAgentSkillAccountScope} from './agent-skill-account-scope.js';
-export {AgentNamedMethodHost} from "./agent-named-method-host.js";
+export {AgentNamedMethodHost,readAgentNamedMethodOriginals} from "./agent-named-method-host.js";
 export type {AgentNamedMethodReceipt} from "./agent-named-method-host.js";
 
 export {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
+
+export {validateFixedMethodOutput} from "./fixed-method.js";
+
+export {readAgentRuntimeNamedMethodResult} from "./agent-named-method-result.js";
+export type {AgentNamedMethodResultInputs,AgentNamedMethodResult} from "./agent-named-method-result.js";

@@ -34,5 +34,5 @@ export class LocalSkillInvocationDedicatedAccount implements DedicatedAgentAccou
  async check(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection){const scope=this.guard(raw);await this.account.check(scope,connection);this.guard(scope);}
  async reserve(raw:AgentWorkspaceToolScope,request:DedicatedAgentBudgetRequest,body:Uint8Array){const scope=this.guard(raw),hold=await this.account.reserve(scope,structuredClone(request),Buffer.from(body),()=>{this.guard(scope);});this.guard(scope);return hold;}
  async verifyHold(raw:AgentWorkspaceToolScope,hold:DedicatedAgentBudgetHold){const scope=this.guard(raw);await this.account.verifyHold(scope,structuredClone(hold));this.guard(scope);}
- createModel(connection:DedicatedModelConnection){this.guard(this.relation.child);return createDedicatedAgentRuntimeModel({root:this.modelRoot,credentialBoundaryRoot:this.local.location.dataDirectory,repositoryPath:this.local.location.repositoryPath,scope:this.scope,connection,account:this});}
+ createModel(connection:DedicatedModelConnection){this.guard(this.relation.child);return createDedicatedAgentRuntimeModel({root:this.modelRoot,credentialBoundaryRoot:this.local.location.dataDirectory,repositoryPath:this.local.location.repositoryPath,scope:this.scope,connection,account:this,methodTools:"fixed_named_method/1.0.0"});}
 }
