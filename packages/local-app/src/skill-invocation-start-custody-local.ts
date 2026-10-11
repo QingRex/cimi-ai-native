@@ -17,6 +17,28 @@ interface Admission {
  format:'cimiloop/skill-invocation-start-admission/1.0.0'; original_method_qualification_ref:SkillInvocation['method_qualification_ref'];
  ticket:AgentStartTicket; admission_anchor_identity:string;
 }
+
+const custodyPaths=(dataDirectory:string,projectId:string,key:string)=>{compileValidator<string>(InternalIdSchema)(projectId);compileValidator<string>(InternalIdSchema)(key);const root=join(dataDirectory,'skill-invocation-start-originals',projectId,key);assertOrdinaryPath(root);return{root,admission:join(root,'admission.json'),dispatch:join(root,'dispatch.json'),id:requestDigest({project_id:projectId,invocation_key:key})};};
+const custodyBasis=(parent:AgentWorkspaceToolScope,record_id:string,context_id:string,skill_binding:SkillInvocation['skill_binding'],input_ref:SkillInvocation['input_ref'],preparation:SkillInvocationPreparation)=>({format:'cimiloop/skill-invocation-start-basis/1.0.0',parent,record_id,context_id,skill_binding,input_ref,preparation});
+const readAdmission=(content:LocalEvidenceVerifier,invocation:SkillInvocation)=>{const raw=structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(content.readContent(invocation.method_qualification_ref)),65536)) as Admission;if(!raw||Object.keys(raw).sort().join(',')!=='admission_anchor_identity,format,original_method_qualification_ref,ticket'||raw.format!=='cimiloop/skill-invocation-start-admission/1.0.0'||!sha(raw.admission_anchor_identity))fail();return raw;};
+// Read-only reuse of the same original birth/basis and independent file anchor.
+export function readOriginalSkillStartAdmission(repositoryPath:string,dataDirectory:string,project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string,stored:unknown) {
+  const content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);
+  if(project.id!==invocation.project_id||resolve(project.repository_path)!==resolve(repositoryPath))fail();
+  const raw=structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(content.readContent(invocation.method_qualification_ref)),65536)) as Admission;
+  if(!raw||Object.keys(raw).sort().join(',')!=='admission_anchor_identity,format,original_method_qualification_ref,ticket'||raw.format!=='cimiloop/skill-invocation-start-admission/1.0.0'||!sha(raw.admission_anchor_identity))fail();
+  const original=structuredClone(compileValidator<SkillInvocation['method_qualification_ref']>(SkillMethodQualificationReferenceSchema)(raw.original_method_qualification_ref));content.readContent(original);
+  const path=custodyPaths(dataDirectory,project.id,invocation.invocation_key);
+  if(identity(path.admission)!==raw.admission_anchor_identity||!equal(read(path.admission),{format:'cimiloop/skill-invocation-admission-anchor/1.0.0',ticket:raw.ticket}))fail();
+  const prepared={request:invocation.request,package_ref:invocation.package_ref,input_schema_ref:invocation.input_schema_ref,output_schema_ref:invocation.output_schema_ref,method_qualification_ref:original};
+  const expected=custodyBasis(parent,recordId,invocation.context_ref.id,invocation.skill_binding,invocation.input_ref,prepared);
+  // Match the original parent RunRecord supplied by the shared snapshot.
+  const receipt=stored as {format:string;namespace:string;id:string;basis:Record<string,unknown>};
+  if(!receipt||receipt.format!=='cimiloop/host-exclusive-ticket/1.0.0'||receipt.namespace!=='skill_invocation_admission'||receipt.id!==path.id||!receipt.basis||typeof receipt.basis.record_id!=='string')fail();
+  if(!equal(receipt.basis,expected))fail();
+  return {path,ticket:structuredClone(raw.ticket),original};
+ }
+
 const ns='skill_invocation_dispatch',returned='skill_invocation_returned';
 // Explicit prospective composition at original preparation only. An old
 // reserved invocation is never upgraded/wrapped on start or on a new machine.
@@ -53,19 +75,7 @@ export class LocalSkillInvocationStartCustody {
   return {...prepared,method_qualification_ref:reference};
  }
  private original(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string) {
-  if(project.id!==invocation.project_id||resolve(project.repository_path)!==resolve(this.repositoryPath))fail();
-  const raw=structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(this.content.readContent(invocation.method_qualification_ref)),65536)) as Admission;
-  if(!raw||Object.keys(raw).sort().join(',')!=='admission_anchor_identity,format,original_method_qualification_ref,ticket'||raw.format!=='cimiloop/skill-invocation-start-admission/1.0.0'||!sha(raw.admission_anchor_identity))fail();
-  const original=structuredClone(compileValidator<SkillInvocation['method_qualification_ref']>(SkillMethodQualificationReferenceSchema)(raw.original_method_qualification_ref));this.content.readContent(original);
-  const path=this.paths(project.id,invocation.invocation_key);
-  if(identity(path.admission)!==raw.admission_anchor_identity||!equal(read(path.admission),{format:'cimiloop/skill-invocation-admission-anchor/1.0.0',ticket:raw.ticket}))fail();
-  const prepared={request:invocation.request,package_ref:invocation.package_ref,input_schema_ref:invocation.input_schema_ref,output_schema_ref:invocation.output_schema_ref,method_qualification_ref:original};
-  const expected=this.basis(parent,recordId,invocation.context_ref.id,invocation.skill_binding,invocation.input_ref,prepared);
-  // Match the original parent RunRecord supplied by the shared snapshot.
-  const stored=this.ledger.readTicket(raw.ticket) as {format:string;namespace:string;id:string;basis:Record<string,unknown>};
-  if(!stored||stored.format!=='cimiloop/host-exclusive-ticket/1.0.0'||stored.namespace!=='skill_invocation_admission'||stored.id!==path.id||!stored.basis||typeof stored.basis.record_id!=='string')fail();
-  if(!equal(stored.basis,expected))fail();
-  return {path,ticket:structuredClone(raw.ticket),original};
+  const raw=readAdmission(this.content,invocation);return readOriginalSkillStartAdmission(this.repositoryPath,this.dataDirectory,project,invocation,parent,recordId,this.ledger.readTicket(raw.ticket));
  }
  accountScope(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string):DedicatedAgentSkillScope {
   const original=this.original(project,invocation,parent,recordId);

@@ -208,6 +208,8 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  }
  private seals(){return this.attachment?this.attachment.seals():this.db.prepare("SELECT id,body,digest FROM account_bills ORDER BY id").all().map(r=>({id:r.id,body:r.body,digest:r.digest}));}
  observeBill(bytes:Uint8Array){if(!this.bills)fail("agent_account_bill_verifier_unavailable");return this.read(rows=>this.bills!.observe(bytes,rows.map(r=>parse(String(r.hold)) as DedicatedAgentBudgetHold),()=>this.seals(),(id,body,hash)=>{if(this.attachment)this.attachment.seal(id,body,hash);else this.db.prepare("INSERT INTO account_bills VALUES(?,?,?)").run(id,body,hash);}),true);}
+ // Audited historical registration and birth receipt only; no Host writer port.
+ readOriginalSkillScopes(raw:AgentWorkspaceToolScope){const parent=parseAgentWorkspaceToolScope(raw);return this.read(()=>this.skillScopes.children(parent).map(child=>{const relation=this.skillScopes.relation(child)!;return{relation,admission:this.options.origin.readTicket(relation.admission_ticket)};}));}
  readRunCosts(raw:AgentWorkspaceToolScope){const scope=parseAgentWorkspaceToolScope(raw),scopeDigest=digest(JSON.stringify(scope)).value;return this.read((rows,funds)=>{
   this.skillScopes.assertCompatible(scope,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));
   if((!this.skillScopes.relation(scope)&&this.skillScopes.children(scope).length>0))fail("agent_account_family_costs_required");

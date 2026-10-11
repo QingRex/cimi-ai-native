@@ -3,10 +3,11 @@ import { join, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { parseCommand, compileValidator, RawAgentRunObservationSchema, SCHEMA_VERSION, isInternalId,
   type RawAgentRunObservation, type Project, type AgentRunRecord, type AgentContextManifest } from "@cimiloop/protocol/v2";
-import { DedicatedAgentAccountLedger, readOriginalDedicatedAgentRunCosts, verifyCollectedDedicatedAgentModelOriginals, verifyCollectedAgentRuntimeInterruption, verifyCollectedAgentRuntimeCancellation, readAgentRuntimeCancellationOriginal, verifyOriginalTaskExecutionResult, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, agentWorkspaceIpcScopeDigest, bytesAt, directory, digest, parseGatewayJson, type OriginalTaskDomainBasis } from "@cimiloop/runtime-adapter";
+import { DedicatedAgentAccountLedger, verifyCollectedDedicatedAgentModelOriginals, verifyCollectedAgentRuntimeInterruption, verifyCollectedAgentRuntimeCancellation, readAgentRuntimeCancellationOriginal, verifyOriginalTaskExecutionResult, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, agentWorkspaceIpcScopeDigest, bytesAt, directory, digest, parseGatewayJson, type OriginalTaskDomainBasis } from "@cimiloop/runtime-adapter";
 import { LocalEvidenceVerifier, type ContentReference } from "./evidence-local.js";
 import { executeLocalCommand, type LocalCommandInput } from "./project.js";
 import { readHumanOriginalAgentRunInputs, type AgentRuntimeControlContext } from "./agent-runtime-control-local.js";
+import{readOriginalLocalAgentRunCosts,type LocalAgentRunFamilyReader}from'./agent-run-family-costs-local.js';
 import { LocalProjectError } from "./errors.js";
 import {classifyOriginalAgentExecutionFailure,type OriginalAgentExecutionFailure} from "./agent-runtime-failure-local.js";
 import {readOriginalAgentTerminal} from './agent-runtime-terminal-local.js';
@@ -23,7 +24,7 @@ interface Intent { format:"cimiloop/agent-unknown-observation-request/1.0.0"|"ci
   scope:Original["scope"]; context_id:string; record_digest:string; context_digest:string }
 interface Proof { format:"cimiloop/agent-unknown-observation-proof/1.0.0"|"cimiloop/agent-failed-observation-proof/1.0.0"|"cimiloop/agent-billed-observation-proof/1.0.0"|"cimiloop/agent-billed-reconciliation-proof/1.0.0"|"cimiloop/agent-billed-reconciliation-proof/2.0.0"; terminal_proven?:true; execution_failure?:OriginalAgentExecutionFailure; intent:Intent; original:Identity; observed_at:string;
   terminal?:ReturnType<typeof readOriginalAgentTerminal>; resolves_observation_refs?:RawAgentRunObservation['resolves_observation_refs'];
-  cost_evidence?:ReturnType<typeof readOriginalDedicatedAgentRunCosts>; execution_result_ref?:RawAgentRunObservation["result_proof_ref"]; collection_ref:RawAgentRunObservation["result_proof_ref"]; completion_proven:boolean; costs_reconciled:boolean }
+  cost_evidence?:ReturnType<typeof readOriginalLocalAgentRunCosts>; execution_result_ref?:RawAgentRunObservation["result_proof_ref"]; collection_ref:RawAgentRunObservation["result_proof_ref"]; completion_proven:boolean; costs_reconciled:boolean }
 interface Prepared { format:"cimiloop/agent-unknown-observation-prepared/1.0.0"|"cimiloop/agent-billed-observation-prepared/1.0.0"|"cimiloop/agent-billed-reconciliation-prepared/1.0.0";
   raw_result_ref:Extract<ContentReference,{resource_type:"agent_run"}>; proof_ref:RawAgentRunObservation["result_proof_ref"] }
 // IPC journal: 128 exchanges * four artifacts, header, ten Runtime files,
@@ -32,7 +33,16 @@ const MAX_ORIGINAL_ARTIFACTS=128*4+1+10+1;
 const exact=(value:unknown,keys:string[]):value is Record<string,unknown>=>!!value&&typeof value==="object"&&!Array.isArray(value)&&Object.keys(value).sort().join(",")===keys.sort().join(",");
 // The strict parser uses null-prototype objects. Normalize only after parsing
 // (including duplicate/dangerous-key checks) for persisted value comparisons.
-const parsed=(bytes:Buffer)=>structuredClone(parseGatewayJson(new TextDecoder("utf-8",{fatal:true}).decode(bytes),8*1024*1024));
+// Only new canonical family fee proofs may exceed the gateway node limit.
+// Legacy JSON continues through its original strict parser and byte/depth bounds.
+export function parseOriginalAgentCostProofBytes(bytes:Buffer):unknown{
+ if(!bytes.length||bytes.length>8*1024*1024)throw Error('Original family proof byte bound');
+ const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes),value:unknown=JSON.parse(text);
+ if(JSON.stringify(value)!==text)throw Error('Original family proof canonical bytes required');
+ const stack=[{value,depth:0}];let nodes=0;while(stack.length){const next=stack.pop()!;if(++nodes>524288||next.depth>64)throw Error('Original family proof structural bound');if(next.value&&typeof next.value==='object')for(const [key,child]of Object.entries(next.value)){if(['__proto__','constructor','prototype'].includes(key))throw Error('Original family proof forbidden key');stack.push({value:child,depth:next.depth+1});}}
+ const proof=value as {format?:string;cost_evidence?:{format?:string}};if(!proof||!['cimiloop/agent-billed-observation-proof/1.0.0','cimiloop/agent-billed-reconciliation-proof/1.0.0','cimiloop/agent-billed-reconciliation-proof/2.0.0'].includes(proof.format??'')||proof.cost_evidence?.format!=='cimiloop/agent-run-family-cost-evidence/1.0.0')throw Error('Original family proof format required');return structuredClone(value);
+}
+const parsed=(bytes:Buffer)=>{try{return structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(bytes),8*1024*1024));}catch{return parseOriginalAgentCostProofBytes(bytes);}};
 const read=(path:string)=>parsed(bytesAt(path,8*1024*1024));
 const saveOnce=(path:string,value:unknown)=>{try{writeFileSync(path,JSON.stringify(value),{flag:"wx"});const fd=openSync(path,"r+");try{fsyncSync(fd);}finally{closeSync(fd);}}
  catch(error){if(!(error&&typeof error==="object"&&"code" in error&&error.code==="EEXIST"))throw error;}};
@@ -86,7 +96,7 @@ const validateCollection=(root:string,identity:Identity,value:unknown)=>{
 
 export class LocalAgentRunResultVerifier {
  private readonly content:LocalEvidenceVerifier;
- constructor(private readonly repositoryPath:string,private readonly dataDirectory:string,private readonly accountForRun?:(runId:string)=>DedicatedAgentAccountLedger){this.content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);}
+ constructor(private readonly repositoryPath:string,private readonly dataDirectory:string,private readonly accountForRun?:(runId:string)=>DedicatedAgentAccountLedger,private readonly familyReader?:LocalAgentRunFamilyReader){this.content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);}
  readRunResult(project:Project,record:AgentRunRecord,context:AgentContextManifest,reference:Prepared["raw_result_ref"],domain:OriginalTaskDomainBasis):RawAgentRunObservation {
   if(resolve(project.repository_path)!==resolve(this.repositoryPath))throw Error("Original result project mismatch");
   const report=compileValidator<RawAgentRunObservation>(RawAgentRunObservationSchema)(parsed(this.content.readContent(reference)));
@@ -99,7 +109,7 @@ export class LocalAgentRunResultVerifier {
     !isDeepStrictEqual(read(join(pathFor(this.dataDirectory,project.id,record.run_id,intent.request.command_id),"request.json")),intent))throw Error("Original prepared result mismatch");
   const collection=parsed(this.content.readContent(proof.collection_ref));
   validateCollection(this.dataDirectory,proof.original,collection);
-  if(proof.cost_evidence){if(!this.accountForRun||!['cimiloop/agent-billed-observation-request/1.0.0','cimiloop/agent-billed-reconciliation-request/1.0.0'].includes(proof.intent.format)||!isDeepStrictEqual(proof.cost_evidence,readOriginalDedicatedAgentRunCosts(this.dataDirectory,intent.scope,this.accountForRun(record.run_id))))throw Error("Original bill/model costs unproven");}
+  if(proof.cost_evidence){if(!this.accountForRun||!['cimiloop/agent-billed-observation-request/1.0.0','cimiloop/agent-billed-reconciliation-request/1.0.0'].includes(proof.intent.format)||!isDeepStrictEqual(proof.cost_evidence,readOriginalLocalAgentRunCosts(this.repositoryPath,this.dataDirectory,intent.scope,this.accountForRun(record.run_id),this.familyReader)))throw Error("Original bill/model costs unproven");}
   if(proof.terminal&&!isDeepStrictEqual(proof.terminal,readOriginalAgentTerminal(this.dataDirectory,project,record,context,proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>,domain)))throw Error('Original terminal unproven');
   if(proof.execution_result_ref){const verified=verifyOriginalTaskExecutionResult(this.dataDirectory,project,record,context,proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>,domain);
     if(!verified||!isDeepStrictEqual(parsed(this.content.readContent(proof.execution_result_ref)),verified))throw Error("Original task execution result unproven");}
@@ -155,7 +165,7 @@ export class LocalAgentRuntimeObservation {
     const domain="code" in definition||"code" in contract||"code" in plan?undefined:
       {definition:definition.object,contract:contract.object,plan:plan.object,run:original.run} as OriginalTaskDomainBasis;
     const execution=failure?null:verifyOriginalTaskExecutionResult(this.local.location.dataDirectory,original.project,original.record,original.context,identity,collection,domain);
-    const cost_evidence=billed&&account?readOriginalDedicatedAgentRunCosts(this.local.location.dataDirectory,original.scope,account):undefined;
+    const cost_evidence=billed&&account?readOriginalLocalAgentRunCosts(this.local.location.repositoryPath,this.local.location.dataDirectory,original.scope,account,this.local.store as LocalAgentRunFamilyReader):undefined;
     if(billed&&(!cost_evidence||cost_evidence.costs.currency!==original.record.cost_currency))throw Error('Original cost currency/account unproven');
     const terminal=reconciling?readOriginalAgentTerminal(this.local.location.dataDirectory,original.project,original.record,original.context,identity,collection,domain):undefined;
     const runs=reconciling?this.local.kernel.getRuns?.(original.record.change_id):undefined;

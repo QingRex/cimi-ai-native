@@ -1,5 +1,7 @@
 # CimiLoop 原 Skill 账单用量与领域观察 v0.1
 
+2026-10-11 D-272：父 Run 与 Kernel 全部原 Skill 子调用的模型/hold/认证账单已接共享 Human 费用服务和 Kernel RunObservation 复验；完整 family 总额只计一次，仍保持 Unknown、未决预约与 Task 待核对。新内部 family 费用证明显式兼容旧单范围原义，默认 Agent 关闭、零付费、242 Schema/库10与完整五组 active 保持。验证和构造父模型边界见 [D-272 实施记录](CimiLoop-原父子运行费用聚合-v0.1.md)。
+
 2026-10-11，D-271，接续 [D-270 原应用执行与结果采集](CimiLoop-Skill原应用执行与结果采集-v0.1.md)。本批把原专用账户最终账单接入原 Skill 采集与 Kernel SkillInvocationObservation。账单用量、执行结果和父运行结清分别核验；正式 Agent 默认入口保持关闭，242 Schema、用户库格式 10 不变。
 
 ## 实际接入路径

@@ -6,6 +6,7 @@ import { requestDigest, type RunVerifierPort } from "@cimiloop/kernel";
 import { compileValidator, WorkspaceManifestSchema, type Project, type SourceSnapshot, type WorkspaceManifest, type WorkspaceSnapshot, type RunObservation } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { readWorkspaceToolRunFacts,resolveOriginalWorkspaceFileChain,bytesAt,digest as byteDigest,type readWorkspaceFileRunOriginals,type DedicatedAgentAccountLedger } from "@cimiloop/runtime-adapter";
+import type{LocalAgentRunFamilyReader}from'./agent-run-family-costs-local.js';
 import { LocalAgentRunResultVerifier } from "./agent-runtime-observation-local.js";
 
 const digest = (value: unknown) => ({ algorithm: "sha256" as const, value: requestDigest(value) });
@@ -16,9 +17,9 @@ export class LocalRunVerifier implements RunVerifierPort {
   readonly content: LocalEvidenceVerifier;
   readonly agent: NonNullable<RunVerifierPort["agent"]>;
   readonly tools: NonNullable<RunVerifierPort["tools"]> = { facts: (project, record) => readWorkspaceToolRunFacts(this.dataDirectory, project, record) };
-  constructor(readonly repositoryPath: string, readonly dataDirectory: string,accountForRun?:(runId:string)=>DedicatedAgentAccountLedger) {
+  constructor(readonly repositoryPath: string, readonly dataDirectory: string,accountForRun?:(runId:string)=>DedicatedAgentAccountLedger,familyReader?:LocalAgentRunFamilyReader) {
     this.content = new LocalEvidenceVerifier(repositoryPath, dataDirectory);
-    const results = new LocalAgentRunResultVerifier(repositoryPath, dataDirectory,accountForRun);
+    const results = new LocalAgentRunResultVerifier(repositoryPath, dataDirectory,accountForRun,familyReader);
     this.agent = { admitContext: () => { throw new Error("Agent live admission unavailable"); },
       readRunResult: (project, record, context, reference, domain) => results.readRunResult(project, record, context, reference, domain) };
   }

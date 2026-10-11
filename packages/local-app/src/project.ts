@@ -38,7 +38,7 @@ export const openLocalProject = (options: { projectDir?: string; agentRunCostAcc
     }
     const kernel = new CimiLoopKernel({ store, caller: { kind: "local_operator", project_id: project.id, actor_id: actor.id },
       evidenceVerifier: new LocalEvidenceVerifier(location.repositoryPath, location.dataDirectory),
-      runVerifier: new LocalRunVerifier(location.repositoryPath, location.dataDirectory,options.agentRunCostAccount),
+      runVerifier: new LocalRunVerifier(location.repositoryPath, location.dataDirectory,options.agentRunCostAccount,store),
       providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory),
       ...(options.planningClarification?{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification)}:{}) });
     return { location, instance, store, kernel };

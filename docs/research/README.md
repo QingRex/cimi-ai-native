@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+2026-10-11 D-272：父 Run 与 Kernel 全部原 Skill 子调用的模型/hold/认证账单已接共享 Human 费用服务和 Kernel RunObservation 复验；完整 family 总额只计一次，仍保持 Unknown、未决预约与 Task 待核对。新内部 family 费用证明显式兼容旧单范围原义，默认 Agent 关闭、零付费、242 Schema/库10与完整五组 active 保持。验证和构造父模型边界见 [D-272 实施记录](../implementation/CimiLoop-原父子运行费用聚合-v0.1.md)。
+
 2026-10-11 D-271：原 Skill 结果采集已接同一 child 原调用/hold/认证最终账单与父币种，分别核现金和积分；Kernel 可记录已核定子费用，仍保持 Unknown、原预约和 Task 待核对，不能以账单代替成功或父费用结清。旧未知费用证明保持兼容，正式 Agent 关闭、零付费、242 Schema/库10及完整五组active不变，详见 [D-271实施记录](../implementation/CimiLoop-Skill原账单用量与领域观察-v0.1.md)。
 
 2026-10-11 D-270：共享原 Skill 应用已实际接 Native/SDK/专用账本、不可变结果采集和 Kernel Unknown 观察；丢失及迟到启动回执沿用同一原操作，候选采集不完成 Task、不结算费用。修复 Windows 原路径、C# 编译及新旧 IPC 缓存组合，242 Schema/库10、默认Agent关闭与完整五组active保持。D-269 本地旧类型检查日志被误覆盖的证据缺口已明确记录，详见 [D-270实施记录](../implementation/CimiLoop-Skill原应用执行与结果采集-v0.1.md)。

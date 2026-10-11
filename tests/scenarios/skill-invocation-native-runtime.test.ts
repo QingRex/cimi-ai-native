@@ -1,13 +1,16 @@
 import {execFileSync} from 'node:child_process';
-import {mkdtempSync,mkdirSync,writeFileSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,renameSync,unlinkSync} from 'node:fs';
 import {join,dirname} from 'node:path';
 import {describe,it,expect,vi} from 'vitest';
 import {CimiLoopKernel} from '../../packages/kernel/src/index.js';
 import {contentDigest} from '../../packages/kernel/src/intent.js';
 import {SCHEMA_VERSION,createInternalId,type SkillImportSpec,type ProviderBinding,type ProviderEvidence,type ProviderEvaluation} from '../../packages/protocol/src/v2/index.js';
-import {LocalSkillMethodInputs,LocalSkillInvocationStartCustody,LocalSkillInvocationExecution,LocalSkillInvocationNativeComposition,LocalSkillInvocationDedicatedAccount,LocalSkillInvocationResultCollection} from '../../packages/local-app/src/index.js';
+import {LocalSkillMethodInputs,LocalSkillInvocationStartCustody,LocalSkillInvocationExecution,LocalSkillInvocationNativeComposition,LocalSkillInvocationDedicatedAccount,LocalSkillInvocationResultCollection,LocalHumanAgentRunCostObservation,LocalAgentRuntimeObservation,openLocalProject,writeInstance} from '../../packages/local-app/src/index.js';
 import {readOriginalSkillInvocation,type SkillInvocationExecutionContext} from '../../packages/local-app/src/skill-invocation-execution-local.js';
-import {AgentStartLedger,DedicatedAgentAccountLedger,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,digest} from '../../packages/runtime-adapter/dist/index.js';
+import {readOriginalLocalAgentRunCosts,type LocalAgentRunFamilyReader} from '../../packages/local-app/src/agent-run-family-costs-local.js';
+import {AgentStartLedger,DedicatedAgentAccountLedger,parseDedicatedAgentSkillAccountScope,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,digest} from '../../packages/runtime-adapter/dist/index.js';
+import {claimAgentRuntimeOperation} from '../../packages/runtime-adapter/src/agent-runtime-operation.js';
+import {AgentRuntimeModelHost,parseAgentRuntimeModelRequest} from '../../packages/runtime-adapter/src/agent-runtime-model.js';
 import {createDedicatedAgentRuntimeModel} from '../../packages/runtime-adapter/src/agent-dedicated-model.js';
 import {httpFixture,HTTP_FIXTURE_KEY} from '../../packages/runtime-adapter/test/gateway-http-fixture.js';
 import {createAgentRunProject} from '../fixtures/agent-run-project.js';
@@ -30,7 +33,7 @@ it('executes the original reserved child and queries/retries without another Nat
  const git=(...args:string[])=>execFileSync('git',['-c','commit.gpgsign=false','-c','core.hooksPath=disabled-hooks','-C',source,...args],{encoding:'utf8',windowsHide:true,stdio:['pipe','pipe','pipe']}).trim();
  git('init');git('config','user.name','Fixture');git('config','user.email','fixture@example.test');git('add','.');git('commit','-m','public constructed method');
  const f=createAgentRunProject(repository,'task_execution',500,undefined,undefined,undefined,undefined,240000),dataDirectory=dirname(f.path),inputs=new LocalSkillMethodInputs(repository,dataDirectory);
- let origin:AgentStartLedger|undefined,account:DedicatedAgentAccountLedger|undefined,tls:Awaited<ReturnType<typeof httpFixture>>|undefined;
+ let origin:AgentStartLedger|undefined,account:DedicatedAgentAccountLedger|undefined,tls:Awaited<ReturnType<typeof httpFixture>>|undefined,parentTls:Awaited<ReturnType<typeof httpFixture>>|undefined;
  try {
   const spec:SkillImportSpec={format:'cimiloop/skill-import/1.0.0',repository_url:'https://example.test/public-skills',commit_id:git('rev-parse','HEAD'),entry_path:'skills/entry',license_path:'LICENSE',name:'application-method-fixture',version:'1.0.0',modules:[{path:'skills/entry',dependencies:['skills/dependency']},{path:'skills/dependency',dependencies:[]}],capabilities:[{capability_id:'verification.review',version:'1.0.0'}],provider_dependencies:[],required_permissions:{actions:[],resources:[],environment_ids:[],network_hosts:[]},harness_requirements:['invoke_skills'],dependency_review:'Constructed qualification and method; not real Matt or Superpowers.'};
   const imported=inputs.packages.importGit(source,spec),registration=flowSuccess(f.humanKernel.execute(f.projectCommand('RegisterProvider',imported.registration)));if(registration.command_type!=='RegisterProvider')throw Error('Expected provider');const descriptor=registration.data.descriptor;
@@ -56,6 +59,14 @@ it('executes the original reserved child and queries/retries without another Nat
   const policy={format:'cimiloop/dedicated-agent-account/1.0.0' as const,host_identity_digest:origin.identityDigest,account_digest:digest(root).value,approval_digest:digest('constructed approval').value,package_digest:digest('constructed package').value,tariff_digest:digest('constructed tariff').value,admission_digest:digest('constructed admission').value,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:'glm-fixture',thinking:'enabled' as const},cash_limit_micros:500,credit_limit_micro_units:200,cash_per_call_upper_micros:30,credit_per_call_upper_micro_units:10,input_token_limit:1000000,output_token_limit:512};
   const currency=f.store.getRuntimeRecord('run_record',original.record_id)!.cost_currency!,billProjections=new Map<string,unknown>();
   account=DedicatedAgentAccountLedger.initialize({origin,repositoryPath:repository,root:join(root,'public-account'),policy,connection,admission:{check:async()=>{},checkSkillScope:async()=>{}},custody:{protect:()=>{},verify:()=>{}},billing:{identity_digest:digest('PUBLIC constructed Skill bill verifier').value,currency,credit_unit:'coding_request_micro_units',verifyOriginal:bytes=>{const projection=billProjections.get(digest(bytes).value);if(!projection)throw Error('PUBLIC original bill authentication absent');return projection;}}});
+  // PUBLIC CONSTRUCTED parent model originals only; this parent claim is not
+  // a Native process or formal execution. The Skill child below is actual Native.
+  parentTls=await httpFixture({reply:raw=>({content_type:'application/json',chunks:[Buffer.from(JSON.stringify({id:'PUBLIC-parent-cost-1',model:'glm-fixture',request_id:(raw as {request_id:string}).request_id,choices:[{index:0,message:{role:'assistant',content:'PUBLIC constructed parent result',reasoning_content:'PUBLIC parent reasoning'},finish_reason:'stop'}],usage:{prompt_tokens:5,completion_tokens:5,total_tokens:10}}))]})});
+  const parentHost=await AgentRuntimeModelHost.initialize(dataDirectory,relation.parent,createDedicatedAgentRuntimeModel({root:dataDirectory,repositoryPath:repository,credentialBoundaryRoot:dataDirectory,scope:relation.parent,connection,account},{boundary:parentTls.boundary,readCredential:async()=>HTTP_FIXTURE_KEY}),['cimi_read']);
+  claimAgentRuntimeOperation(dataDirectory,relation.parent,{purpose:'agent_runtime',model_original_binding:parentHost.originalBinding},{pid:1234,creation_ticks:'123456',image:process.execPath});
+  await parentHost.execute(parseAgentRuntimeModelRequest(relation.parent,{format:'cimiloop/agent-runtime-model-request/1.0.0',scope_digest:digest(JSON.stringify(relation.parent)).value,admission_digest:account.admission_digest,call_id:'model_0001',tool:'model_step',prompt:[{role:'user',content:'PUBLIC constructed parent cost'}],tools:[],max_output_tokens:512},['cimi_read']));
+  // Kernel already owns this reservation; an account-only empty family is not complete.
+  expect(()=>readOriginalLocalAgentRunCosts(repository,dataDirectory,relation.parent,account!,f.store as unknown as LocalAgentRunFamilyReader)).toThrow();
   const actions=[...plan.profile.modules.map(m=>({name:'cimi_invoke_skill',args:{name:m.name}})),...plan.profile.resources.filter(r=>r.kind!=='definition').map(r=>({name:'cimi_read_method_resource',args:{path:r.path}}))];let sends=0,credentialReads=0;
   const output={purpose:'review',findings:[],limitations:['Constructed method/provider reply; not actual method qualification.']};
   tls=await httpFixture({reply:raw=>{const body=raw as {request_id:string},action=actions[sends++],response={id:'public_original_'+sends,object:'chat.completion',model:'glm-fixture',request_id:body.request_id,choices:[{index:0,message:{role:'assistant',content:action?null:JSON.stringify(output),reasoning_content:'Public controlled reasoning',...(action?{tool_calls:[{id:'public_call_'+sends,type:'function',function:{name:action.name,arguments:JSON.stringify(action.args)}}]}:{})},finish_reason:action?'tool_calls':'stop'}],usage:{prompt_tokens:7,completion_tokens:9,total_tokens:16}};return {content_type:'application/json',chunks:[Buffer.from(JSON.stringify(response))]};}});
@@ -70,7 +81,7 @@ it('executes the original reserved child and queries/retries without another Nat
   const modelRoot=join(dataDirectory,'skill-runtime-originals',f.project.id,invocation.invocation_key);
   expect(readAgentRuntimeNamedMethodResult(modelRoot,relation.child,plan)).toMatchObject({status:'Observed',method_result_reverified:true,output});
   expect(readDedicatedAgentModelOriginals(modelRoot,relation.child).summary).toMatchObject({status:'Observed',original_requirement_pinned:true,budget_identity_pinned:true,costs_reconciled:false});
-  expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);expect(account.snapshot().holds).toBe(sends);
+  expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);expect(account.snapshot().holds).toBe(sends+1);
   const replay=new LocalSkillInvocationExecution(local,{custody});expect(replay.query(invocation.id)).toMatchObject({outcome:'unknown'});expect(await replay.start(invocation.id)).toMatchObject({outcome:'unknown'});expect(sends).toBe(actions.length+1);
   expect(f.store.listRuns(f.change.id)).toHaveLength(1);expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.store.getRun(invocation.run_ref.id)?.status).toBe('Reserved');
   const collector=new LocalSkillInvocationResultCollection({local,custody,inputs}),captured=collector.capture(invocation.id);
@@ -130,6 +141,31 @@ it('executes the original reserved child and queries/retries without another Nat
   expect(billedCapture()).toEqual(fees);expect(new LocalSkillInvocationResultCollection({local,custody,inputs,...{account}}).readResult(f.project,invocation,fees.reference)).toEqual(fees.report);
   expect(billed.readResult(f.project,invocation,captured.reference)).toEqual(captured.report);expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);expect(account.snapshot()).toEqual(accountBefore);
 
- } finally {vi.restoreAllMocks();await tls?.close();account?.close();origin?.close();f.store.close();console.error('Retain original Skill application Native fixture: '+root+'; repository: '+repository);}
-},480000);
+  // Full family fees enter the shared Human application. Neither this direct
+  // parent model fixture nor fee evidence may manufacture a parent terminal.
+  writeInstance(join(dataDirectory,'instance.json'),{schema_version:'1.0.0',instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});
+  const human=openLocalProject({projectDir:repository});try{
+   let parentReleases=0;const parentFees=new LocalHumanAgentRunCostObservation(human,()=>({account:account!,release(){parentReleases++;}}));
+   const parentRequest={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:'technical_owner',command_type:'RecordRunObservation',target:{object_type:'run',id:invocation.run_ref.id},expected_revision:human.store.getRun(invocation.run_ref.id)!.revision,payload:{}};
+   const beforeFamily=human.store.asOfEventSequence();await expect(parentFees.record(parentRequest)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(human.store.asOfEventSequence()).toBe(beforeFamily);
+   const parentCalls=readDedicatedAgentModelOriginals(dataDirectory,relation.parent).calls;expect(parentCalls).toHaveLength(1);expect(parentCalls[0]!.call_id).toBe(modelCalls[0]!.call_id);expect(parentCalls[0]!.request_id).not.toBe(modelCalls[0]!.request_id);
+   addBill(parentCalls,3);const settledAccount=account.snapshot();
+   // Prepare once without a fee verifier. Kernel refuses it; no business event.
+   const preparedOnly=await new LocalAgentRuntimeObservation(human).recordCosts(parentRequest,account);expect(preparedOnly).toMatchObject({code:'EVIDENCE_MISSING'});expect(human.store.asOfEventSequence()).toBe(beforeFamily);
+   const familyAuth=new Map(billProjections);billProjections.clear();try{expect(await parentFees.record(parentRequest)).toMatchObject({code:'EVIDENCE_MISSING'});expect(human.store.asOfEventSequence()).toBe(beforeFamily);}finally{for(const[k,v]of familyAuth)billProjections.set(k,v);}
+   // Replace only this test-owned anchor with identical bytes; physical identity must fail.
+   const anchor=join(dataDirectory,'skill-invocation-start-originals',f.project.id,invocation.invocation_key,'admission.json'),retained=anchor+'.owned-original',anchorBytes=readFileSync(anchor);renameSync(anchor,retained);writeFileSync(anchor,anchorBytes,{flag:'wx'});try{expect(await parentFees.record(parentRequest)).toMatchObject({code:'EVIDENCE_MISSING'});expect(human.store.asOfEventSequence()).toBe(beforeFamily);}finally{unlinkSync(anchor);renameSync(retained,anchor);}
+   const familyReceipt=await parentFees.record(parentRequest);
+   expect(familyReceipt).toMatchObject({command_type:'RecordRunObservation',data:{run:{status:'Unknown',cost_charged_micros:(modelCalls.length+1)*12,reservation_released:false},observation:{report:{status:'unknown',usage:{cost_known:true,cost_micros:(modelCalls.length+1)*12,currency}}}}});
+   expect(human.store.getExecutionObject('task',human.store.getRun(invocation.run_ref.id)!.task_id)!.usage).toMatchObject({cost_consumed_micros:(modelCalls.length+1)*12,cost_reserved_micros:500-(modelCalls.length+1)*12,pending_reconciliation:true,attempts_released:0});
+   const afterFamily=human.store.asOfEventSequence();expect(await parentFees.record(parentRequest)).toEqual(familyReceipt);expect(human.store.asOfEventSequence()).toBe(afterFamily);expect(parentReleases).toBe(4);expect(account.snapshot()).toEqual(settledAccount);expect(parentTls.observations).toHaveLength(1);expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);
+   const extraScope=parseDedicatedAgentSkillAccountScope({...relation.parent,operation_key:createInternalId(),context_digest:digest('PUBLIC extra unstarted child')});
+   const extraTicket=origin.issueExclusive('skill_invocation_admission',digest(JSON.stringify({invocation_key:extraScope.operation_key,project_id:f.project.id})).value,{format:'cimiloop/skill-invocation-start-basis/1.0.0',parent:relation.parent,record_id:original.record_id,context_id:invocation.context_ref.id,skill_binding:invocation.skill_binding,input_ref:invocation.input_ref,preparation:{request:{invocation_key:extraScope.operation_key}}});
+   await account.registerSkillScope({parent:relation.parent,child:extraScope,invocation_id:createInternalId(),admission_ticket:extraTicket});
+   await expect(parentFees.record({...parentRequest,command_id:createInternalId(),requested_at:new Date().toISOString(),expected_revision:human.store.getRun(invocation.run_ref.id)!.revision})).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(human.store.asOfEventSequence()).toBe(afterFamily);
+   expect(await parentFees.record(parentRequest)).toEqual(familyReceipt);expect(parentReleases).toBe(5);expect(parentTls.observations).toHaveLength(1);expect(sends).toBe(actions.length+1);expect(credentialReads).toBe(sends);
+  }finally{human.store.close();}
+
+ } finally {vi.restoreAllMocks();await parentTls?.close();await tls?.close();account?.close();origin?.close();f.store.close();console.error('Retain original Skill application Native fixture: '+root+'; repository: '+repository);}
+},720000);
 });
