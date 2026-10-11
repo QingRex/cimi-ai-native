@@ -44,19 +44,19 @@ export class LocalAgentStartCustody {
     this.content.readContent(original); const ticket = this.ledger.issue(captured.basis);
     return this.content.storeContent(Buffer.from(JSON.stringify({ format: "cimiloop/agent-start-host-admission/1.0.0", original_host_admission_ref: original, ticket })), "agent_host_admission");
   }
-  private read(reference: Reference): Admission {
+  private read(reference: Reference, verifyTicket=true): Admission {
     const ref = compileValidator<Reference>(AgentHostAdmissionReferenceSchema)(structuredClone(reference));
     const body = copyToolJson(parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(this.content.readContent(ref)), 65536));
     if (!exact(body, ["format", "original_host_admission_ref", "ticket"]) || body.format !== "cimiloop/agent-start-host-admission/1.0.0") fail();
     const original = structuredClone(compileValidator<Reference>(AgentHostAdmissionReferenceSchema)(body.original_host_admission_ref));
-    this.content.readContent(original); this.ledger.readTicket(body.ticket as AgentStartTicket);
+    this.content.readContent(original); if(verifyTicket)this.ledger.readTicket(body.ticket as AgentStartTicket);
     return { format: "cimiloop/agent-start-host-admission/1.0.0", original_host_admission_ref: original, ticket: structuredClone(body.ticket) as AgentStartTicket };
   }
   // Trusted composition only: re-read and prove the pinned start origin before
   // delegating the unchanged inner admission to its own independent subsystem.
   originalAdmission(reference: Reference): Reference { return structuredClone(this.read(reference).original_host_admission_ref); }
-  private original(project: Project, record: AgentRunRecord, context: AgentContextManifest, rawScope: AgentWorkspaceToolScope) {
-    const scope = parseAgentWorkspaceToolScope(rawScope), admission = this.read(context.host_admission_ref), basis = this.ledger.readTicket(admission.ticket);
+  private original(project: Project, record: AgentRunRecord, context: AgentContextManifest, rawScope: AgentWorkspaceToolScope,cut?:{admission:Admission;basis:unknown}) {
+    const scope = parseAgentWorkspaceToolScope(rawScope), admission = cut?.admission??this.read(context.host_admission_ref), basis = cut?cut.basis:this.ledger.readTicket(admission.ticket);
     if (resolve(project.repository_path) !== resolve(this.repositoryPath) || !isDeepStrictEqual(record.host_admission_ref, context.host_admission_ref) ||
       record.project_id !== project.id || context.project_id !== project.id || record.run_id !== scope.run_id || record.operation_key !== scope.operation_key ||
       context.id !== record.context_ref.id || !isDeepStrictEqual(scope.host_admission_ref, record.host_admission_ref) ||
@@ -73,20 +73,18 @@ export class LocalAgentStartCustody {
     const original = this.original(project, record, context, scope); return this.ledger.claim(original.admission.ticket, original.scope, material);
   }
   checkRunAuthority(project: Project, rawInput: AgentRunLaunchAuthorityInput): Digest {
-    const input = structuredClone(rawInput), captured = this.capture(project, input), original = this.original(captured.project, input.record, input.context, input.request);
-    if (!isDeepStrictEqual(this.ledger.readTicket(original.admission.ticket), captured.basis)) fail();
-    this.ledger.inspect(original.admission.ticket, original.scope); // Claimed is read-only identity; service never launches it again.
-    const validation = structuredClone(compileValidator<Digest>(DigestSchema)(this.full.verifyLaunch(structuredClone(project), input, structuredClone(original.admission.original_host_admission_ref))));
-    this.ledger.readTicket(original.admission.ticket);
+    const input = structuredClone(rawInput), captured = this.capture(project, input), admission=this.read(input.context.host_admission_ref,false),before=this.ledger.readOriginalScope(admission.ticket,input.request),original = this.original(captured.project, input.record, input.context, input.request,{admission,basis:before.basis});
+    if (!isDeepStrictEqual(before.basis, captured.basis)) fail();
+    const validation = structuredClone(compileValidator<Digest>(DigestSchema)(this.full.verifyLaunch(structuredClone(project), structuredClone(input), structuredClone(original.admission.original_host_admission_ref))));
+    if(!isDeepStrictEqual(this.read(input.context.host_admission_ref,false),admission)||!isDeepStrictEqual(this.ledger.readOriginalScope(admission.ticket,original.scope),before))fail();
     return { algorithm: "sha256", value: requestDigest({ validation, ticket: original.admission.ticket, original_host_admission_ref: original.admission.original_host_admission_ref }) };
   }
   checkModelAuthority(project:Project,rawInput:AgentRunLaunchAuthorityInput):Digest {
     if(!this.full.verifyModel)fail();
-    const input=structuredClone(rawInput),captured=this.capture(project,input),original=this.original(captured.project,input.record,input.context,input.request);
-    if(!isDeepStrictEqual(this.ledger.readTicket(original.admission.ticket),captured.basis))fail();
-    this.ledger.inspect(original.admission.ticket,original.scope);
-    const validation=structuredClone(compileValidator<Digest>(DigestSchema)(this.full.verifyModel(structuredClone(project),input,structuredClone(original.admission.original_host_admission_ref))));
-    this.ledger.readTicket(original.admission.ticket);
+    const input=structuredClone(rawInput),captured=this.capture(project,input),admission=this.read(input.context.host_admission_ref,false),before=this.ledger.readOriginalScope(admission.ticket,input.request),original=this.original(captured.project,input.record,input.context,input.request,{admission,basis:before.basis});
+    if(!isDeepStrictEqual(before.basis,captured.basis))fail();
+    const validation=structuredClone(compileValidator<Digest>(DigestSchema)(this.full.verifyModel(structuredClone(project),structuredClone(input),structuredClone(original.admission.original_host_admission_ref))));
+    if(!isDeepStrictEqual(this.read(input.context.host_admission_ref,false),admission)||!isDeepStrictEqual(this.ledger.readOriginalScope(admission.ticket,original.scope),before))fail();
     return {algorithm:'sha256',value:requestDigest({validation,ticket:original.admission.ticket,original_host_admission_ref:original.admission.original_host_admission_ref})};
   }
 }

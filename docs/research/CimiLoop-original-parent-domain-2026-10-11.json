@@ -1,0 +1,1166 @@
+{
+  "record": "D-273",
+  "recorded_at": "2026-10-11T06:46:31.099Z",
+  "base_commit": "5d34d4bf4124f0acb55d79ddafd43c62b335233d",
+  "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "origin_refresh": {
+    "path": ".cimiloop/new-host-s1/d273-origin-refresh.json",
+    "sha256": "6604615b37773a922473acb819345a9eaa72755714a998225b14353f48f3f141"
+  },
+  "branch": "main",
+  "commits_ahead_before_batch": 40,
+  "commits_behind": 0,
+  "pushed": false,
+  "goal_status": "active",
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "user_approved_provider_only": "zhipuai",
+  "remaining_model_approval": [
+    "specific model",
+    "package",
+    "cash limit and currency",
+    "credit limit"
+  ],
+  "database_format": 10,
+  "protocol_schema_count": 242,
+  "environment": {
+    "selected_node": "v24.19.0",
+    "ordinary_path_node": "24.14.0 not used for checks",
+    "pnpm": "12.4.2",
+    "lockfile_install_completed_previously": true,
+    "actual_windows_native_regressions_not_skipped": true,
+    "native_failure_history_preserved": true
+  },
+  "capabilities": [
+    "Independent original parent Native eight-key suspension policy and original result operation/sandbox are checked against independent IPC endpoint and physical launcher/resources",
+    "Unique suspension before all SDK and unique matching cleanup after last SDK; unexpected, duplicate and unordered runtime envelopes reject",
+    "Shared Workbench observes raw original Unknown then complete authenticated cash then independently reconciles domain/native/terminal/account evidence into the SAME Kernel Run",
+    "Original committed reconciliation receipt replays after Workbench restart without Runtime/account factory, even after later cleanup evidence becomes invalid, with no new effect",
+    "Original Host readonly synchronous SQLite cut verifies all physical custody/DDL/rows both sides; fresh cuts surround external admission with cloned callback inputs and fixed original scope",
+    "Account check and original bound-hold verification use one complete relation/budget/hold cut on each side of awaited admission without caching; Local Kernel guards remain before and after; final TLS gate has no redundant second account approval await; DNS30s expiry and no resend unchanged"
+  ],
+  "constructed_parent_fixture": {
+    "format": "cimiloop/constructed-parent-native-settlement/1.0.0",
+    "run_id": "01a12973-c611-7507-9aec-e7a05fa7157c",
+    "operation": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\workspace-tool-rehearsals\\7694dbfa-8c22-47b1-9960-c681db43f7e2",
+    "source_digest": "32833c391d356409e6210d8b231d517d59fd41ebb87e76d4c16e1811090eba6d",
+    "actual_parent_native": true,
+    "actual_sdk": true,
+    "actual_fixed_check": true,
+    "shared_workbench_fee_observation": true,
+    "shared_workbench_original_reconciliation": true,
+    "receipt_replayed_after_restart": true,
+    "native_counterexamples": 5,
+    "kernel_event_delta": 3,
+    "kernel_task_usage": {
+      "attempts_consumed": 1,
+      "cost_known": true,
+      "cost_consumed_micros": 48,
+      "pending_reconciliation": false,
+      "first_started_at": "2026-10-11T05:33:30.735Z",
+      "cost_reserved_micros": 0,
+      "attempts_released": 0,
+      "attempt_releases_reversed": 0,
+      "cost_currency": "USD"
+    },
+    "task_accepted": false,
+    "model_requests": 4,
+    "account_bills": 1,
+    "real_model": false,
+    "real_skill": false,
+    "real_approval": false,
+    "real_bill": false,
+    "s1_accepted": false,
+    "summary": {
+      "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\d273-parent-settlement-summary.json",
+      "sha256": "e343d04d8ee971d46e4c952be619238f2013a972b963019eed01a9ae7717434c"
+    },
+    "original_artifacts": [
+      {
+        "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\workspace-tool-rehearsals\\7694dbfa-8c22-47b1-9960-c681db43f7e2\\original-config.json",
+        "sha256": "b3c39d3db866a7990b8ada02a5d1f9f1957755eb77bce8f1df7a021aafbff8ba"
+      },
+      {
+        "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\workspace-tool-rehearsals\\7694dbfa-8c22-47b1-9960-c681db43f7e2\\agent-sandbox-original.json",
+        "sha256": "a5e4d7d32642e0f17d2031a6cc0b412a8fe4e1520f1218522ed03e9d06b8f9f1"
+      },
+      {
+        "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\workspace-tool-rehearsals\\7694dbfa-8c22-47b1-9960-c681db43f7e2\\original-launcher.json",
+        "sha256": "0061765002ec4c89f1fc5bee89455407451ac68ce68ccdc20cd7b976e9deb2e4"
+      },
+      {
+        "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\workspace-tool-rehearsals\\7694dbfa-8c22-47b1-9960-c681db43f7e2\\agent-sandbox-resources.json",
+        "sha256": "1bff3738d3ac964d0d1024ce3c9c1d590aa339fe4e0c5d5b8c0496017e8afad5"
+      },
+      {
+        "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\workspace-tool-rehearsals\\7694dbfa-8c22-47b1-9960-c681db43f7e2\\agent-sandbox-cleanup.json",
+        "sha256": "83f9ef745c69502972ca2c9bb05c2cab1c9faec9b4507a923526eab04731760e"
+      },
+      {
+        "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\workspace-tool-rehearsals\\7694dbfa-8c22-47b1-9960-c681db43f7e2\\result.json",
+        "sha256": "50df306ed2dc336b7e9e1697e2569461bfc4d8bd0f7b0812f784962ffe43d1bf"
+      },
+      {
+        "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\workspace-tool-rehearsals\\7694dbfa-8c22-47b1-9960-c681db43f7e2\\stdout.raw",
+        "sha256": "506f04c824dbf9127c82827fa9ee34f48e74475b9c593dec6cc42d638d45a717"
+      },
+      {
+        "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY\\.git\\cimiloop\\workspace-tool-rehearsals\\7694dbfa-8c22-47b1-9960-c681db43f7e2\\stderr.raw",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "task_initial_reservation_micros": 150,
+    "task_known_observation_consumed_micros": 48,
+    "task_known_observation_retained_reservation_micros": 102,
+    "run_after_known_observation": "Unknown",
+    "run_cost_known_after_known_observation": false,
+    "run_after_reconciliation": "Succeeded",
+    "run_cost_known_after_reconciliation": true,
+    "task_final_consumed_micros": 48,
+    "task_final_retained_reservation_micros": 0,
+    "attempts_consumed": 1,
+    "attempts_released": 0,
+    "currency": "USD",
+    "credit_charged_micro_units": 0,
+    "cash_is_public_constructed_bill": true,
+    "real_provider_bill": false,
+    "real_model_approved": false,
+    "real_skill_qualification": false
+  },
+  "evidence_boundary": "Actual new Windows/AppContainer parent Runtime, SDK model/read/edit/fixed-check rounds, OS IPC, HTTPS transport, persistent protected account and shared Workbench/Kernel original fee/domain/terminal settlement. Model replies, qualification, approval, public fake credential and bill authentication are constructed. Neither approved real model/package/account/Skill, real provider bill, Task acceptance, ReadyForDelivery nor S1 is proven.",
+  "native_policy": {
+    "exact_keys": [
+      "active_process_limit",
+      "appcontainer_sid",
+      "format",
+      "network_capability_sids",
+      "nonce",
+      "peer",
+      "phase",
+      "supervisor"
+    ],
+    "network_capability_sids": [],
+    "active_process_limit": 1,
+    "independent_ipc_identity_required": true,
+    "physical_disk_quota_proven": false,
+    "historical_capacity_proven": false
+  },
+  "verification": {
+    "affected": {
+      "path": ".cimiloop/new-host-s1/d273-affected-final-r2.json",
+      "sha256": "be1e0f3943dd3678d67dcab9e3e772e53dd2bd8fa233f897cfecb1725fa98488",
+      "files": [
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-family-cost-proof-capacity.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-cost-observation.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-reconciliation.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-failure-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-human-start-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-account-bills.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-host.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-result.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-budget.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-model.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-build-originals.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-compile-stop.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-start-ledger.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/fixed-method.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/gateway-http.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/gateway-network.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-failure.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/runtime-binary-originals.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/windows-original-paths.test.ts"
+      ],
+      "passed": 497,
+      "failed": 0,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d273-affected-final-r2.meta.json",
+        "sha256": "d378f6fd110869af022a469acc687c985e3a572eb8dae1f61e45a68e3e7472c8"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d273-affected-final-r2.log",
+        "sha256": "9a58dcf399ec78176f9bb7bc94bb84465157cf7570bc342ee52d98c0a484c3f1"
+      },
+      "exit_code": 0,
+      "elapsed_ms": 1207781,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true
+      },
+      "retained_fixtures": []
+    },
+    "windows": {
+      "path": ".cimiloop/new-host-s1/d273-windows-final.json",
+      "sha256": "cecda90ee2dfdbe577fd6ad926af15f5b37a7297c4768c4846d2232ef1574777",
+      "files": [
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-named-method-runtime.test.ts",
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+        "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-native-runtime.test.ts",
+        "D:/cc/cimi-ai-native/tests/scenarios/workspace-tool-runtime.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-runtime.test.ts"
+      ],
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d273-windows-final.meta.json",
+        "sha256": "0e8e5c135485e97effa85de4b87b24ee66eb665f7a59d71a0e0a342c9908d7db"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d273-windows-final.log",
+        "sha256": "d807fa7115ae7e41440be94b1be42130cac2946f4a4dadc5b036abd96bfcab79"
+      },
+      "exit_code": 0,
+      "elapsed_ms": 779199,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true
+      },
+      "retained_fixtures": [
+        "Retain original Skill application Native fixture: D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-application-fixtures\\cimiloop-skill-application-UXcV2p; repository: D:\\cc\\cimi-ai-native\\_rNAG24",
+        "Retain original named Native fixture: D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\named-native-fixtures\\cimiloop-named-runtime-rwe15N"
+      ]
+    },
+    "parent_native": {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r4.json",
+      "sha256": "09a1d0ec9c72f10b47f0cc40e5f9c1581eaf2d347d45f364b7a3b8312c497cc7",
+      "files": [
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d273-parent-native-r4.meta.json",
+        "sha256": "80f19f3a2f7c910d569cc770693a05ef05fc05d8cfaeae4c4bea830656e0fbff"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d273-parent-native-r4.log",
+        "sha256": "a938bd4fe3e06d38231b9e3805c187c97dbf864f1ec3cddac02379968d24e692"
+      },
+      "exit_code": 0,
+      "elapsed_ms": 979383,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true
+      },
+      "retained_fixtures": [
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-MveSKY",
+        "Retain original external account fixture: C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-native-original-account-2IaSvK",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-1occrY",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-OtQZ5Z"
+      ]
+    },
+    "actual_windows_total": {
+      "files": 6,
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0,
+      "complete_pass": true
+    },
+    "check": {
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d273-check-final.meta.json",
+        "sha256": "30e3ebe9e9bf1a483e75c0aea44d4b1a7814c7f7cd541dec6c5e1c2eae353d4d"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d273-check-final.log",
+        "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+      },
+      "exit_code": 0
+    },
+    "cli_help": {
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d273-cli-help-final.meta.json",
+        "sha256": "ac0071c14132eaee8d0e0bf73954462cec69371a45b43c50285acf79ee6edcaa"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d273-cli-help-final.log",
+        "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+      },
+      "exit_code": 0
+    },
+    "schema": {
+      "path": ".cimiloop/new-host-s1/d273-schema-final.json",
+      "sha256": "404b95734cf390d2105b3ddd723941caa33f818fa935af339093d96646398db8",
+      "exported": 242,
+      "tracked": 242,
+      "drift": []
+    },
+    "source_freeze": {
+      "before": {
+        "path": ".cimiloop/new-host-s1/d273-source-before-r5.json",
+        "sha256": "efec2a4b0e66bdddf6e5bd29bc479f064d4093cc2afb13e1436e2b309dc1ce1d"
+      },
+      "after": {
+        "path": ".cimiloop/new-host-s1/d273-source-final-after.json",
+        "sha256": "efec2a4b0e66bdddf6e5bd29bc479f064d4093cc2afb13e1436e2b309dc1ce1d"
+      },
+      "files": 697,
+      "drift": []
+    },
+    "whole_repository": false,
+    "full_s1": false
+  },
+  "diagnostic_affected_first": {
+    "path": ".cimiloop/new-host-s1/d273-affected-final.json",
+    "sha256": "4b8f7e2b3aebd20bdf3c77d07e2cfccddfa6c531dc52a1499d20de13f0ed7ea2",
+    "files": [
+      "D:/cc/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+      "D:/cc/cimi-ai-native/packages/local-app/test/agent-family-cost-proof-capacity.test.ts",
+      "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-cost-observation.test.ts",
+      "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-reconciliation.test.ts",
+      "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-failure-local.test.ts",
+      "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-human-start-local.test.ts",
+      "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts",
+      "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-start-local.test.ts",
+      "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+      "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-account-bills.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-host.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-result.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-budget.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-model.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-build-originals.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-sandbox-compile-stop.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-start-ledger.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/fixed-method.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/gateway-http.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/gateway-network.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/native-control-failure.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/opencode-workspace-tools.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/runtime-binary-originals.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/windows-original-paths.test.ts"
+    ],
+    "passed": 496,
+    "failed": 1,
+    "skipped": 0,
+    "metadata": {
+      "path": ".cimiloop/new-host-s1/d273-affected-final.meta.json",
+      "sha256": "87e9971d7614d5e765dbd06507868ecf0a57a7da6dc9265c5a584752abfd524b"
+    },
+    "log": {
+      "path": ".cimiloop/new-host-s1/d273-affected-final.log",
+      "sha256": "11825dcadcb4dbff0dd205ca03b213771e144f3884f48c700dc9222983680e27"
+    },
+    "exit_code": 1,
+    "elapsed_ms": 1206188,
+    "unhandled": {
+      "json_property_present": false,
+      "log_summary_absent": true
+    },
+    "retained_fixtures": []
+  },
+  "bill_injection_first": {
+    "path": ".cimiloop/new-host-s1/d273-bills-injection-green.json",
+    "sha256": "87c2fc7617760639f9f704a9472ae4158ade6471a3fc67772c9c41cde805e7d8",
+    "files": [
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-account-bills.test.ts"
+    ],
+    "passed": 17,
+    "failed": 1,
+    "skipped": 0,
+    "metadata": {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green.meta.json",
+      "sha256": "618ba0bee9578fae7792362cf736e61f10d556019663df131254346d5e8c814f"
+    },
+    "log": {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green.log",
+      "sha256": "9f912e29088cde77169dff457f1de6a608331f06a09794fd42c73e86f99a5b5c"
+    },
+    "exit_code": 1,
+    "elapsed_ms": 47611,
+    "unhandled": {
+      "json_property_present": false,
+      "log_summary_absent": true
+    },
+    "retained_fixtures": []
+  },
+  "bill_injection_first_failure": "Overcharge injection cases pass; separate SQLite writer-contention test exceeds default15000ms because diagnostic runner omitted final240000ms test timeout; matching existing final runner flags next",
+  "bill_injection_reverification": {
+    "path": ".cimiloop/new-host-s1/d273-bills-injection-green-r2.json",
+    "sha256": "bec2f81dce4da2ec650fe7724314397423a4a7ef0a848b4a8c3e63ff78b910c1",
+    "files": [
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-account-bills.test.ts"
+    ],
+    "passed": 18,
+    "failed": 0,
+    "skipped": 0,
+    "metadata": {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green-r2.meta.json",
+      "sha256": "a56ae76bc8980ea566c75e1f3423b8b6acc5fdb7a96877cf8b1227f6ea3a4381"
+    },
+    "log": {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green-r2.log",
+      "sha256": "a3d77439164a2bdbc754c13f574a36714463b6c27f5e5681c75de8f8a7b5bed9"
+    },
+    "exit_code": 0,
+    "elapsed_ms": 47523,
+    "unhandled": {
+      "json_property_present": false,
+      "log_summary_absent": true
+    },
+    "retained_fixtures": []
+  },
+  "native_to_final_source_bridge": {
+    "native_freeze": {
+      "path": ".cimiloop/new-host-s1/d273-source-before-r4.json",
+      "sha256": "d7d8fbeb673af5a2ab49a7bace87d7727efb85427ed14746d3fc876a8d0bef7e"
+    },
+    "final_freeze": {
+      "path": ".cimiloop/new-host-s1/d273-source-before-r5.json",
+      "sha256": "efec2a4b0e66bdddf6e5bd29bc479f064d4093cc2afb13e1436e2b309dc1ce1d"
+    },
+    "changed_test_only": [
+      "packages/runtime-adapter/test/agent-account-bills.test.ts"
+    ],
+    "production_and_native_scenario_unchanged": true,
+    "reason": "First full 36-file run496passed/1failed because public-check monkeypatch no longer injected overcharge into private original hold verification; test now injects through preinstalled actual awaited admission and asserts one injection; entire36file suite repeated"
+  },
+  "retained_native_crash": null,
+  "retained_round3_originals": [
+    {
+      "operation": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV\\.git\\cimiloop\\workspace-tool-rehearsals\\6598b258-7720-48ee-ad1c-b6b2f04d6c6e",
+      "failure": "Bun segmentation fault; cause unknown",
+      "exit_code": 3,
+      "resources_disposed": true,
+      "original_artifacts": [
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV\\.git\\cimiloop\\workspace-tool-rehearsals\\6598b258-7720-48ee-ad1c-b6b2f04d6c6e\\original-config.json",
+          "sha256": "0351657859048f65299e18a3de6cbfef086ef302f01caee06a46b6e3a5105107"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV\\.git\\cimiloop\\workspace-tool-rehearsals\\6598b258-7720-48ee-ad1c-b6b2f04d6c6e\\original-launcher.json",
+          "sha256": "05daa61acd89581b86009b3fff602052b77c202aadb17ac149d5e071f09079d1"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV\\.git\\cimiloop\\workspace-tool-rehearsals\\6598b258-7720-48ee-ad1c-b6b2f04d6c6e\\agent-sandbox-original.json",
+          "sha256": "bce934b9f2418c51d3dd1f7f01fc7661e7d45fa3a77503dca8bc4a498d951a68"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV\\.git\\cimiloop\\workspace-tool-rehearsals\\6598b258-7720-48ee-ad1c-b6b2f04d6c6e\\agent-sandbox-resources.json",
+          "sha256": "d45fe21551a3054a446bf2834aee2289083a073f28cc0113244d135245de1579"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV\\.git\\cimiloop\\workspace-tool-rehearsals\\6598b258-7720-48ee-ad1c-b6b2f04d6c6e\\agent-sandbox-cleanup.json",
+          "sha256": "180c8a76a4f13afe97bf1deddea0c7e2c9fe16c7882b5cb08def24810599bd9c"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV\\.git\\cimiloop\\workspace-tool-rehearsals\\6598b258-7720-48ee-ad1c-b6b2f04d6c6e\\incomplete.json",
+          "sha256": "ac9dafb3686d74114eda2b833eb645bfee969ad07ed8861bdf67b0888d28fa7d"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV\\.git\\cimiloop\\workspace-tool-rehearsals\\6598b258-7720-48ee-ad1c-b6b2f04d6c6e\\stdout.raw",
+          "sha256": "e45d40d68a61322ace2fcfd1a3a63129fe0a5c5fc79ee7b4876ecfea1079aee3"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV\\.git\\cimiloop\\workspace-tool-rehearsals\\6598b258-7720-48ee-ad1c-b6b2f04d6c6e\\stderr.raw",
+          "sha256": "f45d0911fe4a6116b229ecef2b4c1db175280f6878b864bcc56e349f76e5cf81"
+        }
+      ]
+    },
+    {
+      "operation": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV\\.git\\cimiloop\\workspace-tool-rehearsals\\529badc4-7fe9-4dd1-b8f3-45e7abae26d1",
+      "failure": "gateway_address_pin_expired after three provider replies",
+      "exit_code": 1,
+      "resources_disposed": true,
+      "original_artifacts": [
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV\\.git\\cimiloop\\workspace-tool-rehearsals\\529badc4-7fe9-4dd1-b8f3-45e7abae26d1\\original-config.json",
+          "sha256": "979a7fcf5c3c7c663f1ed3cf091ded61a8a209a553400861daa65433601d89a5"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV\\.git\\cimiloop\\workspace-tool-rehearsals\\529badc4-7fe9-4dd1-b8f3-45e7abae26d1\\original-launcher.json",
+          "sha256": "3cacfc38187676c013a04adb7dbc273b1d7f802c80009ece7ee68dfb67f94e95"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV\\.git\\cimiloop\\workspace-tool-rehearsals\\529badc4-7fe9-4dd1-b8f3-45e7abae26d1\\agent-sandbox-original.json",
+          "sha256": "c22439c46816b633e6cac3af0398f92736011ffaaa12bf7ea973a9b49808a95f"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV\\.git\\cimiloop\\workspace-tool-rehearsals\\529badc4-7fe9-4dd1-b8f3-45e7abae26d1\\agent-sandbox-resources.json",
+          "sha256": "82402a105196a633fc398b3ab289cc4c700f047861748d4afcf7d5bdcfbf0d79"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV\\.git\\cimiloop\\workspace-tool-rehearsals\\529badc4-7fe9-4dd1-b8f3-45e7abae26d1\\agent-sandbox-cleanup.json",
+          "sha256": "d234b8009e37dfc5793977ccb4cd0938c710357311489c09e752263dda174d29"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV\\.git\\cimiloop\\workspace-tool-rehearsals\\529badc4-7fe9-4dd1-b8f3-45e7abae26d1\\incomplete.json",
+          "sha256": "6ed01e78c0ada1fb10b9bf55b00b84cfb74a9070514399f7593aacdb9321db53"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV\\.git\\cimiloop\\workspace-tool-rehearsals\\529badc4-7fe9-4dd1-b8f3-45e7abae26d1\\stdout.raw",
+          "sha256": "964e55b962a201b56bf38e24954d3359c3ff14c76568489a77e76159b869bbea"
+        },
+        {
+          "path": "C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV\\.git\\cimiloop\\workspace-tool-rehearsals\\529badc4-7fe9-4dd1-b8f3-45e7abae26d1\\stderr.raw",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ],
+  "diagnostic_native": {
+    "baseline": {
+      "path": ".cimiloop/new-host-s1/d273-parent-baseline-native.json",
+      "sha256": "423e4970c94f7e6c1ac7463c19e1f03412b347ca89e4e276b2ac1d4b94194e3e",
+      "files": [
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts"
+      ],
+      "passed": 0,
+      "failed": 3,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d273-parent-baseline-native.meta.json",
+        "sha256": "877fd8181b7de2b8bdcb4ad4eecd4cf39ff2f3af975283cd5fbf5fc1bad51514"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d273-parent-baseline-native.log",
+        "sha256": "1e86b204c604454a264cd9c7c1a51def85c5b2c73e107ab8722638ab9fb84639"
+      },
+      "exit_code": 1,
+      "elapsed_ms": 801724,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true
+      },
+      "retained_fixtures": [
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-UN6nfV",
+        "Retain original external account fixture: C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-native-original-account-iyLGAr",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-QqIfn3",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-VUX4CD"
+      ]
+    },
+    "round_1": {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r1.json",
+      "sha256": "2b5a26984b5c9f5c3724f6b602bc73ca5e942515ca9f1980b6e3c8f5f6218654",
+      "files": [
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts"
+      ],
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d273-parent-native-r1.meta.json",
+        "sha256": "fd27dc108a439be708b20685281155c9860851eec39138a44addfe800fc93db7"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d273-parent-native-r1.log",
+        "sha256": "14bb14c7a78de7b861d8969cb5d027b8a9c76ca2f1bd1d6e81a3f613340060d1"
+      },
+      "exit_code": 1,
+      "elapsed_ms": 874240,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true
+      },
+      "retained_fixtures": [
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-Hoi3jK",
+        "Retain original external account fixture: C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-native-original-account-Wqxx5Z",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-fuPGSn",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-fZN8j8"
+      ]
+    },
+    "round_2": {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r2.json",
+      "sha256": "86bdf8e0465dadab685996cd93c213358411af44926c5af3838afa49e5d6b606",
+      "files": [
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts"
+      ],
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d273-parent-native-r2.meta.json",
+        "sha256": "6597674c4138f95ad625e8fa53804c3f07a9fadf63496759c3c044abf9681942"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d273-parent-native-r2.log",
+        "sha256": "6bd3728cdb1e36cbac342b18b89bd9d5657f4458594e7945a2beb482b3d51bb8"
+      },
+      "exit_code": 1,
+      "elapsed_ms": 921485,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true
+      },
+      "retained_fixtures": [
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-V42mVZ",
+        "Retain original external account fixture: C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-native-original-account-qcDcbQ",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-eiQN4J",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-8iMUNm"
+      ]
+    },
+    "round_3": {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r3.json",
+      "sha256": "3d5ff766121f8c891d679fd3e9de1ce1097b4e543ba9550a2c05d555466ffa57",
+      "files": [
+        "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts"
+      ],
+      "passed": 1,
+      "failed": 2,
+      "skipped": 0,
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d273-parent-native-r3.meta.json",
+        "sha256": "221c2503e83b6ddca27fda50c292feaabd61b55a76d50717fb282f26b8f2d751"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d273-parent-native-r3.log",
+        "sha256": "8a8607968c28b69f60965ef0ee9c88cecb94deeaaa72899a401c55fcea53aa6e"
+      },
+      "exit_code": 1,
+      "elapsed_ms": 777956,
+      "unhandled": {
+        "json_property_present": false,
+        "log_summary_absent": true
+      },
+      "retained_fixtures": [
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-mOFmyV",
+        "Retain original external account fixture: C:\\Users\\hector.he\\AppData\\Local\\Temp\\cimiloop-native-original-account-KJDowz",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-kcb5hV",
+        "Retain original host-model fixture: C:\\Users\\hector.he\\AppData\\Local\\CimiS1\\cimiloop-production-lifetime-runtime-aV8d2c"
+      ]
+    },
+    "failures_retained": true,
+    "baseline_first": "No SDK; suspended EOF125; cause not independently established",
+    "baseline_second": "Actual read/edit/check with three model rounds, then original ten-minute budget; no terminal result",
+    "baseline_third": "Current Human revocation correctly 403 ROLE_NOT_ASSIGNED, old expected status200",
+    "round_1_second": "Actual SDK three model calls, then original ten-minute deadline; no terminal result",
+    "round_3_first": "Bun1.3.14 exited3 with segmentation fault; original Native cleanup resources_disposed true; root cause not proven; no retry of that Run",
+    "round_2_second": "Actual four-model Native SDK read/edit/check produced original result; shared fee observation correctly refused constructed CNY bill against immutable USD Task budget; original Run unchanged",
+    "round_3_second": "Read/edit/check actual SDK completed then gateway_address_pin_expired before fourth provider send; Native exit1, no result; no original retry",
+    "fresh_round_4": "Full bound-hold verification combines duplicate account cuts after TLS without changing30s DNS expiry; reusable external account staged before NEW Run reservation with matching USD fixture bill; original 600000ms business budget unchanged; no old Run renewal, currency rewrite or repair"
+  },
+  "diagnostic_records": [
+    {
+      "path": ".cimiloop/new-host-s1/d273-account-cuts-green-r2.json",
+      "sha256": "51a3f6378bff47cbf8766a8a22b52e92be37272ca1d366949b19925e10051415"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-account-cuts-green-r2.log",
+      "sha256": "b2718998afd9b08f248be3b9bfa85685a17f1fd7f8f747705ac6fd25ee0cb652"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-account-cuts-green-r2.meta.json",
+      "sha256": "7be1be70354aab39b807cc05a7ca79b53db24362ae4268c140174e6823471bff"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-account-cuts-green.json",
+      "sha256": "019dd180e25195106f8019480bd10d77921c573e38b8347518d571130e7659b5"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-account-cuts-green.log",
+      "sha256": "3e04abe297ba355587871f4e796152a93d3e673c6914e4f8dd48673bfbd06ba4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-account-cuts-green.meta.json",
+      "sha256": "a8ee08f959638effcb13881a0f98986f7d862174661bf7d6dfd5a47a4273fb10"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-account-cuts-red.json",
+      "sha256": "770eb54b16b0bf7785b79cfe53dc989913f8a3c32241e09821169983ec8fc52f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-account-cuts-red.log",
+      "sha256": "9c79a520eef60c3cd3ba17c72e4800f8c315aae0ac25678f1fdbb6e97f2db78c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-account-cuts-red.meta.json",
+      "sha256": "5ef80b0142c94c26d8fe78de66b0893d154321d41d9dfe2fcf336baf9946b504"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green-r2.json",
+      "sha256": "bec2f81dce4da2ec650fe7724314397423a4a7ef0a848b4a8c3e63ff78b910c1"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green-r2.log",
+      "sha256": "a3d77439164a2bdbc754c13f574a36714463b6c27f5e5681c75de8f8a7b5bed9"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green-r2.meta.json",
+      "sha256": "a56ae76bc8980ea566c75e1f3423b8b6acc5fdb7a96877cf8b1227f6ea3a4381"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green.json",
+      "sha256": "87c2fc7617760639f9f704a9472ae4158ade6471a3fc67772c9c41cde805e7d8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green.log",
+      "sha256": "9f912e29088cde77169dff457f1de6a608331f06a09794fd42c73e86f99a5b5c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-bills-injection-green.meta.json",
+      "sha256": "618ba0bee9578fae7792362cf736e61f10d556019663df131254346d5e8c814f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r1.log",
+      "sha256": "d343e38ca59098996015d890e2065c79f8386db3c6d36ec9c2dba3af4ac67249"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r1.meta.json",
+      "sha256": "1644321ba8522bfa39bd2a47a1a93408d2742564cbb345e4be1ba4988e08c10a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r10.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r10.meta.json",
+      "sha256": "f8dab4f024bdadc406d81e8fb1a8a0f83e7f5e5a1d239cdc72bd92e1824ecfa6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r11.log",
+      "sha256": "116518dc1100e06357581b16d5deb3dfea076504a245c65c0aadaa3f514b3649"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r11.meta.json",
+      "sha256": "91fdb64ec4556e7471454400d60d057c5152622552333e4968033dfd98c78915"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r12.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r12.meta.json",
+      "sha256": "bc433f07906a7a97c3326561f87b437445f23b4d90251aa63f9614ae395e23cc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r2.log",
+      "sha256": "df9f1ecda897e510ea40eacb6f8566eba735cb8ee55df7d3791c8dd5086108f8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r2.meta.json",
+      "sha256": "eebb42b3e13169d29b44928697e162bc03a120e13a52dd1357b2e7fb8cbdae4a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r3.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r3.meta.json",
+      "sha256": "129190922398c823a7baaa9c41cb3cc751646af445311e9eeec2623e7eebadaa"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r4.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r4.meta.json",
+      "sha256": "96e5b3f32ac28afbeb6a6b2abf1fb780217aaa593e474e858f8a719521efb3b6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r5.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r5.meta.json",
+      "sha256": "ca34e531fd2873677cf58ec94d0fcfe3ddb41472241ee1e9a3bc42bb36973e31"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r6.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r6.meta.json",
+      "sha256": "cdc94d08487232a9279fb35e3b380faf3796835104695227f49b350acfeb9cfd"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r7.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r7.meta.json",
+      "sha256": "0747328caaeb4a6c471339b87d1d1ff6e72a8889b5ab0bd7761a4eba9bef252c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r8.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r8.meta.json",
+      "sha256": "3113d445a71faf4b362beb80b2980f73af3edbd6b63cf9f8d9f9a1f8bfb8e27a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r9.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-check-r9.meta.json",
+      "sha256": "19f970dc04c5a781698ad92cc88f562cc46aa18f219619062a22cdab3c3db05a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-callback-green.json",
+      "sha256": "667100fef49df17736ac0aa81f2a2b54c71faef26966ff4f2cf26e5962b9e62c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-callback-green.log",
+      "sha256": "b04e02b586ce1d113c8bde66e22e6606760ee32bc73cdb4de585986d3453af8a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-callback-green.meta.json",
+      "sha256": "3d080991f7a246bce43ff508ff28efe27d4a66afc6fe7c0e7595c7d1bd32bc6e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-callback-red.json",
+      "sha256": "1c4b4c3e281e9f8c6954975f058ca9ba9ef255d0cefd8c422d50b2c0b5353e9a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-callback-red.log",
+      "sha256": "0a9a2c20da49e898c85c055ffcef828d1717d6bce922a84fb08bbbdac1fd61eb"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-callback-red.meta.json",
+      "sha256": "18a4d4064b15af8eae3f3d99e0e203312dcaf1be68ba1d14cb209c2f6b960fd4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-cut-green.json",
+      "sha256": "3b721245d241f9fc0f9399c3a304d5fb90fb11611b471f80c7a9f46c6db30e77"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-cut-green.log",
+      "sha256": "0faec90fe994a147c989e93d77f4204b610d3a024bd63f7885492655c6694e70"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-cut-green.meta.json",
+      "sha256": "f5cc0d1a20b1843c2f09e1f24946057239afff68e2346137692f64aa8433c043"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-cut-red.json",
+      "sha256": "66fb9efd3263910546758571bd5c6e24920d80929d1166e3a6436648aab9f652"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-cut-red.log",
+      "sha256": "9f4cb2a29221d9ff5b11b8377ebd3faaa808b8d0737dd74b74521f908e798a39"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-cut-red.meta.json",
+      "sha256": "fb282d75d90d9909f08dcc762087ca677ccc91197d6d6ec60c4177a72161f6b2"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-shared-unit.json",
+      "sha256": "c3f14d8364a2f8197b989a6984a5ebb4764645503e75b1e553256a763b465099"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-shared-unit.log",
+      "sha256": "20569e9946e2e957038846fc993864fc310c60850038d0db625fb6a85f34fd99"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-custody-shared-unit.meta.json",
+      "sha256": "0b7a54a4aafc519e77e1c0a024373477e296212ac3912c14a7515625d4da6282"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-hold-tls-green-r2.json",
+      "sha256": "a69d1af0861f887248099c81d7a6d7cb87d94594af8653b54868fee6cc439b32"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-hold-tls-green-r2.log",
+      "sha256": "452ae0e1342c650accc26280711313aff25da33342de27abb4e4e56e805499ab"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-hold-tls-green-r2.meta.json",
+      "sha256": "5ad79238d22b91bcbb4275700d6f414749bc97305c47867e6ab91f78b8082a2f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-hold-tls-green.json",
+      "sha256": "751578e196631487f1ae888ebe08d3f839373d99f3c079af0c3929f7c8c4adfe"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-hold-tls-green.log",
+      "sha256": "51dd77a3b693fed1599bef99cc0b520a8c5466372e167cd7020d0d644ed88c61"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-hold-tls-green.meta.json",
+      "sha256": "0cf5865b09643ae8123c897b587751e25357b493baca83ead3e6c68bb6d9f010"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-hold-tls-red.json",
+      "sha256": "4bdba0e32028b5701cd407aaefb0e19e7a9eb82bb038a189461b184fb9b23bfd"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-hold-tls-red.log",
+      "sha256": "e32760ab8fd775075318519c9c33aca7868ef6d42cb0d4490536d3878d8db7e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-hold-tls-red.meta.json",
+      "sha256": "5d5ff103fc383a627a0883816a85e05e6603d45d3a06324083e97e81ac50806a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-origin-refresh.json",
+      "sha256": "6604615b37773a922473acb819345a9eaa72755714a998225b14353f48f3f141"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-baseline-native.json",
+      "sha256": "423e4970c94f7e6c1ac7463c19e1f03412b347ca89e4e276b2ac1d4b94194e3e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-baseline-native.log",
+      "sha256": "1e86b204c604454a264cd9c7c1a51def85c5b2c73e107ab8722638ab9fb84639"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-baseline-native.meta.json",
+      "sha256": "877fd8181b7de2b8bdcb4ad4eecd4cf39ff2f3af975283cd5fbf5fc1bad51514"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-completion-baseline.json",
+      "sha256": "a86a030ba92cae02f7109cf048c735946042f8fb3b96fc0359c9ef4d5ac6bd31"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-completion-baseline.log",
+      "sha256": "9cf2b9a79828eb4af3d81b74be0f53c4ced49ed1e97d2114e321a23672fe9430"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-completion-baseline.meta.json",
+      "sha256": "ee51e893800439b6b34ec12ce2d5a4b95435e39291b6e9968b2bb539670101e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r1.json",
+      "sha256": "2b5a26984b5c9f5c3724f6b602bc73ca5e942515ca9f1980b6e3c8f5f6218654"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r1.log",
+      "sha256": "14bb14c7a78de7b861d8969cb5d027b8a9c76ca2f1bd1d6e81a3f613340060d1"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r1.meta.json",
+      "sha256": "fd27dc108a439be708b20685281155c9860851eec39138a44addfe800fc93db7"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r2.json",
+      "sha256": "86bdf8e0465dadab685996cd93c213358411af44926c5af3838afa49e5d6b606"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r2.log",
+      "sha256": "6bd3728cdb1e36cbac342b18b89bd9d5657f4458594e7945a2beb482b3d51bb8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r2.meta.json",
+      "sha256": "6597674c4138f95ad625e8fa53804c3f07a9fadf63496759c3c044abf9681942"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r3.json",
+      "sha256": "3d5ff766121f8c891d679fd3e9de1ce1097b4e543ba9550a2c05d555466ffa57"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r3.log",
+      "sha256": "8a8607968c28b69f60965ef0ee9c88cecb94deeaaa72899a401c55fcea53aa6e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r3.meta.json",
+      "sha256": "221c2503e83b6ddca27fda50c292feaabd61b55a76d50717fb282f26b8f2d751"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r4.json",
+      "sha256": "09a1d0ec9c72f10b47f0cc40e5f9c1581eaf2d347d45f364b7a3b8312c497cc7"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r4.log",
+      "sha256": "a938bd4fe3e06d38231b9e3805c187c97dbf864f1ec3cddac02379968d24e692"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-native-r4.meta.json",
+      "sha256": "80f19f3a2f7c910d569cc770693a05ef05fc05d8cfaeae4c4bea830656e0fbff"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-policy-green.json",
+      "sha256": "f6f97f11378ef344897c0386811639bdf6a6c3b5545fc80fde7d657fe6f23fb5"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-policy-green.log",
+      "sha256": "64a9c8b1ca90921a3ac3640717faaeab491270c0186427ba81149ceec10c523b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-policy-green.meta.json",
+      "sha256": "33e013962410bd32aaa0ef7c2558637ffb6ea0a382a26461571fc28e0753187c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-policy-red.json",
+      "sha256": "45db1ef97e3cce53319b328c49aa03059a9f2454131eee242479cfcf94cc5b1f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-policy-red.log",
+      "sha256": "bae342c44fc09ecd161d674003392d71221c2296adb72a415952c36db51e58a7"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-policy-red.meta.json",
+      "sha256": "8afa8d5ebce5d1efbae4db52caa92eeae41de0d320bdae92244ecb64dca37511"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-terminal-unit.json",
+      "sha256": "c8359e367cf55c82d818bd187afa2559f062b5cbceed1d1391586ad4cf636ea0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-terminal-unit.log",
+      "sha256": "db83f98e0d259f480590c344804a2cf0fc78736eca852c9f87643b3f1ead9c35"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d273-parent-terminal-unit.meta.json",
+      "sha256": "f22e0921918b98b311d03879513255d8b9199ba7d9be62e5fc493edceb44c586"
+    }
+  ],
+  "tdd": [
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-parent-policy-red.json",
+        "sha256": "45db1ef97e3cce53319b328c49aa03059a9f2454131eee242479cfcf94cc5b1f"
+      },
+      "stage": "unsafe agreeing native policy and result mismatches accepted",
+      "valid_target_red": true
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-parent-policy-green.json",
+        "sha256": "f6f97f11378ef344897c0386811639bdf6a6c3b5545fc80fde7d657fe6f23fb5"
+      },
+      "stage": "18 complete policy checks pass"
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-custody-cut-red.json",
+        "sha256": "66fb9efd3263910546758571bd5c6e24920d80929d1166e3a6436648aab9f652"
+      },
+      "stage": "new synchronous readonly original cut missing",
+      "valid_target_red": true
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-custody-cut-green.json",
+        "sha256": "3b721245d241f9fc0f9399c3a304d5fb90fb11611b471f80c7a9f46c6db30e77"
+      },
+      "stage": "8 fresh before/after original-cut checks pass"
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-custody-callback-red.json",
+        "sha256": "1c4b4c3e281e9f8c6954975f058ca9ba9ef255d0cefd8c422d50b2c0b5353e9a"
+      },
+      "stage": "mutable external callback input masks claimed original scope",
+      "valid_target_red": true,
+      "filtered_diagnostic": true,
+      "skips": 11
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-custody-callback-green.json",
+        "sha256": "667100fef49df17736ac0aa81f2a2b54c71faef26966ff4f2cf26e5962b9e62c"
+      },
+      "stage": "cloned callback inputs and fixed after-cut reject masked claim",
+      "filtered_diagnostic": true,
+      "skips": 11
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-account-cuts-red.json",
+        "sha256": "770eb54b16b0bf7785b79cfe53dc989913f8a3c32241e09821169983ec8fc52f"
+      },
+      "stage": "same-phase account checks perform third full physical audit",
+      "valid_target_red": true
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-account-cuts-green.json",
+        "sha256": "019dd180e25195106f8019480bd10d77921c573e38b8347518d571130e7659b5"
+      },
+      "stage": "first marker edit failed and old source still red; retained failed attempt",
+      "passing": false
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-account-cuts-green-r2.json",
+        "sha256": "51a3f6378bff47cbf8766a8a22b52e92be37272ca1d366949b19925e10051415"
+      },
+      "stage": "one full cut each side of admission, physical custody loss still rejects;11 pass"
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-hold-tls-red.json",
+        "sha256": "4bdba0e32028b5701cd407aaefb0e19e7a9eb82bb038a189461b184fb9b23bfd"
+      },
+      "stage": "Red2fail/52pass: redundant hold cuts and TLS approval expire original DNS pin",
+      "valid_target_red": true
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-hold-tls-green.json",
+        "sha256": "751578e196631487f1ae888ebe08d3f839373d99f3c079af0c3929f7c8c4adfe"
+      },
+      "stage": "TLS fixed but custody-loss test replaced already-bound callbacks; one test fails",
+      "passing": false
+    },
+    {
+      "report": {
+        "path": ".cimiloop/new-host-s1/d273-hold-tls-green-r2.json",
+        "sha256": "a69d1af0861f887248099c81d7a6d7cb87d94594af8653b54868fee6cc439b32"
+      },
+      "stage": "Original bound hold2freshcuts, physical custody loss and DNS expiry/no resend;54pass"
+    },
+    {
+      "stage": "Final full affected and actual Windows files",
+      "filtered_diagnostic": false,
+      "skips": 0
+    }
+  ],
+  "engineering_review": {
+    "agent": "/root/review_native_result",
+    "must_fix_remaining": 0,
+    "ordinary_engineering_only": true,
+    "real_matt": false,
+    "real_superpowers": false
+  },
+  "historical_evidence_gap": {
+    "record": "D-269",
+    "original_historical_check_log_recovered": false,
+    "tracked_research_changed": false,
+    "current_check_does_not_repair_historical_evidence": true,
+    "no_old_batch_logs_overwritten_in_D273": true
+  },
+  "preservation": {
+    "old_unknown_cleanup_proven": false,
+    "old_failed_runs_repaired": false,
+    "business_budget_enlarged": false,
+    "bulk_temp_profile_or_mapping_deleted": false,
+    "user_dirty_files_read_or_deleted": false,
+    "user_dirty_paths": [
+      "QA5363D6C.tmp",
+      "QF192D3E3.tmp"
+    ],
+    "schema_changed": false,
+    "user_database_upgraded": false
+  },
+  "remaining": [
+    "V1-09 full formal Runtime relationship with approved real model/package/account/cash+credit caps and authenticated real bills; physical quota, historical capacity and complete exceptional recovery",
+    "V1-21 real Skill and Human/Matt clarification before Plan/Task",
+    "V1-22 independent complete Matt, fresh current-source Superpowers and real behavior comparison",
+    "V1-10 formal shared-service workbench execute/query/stop/original continuation",
+    "V1-11 real ordinary Change to ReadyForDelivery with real skills, interruption recovery, S1 acceptance and usable integration guide"
+  ]
+}

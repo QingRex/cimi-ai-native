@@ -122,7 +122,10 @@ export class AgentStartLedger {
     });
   }
   readTicket(rawTicket: AgentStartTicket): unknown {
-    this.assertOrigin(); const ticket = structuredClone(rawTicket);
+    this.assertOrigin(); return this.ticketBody(rawTicket);
+  }
+  private ticketBody(rawTicket:AgentStartTicket):unknown {
+    const ticket = structuredClone(rawTicket);
     if (!ticket || Object.keys(ticket).sort().join(",") !== "basis_digest,format,identity_digest,ticket_id" || ticket.format !== "cimiloop/agent-start-ticket/1.0.0" ||
       ticket.identity_digest !== this.identityDigest) fail("agent_start_ticket_origin_mismatch");
     if (!uuid.test(ticket.ticket_id) || !sha.test(ticket.basis_digest)) fail("agent_start_ticket_unproven");
@@ -188,13 +191,25 @@ export class AgentStartLedger {
     });
   }
   inspect(ticket: AgentStartTicket, rawScope: AgentWorkspaceToolScope): { state: "unclaimed" } | { state: "claimed"; material_digest: Digest; claim_digest: Digest } {
-    this.readTicket(ticket); const scope = parseAgentWorkspaceToolScope(rawScope), body = encoded(scope);
+    this.readTicket(ticket); return this.originalClaim(ticket,rawScope);
+  }
+  private originalClaim(ticket:AgentStartTicket,rawScope:AgentWorkspaceToolScope):ReturnType<AgentStartLedger["inspect"]> {
+    const scope = parseAgentWorkspaceToolScope(rawScope), body = encoded(scope);
     const row = this.db.prepare("SELECT * FROM claims WHERE run_id=? OR operation_key=?").get(scope.run_id, scope.operation_key);
     if (!row) return { state: "unclaimed" };
     if (row.operation_key === scope.operation_key && row.run_id !== scope.run_id) fail("agent_start_operation_key_conflict");
     if (row.scope_body !== body || row.ticket_id !== ticket.ticket_id || typeof row.material_digest !== "string" || !sha.test(row.material_digest) ||
       typeof row.claim_digest !== "string" || row.claim_digest !== digest(encoded({ ticket, scope, material_digest: { algorithm: "sha256", value: row.material_digest } })).value) fail("agent_start_claim_conflict");
     return { state: "claimed", material_digest: { algorithm: "sha256", value: row.material_digest }, claim_digest: { algorithm: "sha256", value: row.claim_digest } };
+  }
+  // One synchronous read cut. No caller callback, effects or cache; repeat after
+  // independent verification/await. Full physical/DDL/all-row audit on both sides.
+  readOriginalScope(ticket:AgentStartTicket,scope:AgentWorkspaceToolScope) {
+    const originalTicket=structuredClone(ticket),originalScope=parseAgentWorkspaceToolScope(scope);
+    if(this.db.isTransaction)fail('agent_start_read_cut_nested');
+    this.db.exec('BEGIN');
+    try{this.assertOrigin();const result={basis:this.ticketBody(originalTicket),claim:this.originalClaim(originalTicket,originalScope)};this.assertOrigin();this.db.exec('COMMIT');return structuredClone(result);}
+    catch(error){this.db.exec('ROLLBACK');throw error;}
   }
   claim(ticket: AgentStartTicket, rawScope: AgentWorkspaceToolScope, material: Digest): { created: boolean; claim_digest: Digest } {
     const scope = parseAgentWorkspaceToolScope(rawScope), original = { ...material };

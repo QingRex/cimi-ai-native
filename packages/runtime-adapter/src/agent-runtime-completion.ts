@@ -1,3 +1,4 @@
+import {isOriginalAgentNativeSuspension} from "./agent-native-suspension.js";
 import { verifyCollectedDedicatedAgentModelOriginals } from "./agent-dedicated-model.js";
 import { isDeepStrictEqual } from "node:util";
 import { compileValidator, TaskDefinitionRecordSchema, ContractVersionSchema, PlanVersionSchema, TaskSchema, WorkItemSchema,
@@ -74,26 +75,32 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
       const ref = collection.artifacts.find(a => a.name === name)?.reference; if (!ref) throw Error();
       const bytes = bytesAt(ref.locator, limit); if (digest(bytes).value !== ref.digest?.value) throw Error(); return bytes;
     };
+    const suspended=object(json(artifact("agent-sandbox-original.json"))), launch=object(json(artifact("original-launcher.json"))), resources=object(json(artifact("agent-sandbox-resources.json")));
     const config = object(json(artifact("original-config.json"))), disposal = object(json(artifact("agent-sandbox-cleanup.json"))), result = object(json(artifact("result.json")));
     if (config.prompt !== input.prompt || config.scope_digest !== collection.scope_digest || !same(config.owner, original.claim.owner) ||
+      result.operation !== original.operation || !same(result.sandbox,suspended) ||
       result.format !== "cimiloop/opencode-workspace-runtime/1.0.0" || result.mode !== "host_gateway" || result.original_scope_digest !== collection.scope_digest ||
       !same(result.native_exit, { code: 0, signal: null }) || result.output_limit_exceeded !== false || result.source_bytes_unchanged !== true ||
-      !same(result.disposal, disposal) || disposal.phase !== "ended" || disposal.nonce !== config.nonce || disposal.reason !== "exited" || disposal.exit_code !== 0 ||
+      !same(result.disposal, disposal) || disposal.format!=="cimiloop/agent-workspace-sandbox/1.0.0" || disposal.formal_agent_execution_enabled!==false || disposal.phase !== "ended" || disposal.nonce !== config.nonce || disposal.reason !== "exited" || disposal.exit_code !== 0 ||
       disposal.resources_disposed !== true || !Array.isArray(disposal.cleanup_errors) || disposal.cleanup_errors.length) return null;
     const catalog = json(artifact("check-catalog.json", 262144)), recipes = object(catalog).recipes;
     if (!Array.isArray(recipes) || !same(contract, originalTaskResultContract(scope, record.definition_ref, definition.body.outputs, recipes.map(recipe => String(object(recipe).check_id))))) return null;
     const ipc = readAgentWorkspaceIpcOriginals(root, scope, String(config.pipe_nonce));
-    if (ipc.status !== "Observed" || ipc.unresolved !== 0) return null;
+    if (ipc.status !== "Observed" || ipc.unresolved !== 0 || !isOriginalAgentNativeSuspension(suspended,{nonce:config.nonce,supervisor:launch.supervisor,peer:resources.runtime,appcontainer_sid:ipc.header?.endpoint.appcontainer_sid}) ||
+      !same(suspended.supervisor,ipc.header?.endpoint.supervisor)||!same(suspended.peer,ipc.header?.endpoint.peer)||resources.phase!=="ended"||resources.resources_disposed!==true) return null;
     const native = readAgentRuntimeNativeResult(root, project, record, scope, ipc, catalog);
     if (native.status !== "Verified" || !native.native_effect_reverified || native.unresolved_native_calls || native.unmatched_native_calls) return null;
     const steps: { session_id: string; message_id: string; text: string; reason: unknown; closed: boolean; tools: Record<string, unknown>[] }[] = [];
-    let session: string | undefined;
+    let session: string | undefined, suspendedSeen=false, cleanupSeen=false;
     const stdout = artifact("stdout.raw");
     const correlation = correlateAgentWorkspaceSdkOriginals(ipc, stdout);
     if (!same(collection.ipc.correlation, correlation) || correlation.uncorrelated_exchanges || correlation.unmatched_sdk_calls || !correlation.links.length) return null;
     for (const line of new TextDecoder("utf-8", { fatal: true }).decode(stdout).split(/\r?\n/)) {
       if (!line.trim()) continue; const event = object(json(Buffer.from(line)));
-      if (!["step_start", "step_finish", "text", "tool_use"].includes(String(event.type))) { if (event.type === "error") return null; continue; }
+      if(event.format==="cimiloop/agent-workspace-preparation/1.0.0") {if(suspendedSeen||cleanupSeen||steps.length||event.nonce!==config.nonce||!same(event.supervisor,launch.supervisor))return null;continue;}
+      if(event.format==="cimiloop/agent-workspace-sandbox/1.0.0"&&event.phase==="suspended") {if(suspendedSeen||cleanupSeen||steps.length||!same(event,suspended))return null;suspendedSeen=true;continue;}
+      if(event.format==="cimiloop/agent-workspace-sandbox/1.0.0") {if(!suspendedSeen||cleanupSeen||!steps.length||!steps.at(-1)!.closed||!same(event,disposal))return null;cleanupSeen=true;continue;}
+      if (!suspendedSeen || cleanupSeen || !["step_start", "step_finish", "text", "tool_use"].includes(String(event.type))) return null;
       const part = object(event.part);
       if (!id(event.sessionID) || part.sessionID !== event.sessionID || !id(part.messageID) || session && event.sessionID !== session) return null;
       session = event.sessionID;
@@ -106,7 +113,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
       if (event.type === "text") { if (part.type !== "text" || typeof part.text !== "string" || !part.text.isWellFormed()) return null; step.text += part.text; if (Buffer.byteLength(step.text) > 16384) return null; }
       if (event.type === "step_finish") { if (part.type !== "step-finish") return null; step.reason = part.reason; step.closed = true; }
     }
-    if (!steps.length || steps.length !== collection.model.calls || steps.some(step => !step.closed)) return null;
+    if (!suspendedSeen || !cleanupSeen || !steps.length || steps.length !== collection.model.calls || steps.some(step => !step.closed)) return null;
     const header = object(json(artifact("model/header.json", 114688))), expectedAdmission = object(input.provider_options).admission_digest;
     if (!same(header.scope, scope) || header.task_packet_digest !== digest(String(input.prompt)).value || header.admission_digest !== expectedAdmission ||
       object(config.provider_options).admission_digest !== expectedAdmission || !Array.isArray(header.permitted)) return null;

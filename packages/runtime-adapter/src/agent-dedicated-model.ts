@@ -21,6 +21,8 @@ export interface DedicatedAgentAccountPort {
  admission_digest:string;profile:DedicatedAgentProfile;
  check(scope:AgentWorkspaceToolScope,connection:DedicatedModelConnection):Promise<void>;
  reserve(scope:AgentWorkspaceToolScope,request:DedicatedAgentBudgetRequest,originalBody:Uint8Array):Promise<DedicatedAgentBudgetHold>;
+ // Must recheck live approval for the hold-bound exact connection and scope,
+ // physical custody, both budgets and the immutable hold across every await.
  verifyHold(scope:AgentWorkspaceToolScope,hold:DedicatedAgentBudgetHold):Promise<void>;
 }
 interface Options {root:string;repositoryPath:string;credentialBoundaryRoot?:string;methodTools?:'fixed_named_method/1.0.0';scope:AgentWorkspaceToolScope;connection:DedicatedModelConnection;account:DedicatedAgentAccountPort}
@@ -109,7 +111,10 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
   if(!/^[a-zA-Z0-9._-]{8,512}$/.test(key))fail("invalid_gateway_http_credential");if(prepared.body.includes(Buffer.from(key))||JSON.stringify(parseGatewayJson(prepared.body.toString(),65536)).includes(key))fail("gateway_credential_in_request");
   save(join(body,"provider-request.json"),prepared.body);signal?.throwIfAborted();await check(scope);await holdCheck(hold);signal?.throwIfAborted();
   const pin=await boundary.resolve(8000,signal),tls=await boundary.connect(pin,8000,signal);
-  try{await check(scope);await holdCheck(hold);signal?.throwIfAborted();
+  // Full bound-hold verification includes current account/connection admission.
+  // Local service also rechecks Kernel authority on both sides of its await.
+  // Keep the original 30s DNS pin; no second account await may age it out.
+  try{await holdCheck(hold);signal?.throwIfAborted();
    save(join(claim,"dispatch.json"),{request_digest:prepared.input_digest,hold_digest:digest(JSON.stringify(hold)).value});
    const response=await transport.sendAgentOriginal(prepared,tls,key,8000,signal);save(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id,request.call_id,"dedicated-response.json"),{format:"cimiloop/agent-dedicated-response/1.0.0",response_digest:digest(response.bytes).value,reply_digest:digest(JSON.stringify(response.parsed)).value});save(join(body,"provider-response.json"),response.bytes);save(join(body,"receipt.json"),{response_digest:digest(response.bytes).value,reply:response.parsed});return response.parsed.receipt;
   }finally{key="";tls.socket.destroy();}

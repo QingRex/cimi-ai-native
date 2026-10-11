@@ -53,14 +53,18 @@ describe("original structured Task execution result", () => {
       status: { status: "Stopped", operation: root, resources_disposed: true, cancellation_requested: false }, artifacts: [], synthetic_model_responses: null,
       model: { status: "Observed", calls: 2, unresolved: 0 }, ipc: { status: "Observed", unresolved: 0, correlation: null }, native: { status: "Verified" } };
   });
-  function verify(options: { packet?: any; omitDomain?: boolean; refreshTerminal?: boolean; disposal?: any; result?: any; originalChange?: (root: string) => void; ipcChange?: () => void; snapshotChange?: () => void } = {}) {
+  function verify(options: { packet?: any; omitDomain?: boolean; refreshTerminal?: boolean; disposal?: any; result?: any; suspended?: any; envelope?: (events: any[]) => any[]; originalChange?: (root: string) => void; ipcChange?: () => void; snapshotChange?: () => void } = {}) {
     if (options.refreshTerminal !== false) { responses[1].content[0].text = JSON.stringify(terminal); events.find(event => event.type === "text").part.text = JSON.stringify(terminal); }
     collection.artifacts = []; const artifact = (name: string, value: any, raw = false) => { const bytes = Buffer.from(raw ? value : JSON.stringify(value)); collection.artifacts.push({ name, reference: rawReference(root, bytes, "agent_runtime_original_bytes", name) }); };
     const prompt = JSON.stringify(options.packet ?? base.packet), owner = { pid: 1234, creation_ticks: "1", image: process.execPath }, admission = digest("constructed unapproved model/account").value;
     const config = { prompt, nonce: "constructed_nonce", pipe_nonce: "constructed_pipe", scope_digest: collection.scope_digest, owner, provider_options: { admission_digest: admission } };
-    const disposal = { format: "cimiloop/agent-workspace-sandbox/1.0.0", phase: "ended", nonce: config.nonce, reason: "exited", exit_code: 0, resources_disposed: true, cleanup_errors: [], ...options.disposal };
-    artifact("original-config.json", config); artifact("agent-sandbox-cleanup.json", disposal); artifact("result.json", { format: "cimiloop/opencode-workspace-runtime/1.0.0", mode: "host_gateway", original_scope_digest: collection.scope_digest, native_exit: { code: 0, signal: null }, disposal, output_limit_exceeded: false, source_bytes_unchanged: true, ...options.result });
-    artifact("check-catalog.json", base.catalog); const stdout = events.map(event => JSON.stringify(event)).join("\n") + "\n"; artifact("stdout.raw", stdout, true);
+    const disposal = { format: "cimiloop/agent-workspace-sandbox/1.0.0", phase: "ended", nonce: config.nonce, reason: "exited", exit_code: 0, resources_disposed: true, cleanup_errors: [], formal_agent_execution_enabled: false, ...options.disposal };
+    const supervisor={pid:2345,creation_ticks:"2",image:process.execPath},peer={pid:2346,creation_ticks:"3",image:process.execPath},appcontainer_sid="S-1-15-2-1-2-3-4-5-6-7";
+    const suspended={format:"cimiloop/agent-workspace-sandbox/1.0.0",phase:"suspended",nonce:config.nonce,supervisor,peer,appcontainer_sid,network_capability_sids:[],active_process_limit:1,...options.suspended};
+    Object.assign(ipc.header.endpoint,{supervisor,peer,appcontainer_sid});
+    artifact("original-launcher.json",{supervisor});artifact("agent-sandbox-resources.json",{runtime:peer,phase:"ended",resources_disposed:true});artifact("agent-sandbox-original.json",suspended);
+    artifact("original-config.json", config); artifact("agent-sandbox-cleanup.json", disposal); artifact("result.json", { format: "cimiloop/opencode-workspace-runtime/1.0.0", mode: "host_gateway", operation: root, sandbox: suspended, original_scope_digest: collection.scope_digest, native_exit: { code: 0, signal: null }, disposal, output_limit_exceeded: false, source_bytes_unchanged: true, ...options.result });
+    artifact("check-catalog.json", base.catalog); const stream=[suspended,...events,disposal]; const stdout = (options.envelope?.(structuredClone(stream))??stream).map(event => JSON.stringify(event)).join("\n") + "\n"; artifact("stdout.raw", stdout, true);
     collection.ipc.correlation = correlateAgentWorkspaceSdkOriginals(ipc, Buffer.from(stdout));
     // Constructed bytes in actual private model ledger layout. The production
     // reader, including its independent start spine, is never mocked.
@@ -83,6 +87,12 @@ describe("original structured Task execution result", () => {
     return (verifyOriginalTaskExecutionResult as (...args: any[]) => any)(modelRoot, f.project, base.record, base.context, original, collection,
       options.omitDomain ? undefined : { definition: base.packet.definition, contract: base.packet.contract, plan: base.packet.plan });
   }
+  it.each([{active_process_limit:2},{network_capability_sids:["S-1-15-3-1"]},{extra:true}])("rejects mutually consistent unsafe Native policy %j",suspended=>{expect(verify()).not.toBeNull();expect(verify({suspended})).toBeNull();});
+  it.each([{operation:"foreign-original-operation"},{sandbox:{phase:"suspended",active_process_limit:1}}])("rejects a result paired with another original %j",result=>{expect(verify()).not.toBeNull();expect(verify({result})).toBeNull();});
+  it("requires unique matching Native suspension before SDK and cleanup after SDK",()=>{
+    expect(verify()).not.toBeNull();
+    for(const envelope of [(s:any[])=>s.slice(1),(s:any[])=>s.slice(0,-1),(s:any[])=>[s[0],...s],(s:any[])=>[...s,s.at(-1)],(s:any[])=>[s.at(-1),...s.slice(0,-1)],(s:any[])=>[{...s[0],active_process_limit:2},...s.slice(1)],(s:any[])=>[...s,{type:"unrecognized-event"}]])expect(verify({envelope})).toBeNull();
+  });
   it("requires independent Kernel domain records rather than trusting mutually consistent Runtime bytes", () => {
     expect(verify()).not.toBeNull();
     expect(verify({ omitDomain: true })).toBeNull();

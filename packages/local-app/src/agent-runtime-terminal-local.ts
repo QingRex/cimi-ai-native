@@ -1,6 +1,6 @@
 import {join} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
-import {bytesAt,digest,readOriginalAgentWorkspaceOperation,readAgentWorkspaceIpcOriginals,readAgentRuntimeModelOriginals,
+import {isOriginalAgentNativeSuspension,bytesAt,digest,readOriginalAgentWorkspaceOperation,readAgentWorkspaceIpcOriginals,readAgentRuntimeModelOriginals,
  readWorkspaceFileRunOriginals,AgentWorkspaceCheckHost,readAgentRuntimeNativeResult,parseGatewayJson,
  verifyOriginalTaskExecutionResult,readAgentRuntimeCancellationOriginal,verifyCollectedAgentRuntimeCancellation,agentWorkspaceIpcScopeDigest,type collectAgentRuntimeOperation,type readAgentRuntimeOriginalIdentity,type OriginalTaskDomainBasis} from '@cimiloop/runtime-adapter';
 import type {Project,AgentRunRecord,AgentContextManifest} from '@cimiloop/protocol/v2';
@@ -38,6 +38,7 @@ export function readOriginalAgentTerminal(root:string,project:Project,record:Age
  const read=()=>({ipc:readAgentWorkspaceIpcOriginals(root,identity.scope,String(config.pipe_nonce)),model:readAgentRuntimeModelOriginals(root,identity.scope),
   files:readWorkspaceFileRunOriginals(root,project,record),checks:AgentWorkspaceCheckHost.readRunOriginals(root,project,record)});
  const original=read();
+ if(!isOriginalAgentNativeSuspension(suspended,{nonce:config.nonce,supervisor:launch.supervisor,peer:resources.runtime,appcontainer_sid:original.ipc.header?.endpoint.appcontainer_sid})||!same(suspended.peer,original.ipc.header?.endpoint.peer)||!same(suspended.supervisor,original.ipc.header?.endpoint.supervisor))throw Error("Original Native isolation unproven");
  if(original.ipc.status!=='Observed'||original.ipc.unresolved!==0||!same(original.ipc.header?.scope,identity.scope)||original.model.status!=='Observed'||original.model.calls.some(c=>c.state!=='reply_recorded'||!c.response)||
   original.files.facts.unresolved!==0||original.checks.facts.unresolved!==0)throw Error('Original calls remain unresolved');
  const calls=original.ipc.exchanges.filter(e=>e.request&&typeof e.request==='object'&&'tool' in e.request&&e.request.tool==='model_step');

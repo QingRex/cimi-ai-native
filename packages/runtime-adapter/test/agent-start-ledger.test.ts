@@ -20,6 +20,17 @@ describe("original host first-start ledger", () => {
       host_admission_ref: { provider: "local_content" as const, resource_type: "agent_host_admission" as const, locator: digest("admission").value, digest: digest("admission") } };
     return { root, path, host, ledger, ticket, scope };
   }
+  it("reads original ticket and claim in one fresh before/after verified cut without retaining a cache",()=>{
+    const f=setup();f.ledger.close();let verifies=0,deny=false;const ledger=AgentStartLedger.open(f.path,f.host,()=>{verifies++;if(deny)throw Error('PUBLIC revoked physical custody');});
+    try{const method=Reflect.get(ledger,'readOriginalScope');expect(method).toBeTypeOf('function');verifies=0;const first=method.call(ledger,f.ticket,f.scope);expect(first).toMatchObject({basis:{original:'frozen admission'},claim:{state:'unclaimed'}});expect(verifies).toBe(2);
+     ledger.claim(f.ticket,f.scope,digest('material'));expect(method.call(ledger,f.ticket,f.scope)).toMatchObject({claim:{state:'claimed',material_digest:digest('material')}});deny=true;expect(()=>method.call(ledger,f.ticket,f.scope)).toThrow('PUBLIC revoked physical custody');
+    }finally{ledger.close();}
+  });
+  it("rejects a failed physical custody check at the end of an original cut and does not create a claim",()=>{
+    const f=setup();f.ledger.close();let verifies=0,deny=false;const ledger=AgentStartLedger.open(f.path,f.host,()=>{verifies++;if(deny&&verifies===2)throw Error('PUBLIC after-cut physical substitution');});
+    try{const method=Reflect.get(ledger,'readOriginalScope');expect(method).toBeTypeOf('function');verifies=0;deny=true;expect(()=>method.call(ledger,f.ticket,f.scope)).toThrow('PUBLIC after-cut physical substitution');deny=false;expect(ledger.inspect(f.ticket,f.scope)).toEqual({state:'unclaimed'});
+    }finally{ledger.close();}
+  });
   it("returns one immutable ticket for the same fixed basis and one irreversible original claim across connections", () => {
     const f = setup(); expect(f.ledger.issue(f.ledger.readTicket(f.ticket))).toEqual(f.ticket);
     const other = AgentStartLedger.open(f.path, f.host);

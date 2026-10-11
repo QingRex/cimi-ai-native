@@ -1,3 +1,4 @@
+import {createInternalId} from "@cimiloop/protocol/v2";
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readFileSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, basename } from "node:path";
@@ -37,6 +38,21 @@ describe("shared original Agent launch assembly", () => {
     if (dirname(root) !== tmpdir() || !basename(root).startsWith("cimiloop-agent-start-")) throw Error("Unsafe cleanup");
     rmSync(root, { recursive: true, force: true });
   } });
+  it("re-reads original custody after a synchronous independent callback and denies substituted immutable originals",async()=>{
+    const original=ledger.readOriginalScope.bind(ledger);let substitute=false;
+    vi.spyOn(ledger,'readOriginalScope').mockImplementation((ticket,scope)=>{const value=original(ticket,scope);return substitute?{...value,basis:{PUBLIC:'substituted original'}}:value;});
+    full.verifyLaunch=()=>{substitute=true;return contentDigest('PUBLIC positive independent callback');};
+    await expect(new LocalAgentRuntimeStart(local,{custody,prepare}).start(runId)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});
+    expect(prepare).not.toHaveBeenCalled();expect(launch).not.toHaveBeenCalled();
+  });
+  it("pins the original scope across a callback that claims it then mutates its input to hide that change",()=>{
+    const run=f.store.getRun(runId)!,record=f.store.getRuntimeRecord('run_record',run.record_ref.id)!;if(record.run_kind!=='agent')throw Error('Agent expected');
+    const scope={project_id:record.project_id,run_id:runId,operation_key:record.operation_key,executor_actor_id:record.executor_ref.id,context_digest:record.input_digest,runtime_binding:record.runtime_binding,skill_bindings:record.skill_bindings,host_admission_ref:record.host_admission_ref};
+    const cuts=vi.spyOn(ledger,'readOriginalScope');
+    full.verifyLaunch=(_project,input)=>{const ticket=cuts.mock.calls.at(-1)![0];ledger.claim(ticket,structuredClone(input.request),contentDigest('PUBLIC original claimed during callback'));input.request.run_id=createInternalId();input.request.operation_key=createInternalId();return contentDigest('PUBLIC positive mutated callback');};
+    expect(local.kernel.assessAgentRunLaunch(scope)).toMatchObject({decision:'DENY',reasons:['AGENT_LAUNCH_HOST_PROOF_UNPROVEN']});
+    expect(prepare).not.toHaveBeenCalled();expect(launch).not.toHaveBeenCalled();
+  });
   it("assembles Task/Plan/Contract from Kernel records and starts once across concurrent callers and service instances", async () => {
     const service = new LocalAgentRuntimeStart(local, { custody, prepare }), sequence = f.store.asOfEventSequence();
     const results = await Promise.all([service.start(runId), new LocalAgentRuntimeStart(local, { custody, prepare }).start(runId)]);
