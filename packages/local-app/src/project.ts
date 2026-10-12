@@ -10,6 +10,7 @@ import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
 import type{DedicatedAgentAccountLedger}from'@cimiloop/runtime-adapter';
+import type{LocalAgentRunFamilyVerification}from'./agent-run-family-costs-local.js';
 import {LocalPlanningClarificationAdmission,type LocalPlanningClarificationOptions} from './planning-clarification-local.js';
 
 export interface LocalProject {
@@ -21,7 +22,7 @@ export interface LocalProject {
 
 // Only a trusted local launcher supplies the project directory and operator.
 // HTTP requests never select a database, filesystem path or caller identity.
-export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'> } = {}): LocalProject => {
+export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'>;agentRunFamilySkills?:LocalAgentRunFamilyVerification } = {}): LocalProject => {
   const start = options.projectDir ? resolve(options.projectDir) : process.cwd();
   const location = locateProject(start, Boolean(options.projectDir) || existsSync(join(start, ".cimiloop", "instance.json")));
   if (!existsSync(location.instancePath) || !existsSync(location.databasePath)) {
@@ -36,8 +37,9 @@ export const openLocalProject = (options: { projectDir?: string; agentRunCostAcc
       !actor || actor.project_id !== project.id || actor.actor_type !== "human") {
       throw new LocalProjectError("本地入口与项目或 Human 身份不匹配", "CALLER_IDENTITY_MISMATCH", "forbidden");
     }
-    const runVerifier=new LocalRunVerifier(location.repositoryPath,location.dataDirectory,options.agentRunCostAccount,store);
-    if(options.skillInvocationResults){const readResult=options.skillInvocationResults.readResult;if(typeof readResult!=='function')throw Error('Skill historical reader unavailable');runVerifier.agent.skills={prepare:()=>{throw Error('Skill execution unavailable');},readResult};}
+    const runVerifier=new LocalRunVerifier(location.repositoryPath,location.dataDirectory,options.agentRunCostAccount,store,options.agentRunFamilySkills);
+    const skillResults=options.skillInvocationResults??options.agentRunFamilySkills;
+    if(skillResults){const readResult=skillResults.readResult;if(typeof readResult!=='function')throw Error('Skill historical reader unavailable');runVerifier.agent.skills={prepare:()=>{throw Error('Skill execution unavailable');},readResult:readResult.bind(skillResults)};}
     const kernel = new CimiLoopKernel({ store, caller: { kind: "local_operator", project_id: project.id, actor_id: actor.id },
       evidenceVerifier: new LocalEvidenceVerifier(location.repositoryPath, location.dataDirectory),
       runVerifier,

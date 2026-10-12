@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { digest } from "../src/files.js";
 import { AgentStartLedger } from "../src/agent-start-ledger.js";
+import {spawn} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 // Real durable SQLite and filesystem identities; machine/principal are constructed.
 // No model/account/Provider approval is implied by a start ticket.
 describe("original host first-start ledger", () => {
@@ -20,6 +22,43 @@ describe("original host first-start ledger", () => {
       host_admission_ref: { provider: "local_content" as const, resource_type: "agent_host_admission" as const, locator: digest("admission").value, digest: digest("admission") } };
     return { root, path, host, ledger, ticket, scope };
   }
+  it('waits for a bounded original SQLite open lock before its first format read without reinitializing custody',async()=>{
+    const f=setup(),identity=f.ledger.identityDigest,basis=f.ledger.readTicket(f.ticket);f.ledger.close();
+    const child=spawn(process.execPath,[fileURLToPath(new URL('../../../tests/fixtures/agent-start-ledger-lock-holder.mjs',import.meta.url)),f.root],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+    let output='',error='';child.stdout.on('data',bytes=>{output+=bytes.toString();});child.stderr.on('data',bytes=>{error+=bytes.toString();});
+    const ended=new Promise<number|null>((done,fail)=>{child.once('error',fail);child.once('close',done);});
+    try{
+      await new Promise<void>((done,fail)=>{const data=()=>{if(output.includes('locked\n')){child.stdout.removeListener('data',data);done();}};child.stdout.on('data',data);child.once('error',fail);void ended.then(()=>{if(!output.includes('locked\n'))fail(Error('Original lock holder ended before ready: '+error));},fail);data();});
+      const opened=AgentStartLedger.open(f.path,f.host);
+      try{expect(opened.identityDigest).toBe(identity);expect(opened.readTicket(f.ticket)).toEqual(basis);expect(opened.inspect(f.ticket,f.scope)).toEqual({state:'unclaimed'});}finally{opened.close();}
+    }finally{expect(await ended).toBe(0);}
+  });
+  it('captures selected namespaces before the synchronous Native custody boundary can mutate the caller array',()=>{
+    const f=setup(),id=digest('PUBLIC original hold').value;f.ledger.issueExclusive('dedicated_account_hold',id,{retained:true});f.ledger.close();
+    const names=['dedicated_agent_account'];let mutate=false;const ledger=AgentStartLedger.open(f.path,f.host,()=>{if(mutate){mutate=false;names[0]='dedicated_account_hold';}});
+    try{mutate=true;ledger.withExclusiveReadCut(names,()=>{expect(ledger.readExclusive('dedicated_account_hold',id)?.basis).toEqual({retained:true});});}finally{ledger.close();}
+  });
+  it('returns detached original rows and invalidates the synchronous cut before a Host write',()=>{
+    const f=setup(),id=digest('PUBLIC hold').value,next=digest('PUBLIC next hold').value;f.ledger.issueExclusive('dedicated_account_hold',id,{retained:true});
+    try{f.ledger.withExclusiveReadCut(['dedicated_account_hold'],()=>{
+      const row=f.ledger.readExclusive('dedicated_account_hold',id)!;Reflect.set(row.basis as object,'retained',false);
+      expect(f.ledger.readExclusive('dedicated_account_hold',id)?.basis).toEqual({retained:true});
+      f.ledger.issueExclusive('dedicated_account_hold',next,{new_original:true});expect(f.ledger.listExclusive('dedicated_account_hold')).toHaveLength(2);
+    });expect(f.ledger.listExclusive('dedicated_account_hold')).toHaveLength(2);}finally{f.ledger.close();}
+  });
+  it('rejects the current synchronous cut when its callback revokes Host physical custody before returning',()=>{
+    const f=setup(),id=digest('PUBLIC retained hold').value;f.ledger.issueExclusive('dedicated_account_hold',id,{retained:true});f.ledger.close();let denied=false;
+    const ledger=AgentStartLedger.open(f.path,f.host,()=>{if(denied)throw Error('PUBLIC Host custody revoked inside cut');});
+    try{expect(()=>ledger.withExclusiveReadCut(['dedicated_account_hold'],()=>{denied=true;return ledger.readExclusive('dedicated_account_hold',id);})).toThrow('PUBLIC Host custody revoked inside cut');}finally{ledger.close();}
+  });
+  it('rejects an asynchronous cut and clears its view on both rejected results and synchronous failure',async()=>{
+    const f=setup();f.ledger.close();let denied=false;const ledger=AgentStartLedger.open(f.path,f.host,()=>{if(denied)throw Error('PUBLIC custody revoked after cut');});
+    try{
+      expect(()=>ledger.withExclusiveReadCut(['dedicated_account_hold'],()=>Promise.reject(Error('PUBLIC async view refused')))).toThrow('agent_start_read_cut_async_unavailable');await new Promise<void>(done=>setImmediate(done));
+      expect(()=>ledger.withExclusiveReadCut(['dedicated_account_hold'],()=>{throw Error('PUBLIC synchronous cut failed');})).toThrow('PUBLIC synchronous cut failed');
+      denied=true;expect(()=>ledger.listExclusive('dedicated_account_hold')).toThrow('PUBLIC custody revoked after cut');
+    }finally{ledger.close();}
+  });
   it("reads original ticket and claim in one fresh before/after verified cut without retaining a cache",()=>{
     const f=setup();f.ledger.close();let verifies=0,deny=false;const ledger=AgentStartLedger.open(f.path,f.host,()=>{verifies++;if(deny)throw Error('PUBLIC revoked physical custody');});
     try{const method=Reflect.get(ledger,'readOriginalScope');expect(method).toBeTypeOf('function');verifies=0;const first=method.call(ledger,f.ticket,f.scope);expect(first).toMatchObject({basis:{original:'frozen admission'},claim:{state:'unclaimed'}});expect(verifies).toBe(2);

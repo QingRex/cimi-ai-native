@@ -119,6 +119,8 @@ describe("Agent native records with constructed qualification and trusted port",
     }));
     expect(result.command_type).toBe("RecordRunObservation"); expect(f.store.getRun(reserved.run.id)?.status).toBe("Succeeded");
   });
+  // Windows fixture observation only: r47 completed at58.6s beyond45s.
+  // Original Task/Run budgets, admission checks and assertions stay fixed.
   it("pins Agent handoff/resumption and rechecks host admission when a Human resumes the paused Change", () => {
     const f = fixture(), reserved = f.reserveAgent(f.prepareAgent()); flowSuccess(f.agentObserve(reserved.run, "succeeded"));
     const changeCommand = (kind: string, payload: unknown) => ({ ...f.context("change_owner"), command_type: kind, target: { object_type: "change", id: f.change.id }, expected_revision: f.store.getChange(f.change.id)!.revision, payload });
@@ -133,7 +135,7 @@ describe("Agent native records with constructed qualification and trusted port",
     const result = flowSuccess(f.kernel.execute({ ...f.reserveCommand(prepared, 75), payload: { ...f.reserveCommand(prepared, 75).payload as object, resumption_ref: { object_type: "resumption_record", id: checked.data.resumption.id } } }));
     if (result.command_type !== "ReserveRun") throw new Error("Reservation expected"); expect(result.data.record.attempt_no).toBe(2); expect(result.data.record.reserved_cost_micros).toBe(75);
     expect(f.task().usage).toMatchObject({ attempts_consumed: 2, cost_consumed_micros: 25, cost_reserved_micros: 75 });
-  });
+  }, 120_000);
   it("rejects direct SQL attempts to mix Human Context/Agent Run or replace an Agent result's pins", () => {
     const f = fixture(), prepared = f.prepareAgent(), reserved = f.reserveAgent(prepared); flowSuccess(f.agentObserve(reserved.run, "succeeded"));
     const db = new DatabaseSync(f.path); const insert = (kind: string, value: unknown, id: string) => db.prepare("INSERT INTO run_records VALUES (?, ?, ?, ?, ?, ?)").run(id, f.project.id, f.change.id, f.agent.id, kind, JSON.stringify(value));

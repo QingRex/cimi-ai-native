@@ -8,6 +8,7 @@ export type { RunVerifierPort, AgentRunVerifierPort, AgentRunAdmissionInput, Age
 export type { AgentRunLaunchAssessment } from "./agent-run-launch.js";
 export type {AgentRunModelAssessment} from './agent-run-model.js';
 export { runContextDigest } from "./runs.js";
+export {skillInvocationState} from './skill-invocation-facts.js';
 export type { ProviderVerifierPort } from "./provider-assessment.js";
 export {MattClarificationUnavailable} from './planning-clarification.js';
 export type {PlanningCommand,PlanningClarificationBasis,PlanningClarificationPort} from './planning-clarification.js';

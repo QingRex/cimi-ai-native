@@ -7,7 +7,7 @@ import { DedicatedAgentAccountLedger, verifyCollectedDedicatedAgentModelOriginal
 import { LocalEvidenceVerifier, type ContentReference } from "./evidence-local.js";
 import { executeLocalCommand, type LocalCommandInput } from "./project.js";
 import { readHumanOriginalAgentRunInputs, type AgentRuntimeControlContext } from "./agent-runtime-control-local.js";
-import{readOriginalLocalAgentRunCosts,type LocalAgentRunFamilyReader}from'./agent-run-family-costs-local.js';
+import{readOriginalLocalAgentRunCosts,type LocalAgentRunFamilyReader,type LocalAgentRunFamilyVerification}from'./agent-run-family-costs-local.js';
 import { LocalProjectError } from "./errors.js";
 import {classifyOriginalAgentExecutionFailure,type OriginalAgentExecutionFailure} from "./agent-runtime-failure-local.js";
 import {readOriginalAgentTerminal} from './agent-runtime-terminal-local.js';
@@ -40,7 +40,7 @@ export function parseOriginalAgentCostProofBytes(bytes:Buffer):unknown{
  const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes),value:unknown=JSON.parse(text);
  if(JSON.stringify(value)!==text)throw Error('Original family proof canonical bytes required');
  const stack=[{value,depth:0}];let nodes=0;while(stack.length){const next=stack.pop()!;if(++nodes>524288||next.depth>64)throw Error('Original family proof structural bound');if(next.value&&typeof next.value==='object')for(const [key,child]of Object.entries(next.value)){if(['__proto__','constructor','prototype'].includes(key))throw Error('Original family proof forbidden key');stack.push({value:child,depth:next.depth+1});}}
- const proof=value as {format?:string;cost_evidence?:{format?:string}};if(!proof||!['cimiloop/agent-billed-observation-proof/1.0.0','cimiloop/agent-billed-reconciliation-proof/1.0.0','cimiloop/agent-billed-reconciliation-proof/2.0.0'].includes(proof.format??'')||proof.cost_evidence?.format!=='cimiloop/agent-run-family-cost-evidence/1.0.0')throw Error('Original family proof format required');return structuredClone(value);
+ const proof=value as {format?:string;cost_evidence?:{format?:string}};if(!proof||!['cimiloop/agent-billed-observation-proof/1.0.0','cimiloop/agent-billed-reconciliation-proof/1.0.0','cimiloop/agent-billed-reconciliation-proof/2.0.0'].includes(proof.format??'')||!['cimiloop/agent-run-family-cost-evidence/1.0.0','cimiloop/agent-run-family-cost-evidence/2.0.0'].includes(proof.cost_evidence?.format??''))throw Error('Original family proof format required');return structuredClone(value);
 }
 const parsed=(bytes:Buffer)=>{try{return structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(bytes),8*1024*1024));}catch{return parseOriginalAgentCostProofBytes(bytes);}};
 const read=(path:string)=>parsed(bytesAt(path,8*1024*1024));
@@ -96,7 +96,7 @@ const validateCollection=(root:string,identity:Identity,value:unknown)=>{
 
 export class LocalAgentRunResultVerifier {
  private readonly content:LocalEvidenceVerifier;
- constructor(private readonly repositoryPath:string,private readonly dataDirectory:string,private readonly accountForRun?:(runId:string)=>DedicatedAgentAccountLedger,private readonly familyReader?:LocalAgentRunFamilyReader){this.content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);}
+ constructor(private readonly repositoryPath:string,private readonly dataDirectory:string,private readonly accountForRun?:(runId:string)=>DedicatedAgentAccountLedger,private readonly familyReader?:LocalAgentRunFamilyReader,private readonly familySkills?:LocalAgentRunFamilyVerification){this.content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);}
  readRunResult(project:Project,record:AgentRunRecord,context:AgentContextManifest,reference:Prepared["raw_result_ref"],domain:OriginalTaskDomainBasis):RawAgentRunObservation {
   if(resolve(project.repository_path)!==resolve(this.repositoryPath))throw Error("Original result project mismatch");
   const report=compileValidator<RawAgentRunObservation>(RawAgentRunObservationSchema)(parsed(this.content.readContent(reference)));
@@ -109,7 +109,12 @@ export class LocalAgentRunResultVerifier {
     !isDeepStrictEqual(read(join(pathFor(this.dataDirectory,project.id,record.run_id,intent.request.command_id),"request.json")),intent))throw Error("Original prepared result mismatch");
   const collection=parsed(this.content.readContent(proof.collection_ref));
   validateCollection(this.dataDirectory,proof.original,collection);
-  if(proof.cost_evidence){if(!this.accountForRun||!['cimiloop/agent-billed-observation-request/1.0.0','cimiloop/agent-billed-reconciliation-request/1.0.0'].includes(proof.intent.format)||!isDeepStrictEqual(proof.cost_evidence,readOriginalLocalAgentRunCosts(this.repositoryPath,this.dataDirectory,intent.scope,this.accountForRun(record.run_id),this.familyReader)))throw Error("Original bill/model costs unproven");}
+  if(proof.cost_evidence){
+   const familyV2=proof.cost_evidence.format==='cimiloop/agent-run-family-cost-evidence/2.0.0';
+   // Historical proof meaning is selected by its original version, never by
+   // whichever new composition happens to be installed on the current host.
+   if(familyV2&&!this.familySkills||!this.accountForRun||!['cimiloop/agent-billed-observation-request/1.0.0','cimiloop/agent-billed-reconciliation-request/1.0.0'].includes(proof.intent.format)||!isDeepStrictEqual(proof.cost_evidence,readOriginalLocalAgentRunCosts(this.repositoryPath,this.dataDirectory,intent.scope,this.accountForRun(record.run_id),this.familyReader,familyV2?this.familySkills:undefined)))throw Error("Original bill/model costs unproven");
+  }
   if(proof.terminal&&!isDeepStrictEqual(proof.terminal,readOriginalAgentTerminal(this.dataDirectory,project,record,context,proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>,domain)))throw Error('Original terminal unproven');
   if(proof.execution_result_ref){const verified=verifyOriginalTaskExecutionResult(this.dataDirectory,project,record,context,proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>,domain);
     if(!verified||!isDeepStrictEqual(parsed(this.content.readContent(proof.execution_result_ref)),verified))throw Error("Original task execution result unproven");}
@@ -139,12 +144,12 @@ function readProof(content:LocalEvidenceVerifier,reference:RawAgentRunObservatio
 
 export class LocalAgentRuntimeObservation {
  private readonly content:LocalEvidenceVerifier;
- constructor(private readonly local:AgentRuntimeControlContext,private readonly port:AgentRuntimeObservationPort={collect:collectAgentRuntimeOperation}){
+ constructor(private readonly local:AgentRuntimeControlContext,private readonly port:AgentRuntimeObservationPort={collect:collectAgentRuntimeOperation},private readonly familySkills?:LocalAgentRunFamilyVerification){
  this.content=new LocalEvidenceVerifier(local.location.repositoryPath,local.location.dataDirectory);}
  async record(raw:unknown){return this.recordOriginal(raw,false);}
- async recordCosts(raw:unknown,account?:DedicatedAgentAccountLedger){return this.recordOriginal(raw,true,account);}
- async reconcileCosts(raw:unknown,account?:DedicatedAgentAccountLedger){return this.recordOriginal(raw,true,account,true);}
- private async recordOriginal(raw:unknown,billed:boolean,account?:DedicatedAgentAccountLedger,reconciling=false){
+ async recordCosts(raw:unknown,account?:DedicatedAgentAccountLedger,beforeCommit:()=>void=()=>{}){return this.recordOriginal(raw,true,account,false,beforeCommit);}
+ async reconcileCosts(raw:unknown,account?:DedicatedAgentAccountLedger,beforeCommit:()=>void=()=>{}){return this.recordOriginal(raw,true,account,true,beforeCommit);}
+ private async recordOriginal(raw:unknown,billed:boolean,account?:DedicatedAgentAccountLedger,reconciling=false,beforeCommit:()=>void=()=>{}){
   const request=(reconciling?parseLocalAgentReconciliationRequest:parseLocalAgentObservationRequest)(raw,this.local),original=readHumanOriginalAgentRunInputs(this.local,request.target.id),intent=intentFor(this.local,request,original,billed);
   const preparedFormat=reconciling?'cimiloop/agent-billed-reconciliation-prepared/1.0.0':billed?'cimiloop/agent-billed-observation-prepared/1.0.0':'cimiloop/agent-unknown-observation-prepared/1.0.0';
   const location=pathFor(this.local.location.dataDirectory,original.project.id,original.run.id,request.command_id),requestPath=join(location,"request.json"),preparedPath=join(location,"prepared.json");
@@ -165,7 +170,7 @@ export class LocalAgentRuntimeObservation {
     const domain="code" in definition||"code" in contract||"code" in plan?undefined:
       {definition:definition.object,contract:contract.object,plan:plan.object,run:original.run} as OriginalTaskDomainBasis;
     const execution=failure?null:verifyOriginalTaskExecutionResult(this.local.location.dataDirectory,original.project,original.record,original.context,identity,collection,domain);
-    const cost_evidence=billed&&account?readOriginalLocalAgentRunCosts(this.local.location.repositoryPath,this.local.location.dataDirectory,original.scope,account,this.local.store as LocalAgentRunFamilyReader):undefined;
+    const cost_evidence=billed&&account?readOriginalLocalAgentRunCosts(this.local.location.repositoryPath,this.local.location.dataDirectory,original.scope,account,this.local.store as LocalAgentRunFamilyReader,this.familySkills):undefined;
     if(billed&&(!cost_evidence||cost_evidence.costs.currency!==original.record.cost_currency))throw Error('Original cost currency/account unproven');
     const terminal=reconciling?readOriginalAgentTerminal(this.local.location.dataDirectory,original.project,original.record,original.context,identity,collection,domain):undefined;
     const runs=reconciling?this.local.kernel.getRuns?.(original.record.change_id):undefined;
@@ -183,6 +188,7 @@ export class LocalAgentRuntimeObservation {
   catch{throw new LocalProjectError("原观测准备结果损坏；保留原请求核对","EVIDENCE_MISSING","storage");}
   // On an exact retry Kernel may return its prior immutable receipt even if
   // later Native files are gone. Never recollect or regenerate the report.
+  const guard:unknown=beforeCommit();if(guard&&typeof guard==='object'&&'then'in guard){void Promise.resolve(guard).catch(()=>undefined);throw Error('Synchronous original fee guard required');}
   return executeLocalCommand(this.local,{...request,payload:{raw_result_ref:prepared.raw_result_ref}});
  }
 }

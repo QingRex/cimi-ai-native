@@ -1,0 +1,1582 @@
+{
+  "record": "D-280",
+  "started_on": "2026-10-12",
+  "recorded_at": "2026-10-12T18:31:41.428Z",
+  "base_commit": "67e5ff8e8fd49fcf8ed08a1838c9f71e313a2567",
+  "branch": "main",
+  "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "origin_refresh": {
+    "path": ".cimiloop/new-host-s1/d280-origin-refresh-before-commit.json",
+    "sha256": "0653176e949ca882d2a67c3615a7c0785705a0c0529396feab5b92da8e44fc92"
+  },
+  "ahead_behind_before_commit": "47\t0",
+  "pushed": false,
+  "goal_status": "active",
+  "full_goal_scope": [
+    "V1-09",
+    "V1-21",
+    "V1-22",
+    "V1-10",
+    "V1-11"
+  ],
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "user_approved_provider_only": "zhipuai",
+  "remaining_model_approval": [
+    "specific model",
+    "package",
+    "cash limit and currency",
+    "credit limit"
+  ],
+  "database_format": 10,
+  "protocol_schema_count": 242,
+  "host_ledger_format": 1,
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "12.4.2",
+    "node_path": "C:\\Users\\hector.he\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
+    "cli_exit": 0,
+    "schema_exported": 242,
+    "schema_tracked": 242,
+    "schema_drift": [],
+    "user_database_format": 10,
+    "protocol_or_user_database_migration": false
+  },
+  "compatibility": {
+    "public_schema_changed": false,
+    "user_database_upgraded": false,
+    "host_schema_upgraded": false,
+    "historical_evidence_rewritten": false,
+    "old_reader_meaning_changed": false,
+    "internal_family_cost_evidence_version": "2.0.0",
+    "historical_reader_selected_by_saved_version": true
+  },
+  "host_open_and_test_environment": {
+    "sql_first_open_lock_red": {
+      "path": ".cimiloop/new-host-s1/d280-r71-host-open-lock-red.json",
+      "sha256": "beff42dfcf7846de2cdb1ddb1a5f4edc01b48cbb0a0395656eea78a591b33c2a"
+    },
+    "sql_first_open_lock_green": {
+      "path": ".cimiloop/new-host-s1/d280-r72-host-open-lock-green.json",
+      "sha256": "f6276320a3c712ab7f9a429266398ac9b69355ae4e4fa63cae25b45fb9b821c7"
+    },
+    "old_windows39pass1fail": {
+      "path": ".cimiloop/new-host-s1/d280-r70-windows-final.json",
+      "sha256": "c926793a6d620b8f46cb188cfad14687736a74177bc95336fbd1367d00ee0471"
+    },
+    "old_test_cancellation": {
+      "path": ".cimiloop/new-host-s1/s1-invalid-temp-test-cancellation.json",
+      "sha256": "9b91c2adf52f195080cec62f4604a44a6c99041c29e26e3d0e2163c0ed7d0bfc"
+    },
+    "owned_pnpm_scratch_relocation": {
+      "path": ".cimiloop/new-host-s1/s1-owned-scratch-relocation-2026-10-12.json",
+      "sha256": "e7a55054b9eecb215f2a11127e6eeb0f617f1ba8784db018216a3557d29d9fc9"
+    },
+    "canonical_windows_tmp": {
+      "path": ".cimiloop/new-host-s1/s1-scratch-canonical-path-diagnostic.json",
+      "sha256": "555e7add477dc9ca7fbe11b55d00f0d22611dc82dc4c726671ac24c977c0ce0c"
+    },
+    "failed_native_protect_report": {
+      "path": ".cimiloop/new-host-s1/d280-r80-native-family-complete.json",
+      "sha256": "a84260fd01d48e6e2a6e8fb49ce81b985aa50293d5d78a66519469cee3340e49"
+    },
+    "failed_original_acl_readonly": {
+      "path": ".cimiloop/new-host-s1/d280-r80-original-root-acl-readonly.json",
+      "sha256": "a7a14b2a78e109bd79db1812c324708b44a0692dc2b58d5c0fdf784dec136e7d"
+    },
+    "new_owned_same_binary_exit": {
+      "path": ".cimiloop/new-host-s1/d280-r80-new-owned-custody-diagnostic.json",
+      "sha256": "34d7117f6b67b36b81744cfdeacf782a6e400a065279d674d6cb15992b447890"
+    },
+    "new_owned_dotnet_stage": {
+      "path": ".cimiloop/new-host-s1/d280-r80-owned-custody-stage.json",
+      "sha256": "b385ac9b34f904de9dca93ab58feb791b8b8d42f29811f902e56ecbc66ef293a"
+    },
+    "new_private_scratch_preflight": {
+      "path": ".cimiloop/new-host-s1/s1-new-private-scratch-preflight.json",
+      "sha256": "a0917a45dc5b64702b76c0e14f59c725e5b5504e76cc3ef5ed2d3486c17b87ff"
+    },
+    "old_windows37pass3fail": {
+      "path": ".cimiloop/new-host-s1/d280-r83-windows-final.json",
+      "sha256": "1d8c819875300908b5cbbb238edfbf9d6830f75791391a23f5531fe8b77bede1"
+    },
+    "new_short_private_native_root_preflight": {
+      "path": ".cimiloop/new-host-s1/s1-new-short-private-native-preflight.json",
+      "sha256": "b3bc739c4ba2067fd81d8459f58f1b431b494ae16ff8b93f64f43dc8e0b5f618"
+    },
+    "old_r83_failure_reclassified": false,
+    "existing_failed_host_acl_repaired": false,
+    "production_custody_rule_relaxed": false,
+    "physical_quota_or_history_capacity_proven": false
+  },
+  "native_execution_context_diagnostic": {
+    "path": ".cimiloop/new-host-s1/d280-r53-native-execution-context-diagnostic.json",
+    "sha256": "4b8fcca73e14597fe7eb1130fc911f8b28b29e2dfd068ba901e90270ed35188f"
+  },
+  "test_observation": {
+    "path": ".cimiloop/new-host-s1/d280-r47-test-observation-diagnostic.json",
+    "sha256": "d95b87f8a9bdb42c91b086f8e85f0c5b8d14cc763b50211a68b7791707b4ab92"
+  },
+  "cancellation_prefix": {
+    "unit_red": {
+      "path": ".cimiloop/new-host-s1/d280-r44-cancel-prefix-red.json",
+      "sha256": "f5eb40c27638d4321eb5646cbd0021018facade2816b01c51ad23bf581a7d1e1"
+    },
+    "unit_green": {
+      "path": ".cimiloop/new-host-s1/d280-r45-cancel-prefix-green.json",
+      "sha256": "d00cd5fdfe8deecb749098387cca64bc446525deb5d8c8b345a90ae57aa84418"
+    },
+    "actual_original_gate_diagnostic": {
+      "path": ".cimiloop/new-host-s1/d280-r43-cancellation-gate-diagnostic.json",
+      "sha256": "ca8b5c0d3717e804191cf60ff63775c1b418f3883b3728e89d777626b8a3e65c"
+    },
+    "current_production_read_of_original": {
+      "path": ".cimiloop/new-host-s1/d280-r43-cancellation-fixed-independent-read.json",
+      "sha256": "17853d9d20e06edee5984e2cffd3fd25d4fd13dfd51164b7f48d49632d1049b8"
+    },
+    "engineering_review": {
+      "path": ".cimiloop/new-host-s1/d280-engineering-review-cancellation-prefix.json",
+      "sha256": "9f81826fa91fae5d3349e0876b92b96ba1612841423a90eabf172ba52ca8b879"
+    },
+    "old_report_reclassified_as_pass": false,
+    "reply_delivery_or_method_success_inferred": false
+  },
+  "account_host_read_cut": {
+    "evidence": {
+      "path": ".cimiloop/new-host-s1/d280-r68-account-cut-evidence.json",
+      "sha256": "83d4be680c12cdaa949fd4d75d497325e95f972a73e6af1ca5b986990efbac62"
+    },
+    "engineering_review": {
+      "path": ".cimiloop/new-host-s1/d280-engineering-review-account-cut.json",
+      "sha256": "3ed68a90101549980626bb74831029e0317053e83a0df7cd3822ae3902538c43"
+    },
+    "old_r56_failure_diagnosis": {
+      "path": ".cimiloop/new-host-s1/d280-r56-failure-diagnosis.json",
+      "sha256": "473f834f6a6c761ee62e838b35d593280c1b4155556a95a240435197415573d2"
+    },
+    "new_owned_account_diagnostic": {
+      "path": ".cimiloop/new-host-s1/d280-r58-account-custody-diagnostic.json",
+      "sha256": "461a80b21826fdc4c6fde1d3befcf3f3da340cfdd20a7fa5c8626ceb75cc34c4"
+    },
+    "old_custody_root_cause_not_proven": true,
+    "old_failed_reports_not_reclassified": true,
+    "task_native_budget_or_quota_relaxed": false
+  },
+  "capabilities": [
+    "Explicit original account family reader audits all original Host births and all account scopes/intents/holds in one selected account writer cut; executed members need final authenticated bills, undispatched members need positive permanent closure and cross-account zero costs",
+    "Missing or substituted foreign file-only scope relation cannot disappear as absence: strict marker/account ticket/birth/canonical scope/filename identity verification",
+    "New family/2 evidence independently rechecks original Native/SDK/model/IPC and selected bill identities for executed members, original preparation zero effects and permanent closure for unstarted members; roots derive from original parent identity",
+    "Current Kernel complete child set, independently reread reports, pinned qualification and original preparation must match; every child cumulative known cash, report cash and unique selected scope bill cash/currency agree exactly",
+    "Shared Human fee service installs frozen trusted family readers for both capture and independent Kernel reread, preserving original receipts and code-only read authority",
+    "HTTP session/CSRF/closing guard executes after awaited account admission, after collection immediately before Kernel commit and before original receipt replay; async guards reject and leases release",
+    "Parent final reconciliation independently requires original Native/SDK/domain or cancellation terminal and all children settled; fee observation alone retains Unknown and budget, and Task acceptance remains separate",
+    "Actual protected Windows parent SDK three calls and executed child SDK seven calls covering all six fixed required method materials plus closed zero-call child reconcile through HTTP; lost response/restart repeats same command without original factories or new effects",
+    "Original cancellation verifier accepts exactly one durably saved final stop/text reply without an SDK step only after a complete prior tool-calls step and as the last IPC exchange; independently preserves all Native/model/method/SDK/IPC relations, without claiming delivery, output or method success",
+    "Dedicated account validation uses one synchronous fresh selected Host namespace read transaction, detached requested names/rows and a final independent physical/SQL custody check; writes invalidate the read cut, async callbacks refuse, and no authority cache crosses an await"
+  ],
+  "verification": {
+    "affected": {
+      "files": 44,
+      "passed": 489,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_ms": 2551834,
+      "scope": [
+        "packages/local-app/test/skill-invocation-control-local.test.ts",
+        "apps/workbench/test/skill-control.test.ts",
+        "apps/workbench/test/skill-control-frontend.test.ts",
+        "apps/workbench/test/agent-runtime-frontend.test.ts",
+        "packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "packages/local-app/test/skill-invocation-reconciliation.test.ts",
+        "packages/local-app/test/skill-invocation-result-capacity.test.ts",
+        "packages/local-app/test/agent-runtime-human-start-local.test.ts",
+        "packages/local-app/test/agent-runtime-start-local.test.ts",
+        "packages/local-app/test/agent-runtime-control-local.test.ts",
+        "apps/workbench/test/agent-runtime-control.test.ts",
+        "apps/workbench/test/agent-runtime-start.test.ts",
+        "apps/workbench/test/skill-reconciliation.test.ts",
+        "tests/scenarios/named-skill-method-assessment.test.ts",
+        "packages/runtime-adapter/test/agent-named-method-cancellation.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+        "packages/local-app/test/skill-invocation-not-started.test.ts",
+        "packages/runtime-adapter/test/agent-skill-dispatch-closure.test.ts",
+        "packages/runtime-adapter/test/agent-skill-zero-effects.test.ts",
+        "packages/runtime-adapter/test/agent-skill-account.test.ts",
+        "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "packages/runtime-adapter/test/agent-account-bills.test.ts",
+        "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+        "packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+        "packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+        "packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "packages/local-app/test/agent-account-billing-local.test.ts",
+        "packages/local-app/test/agent-account-billing-entry.test.ts",
+        "packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+        "packages/local-app/test/agent-run-family-settlement.test.ts",
+        "packages/local-app/test/agent-run-cost-observation.test.ts",
+        "packages/local-app/test/agent-run-reconciliation.test.ts",
+        "packages/local-app/test/agent-family-cost-proof-capacity.test.ts",
+        "packages/local-app/test/agent-runtime-observation-local.test.ts",
+        "packages/local-app/test/agent-runtime-failure-local.test.ts",
+        "apps/workbench/test/agent-run-cost-observation.test.ts",
+        "apps/workbench/test/agent-run-cost-observation-frontend.test.ts",
+        "apps/workbench/test/agent-account-billing.test.ts",
+        "apps/workbench/test/agent-account-billing-frontend.test.ts",
+        "packages/protocol/test/agent-runs.test.ts",
+        "packages/protocol/test/skill-invocations.test.ts",
+        "packages/store-sqlite/test/agent-runs.test.ts",
+        "packages/store-sqlite/test/skill-invocations.test.ts"
+      ],
+      "single_full_run_green": true,
+      "log": {
+        "path": ".cimiloop/new-host-s1/d280-r79-affected-final.log",
+        "sha256": "0f8bc043018aaf6a9a02ea66aa8a64915b7af79285f72224a8701c17c3fd53de"
+      },
+      "report": {
+        "path": ".cimiloop/new-host-s1/d280-r79-affected-final.json",
+        "sha256": "3e65a80c3b7d47dfa42a8fcde27f3f5e59da16d31820f487e06842756af18388"
+      },
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d280-r79-affected-final.meta.json",
+        "sha256": "5b0fd129d1d15b1e1c32e732ad0f2c9abd4f4dec8b23a96dec40ce03c6a98a49"
+      }
+    },
+    "windows": {
+      "files": 14,
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_ms": 2550934,
+      "scope": [
+        "tests/scenarios/skill-invocation-control-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-native-runtime.test.ts",
+        "tests/scenarios/agent-named-method-runtime.test.ts",
+        "tests/scenarios/agent-runtime-cancellation-native.test.ts",
+        "packages/runtime-adapter/test/native-control-runtime.test.ts",
+        "packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-cancellation-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-not-started-native-runtime.test.ts",
+        "tests/scenarios/agent-dedicated-account-custody.test.ts",
+        "tests/scenarios/agent-account-bills-custody.test.ts",
+        "tests/scenarios/agent-start-custody-runtime.test.ts",
+        "tests/scenarios/agent-account-billing-entry-runtime.test.ts",
+        "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+        "tests/scenarios/agent-run-cost-observation-custody.test.ts"
+      ],
+      "single_full_run_green": true,
+      "log": {
+        "path": ".cimiloop/new-host-s1/d280-r84-windows-final.log",
+        "sha256": "2c48bc7c818b7b73d725d1722fa2dbf67c7faff62a6472f8fa327cc2b16db28c"
+      },
+      "report": {
+        "path": ".cimiloop/new-host-s1/d280-r84-windows-final.json",
+        "sha256": "addaeb0feb94980ecf9659f5faadcd7d6d1a29cf378ea662c1d5b1df73a0e889"
+      },
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d280-r84-windows-final.meta.json",
+        "sha256": "89c9026adca41a614e1f187add3625ec37abce805c3419352bf4d88d7f501290"
+      }
+    },
+    "native_new": {
+      "files": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_ms": 1016077,
+      "scope": [
+        "tests/scenarios/agent-run-family-settlement-native-runtime.test.ts"
+      ],
+      "single_full_run_green": true,
+      "log": {
+        "path": ".cimiloop/new-host-s1/d280-r82-native-family-complete.log",
+        "sha256": "2d13f6a597825a90afc1b54e97bfa34949d30e3d6543805d3d5c47162a9189f6"
+      },
+      "report": {
+        "path": ".cimiloop/new-host-s1/d280-r82-native-family-complete.json",
+        "sha256": "5d89a3aaf23d47b04c3186ccb44124aa6411cbf171ccda4eb3de5ed80b1ff709"
+      },
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d280-r82-native-family-complete.meta.json",
+        "sha256": "a336fe974ebc00a27524aa836a6b159360644ce352e91fb897e653132034de5d"
+      }
+    }
+  },
+  "verification_composition": {
+    "affected_single_full_scope": true,
+    "existing_windows_single_full_scope": true,
+    "new_native_single_full_file": true,
+    "windows_and_new_native_separate_runs": true,
+    "whole_current_source_snapshot_shared": true,
+    "current_native_and_check_source_freeze_shared": true,
+    "all_affected_dependencies_byte_identical": true,
+    "whole_repository_test": false,
+    "full_s1_acceptance": false
+  },
+  "source": {
+    "files": 727,
+    "before": {
+      "path": ".cimiloop/new-host-s1/d280-r79-current-source-before.json",
+      "sha256": "2cb7090d55580356b21ac628de4ad778eb86af2c9bb507901f27d5484d1d4b04"
+    },
+    "after": {
+      "path": ".cimiloop/new-host-s1/d280-r84-current-source-after.json",
+      "sha256": "2cb7090d55580356b21ac628de4ad778eb86af2c9bb507901f27d5484d1d4b04"
+    },
+    "drift": [],
+    "affected_before": {
+      "path": ".cimiloop/new-host-s1/d280-r79-current-source-before.json",
+      "sha256": "2cb7090d55580356b21ac628de4ad778eb86af2c9bb507901f27d5484d1d4b04"
+    },
+    "affected_dependency_compatibility": {
+      "path": ".cimiloop/new-host-s1/d280-r79-affected-source-compatibility.json",
+      "sha256": "70353f644c193e6ca4ef5e7a17819ba720963725cba62dd1c0b1aa9674fb5a5b"
+    },
+    "affected_dependency_files_unchanged": 727,
+    "outside_affected_scope_changes": []
+  },
+  "check": {
+    "metadata": {
+      "path": ".cimiloop/new-host-s1/d280-r75-check-owned-scratch.meta.json",
+      "sha256": "eb60b2adcb9994577cd9ffc35a2d77f10095a3bea58ac1a7c0a1248d83daff95"
+    },
+    "log": {
+      "path": ".cimiloop/new-host-s1/d280-r75-check-owned-scratch.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    "exit_code": 0
+  },
+  "cli": {
+    "path": ".cimiloop/new-host-s1/d280-cli-help-final.log",
+    "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+  },
+  "environment_artifact": {
+    "path": ".cimiloop/new-host-s1/d280-environment-cli-schema-final.json",
+    "sha256": "fd30fb423b36d8577255ab547c33ffea6b02372c83968c1743f9b6cf0f716df5"
+  },
+  "actual_windows_original": {
+    "path": "_YPG7rw/.git/cimiloop/d280-native-family-summary.json",
+    "sha256": "c9487144eeb04889dd8c929cc09483d3c8b37c80d8e6c790bf4e1d06fb9863a8",
+    "repository": "D:\\cc\\cimi-ai-native\\_YPG7rw",
+    "actual_parent_native_sdk": true,
+    "actual_child_native_sdk": true,
+    "actual_protected_host_account": true,
+    "actual_http_kernel": true,
+    "parent_model_calls": 3,
+    "child_model_calls": 7,
+    "public_credential_callbacks": 10,
+    "real_credential_reads": 0,
+    "real_model_requests": 0,
+    "cash_charged_micros": 120,
+    "credit_charged_micro_units": 40,
+    "child_statuses": [
+      "Succeeded",
+      "NotStarted"
+    ],
+    "task_accepted": false,
+    "original_command_replayed_after_restart": true,
+    "parent_sdk_skill_orchestration": false,
+    "constructed_model_approval_and_qualification": true,
+    "real_skill": false,
+    "s1_accepted": false
+  },
+  "proof_limits": {
+    "bytes": 8388608,
+    "nodes": 524288,
+    "depth": 64,
+    "physical_hard_quota_proven": false,
+    "historical_capacity_proven": false
+  },
+  "engineering_review": {
+    "path": ".cimiloop/new-host-s1/d280-engineering-review-final.json",
+    "sha256": "bc69dd6bad88395753f70316816ecb85655d999362dfb7e56d5e64b05ff21e87"
+  },
+  "complete_method_engineering_review": {
+    "path": ".cimiloop/new-host-s1/d280-engineering-review-complete-method.json",
+    "sha256": "8e6631eae891a9b2d69c558a8f106600508a286210b5e6797d6bf8869861c63c"
+  },
+  "harness_engineering_review": {
+    "path": ".cimiloop/new-host-s1/d280-engineering-review-harness.json",
+    "sha256": "deb92a0e680edc611823dfae7b5c9568d0be2e97080468ad8813d5b6c708a96d"
+  },
+  "diagnostic_records": [
+    {
+      "path": ".cimiloop/new-host-s1/d280-r1-account-family-red.json",
+      "sha256": "358c9968f65b0e6401fc65f25b904f1316878a67067e706cdec1b0846e34feb6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r1-account-family-red.log",
+      "sha256": "48b268a7a5111bba8c6498208bc961deb2a4993cb4e10c2381397faafb8e5d93"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r1-account-family-red.meta.json",
+      "sha256": "8f02a3ddb4962e3d37ad92aad7be38868dd0fb27b8d692cace26cd09af61282a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r10-family-service-red.json",
+      "sha256": "3c4ce769c9d8061ace054a944c6e6f8431226d4deb5e3378b8e14b8251e1f22b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r10-family-service-red.log",
+      "sha256": "9a765475aeb36a1210231569272e61e4fea983f41806667906cf2bb9efc9fca9"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r10-family-service-red.meta.json",
+      "sha256": "42b8c0908a206bac13a142d5b955851e3845f7861bbf1e9964d7a8f07ebb4a8a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r11-check.log",
+      "sha256": "e2967925a56347d913c4fe3c28ec4440370a01ce2884f0ea4d25dbf906f495a0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r11-check.meta.json",
+      "sha256": "a630d3c9adc8322be23e66324aa7bb98a68f35a0f7120b1cd884292c405ca7df"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r12-family-service-green.json",
+      "sha256": "4010b1e3cdde49d518a267be428de20973799e0a2e65f529555e56978d567f8b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r12-family-service-green.log",
+      "sha256": "d20fe947dc030bba90bec40aec95296b0e6c63aef862c9a120fd168ceeb1b411"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r12-family-service-green.meta.json",
+      "sha256": "a5ee2ea5e676dcac95a65d8b7201de6d87ac1b66b849314a9ee8af60d71453fa"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r13-foreign-intent-red.json",
+      "sha256": "eec552e8fa28274793f5d08bf19832f226c55a881e358fac7acd95141c281a5c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r13-foreign-intent-red.log",
+      "sha256": "59cb984e9df571c0f0ab91d0256148c4ce369c58cc66255353dab0f2c7f9c42d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r13-foreign-intent-red.meta.json",
+      "sha256": "9e7e8264658c20d2d05c498a4b668510a99152543ad03d0a70b73e09a7bf3493"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r14-legacy-proof-red.json",
+      "sha256": "c966d98130e2d2208bcfc7d5bda471b17084c4c935d38f623d0fd16ea0badd43"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r14-legacy-proof-red.log",
+      "sha256": "9792dddf02f668728d2c5f0ebbc01f92adcba824d4674c98dbceefbf110f6435"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r14-legacy-proof-red.meta.json",
+      "sha256": "d50c339d6a2b03c031140fdf3fa056cae854efef016d664066035b4b6d417c53"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r15-foreign-intent-green.json",
+      "sha256": "11606fc0c17090d651fde6a35ef4c55bb99559393d8a3ddaeb6a766e00638756"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r15-foreign-intent-green.log",
+      "sha256": "efab492690626e06516904f77c40014384c59cee5ee64222ba9742e77a02857e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r15-foreign-intent-green.meta.json",
+      "sha256": "863293b5a801e170e9ddc900ed888a2704316ab0fe90a0609b56f2e42f3b4730"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r16-check.log",
+      "sha256": "775e2b8322a1362fea04eeb5ca182b2fc2c9630aa6bd7138fcfda714702f0e2f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r16-check.meta.json",
+      "sha256": "4e4ff4f3f7f5a89dac81e7e4d78eb2a3f3dec2ed14a947f0bef7f1ce7f72f5d7"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r17-family-legacy-green.json",
+      "sha256": "8f0c5c531f392d4083b6e3e256dd8c9ea89c961f02c6fe0403ffb24e9b432709"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r17-family-legacy-green.log",
+      "sha256": "b195c636abd139d336d3d61d39d50fae403ad31e44d697da300091ec129be982"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r17-family-legacy-green.meta.json",
+      "sha256": "562c0d05c2b2f70dd7bffcae330648356f78472f69d325b7592e0ef0ab6db712"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r18-check.log",
+      "sha256": "ac59815a7c427d2c45f32b1d497420b956458d2b618d314877fa6ed0513b47ed"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r18-check.meta.json",
+      "sha256": "d5753a425c2eb5d98708eec2764de9df714475cc236070ea95de93ebdf13b4e8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r19-family-current-green.json",
+      "sha256": "b6fce064a966c38edb74d3cf99e9e01f5360d149221d81983a65991162d42815"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r19-family-current-green.log",
+      "sha256": "cb6c70db3254d14dd2769db8cfded5c65a64de76ffa4139827519a76ab74f0c4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r19-family-current-green.meta.json",
+      "sha256": "b7741cf550fc804149d752e9f15b03de61b75716776b9e138ef05c7904a417eb"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r2-account-family-green.json",
+      "sha256": "1f194b259a89e45f22ff5516171f810930313d601bacb74edb8c468696bf1874"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r2-account-family-green.log",
+      "sha256": "952919ea939e5522675ade1812753b2ae0570ee0f19a34ed3dd45a42d19a998e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r2-account-family-green.meta.json",
+      "sha256": "7741f8f9eb5907446fa5b4418017bca112613bae3c0ef6bae11ca98fc3170211"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r20-check.log",
+      "sha256": "e3b4b1d001051b87701de628e14b73dc77b4c611c65c667b4b344da21d14a6f0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r20-check.meta.json",
+      "sha256": "8add0c4723f9971307ec1571a4fd8c323774302f69c2f06e36c53d24d449ef8b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r21-per-child-fee-red.json",
+      "sha256": "8a62b575e62acaa2fb2825cc53a266ddf52c55dbbc94315378577094a5323700"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r21-per-child-fee-red.log",
+      "sha256": "4d6f3aea91878ad0e839f1d76eadf2338caa6b1ec8fb1079338403cb4967378b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r21-per-child-fee-red.meta.json",
+      "sha256": "3a7d6e1bb3407fc560de02317cf5cf3c12c92201da3eb734a1af77bfb827bf18"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r22-check.log",
+      "sha256": "a7d36bbbde6b8d2bdee93683bf1156aad04a27c9743c9098e6deabe606729ffd"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r22-check.meta.json",
+      "sha256": "3e6c9872ec051613f43d013e4b887b46e253e2997088da4824bf209cfa6ab412"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r23-per-child-fee-green.json",
+      "sha256": "4b5fe0407b56530d1b7f4a6195a9a7bc3c7f995c71a190ab6544a3816b6ea020"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r23-per-child-fee-green.log",
+      "sha256": "bfc074372d36f4540d9ce4788442ff9eb33d70aa274c506ca1d48c0eca33cc9b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r23-per-child-fee-green.meta.json",
+      "sha256": "c625009ec221c84c6046cc0f4b09c73b6af858186434027547a1dbea95d82908"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r24-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r24-check.meta.json",
+      "sha256": "9d0c33ca19d312374ee1777fe2e5e940916d3736d9ff342106d3a91e5a2f9e14"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r25-check.log",
+      "sha256": "9048a654125e0357d01f365a11045ebf4c66d313a18d220f812f2cb92af479ed"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r25-check.meta.json",
+      "sha256": "63103036cd5ae9c02f030fa86b99295051c5b9f1f6e85649a1cdaa0f5d82b795"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r26-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r26-check.meta.json",
+      "sha256": "d4f9bc90819532a28871436bd84850d3862d7db4addeb7af4a9b4225f7bcdd9a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r27-native-diagnostic.json",
+      "sha256": "66dcecefed7a16c7ec70dc5d56f0a05943d467164aa89558ecf7f5c2e3d18fdd"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r27-native-family.json",
+      "sha256": "878e92618fd4ceb9fb6d828aa8a7324a25c3748cf8e904ef47518291537b7f4a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r27-native-family.log",
+      "sha256": "33ea0920ddff5d1b48ccea2adb302149de8a0479b2be95cfde3cb22798277c42"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r27-native-family.meta.json",
+      "sha256": "8c80295aa796ee4d86c62a7dcedf36a57d3cf4ae229e797056eeee085ced87cc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r27-native-path-diagnostic.json",
+      "sha256": "e70d9c1a9099242f11bcc89ff6cab285959a9ec6f1df340fce2c443445d55f8d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r27-native-path-fix-basis.json",
+      "sha256": "f9842e511678c957a46614bd7a435c0ac3e61149fbe14a8bd1d49169144af380"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r28-cost-guard-red.json",
+      "sha256": "c8faa5ca023b6caeff66d2632d81e75135d9daf20795a9fbdac3f22d88db9e73"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r28-cost-guard-red.log",
+      "sha256": "2a2e24ae9cc75106b4ccc77250ebe0595c541f0d86309a58e2ed199c7c0c7f15"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r28-cost-guard-red.meta.json",
+      "sha256": "24c72c9efc508d64d9329b89470a8a2fc76c69e56f9dfeaee80026c2f072762a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r29-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r29-check.meta.json",
+      "sha256": "4baa37c41206b76e20f3860d1d61d890b21fcbc6630453c32a6164bc60f15cac"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r3-mixed-proof-red.json",
+      "sha256": "6da976c19735fbe115e7291e9ddccb17738b6f44709951718ee76775040139f1"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r3-mixed-proof-red.log",
+      "sha256": "27c4e46da1008dd2f621f6a3d9613714887e3bd4eccdc0aa9c93e7d7e5cb503d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r3-mixed-proof-red.meta.json",
+      "sha256": "f7bfd22a84b49107487dd41c4fe6272641fb17b49def4e7e355913aeca44ad5a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r30-cost-guard-green.json",
+      "sha256": "3e04cf1705e2315ec1f04fd08f8e1504607ee17b0cd3b9cb42cec009924d0a9f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r30-cost-guard-green.log",
+      "sha256": "f405d2b15644d309f1636bc1252e3ed3f697098bc6ebd735f28b43edd33293c5"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r30-cost-guard-green.meta.json",
+      "sha256": "798f487a942c8cee3ae49a2992621f142314db6bf7759ffe3e944e7ddcfcb601"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r31-cost-http-guard-green.json",
+      "sha256": "0be593f055fbc5613cffa4fc74e310365f8412749cc6acc048eb0796c51a0a58"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r31-cost-http-guard-green.log",
+      "sha256": "4250d6bbf0d3bc705d5c0b53ce43914003acb3e178fba502b7d4dfa462d7f364"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r31-cost-http-guard-green.meta.json",
+      "sha256": "f3ff043875afef7f1a70df3902f42d35717ee4d948a349ffe05929725cd48424"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r32-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r32-check.meta.json",
+      "sha256": "caaaad3b7b9e9e2d873c70af82875c3ba045a9b965923dfc9627b27f186c1db5"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r33-full-method-fix-basis.json",
+      "sha256": "1f140a60075989fed45aba884cf3a7c2d4c629a6f3df5730b33cadfcc72806e6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r33-method-diagnostic.json",
+      "sha256": "1f89c570b2bf48fb456dab9bff2696c6ba45d9a9e3cc6ae224f32b5463889f17"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r33-native-family.json",
+      "sha256": "a92a0a74fcf5f3e32ce071b8947fc9537423f084d03689d9e61bf75a6c9e8b09"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r33-native-family.log",
+      "sha256": "ec3b49ff6a8cf68f64bd47833dfdbb565310f19abdcb8611987977f0e310d222"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r33-native-family.meta.json",
+      "sha256": "f341fb7c89079584e56e0950386997697fec867770fcc2b9d3f4f8e42c2c749e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r34-check-final.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r34-check-final.meta.json",
+      "sha256": "7e15c430a36e2b00408ddb75df6686af62667b7d4b10259a6ce101fec0a46d12"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r35-affected-final.json",
+      "sha256": "27df53d0eb6bb9044d41a1186059991877253b89f8009f35cf1c6f182e55af97"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r35-affected-final.log",
+      "sha256": "ba5e698a6c8f3caf4d0fc92c564759eadc996b86f77d66b7f8a4b3bd3df5a698"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r35-affected-final.meta.json",
+      "sha256": "9087a5535e76ede826f94d02c0b384acfde1c1fe72c944a929d754a30cb75bcd"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r35-affected-pass-validation.json",
+      "sha256": "a0761f0f40e013cb32307bd31ce64d637288f8c7d7dfa2c851d32eb02c767a27"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r35-affected-source-compatibility.json",
+      "sha256": "08ca7f54da7202518692ad94845f41339850f978473bd5a6d6bda86fe7797dc3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r35-failed-originals-progress.json",
+      "sha256": "9f920f8ebb20a78d6cd2c292dd52be489e9aabb59e450d098b7cbe8192628b13"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r35-windows-final.json",
+      "sha256": "907439e850251430bf3a5f6fda5cbf3f9e418e33f738e96b8e2082b1b83a57ab"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r35-windows-final.log",
+      "sha256": "4209e76af859a67430ad9f46c8c04530dc19d71f614ab231f7adca46cd26bd8e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r35-windows-final.meta.json",
+      "sha256": "113a7cc90d178fc7e3f8d96c325d4e1f58db703af058e89c65487dc0bf085383"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r36-check-complete-method.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r36-check-complete-method.meta.json",
+      "sha256": "c5f124e7bf18481322dfa5186e8d4511ce5f67319e270a84ffdb4fe8b437ea34"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r37-check-final.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r37-check-final.meta.json",
+      "sha256": "c668c1aa05b9e3efe98b6449430bf912a5edfc74138a5de2147bf99c37944bd4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r37-current-source-before.json",
+      "sha256": "e3944ef3c7e6b0cdf285e5b9905a1dc5cb79dc73aca51d2a4474048519226c0e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r38-candidate-selection-preserved.json",
+      "sha256": "9b86506f2f4b7b9fd0017a0a1bba76c5d4b928325913ce0c77114a12362d0fa4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r38-production-failure-diagnostic.json",
+      "sha256": "e46af57dc399e05497858b4e04c61d4924b60623d03cc456b761ab275a7a6975"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r38-serial-native-sequence.json",
+      "sha256": "f90251c62418614203e0e9964ca4444da8754fd7bc24359245a99f32a17a3ec1"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r38-windows-final.json",
+      "sha256": "918032106aaad05a11724dfa2409cac073e0b305e0010e04901645b07e48dda1"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r38-windows-final.log",
+      "sha256": "d14b3f21cf2d72e57024254fe357f7cf30dd58894f481926acc6219531f463a4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r38-windows-final.meta.json",
+      "sha256": "b4e0c6ef3454eb5b2993fba98bbe8cda4efe882f1b464a03998ebff541dd1066"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r39-job-startup-red.json",
+      "sha256": "4eb1f41d7593d450ad232b32cfa419afacb14f74cc240cc1579c520cc8f88f61"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r39-job-startup-red.log",
+      "sha256": "aa6a87d7c075c1b25f2450456941dec666f19dc85cd7147405689bf4afdcdd1a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r39-job-startup-red.meta.json",
+      "sha256": "5cd6ce7689a00b01424ee57634dd05f28d3a36fea5fccecc09f151cb871ad5b4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r4-mixed-proof-green.json",
+      "sha256": "62a34e0eab60ab117d609ffe75027b30f103cd3e739c5baad9b43fdedf4b1844"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r4-mixed-proof-green.log",
+      "sha256": "40852777d6fc8a819bc29207e3cc632e2beca1958ba849edc7e4c766e17b422a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r4-mixed-proof-green.meta.json",
+      "sha256": "6559896c6457612d7928bf8abe9f9364dfab6235a9e7355ef0e33db2b6b32f23"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r40-job-startup-green.json",
+      "sha256": "5704bd6944cf6114fc0c6291db9e184b38f2e05b9dc4d676d7448b556f8b166d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r40-job-startup-green.log",
+      "sha256": "776e72c1f8ba6d13b11ac8cd25de020e38955a6e8c312bdef1168814c8e02ab0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r40-job-startup-green.meta.json",
+      "sha256": "9f65e3531c21ae792edc8ee01ae5b75b8a949519ae7069d7f0c769e3080fb617"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r41-check-current.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r41-check-current.meta.json",
+      "sha256": "f9afca90d663196cb55526a6a10e3202fb4d59aeb33fab1c4341896b1c1074c8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-affected-source-compatibility.json",
+      "sha256": "a4c1f9be7150c67796e29aa9b6a6680047d0e39a41f3d1548ec8b5687f9e6065"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-current-source-before.json",
+      "sha256": "fc1f321b540c5c97dbcf7f66695f6419c99e720edcb45fa26c0cad5a93a8d7ee"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-doc-validation-pending.json",
+      "sha256": "620b87b6ba5100b2b6923658e5db35692e1e6869cf2b27071068459a3769e94f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-kernel-progress-0825.json",
+      "sha256": "046a60265b6205ac24798042c2d76025f9cc9ea1639ff0a660cc465de67e0f4c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-live-state.json",
+      "sha256": "e07806f51e336f01a6b792d5f3526da3cd1a46229784706f67d8d66d041433e3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-native-family-complete.json",
+      "sha256": "31d0791293ad6920b9e342afad4703c1caba5b756d01b2af2e19b97c4320e69f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-native-family-complete.log",
+      "sha256": "00837d20a9145ace970abc5a9c3c249446b1a4a51225288c28b9fc1397aef34e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-native-family-complete.meta.json",
+      "sha256": "b849769ffb91db819a6472c08b6f9d570943613871fa45a3623ac12309774905"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-native-pass-validation.json",
+      "sha256": "1f0743bbf9c69d8c1d638b7505d9f652358ad589e982f79d8f878e4a12a46b65"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-native-progress-child-terminal.json",
+      "sha256": "6a20783bc704d6d34c5794582e8b91ae5c153c0be8600bc11ff777e9f68cd2b6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-native-progress-initial.json",
+      "sha256": "f19bf43889dc63aab857bd1e501c1a6e4cead550a60ebe97a1bd9dedd1531ee7"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-native-progress-parent-terminal.json",
+      "sha256": "917503f955beb3e4d8e9c1e69612b61c0612ec655ebd9b0ee64d52201c32e307"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-selection-preserved.json",
+      "sha256": "843c054976d1f218ab933183be8440e3d614a7c7e9f680e420a8e9006df7b4f4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r42-serial-sequence.json",
+      "sha256": "23cac015a82471fa1e86f3e00551e8ffb16f00c9aea019017951cf3b4b05e24d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r43-cancellation-fixed-independent-read.json",
+      "sha256": "17853d9d20e06edee5984e2cffd3fd25d4fd13dfd51164b7f48d49632d1049b8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r43-cancellation-gate-diagnostic.json",
+      "sha256": "ca8b5c0d3717e804191cf60ff63775c1b418f3883b3728e89d777626b8a3e65c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r43-native-failure-diagnostic.json",
+      "sha256": "f8a2b1ba3e196699cdaa76340870e0420d47bca0e70070fb4c1fbd8a3f7e7eb8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r43-windows-final.json",
+      "sha256": "d5597f16b2c25acb49929333727d25eeedc246b385280003939287c62f0e92f3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r43-windows-final.log",
+      "sha256": "386cb404ce3db7bebfde8fdbd514ce50b86823af302f15d0dfc29205c691b1be"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r43-windows-final.meta.json",
+      "sha256": "c49beba5208d8a3ccc4f9c0fda6fe95a195052cda73db1a311ab3d3e276d175c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r44-cancel-prefix-red.json",
+      "sha256": "f5eb40c27638d4321eb5646cbd0021018facade2816b01c51ad23bf581a7d1e1"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r44-cancel-prefix-red.log",
+      "sha256": "67436f571ab35a8cb6ddbc731811bcbe29993cc4f5c57e5f078ecab499767803"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r44-cancel-prefix-red.meta.json",
+      "sha256": "3a4f777c19d915b44408c8d0eed24806e56f70e922d9079bcd5035e89597147c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r45-cancel-prefix-green.json",
+      "sha256": "d00cd5fdfe8deecb749098387cca64bc446525deb5d8c8b345a90ae57aa84418"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r45-cancel-prefix-green.log",
+      "sha256": "71fcb784940e765beeee75376ac432c134dcdcfd24c8e1ddb359fa16f5a6d22c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r45-cancel-prefix-green.meta.json",
+      "sha256": "4f0aa79e4fa88bb08c0e7f691d2b6ccf54c6137e7f7f3666b80624f61b5307fd"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r46-check-cancel-prefix.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r46-check-cancel-prefix.meta.json",
+      "sha256": "e16f5cbfed1c085cd65555c76d7daaf5fc6a7000c531f3493319abd4136a6a3a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-affected-final.json",
+      "sha256": "6fdd608c1ff75741ca5fda15412bca23781eb0cb0800b9d87944bc3744ae3cc3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-affected-final.log",
+      "sha256": "3c4fca53e6616470e9b84556019ac2757ef0ed4b589a693747e790b27eb35a9c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-affected-final.meta.json",
+      "sha256": "8ae625e41e6582391b70fa640a9c80cf2154543738d68e7c5ed4100b2b22d53a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-affected-source-compatibility.json",
+      "sha256": "1363d4106a854c3e77b72de36049b2bf15bab5c91fc6004c39e4b96436d5f59a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-current-source-before.json",
+      "sha256": "139ac802a9b8d44114c22da42f85a27c265c35dcadc9d6c7a0880bf09c3219d7"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-d281-progress-state.json",
+      "sha256": "62b6af648ebbbcd1e912bf5fc8b2cd03dc298aa6e24462955abce20276a25c14"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-doc-validation-pending.json",
+      "sha256": "9f74c6add4e6800c286c4aefb6c2b6e6ef70109703d2367fd902bc00772ac093"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-failure-pending.json",
+      "sha256": "2c54ede523fe8f1f4ca92bedf5b78a706b7316b399f3c4494f9b4feae043cb40"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-selection-preserved.json",
+      "sha256": "2f61e51af014c855a88dbe081c2cd92c0768f8bc6b6da0c02c3e2406e7206d02"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-serial-sequence.json",
+      "sha256": "4ea037958d2c805bbe60bfc6a32ec7c3bfedbe88020733476136eb9166359527"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r47-test-observation-diagnostic.json",
+      "sha256": "d95b87f8a9bdb42c91b086f8e85f0c5b8d14cc763b50211a68b7791707b4ab92"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r5-check.log",
+      "sha256": "b316eae47cafc98801fcb0311c4a3832c9910dfcfd5c5229b8711214c152e6fd"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r5-check.meta.json",
+      "sha256": "a6bde14bdc4ca34f002ef071181c99b37b244b20edbd3fbf503023a4619f581e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r50-store-observation.json",
+      "sha256": "b6cff11b17e4c5381c77370ca58a7c23b4c74edf09f2a5546a2a429de1e36181"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r50-store-observation.log",
+      "sha256": "00bfee9b7b89c8e60a1d4b1db5e2a2b1563b1b14d72298e9f40647c848813968"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r50-store-observation.meta.json",
+      "sha256": "4c182cf8804f3be9fd5ed141f8f391406b4db4d851da769759658ba667268503"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r51-check-store-observation.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r51-check-store-observation.meta.json",
+      "sha256": "b959ed787fb8fdf2419229d7708ab51c50873a170dbe769180fdf8f0b36d2a79"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r52-affected-final.json",
+      "sha256": "8d4450e5b64f598f92382ee57b08f11150c2b90cefc4954cb250f2efe0bee0d9"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r52-affected-final.log",
+      "sha256": "69bbb246c0c8504bb7bbeeb1d109acddeacbf162f92cc8042a3980029fe25d0a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r52-affected-final.meta.json",
+      "sha256": "2f8429a42feea33829a6316db4599f65d4ccbf7802c13a1f136d351eabbd8e84"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r52-affected-source-compatibility.json",
+      "sha256": "8ec2f36c3ca895ec7f996eade29d5465176aa8336532e99315fbfa3136538c94"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r52-current-source-before.json",
+      "sha256": "c26b6095f1dc38f5a91cdcb487416cbd6bd0cccb929f92a2a3976f2a13205afc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r52-serial-sequence.json",
+      "sha256": "16edf40140f968493a10af802c3e6d3d111811a83b7f748438a1c8f450f564fb"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r53-failed-selection-preserved.json",
+      "sha256": "bbc383c3a29ff40c2599624267317c7d93e2c45763285bd8f20f927f482f503d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r53-native-execution-context-diagnostic.json",
+      "sha256": "4b8fcca73e14597fe7eb1130fc911f8b28b29e2dfd068ba901e90270ed35188f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r53-native-family-complete.json",
+      "sha256": "4147383b21f1a862585dc4d7a20f628e234239b54d7133b80cdea99d3f231aa8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r53-native-family-complete.log",
+      "sha256": "025122f8985f365f538913bdbb5459ecf72ee6e0116d142f2aa11bfcc5cdf9ec"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r53-native-family-complete.meta.json",
+      "sha256": "11b1cc5916dbd8a7661cfbe98e695c6cfbef7a53d584e641131fc906bf0f5a35"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r55-native-family-complete.json",
+      "sha256": "2af5b683e12fe3d423ca359512242b22b26e6229c523873f6449414a15767f5b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r55-native-family-complete.log",
+      "sha256": "d0ac4a64ecbfd9d58acac7edf50d15948b8976d72b4470be0d3228e688f201dd"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r55-native-family-complete.meta.json",
+      "sha256": "4f6a651acac51cbf9c816d37e50290740416aa8b86a90330c3edbe2f48e8550d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r55-native-windows-sequence.json",
+      "sha256": "bdc6828d1b630a7e67962d58801214e80a202d22bae6b00aa429881c506ddb5f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r55-pending-doc-validation.json",
+      "sha256": "6653e1dea4179e50e1367468fe46bc1334a0f91796e9d02a9b9fc47e724b85cc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r56-failure-diagnosis.json",
+      "sha256": "473f834f6a6c761ee62e838b35d593280c1b4155556a95a240435197415573d2"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r56-pending-doc-validation.json",
+      "sha256": "1e029df71346a4194d83f7803f75106298d32a06887d49b49ec1a95146d8b076"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r56-selection-preserved.json",
+      "sha256": "315f0491d859377319a980f58cef4d5765e69cc0a03f96c79051c56506926cab"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r56-windows-final.json",
+      "sha256": "53eb7cd1d5a4cf21d18076b28f6c443c359a89b4afadc8151561d7b14c2d8be4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r56-windows-final.log",
+      "sha256": "ee1e60ab9c526665b004186be5d149908e16387065217288d7a0d34ae8b37f55"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r56-windows-final.meta.json",
+      "sha256": "896ce764f6ef14182370850cc5783dd426ea8188b37ad6817d54d26c012cc954"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r57-account-custody-diagnostic.json",
+      "sha256": "0462d5448dc0961f33b0ed8fd4f1fa44aa38584bf25ab1a0d0b540a6630035be"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r58-account-custody-diagnostic.json",
+      "sha256": "461a80b21826fdc4c6fde1d3befcf3f3da340cfdd20a7fa5c8626ceb75cc34c4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r59-account-cut-red.json",
+      "sha256": "59230449266dff5f32db87544d7987d0b79e06fe1fe229c4a776713a9684a9a1"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r59-account-cut-red.log",
+      "sha256": "044d0d127c0346edcde4097ec1102354d9ab77a7541488fa2e021d0f87334d5f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r59-account-cut-red.meta.json",
+      "sha256": "132999ee33b84129ae5693270269b9f02c361b8a8e50904c55972c89e794f49b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r6-local-family-red.json",
+      "sha256": "261e83214049654c9fb54d844c994b8a40d864c798c09ad2b3302b8ce3f2096e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r6-local-family-red.log",
+      "sha256": "a804c1f8b289841fca7393f21748f7b2ba2081248f5286173862ac750ce3b4e1"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r6-local-family-red.meta.json",
+      "sha256": "3b64b3e46b3dcc485ad0da7ed604536e7ce4c8440f6ce568d8dfa95ccef179cc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r60-account-cut-green.json",
+      "sha256": "e098cb229f964525448f6e45bfabc19821df9a5da2471ca2619f6f98f98348ff"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r60-account-cut-green.log",
+      "sha256": "350d0b129064b43e08b51bf5013f279ccae62a245f0303ea5043c3e25372978d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r60-account-cut-green.meta.json",
+      "sha256": "d7139dd785dceb6dc9ec30f59936101958d61faa54561e58d11af789edfe05e6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r61-host-cut-boundary-red.json",
+      "sha256": "2bcfccf5557efc364bf14e9cc23738edbf84f29edab3f8a601af7a9ccf1b6560"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r61-host-cut-boundary-red.log",
+      "sha256": "360cdf3ae978250d695331e95c2003221192d2c1c749fa9f1759b9f67271c328"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r61-host-cut-boundary-red.meta.json",
+      "sha256": "0c5ae962a58e1edd1da3ee351606bab1285454f26e0946f59cb68ab6c9b90507"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r62-host-cut-boundary-green.json",
+      "sha256": "01c38fa930f9ecd105be2603091fc5d57c68742daaad0a4e7bccfa2daafd120b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r62-host-cut-boundary-green.log",
+      "sha256": "298ec9b169322eb68abe0dfd573d2ff66ab3e7e071cfefd3e535ca35d49560a9"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r62-host-cut-boundary-green.meta.json",
+      "sha256": "e50eac008530862bd8c1135ef66a2c78f3243cb1cfed316366e8668ed409f583"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r63-check-account-cut.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r63-check-account-cut.meta.json",
+      "sha256": "4c562c6e135fe8f8322ff3ca09d9749316ea326a844053a49000143fae3a0db0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r64-affected-source-compatibility.json",
+      "sha256": "82f73cea6bddf6cb21ec53c9991fffa11b661f9f9607bdb27a9f52a461b950df"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r64-current-source-before.json",
+      "sha256": "5bc4ab9c1d65937bd82e8f8d9ceb76ec78b977dbdce10dce6e1b5952bcfe08f2"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r64-host-cut-final-custody-red.json",
+      "sha256": "c40f16ad2ada953e6cade3cbc0661cf245d97d599665a2454d0c7ce26b43ff49"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r64-host-cut-final-custody-red.log",
+      "sha256": "2b661d2d1c2aa76e4e55687638629d68becb4c6ddbce7bcb5200f08fd69a4af0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r64-host-cut-final-custody-red.meta.json",
+      "sha256": "0093ad99483db633de1e3771c080c140c95ff80a8833a4a7993beb0dacd2b62e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r64-unstarted-selection-preserved.json",
+      "sha256": "780462021df1b8fe8483abae1ae200692874778944169d3b479f6160eccc07d4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r65-host-cut-final-custody-green.json",
+      "sha256": "5ab70066d23af474e1664907b421cf9bcbe5ff1e8b4a794f030d11eceb10442b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r65-host-cut-final-custody-green.log",
+      "sha256": "0f16977e83f89e7626523c356242c32f454f643f7fa6b14ef1c7a3ebaa017e66"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r65-host-cut-final-custody-green.meta.json",
+      "sha256": "7a61096041289e1e49625140a47ebfaebf1c6218c804710674a52a305daecb5b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r67-check-host-cut-final-custody.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r67-check-host-cut-final-custody.meta.json",
+      "sha256": "38c7092ad24daf95587cfd35e21beab16d96fe7da5454850fa5f0e7e6639bf95"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r68-account-cut-evidence.json",
+      "sha256": "83d4be680c12cdaa949fd4d75d497325e95f972a73e6af1ca5b986990efbac62"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r68-affected-final.json",
+      "sha256": "338f7df4cc148d8957a058bccbc61f990a7126012f6bd9c646839ba48692ce9a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r68-affected-final.log",
+      "sha256": "100d30c5b41d792a540035f3a5117828c251abf7f31634ceccf601d2d09402de"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r68-affected-final.meta.json",
+      "sha256": "69ffd8299f51deca3559d0f0acb0c98d7e244027f3659033611199008443831e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r68-affected-source-compatibility.json",
+      "sha256": "4d21bb4ddd67a71fb94bc9d52d63631752cd1267e66604e1a2e83715fcdc609a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r68-current-source-before.json",
+      "sha256": "f6d3db37af7ededd0c0222f17a01f78bda69d9e41cd24b991c5167f59b1dabb5"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r68-pending-doc-validation.json",
+      "sha256": "62c09eb74d800b625cfaa355fd45fee1252aa4c99c765dfef86fce106395bf2d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r68-progress-state.json",
+      "sha256": "c45b9682554115dba067d5bc2796b0820718e23a2c302eb804020405988a193b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r68-serial-sequence.json",
+      "sha256": "6e90aab5becf0e72425a8b8f72018de6c2ddfe1af782212ab7979cdf0cc6f6b6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r69-native-family-complete.json",
+      "sha256": "e2e38ad9f63bbeff279e051765886aef6e94d702426bcde85b38daeec3fe06d6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r69-native-family-complete.log",
+      "sha256": "da0aece3e01b4ddfc06467c6d6e35b182acf2cede9cc8c8dbecf071454a4f25b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r69-native-family-complete.meta.json",
+      "sha256": "74584c6d1495ec6de1f3821e7ffab0151f6ae339dd6ff55df973988aee3d89cc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r69-pending-doc-validation.json",
+      "sha256": "271333402deb015c24bd6f8aa2163ef48615ea6d8db915ce0705e041a184def5"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r7-local-family-red.json",
+      "sha256": "85a34ddae4b7ae4c837936443de054626575e4cb1a54b83d0416bfa6ff2be559"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r7-local-family-red.log",
+      "sha256": "4f42c4b3f15d32e3bda01d386955559dfc89bde4714d176d2e4c22c41b46ed9b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r7-local-family-red.meta.json",
+      "sha256": "14c58da809e5e7174ba65c1a786a5b83c3c0f133d24b87ff720935af3b62273e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r70-failed-selection-preserved.json",
+      "sha256": "87979c0a46a908a0b4dcdc02ad3de7605ac9f1bf9ead141b9bd01019da1424c6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r70-windows-final.json",
+      "sha256": "c926793a6d620b8f46cb188cfad14687736a74177bc95336fbd1367d00ee0471"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r70-windows-final.log",
+      "sha256": "31c332e3c826328c16fc1e38bb62a1e83c1d67953c574eaeeb7204f029042b09"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r70-windows-final.meta.json",
+      "sha256": "91e17803051c1236c68fe0f98f8ea2867c0c8c88ff66a71ac13a5984611ea769"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r71-host-open-lock-red.json",
+      "sha256": "beff42dfcf7846de2cdb1ddb1a5f4edc01b48cbb0a0395656eea78a591b33c2a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r71-host-open-lock-red.log",
+      "sha256": "8c5c52f7dc0169cf60f085b7a7b4ce4877c324b62047532ffcb32ab8262b5e1e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r71-host-open-lock-red.meta.json",
+      "sha256": "c8a5edd5b2584b0fadc2eece30e9ee6af2de5bb6a42eceb37f0a58c211d2d096"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r72-host-open-lock-green.json",
+      "sha256": "f6276320a3c712ab7f9a429266398ac9b69355ae4e4fa63cae25b45fb9b821c7"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r72-host-open-lock-green.log",
+      "sha256": "a8c65e9bb89d92d3b22671671adb8ddd264f5295416096080480ea47b50d8bdb"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r72-host-open-lock-green.meta.json",
+      "sha256": "93b1dba760dac26a1e8b29cbcf11d9f94b049c15e989c507e1903e8760407118"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r73-check-host-open-lock.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r73-check-host-open-lock.meta.json",
+      "sha256": "bb59ca0f178186ba62a32584e0bb3a78a6ddd0b32bc6cbf3e88c04ed69b52059"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r74-check-host-open-complete.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r74-check-host-open-complete.meta.json",
+      "sha256": "0fa376dd0910055e5f27b8951658324893a0cc4825bfe17ed45e1bce249cdbd2"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r76-affected-final.log",
+      "sha256": "feb05dbe151853f55975360fde1999853d6e45c0b8b924097f7c8e9d39e7b1fc"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r76-affected-final.meta.json",
+      "sha256": "c25eb5e8f4406972aa089da541cf632ceffb3e0daf4dc713e0f8038803005540"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r76-affected-source-compatibility.json",
+      "sha256": "4b7f43d0bb597559c8d6b5cedd6d0cb18c3de68cafc43790a3b54cf8a4f66545"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r76-current-source-before.json",
+      "sha256": "2cb7090d55580356b21ac628de4ad778eb86af2c9bb507901f27d5484d1d4b04"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r76-invalid-environment-selection-preserved.json",
+      "sha256": "beaca0ec2e9c827337eae5d5802dd2b0a3267bbb53be3a74bab72a9648d4c5a4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r76-serial-sequence.json",
+      "sha256": "50cf9cf63757e1b902169127787564dfcccf4d8d5171204ffd6a2bc93719f27e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r79-affected-source-compatibility.json",
+      "sha256": "70353f644c193e6ca4ef5e7a17819ba720963725cba62dd1c0b1aa9674fb5a5b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r79-current-source-before.json",
+      "sha256": "2cb7090d55580356b21ac628de4ad778eb86af2c9bb507901f27d5484d1d4b04"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r79-serial-sequence.json",
+      "sha256": "0b36d0feab94804bead7d742aa645c1f3c5fcfe961be233e908297d9623afb93"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r8-check.log",
+      "sha256": "44a62f30aebecaaf6a4d7beba44618ecd03d4baf533e6d9ee5a69ba7f3feef09"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r8-check.meta.json",
+      "sha256": "ec18824e836c4c54656e39c723343c4cbb9ad40b45007d17fed55140bca56847"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r80-failed-selection-preserved.json",
+      "sha256": "8e1f7c249357563b933a920f785531d017470f6c85b1bc6ac089f6171f771a15"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r80-native-family-complete.json",
+      "sha256": "a84260fd01d48e6e2a6e8fb49ce81b985aa50293d5d78a66519469cee3340e49"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r80-native-family-complete.log",
+      "sha256": "c1eb8be70dabe4b6f61a7d79b9c34cfdaec801c8c76a31a5e176e9aa77a5e1a3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r80-native-family-complete.meta.json",
+      "sha256": "5ed2ba133fd87455746a227e1451c65c6fe6eafa636f3580b6cd175cc00f0032"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r80-new-owned-custody-diagnostic.json",
+      "sha256": "34d7117f6b67b36b81744cfdeacf782a6e400a065279d674d6cb15992b447890"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r80-original-root-acl-readonly.json",
+      "sha256": "a7a14b2a78e109bd79db1812c324708b44a0692dc2b58d5c0fdf784dec136e7d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r80-owned-custody-stage.json",
+      "sha256": "b385ac9b34f904de9dca93ab58feb791b8b8d42f29811f902e56ecbc66ef293a"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r82-private-scratch-serial-sequence.json",
+      "sha256": "f238a7d2c02017c3d650ab652b0738ec6810f42fd0f27920b8b2b004f4157f06"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r83-failed-selection-preserved.json",
+      "sha256": "24c3bf943c042839bd30624353d018dddaafc4b702ad6cb356cbd47d90e0863b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r83-windows-final.json",
+      "sha256": "1d8c819875300908b5cbbb238edfbf9d6830f75791391a23f5531fe8b77bede1"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r83-windows-final.log",
+      "sha256": "56a32db4b2acddb4ee35898e0f10ebebb07efc6a55ba08b6b196a439715db2d3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r83-windows-final.meta.json",
+      "sha256": "4c44b98105d4a540b0c7dde41ed58c7610ecf268de5c791a7ecf5938c8b0b84b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r84-current-source-after.json",
+      "sha256": "2cb7090d55580356b21ac628de4ad778eb86af2c9bb507901f27d5484d1d4b04"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r9-local-family-green.json",
+      "sha256": "dedc336adfa37d98a6459d861a8598b232c95234fd76677e46424756b9f913d7"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r9-local-family-green.log",
+      "sha256": "3294d822c8f613bacbeb9499736fa568672736f234c85debc011406394759b08"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d280-r9-local-family-green.meta.json",
+      "sha256": "02ccb332eab8001515d682e9949a4c2020fbb9c0a04ed7404f3c38a14c66a63d"
+    }
+  ],
+  "behavior_reds": [
+    {
+      "label": "r1-account-family-red",
+      "passed": 4,
+      "failed": 4,
+      "reason": "Explicit original account family reader absent"
+    },
+    {
+      "label": "r3-mixed-proof-red",
+      "passed": 9,
+      "failed": 3,
+      "reason": "Explicit Runtime mixed family export absent"
+    },
+    {
+      "label": "r7-local-family-red",
+      "passed": 0,
+      "failed": 4,
+      "reason": "Local original family composition absent; omitted Kernel child could pass old parent-only path"
+    },
+    {
+      "label": "r10-family-service-red",
+      "passed": 4,
+      "failed": 1,
+      "reason": "Shared service discarded family reader and could not commit fees"
+    },
+    {
+      "label": "r13-foreign-intent-red",
+      "passed": 12,
+      "failed": 2,
+      "reason": "Missing or substituted relation in foreign scope file was ignored as absence"
+    },
+    {
+      "label": "r14-legacy-proof-red",
+      "passed": 9,
+      "failed": 1,
+      "reason": "Installed new family port reinterpreted old saved single-scope proof"
+    },
+    {
+      "label": "r21-per-child-fee-red",
+      "passed": 5,
+      "failed": 1,
+      "reason": "Child report17/bill12 accepted because family total24 concealed individual conflict"
+    },
+    {
+      "label": "r28-cost-guard-red",
+      "passed": 10,
+      "failed": 1,
+      "reason": "Guard ignored after awaited lease; expired authority still committed fees"
+    },
+    {
+      "label": "r39-job-startup-red",
+      "passed": 4,
+      "failed": 1,
+      "reason": "Actual Job fixture accepted unsupported startup mode instead of rejecting before job/peer creation"
+    },
+    {
+      "label": "r44-cancel-prefix-red",
+      "passed": 23,
+      "failed": 1,
+      "reason": "Original cancellation after durably recorded final stop reply but before SDK step_start was rejected by strict equal step/call counts"
+    },
+    {
+      "label": "r59-account-cut-red",
+      "passed": 15,
+      "failed": 1,
+      "reason": "One unchanged account validation redundantly made24 Host custody checks instead of the bounded fresh synchronous cut"
+    },
+    {
+      "label": "r61-host-cut-snapshot-red",
+      "passed": 10,
+      "failed": 1,
+      "reason": "Native guard could mutate the requested namespace array and conceal an existing row"
+    },
+    {
+      "label": "r64-host-cut-final-custody-red",
+      "passed": 27,
+      "failed": 1,
+      "reason": "Custody revocation inside the synchronous cut callback was not rechecked before returning the cut result"
+    },
+    {
+      "label": "r71-host-open-lock-red",
+      "passed": 12,
+      "failed": 1,
+      "reason": "First SQLite metadata read happened before the existing finite busy timeout policy was installed; connection timeout now installs the same30000ms policy before first read"
+    }
+  ],
+  "diagnostic_limitations": [
+    "Diagnostic r6 suite setup failed with four skipped cases because fixture mixed source and dist GatewayNetworkBoundary class identities; this is not a behavioral red or acceptance pass",
+    "Diagnostic r15/r16 exposed a missing strict scope-parser import; subsequent current full scopes establish final behavior",
+    "Diagnostic checks exposed fixture typing, private source/dist identities and fixture path/port mistakes; these failures are retained and corrected before final frozen source",
+    "First actual r27 parent Native/SDK completed three calls; first child preparation failed native_executable_path_unsupported at a165-character derived root before child account scope/dispatch. Original Native root and all original failure evidence retained",
+    "Later readonly reconstructed authority diagnosis found elapsed Task budget; this later denial is not the cause of the earlier physical-path rejection",
+    "New actual r33 uses a fresh short repository, fresh external protected Host/account and a NEW controlled30-minute Task fixed at creation. No old Task budget/deadline, Run or production Native path guard was changed",
+    "D277 historical native_control_unavailable cause remains unproven and is not overwritten or claimed fixed",
+    "Actual r33 parent and child Native/SDK exited0 with resources disposed, but child invoked only entry and omitted five fixed required original materials; independent method result correctly remained Unknown. Corrected fixture executes all six sequential SDK tools before final text; old original is never repaired or restarted",
+    "Original r35 Windows full scope contains failures, including dedicated production fixture stopped at its original ten-minute Task deadline with Native exit12 and resources disposed; zero business observations and no authenticated bill summary. Preserve complete failure reports and diagnosis, never infer this is fixed merely from a later passing scope",
+    "Original r38 complete report contains13 of14 files,33passed/2failed, and one unhandled worker startup crash0xC0000005; cancellation Native file was absent and this is not a complete Windows pass. The next queued native scope never started",
+    "Original r38 dedicated Native/SDK ended0 and authenticated PUBLIC cash48 was observed, but post-execution historical reconciliation exceeded the780000ms test observation timeout. New observation timeout1800000ms is independent of unchanged original600000ms Task execution deadline and180000<elapsed<=600000 assertion",
+    "Actual Job startup rejection now reports original captured fixture close/error immediately, clears pending wait timers, and cleans only its own held new child on startup failure; fresh complete r40 five-case file passed. Original wide readiness failures remain unexplained and are not reclassified as fixed",
+    "Original r53 new full Native file failed native_control_unavailable at clock helper close; queued r54 Windows scope never started. Readonly restricted WMI returned access denied0x80041003 while authorized Native WMI succeeded. This establishes an execution-context dependency, not the exact root cause of r53 or any historical failure. New r55/r56 original operations run in authorized Native context without restarting old originals or changing budgets/quota; failed r53 remains failed",
+    "Engineering reviewer ran no tests and is not independent Matt or fresh Superpowers verification",
+    "r47 complete affected44/480 retained479 passed and1 failed solely at the45-second test observation timeout (actual58.6 seconds). Only that handoff fixture observation became120 seconds; complete r50 store file passed and all Task/Run/account/Native budgets and assertions stayed unchanged. The failed full report is preserved, never reclassified"
+  ],
+  "preservation": {
+    "protected_untracked_files_not_read_or_staged": [
+      "QA5363D6C.tmp",
+      "QF192D3E3.tmp"
+    ],
+    "old_unknown_resources_untouched": true,
+    "original_failed_runs_reopened": false,
+    "bulk_cleanup": false,
+    "no_paid_request": true,
+    "no_push": true
+  },
+  "remaining": [
+    "V1-09 ordinary parent SDK to authenticated original IPC/shared Kernel unique Skill reservation, execution, independent collection and verified continuation; complete production admission, approved real model/package/caps/accounts/bills, physical quota, historical capacity and all recovery",
+    "V1-21 actual Skill and Human/Matt clarification before every Plan/Task entry",
+    "V1-22 Matt independent complete review, Superpowers fresh current-source verification and real behavior comparison",
+    "V1-10 formal Agent workbench execution/query/stop/original continuation via shared Kernel and production admission",
+    "V1-11 actual ordinary Change to ReadyForDelivery with real Skills/interruption/S1 evidence and actionable integration guide"
+  ]
+}

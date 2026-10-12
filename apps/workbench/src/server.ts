@@ -187,7 +187,8 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
         requireSession(request,true);
         if(!body||typeof body!=='object'||Array.isArray(body)||!('target' in body)||!body.target||typeof body.target!=='object'||!('id' in body.target)||body.target.id!==decodeURIComponent(costObservationMatch[1]!))throw new HttpFailure(400,'INVALID_COMMAND');
-        const result=await(costObservationMatch[2]==='reconcile-original'?agentCostObservation.reconcile(body):agentCostObservation.record(body));
+        const guard=()=>{if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,true);};
+        const result=await(costObservationMatch[2]==='reconcile-original'?agentCostObservation.reconcile(body,guard):agentCostObservation.record(body,guard));
         if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
         requireSession(request,true);
         send(response,'code' in result?statusFor(result):200,result);return;

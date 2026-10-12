@@ -8,8 +8,8 @@ import {DatabaseSync} from 'node:sqlite';
 interface AccountAPI extends DedicatedAgentAccountPort {close():void;snapshot():{holds:number;cash_held_micros:number;credit_held_micro_units:number;costs_reconciled:false};readOriginalHold(scope:AgentWorkspaceToolScope,call:string):DedicatedAgentBudgetHold|null}
 // Actual SQLite/files; all approval/tariff/machine/principal are constructed.
 // Owned fixtures retained. No real key/network/qualification/S1.
-function fixture(){const root=mkdtempSync(join(tmpdir(),'cimiloop-dedicated-account-')),repo=join(root,'repo');mkdirSync(repo);
- const origin=AgentStartLedger.initialize(join(root,'host'),{machine_digest:digest('constructed machine').value,principal_digest:digest('constructed principal').value});
+function fixture(hostVerify?:()=>void){const root=mkdtempSync(join(tmpdir(),'cimiloop-dedicated-account-')),repo=join(root,'repo');mkdirSync(repo);
+ const origin=AgentStartLedger.initialize(join(root,'host'),{machine_digest:digest('constructed machine').value,principal_digest:digest('constructed principal').value},undefined,hostVerify);
  const connection={format:'cimiloop/dedicated-model/1.0.0' as const,provider:'zhipuai-coding-plan' as const,model:'zhipuai-coding-plan/glm-fixture',credential_file:join(root,'absent-public-fixture.dpapi.json'),credential_digest:digest('public encrypted identity')};
  const policy={format:'cimiloop/dedicated-agent-account/1.0.0' as const,host_identity_digest:origin.identityDigest,account_digest:digest('constructed account').value,approval_digest:digest('constructed approval').value,package_digest:digest('constructed package').value,tariff_digest:digest('constructed tariff').value,admission_digest:digest('constructed admission').value,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:'glm-fixture',thinking:'enabled' as const},cash_limit_micros:60,credit_limit_micro_units:20,cash_per_call_upper_micros:30,credit_per_call_upper_micro_units:10,input_token_limit:1000000,output_token_limit:512};
  const scope=()=>parseAgentWorkspaceToolScope({project_id:createInternalId(),run_id:createInternalId(),operation_key:createInternalId(),executor_actor_id:createInternalId(),context_digest:digest('context'),skill_bindings:[],runtime_binding:{binding_ref:{object_type:'provider_binding',id:createInternalId()},digest:digest('runtime')},host_admission_ref:{provider:'local_content',resource_type:'agent_host_admission',locator:digest('host approval').value,digest:digest('host approval')}});
@@ -19,6 +19,37 @@ function fixture(){const root=mkdtempSync(join(tmpdir(),'cimiloop-dedicated-acco
  const options={origin,repositoryPath:repo,root:join(root,'account'),policy,connection,admission,custody};return {root,repo,origin,connection,policy,scope,input,Factory,options,revoke:()=>{allowed=false;}};
 }
 describe('one original dedicated account budget across Runs',()=>{
+ it('bounds fresh Host custody work for admission and a model hold without retaining a pre-await view',async()=>{
+  let hostAudits=0;const f=fixture(()=>{hostAudits++;}),account=f.Factory().initialize(f.options);try{
+   hostAudits=0;await account.check(f.scope(),f.connection);expect(hostAudits).toBeLessThanOrEqual(6);
+   const one=f.input(f.scope());hostAudits=0;await account.reserve(one.scope,one.request,one.body);expect(hostAudits).toBeLessThanOrEqual(22);
+   expect(account.snapshot()).toMatchObject({holds:1,cash_held_micros:30,credit_held_micro_units:10});
+  }finally{account.close();f.origin.close();}
+ });
+ it('sees a new unbacked Host hold after awaited admission and refuses a fresh effect',async()=>{
+  const f=fixture(),account=f.Factory().initialize(f.options);try{
+   f.options.admission.check=async()=>{await Promise.resolve();f.origin.issueExclusive('dedicated_account_hold',digest('PUBLIC after-admission orphan').value,{account_digest:f.policy.account_digest});};
+   // The installed admission method was captured at open, so reopen this same
+   // original account with the explicitly installed new fixture admission.
+   const reopened=f.Factory().open({origin:f.origin,accountDigest:f.policy.account_digest,connection:f.connection,admission:f.options.admission,custody:f.options.custody});try{const one=f.input(f.scope());await expect(reopened.reserve(one.scope,one.request,one.body)).rejects.toThrow('agent_account_hold_original_missing');}finally{reopened.close();}
+   expect(f.origin.listExclusive('dedicated_account_hold')).toHaveLength(1);
+   const db=new DatabaseSync(join(f.options.root,'account.sqlite'),{readOnly:true});try{expect(db.prepare('SELECT count(*) AS n FROM account_holds').get()!.n).toBe(0);}finally{db.close();}
+  }finally{account.close();f.origin.close();}
+ });
+ it('retains the committed Host anchor when post-hold physical custody rejects, without repairing the rolled-back account row',async()=>{
+  const f=fixture();let held=false;f.options.custody.verify=()=>{if(held)throw Error('PUBLIC post-hold custody refused');};const account=f.Factory().initialize(f.options);
+  const original=f.origin.claimBudgetHoldBeforeSkillClosure.bind(f.origin);f.origin.claimBudgetHoldBeforeSkillClosure=(...args)=>{const result=original(...args);held=true;return result;};
+  try{const one=f.input(f.scope());await expect(account.reserve(one.scope,one.request,one.body)).rejects.toThrow('PUBLIC post-hold custody refused');held=false;
+   expect(f.origin.listExclusive('dedicated_account_hold')).toHaveLength(1);
+   const db=new DatabaseSync(join(f.options.root,'account.sqlite'),{readOnly:true});try{expect(db.prepare('SELECT count(*) AS n FROM account_holds').get()!.n).toBe(0);}finally{db.close();}
+   expect(()=>account.snapshot()).toThrow('agent_account_hold_original_missing');await expect(account.reserve(one.scope,one.request,one.body)).rejects.toThrow('agent_account_hold_original_missing');
+   expect(()=>f.Factory().open({origin:f.origin,accountDigest:f.policy.account_digest,connection:f.connection,admission:f.options.admission,custody:f.options.custody})).toThrow('agent_account_hold_original_missing');
+  }finally{account.close();f.origin.close();}
+ });
+ it('does not hide a Host mutation performed by a synchronous custody guard inside the current account audit',async()=>{
+  const f=fixture();let mutate=false;f.options.custody.verify=()=>{if(mutate){mutate=false;f.origin.issueExclusive('dedicated_account_hold',digest('PUBLIC custody orphan').value,{account_digest:f.policy.account_digest});}};
+  const account=f.Factory().initialize(f.options);try{mutate=true;await expect(account.check(f.scope(),f.connection)).rejects.toThrow('agent_account_hold_original_missing');expect(f.origin.listExclusive('dedicated_account_hold')).toHaveLength(1);}finally{account.close();f.origin.close();}
+ });
  it('uses one fresh complete account cut on each side of admission, without splitting budget and scope into redundant audits',async()=>{
   const f=fixture();let verified=0;f.options.custody.verify=()=>{verified++;};const account=f.Factory().initialize(f.options);try{verified=0;await account.check(f.scope(),f.connection);expect(verified).toBe(2);}finally{account.close();f.origin.close();}
  });

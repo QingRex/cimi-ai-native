@@ -44,6 +44,13 @@ type Artifact={name:string;path:string;digest:string};
 export class LocalSkillInvocationResultCollection {
  private readonly times=new Map<string,string>();
  constructor(private readonly options:Options){if(!(options.custody instanceof LocalSkillInvocationStartCustody)||!(options.inputs instanceof LocalSkillMethodInputs))throw fail();}
+ // Trusted historical family composition only. No preparation, registration,
+ // execution or model effect; both inputs and birth come from the original.
+ readFamilyPreparation(project:Project,invocation:SkillInvocation){
+  const original=this.original(invocation.id,true),{custody,inputs}=this.options;
+  if(!same(original.invocation,invocation)||project.id!==original.project.id||resolve(project.repository_path)!==resolve(original.project.repository_path))throw fail();
+  return{relation:custody.accountScope(original.project,invocation,original.request.parent,original.record_id),inputs:inputs.readInvocation(original.project,original.descriptor,invocation)};
+ }
  private original(id:string,existingReader=false){const local=this.options.local;return existingReader?readOriginalSkillInvocationFromReader(local,local.store,id):readOriginalSkillInvocation(local,id);}
  private facts(id:string,existingReader=false,billed=false,reconciling=false,collection?:CancellationCollection){
   const {local,custody,inputs}=this.options,original=this.original(id,existingReader),plan=inputs.readInvocation(original.project,original.descriptor,original.invocation);

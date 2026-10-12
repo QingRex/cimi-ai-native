@@ -3,9 +3,10 @@ import{RuntimeAdapterError,type DedicatedAgentAccountLedger}from'@cimiloop/runti
 import{LocalAgentAccountBilling}from'./agent-account-billing-local.js';
 import{readHumanOriginalAgentRunInputs}from'./agent-runtime-control-local.js';
 import{LocalProjectError}from'./errors.js';import type{LocalProject}from'./project.js';
+import type{LocalAgentRunFamilyVerification}from'./agent-run-family-costs-local.js';
 // Trusted code installation. Open an EXISTING account only: no model, new Run,
 // bill ingestion, credential export, imported JSON authority or database repair.
-export interface AgentAccountBillingLease{account:DedicatedAgentAccountLedger;release():void|Promise<void>}
+export interface AgentAccountBillingLease{account:DedicatedAgentAccountLedger;familySkills?:LocalAgentRunFamilyVerification;release():void|Promise<void>}
 export type HumanAgentAccountFactory=(runId:string,local:LocalProject)=>AgentAccountBillingLease|Promise<AgentAccountBillingLease>;
 export class LocalHumanAgentAccountBilling{
  constructor(private readonly local:LocalProject,private readonly factory?:HumanAgentAccountFactory){}

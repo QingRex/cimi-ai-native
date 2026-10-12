@@ -13,7 +13,7 @@ import {AccountBillingStore,captureBillVerification,type AccountBillingOrigin,ty
 import {openWindowsAgentStartCustody} from "./agent-start-custody-native.js";
 import {readOriginalSkillDispatchClosure} from './agent-skill-dispatch-closure.js';
 import {LegacyAccountBillingAttachment} from './agent-legacy-account-billing.js';
-import {DedicatedAgentSkillScopeRegistry,type DedicatedAgentSkillScope} from './agent-skill-account-scope.js';
+import {DedicatedAgentSkillScopeRegistry,parseDedicatedAgentSkillAccountScope,type DedicatedAgentSkillScope} from './agent-skill-account-scope.js';
 
 export interface DedicatedAgentAccountPolicy {
  format:"cimiloop/dedicated-agent-account/1.0.0";host_identity_digest:string;account_digest:string;approval_digest:string;package_digest:string;tariff_digest:string;
@@ -25,12 +25,14 @@ export interface DedicatedAgentAccountPolicy {
 // including approved service-side input bounds. This module supplies no defaults.
 export interface DedicatedAgentAccountAdmission {check(scope:AgentWorkspaceToolScope,connection:DedicatedModelConnection,policy:DedicatedAgentAccountPolicy):Promise<void>;checkSkillScope?(relation:DedicatedAgentSkillScope,connection:DedicatedModelConnection,policy:DedicatedAgentAccountPolicy):Promise<void>}
 export interface DedicatedAgentAccountCustody {protect(root:string):void;verify(root:string):void}
+export interface DedicatedAgentReconciledFamilyChild {state:'executed'|'not_started';relation:DedicatedAgentSkillScope}
 interface OpenOptions {origin:AgentStartLedger;accountDigest:string;connection:DedicatedModelConnection;admission:DedicatedAgentAccountAdmission;custody:DedicatedAgentAccountCustody;billing?:DedicatedAgentBillVerification|undefined}
 interface InitializeOptions extends Omit<OpenOptions,"accountDigest"> {repositoryPath:string;root:string;policy:DedicatedAgentAccountPolicy}
 interface AccountOrigin {format:"cimiloop/dedicated-agent-account-origin/1.0.0"|"cimiloop/dedicated-agent-account-origin/2.0.0";billing?:AccountBillingOrigin;account_database_version?:2;root:string;directory_identity:string;file_identity:string;policy:DedicatedAgentAccountPolicy}
 type Row=Record<string,SQLOutputValue>;
 type AccountFunds={cashHeld:bigint;creditHeld:bigint;cashCharged:bigint;creditCharged:bigint;overBudget:boolean;billed:Set<string>;records:ReturnType<AccountBillingStore['audit']>};
 const appId=0x434d4131,namespace="dedicated_agent_account",holdNamespace="dedicated_account_hold",sha=/^[a-f0-9]{64}$/;
+const auditNamespaces=[namespace,holdNamespace,'dedicated_account_skill_scope','dedicated_account_skill_scope_intent','skill_invocation_admission','skill_invocation_dispatch','dedicated_account_billing_attachment_claim','dedicated_account_billing_attachment','dedicated_account_bill'];
 const exact=(x:unknown,fields:string[]):x is Record<string,unknown>=>!!x&&typeof x==="object"&&!Array.isArray(x)&&Object.keys(x).sort().join(",")===[...fields].sort().join(",");
 const integer=(n:unknown,min=0,max=1000000000000):n is number=>typeof n==="number"&&Number.isSafeInteger(n)&&n>=min&&n<=max;
 function fail(reason="agent_account_original_unproven"):never{throw new RuntimeAdapterError(reason);}
@@ -133,6 +135,13 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  private anchorId(request:DedicatedAgentBudgetRequest){return digest(JSON.stringify([this.options.accountDigest,request.scope_digest,request.call_id])).value;}
  private anchor(scope:AgentWorkspaceToolScope,request:DedicatedAgentBudgetRequest,hold:DedicatedAgentBudgetHold,text:string){return {format:"cimiloop/dedicated-account-hold-origin/1.0.0",account_digest:this.options.accountDigest,account_ticket_id:this.ticket.ticket_id,...(this.skillScopes.relation(scope)?{skill_scope_ticket:this.skillScopes.registrationTicket(scope)}:{}),scope:copy(scope),request:copy(request),hold:copy(hold),hold_digest:digest(text).value};}
  private validate():{rows:Row[];funds:AccountFunds} {
+  // A fresh cut for EVERY synchronous validation stage. In particular this is
+  // rebuilt after admission, the final effect guard, and the Host hold commit.
+  // Existing physical/SQL/scope/attachment/bill audits retain their own checks.
+  this.skillScopes.refreshCut();
+  return this.options.origin.withExclusiveReadCut(auditNamespaces,()=>this.validateCut());
+ }
+ private validateCut():{rows:Row[];funds:AccountFunds} {
   if(this.closed)fail("agent_account_closed");this.options.custody.verify(this.original.root);
   const registration=this.options.origin.readExclusive(namespace,this.options.accountDigest);
   if(!registration||!isDeepStrictEqual(registration.ticket,this.ticket)||!isDeepStrictEqual(registration.basis,this.original)||this.original.policy.host_identity_digest!==this.options.origin.identityDigest||physical(this.original.root,true)!==this.original.directory_identity||physical(join(this.original.root,"account.sqlite"),false)!==this.original.file_identity)fail();
@@ -213,10 +222,13 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  observeBill(bytes:Uint8Array){if(!this.bills)fail("agent_account_bill_verifier_unavailable");return this.read(rows=>this.bills!.observe(bytes,rows.map(r=>parse(String(r.hold)) as DedicatedAgentBudgetHold),()=>this.seals(),(id,body,hash)=>{if(this.attachment)this.attachment.seal(id,body,hash);else this.db.prepare("INSERT INTO account_bills VALUES(?,?,?)").run(id,body,hash);}),true);}
  // Audited historical registration and birth receipt only; no Host writer port.
  readOriginalSkillScopes(raw:AgentWorkspaceToolScope){const parent=parseAgentWorkspaceToolScope(raw);return this.read(()=>this.skillScopes.children(parent).map(child=>{const relation=this.skillScopes.relation(child)!;return{relation,admission:this.options.origin.readTicket(relation.admission_ticket)};}));}
+ readOriginalSkillBirth(raw:DedicatedAgentSkillScope){return this.read(()=>{const relation=this.skillScopes.validate(copy(raw));return this.options.origin.readTicket(relation.admission_ticket);});}
  // Positive permanent dispatch closure plus a complete original Host/account
  // cut, never an empty model directory or an inferred zero provider bill.
  readOriginalSkillZeroCosts(raw:DedicatedAgentSkillScope){
-  return this.read((rows,funds)=>{
+  return this.read((rows,funds)=>this.originalSkillZeroCosts(raw,rows,funds));
+ }
+ private originalSkillZeroCosts(raw:DedicatedAgentSkillScope,rows:Row[],funds:AccountFunds){
    const relation=this.skillScopes.validate(copy(raw)),closure=readOriginalSkillDispatchClosure(this.options.origin,relation);
    if(!closure||!this.billingOrigin||!this.bills)fail('agent_account_skill_zero_unproven');
    const namespaces=['dedicated_account_skill_scope','dedicated_account_skill_scope_intent',holdNamespace,namespace],first=this.options.origin.readExclusiveNamespaces(namespaces);
@@ -230,16 +242,12 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
      if(row.namespace===namespace){
       // A file-only registration intent in another original account must not
       // disappear behind the selected account's empty SQL table.
-      const original=body as unknown as AccountOrigin;
-      if(!original||typeof original.root!=='string'||!original.policy||original.policy.account_digest!==row.id||physical(original.root,true)!==original.directory_identity||physical(join(original.root,'account.sqlite'),false)!==original.file_identity)fail('agent_account_skill_zero_unproven');
-      const files=readdirSync(assertOrdinaryPath(original.root)).filter(name=>name.startsWith('skill-scope-'));if(files.length>2046)fail('agent_account_skill_zero_unproven');
-      for(const name of files){if(!/^skill-scope-(?:intent-)?[a-f0-9]{64}\.json$/.test(name))fail('agent_account_skill_zero_unproven');const value=parse(bytesAt(join(original.root,name),65536).toString('utf8')) as {relation?:DedicatedAgentSkillScope};if(related(value.relation?.child)&&(original.policy.account_digest!==this.options.accountDigest||!isDeepStrictEqual(value.relation,relation)||!this.skillScopes.relation(relation.child)))fail('agent_account_skill_zero_unproven');}
+      for(const value of this.originalAccountScopeFiles(row))if(related(value.relation.child)&&(value.account_digest!==this.options.accountDigest||!isDeepStrictEqual(value.relation,relation)||!this.skillScopes.relation(relation.child)))fail('agent_account_skill_zero_unproven');
      }
     }
    };
    audit();if(!isDeepStrictEqual(readOriginalSkillDispatchClosure(this.options.origin,relation),closure))fail('agent_account_skill_zero_unproven');audit();
    return {format:'cimiloop/original-skill-zero-costs/1.0.0' as const,scope:copy(relation.child),account_digest:this.options.accountDigest,account_ticket:copy(this.ticket),closure,holds:0,cash_charged_micros:0,credit_charged_micro_units:0,currency:this.billingOrigin.currency,credit_unit:this.billingOrigin.credit_unit,zero_costs_proven:true as const,starts_run:false as const};
-  });
  }
  readRunCosts(raw:AgentWorkspaceToolScope){const scope=parseAgentWorkspaceToolScope(raw),scopeDigest=digest(JSON.stringify(scope)).value;return this.read((rows,funds)=>{
   this.skillScopes.assertCompatible(scope,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));
@@ -257,6 +265,66 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
     return {scope:copy(scope),scope_digest,holds:selected.length,unresolved:selected.length-items.length,cash_charged_micros:Number(items.reduce((n,i)=>n+BigInt(i.cash_charged_micros),0n)),credit_charged_micro_units:Number(items.reduce((n,i)=>n+BigInt(i.credit_charged_micro_units),0n))};});
    const digests=new Set(scopes.map(s=>s.scope_digest)),holds=scopes.reduce((n,s)=>n+s.holds,0),unresolved=scopes.reduce((n,s)=>n+s.unresolved,0),unstarted_scopes=scopes.filter(s=>s.holds===0).length;
    return {account_digest:this.options.accountDigest,parent_scope_digest:key(parent),currency:this.billingOrigin?.currency??null,credit_unit:this.billingOrigin?.credit_unit??null,scopes,holds,unresolved,unstarted_scopes,costs_reconciled:!!this.bills&&holds>0&&unresolved===0&&unstarted_scopes===0,cash_charged_micros:scopes.reduce((n,s)=>n+s.cash_charged_micros,0),credit_charged_micro_units:scopes.reduce((n,s)=>n+s.credit_charged_micro_units,0),bill_originals:funds.records.filter(r=>r.projection.items.some(i=>digests.has(i.scope_digest))).map(r=>({bill_id:r.projection.bill_id,bytes_digest:r.bytes_digest,projection_digest:digest(JSON.stringify(r.projection)).value})),starts_run:false as const};
+  });
+ }
+ // Explicit new historical proof. The legacy snapshot and family reader still
+ // require calls in every registered member; no old zero-call meaning changes.
+ readReconciledRunFamilyCosts(raw:AgentWorkspaceToolScope,rawChildren:readonly DedicatedAgentReconciledFamilyChild[]){
+  const parent=parseAgentWorkspaceToolScope(raw);
+  if(!Array.isArray(rawChildren)||rawChildren.length>64)fail('agent_account_family_scope_original_missing');
+  return this.read((rows,funds)=>{
+   const children=rawChildren.map((value:DedicatedAgentReconciledFamilyChild)=>{
+    if(!exact(value,['state','relation'])||value.state!=='executed'&&value.state!=='not_started')fail('agent_account_family_scope_original_missing');
+    const relation=this.skillScopes.validate(copy(value.relation));
+    if(!isDeepStrictEqual(relation.parent,parent))fail('agent_account_family_scope_original_missing');
+    return{state:value.state,relation};
+   }).sort((a,b)=>a.relation.child.operation_key.localeCompare(b.relation.child.operation_key));
+   if(new Set(children.map(c=>c.relation.invocation_id)).size!==children.length||new Set(children.map(c=>c.relation.child.operation_key)).size!==children.length)fail('agent_account_family_scope_original_missing');
+   const registered=this.skillScopes.children(parent);
+   for(const child of registered)if(children.filter(c=>isDeepStrictEqual(c.relation,this.skillScopes.relation(child))).length!==1)fail('agent_account_family_scope_original_missing');
+   for(const child of children)if(child.state==='executed'&&!isDeepStrictEqual(this.skillScopes.relation(child.relation.child),child.relation))fail('agent_account_family_scope_original_missing');
+   this.skillScopes.assertCompatible(parent,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));
+   const scopes=[parent,...children.map(c=>c.relation.child)],host=this.familyAccountCut(parent,children,scopes);
+   const zero_costs=children.filter(c=>c.state==='not_started').map(c=>this.originalSkillZeroCosts(c.relation,rows,funds));
+   const selected=scopes.map((scope,index)=>{
+    const scope_digest=digest(JSON.stringify(scope)).value,holds=rows.filter(r=>isDeepStrictEqual(parse(String(r.scope)),scope)),items=funds.records.flatMap(r=>r.projection.items).filter(i=>i.scope_digest===scope_digest);
+    const closed=index>0&&children[index-1]!.state==='not_started';
+    if(closed?holds.length!==0||items.length!==0:holds.length===0||items.length!==holds.length)fail('agent_account_family_costs_unreconciled');
+    return{scope:copy(scope),scope_digest,state:closed?'not_started' as const:'executed' as const,holds:holds.length,unresolved:holds.length-items.length,cash_charged_micros:Number(items.reduce((n,i)=>n+BigInt(i.cash_charged_micros),0n)),credit_charged_micro_units:Number(items.reduce((n,i)=>n+BigInt(i.credit_charged_micro_units),0n))};
+   });
+   const sum=(key:'holds'|'cash_charged_micros'|'credit_charged_micro_units')=>{const n=selected.reduce((n,s)=>n+BigInt(s[key]),0n);if(n>BigInt(Number.MAX_SAFE_INTEGER))fail('agent_account_family_costs_unreconciled');return Number(n);};
+   if(!this.bills||!this.billingOrigin||!isDeepStrictEqual(host,this.familyAccountCut(parent,children,scopes))||zero_costs.some((zero,i)=>!isDeepStrictEqual(zero,this.originalSkillZeroCosts(children.filter(c=>c.state==='not_started')[i]!.relation,rows,funds))))fail('agent_account_family_costs_unreconciled');
+   const digests=new Set(selected.map(s=>s.scope_digest));
+   return{format:'cimiloop/reconciled-run-family-costs/1.0.0' as const,account_digest:this.options.accountDigest,parent_scope_digest:digest(JSON.stringify(parent)).value,currency:this.billingOrigin.currency,credit_unit:this.billingOrigin.credit_unit,scopes:selected,holds:sum('holds'),unresolved:0,closed_zero_scopes:zero_costs.length,zero_costs,costs_reconciled:true as const,cash_charged_micros:sum('cash_charged_micros'),credit_charged_micro_units:sum('credit_charged_micro_units'),bill_originals:funds.records.filter(r=>r.projection.items.some(i=>digests.has(i.scope_digest))).map(r=>({bill_id:r.projection.bill_id,bytes_digest:r.bytes_digest,projection_digest:digest(JSON.stringify(r.projection)).value})),starts_run:false as const};
+  });
+ }
+ private familyAccountCut(parent:AgentWorkspaceToolScope,children:readonly DedicatedAgentReconciledFamilyChild[],scopes:AgentWorkspaceToolScope[]){
+  const all=this.options.origin.readExclusiveNamespaces(['skill_invocation_admission','dedicated_account_skill_scope','dedicated_account_skill_scope_intent',holdNamespace,namespace]);
+  const related=(scope:unknown)=>!!scope&&typeof scope==='object'&&'run_id'in scope&&scope.run_id===parent.run_id;
+  // An original birth omitted from the supplied Kernel set remains unproven,
+  // including interrupted preparation; it is never silently priced at zero.
+  const births=all.filter(row=>row.namespace==='skill_invocation_admission'&&related((row.basis as {parent?:unknown})?.parent));
+  if(births.length!==children.length||births.some(row=>children.filter(c=>isDeepStrictEqual(c.relation.admission_ticket,row.ticket)).length!==1))fail('agent_account_family_scope_original_missing');
+  const relationKnown=(relation:DedicatedAgentSkillScope)=>children.some(c=>isDeepStrictEqual(c.relation,relation));
+  for(const row of all){const body=row.basis as Record<string,unknown>;
+   if(row.namespace===holdNamespace&&related(body?.scope)&&(body.account_digest!==this.options.accountDigest||!scopes.some(scope=>isDeepStrictEqual(scope,body.scope))))fail('agent_account_family_foreign_original');
+   if(['dedicated_account_skill_scope','dedicated_account_skill_scope_intent'].includes(row.namespace)){const relation=body?.relation as DedicatedAgentSkillScope;if((related(relation?.parent)||related(relation?.child))&&(body.account_digest!==this.options.accountDigest||!relationKnown(relation)))fail('agent_account_family_foreign_original');}
+   if(row.namespace===namespace)for(const value of this.originalAccountScopeFiles(row))if((related(value.relation.parent)||related(value.relation.child))&&(value.account_digest!==this.options.accountDigest||!relationKnown(value.relation)))fail('agent_account_family_foreign_original');
+  }
+  return all;
+ }
+ private originalAccountScopeFiles(row:ReturnType<AgentStartLedger['readExclusiveNamespaces']>[number]){
+  const original=row.basis as AccountOrigin;
+  if(row.namespace!==namespace||!original||typeof original.root!=='string'||!original.policy||original.policy.account_digest!==row.id||physical(original.root,true)!==original.directory_identity||physical(join(original.root,'account.sqlite'),false)!==original.file_identity)fail('agent_account_family_foreign_original');
+  const files=readdirSync(assertOrdinaryPath(original.root)).filter(name=>name.startsWith('skill-scope-'));if(files.length>2046)fail('agent_account_family_foreign_original');
+  return files.map(name=>{
+   if(!/^skill-scope-(?:intent-)?[a-f0-9]{64}\.json$/.test(name))fail('agent_account_family_foreign_original');
+   const path=join(original.root,name);physical(path,false);
+   const raw=parse(bytesAt(path,65536).toString('utf8'));
+   if(!exact(raw,['format','account_digest','account_ticket','relation'])||raw.format!=='cimiloop/dedicated-account-skill-scope/1.0.0'||raw.account_digest!==original.policy.account_digest||!isDeepStrictEqual(raw.account_ticket,row.ticket))fail('agent_account_family_foreign_original');
+   const relation=this.skillScopes.validate(raw.relation as DedicatedAgentSkillScope),scope_digest=digest(JSON.stringify(parseDedicatedAgentSkillAccountScope(relation.child))).value,id=digest(JSON.stringify({account_digest:original.policy.account_digest,scope_digest})).value;
+   if(name!=='skill-scope-'+id+'.json'&&name!=='skill-scope-intent-'+id+'.json')fail('agent_account_family_foreign_original');
+   return{account_digest:original.policy.account_digest,relation};
   });
  }
  snapshot(){return this.read((rows,f)=>{const p=this.original.policy;return{account_digest:p.account_digest,holds:rows.length,billed_holds:f.billed.size,currency:this.billingOrigin?.currency??null,credit_unit:this.billingOrigin?.credit_unit??null,cash_limit_micros:p.cash_limit_micros,credit_limit_micro_units:p.credit_limit_micro_units,cash_held_micros:Number(f.cashHeld),credit_held_micro_units:Number(f.creditHeld),cash_charged_micros:Number(f.cashCharged),credit_charged_micro_units:Number(f.creditCharged),cash_remaining_micros:Number(BigInt(p.cash_limit_micros)>f.cashHeld+f.cashCharged?BigInt(p.cash_limit_micros)-f.cashHeld-f.cashCharged:0n),credit_remaining_micro_units:Number(BigInt(p.credit_limit_micro_units)>f.creditHeld+f.creditCharged?BigInt(p.credit_limit_micro_units)-f.creditHeld-f.creditCharged:0n),over_budget:f.overBudget,costs_reconciled:!!this.bills&&rows.length>0&&f.billed.size===rows.length&&this.skillScopes.audit().every(r=>[r.parent,r.child].every(scope=>rows.some(row=>isDeepStrictEqual(parse(String(row.scope)),scope)))),formal_agent_execution_enabled:false as const};});}

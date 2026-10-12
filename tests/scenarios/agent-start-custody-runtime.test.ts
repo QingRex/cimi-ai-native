@@ -1,5 +1,5 @@
 import { createInternalId } from "../../packages/protocol/src/v2/index.js";
-import { mkdtempSync, rmSync, renameSync } from "node:fs";
+import { mkdtempSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, basename, join, resolve } from "node:path";
 import { execFile } from "node:child_process";
@@ -12,9 +12,15 @@ import { initializeWindowsAgentStartLedger, openWindowsAgentStartLedger } from "
 vi.setConfig({ testTimeout: 90000 });
 // Actual machine/principal, protected Windows directory, durable SQLite and
 // distinct host process. Basis/Run are contract fixtures, no model/Skill approval.
+async function allOriginalHosts<T>(originals:Promise<T>[]):Promise<T[]>{
+  const settled=await Promise.allSettled(originals);
+  const failed=settled.find(result=>result.status==='rejected');
+  if(failed?.status==='rejected')throw failed.reason;
+  return settled.map(result=>{if(result.status!=='fulfilled')throw result.reason;return result.value;});
+}
 describe.runIf(process.platform === "win32" && process.arch === "x64")("Windows original start origin", () => {
   const roots: string[] = [];
-  afterEach(() => { for (const root of roots.splice(0)) { if (dirname(root) !== tmpdir() || !basename(root).startsWith("cimiloop-start-origin-")) throw Error("Unsafe cleanup"); rmSync(root, { recursive: true, force: true }); } });
+  afterEach(() => { for (const root of roots.splice(0)) { if (dirname(root) !== tmpdir() || !basename(root).startsWith("cimiloop-start-origin-")) throw Error("Unsafe fixture root"); console.error('Retain original Windows start custody fixture: '+root); } });
   it("pins the actual host identity across another process and rejects a missing old origin without initializing it", async () => {
     const root = mkdtempSync(join(tmpdir(), "cimiloop-start-origin-")); roots.push(root);
     const origin = join(root, "origin"), tools = join(root, "tools"), ledger = await initializeWindowsAgentStartLedger(origin, tools);
@@ -25,7 +31,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("Windows 
     const material = digest("constructed material");
     const module = pathToFileURL(resolve("packages/runtime-adapter/dist/agent-start-origin-windows.js")).href;
     const code = `import {openWindowsAgentStartLedger} from ${JSON.stringify(module)};const x=JSON.parse(process.argv[1]);const l=await openWindowsAgentStartLedger(x.origin,x.tools);try{const same=l.issue(x.basis),claim=l.claim(same,x.scope,x.material);console.log(JSON.stringify({same,created:claim.created,state:l.inspect(same,x.scope).state,pid:process.pid}));}finally{l.close();}`;
-    const children = await Promise.all([0, 1].map(() => promisify(execFile)(process.execPath, ["--input-type=module", "-e", code, JSON.stringify({ origin, tools, basis, ticket, scope, material })],
+    const children = await allOriginalHosts([0, 1].map(() => promisify(execFile)(process.execPath, ["--input-type=module", "-e", code, JSON.stringify({ origin, tools, basis, ticket, scope, material })],
       { windowsHide: true, timeout: 45000, env: isolatedEnvironment() })));
     const results = children.map(child => JSON.parse(child.stdout));
     expect(new Set(results.map(result => result.pid)).size).toBe(2);
@@ -35,7 +41,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("Windows 
     expect(results.every(result => result.state === "claimed")).toBe(true);
     // Different new ticket/claim pairs exercise integrity reads during another
     // connection's insertions; they must share a consistent database snapshot.
-    const independent = await Promise.all([0, 1].map(index => promisify(execFile)(process.execPath, ["--input-type=module", "-e", code,
+    const independent = await allOriginalHosts([0, 1].map(index => promisify(execFile)(process.execPath, ["--input-type=module", "-e", code,
       JSON.stringify({ origin, tools, basis: { purpose: "constructed concurrent new basis", index }, material,
         scope: { ...scope, run_id: createInternalId(), operation_key: createInternalId() } })],
       { windowsHide: true, timeout: 45000, env: isolatedEnvironment() })));
@@ -64,7 +70,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("Windows 
     const id=digest('constructed original child').value,basis={parent_run:createInternalId(),parent_operation_key:createInternalId(),invocation_key:createInternalId(),input_digest:digest('fixed child input')};ledger.close();
     const module=pathToFileURL(resolve('packages/runtime-adapter/dist/agent-start-origin-windows.js')).href;
     const code=`import {openWindowsAgentStartLedger} from ${JSON.stringify(module)};const x=JSON.parse(process.argv[1]),l=await openWindowsAgentStartLedger(x.origin,x.tools);try{const result=l.claimExclusiveOnce('skill_invocation_dispatch',x.id,x.basis);console.log(JSON.stringify({...result,original:l.readExclusive('skill_invocation_dispatch',x.id),pid:process.pid}));}finally{l.close();}`;
-    const children=await Promise.all([0,1].map(()=>promisify(execFile)(process.execPath,['--input-type=module','-e',code,JSON.stringify({origin,tools,id,basis})],{windowsHide:true,timeout:45000,env:isolatedEnvironment()})));
+    const children=await allOriginalHosts([0,1].map(()=>promisify(execFile)(process.execPath,['--input-type=module','-e',code,JSON.stringify({origin,tools,id,basis})],{windowsHide:true,timeout:45000,env:isolatedEnvironment()})));
     const results=children.map(child=>JSON.parse(child.stdout));expect(new Set(results.map(value=>value.pid)).size).toBe(2);
     expect(results.filter(value=>value.created)).toHaveLength(1);expect(results.filter(value=>!value.created)).toHaveLength(1);
     expect(results[0].ticket).toEqual(results[1].ticket);expect(results.map(value=>value.original.basis)).toEqual([basis,basis]);

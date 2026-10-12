@@ -65,3 +65,19 @@ it('rejects an otherwise exactly matched SDK prefix that continues after an earl
  const events=[f.events[0],{type:'step_start',sessionID:'session_1',part:{type:'step-start',sessionID:'session_1',messageID:'message_0'}},{type:'text',sessionID:'session_1',part:{type:'text',sessionID:'session_1',messageID:'message_0',text:'PUBLIC stop'}},{type:'step_finish',sessionID:'session_1',part:{type:'step-finish',messageID:'message_0',reason:'stop'}},...f.events.slice(1)];
  writeFileSync(join(f.operation,'stdout.raw'),events.map(e=>JSON.stringify(e)).join('\n')+'\n');expect(read()).toMatchObject({status:'Unknown',cancellation_reverified:false});
 });
+
+// Cancellation may win after the host durably replies but before the SDK emits
+// step_start. These PUBLIC readers must still prove every original IPC effect.
+function appendUnobservedFinalReply(){const model=original.model(),ipc=original.ipc(),last={call_id:'model_0002',state:'reply_recorded',request:{call_id:'model_0002',tool:'model_step'},response:{content:[{type:'text',text:'PUBLIC final reply not observed by SDK'}],usage:{input_tokens:1,output_tokens:1},finish:'stop'}};model.calls.push(last);ipc.exchanges.push({ordinal:3,state:'reply_recorded',request:last.request,reply:{outcome:'completed',receipt:last.response,replay:false}});return{model,ipc,last};}
+it('reverifies cancellation when exactly one final host stop reply has no SDK step, without claiming delivery or output',()=>{
+ appendUnobservedFinalReply();expect(read()).toMatchObject({status:'Observed',cancellation_reverified:true,method_result_reverified:false,matched_calls:1});expect(read()).not.toHaveProperty('output');
+});
+it.each(['two_missing_steps','missing_tool_reply','earlier_stop','unfinished_prior_step','effect_after_final_reply'])('keeps the unobserved final reply %s contradiction Unknown',kind=>{
+ const{model,ipc,last}=appendUnobservedFinalReply();
+ if(kind==='two_missing_steps'){const next=structuredClone(last);next.call_id='model_0003';next.request.call_id='model_0003';model.calls.push(next);ipc.exchanges.push({ordinal:4,state:'reply_recorded',request:next.request,reply:{outcome:'completed',receipt:next.response,replay:false}});}
+ if(kind==='missing_tool_reply'){last.response.finish='tool_calls';Reflect.set(last.response,'content',[{type:'tool-call',tool_call_id:'not_observed',tool_name:'cimi_invoke_skill',arguments:JSON.stringify({name:'entry'})}]);}
+ if(kind==='earlier_stop'){model.calls[0].response.finish='stop';}
+ if(kind==='unfinished_prior_step'){f.events.splice(3,1);writeFileSync(join(f.operation,'stdout.raw'),f.events.map(e=>JSON.stringify(e)).join(String.fromCharCode(10))+String.fromCharCode(10));}
+ if(kind==='effect_after_final_reply'){const effect=ipc.exchanges.splice(1,1)[0];effect.ordinal=4;ipc.exchanges.push(effect);}
+ expect(read()).toMatchObject({status:'Unknown',cancellation_reverified:false});
+});

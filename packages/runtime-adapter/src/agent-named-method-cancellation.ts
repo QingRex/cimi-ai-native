@@ -78,10 +78,20 @@ export function readAgentRuntimeNamedMethodCancellation(root:string,rawScope:unk
    else{if(part.type!=='step-finish'||!['stop','tool-calls'].includes(String(part.reason)))fail();current!.finish=String(part.reason);current=undefined;}
   }
   const exchanges=ipc.exchanges.filter(e=>(e.request as Record<string,unknown>).tool==='model_step');
-  if(!ended||steps.length!==model.calls.length||exchanges.length!==model.calls.length)fail();
+  if(!ended||exchanges.length!==model.calls.length)fail();
+  // A durably recorded final stop reply can lose the race against the original
+  // Native cancellation before the SDK emits its next step. Verify exactly one
+  // such trailing reply; this proves neither SDK delivery nor method success.
+  const unobservedFinal=steps.length+1===model.calls.length;
+  if(steps.length!==model.calls.length&&!unobservedFinal)fail();
+  if(unobservedFinal){
+   const last=model.calls.at(-1)!,response=last.response!,exchange=exchanges.at(-1)!;
+   if(response.finish!=='stop'||response.content.some(part=>part.type!=='text')||steps.at(-1)?.finish!=='tool-calls'||
+    (exchange.request as Record<string,unknown>).call_id!==last.call_id||ipc.exchanges.at(-1)!==exchange)fail();
+  }
   for(const [i,step] of steps.entries()){
    const response=model.calls[i]!.response!,tools=response.content.filter(c=>c.type==='tool-call'),text=response.content.filter(c=>c.type==='text').map(c=>c.text).join(''),next=exchanges[i+1];
-   if(i!==steps.length-1&&(response.finish==='stop'||step.finish!=='tool-calls'))fail();
+   if(i!==model.calls.length-1&&(response.finish==='stop'||step.finish!=='tool-calls'))fail();
    if((exchanges[i]!.request as Record<string,unknown>).call_id!==model.calls[i]!.call_id||step.finish!==null&&(step.finish!==(response.finish==='stop'?'stop':'tool-calls')||step.text!==text||step.tools.length!==tools.length)||step.finish===null&&(i!==steps.length-1||!text.startsWith(step.text)||step.tools.length>tools.length))fail();
    const effects=correlation.links.filter(l=>l.sdk?.message_id===step.id);if(effects.length!==step.tools.length||effects.some(e=>e.sdk?.session_id!==session||Number(e.ordinal)<=Number(exchanges[i]!.ordinal)||next&&Number(e.ordinal)>=Number(next.ordinal)))fail();
    for(const [n,part] of step.tools.entries()){const tool=tools[n]!,state=part.state as Record<string,unknown>;if(part.callID!==tool.tool_call_id||part.tool!==tool.tool_name||state?.status!=='completed'||!same(state.input,parse(Buffer.from(tool.arguments),16384)))fail();}

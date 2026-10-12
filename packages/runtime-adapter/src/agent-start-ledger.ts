@@ -38,6 +38,8 @@ const ddl = [
 // Only explicit initialization of a NEW root is permitted; no missing original
 // registration is recreated. A ticket is pinned before Context/Run launch.
 export class AgentStartLedger {
+  private exclusiveReadCut: {names:Set<string>;rows:{namespace:string;id:string;ticket:AgentStartTicket;basis:unknown}[]} | undefined;
+  private exclusiveReadCutActive = false;
   private constructor(private readonly root: string, private readonly host: AgentStartHostIdentity, private readonly db: DatabaseSync, private readonly original: Identity, private readonly verify?: (root: string) => void) {}
   get identityDigest(): string { return digest(encoded(this.original)).value; }
   static initialize(rawRoot: string, rawHost: AgentStartHostIdentity, protect?: (root: string) => void, verify?: (root: string) => void): AgentStartLedger {
@@ -60,7 +62,10 @@ export class AgentStartLedger {
     const root = assertOrdinaryPath(rawRoot), host = hostCopy(rawHost), path = join(root, "starts.sqlite");
     try { identityAt(root, true); identityAt(path, false); }
     catch (error) { if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") fail("agent_start_original_missing"); throw error; }
-    const db = new DatabaseSync(path);
+    // Install the existing bounded busy policy at connection creation. WAL
+    // recovery or another original opener can hold SQLite's first metadata
+    // read before the later PRAGMAs are reached. Never reopen/repair the origin.
+    const db = new DatabaseSync(path,{timeout:30000});
     try {
       if (db.prepare("PRAGMA application_id").get()?.application_id !== applicationId || db.prepare("PRAGMA user_version").get()?.user_version !== 1) fail("agent_start_format_unproven");
       const row = db.prepare("SELECT body FROM origin WHERE singleton=1").get(); if (typeof row?.body !== "string") fail("agent_start_original_missing");
@@ -104,7 +109,10 @@ export class AgentStartLedger {
       Object.keys(this.original).sort().join(",") !== "directory_identity,file_identity,format,ledger_id,machine_digest,path_digest,principal_digest" ||
       !isDeepStrictEqual(actual, this.original) || typeof row?.body !== "string" || !isDeepStrictEqual(object(row.body), this.original)) fail("agent_start_origin_changed");
   }
-  private transaction<T>(action: () => T): T {
+  private transaction<T>(action: () => T, write = true): T {
+    // A trusted synchronous guard may write while a reader is validating.
+    // Never reuse the earlier snapshot after any attempted Host mutation.
+    if (write) this.exclusiveReadCut = undefined;
     this.db.exec("BEGIN IMMEDIATE");
     try { this.assertOrigin(); const value = action(); this.assertOrigin(); this.db.exec("COMMIT"); return value; }
     catch (error) { this.db.exec("ROLLBACK"); throw error; }
@@ -138,11 +146,31 @@ export class AgentStartLedger {
   listExclusive(namespace: string): { id: string; ticket: AgentStartTicket; basis: unknown }[] {
     return this.readExclusiveNamespaces([namespace]).map(({namespace:_,...row})=>row);
   }
+  // Code-installed synchronous validation only. One complete original Host
+  // transaction supplies detached rows; no view survives an await or effect.
+  withExclusiveReadCut<T>(names:string[],action:()=>T):T {
+    if(this.exclusiveReadCutActive||typeof action!=='function')fail('agent_start_read_cut_unavailable');
+    if(!Array.isArray(names))fail('agent_start_exclusive_identity_invalid');
+    const selected=[...names],rows=this.readExclusiveNamespaces(selected);
+    this.exclusiveReadCutActive=true;this.exclusiveReadCut={names:new Set(selected),rows:structuredClone(rows)};
+    try{
+      const value=action();
+      if(value instanceof Promise||value!==null&&(typeof value==='object'||typeof value==='function')&&typeof Reflect.get(value,'then')==='function'){
+        void Promise.resolve(value).then(undefined,()=>{});fail('agent_start_read_cut_async_unavailable');
+      }
+      // Callback-local cached reads prove the original snapshot only. Require
+      // fresh physical identity and full Host integrity at the end of THIS
+      // stage before returning; a revoked root must not wait for the next cut.
+      this.assertOrigin();
+      return value;
+    }finally{this.exclusiveReadCut=undefined;this.exclusiveReadCutActive=false;}
+  }
   // One verified immutable Host cut for code-installed original readers.
   // Not a caller-controlled approval, write transaction or retained cache.
   readExclusiveNamespaces(names: string[]): {namespace:string;id:string;ticket:AgentStartTicket;basis:unknown}[] {
     if(!Array.isArray(names)||!names.length||names.length>16||new Set(names).size!==names.length||names.some(n=>typeof n!=='string'||!/^[a-z][a-z0-9_]{0,63}$/.test(n)))fail('agent_start_exclusive_identity_invalid');
     const selected=new Set(names);
+    if(this.exclusiveReadCut&&names.every(name=>this.exclusiveReadCut!.names.has(name)))return structuredClone(this.exclusiveReadCut.rows.filter(row=>selected.has(row.namespace)));
     return this.transaction(()=>{
       const seen=new Set<string>();
       return this.db.prepare('SELECT id,basis_digest,body FROM tickets').all().flatMap(row=>{
@@ -152,10 +180,14 @@ export class AgentStartLedger {
         if(Object.keys(value).sort().join(',')!=='basis,format,id,namespace'||typeof value.id!=='string'||!sha.test(value.id)||seen.has(key))fail('agent_start_exclusive_conflict');
         seen.add(key);return [{namespace:value.namespace,id:value.id,ticket:{format:'cimiloop/agent-start-ticket/1.0.0' as const,identity_digest:this.identityDigest,ticket_id:String(row.id),basis_digest:String(row.basis_digest)},basis:structuredClone(value.basis)}];
       });
-    });
+    },false);
   }
   readExclusive(namespace: string, id: string): { ticket: AgentStartTicket; basis: unknown } | null {
     if (!/^[a-z][a-z0-9_]{0,63}$/.test(namespace) || !sha.test(id)) fail("agent_start_exclusive_identity_invalid");
+    if(this.exclusiveReadCut?.names.has(namespace)){
+      const row=this.exclusiveReadCut.rows.find(row=>row.namespace===namespace&&row.id===id);
+      return row?structuredClone({ticket:row.ticket,basis:row.basis}):null;
+    }
     return this.transaction(() => {
       const matches = this.db.prepare("SELECT id,basis_digest,body FROM tickets").all().filter(row => {
         const value = object(String(row.body)) as Record<string, unknown>;
@@ -166,7 +198,7 @@ export class AgentStartLedger {
       const row = matches[0]!, value = object(String(row.body)) as Record<string, unknown>;
       if (Object.keys(value).sort().join(",") !== "basis,format,id,namespace") fail("agent_start_exclusive_conflict");
       return { ticket: { format: "cimiloop/agent-start-ticket/1.0.0", identity_digest: this.identityDigest, ticket_id: String(row.id), basis_digest: String(row.basis_digest) }, basis: structuredClone(value.basis) };
-    });
+    },false);
   }
   issueExclusive(namespace: string, id: string, rawBasis: unknown): AgentStartTicket {
     return this.claimExclusiveOnce(namespace, id, rawBasis).ticket;

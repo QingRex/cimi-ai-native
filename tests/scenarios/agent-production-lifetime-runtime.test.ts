@@ -33,7 +33,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const observed=readOriginalAgentJobObservation(root,operation,input,read('original-config.json'),read('original-launcher.json'),read('agent-sandbox-resources.json'));
   expect(observed).not.toBeNull();expect(observed!.proof).toMatchObject({limit_flags:8712,active_process_limit:1,job_memory_limit_bytes:2147483648,process_memory_limit_bytes:0,peer_in_job:true});return observed!;
  }
- const fixtureParent=join(process.env.LOCALAPPDATA!,'CimiS1');
+ const fixtureParent=process.env.CIMILOOP_NATIVE_TEST_ROOT??join(process.env.LOCALAPPDATA!,'CimiS1');
  const roots:string[]=[],stores:{close():void}[]=[],closers:(()=>Promise<void>)[]=[];
  afterEach(async context=>{while(closers.length)await closers.pop()!();while(stores.length)stores.pop()!.close();for(const root of roots.splice(0)){
   if(!resolve(root).startsWith(resolve(fixtureParent)+sep+"cimiloop-production-lifetime-runtime-"))throw Error("Unsafe cleanup");
@@ -238,7 +238,11 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   expect(accountReleases).toBe(beforeReplay);expect(f.store.asOfEventSequence()).toBe(sequence+3);expect(observed).toHaveLength(4);expect(f.sends()).toBe(4);expect(credentials).toBe(4);expect(f.ledger.listExclusive("dedicated_account_bill")).toHaveLength(1);expect(ledger.snapshot()).toMatchObject({cash_charged_micros:48,cash_held_micros:0});
   writeFileSync(join(f.dataDirectory,'d274-job-settlement-summary.json'),JSON.stringify({format:'cimiloop/constructed-job-settlement/1.0.0',run_id:f.reserved.run.id,operation,job_observation:job.proof,job_observation_digest:job.digest,retained_observer:job.observer,job_counterexamples:1,actual_parent_native:true,actual_sdk:true,shared_workbench_original_reconciliation:true,receipt_replayed_after_restart:true,kernel_task_usage:f.task().usage,real_model:false,real_skill:false,real_approval:false,real_bill:false,s1_accepted:false},null,2));
   writeFileSync(join(f.dataDirectory,"d273-parent-settlement-summary.json"),JSON.stringify({format:"cimiloop/constructed-parent-native-settlement/1.0.0",run_id:f.reserved.run.id,operation,source_digest:digest(readFileSync(join(f.root,"src/query.ts"))).value,actual_parent_native:true,actual_sdk:true,actual_fixed_check:true,shared_workbench_fee_observation:true,shared_workbench_original_reconciliation:true,receipt_replayed_after_restart:true,native_counterexamples:5,kernel_event_delta:3,kernel_task_usage:f.task().usage,task_accepted:false,model_requests:4,account_bills:1,real_model:false,real_skill:false,real_approval:false,real_bill:false,s1_accepted:false},null,2));
- });
+ // The real Task remains600000ms, independently enforced by its original OS
+ // deadline and checked in original-config.json above. Historical rereads,
+ // counterexamples, billing and receipt restart run after Native has ended;
+ // this test observer needs separate time to finish all of those assertions.
+ },1800000);
  it("rechecks Human permission after the final awaited model admission and never resumes the original SDK",async()=>{
   const f=await setup();let entered!:()=>void,release!:()=>void,paused=false;
   const waiting=new Promise<void>(done=>{entered=done;}),gate=new Promise<void>(done=>{release=done;});

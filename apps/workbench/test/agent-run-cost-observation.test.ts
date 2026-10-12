@@ -1,4 +1,4 @@
-import{beforeAll,afterAll,it,expect,describe}from'vitest';import{createInternalId}from'@cimiloop/protocol/v2';
+import{beforeAll,afterAll,it,expect,describe,vi}from'vitest';import{createInternalId}from'@cimiloop/protocol/v2';
 import{createAgentRunCostObservation}from'../../../tests/fixtures/agent-run-cost-observation.js';import{startWorkbench,type WorkbenchServer}from'../src/server.js';
 describe('Human original model-matched bill observation through HTTP',()=>{
  let x:Awaited<ReturnType<typeof createAgentRunCostObservation>>,server:WorkbenchServer,cookie:string,csrf:string,opens=0;
@@ -15,4 +15,8 @@ describe('Human original model-matched bill observation through HTTP',()=>{
   expect(opens).toBe(before);expect(x.f.store.asOfEventSequence()).toBe(seq);
  });
  it('reports the default account installation gap without recording a bill or starting a Run',async()=>{const s=await startWorkbench({projectDir:x.root}),a=await auth(s),sequence=x.f.store.asOfEventSequence();try{expect(await send(input(),{},s,a.cookie,a.csrf)).toMatchObject({status:409,body:{code:'CAPABILITY_UNAVAILABLE'}});expect(x.f.store.asOfEventSequence()).toBe(sequence);}finally{await s.close();}});
+ it('refuses an actual expired HTTP session after awaited account opening before the Kernel fee command commits',async()=>{
+  let releases=0;const originalNow=Date.now(),s=await startWorkbench({projectDir:x.root,agentAccountForRun:async()=>{vi.spyOn(Date,'now').mockReturnValue(originalNow+24*60*60*1000);return{account:x.account,release(){releases++;}};}}),a=await auth(s),before=x.f.store.asOfEventSequence();
+  try{expect(await send(input(),{},s,a.cookie,a.csrf)).toMatchObject({status:401,body:{code:'SESSION_REQUIRED'}});expect(x.f.store.asOfEventSequence()).toBe(before);expect(releases).toBe(1);expect(x.tls.observations).toHaveLength(1);}finally{vi.restoreAllMocks();await s.close();}
+ });
 });
