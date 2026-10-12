@@ -1,8 +1,8 @@
 import {DatabaseSync,type SQLOutputValue} from "node:sqlite";
-import {mkdirSync,lstatSync,realpathSync,existsSync} from "node:fs";
+import {mkdirSync,lstatSync,realpathSync,existsSync,readdirSync} from "node:fs";
 import {join,resolve,dirname,relative,isAbsolute,sep} from "node:path";
 import {isDeepStrictEqual} from "node:util";
-import {assertOrdinaryPath,digest,RuntimeAdapterError} from "./files.js";
+import {assertOrdinaryPath,bytesAt,digest,RuntimeAdapterError} from "./files.js";
 import {parseGatewayJson} from "./gateway-conversation.js";
 import {AgentStartLedger,type AgentStartTicket} from "./agent-start-ledger.js";
 import {validateModelConnection,type DedicatedModelConnection} from "./connection.js";
@@ -11,6 +11,7 @@ import {parseAgentWorkspaceToolScope,type AgentWorkspaceToolScope} from "./agent
 import type {DedicatedAgentAccountPort,DedicatedAgentBudgetRequest,DedicatedAgentBudgetHold} from "./agent-dedicated-model.js";
 import {AccountBillingStore,captureBillVerification,type AccountBillingOrigin,type DedicatedAgentBillVerification} from "./agent-account-bills.js";
 import {openWindowsAgentStartCustody} from "./agent-start-custody-native.js";
+import {readOriginalSkillDispatchClosure} from './agent-skill-dispatch-closure.js';
 import {LegacyAccountBillingAttachment} from './agent-legacy-account-billing.js';
 import {DedicatedAgentSkillScopeRegistry,type DedicatedAgentSkillScope} from './agent-skill-account-scope.js';
 
@@ -161,13 +162,13 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  // complete fresh audit and final Kernel effect guard still run. No resend.
  private read<T>(action:(rows:Row[],funds:AccountFunds)=>T,write=false):T {this.db.exec("BEGIN IMMEDIATE");this.skillScopes.beginCut();try{const {rows,funds}=this.validate(),out=action(rows,funds);if(write){this.skillScopes.refreshCut();this.validate();}this.db.exec("COMMIT");return out;}catch(error){this.db.exec("ROLLBACK");throw error;}finally{this.skillScopes.endCut();}}
  async check(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection):Promise<void>{return this.checkOriginal(raw,connection);}
- private async checkOriginal(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection,verify?:(rows:Row[])=>void):Promise<void>{const scope=parseAgentWorkspaceToolScope(raw),fixed=copy(validateModelConnection(connection));if(!isDeepStrictEqual(fixed,this.options.connection))fail("agent_account_connection_changed");const budget=(_rows:Row[],funds:AccountFunds)=>{if(funds.overBudget)fail("agent_account_budget_exhausted");};
+ private async checkOriginal(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection,verify?:(rows:Row[])=>void):Promise<void>{const scope=parseAgentWorkspaceToolScope(raw),fixed=copy(validateModelConnection(connection));if(!isDeepStrictEqual(fixed,this.options.connection))fail("agent_account_connection_changed");const budget=(_rows:Row[],funds:AccountFunds)=>{this.skillScopes.assertOpen(scope);if(funds.overBudget)fail("agent_account_budget_exhausted");};
   const relation=this.read((rows,funds)=>{budget(rows,funds);this.skillScopes.assertCompatible(scope,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));const relation=this.skillScopes.relation(scope);if(!relation&&this.skillScopes.isKnownChild(scope))fail("agent_account_skill_scope_unregistered");verify?.(rows);return relation;});
   if(relation&&!this.options.admission.checkSkillScope)fail("agent_account_skill_admission_unavailable");
   try{if(relation)await this.options.admission.checkSkillScope!(copy(relation),copy(fixed),copy(this.original.policy));else await this.options.admission.check(copy(scope),copy(fixed),copy(this.original.policy));}catch{fail("agent_account_admission_unavailable");}this.read((rows,funds)=>{budget(rows,funds);if(!isDeepStrictEqual(this.skillScopes.relation(scope),relation)||!relation&&this.skillScopes.isKnownChild(scope))fail("agent_account_admission_scope_changed");verify?.(rows);});
  }
  async registerSkillScope(raw:DedicatedAgentSkillScope,beforeRegistration:()=>void=()=>{}) {
-  const relation=this.read(()=>this.skillScopes.validate(copy(raw))),check=this.options.admission.checkSkillScope;
+  const relation=this.read(()=>{const r=this.skillScopes.validate(copy(raw));this.skillScopes.assertOpen(r.child);return r;}),check=this.options.admission.checkSkillScope;
   if(!check)fail('agent_account_skill_admission_unavailable');
   try{await check(copy(relation),copy(this.options.connection),copy(this.original.policy));}catch{fail('agent_account_admission_unavailable');}
   return this.read((rows,funds)=>{
@@ -175,11 +176,11 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
    const prior=this.skillScopes.relation(relation.child);
    if(!prior&&rows.some(r=>isDeepStrictEqual(parse(String(r.scope)),relation.child)))fail('agent_account_skill_scope_legacy_conflict');
    this.skillScopes.assertCompatible(relation.parent,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));
-   beforeRegistration();return this.skillScopes.register(relation,beforeRegistration);
+   const guard=()=>{beforeRegistration();this.skillScopes.refreshCut();this.skillScopes.assertOpen(relation.child);};guard();return this.skillScopes.register(relation,guard);
   },true);
  }
  async reserve(raw:AgentWorkspaceToolScope,input:DedicatedAgentBudgetRequest,originalBody:Uint8Array,beforeHold?:()=>void):Promise<DedicatedAgentBudgetHold>{const scope=parseAgentWorkspaceToolScope(raw),body=Buffer.from(originalBody),request=this.request(scope,copy(input),body),admittedRelation=this.read(()=>this.skillScopes.relation(scope));await this.check(scope,this.options.connection);
-  return this.read((rows,funds)=>{if(!isDeepStrictEqual(this.skillScopes.relation(scope),admittedRelation)||!admittedRelation&&this.skillScopes.isKnownChild(scope))fail("agent_account_admission_scope_changed");if(funds.overBudget)fail("agent_account_budget_exhausted");const prior=rows.find(r=>r.request_id===request.request_id||r.scope_digest===request.scope_digest&&r.call_id===request.call_id);
+  return this.read((rows,funds)=>{this.skillScopes.assertOpen(scope);if(!isDeepStrictEqual(this.skillScopes.relation(scope),admittedRelation)||!admittedRelation&&this.skillScopes.isKnownChild(scope))fail("agent_account_admission_scope_changed");if(funds.overBudget)fail("agent_account_budget_exhausted");const prior=rows.find(r=>r.request_id===request.request_id||r.scope_digest===request.scope_digest&&r.call_id===request.call_id);
    if(prior){if(prior.scope!==JSON.stringify(scope)||!isDeepStrictEqual(parse(String(prior.request)),request)||!(prior.body instanceof Uint8Array)||!Buffer.from(prior.body).equals(body))fail("agent_account_request_conflict");return copy(parse(String(prior.hold)) as DedicatedAgentBudgetHold);}
    if(rows.length>=1023)fail("agent_account_capacity_exhausted");
    this.skillScopes.assertCompatible(scope,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));
@@ -188,12 +189,12 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
    if(funds.overBudget||cash>BigInt(this.original.policy.cash_limit_micros)||credits>BigInt(this.original.policy.credit_limit_micro_units))fail("agent_account_budget_exhausted");
    // Trusted synchronous Kernel recheck after awaited admission and the final
    // writer audit. No asynchronous gap may precede the irreversible hold.
-   beforeHold?.();this.skillScopes.refreshCut();this.skillScopes.audit();if(!isDeepStrictEqual(this.skillScopes.relation(scope),admittedRelation)||!admittedRelation&&this.skillScopes.isKnownChild(scope))fail("agent_account_admission_scope_changed");
+   beforeHold?.();this.skillScopes.refreshCut();this.skillScopes.audit();this.skillScopes.assertOpen(scope);if(!isDeepStrictEqual(this.skillScopes.relation(scope),admittedRelation)||!admittedRelation&&this.skillScopes.isKnownChild(scope))fail("agent_account_admission_scope_changed");
    const text=encoded(hold);
    // Host commit FIRST under the account writer lock. SQL/crash failure after
    // this point retains the original anchor and blocks every subsequent read
    // or reserve; it must not repair, release funds or authorize a model resend.
-   this.options.origin.issueExclusive(holdNamespace,this.anchorId(request),this.anchor(scope,request,hold,text));
+   this.options.origin.claimBudgetHoldBeforeSkillClosure(this.anchorId(request),this.anchor(scope,request,hold,text),scope);
    this.db.prepare("INSERT INTO account_holds VALUES(?,?,?,?,?,?,?,?)").run(request.request_id,request.scope_digest,request.call_id,encoded(scope),encoded(request),body,text,digest(text).value);return copy(hold);
   },true);
  }
@@ -212,6 +213,34 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  observeBill(bytes:Uint8Array){if(!this.bills)fail("agent_account_bill_verifier_unavailable");return this.read(rows=>this.bills!.observe(bytes,rows.map(r=>parse(String(r.hold)) as DedicatedAgentBudgetHold),()=>this.seals(),(id,body,hash)=>{if(this.attachment)this.attachment.seal(id,body,hash);else this.db.prepare("INSERT INTO account_bills VALUES(?,?,?)").run(id,body,hash);}),true);}
  // Audited historical registration and birth receipt only; no Host writer port.
  readOriginalSkillScopes(raw:AgentWorkspaceToolScope){const parent=parseAgentWorkspaceToolScope(raw);return this.read(()=>this.skillScopes.children(parent).map(child=>{const relation=this.skillScopes.relation(child)!;return{relation,admission:this.options.origin.readTicket(relation.admission_ticket)};}));}
+ // Positive permanent dispatch closure plus a complete original Host/account
+ // cut, never an empty model directory or an inferred zero provider bill.
+ readOriginalSkillZeroCosts(raw:DedicatedAgentSkillScope){
+  return this.read((rows,funds)=>{
+   const relation=this.skillScopes.validate(copy(raw)),closure=readOriginalSkillDispatchClosure(this.options.origin,relation);
+   if(!closure||!this.billingOrigin||!this.bills)fail('agent_account_skill_zero_unproven');
+   const namespaces=['dedicated_account_skill_scope','dedicated_account_skill_scope_intent',holdNamespace,namespace],first=this.options.origin.readExclusiveNamespaces(namespaces);
+   const related=(scope:unknown)=>!!scope&&typeof scope==='object'&&'operation_key'in scope&&scope.operation_key===relation.child.operation_key;
+   const audit=()=>{
+    const all=this.options.origin.readExclusiveNamespaces(namespaces);if(!isDeepStrictEqual(all,first))fail('agent_account_skill_zero_unproven');
+    if(rows.some(row=>related(parse(String(row.scope))))||funds.records.some(r=>r.projection.items.some(item=>item.scope_digest===digest(JSON.stringify(relation.child)).value)))fail('agent_account_skill_zero_unproven');
+    for(const row of all){const body=row.basis as Record<string,unknown>;
+     if(row.namespace===holdNamespace&&related(body?.scope))fail('agent_account_skill_zero_unproven');
+     if(['dedicated_account_skill_scope','dedicated_account_skill_scope_intent'].includes(row.namespace)&&related((body?.relation as DedicatedAgentSkillScope)?.child)&&(!isDeepStrictEqual(body.relation,relation)||body.account_digest!==this.options.accountDigest||!this.skillScopes.relation(relation.child)))fail('agent_account_skill_zero_unproven');
+     if(row.namespace===namespace){
+      // A file-only registration intent in another original account must not
+      // disappear behind the selected account's empty SQL table.
+      const original=body as unknown as AccountOrigin;
+      if(!original||typeof original.root!=='string'||!original.policy||original.policy.account_digest!==row.id||physical(original.root,true)!==original.directory_identity||physical(join(original.root,'account.sqlite'),false)!==original.file_identity)fail('agent_account_skill_zero_unproven');
+      const files=readdirSync(assertOrdinaryPath(original.root)).filter(name=>name.startsWith('skill-scope-'));if(files.length>2046)fail('agent_account_skill_zero_unproven');
+      for(const name of files){if(!/^skill-scope-(?:intent-)?[a-f0-9]{64}\.json$/.test(name))fail('agent_account_skill_zero_unproven');const value=parse(bytesAt(join(original.root,name),65536).toString('utf8')) as {relation?:DedicatedAgentSkillScope};if(related(value.relation?.child)&&(original.policy.account_digest!==this.options.accountDigest||!isDeepStrictEqual(value.relation,relation)||!this.skillScopes.relation(relation.child)))fail('agent_account_skill_zero_unproven');}
+     }
+    }
+   };
+   audit();if(!isDeepStrictEqual(readOriginalSkillDispatchClosure(this.options.origin,relation),closure))fail('agent_account_skill_zero_unproven');audit();
+   return {format:'cimiloop/original-skill-zero-costs/1.0.0' as const,scope:copy(relation.child),account_digest:this.options.accountDigest,account_ticket:copy(this.ticket),closure,holds:0,cash_charged_micros:0,credit_charged_micro_units:0,currency:this.billingOrigin.currency,credit_unit:this.billingOrigin.credit_unit,zero_costs_proven:true as const,starts_run:false as const};
+  });
+ }
  readRunCosts(raw:AgentWorkspaceToolScope){const scope=parseAgentWorkspaceToolScope(raw),scopeDigest=digest(JSON.stringify(scope)).value;return this.read((rows,funds)=>{
   this.skillScopes.assertCompatible(scope,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));
   if((!this.skillScopes.relation(scope)&&this.skillScopes.children(scope).length>0))fail("agent_account_family_costs_required");

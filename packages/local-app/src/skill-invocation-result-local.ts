@@ -2,7 +2,7 @@ import {join,relative,isAbsolute,resolve} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
 import {requestDigest} from '@cimiloop/kernel';
 import {compileValidator,RawSkillInvocationObservationSchema,type RawSkillInvocationObservation,type SkillInvocation,type SkillInvocationObservation,type Project} from '@cimiloop/protocol/v2';
-import {bytesAt,digest,collectAgentRuntimeOperation,readAgentRuntimeNamedMethodCancellation,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,readAgentRuntimeModelOriginals,DedicatedAgentAccountLedger,readOriginalDedicatedAgentRunCosts} from '@cimiloop/runtime-adapter';
+import {bytesAt,digest,readAgentSkillPreparationZeroEffects,collectAgentRuntimeOperation,readAgentRuntimeNamedMethodCancellation,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,readAgentRuntimeModelOriginals,DedicatedAgentAccountLedger,readOriginalDedicatedAgentRunCosts} from '@cimiloop/runtime-adapter';
 import {readOriginalSkillInvocation,readOriginalSkillInvocationFromReader,type SkillInvocationExecutionContext} from './skill-invocation-execution-local.js';
 import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
 import {LocalSkillMethodInputs} from './skill-methods-local.js';
@@ -90,7 +90,11 @@ export class LocalSkillInvocationResultCollection {
  // Existing synchronous success/failure capture stays compatible. Cancelled
  // originals need an independent asynchronous OS read of this exact operation.
  async captureHumanReconciliation(invocationId:string,producer:string):Promise<ReturnType<LocalSkillInvocationResultCollection['capture']>>{
-  try{return this.captureReconciliation(invocationId,producer);}catch{return this.captureCancellationReconciliation(invocationId,producer);}
+  try{return this.captureReconciliation(invocationId,producer);}catch{
+   const original=this.original(invocationId),state=this.options.custody.inspect(original.project,original.invocation,original.request.parent,original.record_id);
+   if(state.state==='closed')return this.captureNotStartedReconciliation(invocationId,producer);
+   return this.captureCancellationReconciliation(invocationId,producer);
+  }
  }
  async captureCancellationReconciliation(invocationId:string,producer:string):Promise<ReturnType<LocalSkillInvocationResultCollection['capture']>>{
   try{
@@ -100,6 +104,44 @@ export class LocalSkillInvocationResultCollection {
    const collection=await collectAgentRuntimeOperation(root,relation.child);
    if(!same(location,local.location)||!same(caller,local.caller)||!same(original,this.original(invocationId))||local.store.getRun(original.invocation.run_ref.id)?.cancel_requested!==true)throw fail();this.human(producer);
    return this.captureOriginal(invocationId,true,producer,collection);
+  }catch{throw fail();}
+ }
+ private notStartedFacts(id:string,existingReader=false){
+  const {local,custody,inputs,account}=this.options,original=this.original(id,existingReader);
+  if(local.store.getRun(original.invocation.run_ref.id)?.cancel_requested!==true||!(account instanceof DedicatedAgentAccountLedger)||!this.options.qualificationOriginals||typeof this.options.qualificationOriginals.verify!=='function')throw fail();
+  const plan=inputs.readInvocation(original.project,original.descriptor,original.invocation),state=custody.inspect(original.project,original.invocation,original.request.parent,original.record_id);
+  if(state.state!=='closed')throw fail();const relation=custody.accountScope(original.project,original.invocation,original.request.parent,original.record_id),root=join(local.location.dataDirectory,'skill-runtime-originals',original.project.id,original.invocation.invocation_key);
+  const zero_costs=account.readOriginalSkillZeroCosts(relation),preparation=readAgentSkillPreparationZeroEffects(root,relation.child,plan),record=local.store.getRuntimeRecord('run_record',original.record_id);
+  if(!same(zero_costs.closure,state.closure)||!zero_costs.zero_costs_proven||zero_costs.holds!==0||zero_costs.cash_charged_micros!==0||zero_costs.credit_charged_micro_units!==0||!record||zero_costs.currency!==record.cost_currency||preparation.status!=='Observed'||!preparation.preparation_zero_effects_reverified||preparation.method_calls||preparation.model_calls)throw fail();
+  const qualification=new LocalNamedSkillMethodAssessment(local.location.repositoryPath,local.location.dataDirectory).verifyHistoricalQualification(original.project,original.descriptor,{method_qualification_ref:custody.originalQualification(original.project,original.invocation,original.request.parent,original.record_id),runtime_binding:original.invocation.runtime_binding,request:original.invocation.request},this.options.qualificationOriginals);
+  const artifacts:Artifact[]=[{name:'dispatch/dispatch.json',path:state.closure.anchor.path,digest:state.closure.anchor.digest.value},...preparation.artifacts.map(a=>({...a,name:'preparation/'+a.name}))];
+  if(artifacts.length>40||new Set(artifacts.map(a=>a.name)).size!==artifacts.length)throw fail();
+  for(const [i,a]of artifacts.entries()){const rel=relative(resolve(root),resolve(a.path));if(i>0&&(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../'))||digest(bytesAt(a.path,114688)).value!==a.digest)throw fail();}
+  const {artifacts:_,...facts}=preparation;
+  return {format:'cimiloop/original-skill-not-started-reconciliation/1.0.0',invocation:original.invocation,parent:relation.parent,scope:relation.child,dispatch:state.closure,plan_digest:requestDigest(plan),preparation:facts,zero_costs,qualification_reverified_original:qualification,completion_proven:false,formal_agent_execution_enabled:false,artifacts};
+ }
+ captureNotStartedReconciliation(invocationId:string,producer:string):ReturnType<LocalSkillInvocationResultCollection['capture']>{
+  try{
+   this.human(producer);const facts=this.notStartedFacts(invocationId),content=this.options.inputs.packages.content;
+   let total=0;const artifacts=facts.artifacts.map(a=>{const bytes=bytesAt(a.path,114688);total+=bytes.length;if(total>3*1024*1024||digest(bytes).value!==a.digest)throw fail();return {...a,reference:content.storeContent(bytes,'provider_probe_artifact')};});
+   if(!same(this.notStartedFacts(invocationId),facts))throw fail();const resolves=this.unresolved(invocationId),timeKey=invocationId+':not_started:'+producer+':'+requestDigest(resolves),observed_at=this.times.get(timeKey)??new Date().toISOString();this.times.set(timeKey,observed_at);
+   const proof={...facts,observed_at,producer_actor_id:producer,resolves_observation_refs:resolves,artifacts},proofBytes=Buffer.from(JSON.stringify(proof));decode(proofBytes);
+   const result_proof_ref=content.storeContent(proofBytes,'skill_invocation_proof'),invocation=facts.invocation;
+   const report=compileValidator<RawSkillInvocationObservation>(RawSkillInvocationObservationSchema)({format:'cimiloop/skill-invocation/1.0.0',invocation_ref:{object_type:'skill_invocation',id:invocation.id},invocation_key:invocation.invocation_key,run_ref:invocation.run_ref,run_operation_key:invocation.run_operation_key,producer_actor_id:producer,input_digest:invocation.input_digest,observed_at,basis:'reconciliation',status:'not_started',usage:{cost_known:true,cost_micros:0,currency:facts.zero_costs.currency},result_proof_ref,resolves_observation_refs:resolves});
+   const reference=content.storeContent(Buffer.from(JSON.stringify(report)),'skill_invocation_report');this.readNotStartedResult(this.original(invocationId).project,invocation,reference);return {report,reference};
+  }catch{throw fail();}
+ }
+ private readNotStartedResult(project:Project,invocation:SkillInvocation,reference:SkillInvocationObservation['raw_result_ref']):RawSkillInvocationObservation{
+  try{
+   if(reference.resource_type!=='skill_invocation_report')throw fail();const content=this.options.inputs.packages.content,raw=compileValidator<RawSkillInvocationObservation>(RawSkillInvocationObservationSchema)(decode(content.readContent(reference)));
+   this.human(raw.producer_actor_id);if(raw.basis!=='reconciliation'||raw.status!=='not_started'||!raw.usage.cost_known)throw fail();
+   const proof=decode(content.readContent(raw.result_proof_ref)) as {artifacts?:Array<Artifact&{reference:ContentReference}>},facts=this.notStartedFacts(invocation.id,true),original=this.original(invocation.id,true);
+   if(!same(invocation,facts.invocation)||project.id!==original.project.id||resolve(project.repository_path)!==resolve(original.project.repository_path)||!proof||!Array.isArray(proof.artifacts)||proof.artifacts.length!==facts.artifacts.length)throw fail();
+   let total=0;for(const [i,a]of proof.artifacts.entries()){const expected=facts.artifacts[i]!,bytes=bytesAt(expected.path,114688);total+=bytes.length;if(total>3*1024*1024||a.reference.resource_type!=='provider_probe_artifact'||!same(a,{...expected,reference:a.reference})||digest(bytes).value!==expected.digest||!content.readContent(a.reference).equals(bytes))throw fail();}
+   const resolves=this.unresolved(invocation.id);
+   if(!same(proof,{...facts,observed_at:raw.observed_at,producer_actor_id:raw.producer_actor_id,resolves_observation_refs:resolves,artifacts:proof.artifacts})||!same(this.notStartedFacts(invocation.id,true),facts))throw fail();
+   const expected={format:'cimiloop/skill-invocation/1.0.0',invocation_ref:{object_type:'skill_invocation',id:invocation.id},invocation_key:invocation.invocation_key,run_ref:invocation.run_ref,run_operation_key:invocation.run_operation_key,producer_actor_id:raw.producer_actor_id,input_digest:invocation.input_digest,observed_at:raw.observed_at,basis:'reconciliation',status:'not_started',usage:{cost_known:true,cost_micros:0,currency:facts.zero_costs.currency},result_proof_ref:raw.result_proof_ref,resolves_observation_refs:resolves};
+   if(!same(raw,expected))throw fail();return raw;
   }catch{throw fail();}
  }
  private human(id:string){const actor=this.options.local.store.getActor(id),project=this.options.local.store.getProject();if(!actor||actor.actor_type!=='human'||actor.project_id!==project?.id)throw fail();}
@@ -125,6 +167,7 @@ export class LocalSkillInvocationResultCollection {
   try{
    if(reference.resource_type!=='skill_invocation_report')throw fail();const content=this.options.inputs.packages.content;
    const raw=compileValidator<RawSkillInvocationObservation>(RawSkillInvocationObservationSchema)(decode(content.readContent(reference)));
+   if(raw.status==='not_started')return this.readNotStartedResult(project,invocation,reference);
    const reconciling=raw.basis==='reconciliation';if(reconciling){if(!['succeeded','failed','cancelled'].includes(raw.status)||!raw.usage.cost_known)throw fail();this.human(raw.producer_actor_id);}else if(raw.status!=='unknown'||raw.basis!=='direct_observation'||raw.resolves_observation_refs.length)throw fail();
    const proof=decode(content.readContent(raw.result_proof_ref)) as {observed_at?:unknown;artifacts?:Array<Artifact&{reference:ContentReference}>;collection?:CancellationCollection};
    const collection=raw.status==='cancelled'?proof.collection:undefined;if(raw.status==='cancelled'&&!collection)throw fail();

@@ -87,3 +87,7 @@ export type {AgentJobObservationBasis,AgentJobObservation} from "./agent-job-pol
 
 export {readAgentRuntimeNamedMethodCancellation} from './agent-named-method-cancellation.js';
 export type {OriginalNamedCancellation} from './agent-named-method-cancellation.js';
+
+export {skillDispatchAnchorIdentity,readOriginalSkillDispatchClosure,type OriginalSkillDispatchClosure} from './agent-skill-dispatch-closure.js';
+
+export {readAgentSkillPreparationZeroEffects} from './agent-skill-zero-effects.js';

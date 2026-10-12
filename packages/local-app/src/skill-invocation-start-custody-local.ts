@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { compileValidator, SkillInvocationPreparationSchema, SkillMethodQualificationReferenceSchema, InternalIdSchema, type Project, type AgentRunRecord, type AgentContextManifest, type ProviderBinding, type SkillInvocation, type SkillInvocationPreparation } from '@cimiloop/protocol/v2';
 import { requestDigest } from '@cimiloop/kernel';
-import { AgentStartLedger, parseDedicatedAgentSkillAccountScope, parseAgentWorkspaceToolScope, assertOrdinaryPath, bytesAt, parseGatewayJson, type AgentStartTicket, type AgentWorkspaceToolScope, type DedicatedAgentSkillScope } from '@cimiloop/runtime-adapter';
+import { AgentStartLedger, readOriginalSkillDispatchClosure, skillDispatchAnchorIdentity, parseDedicatedAgentSkillAccountScope, parseAgentWorkspaceToolScope, assertOrdinaryPath, bytesAt, parseGatewayJson, type AgentStartTicket, type AgentWorkspaceToolScope, type DedicatedAgentSkillScope } from '@cimiloop/runtime-adapter';
 import { LocalEvidenceVerifier } from './evidence-local.js';
 const fail=():never=>{throw Error('Original Skill start custody unavailable');};
 const sha=(value:unknown):value is string=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
@@ -85,11 +85,24 @@ export class LocalSkillInvocationStartCustody {
  inspect(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string) {
   const original=this.original(project,invocation,parent,recordId),claimed=this.ledger.readExclusive(ns,original.path.id),receipt=this.ledger.readExclusive(returned,original.path.id),present=existsSync(original.path.dispatch);
   if(!claimed&&!receipt&&!present)return {state:'unclaimed' as const,ticket:original.ticket};
+  if((claimed?.basis as {format?:unknown})?.format==='cimiloop/skill-invocation-dispatch-block/1.0.0'){
+   try{const closure=readOriginalSkillDispatchClosure(this.ledger,this.accountScope(project,invocation,parent,recordId));if(!closure||closure.anchor.path!==resolve(original.path.dispatch))return fail();return {state:'closed' as const,ticket:closure.dispatch_ticket,closure};}catch{return {state:'unknown' as const,ticket:original.ticket};}
+  }
   let marker:unknown;try {marker=present?read(original.path.dispatch):undefined;} catch {return {state:'unknown' as const,ticket:original.ticket};}
   if(!marker||typeof marker!=='object'||!('material_digest' in marker)||!sha(marker.material_digest)||!equal(marker,{format:'cimiloop/skill-invocation-dispatch-anchor/1.0.0',ticket:original.ticket,material_digest:marker.material_digest}))return {state:'unknown' as const,ticket:original.ticket};
   if(!claimed||!equal(claimed.basis,marker))return {state:'unknown' as const,ticket:original.ticket};
   if(receipt&&!equal(receipt.basis,{dispatch_ticket:claimed.ticket,admission_ticket:original.ticket}))return {state:'unknown' as const,ticket:original.ticket};
   return {state:receipt?'returned' as const:'unknown' as const,ticket:claimed.ticket,material_digest:marker.material_digest};
+ }
+ // Permanently compete for the original dispatch path and Host slot. A
+ // partial original remains Unknown; neither side is recreated on replay.
+ closeUndispatched(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string,beforeEffect:()=>void){
+  const original=this.original(project,invocation,parent,recordId),prior=this.inspect(project,invocation,parent,recordId);if(prior.state!=='unclaimed')return prior;
+  const relation=this.accountScope(project,invocation,parent,recordId),marker={format:'cimiloop/skill-invocation-dispatch-block/1.0.0',ticket:original.ticket,scope:relation.child,reason:'kernel_cancelled_before_dispatch'};
+  const guard=()=>{const value:unknown=beforeEffect();if(value!==undefined){if(value instanceof Promise)void value.catch(()=>{});fail();}};
+  guard();try{save(original.path.dispatch,marker);}catch(error){if(error&&typeof error==='object'&&'code'in error&&error.code==='EEXIST')return this.inspect(project,invocation,parent,recordId);throw error;}
+  guard();this.ledger.claimExclusiveOnce(ns,original.path.id,{...marker,anchor_path:resolve(original.path.dispatch),anchor_identity:skillDispatchAnchorIdentity(original.path.dispatch)});
+  return this.inspect(project,invocation,parent,recordId);
  }
  claim(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string,material:string,beforeEffect:()=>void) {
   if(!sha(material))fail();const original=this.original(project,invocation,parent,recordId),prior=this.inspect(project,invocation,parent,recordId);

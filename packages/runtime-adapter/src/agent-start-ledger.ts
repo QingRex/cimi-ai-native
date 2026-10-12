@@ -173,12 +173,21 @@ export class AgentStartLedger {
   }
   // Same immutable format1 rows; the insertion result elects exactly one
   // dispatcher across connections/processes. A replay never grants an effect.
-  claimExclusiveOnce(namespace: string, id: string, rawBasis: unknown): { created: boolean; ticket: AgentStartTicket } {
+  claimExclusiveOnce(namespace: string, id: string, rawBasis: unknown): { created: boolean; ticket: AgentStartTicket } {return this.claimExclusiveBeforeSkillClosure(namespace,id,rawBasis);}
+  // Account writer -> Host writer, never the reverse. The original hold and
+  // closed-child check share this same immutable Host commit across processes.
+  claimBudgetHoldBeforeSkillClosure(id:string,rawBasis:unknown,rawScope:AgentWorkspaceToolScope){
+    const scope=parseAgentWorkspaceToolScope(rawScope),closedId=digest(encoded({invocation_key:scope.operation_key,project_id:scope.project_id})).value;
+    return this.claimExclusiveBeforeSkillClosure('dedicated_account_hold',id,rawBasis,closedId);
+  }
+  private claimExclusiveBeforeSkillClosure(namespace: string, id: string, rawBasis: unknown,closedId?:string): { created: boolean; ticket: AgentStartTicket } {
     if (!/^[a-z][a-z0-9_]{0,63}$/.test(namespace) || !sha.test(id)) fail("agent_start_exclusive_identity_invalid");
     // Keep the check and insert in one writer transaction across processes.
     const body = encoded({ format: "cimiloop/host-exclusive-ticket/1.0.0", namespace, id, basis: rawBasis });
     return this.transaction(() => {
-      const rows = this.db.prepare("SELECT id,basis_digest,body FROM tickets").all(), matches = rows.filter(row => {
+      const rows = this.db.prepare("SELECT id,basis_digest,body FROM tickets").all();
+      if(closedId&&rows.some(row=>{const value=object(String(row.body)) as {format?:unknown;namespace?:unknown;id?:unknown;basis?:{format?:unknown}};return value?.format==='cimiloop/host-exclusive-ticket/1.0.0'&&value.namespace==='skill_invocation_dispatch'&&value.id===closedId&&value.basis?.format==='cimiloop/skill-invocation-dispatch-block/1.0.0';}))fail('agent_account_skill_scope_closed');
+      const matches = rows.filter(row => {
         const value = object(String(row.body)) as Record<string, unknown>;
         return value?.format === "cimiloop/host-exclusive-ticket/1.0.0" && value.namespace === namespace && value.id === id;
       });

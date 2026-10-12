@@ -33,11 +33,12 @@ export class LocalHumanSkillInvocationControl {
   try{
    if(this.factory){const lease=await this.factory(id,this.local);if(typeof lease?.release!=='function')throw fail();release=lease.release.bind(lease);fresh();
     if(!(lease.custody instanceof LocalSkillInvocationStartCustody))throw fail();
-    const read=()=>{fresh();const state=lease.custody.inspect(original.project,original.invocation,original.request.parent,original.record_id);if(!('material_digest'in state))throw fail();
+    const read=()=>{fresh();const state=physical?lease.custody.closeUndispatched(original.project,original.invocation,original.request.parent,original.record_id,fresh):lease.custody.inspect(original.project,original.invocation,original.request.parent,original.record_id);if(state.state==='closed')return {closure:state.closure};if(!('material_digest'in state))throw fail();
      const relation=lease.custody.accountScope(original.project,original.invocation,original.request.parent,original.record_id);
      return {root:join(this.local.location.dataDirectory,'skill-runtime-originals',original.project.id,original.invocation.invocation_key),scope:relation.child};};
     const selected=read();fresh();let result:unknown;
-    if(kind==='query')result=await this.port.query(selected.root,selected.scope);
+    if('closure'in selected)result=selected.closure;
+    else if(kind==='query')result=await this.port.query(selected.root,selected.scope);
     else if(kind==='collect'){const record=this.local.store.getRuntimeRecord('run_record',original.record_id);if(!record||record.run_kind!=='agent')throw fail();result=await this.port.collect(selected.root,selected.scope,{project:original.project,record});}
     else if(kind==='cancel')result=await this.port.requestCancellation(selected.root,selected.scope);
     else result=await this.port.recover(selected.root,selected.scope);

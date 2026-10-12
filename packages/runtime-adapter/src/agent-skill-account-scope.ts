@@ -23,7 +23,7 @@ export class DedicatedAgentSkillScopeRegistry {
  beginCut(){if(this.cut)fail();this.cut=true;this.refreshCut();}
  refreshCut(){this.records=undefined;this.relations=undefined;}
  endCut(){this.refreshCut();this.cut=false;}
- private view(){if(this.cut&&this.records)return copy(this.records);const rows=this.origin.readExclusiveNamespaces([namespace,intentNamespace,'skill_invocation_admission']);if(this.cut)this.records=copy(rows);return rows;}
+ private view(){if(this.cut&&this.records)return copy(this.records);const rows=this.origin.readExclusiveNamespaces([namespace,intentNamespace,'skill_invocation_admission','skill_invocation_dispatch']);if(this.cut)this.records=copy(rows);return rows;}
  constructor(private readonly root:string,private readonly origin:AgentStartLedger,private readonly accountDigest:string,private readonly accountTicket:AgentStartTicket){}
  private id(relation:DedicatedAgentSkillScope){return digest(JSON.stringify({account_digest:this.accountDigest,scope_digest:scopeDigest(relation.child)})).value;}
  private path(id:string){return assertOrdinaryPath(join(this.root,'skill-scope-'+id+'.json'));}
@@ -72,6 +72,11 @@ export class DedicatedAgentSkillScopeRegistry {
   // File FIRST; partial creation or failure before Host commit stays Unknown.
   // The account writer lock elects one registrant. Ordinary open never repairs.
   beforeEffect();this.origin.issueExclusive(namespace,id,{...marker,anchor_identity:identity(path)});this.refreshCut();this.audit();return copy(relation);
+ }
+ // Conservative prospective effect denial even when the physical closure
+ // anchor has subsequently vanished. History remains readable, not repaired.
+ assertOpen(scope:AgentWorkspaceToolScope){const id=digest(JSON.stringify(canonical({project_id:scope.project_id,invocation_key:scope.operation_key}))).value;
+  if(this.view().some(row=>row.namespace==='skill_invocation_dispatch'&&row.id===id&&(row.basis as {format?:unknown})?.format==='cimiloop/skill-invocation-dispatch-block/1.0.0'))fail('agent_account_skill_scope_closed');
  }
  relation(scope:AgentWorkspaceToolScope){const all=this.audit(),found=all.find(r=>same(r.child,scope));
   if(!found&&all.some(r=>r.child.operation_key===scope.operation_key))fail('agent_account_scope_conflict');if(found&&JSON.stringify(scope)!==JSON.stringify(found.child))fail('agent_account_skill_scope_encoding_changed');return found;
