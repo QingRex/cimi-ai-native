@@ -370,7 +370,11 @@ export class CimiLoopKernel {
 
   // Human initiation permission only. The original Agent still needs the full
   // independent launch assessment; this does not change a Run or grant effects.
-  authorizeAgentRunStart(runId: string) {
+  authorizeAgentRunStart(runId: string) { return this.authorizeAgentRunHuman(runId, "启动"); }
+  // Original physical control permission only. Does not grant Agent execution,
+  // manufacture cancellation or settle domain/cost facts.
+  authorizeAgentRunControl(runId: string) { return this.authorizeAgentRunHuman(runId, "控制"); }
+  private authorizeAgentRunHuman(runId: string, purpose: "启动" | "控制") {
     try {
       return this.#store.readSnapshot(reader => {
         const caller=this.#caller, project=reader.getProject(), actor=caller && caller.kind!=="bootstrap" ? reader.getActor(caller.actor_id) : undefined;
@@ -381,10 +385,10 @@ export class CimiLoopKernel {
           return domainError(this.#id(),"OBJECT_NOT_FOUND","未找到当前项目的原 Agent Run","not_found");
         const assignment=resolveAssignment(reader.listAssignments(actor.id),{projectId:project.id,actorId:actor.id,role:"technical_owner",scope:{kind:"change",id:run.change_id},now:this.#now()}) ??
           resolveAssignment(reader.listAssignments(actor.id),{projectId:project.id,actorId:actor.id,role:"technical_owner",scope:{kind:"project",id:project.id},now:this.#now()});
-        if(!assignment)return domainError(this.#id(),"ROLE_NOT_ASSIGNED","请求启动原 Agent 需要当前 Human 技术负责人指派","forbidden");
+        if(!assignment)return domainError(this.#id(),"ROLE_NOT_ASSIGNED",`请求${purpose}原 Agent 需要当前 Human 技术负责人指派`,"forbidden");
         return {ok:true as const,project_id:project.id,actor_id:actor.id,run_id:run.id,run_record_id:record.id,assignment_id:assignment.id,assignment_revision:assignment.revision};
       }).value;
-    }catch{return domainError(this.#id(),"STORE_FAILURE","无法核对原 Agent 启动请求权限","storage",true);}
+    }catch{return domainError(this.#id(),"STORE_FAILURE",`无法核对原 Agent ${purpose}请求权限`,"storage",true);}
   }
 
   getRuns(idOrKey: string): RunShowResult | DomainError {

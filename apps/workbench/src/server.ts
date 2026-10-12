@@ -1,4 +1,4 @@
-import {LocalHumanSkillInvocationReconciliation,type HumanSkillReconciliationFactory} from '@cimiloop/local-app';
+import {LocalHumanSkillInvocationControl,type HumanSkillRuntimeFactory,LocalHumanSkillInvocationReconciliation,type HumanSkillReconciliationFactory} from '@cimiloop/local-app';
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -38,7 +38,7 @@ const checked = <T>(value: T | DomainError): T => {
   return value as T;
 };
 
-export interface WorkbenchOptions { projectDir: string; port?: number; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions;skillReconciliationForInvocation?:HumanSkillReconciliationFactory }
+export interface WorkbenchOptions { projectDir: string; port?: number; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions;skillReconciliationForInvocation?:HumanSkillReconciliationFactory;skillRuntimeForInvocation?:HumanSkillRuntimeFactory }
 export interface WorkbenchServer { origin: string; bootstrapUrl: string; close(): Promise<void> }
 
 export const startWorkbench = async (options: WorkbenchOptions): Promise<WorkbenchServer> => {
@@ -46,6 +46,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   const context = openLocalProject({ projectDir: options.projectDir,...(options.planningClarification?{planningClarification:options.planningClarification}:{}) });
   const clarification = new LocalPrePlanClarification(context);
   const skillReconciliation=new LocalHumanSkillInvocationReconciliation(context,options.skillReconciliationForInvocation);
+  const skillRuntime=new LocalHumanSkillInvocationControl(context,options.skillRuntimeForInvocation);
   const agentRuntime = new LocalAgentRuntimeControl(context);
   const agentObservation = new LocalAgentRuntimeObservation(context);
   const agentStart = new LocalHumanAgentRuntimeStart(context,options.agentRuntimeForRun);
@@ -151,6 +152,21 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         const result = clarificationMatch[2] ? clarification.advance(changeId, decodeURIComponent(clarificationMatch[2]), body) : clarification.begin(changeId, body);
         const commandResult = "command_result" in result ? result.command_result as ReturnType<typeof executeLocalCommand> | undefined : undefined;
         send(response, commandResult && "code" in commandResult ? statusFor(commandResult) : 200, result); return;
+      }
+      const skillControlMatch=/^\/api\/skill-invocations\/([^/]{1,200})(?:\/(stop|cancel|recover|collect))?$/.exec(url.pathname);
+      if(skillControlMatch){
+        const id=decodeURIComponent(skillControlMatch[1]!),action=skillControlMatch[2];
+        const guard=()=>{if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,true);};
+        if(!action&&request.method==='GET'){
+          requireSession(request,false);if(header(request,'transfer-encoding')||header(request,'content-length')&&header(request,'content-length')!=='0')throw new HttpFailure(400,'BODY_NOT_ALLOWED');
+          const result=await skillRuntime.query(id,()=>{if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,false);});if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,false);send(response,200,result);return;
+        }
+        if(action&&request.method==='POST'){
+          guard();const body=await readBody(request);guard();
+          if(action!=='stop'&&(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).length))throw new HttpFailure(400,'INVALID_COMMAND');
+          const result=action==='stop'?await skillRuntime.stop(id,body,guard):action==='cancel'?await skillRuntime.retryCancellation(id,guard):action==='collect'?await skillRuntime.collect(id,guard):await skillRuntime.recover(id,guard);
+          guard();send(response,'code'in result?statusFor(result):200,result);return;
+        }
       }
       const skillReconciliationMatch=/^\/api\/skill-invocations\/([^/]{1,200})\/reconcile-original$/.exec(url.pathname);
       if(skillReconciliationMatch&&request.method==='POST'){

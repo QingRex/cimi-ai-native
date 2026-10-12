@@ -58,3 +58,6 @@ export { LocalSkillInvocationResultCollection } from './skill-invocation-result-
 
 export {LocalHumanSkillInvocationReconciliation,parseHumanSkillReconciliation} from './skill-invocation-reconciliation-local.js';
 export type {HumanSkillReconciliationFactory,SkillReconciliationLease} from './skill-invocation-reconciliation-local.js';
+
+export {LocalHumanSkillInvocationControl} from './skill-invocation-control-local.js';
+export type {HumanSkillRuntimeFactory,SkillRuntimeControlLease} from './skill-invocation-control-local.js';

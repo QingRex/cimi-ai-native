@@ -59,11 +59,11 @@ const api = async (path, body) => {
   }
   return result;
 };
-const mutation = async (type, payload, target, revision, role = "project_owner", agentRuntimeControl = false, agentCostObservation = false, agentResultReconciliation = false) => {
+const mutation = async (type, payload, target, revision, role = "project_owner", agentRuntimeControl = false, agentCostObservation = false, agentResultReconciliation = false, skillRuntimeControl = null) => {
   if (state.pending) { showNotice("上次动作的结果还未核对，请先按原请求核对。", true, button("按原请求核对", replay)); return; }
   state.pending = { command_id: uuid(), requested_at: new Date().toISOString(), acting_role: role, command_type: type,
     ...(target ? { target } : {}), ...(revision === undefined ? {} : { expected_revision: revision }), payload,
-    ...(agentRuntimeControl ? { agent_runtime_control: true } : {}), ...(agentCostObservation ? {agent_cost_observation:true} : {}), ...(agentResultReconciliation ? {agent_result_reconciliation:true} : {}) };
+    ...(skillRuntimeControl ? {skill_runtime_control:skillRuntimeControl} : {}), ...(agentRuntimeControl ? { agent_runtime_control: true } : {}), ...(agentCostObservation ? {agent_cost_observation:true} : {}), ...(agentResultReconciliation ? {agent_result_reconciliation:true} : {}) };
   try { sessionStorage.setItem(`cimiloop.pending.${state.context.project_id}`, JSON.stringify(state.pending)); }
   catch { state.pending = null; throw new Error("浏览器无法保留待核对请求，动作尚未发送。请允许当前页面的会话存储后重试。"); }
   await replay();
@@ -97,18 +97,21 @@ const replay = async () => {
   state.busy = true; document.querySelectorAll("form button").forEach(item => { item.disabled = true; });
   let committed = false;
   try {
-    let path, command;
+    let path, command; const internalId = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
     if (state.pending.clarification_request === true) {
-      const pending = state.pending, internalId = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+      const pending = state.pending;
       if (!internalId.test(pending.change_id) || (pending.session_id !== null && !internalId.test(pending.session_id)) ||
         !pending.request || !internalId.test(pending.request.request_id)) throw new Error("保留的澄清请求身份无效，尚未发送。");
       path = "/api/changes/" + pending.change_id + "/clarifications" + (pending.session_id ? "/" + pending.session_id : "");
       command = pending.request;
     } else {
-      const { agent_runtime_control, agent_cost_observation, agent_result_reconciliation, ...original } = state.pending;
+      const { skill_runtime_control, agent_runtime_control, agent_cost_observation, agent_result_reconciliation, ...original } = state.pending;
       command = original;
       const action = command.command_type === "RecordRunObservation" ? "observe" : "stop";
-      if(agent_result_reconciliation===true){
+      if(skill_runtime_control!==undefined){
+        if(!internalId.test(skill_runtime_control)||agent_runtime_control===true||agent_cost_observation===true||agent_result_reconciliation===true||command.command_type!=='CancelRun'||command.target?.object_type!=='run'||!internalId.test(command.target.id))throw new Error('保留的原技能停止请求身份无效，尚未发送。');
+        path='/api/skill-invocations/'+encodeURIComponent(skill_runtime_control)+'/stop';
+      }else if(agent_result_reconciliation===true){
         if(agent_runtime_control===true||agent_cost_observation===true||command.command_type!=="ReconcileRun"||command.target?.object_type!=="run"||typeof command.target.id!=="string"||!command.payload||Object.keys(command.payload).length)throw new Error('保留的原终态核对命令格式无效，尚未发送。');
         path="/api/agent-runs/"+encodeURIComponent(command.target.id)+"/reconcile-original";
       }else if(agent_cost_observation===true){
@@ -123,7 +126,7 @@ const replay = async () => {
   catch (error) {
     // An expired session only rejects this transport attempt. It cannot prove
     // that a previously dispatched native command did not commit.
-    if (error.nativeRejected && error.status < 500) {
+    if (error.nativeRejected && error.status < 500 && !state.pending?.skill_runtime_control) {
       state.pending = null; try { sessionStorage.removeItem(`cimiloop.pending.${state.context.project_id}`); } catch {}
     }
     state.busy = false;
@@ -256,8 +259,18 @@ const taskPanel = (task, data) => {
   const handoffs = data.runs.handoffs.filter(value => value.task_id === task.id);
   for (const invocation of (data.runs.skill_invocations ?? []).filter(value => value.task_id === task.id)) {
     const observations = (data.runs.skill_observations ?? []).filter(value => value.invocation_ref.id === invocation.id);
-    result.append(panel(`技能调用 · ${invocation.request.method_name}`, paragraph(`已记录 ${observations.length} 项观测。费用在父运行中累计核对。`),
-      details("固定调用与结果", { invocation, observations })));
+    const originalRun=data.runs.runs.find(value=>value.id===invocation.run_ref.id),output=node('div',{'data-skill-control':invocation.id});let generation=0;
+    const observe=async action=>{const selected=++generation;
+      try{const response=await api('/api/skill-invocations/'+encodeURIComponent(invocation.id)+(action?'/'+action:''),action?{}:undefined);if(selected!==generation||!output.isConnected)return;
+        if(response.invocation_id!==invocation.id||response.run_id!==invocation.run_ref.id||response.starts_run!==false||response.domain_observation_produced!==false)throw new Error('原技能调用查询身份不符。');
+        output.replaceChildren(paragraph(response.operation.outcome==='unknown'?'原技能资源状态尚待核对，继续保留原运行与预算。':'已读取原技能资源事实；技能结果、费用和任务验收仍待独立核对。'),details('原技能资源核对',response));
+      }catch(error){if(selected!==generation||!output.isConnected)return;output.replaceChildren(paragraph('原技能资源查询未确认，继续保留原运行与预算。'));throw error;}
+    };
+    result.append(panel(`技能调用 · ${invocation.request.method_name}`,paragraph(`已记录 ${observations.length} 项观测。费用在父运行中累计核对。`),
+      node('div',{class:'actions'},button('查询原技能调用',()=>observe('')),button('采集原技能资料',()=>observe('collect')),
+        ...(originalRun?.cancel_requested?[button('重试原技能取消',()=>observe('cancel')),button('回收原技能资源',()=>observe('recover'))]:[])),
+      originalRun?form(values=>mutation('CancelRun',{reason:values.reason},{object_type:'run',id:originalRun.id},originalRun.revision,'technical_owner',false,false,false,invocation.id),input('reason','停止原技能调用原因',{required:true}),submit('请求停止原技能调用')):null,
+      paragraph('停止请求由项目记录确认，再传给同一原技能操作。资源已停止不代表技能已完成或费用已结清。'),output,details('固定调用与结果',{invocation,observations})));
   }
   for (const handoff of handoffs) result.append(panel("已保存交接", facts([["接续者", actorName(handoff.next_actor_ref.id)], ["下一步", handoff.next_action]]),
     paragraph(`已完成：${handoff.completed.join("；") || "暂无"}`), paragraph(`待处理：${handoff.unresolved.join("；") || "暂无"}`), details("固定交接记录", handoff)));

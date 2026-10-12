@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { compileValidator, SkillInvocationSchema, type SkillInvocation, type ProviderDescriptor } from '@cimiloop/protocol/v2';
 import { requestDigest, type SkillInvocationExecutionAssessment, type SkillInvocationExecutionRequest, type CallerContext } from '@cimiloop/kernel';
 import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
-import { originalAgentWorkspaceScope } from './agent-workspace-tools-local.js';
+import { originalAgentWorkspaceScope, readOriginalAgentRunInputs } from './agent-workspace-tools-local.js';
 import { LocalProjectError } from './errors.js';
 import type { LocalProject } from './project.js';
 import type { LocalSkillMethodInputs, LocalSkillMethodPlan } from './skill-methods-local.js';
@@ -37,14 +37,20 @@ const fail=()=>new LocalProjectError('原 Skill 调用执行范围、宿主或�
 export function readOriginalSkillInvocation(local:SkillInvocationExecutionContext,invocationId:string) {
   try {return local.store.readSnapshot(reader=>readOriginalSkillInvocationFromReader(local,reader,invocationId)).value;}catch{throw fail();}
 }
-type OriginalReader=Pick<SkillInvocationExecutionContext['store'],'getProject'|'getActor'|'getRun'|'getRuntimeRecord'|'getProviderBinding'|'getProviderDescriptor'|'getExecutionObject'|'getVerificationRecord'>;
+export type OriginalSkillInvocationReader=Pick<SkillInvocationExecutionContext['store'],'getProject'|'getActor'|'getRun'|'getRuntimeRecord'|'getProviderBinding'|'getProviderDescriptor'|'getExecutionObject'|'getVerificationRecord'>;
 // Kernel's result verifier already runs inside its writer snapshot. Reuse that
 // reader instead of opening/committing/rolling back a nested SQLite transaction.
-export function readOriginalSkillInvocationFromReader(local:Pick<SkillInvocationExecutionContext,'caller'|'location'>,reader:OriginalReader,invocationId:string){
+export function readOriginalSkillInvocationFromReader(local:Pick<SkillInvocationExecutionContext,'caller'|'location'>,reader:OriginalSkillInvocationReader,invocationId:string){
+ const original=readOriginalSkillInvocationMetadataFromReader(local,reader,invocationId);
+ try {if(!isDeepStrictEqual(originalAgentWorkspaceScope({...local,store:reader},original.invocation.run_ref.id),original.request.parent))throw fail();return original;}catch{throw fail();}
+}
+// Read-only fixed relationship, never caller or effect authority. Human control
+// uses its own Kernel identity/permission instead of adopting the Agent caller.
+export function readOriginalSkillInvocationMetadataFromReader(local:Pick<SkillInvocationExecutionContext,'location'>,reader:OriginalSkillInvocationReader,invocationId:string){
   try {
    const invocation=structuredClone(compileValidator<SkillInvocation>(SkillInvocationSchema)(reader.getRuntimeRecord('skill_invocation',invocationId)));
    if(requestDigest((({input_digest:_,...body})=>body)(invocation))!==invocation.input_digest.value)throw fail();
-   const parent=originalAgentWorkspaceScope({location:local.location,caller:local.caller,store:reader},invocation.run_ref.id);
+   const parent=readOriginalAgentRunInputs({location:local.location,store:reader},invocation.run_ref.id).scope;
    const project=reader.getProject(), binding=reader.getProviderBinding(invocation.skill_binding.binding_ref.id), descriptor=binding&&reader.getProviderDescriptor(binding.descriptor_ref.id);
    if(!project||resolve(project.repository_path)!==resolve(local.location.repositoryPath)||invocation.project_id!==project.id||!descriptor||descriptor.project_id!==project.id||
     invocation.run_operation_key!==parent.operation_key||invocation.executor_ref.id!==parent.executor_actor_id||

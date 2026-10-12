@@ -1,5 +1,7 @@
 # CimiLoop SDK 调用与 IPC 原字节账本 v0.1
 
+2026-10-12 D-277：共享Human原Skill查询/采集/停止/原取消重试/资源恢复已接工作台HTTP和页面。Kernel先提交原父Run CancelRun，丢响应及提交后撤权保留原Command ID与子入口；当前角色/会话/双侧原Host资料在等待后复验。实际挂起原child经取消/资源回收及跨重启同命令接续，不恢复SDK、不发送模型；物理停止不等于子Cancelled/NotStarted、结费、预算释放或Task验收。最终受影响14文件128项通过；实际Windows按最新完整文件汇总6文件14项通过，0跳过。Windows首次全范围13通过1失败，失败Job文件同源码新夹具完整复验4项通过；首次控制器失败根因未证明，不称已修复或单轮全绿；710源码无变化，check/CLI/242 Schema通过，库10。r13完整回归中断无最终报告，不计通过且保留原日志/资源；r14使用新夹具。构造模型/资格/账单及普通工程复审不算真实Skill/Matt/Superpowers/S1，正式默认Agent关闭，五组未完成，零付费、不push。[D-277实施记录](CimiLoop-原Skill工作台控制与恢复-v0.1.md)。
+
 2026-10-11 D-276：完整原Native/SDK/IPC/Job与模型文本闭合但固定方法输出契约无效时，可独立证明原Skill方法失败，经历史资格和最终现金/积分账单接共享Human/工作台Kernel Failed核对，失败无output；父Unknown/预算和Task待验收保持，原command跨重启重放不重开。最终受影响11文件158项、实际Windows4文件9项通过0跳过，705源码核对、check/CLI/242 Schema通过。构造模型/资格/账单非真实Skill/Matt/Superpowers/S1；取消/未启动/完整恢复及五组继续，默认Agent关闭、零付费、库10、不push。[D-276实施记录](CimiLoop-原Skill方法输出失败与费用核对-v0.1.md)。
 
 2026-10-11 D-275：原成功Skill的Native/SDK/IPC/Job、原账单及预约固定历史资格已接共享Human ReconcileSkillInvocation和工作台HTTP；子Succeeded仍保留父Unknown/预算和Task待验收。原命令跨重启无需collector工厂重放，HTTP回调私有错误隔离已复现修补。最终受影响4文件36项、实际Windows4文件8项通过0跳过，705源码冻结、check/CLI/242 Schema通过。模型/资格核验器/账单仍构造，非真实Skill/Matt/Superpowers/S1；失败/取消子终态、物理磁盘配额及完整五组继续，默认Agent关闭、零付费、库10、不push。[D-275实施记录](CimiLoop-原Skill终态与历史资格核对-v0.1.md)。
