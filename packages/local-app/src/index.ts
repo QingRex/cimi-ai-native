@@ -62,3 +62,7 @@ export type {HumanSkillReconciliationFactory,SkillReconciliationLease} from './s
 
 export {LocalHumanSkillInvocationControl} from './skill-invocation-control-local.js';
 export type {HumanSkillRuntimeFactory,SkillRuntimeControlLease} from './skill-invocation-control-local.js';
+
+export {LocalAgentParentSkillCalls} from './agent-parent-skill-calls-local.js';
+
+export{LocalAgentParentSkillHost,type AgentParentSkillHostReceipt}from'./agent-parent-skill-host-local.js';

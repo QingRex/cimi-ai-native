@@ -24,7 +24,9 @@ export interface AgentRuntimeModelPort {
 const exact=(v:unknown,keys:string[]):v is Record<string,unknown>=>!!v&&typeof v==="object"&&!Array.isArray(v)&&Object.keys(v).sort().join(",")===keys.sort().join(",");
 const id=(v:unknown):v is string=>typeof v==="string"&&/^[a-zA-Z0-9_-]{1,128}$/.test(v);
 const sha=(v:unknown):v is string=>typeof v==="string"&&/^[a-f0-9]{64}$/.test(v);
-const permittedTools=(names:string[])=>names.every(name=>["cimi_read","cimi_replace","cimi_check"].includes(name))||names.length===2&&names.includes("cimi_invoke_skill")&&names.includes("cimi_read_method_resource");
+export const AGENT_PARENT_SKILL_TOOLS=Object.freeze(['cimi_read','cimi_replace','cimi_check','cimi_run_skill'] as const);
+export const isAgentParentSkillToolSet=(names:readonly unknown[])=>names.length===4&&new Set(names).size===4&&AGENT_PARENT_SKILL_TOOLS.every(name=>names.includes(name));
+const permittedTools=(names:string[])=>isAgentParentSkillToolSet(names)||names.every(name=>["cimi_read","cimi_replace","cimi_check"].includes(name))||names.length===2&&names.includes("cimi_invoke_skill")&&names.includes("cimi_read_method_resource");
 function fail(reason:string):never {throw new RuntimeAdapterError(reason);}
 const bounded=(v:unknown)=>copyToolJson(parseGatewayJson(JSON.stringify(v),TOOL_RECORD_BYTES));
 const read=(path:string)=>bounded(parseGatewayJson(new TextDecoder("utf-8",{fatal:true}).decode(bytesAt(path,TOOL_RECORD_BYTES)),TOOL_RECORD_BYTES));
@@ -41,10 +43,10 @@ function waitOriginal<T>(promise:Promise<T>,signal?:AbortSignal):Promise<T> {
  });
 }
 export function parseAgentRuntimeModelRequest(rawScope:unknown,raw:unknown,permitted:string[]) {
- const scope=parseAgentWorkspaceToolScope(rawScope),v=bounded(raw);
- if(!exact(v,["format","scope_digest","admission_digest","call_id","tool","prompt","tools","max_output_tokens"])||v.format!=="cimiloop/agent-runtime-model-request/1.0.0"||
+ const scope=parseAgentWorkspaceToolScope(rawScope),v=bounded(raw),parent=isAgentParentSkillToolSet(permitted);
+ if(!permitted.length||new Set(permitted).size!==permitted.length||!permittedTools(permitted)||!exact(v,["format","scope_digest","admission_digest","call_id","tool","prompt","tools","max_output_tokens"])||v.format!==(parent?"cimiloop/agent-runtime-model-request/2.0.0":"cimiloop/agent-runtime-model-request/1.0.0")||
  v.scope_digest!==digest(JSON.stringify(scope)).value||!sha(v.admission_digest)||!id(v.call_id)||v.tool!=="model_step"||!Array.isArray(v.prompt)||!v.prompt.length||v.prompt.length>128||
- !Array.isArray(v.tools)||v.tools.length>3||!Number.isSafeInteger(v.max_output_tokens)||(v.max_output_tokens as number)<1||(v.max_output_tokens as number)>512)fail("agent_model_request_denied");
+ !Array.isArray(v.tools)||(parent?v.tools.length!==4:v.tools.length>3)||!Number.isSafeInteger(v.max_output_tokens)||(v.max_output_tokens as number)<1||(v.max_output_tokens as number)>512)fail("agent_model_request_denied");
  const names=new Set<string>();for(const tool of v.tools){if(!tool||typeof tool!=="object"||Array.isArray(tool)||!("name" in tool)||!id(tool.name)||!permitted.includes(tool.name)||names.has(tool.name))fail("agent_model_tools_denied");names.add(tool.name);}
  return {format:v.format,scope_digest:v.scope_digest,admission_digest:v.admission_digest,call_id:v.call_id,tool:v.tool,prompt:v.prompt,tools:v.tools,max_output_tokens:v.max_output_tokens as number};
 }
@@ -69,11 +71,12 @@ export class AgentRuntimeModelHost {
   const scope=parseAgentWorkspaceToolScope(rawScope);
   const originalEvidence=parseAgentModelOriginalEvidence(port?.original_evidence);
   port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{})}; permitted=[...permitted];
-  if(!port||!sha(port.admission_digest)||typeof port.check!=="function"||typeof port.execute!=="function"||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||!permittedTools(permitted))fail("agent_model_admission_unavailable");
+  if(!port||!sha(port.admission_digest)||typeof port.check!=="function"||typeof port.execute!=="function"||!permitted.length||permitted.length>(isAgentParentSkillToolSet(permitted)?4:3)||new Set(permitted).size!==permitted.length||!permittedTools(permitted))fail("agent_model_admission_unavailable");
+  if(isAgentParentSkillToolSet(permitted)&&taskPacket===null)fail("agent_model_task_packet_invalid");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
   signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
   const parent=directory(join(root,"agent-runtime-model-originals",scope.project_id)),path=assertOrdinaryPath(join(parent,scope.run_id));
-  const header={format:originalEvidence?"cimiloop/agent-runtime-model-originals/2.0.0":"cimiloop/agent-runtime-model-originals/1.0.0",...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
+  const header={format:isAgentParentSkillToolSet(permitted)?(originalEvidence?"cimiloop/agent-runtime-model-originals/4.0.0":"cimiloop/agent-runtime-model-originals/3.0.0"):(originalEvidence?"cimiloop/agent-runtime-model-originals/2.0.0":"cimiloop/agent-runtime-model-originals/1.0.0"),...(isAgentParentSkillToolSet(permitted)?{parent_skill_tools:"fixed_parent_skill/1.0.0"}:{}),...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
   const spine=assertOrdinaryPath(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id));
   try{if(!isDeepStrictEqual(read(join(path,"header.json")),header)||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");}catch{fail("agent_model_original_unproven");}
   return new AgentRuntimeModelHost(path,scope,{admission_digest:port.admission_digest,check:port.check.bind(port),execute:port.execute.bind(port)},[...permitted],header,spine,taskPacket);
@@ -84,10 +87,11 @@ export class AgentRuntimeModelHost {
   const scope=parseAgentWorkspaceToolScope(rawScope);
   const originalEvidence=parseAgentModelOriginalEvidence(port?.original_evidence);
   port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{})}; permitted=[...permitted];
-  if(!port||!sha(port.admission_digest)||!permitted.length||permitted.length>3||new Set(permitted).size!==permitted.length||!permittedTools(permitted))fail("agent_model_admission_unavailable");
+  if(!port||!sha(port.admission_digest)||!permitted.length||permitted.length>(isAgentParentSkillToolSet(permitted)?4:3)||new Set(permitted).size!==permitted.length||!permittedTools(permitted))fail("agent_model_admission_unavailable");
+  if(isAgentParentSkillToolSet(permitted)&&taskPacket===null)fail("agent_model_task_packet_invalid");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
   signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
-  const header={format:originalEvidence?"cimiloop/agent-runtime-model-originals/2.0.0":"cimiloop/agent-runtime-model-originals/1.0.0",...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
+  const header={format:isAgentParentSkillToolSet(permitted)?(originalEvidence?"cimiloop/agent-runtime-model-originals/4.0.0":"cimiloop/agent-runtime-model-originals/3.0.0"):(originalEvidence?"cimiloop/agent-runtime-model-originals/2.0.0":"cimiloop/agent-runtime-model-originals/1.0.0"),...(isAgentParentSkillToolSet(permitted)?{parent_skill_tools:"fixed_parent_skill/1.0.0"}:{}),...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
   const parent=directory(join(root,"agent-runtime-model-starts",scope.project_id)),spine=assertOrdinaryPath(join(parent,scope.run_id));
   let created=false;try{mkdirSync(spine);created=true;}catch(error){if(!(error&&typeof error==="object"&&"code" in error&&error.code==="EEXIST"))throw error;}
   if(created){
@@ -153,7 +157,8 @@ export class AgentRuntimeModelHost {
 export function readAgentRuntimeModelOriginals(root:string,rawScope:unknown) {
  const scope=parseAgentWorkspaceToolScope(rawScope),path=assertOrdinaryPath(join(root,"agent-runtime-model-originals",scope.project_id,scope.run_id)),spine=assertOrdinaryPath(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id));
  const header=read(join(path,"header.json"));
- if(!exact(header,["format","scope","admission_digest","permitted","maximum_calls","task_packet_digest",...(header&&typeof header==="object"&&"original_evidence" in header?["original_evidence"]:[])])||(header.original_evidence===undefined?header.format!=="cimiloop/agent-runtime-model-originals/1.0.0":header.format!=="cimiloop/agent-runtime-model-originals/2.0.0")||!isDeepStrictEqual(header.scope,scope)||!sha(header.admission_digest)||header.maximum_calls!==64||(header.task_packet_digest!==null&&!sha(header.task_packet_digest))||!Array.isArray(header.permitted)||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");
+ if(!exact(header,["format","scope","admission_digest","permitted","maximum_calls","task_packet_digest",...(header&&typeof header==="object"&&"original_evidence" in header?["original_evidence"]:[]),...(header&&typeof header==="object"&&"parent_skill_tools" in header?["parent_skill_tools"]:[])])||!Array.isArray(header.permitted)||!header.permitted.length||new Set(header.permitted).size!==header.permitted.length||!header.permitted.every(n=>typeof n==="string")||!permittedTools(header.permitted as string[])||header.permitted.length>(isAgentParentSkillToolSet(header.permitted)?4:3)||!isDeepStrictEqual(header.scope,scope)||!sha(header.admission_digest)||header.maximum_calls!==64||(header.task_packet_digest!==null&&!sha(header.task_packet_digest))||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");
+ const parent=isAgentParentSkillToolSet(header.permitted);if(parent?(header.parent_skill_tools!=="fixed_parent_skill/1.0.0"||!sha(header.task_packet_digest)||header.format!==(header.original_evidence===undefined?"cimiloop/agent-runtime-model-originals/3.0.0":"cimiloop/agent-runtime-model-originals/4.0.0")):(header.parent_skill_tools!==undefined||header.format!==(header.original_evidence===undefined?"cimiloop/agent-runtime-model-originals/1.0.0":"cimiloop/agent-runtime-model-originals/2.0.0")))fail("agent_model_original_unproven");
  const originalEvidence=parseAgentModelOriginalEvidence(header.original_evidence);
  const names=[...new Set([...readdirSync(path),...readdirSync(spine)].filter(n=>n!=="header.json"))].sort();
  if(names.length>64||names.some((name,i)=>name!=="model_"+String(i+1).padStart(4,"0")))fail("agent_model_original_unproven");

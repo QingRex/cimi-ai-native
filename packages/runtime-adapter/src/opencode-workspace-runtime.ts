@@ -1,7 +1,8 @@
 import {AGENT_JOB_RESOURCE_POLICY,verifyAgentJobObservation} from './agent-job-policy.js';
 import {selectAgentRuntimeLifetime} from "./agent-runtime-lifetime.js";
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
-import { AgentRuntimeModelHost } from "./agent-runtime-model.js";
+import{captureAgentParentSkillIpcPort,type AgentParentSkillIpcPort}from"./agent-parent-skill-ipc.js";
+import { AgentRuntimeModelHost,isAgentParentSkillToolSet } from "./agent-runtime-model.js";
 import {AgentNamedMethodHost} from "./agent-named-method-host.js";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, writeFileSync, openSync, fsyncSync, closeSync } from "node:fs";
@@ -30,10 +31,10 @@ export interface SharedOptions {
 export type RehearsalOptions = SharedOptions & ({ mode?: "files"; path: string; expectedDigest: string; replacement: string; checkCatalog?: WorkspaceCheckCatalog; checkId?: string } |
   { mode: "checks"; checkCatalog: WorkspaceCheckCatalog; checkId: string });
 export type ProductionOptions = Omit<SharedOptions,"connect"> & {
- connect: (supervisor: ChildProcess, originalSupervisor: CreditProcessIdentity, originalPeer: CreditProcessIdentity, nonce: string, signal: AbortSignal, model: AgentRuntimeModelHost) => Promise<Pick<AgentWorkspaceToolIpc,"getEndpoint"|"snapshot"|"close">>;
+ connect: (supervisor: ChildProcess, originalSupervisor: CreditProcessIdentity, originalPeer: CreditProcessIdentity, nonce: string, signal: AbortSignal, model: AgentRuntimeModelHost, parentSkill?:AgentParentSkillIpcPort) => Promise<Pick<AgentWorkspaceToolIpc,"getEndpoint"|"snapshot"|"close">>;
  // Trusted installed application guard only; never serialized into a Native config.
  beforeNativeEffect?: () => void;
- mode: "host_gateway"; prompt: string; model: AgentRuntimeModelHost; checkCatalog?: WorkspaceCheckCatalog; method?: AgentNamedMethodHost;
+ mode: "host_gateway"; prompt: string; model: AgentRuntimeModelHost; checkCatalog?: WorkspaceCheckCatalog; method?: AgentNamedMethodHost; parentSkill?:AgentParentSkillIpcPort;
  runBudget: NonNullable<SharedOptions["runBudget"]>;
 };
 // Executable SDK/Native composition, not default production activation. The
@@ -44,6 +45,12 @@ export function runOpenCodeWorkspaceRuntime(options: Omit<ProductionOptions,"mod
 }
 const exact = (raw: unknown, keys: string[]): raw is Record<string, unknown> => !!raw && typeof raw === "object" && !Array.isArray(raw) && Object.keys(raw).sort().join(",") === [...keys].sort().join(",");
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
+// Actual Native provider options producer. The engine has already captured the
+// matching shared service; this metadata factory grants no model qualification.
+export function agentRuntimeProviderOptions(model:AgentRuntimeModelHost,parentSkill=false){
+ if(!(model instanceof AgentRuntimeModelHost)||typeof parentSkill!=="boolean"||isAgentParentSkillToolSet(model.toolNames)!==parentSkill)fail("agent_parent_skill_runtime_unproven");
+ return{admission_digest:model.admissionDigest,...(parentSkill?{parent_skill_tools:"fixed_parent_skill/1.0.0"}:{})};
+}
 // No credential, URL, arbitrary provider/plugin, command or model input. This
 // entry point tests actual SDK custom tools against constructed model replies;
 // it cannot produce production admission, Run observation or Skill evidence.
@@ -53,6 +60,13 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const production = options.mode === "host_gateway";
   const model = production ? options.model : undefined;
   const method=production?options.method:undefined;
+  const rawParent=production?options.parentSkill:undefined;
+  if(rawParent!==undefined&&(!(model instanceof AgentRuntimeModelHost)||!isAgentParentSkillToolSet(model.toolNames)||!options.checkCatalog||method!==undefined)||model instanceof AgentRuntimeModelHost&&isAgentParentSkillToolSet(model.toolNames)&&rawParent===undefined)fail("agent_parent_skill_runtime_unproven");
+  const parent=rawParent===undefined?undefined:captureAgentParentSkillIpcPort(scope,rawParent),sdkCatalog=parent?.catalog;
+  const parentBinding=sdkCatalog?{format:"cimiloop/agent-parent-skill-binding/1.0.0",scope_digest:sdkCatalog.scope_digest,catalog_digest:sdkCatalog.catalog_digest,sdk_catalog_digest:digest(JSON.stringify(sdkCatalog)).value}:undefined;
+  const installedParent:AgentParentSkillIpcPort|undefined=parent?Object.freeze({get sdkCatalog(){parent.assertScope(scope);return parent.catalog;},invoke:parent.invoke}):undefined;
+  const connect=options.mode==="host_gateway"?options.connect.bind(options):undefined;
+  const rehearsalConnect=options.mode==="host_gateway"?undefined:options.connect.bind(options);
   if(method!==undefined&&(!(method instanceof AgentNamedMethodHost)||options.checkCatalog||JSON.stringify(model?.toolNames)!==JSON.stringify(["cimi_invoke_skill","cimi_read_method_resource"])))fail("agent_method_scope_denied");method?.assertScope(scope);
   const beforeNativeEffect = production ? options.beforeNativeEffect : undefined;
   if(beforeNativeEffect !== undefined && typeof beforeNativeEffect !== "function") fail("agent_runtime_start_guard_unavailable");
@@ -65,28 +79,29 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   // Detach original arguments before the asynchronous compilation/launch.
   const checkCatalog = options.checkCatalog === undefined ? undefined : parseWorkspaceCheckCatalog(options.checkCatalog, scope);
   if (checksOnly && !checkCatalog || !production && ((checkCatalog === undefined) !== (options.checkId === undefined) || checkCatalog && !checkCatalog.recipes.some(recipe => recipe.check_id === options.checkId))) fail("workspace_rehearsal_input_invalid");
-  const providerOptions = options.mode === "host_gateway" ? { admission_digest: options.model.admissionDigest } : options.mode === "checks" ? { check_id: options.checkId, check_only: true } :
+  const providerOptions = options.mode === "host_gateway" ? agentRuntimeProviderOptions(options.model,parent!==undefined) : options.mode === "checks" ? { check_id: options.checkId, check_only: true } :
     { path: options.path, expectedDigest: options.expectedDigest, replacement: options.replacement, ...(checkCatalog ? { check_id: options.checkId! } : {}) };
   const binaryPath = options.binary, rootPath = options.root, prepare = options.prepare, externalSignal = options.signal;
   assertAgentRuntimeNativeRoot(rootPath);
   const budget = options.runBudget;
   budget?.assertScope(scope);
   const policy=selectAgentRuntimeLifetime(production?"production":"rehearsal",requestedElapsed,budget?await budget.remaining(externalSignal):undefined);
+  parent?.assertScope(scope);
   const elapsed=policy.elapsed_ms;
   const lifetime = new ExecutionLifetime(elapsed, externalSignal,production?"agent_task":"workspace_rehearsal");
   const stopBudgetWatch = budget?.watch((reason, error) => lifetime.stop(reason, error));
   let cancellationWatch: ReturnType<typeof setInterval> | undefined;
   try {
-  lifetime.check(); beforeNativeEffect?.();
-  if (model) await lifetime.wait(model.check(scope,lifetime.signal));
-  beforeNativeEffect?.();
+  lifetime.check(); beforeNativeEffect?.();parent?.assertScope(scope);
+  parent?.assertScope(scope);if (model) await lifetime.wait(model.check(scope,lifetime.signal));parent?.assertScope(scope);
+  beforeNativeEffect?.();parent?.assertScope(scope);
   const root = directory(rootPath), sandboxBinary = await buildWindowsAgentWorkspaceSandbox(root, lifetime.signal);
   lifetime.check();
   const identityBinary = await buildWindowsLauncher(root, lifetime.signal);
   const jobObserver = await buildWindowsAgentJobObserver(root,lifetime.signal);
   lifetime.check();
   const pinned = pinBinary(root, binaryPath), binaryOriginal=readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value); lifetime.check();
-  const originalModules = ["agent-workspace-ipc-client.mjs", method?"opencode-named-method-tools.mjs":"opencode-workspace-tools.js", production ? "opencode-host-gateway-provider.mjs" : "opencode-workspace-provider-fixture.mjs"].map(name => {
+  const originalModules = ["agent-workspace-ipc-client.mjs", method?"opencode-named-method-tools.mjs":"opencode-workspace-tools.js",...(parent?["opencode-parent-skill-tools.mjs"]:[]), production ? "opencode-host-gateway-provider.mjs" : "opencode-workspace-provider-fixture.mjs"].map(name => {
     const bytes = bytesAt(fileURLToPath(new URL(`../transport/${name}`, import.meta.url))); return { name, bytes, digest: digest(bytes) };
   });
   const owner = (await nativeControl(identityBinary, ["--identity", String(process.pid)], lifetime.signal)).value;
@@ -94,7 +109,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   budget?.assertScope(scope);
   const claim = claimAgentRuntimeOperation(root, scope, { purpose: production ? "agent_runtime" : "workspace_rehearsal", mode: production ? "host_gateway" : checksOnly ? "checks" : "files", binary_digest: pinned.digest,binary_original:binaryOriginal,
     sandbox_digest: sandboxBinary.digest, sandbox_original:sandboxBinary.original, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
-    job_resource_policy:AGENT_JOB_RESOURCE_POLICY,job_observer_original:jobObserver.original, provider_options: providerOptions, ...(method?{method_original_binding:method.originalBinding}:{}), ...(production ? { prompt: options.prompt,...(model?.originalBinding?{model_original_binding:model.originalBinding}:{}) } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
+    job_resource_policy:AGENT_JOB_RESOURCE_POLICY,job_observer_original:jobObserver.original, provider_options: providerOptions, ...(parentBinding?{parent_skill_original_binding:parentBinding}:{}), ...(method?{method_original_binding:method.originalBinding}:{}), ...(production ? { prompt: options.prompt,...(model?.originalBinding?{model_original_binding:model.originalBinding}:{}) } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
   cancellationWatch = setInterval(() => { try { if (agentRuntimeCancellationRequested(root, scope)) lifetime.stop("workspace_rehearsal_cancel_requested"); }
     catch { lifetime.stop("workspace_rehearsal_claim_unproven"); } }, 100);
   lifetime.check();
@@ -109,17 +124,19 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   if (checkCatalog) {
     const bytes = JSON.stringify(checkCatalog); writeFileSync(join(config, "check-catalog.json"), bytes, { flag: "wx" }); modules.push({ name: "check-catalog.json", digest: digest(bytes) });
   }
+  if(sdkCatalog){const bytes=JSON.stringify(sdkCatalog);writeFileSync(join(config,"parent-skill-catalog.json"),bytes,{flag:"wx"});modules.push({name:"parent-skill-catalog.json",digest:digest(bytes)});}
   const entry = method ? 'import {createOpenCodeNamedMethodTools} from "../opencode-named-method-tools.mjs";\nconst tools=createOpenCodeNamedMethodTools({pipe:process.env.CIMILOOP_AGENT_WORKSPACE_PIPE,scope_digest:process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE,profile_digest:'+JSON.stringify(method.profileDigest)+'});\nexport const invoke_skill=tools.invoke_skill;\nexport const read_method_resource=tools.read_method_resource;\n' : 'import { createOpenCodeWorkspaceTools } from "../opencode-workspace-tools.js";\n' +
     (checkCatalog ? 'import { readFileSync } from "node:fs";\nconst catalog = JSON.parse(readFileSync(new URL("../check-catalog.json", import.meta.url), "utf8"));\n' : '') +
     'const tools = createOpenCodeWorkspaceTools({ pipe: process.env.CIMILOOP_AGENT_WORKSPACE_PIPE, scope_digest: process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE }' + (checkCatalog ? ', catalog' : '') + ');\n' +
-    (checksOnly ? '' : 'export const read = tools.read;\nexport const replace = tools.replace;\n') + (checkCatalog ? 'export const check = tools.check;\n' : '');
+    (checksOnly ? '' : 'export const read = tools.read;\nexport const replace = tools.replace;\n') + (checkCatalog ? 'export const check = tools.check;\n' : '') +
+    (parent ? 'import {createOpenCodeParentSkillTools} from "../opencode-parent-skill-tools.mjs";\nconst parentCatalog=JSON.parse(readFileSync(new URL("../parent-skill-catalog.json",import.meta.url),"utf8"));\nconst parentTools=createOpenCodeParentSkillTools({pipe:process.env.CIMILOOP_AGENT_WORKSPACE_PIPE,scope_digest:process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE,catalog_digest:parentCatalog.catalog_digest},parentCatalog.entries);\nexport const run_skill=parentTools.run_skill;\n' : '');
   writeFileSync(join(tools, "cimi.js"), entry, { flag: "wx" }); modules.push({ name: "tools/cimi.js", digest: digest(entry) });
   writeFileSync(join(config, "package.json"), '{"type":"module","private":true}\n', { flag: "wx" });
   writeFileSync(join(config, ".gitignore"), "node_modules\npackage.json\nbun.lock\nbun.lockb\n.gitignore\n", { flag: "wx" });
   const globalConfig = directory(join(config, "global", "opencode")); writeFileSync(join(globalConfig, ".gitignore"), "node_modules\npackage.json\npackage-lock.json\nbun.lock\n.gitignore\n", { flag: "wx" });
   writeFileSync(join(operation, "workspace-private-canary.txt"), "Synthetic private workspace canary\n", { flag: "wx" });
   const nonce = randomUUID(), pipeNonce = randomUUID(), scopeDigest = agentWorkspaceIpcScopeDigest(scope);
-  const originalConfig = { format:method?"cimiloop/agent-workspace-sandbox-config/6.0.0":"cimiloop/agent-workspace-sandbox-config/5.0.0", ...(method?{method_tools:"fixed_named_method/1.0.0",method_original_binding:method.originalBinding}:{}), binary_original:binaryOriginal, nonce, root: sandbox, binary: pinned.path, owner,
+  const originalConfig = { format:parent?"cimiloop/agent-workspace-sandbox-config/7.0.0":method?"cimiloop/agent-workspace-sandbox-config/6.0.0":"cimiloop/agent-workspace-sandbox-config/5.0.0", ...(parentBinding?{parent_skill_tools:"fixed_parent_skill/1.0.0",parent_skill_original_binding:parentBinding}:{}), ...(method?{method_tools:"fixed_named_method/1.0.0",method_original_binding:method.originalBinding}:{}), binary_original:binaryOriginal, nonce, root: sandbox, binary: pinned.path, owner,
     pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null, prompt:production?options.prompt:null, lifetime_policy:production?policy.policy:null };
   atomicJson(join(operation, "original-config.json"), originalConfig);
   if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
@@ -153,7 +170,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
           !validWorkspaceWorkerIdentity(value.supervisor) || !originalSupervisor || !isDeepStrictEqual({ ...value.supervisor }, { ...originalSupervisor }) || buffer.length) fail("workspace_rehearsal_preparation_unproven");
         const phase = phases[preparationCount++]!;
         void lifetime.wait(Promise.resolve().then(() => { lifetime.check(); return Promise.resolve(model?.check(scope,lifetime.signal)).then(() => prepare?.({ phase, operation, supervisor: { ...originalSupervisor! } }, lifetime.signal)); })).then(() => {
-          lifetime.check(); beforeNativeEffect?.();
+          lifetime.check(); beforeNativeEffect?.();parent?.assertScope(scope);
           if (native.exitCode !== null || native.signalCode !== null || native.stdin.writableEnded) return;
           native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-prepare-continue/1.0.0", nonce, phase }) + "\n");
         }).catch(error => { lifetime.stop(error instanceof RuntimeAdapterError ? error.reason : "workspace_rehearsal_preparation_failed", error); rejectReady(error); cancel(); });
@@ -204,14 +221,16 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
       owner, supervisor: originalSupervisor, launcher_path: sandboxBinary.path, launcher_digest: sandboxBinary.digest.value,launcher_original:sandboxBinary.original });
     if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
     if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,sandboxBinary.path,sandboxBinary.digest.value),sandboxBinary.original))fail("agent_runtime_controller_original_changed");
-    beforeNativeEffect?.();
+    beforeNativeEffect?.();parent?.assertScope(scope);
     native.stdin.write(JSON.stringify(originalConfig) + "\n");
     const original = await lifetime.wait(ready);
     if (!isDeepStrictEqual(parseGatewayJson(bytesAt(join(operation, "agent-sandbox-original.json")).toString("utf8"), 32768), original)) fail("workspace_rehearsal_original_unproven");
-    const connected = await lifetime.wait<NonNullable<typeof channel>>(Promise.resolve().then(() => { lifetime.check(); return options.mode === "host_gateway" ? options.connect(native, { ...original.supervisor as CreditProcessIdentity }, { ...original.peer as CreditProcessIdentity }, pipeNonce, lifetime.signal, options.model) : options.connect(native, { ...original.supervisor as CreditProcessIdentity }, { ...original.peer as CreditProcessIdentity }, pipeNonce, lifetime.signal); }), late => late.close());
+    const connected = await lifetime.wait<NonNullable<typeof channel>>(Promise.resolve().then(() => { lifetime.check(); return options.mode === "host_gateway" ? connect!(native, { ...original.supervisor as CreditProcessIdentity }, { ...original.peer as CreditProcessIdentity }, pipeNonce, lifetime.signal, options.model,installedParent) : rehearsalConnect!(native, { ...original.supervisor as CreditProcessIdentity }, { ...original.peer as CreditProcessIdentity }, pipeNonce, lifetime.signal); }), late => late.close());
     channel = connected;
     lifetime.check();
     const endpoint = channel.getEndpoint();
+    parent?.assertScope(scope);
+    if(endpoint.parent_skill_catalog_digest!==(sdkCatalog?.catalog_digest))fail("agent_parent_skill_runtime_channel_unproven");
     if (production && endpoint.model_admission_digest !== model?.admissionDigest) fail("agent_model_admission_mismatch");
     if (endpoint.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${pipeNonce}` || endpoint.scope_digest !== scopeDigest || endpoint.check_catalog_digest !== (checkCatalog?.catalog_digest ?? null) || endpoint.appcontainer_sid !== original.appcontainer_sid ||
       !isDeepStrictEqual(endpoint.peer, { ...original.peer as CreditProcessIdentity }) || !isDeepStrictEqual(endpoint.supervisor, { ...original.supervisor as CreditProcessIdentity })) fail("workspace_rehearsal_channel_unproven");
@@ -222,8 +241,8 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,jobObserver.path,jobObserver.digest.value),jobObserver.original))fail('agent_job_observation_unproven');
     writeFileSync(join(operation,'agent-job-observation.json'),queried.bytes,{flag:'wx'});
     const jobReceiptFile=openSync(join(operation,'agent-job-observation.json'),'r+');try{fsyncSync(jobReceiptFile);}finally{closeSync(jobReceiptFile);}
-    if (model) await lifetime.wait(model.check(scope,lifetime.signal));
-    beforeNativeEffect?.();
+    parent?.assertScope(scope);if (model) await lifetime.wait(model.check(scope,lifetime.signal));parent?.assertScope(scope);
+    beforeNativeEffect?.();parent?.assertScope(scope);
     resumed = true; native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-resume/1.0.0", nonce }) + "\n");
     const exit = await lifetime.wait(ended); await channel.close(); lifetime.check();
     const stdout = Buffer.concat(output), stderr = Buffer.concat(errors);
@@ -234,7 +253,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     const result = { format: production ? "cimiloop/opencode-workspace-runtime/1.0.0" : "cimiloop/opencode-workspace-rehearsal/1.0.0", operation, mode: production ? "host_gateway" : checksOnly ? "checks" : "files", original_scope_digest: scopeDigest, check_catalog_digest: checkCatalog?.catalog_digest ?? null, sandbox: original, modules,
       binary_digest: pinned.digest, stdout_ref: rawReference(root, stdout, "workspace_sdk_original"), stderr_ref: rawReference(root, stderr, "workspace_sdk_stderr"),
       native_exit: exit, disposal, channel: channel.snapshot(), events, source_bytes_unchanged: unchanged, output_limit_exceeded: outputFailure,
-      ...(method?{method_original_binding:method.originalBinding}:{}), synthetic_model_responses: production ? null : true, actual_credentials_read: production ? null : 0, external_model_requests: production ? null : 0, model_admission_digest: model?.admissionDigest ?? null, formal_agent_execution_enabled: false };
+      ...(parentBinding?{parent_skill_original_binding:parentBinding}:{}), ...(method?{method_original_binding:method.originalBinding}:{}), synthetic_model_responses: production ? null : true, actual_credentials_read: production ? null : 0, external_model_requests: production ? null : 0, model_admission_digest: model?.admissionDigest ?? null, formal_agent_execution_enabled: false };
     atomicJson(join(operation, "result.json"), result);
     if (exit.code !== 0 || exit.signal || outputFailure || !unchanged || !disposal || disposal.format !== "cimiloop/agent-workspace-sandbox/1.0.0" ||
       disposal.phase !== "ended" || disposal.nonce !== nonce || disposal.reason !== "exited" || disposal.exit_code !== 0 || disposal.resources_disposed !== true ||

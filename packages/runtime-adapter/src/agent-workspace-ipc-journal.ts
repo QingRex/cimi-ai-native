@@ -1,3 +1,4 @@
+import {parseAgentParentSkillIpcRequest,parseAgentParentSkillIpcReceipt} from "./agent-parent-skill-ipc.js";
 import { mkdirSync, writeFileSync, openSync, fsyncSync, closeSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -18,9 +19,9 @@ const json = (bytes: Buffer, maximum = TOOL_RECORD_BYTES) => copyToolJson(parseG
 const save = (path: string, bytes: Buffer) => { if (!bytes.length || bytes.length > TOOL_RECORD_BYTES) fail(); assertOrdinaryPath(path); writeFileSync(path, bytes, { flag: "wx" }); const fd = openSync(path, "r+"); try { fsyncSync(fd); } finally { closeSync(fd); } };
 const encode = (value: unknown) => Buffer.from(JSON.stringify(value));
 function location(root: string, scope: AgentWorkspaceToolScope, nonce: string) { if (!uuid(nonce)) fail(); return join(root, "agent-workspace-ipc-originals", scope.project_id, scope.run_id, nonce); }
-function endpoint(raw: unknown, scope: AgentWorkspaceToolScope, nonce: string): AgentWorkspaceIpcEndpoint {
+function endpoint(raw: unknown, scope: AgentWorkspaceToolScope, nonce: string, parent=false): AgentWorkspaceIpcEndpoint {
   const value = copyToolJson(raw);
-  if (!exact(value, ["pipe", "scope_digest", "check_catalog_digest", "peer", "supervisor", "appcontainer_sid", ...(value && typeof value === "object" && "model_admission_digest" in value ? ["model_admission_digest"] : [])]) || value.model_admission_digest !== undefined && !sha(value.model_admission_digest) || value.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${nonce}` ||
+  if (!exact(value, ["pipe", "scope_digest", "check_catalog_digest", "peer", "supervisor", "appcontainer_sid", ...(value && typeof value === "object" && "model_admission_digest" in value ? ["model_admission_digest"] : []),...(parent?["parent_skill_catalog_digest"]:[])]) || parent&&(!sha(value.parent_skill_catalog_digest)||!sha(value.model_admission_digest)||!sha(value.check_catalog_digest)) || value.model_admission_digest !== undefined && !sha(value.model_admission_digest) || value.pipe !== `\\\\.\\pipe\\CimiLoop.AgentWorkspace.${nonce}` ||
     value.scope_digest !== scopeDigest(scope) || value.check_catalog_digest !== null && !sha(value.check_catalog_digest) || !validWorkspaceWorkerIdentity(value.peer) ||
     !validWorkspaceWorkerIdentity(value.supervisor) || value.peer.pid === value.supervisor.pid && !isDeepStrictEqual(value.peer, value.supervisor) || value.appcontainer_sid !== null &&
     (typeof value.appcontainer_sid !== "string" || !/^S-1-15-2-(?:[0-9]+-)*[0-9]+$/.test(value.appcontainer_sid))) fail();
@@ -35,11 +36,11 @@ export class AgentWorkspaceIpcJournal {
   private readonly header: Buffer;
   private constructor(readonly path: string, header: unknown) { this.header = encode(header); save(join(path, "header.json"), this.header); }
   static create(root: string, rawScope: unknown, rawEndpoint: unknown, nonce: string, transportDigest: string) {
-    const scope = parseAgentWorkspaceToolScope(rawScope), original = endpoint(rawEndpoint, scope, nonce);
+    const scope = parseAgentWorkspaceToolScope(rawScope),copiedEndpoint=copyToolJson(rawEndpoint),parent=!!copiedEndpoint&&typeof copiedEndpoint==="object"&&"parent_skill_catalog_digest" in copiedEndpoint, original = endpoint(copiedEndpoint, scope, nonce,parent);
     if (!sha(transportDigest)) fail();
     root = directory(root); directory(join(root, "agent-workspace-ipc-originals", scope.project_id, scope.run_id));
     const path = assertOrdinaryPath(location(root, scope, nonce)); mkdirSync(path);
-    return new AgentWorkspaceIpcJournal(path, { format: "cimiloop/agent-workspace-ipc-originals/1.0.0", scope, endpoint: original, nonce,
+    return new AgentWorkspaceIpcJournal(path, { format: parent?"cimiloop/agent-workspace-ipc-originals/2.0.0":"cimiloop/agent-workspace-ipc-originals/1.0.0", scope, endpoint: original, nonce,
       transport_digest: transportDigest, maximum_exchanges: 128, formal_agent_execution_enabled: false });
   }
   private original() { if (!bytesAt(join(this.path, "header.json"), TOOL_RECORD_BYTES).equals(this.header)) fail(); }
@@ -63,9 +64,9 @@ export function readAgentWorkspaceIpcOriginals(root: string, rawScope: unknown, 
   if (!existsSync(path)) return { status: "Unknown" as const, reason: "agent_ipc_original_registration_missing", path, header: null, exchanges: [], unresolved: 0, artifacts: [], formal_agent_execution_enabled: false as const };
   const headerBytes = bytesAt(join(path, "header.json"), TOOL_RECORD_BYTES), header = json(headerBytes);
   if (!exact(header, ["format", "scope", "endpoint", "nonce", "transport_digest", "maximum_exchanges", "formal_agent_execution_enabled"]) ||
-    header.format !== "cimiloop/agent-workspace-ipc-originals/1.0.0" || !isDeepStrictEqual(parseAgentWorkspaceToolScope(header.scope), scope) || header.nonce !== nonce ||
+    !["cimiloop/agent-workspace-ipc-originals/1.0.0","cimiloop/agent-workspace-ipc-originals/2.0.0"].includes(String(header.format)) || !isDeepStrictEqual(parseAgentWorkspaceToolScope(header.scope), scope) || header.nonce !== nonce ||
     !sha(header.transport_digest) || header.maximum_exchanges !== 128 || header.formal_agent_execution_enabled !== false) fail();
-  const originalEndpoint = endpoint(header.endpoint, scope, nonce), names = readdirSync(path).filter(name => name !== "header.json").sort();
+  const originalEndpoint = endpoint(header.endpoint, scope, nonce,header.format==="cimiloop/agent-workspace-ipc-originals/2.0.0"), names = readdirSync(path).filter(name => name !== "header.json").sort();
   if (names.length > 128 || names.some((name, i) => name !== String(i + 1).padStart(4, "0"))) fail();
   const artifacts = [{ name: "header.json", path: join(path, "header.json"), digest: digest(headerBytes).value }];
   const exchanges: { ordinal: string; request_digest: string | null; reply_digest: string | null; request: unknown; reply: unknown; state: "reply_recorded" | "unknown" }[] = [];
@@ -93,10 +94,17 @@ export function readAgentWorkspaceIpcOriginals(root: string, rawScope: unknown, 
           reply.outcome === "denied" && reply.receipt === null && reply.replay === false && (reply.call_id === null || frame && reply.call_id === frame.call_id) &&
           typeof reply.reason === "string" && /^[a-z_]{1,96}$/.test(reply.reason))) fail();
     }
+    if(replyBody&&request&&typeof request==="object"&&"tool" in request&&request.tool==="run_skill"&&(reply as Record<string,unknown>).outcome==="completed"){
+      const frame=request as Record<string,unknown>;
+      const catalogDigest=originalEndpoint.parent_skill_catalog_digest;
+      if(header.format!=="cimiloop/agent-workspace-ipc-originals/2.0.0"||!sha(catalogDigest)||frame.catalog_digest!==catalogDigest)fail();
+      const call=parseAgentParentSkillIpcRequest(frame,{scope_digest:originalEndpoint.scope_digest,catalog_digest:catalogDigest,entries:[{skill_alias:String(frame.skill_alias),method_name:String(frame.method_name),input_alias:String(frame.input_alias)}]});
+      parseAgentParentSkillIpcReceipt((reply as Record<string,unknown>).receipt,call);
+    }
     exchanges.push({ ordinal, request_digest: requestBody?.digest ?? null, reply_digest: replyBody?.digest ?? null, request, reply, state: requestBody && replyBody ? "reply_recorded" : "unknown" });
   }
   if (!bytesAt(join(path, "header.json"), TOOL_RECORD_BYTES).equals(headerBytes) || !isDeepStrictEqual(readdirSync(path).filter(name => name !== "header.json").sort(), names)) fail();
-  return { status: "Observed" as const, reason: "agent_ipc_original_bytes_read", path, header: { ...header, scope, endpoint: originalEndpoint }, exchanges,
+  return { status: "Observed" as const, reason: "agent_ipc_original_bytes_read", path, header: { ...header, format:String(header.format) as "cimiloop/agent-workspace-ipc-originals/1.0.0"|"cimiloop/agent-workspace-ipc-originals/2.0.0", scope, endpoint: originalEndpoint }, exchanges,
     unresolved: exchanges.filter(exchange => exchange.state === "unknown").length, artifacts, formal_agent_execution_enabled: false as const };
 }
 
@@ -104,13 +112,14 @@ export function readAgentWorkspaceIpcOriginals(root: string, rawScope: unknown, 
 // IPC bytes. This does not qualify a model/account or replace the native ledger.
 export function correlateAgentWorkspaceSdkOriginals(originals: ReturnType<typeof readAgentWorkspaceIpcOriginals>, stdout: Buffer) {
   if (stdout.length > 4 * 1024 * 1024) fail();
+  const parentEnabled=originals.header?.format==="cimiloop/agent-workspace-ipc-originals/2.0.0";
   const parts = new Map<string, Record<string, unknown>>();
   for (const line of new TextDecoder("utf-8", { fatal: true }).decode(stdout).split(/\r?\n/)) {
     if (!line.trim().startsWith("{")) continue;
     const event = json(Buffer.from(line), 2 * 1024 * 1024) as Record<string, unknown>;
     if (!event || event.type !== "tool_use") continue;
     const part = event.part as Record<string, unknown>;
-    if (!part || !id(part.sessionID) || part.sessionID !== event.sessionID || !id(part.messageID) || !id(part.callID) || !["cimi_read", "cimi_replace", "cimi_check","cimi_invoke_skill","cimi_read_method_resource"].includes(String(part.tool))) fail();
+    if (!part || !id(part.sessionID) || part.sessionID !== event.sessionID || !id(part.messageID) || !id(part.callID) || !["cimi_read", "cimi_replace", "cimi_check","cimi_invoke_skill","cimi_read_method_resource",...(parentEnabled?["cimi_run_skill"]:[])].includes(String(part.tool))) fail();
     const callId = "sdk_" + digest(JSON.stringify([part.sessionID, part.messageID, part.callID])).value;
     if (parts.has(callId) || parts.size >= 128) fail(); parts.set(callId, part);
   }
@@ -118,19 +127,20 @@ export function correlateAgentWorkspaceSdkOriginals(originals: ReturnType<typeof
     const request = exchange.request as Record<string, unknown> | null, reply = exchange.reply as Record<string, unknown> | null, part = request && parts.get(String(request.call_id));
     let correlated = false;
     if (request && reply && part && request.scope_digest === (originals.header?.endpoint as AgentWorkspaceIpcEndpoint).scope_digest) {
-      const state = part.state as Record<string, unknown>, tool = ({ read_file: "cimi_read", replace_file: "cimi_replace", run_check: "cimi_check",invoke_skill:"cimi_invoke_skill",read_method_resource:"cimi_read_method_resource" } as Record<string, string>)[String(request.tool)];
+      const state = part.state as Record<string, unknown>, tool = ({ read_file: "cimi_read", replace_file: "cimi_replace", run_check: "cimi_check",invoke_skill:"cimi_invoke_skill",read_method_resource:"cimi_read_method_resource",run_skill:"cimi_run_skill" } as Record<string, string>)[String(request.tool)];
       const named=["invoke_skill","read_method_resource"].includes(String(request.tool));
-      const args = named?{[request.tool==="invoke_skill"?"name":"path"]:request.argument}:request.tool === "run_check" ? { check_id: request.check_id } : { path: request.path, expected_digest: request.expected_digest, ...(request.tool === "replace_file" ? { replacement_utf8: request.replacement_utf8 } : {}) };
+      const parent=request.tool==="run_skill"&&parentEnabled;
+      const args = parent?{skill_alias:request.skill_alias,method_name:request.method_name,input_alias:request.input_alias}:named?{[request.tool==="invoke_skill"?"name":"path"]:request.argument}:request.tool === "run_check" ? { check_id: request.check_id } : { path: request.path, expected_digest: request.expected_digest, ...(request.tool === "replace_file" ? { replacement_utf8: request.replacement_utf8 } : {}) };
       if (state && part.tool === tool && isDeepStrictEqual(state.input, args)) {
         if (reply.outcome === "denied") correlated = state.status === "error" && typeof state.error === "string" && state.error.includes(String(reply.reason));
         else if (state.status === "completed" && typeof state.output === "string") {
           const receipt = reply.receipt as Record<string, unknown>, native = receipt?.native as Record<string, unknown>;
-          const expected = named?{...receipt,replay:reply.replay}:request.tool === "run_check" ? { format: receipt.format==="cimiloop/workspace-check-receipt/2.0.0" ? "cimiloop/opencode-check-output/2.0.0" : "cimiloop/opencode-check-output/1.0.0", ...(receipt.format==="cimiloop/workspace-check-receipt/2.0.0"?{source_basis_digest:receipt.source_basis_digest}:{}), call_id: request.call_id, check_id: request.check_id,
+          const expected = parent?{...receipt,format:"cimiloop/opencode-parent-skill-output/1.0.0",replay:reply.replay}:named?{...receipt,replay:reply.replay}:request.tool === "run_check" ? { format: receipt.format==="cimiloop/workspace-check-receipt/2.0.0" ? "cimiloop/opencode-check-output/2.0.0" : "cimiloop/opencode-check-output/1.0.0", ...(receipt.format==="cimiloop/workspace-check-receipt/2.0.0"?{source_basis_digest:receipt.source_basis_digest}:{}), call_id: request.call_id, check_id: request.check_id,
             check_catalog_digest: request.check_catalog_digest, outcome: receipt.outcome, exit_code: receipt.exit_code, reason: receipt.reason, source_digest: receipt.source_digest,
             stdout_digest: receipt.stdout_digest, stderr_digest: receipt.stderr_digest, replay: reply.replay, formal_agent_execution_enabled: false } :
             native ? { format: "cimiloop/opencode-workspace-output/1.0.0", call_id: request.call_id, tool: request.tool, path: request.path, before_digest: native.before_digest,
               after_digest: native.after_digest, text: native.text, replay: reply.replay, formal_agent_execution_enabled: false } : null;
-          try { correlated = (named?receipt?.scope_digest===request.scope_digest&&receipt?.profile_digest===request.profile_digest:receipt?.run_id === (originals.header?.scope as AgentWorkspaceToolScope).run_id) && receipt.call_id === request.call_id &&
+          try { correlated = (parent?receipt?.scope_digest===request.scope_digest&&receipt?.catalog_digest===request.catalog_digest&&request.catalog_digest===originals.header?.endpoint.parent_skill_catalog_digest:named?receipt?.scope_digest===request.scope_digest&&receipt?.profile_digest===request.profile_digest:receipt?.run_id === (originals.header?.scope as AgentWorkspaceToolScope).run_id) && receipt.call_id === request.call_id &&
             isDeepStrictEqual(json(Buffer.from(state.output)), expected); } catch { correlated = false; }
         }
       }
@@ -139,7 +149,7 @@ export function correlateAgentWorkspaceSdkOriginals(originals: ReturnType<typeof
       sdk: correlated && part ? { session_id: part.sessionID, message_id: part.messageID, call_id: part.callID } : null };
   });
   const used = new Set(links.filter(link => link.correlated).map(link => link.call_id));
-  return { format: "cimiloop/agent-sdk-ipc-correlation/1.0.0" as const, stdout_digest: digest(stdout).value, links,
+  return { format: parentEnabled?"cimiloop/agent-sdk-ipc-correlation/2.0.0" as const:"cimiloop/agent-sdk-ipc-correlation/1.0.0" as const, stdout_digest: digest(stdout).value, links,
     uncorrelated_exchanges: links.filter(link => !link.correlated).length, unmatched_sdk_calls: [...parts.keys()].filter(key => !used.has(key)).length,
     model_account_custody_proven: false as const, native_effect_reverified: false as const, formal_agent_execution_enabled: false as const };
 }

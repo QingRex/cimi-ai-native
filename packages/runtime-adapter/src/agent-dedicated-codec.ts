@@ -1,7 +1,7 @@
 import { isDeepStrictEqual } from "node:util";
 import { digest, RuntimeAdapterError } from "./files.js";
 import { parseGatewayJson, validateGatewayToolSchema, parseGatewayFunctionCalls, type GatewayFunctionTool } from "./gateway-conversation.js";
-import { parseAgentRuntimeModelResponse, type AgentRuntimeModelResponse, type parseAgentRuntimeModelRequest } from "./agent-runtime-model.js";
+import { isAgentParentSkillToolSet,parseAgentRuntimeModelResponse, type AgentRuntimeModelResponse, type parseAgentRuntimeModelRequest } from "./agent-runtime-model.js";
 
 type Request=ReturnType<typeof parseAgentRuntimeModelRequest>;
 export interface DedicatedAgentProfile {model:string;thinking:"enabled"|"disabled"}
@@ -20,7 +20,8 @@ export function parseDedicatedAgentProfile(raw:unknown):DedicatedAgentProfile{
 export function prepareDedicatedAgentRequest(request:Request,rawProfile:DedicatedAgentProfile,prior:DedicatedAgentReply[]):PreparedDedicatedAgentRequest{
  const requested=request.tools.map(raw=>(raw as {name?:unknown}).name),named=requested.some(n=>n==='cimi_invoke_skill'||n==='cimi_read_method_resource');
  if(named&&(requested.length!==2||!requested.includes('cimi_invoke_skill')||!requested.includes('cimi_read_method_resource')))fail();
- const allowed=named?['cimi_invoke_skill','cimi_read_method_resource']:['cimi_read','cimi_replace','cimi_check'];
+ const parent=request.format==='cimiloop/agent-runtime-model-request/2.0.0';if(parent?named||!isAgentParentSkillToolSet(requested):requested.includes('cimi_run_skill'))fail();
+ const allowed=parent?['cimi_read','cimi_replace','cimi_check','cimi_run_skill']:named?['cimi_invoke_skill','cimi_read_method_resource']:['cimi_read','cimi_replace','cimi_check'];
  const profile=parseDedicatedAgentProfile(rawProfile),tools:GatewayFunctionTool[]=[],names=new Set<string>();
  for(const raw of request.tools){if(!fields(raw,["type","name","description","inputSchema"])||raw.type!=="function"||!id(raw.name)||!allowed.includes(raw.name)||names.has(raw.name)||!text(raw.description,4096))fail();
   validateGatewayToolSchema(raw.inputSchema,{nodes:0});if(raw.inputSchema.type!=="object")fail();names.add(raw.name);tools.push({type:"function",function:{name:raw.name,description:raw.description,parameters:structuredClone(raw.inputSchema)}});}

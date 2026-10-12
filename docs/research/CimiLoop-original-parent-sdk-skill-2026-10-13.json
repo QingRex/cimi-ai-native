@@ -1,0 +1,143 @@
+{
+  "record": "D-281",
+  "recorded_at": "2026-10-12T20:01:22.130Z",
+  "base_commit": "656334214bcc8831547735debb2f8c836e518e6b",
+  "branch": "main",
+  "origin": {
+    "recorded_at": "2026-10-12T20:01:21.537Z",
+    "fetch_performed": true,
+    "head": "656334214bcc8831547735debb2f8c836e518e6b",
+    "branch": "main",
+    "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+    "ahead_behind": "48\t0",
+    "pushed": false
+  },
+  "goal_status": "active",
+  "full_goal_scope": [
+    "V1-09",
+    "V1-21",
+    "V1-22",
+    "V1-10",
+    "V1-11"
+  ],
+  "pushed": false,
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "protocol_schema_count": 242,
+  "database_format": 10,
+  "host_ledger_format": 1,
+  "node": "v24.19.0",
+  "pnpm": "12.4.2",
+  "capabilities": [
+    "Fixed parent SDK tool joins original Kernel Skill reservation/execution with immutable intent before effect",
+    "Original response loss replays original child/receipt without new Run or effect",
+    "Historical child proof consumed by independent Native result reader",
+    "Kernel-scoped current Writer reads original child without nested transaction"
+  ],
+  "verification": {
+    "files": 34,
+    "passed": 230,
+    "failed": 0,
+    "skipped": 0,
+    "single_full_current_main_scope": true,
+    "whole_repository": false,
+    "full_s1_acceptance": false,
+    "scope": [
+      "packages/local-app/test/agent-parent-skill-host.test.ts",
+      "packages/local-app/test/agent-parent-skill-calls.test.ts",
+      "packages/local-app/test/agent-parent-skill-ipc-local.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-ipc.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-gateway.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-correlation.test.ts",
+      "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+      "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+      "packages/runtime-adapter/test/opencode-parent-skill-tools.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-runtime.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-native-config.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-model.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-dedicated.test.ts",
+      "packages/local-app/test/agent-parent-skill-composition.test.ts",
+      "packages/local-app/test/agent-parent-skill-readonly.test.ts",
+      "packages/local-app/test/agent-parent-skill-writer-readonly.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-parent-result.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-result.test.ts",
+      "packages/local-app/test/skill-invocation-verified-result.test.ts",
+      "tests/scenarios/skill-invocation-control-native-runtime.test.ts",
+      "tests/scenarios/skill-invocation-native-runtime.test.ts",
+      "tests/scenarios/agent-named-method-runtime.test.ts",
+      "tests/scenarios/agent-runtime-cancellation-native.test.ts",
+      "packages/runtime-adapter/test/native-control-runtime.test.ts",
+      "packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+      "tests/scenarios/skill-invocation-cancellation-native-runtime.test.ts",
+      "tests/scenarios/skill-invocation-not-started-native-runtime.test.ts",
+      "tests/scenarios/agent-dedicated-account-custody.test.ts",
+      "tests/scenarios/agent-account-bills-custody.test.ts",
+      "tests/scenarios/agent-start-custody-runtime.test.ts",
+      "tests/scenarios/agent-account-billing-entry-runtime.test.ts",
+      "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+      "tests/scenarios/agent-run-cost-observation-custody.test.ts",
+      "tests/scenarios/agent-run-family-settlement-native-runtime.test.ts"
+    ],
+    "report": {
+      "path": ".cimiloop/new-host-s1/d281-main-r2-full-current-native.json",
+      "sha256": "a497d6cdb73d7e95e0569940a4e7b18785e83d6b5e0064b3d33cd2555a55e158"
+    },
+    "log": {
+      "path": ".cimiloop/new-host-s1/d281-main-r2-full-current-native.log",
+      "sha256": "32b5040493ba4af8a6d6c5a03c00cc89369807c78aa59e45db6392ef54e482ca"
+    },
+    "metadata": {
+      "path": ".cimiloop/new-host-s1/d281-main-r2-full-current-native.meta.json",
+      "sha256": "6879f49514b8a0c8d80695d03ba01e1a9dbcc3f1672f88175e8fa670a9a1e997"
+    },
+    "check": {
+      "path": ".cimiloop/new-host-s1/d281-main-r1-check.meta.json",
+      "sha256": "3278bf5dc8ae2d1c69502ea42a1a1f95639a213e263c46e377680c1001b046ae"
+    },
+    "check_log": {
+      "path": ".cimiloop/new-host-s1/d281-main-r1-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    "cli": {
+      "path": ".cimiloop/new-host-s1/d281-cli-help-final.log",
+      "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+    }
+  },
+  "source": {
+    "files": 748,
+    "before": {
+      "path": ".cimiloop/new-host-s1/d281-main-integrated-source-before.json",
+      "sha256": "6a110bc3d6592afcbeb40ce0921f756f2bd2b05198d4ab361c87422f6b313f25"
+    },
+    "after": {
+      "path": ".cimiloop/new-host-s1/d281-main-full-source-after.json",
+      "sha256": "6a110bc3d6592afcbeb40ce0921f756f2bd2b05198d4ab361c87422f6b313f25"
+    },
+    "drift": [],
+    "exact_integration": {
+      "path": ".cimiloop/new-host-s1/d281-main-exact-integration.json",
+      "sha256": "bdb5bb95e61c573804b5885124cfc9141b88e81f59f796eb2d7f8c7214a30431"
+    },
+    "main_only_repairs_preserved": true,
+    "candidate_sources": 36
+  },
+  "engineering_review": {
+    "path": ".cimiloop/new-host-s1/d281-engineering-review-main-final.json",
+    "sha256": "5af93554129e00d65d5e6a6b7877d4e9dcc65115faf2f0997fee71e09517127a"
+  },
+  "limitations": [
+    "PUBLIC child execution/model/qualification/bills are not real Skill/model evidence",
+    "Formal collection, parent domain output, current-candidate review, shared result wiring and terminal/family bills require following batches",
+    "No complete real parent SDK-to-child Native/billing acceptance",
+    "Physical child cancellation, hard disk quota/history capacity and full exception recovery remain",
+    "Complete independent Matt, fresh Superpowers, pre-Plan/Task Human/Matt, formal Workbench and ordinary Change delivery remain",
+    "Only zhipuai provider approved; model/package/cash currency and cap/credit cap unconfirmed; no paid requests"
+  ],
+  "old_failures_preserved": [
+    "r94 complete14/158 has one IPC-before-ready failure; original exit cause remains unproven",
+    "r102 endpoint-digest fixture setup failure is not behavior evidence",
+    "Old type/TEMP/Native failures retained; fresh pass never reclassifies old originals"
+  ]
+}
