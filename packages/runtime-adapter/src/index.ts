@@ -84,3 +84,6 @@ export type {AgentNamedMethodResultInputs,AgentNamedMethodResult} from "./agent-
 
 export {AGENT_JOB_RESOURCE_POLICY,verifyAgentJobObservation,readOriginalAgentJobObservation} from "./agent-job-policy.js";
 export type {AgentJobObservationBasis,AgentJobObservation} from "./agent-job-policy.js";
+
+export {readAgentRuntimeNamedMethodCancellation} from './agent-named-method-cancellation.js';
+export type {OriginalNamedCancellation} from './agent-named-method-cancellation.js';

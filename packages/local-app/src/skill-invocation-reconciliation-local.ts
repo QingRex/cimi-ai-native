@@ -23,8 +23,9 @@ export class LocalHumanSkillInvocationReconciliation {
   if(!project||project.id!==instance.project_id||!actor||actor.actor_type!=='human'||actor.project_id!==project.id||!invocation||invocation.project_id!==project.id||invocation.run_ref.id!==run?.id||run.project_id!==project.id)throw fail();return {project_id:project.id,actor_id:actor.id,invocation_digest:requestDigest(invocation),invocation_id:invocation.id,run_id:run.id};
  }
  async reconcile(raw:unknown,beforeCommit:()=>void=()=>{}){
-  let guardFailed=false,guardError:unknown;const authorize=()=>{try{const result:unknown=beforeCommit();if(result&&typeof result==='object'&&'then'in result){void Promise.resolve(result).catch(()=>undefined);throw Error('Synchronous reconciliation guard required');}}catch(error){guardFailed=true;guardError=error;throw error;}};
-  const request=parseHumanSkillReconciliation(raw,this.local),original=this.original(request),identity=structuredClone(this.local.instance);
+  let guardFailed=false,guardError:unknown;const authorize=()=>{try{const result:unknown=beforeCommit();if(result&&typeof result==='object'&&'then'in result){void Promise.resolve(result).catch(()=>undefined);throw Error('Synchronous reconciliation guard required');}fresh();}catch(error){guardFailed=true;guardError=error;throw error;}};
+  const request=parseHumanSkillReconciliation(raw,this.local),original=this.original(request),identity=structuredClone(this.local.instance),location=structuredClone(this.local.location);
+  const fresh=()=>{if(!same(location,this.local.location)||!same(identity,this.local.instance)||!same(this.original(request),original))throw fail();};
   if(![original.project_id,original.invocation_id,request.command_id].every(isInternalId))throw fail();
   const dir=join(this.local.location.dataDirectory,'skill-reconciliation-originals',original.project_id,original.invocation_id,request.command_id),intent={format:'cimiloop/human-skill-reconciliation-request/1.0.0',original,request};
   mkdirSync(dir,{recursive:true});const intentPath=join(dir,'intent.json');save(intentPath,intent);if(!same(read(intentPath),intent))throw new LocalProjectError('原 Skill 核对命令已用于不同输入','COMMAND_ID_REUSED','conflict');
@@ -35,14 +36,15 @@ export class LocalHumanSkillInvocationReconciliation {
   if(!this.factory)throw fail();let inner:LocalProject|undefined,release:(()=>void|Promise<void>)|undefined;
   try{
    const lease=await this.factory(original.invocation_id,this.local);if(typeof lease?.release!=='function')throw fail();release=lease.release.bind(lease);authorize();
-   if(!(lease.collector instanceof LocalSkillInvocationResultCollection)||!same(identity,this.local.instance)||!same(this.original(request),original))throw fail();
+   if(!(lease.collector instanceof LocalSkillInvocationResultCollection)||!same(location,this.local.location)||!same(identity,this.local.instance)||!same(this.original(request),original))throw fail();
    const collector=lease.collector;
-   if(!existsSync(preparedPath)){const capture=collector.captureReconciliation(original.invocation_id,original.actor_id);
+   if(!existsSync(preparedPath)){const capture=await collector.captureHumanReconciliation(original.invocation_id,original.actor_id);authorize();
+    if(!same(location,this.local.location)||!same(identity,this.local.instance)||!same(this.original(request),original))throw fail();
     if(capture.report.run_ref.id!==original.run_id||capture.report.invocation_ref.id!==original.invocation_id||capture.report.producer_actor_id!==original.actor_id)throw fail();
     save(preparedPath,{format:'cimiloop/human-skill-reconciliation-prepared/1.0.0',request_digest:requestDigest(intent),raw_result_ref:capture.reference});}
    inner=openLocalProject({projectDir:this.local.location.repositoryPath,skillInvocationResults:{readResult:collector.readResult.bind(collector)}});
-   if(!same(identity,inner.instance)||!same(this.original(request),original))throw fail();authorize();return executeLocalCommand(inner,command(prepared()));
+   if(!same(location,this.local.location)||!same(identity,inner.instance)||!same(this.original(request),original))throw fail();authorize();return executeLocalCommand(inner,command(prepared()));
   }catch(error){if(guardFailed&&error===guardError)throw error;throw fail();}
-  finally{inner?.store.close();if(release){try{await release();}catch{throw new LocalProjectError('原 Skill 核对账户释放尚待核对；保留原命令回执','CAPABILITY_UNAVAILABLE','conflict');}if(!same(identity,this.local.instance)||!same(this.original(request),original))throw fail();}}
+  finally{inner?.store.close();if(release){try{await release();}catch{throw new LocalProjectError('原 Skill 核对账户释放尚待核对；保留原命令回执','CAPABILITY_UNAVAILABLE','conflict');}if(!same(location,this.local.location)||!same(identity,this.local.instance)||!same(this.original(request),original))throw fail();}}
  }
 }

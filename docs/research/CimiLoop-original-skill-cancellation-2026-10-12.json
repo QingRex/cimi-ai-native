@@ -1,0 +1,548 @@
+{
+  "record": "D-278",
+  "started_on": "2026-10-12",
+  "recorded_at": "2026-10-12T03:21:39.687Z",
+  "base_commit": "655ee7cfb18f99a6f776f0684d005f62992c7eb5",
+  "branch": "main",
+  "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "origin_refresh": {
+    "path": ".cimiloop/new-host-s1/d278-origin-refresh-final.json",
+    "sha256": "3a6039ba65cd5def1a9f7f6b2e8fa1b09a93f34f1c38db07654b180aa20e4928"
+  },
+  "ahead_behind_before_commit": "45\t0",
+  "pushed": false,
+  "goal_status": "active",
+  "full_goal_scope": [
+    "V1-09",
+    "V1-21",
+    "V1-22",
+    "V1-10",
+    "V1-11"
+  ],
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "user_approved_provider_only": "zhipuai",
+  "remaining_model_approval": [
+    "specific model",
+    "package",
+    "cash limit and currency",
+    "credit limit"
+  ],
+  "database_format": 10,
+  "protocol_schema_count": 242,
+  "environment": {
+    "node": "v24.19.0",
+    "pnpm": "12.4.2",
+    "node_path": "C:\\Users\\hector.he\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe",
+    "cli_exit": 0,
+    "schema_exported": 242,
+    "schema_tracked": 242,
+    "schema_drift": [],
+    "user_database_format": 10,
+    "protocol_or_user_database_migration": false
+  },
+  "compatibility": {
+    "public_schema_changed": false,
+    "user_database_upgraded": false,
+    "historical_evidence_rewritten": false,
+    "old_success_failure_proof_meaning_changed": false
+  },
+  "capabilities": [
+    "Independent actual original cfg6 running cancellation, complete SDK named-method prefix and every original model/IPC request/reply matched; no successful method output",
+    "Original Kernel parent cancellation, pinned historical qualification and authenticated final child cash/credit bills join same Human reconciliation to child Cancelled",
+    "Shared collector and Kernel readResult reread the same collection twice with independent original readers and exact content copies",
+    "Full immutable location/identity/original relation rechecked after guard, factory, asynchronous capture and release; capture-time drift leaves no prepared",
+    "Actual Windows/SDK/IPC/Workbench HTTP/Kernel commit and restart replay of same command after lost response, with no replacement Run or model send",
+    "Child terminal does not release parent reservation, settle complete family or accept Task; no-call and unresolved originals remain Unknown"
+  ],
+  "verification": {
+    "affected": {
+      "files": 16,
+      "passed": 187,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_ms": 1572058,
+      "scope": [
+        "packages/local-app/test/skill-invocation-control-local.test.ts",
+        "apps/workbench/test/skill-control.test.ts",
+        "apps/workbench/test/skill-control-frontend.test.ts",
+        "apps/workbench/test/agent-runtime-frontend.test.ts",
+        "packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "packages/local-app/test/skill-invocation-reconciliation.test.ts",
+        "packages/local-app/test/skill-invocation-result-capacity.test.ts",
+        "packages/local-app/test/agent-runtime-human-start-local.test.ts",
+        "packages/local-app/test/agent-runtime-start-local.test.ts",
+        "packages/local-app/test/agent-runtime-control-local.test.ts",
+        "apps/workbench/test/agent-runtime-control.test.ts",
+        "apps/workbench/test/agent-runtime-start.test.ts",
+        "apps/workbench/test/skill-reconciliation.test.ts",
+        "tests/scenarios/named-skill-method-assessment.test.ts",
+        "packages/runtime-adapter/test/agent-named-method-cancellation.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-cancellation.test.ts"
+      ],
+      "single_full_run_green": true,
+      "log": {
+        "path": ".cimiloop/new-host-s1/d278-r26-affected-final.log",
+        "sha256": "b496fa8c5d8a56a7db1dd48eb9fa1cebc5c49420e6ba299754e3c50932cc52f3"
+      },
+      "report": {
+        "path": ".cimiloop/new-host-s1/d278-r26-affected-final.json",
+        "sha256": "cbc09845355920d68e18b49a9658a7209b7700f41339f884ac368c9b64eba662"
+      },
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d278-r26-affected-final.meta.json",
+        "sha256": "8fce1e5cdba45073249f710dd400cc039ea711707a874d8668695d41c25b9f80"
+      }
+    },
+    "windows": {
+      "files": 7,
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_ms": 1560383,
+      "scope": [
+        "tests/scenarios/skill-invocation-control-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-native-runtime.test.ts",
+        "tests/scenarios/agent-named-method-runtime.test.ts",
+        "tests/scenarios/agent-runtime-cancellation-native.test.ts",
+        "packages/runtime-adapter/test/native-control-runtime.test.ts",
+        "packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-cancellation-native-runtime.test.ts"
+      ],
+      "single_full_run_green": true,
+      "log": {
+        "path": ".cimiloop/new-host-s1/d278-r26-windows-final.log",
+        "sha256": "4a20121263db07bfd87c4b289517d48bcc3caf4b88cb45894a5a3a13434559c8"
+      },
+      "report": {
+        "path": ".cimiloop/new-host-s1/d278-r26-windows-final.json",
+        "sha256": "c6c1ca88ca4d902a44f2757dd4ac3e96745690c9ec5d7f0c98d3915e8258d2ce"
+      },
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d278-r26-windows-final.meta.json",
+        "sha256": "a6a5ff13f73b1c17e7e6a1a6d68a25c9e4eabd45b2e37a4782d2188416c9b1c8"
+      }
+    }
+  },
+  "source": {
+    "files": 713,
+    "before": {
+      "path": ".cimiloop/new-host-s1/d278-final-source-before.json",
+      "sha256": "cccd1c7a8ae95f66b31b66a05ac7ec98401d3e82a234e5f112ee8ca647e9a897"
+    },
+    "after": {
+      "path": ".cimiloop/new-host-s1/d278-final-source-after.json",
+      "sha256": "cccd1c7a8ae95f66b31b66a05ac7ec98401d3e82a234e5f112ee8ca647e9a897"
+    },
+    "drift": []
+  },
+  "check": {
+    "metadata": {
+      "path": ".cimiloop/new-host-s1/d278-r24-check.meta.json",
+      "sha256": "ca2554b9233da7a495608c41202d85f32495be12cd5ea94424f0de1dbc50665f"
+    },
+    "log": {
+      "path": ".cimiloop/new-host-s1/d278-r24-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    "exit_code": 0,
+    "note": "Selected Node check built this frozen source before complete r26 scopes; no source edits after."
+  },
+  "cli": {
+    "path": ".cimiloop/new-host-s1/d278-cli-bin-help-final.log",
+    "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+  },
+  "environment_artifact": {
+    "path": ".cimiloop/new-host-s1/d278-environment-cli-schema-final.json",
+    "sha256": "fd30fb423b36d8577255ab547c33ffea6b02372c83968c1743f9b6cf0f716df5"
+  },
+  "proof_limits": {
+    "proof_bytes": 8388608,
+    "nodes": 100000,
+    "depth": 64,
+    "cancellation_additional_artifacts": 3,
+    "cancellation_additional_bytes": 196608,
+    "per_original_job_extra_artifacts": 1,
+    "old_success_failure_limits_unchanged": true,
+    "physical_hard_quota_proven": false,
+    "historical_capacity_proven": false
+  },
+  "constructed_native_fixture": {
+    "path": "D:/cc/cimi-ai-native/_tPxVqg/.git/cimiloop/d278-child-cancellation-summary.json",
+    "sha256": "486c85bf3c6f4c715a53260bad5ad1c4b38a3cd01883e20815d625240bc8ba80",
+    "root": "D:\\cc\\cimi-ai-native\\.cimiloop\\new-host-s1\\skill-cancellation-fixtures\\cimiloop-skill-cancellation-AeRKJY",
+    "repository": "D:\\cc\\cimi-ai-native\\_tPxVqg",
+    "actual_native": true,
+    "actual_sdk": true,
+    "actual_authenticated_ipc": true,
+    "actual_http_kernel": true,
+    "original_command_replayed_after_restart": true,
+    "model_requests": 2,
+    "fee_micros": 24,
+    "credit_micro_units": 8,
+    "parent_run_status": "Unknown",
+    "reservation_released": false,
+    "task_accepted": false,
+    "constructed_qualification": true,
+    "constructed_model_and_approval": true,
+    "constructed_bill_authentication": true,
+    "real_skill": false,
+    "s1_accepted": false
+  },
+  "engineering_review": {
+    "path": ".cimiloop/new-host-s1/d278-engineering-review-final.json",
+    "sha256": "e1162a4a12442e297dc361dcb3a5d3c388d65dbd9f3d3fe8d58dd470b49f740b"
+  },
+  "diagnostic_records": [
+    {
+      "path": ".cimiloop/new-host-s1/d278-r1-cancellation-red.json",
+      "sha256": "031ea976ab0a9a777f1904ef7c4aa761582b01e48d26102a9582ba7b7bcaa8a5"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r1-cancellation-red.log",
+      "sha256": "3bbe6444198a79cf5b55e8297705412f2ddc17ed526f1b29158d05140275555e"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r1-cancellation-red.meta.json",
+      "sha256": "67fa20b97dce392a9554c7dfc26f60c2cddd0c71ce845fdba2cac76308c7d951"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r10-location-red.json",
+      "sha256": "f639c73e3447cbabf6874073d759f09038db89836ae214047aaccfcd7d31ec29"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r10-location-red.log",
+      "sha256": "8a08de5d768940ffd8e83489e2761b19c60cb7636dac39611126e749d72fabb9"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r10-location-red.meta.json",
+      "sha256": "093f4068e5071d0074894f2ceffbea899209204aadeb1c346f986b72e1b0c27d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r11-local-focused-green.json",
+      "sha256": "6f191cf6916ffad3c97e88b5df4b225e343744384d113adebfbc7a98a7c33266"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r11-local-focused-green.log",
+      "sha256": "1fe04c7c1c77bf0ab88a64a28b813d9738dc28ed6f785522f3f027586d753752"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r11-local-focused-green.meta.json",
+      "sha256": "5b22bc0da2426e9050a94c9645c78182ed936224cb640ce51174cce16c3cf21c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r12-local-diagnostic.json",
+      "sha256": "2fd136266c05fa5037d538409662f70014a67f509d1229caeb24ab9854f960bb"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r12-local-diagnostic.log",
+      "sha256": "a2143ed925038f18af1c42dd4584b5a00911885d38564340d48a07b9a78484c3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r12-local-diagnostic.meta.json",
+      "sha256": "312e0be836e0c53d89d97e61849fa1603e29b74384471b426454b221afdc7413"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r13-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r13-check.meta.json",
+      "sha256": "a93a63916ff705c76eceddc44835c47349464d959472a21dea3ca2bf9b63e8f2"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r14-cancel-diagnostic.json",
+      "sha256": "745b67cf71767b5cd5e22ed3664a85c1dc6025fc9e9343dd8191f60a488f04e3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r14-cancel-diagnostic.log",
+      "sha256": "4d96f7e723de03619cad1f33fb3a43fd7d21f827b5e9366911d7606b8d1ada48"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r14-cancel-diagnostic.meta.json",
+      "sha256": "d28db1d07999a2a2cdbdd64c6ac76f2a291f08755b12d40bb7490bd5e04da999"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r15-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r15-check.meta.json",
+      "sha256": "9c23ee2979d032a429753eaadfa65138aec0f23fc860552eb4f5bb031e1871a8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r16-facts-diagnostic.json",
+      "sha256": "f9e63ce0c0e01d2fcbd92d3610825b8559188ec846efc375dd218c673cd496de"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r16-facts-diagnostic.log",
+      "sha256": "c7f8c9801f98a0531fcebf3345c8a79c4e5b108fba19321c7c32ca19326b8200"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r16-facts-diagnostic.meta.json",
+      "sha256": "3c770836cb7fff9f4b1c85c91295a9de62b826311da835af5e1e94348ad903bd"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r17-new-native.json",
+      "sha256": "4a047feb17f06612a79b9001deb20077edda88565535410fd6f444fa97d770c8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r17-new-native.log",
+      "sha256": "d08043b45a52f8490b5985e940bff17d6891b217420ec49f30fd96a7deabc68d"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r17-new-native.meta.json",
+      "sha256": "74280cf250bb52656fb03b2c637814c820bde5740f3c7554d20b638c16bf4a81"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r18-unit-green.json",
+      "sha256": "73169b3e62f30352efac38c7a31d959b09181e10022e0972847580df16d4f6f8"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r18-unit-green.log",
+      "sha256": "aab2fc119aae654019a74bb8886b920534830f63bb6a10bbcb89a98617f03214"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r18-unit-green.meta.json",
+      "sha256": "9f1491771b6fd3604d8c403f8e3deee3063d706e1f354fc127faf4d89f3559d4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r19-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r19-check.meta.json",
+      "sha256": "acc9a958df71131be9dbf1f68c9d948a3c11136eeaa167244c9e8e30a718d0a0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r2-cancellation-green.json",
+      "sha256": "8b277619e9925baefab095902ea12517f2c8c68290260255dac04e11bff7db95"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r2-cancellation-green.log",
+      "sha256": "ae5d14cc634ed1e1f2a6aadc8c62b27528fcfa8da06479a90da44b5665862600"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r2-cancellation-green.meta.json",
+      "sha256": "9de426856aed56e1bffd5973080e5b8b033f2d00f926c84467477710f46fb0f3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r20-new-native.json",
+      "sha256": "cf19bc02e6636f4fbc7a46447a0bb725d86f914520a30aa39fa162ebbb2171f2"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r20-new-native.log",
+      "sha256": "aa20bb8d88fdeb498cfa9ef5f14bc1a89bc48ef2e0bc0588c50572857c5f10ef"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r20-new-native.meta.json",
+      "sha256": "edcba76572018b6b3a1f93fce110abff36839908eef22e5263a702f8c0a76dca"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r21-full-local.json",
+      "sha256": "ee50aba74a6e189a143b67e9ba578c76891a96ac08b58b0b802697bed33ef829"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r21-full-local.log",
+      "sha256": "a219eee6c69d39fadb307a3c4bfee17ee395b84ddde923a53163896ca854c1e5"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r21-full-local.meta.json",
+      "sha256": "a85c7157fe37072e3455ce59dce0a3c3055182a78cd828c889dd39c6e65d42e2"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r22-async-capacity-red.json",
+      "sha256": "938e922b162edc601c698b63552d61c7f328513a9e417b89d8b27666c6de9969"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r22-async-capacity-red.log",
+      "sha256": "45426ad2c892df16bc701cb663b2fe84129ee3ea9286ca315d2f278884c17aae"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r22-async-capacity-red.meta.json",
+      "sha256": "bb1df86634322bb17f18065f1075da7f1ec1593750dff2afd2959ff898726c9c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r23-async-capacity-green.json",
+      "sha256": "b8342536656ff82d6fb029ab8ccec90dd32f25ce1c130a5916488e241fecdc42"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r23-async-capacity-green.log",
+      "sha256": "e5910b490dd02b43dbcbfb40f0e0ca25d3cfc1b20926f296aae31a57d547b475"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r23-async-capacity-green.meta.json",
+      "sha256": "d62fce67eb635d23620c5597a938f867bcf727e5a46300da9fd86fbe1f06ff88"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r24-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r24-check.meta.json",
+      "sha256": "ca2554b9233da7a495608c41202d85f32495be12cd5ea94424f0de1dbc50665f"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r25-new-native.json",
+      "sha256": "46d23232567949762c2be298b722ad4abc09522d573e7d081a3b5e52d574ea90"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r25-new-native.log",
+      "sha256": "3c4f69f60458ace5a3ba40307547d248b316c14d9439e35d734295fcb2d71ed3"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r25-new-native.meta.json",
+      "sha256": "d068c441bf42d9784bc2a26aa34ebbc19b13d80715993a70b10c3ebc6604a4e6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r3-local-red.json",
+      "sha256": "952a503b7867e27c132527eaf38a8dc7b4ee99aabe3e5a2e27e68867274ab19c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r3-local-red.log",
+      "sha256": "f2ddfd93d8aa38b5caf9271460aa5e7404e927c6c52822eb235ea6f5d8101549"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r3-local-red.meta.json",
+      "sha256": "e3a75aa8ab1b14c7d44d210eeb6b46cd214d9b8e3b83a495a9a0cef1e252a6c0"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r4-local-focused-red.json",
+      "sha256": "d891e10261ab12f83a173e7fdc279881d690b314926262362f1a31ca2b2ee2d9"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r4-local-focused-red.log",
+      "sha256": "08a1ec130486c4cfb28762f91d4e028034d577d6a37b7f238d657de9b9905688"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r4-local-focused-red.meta.json",
+      "sha256": "939cbf6caa67b585a35e4a1a1d13628cb89604358f6b683685c1fa6b324851d4"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r5-sdk-prefix-red.json",
+      "sha256": "709689e1349b260a7d7b3190074d16105cc4b36dd5a471739b3c3fb9963f16b6"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r5-sdk-prefix-red.log",
+      "sha256": "a8c2c5c242caa7555f532cd3429816074257f475c9f2970644c54631711ee046"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r5-sdk-prefix-red.meta.json",
+      "sha256": "6339422df26da8b64c1e7a533a750e15f98b12feeab5b075640cc20861aa5d1b"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r6-check.log",
+      "sha256": "4ecb145f4a653eac8c49f562549ee70b481c6156576e9d95db797b4ab5b8a4ab"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r6-check.meta.json",
+      "sha256": "bba50060ffe8e4e9dd3f807e61bb26a1e26e014b649252a22e40af33d7271f3c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r7-local-corrected-red.json",
+      "sha256": "44e8053781cfb69e7307996d89a908ea0227e2b3168bc19d4f407a290c51a1bf"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r7-local-corrected-red.log",
+      "sha256": "c6012eaef7b8de26eca3bd5e0d46c844ec43a08d2487ded18ed59c00931df704"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r7-local-corrected-red.meta.json",
+      "sha256": "7d57176b64489dfc4b030f197e9c104d720cea7e375e13fde1b1b56434d88577"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r8-unit-green.json",
+      "sha256": "4b1aa1db4d8cee4255eb218dbcafa2a405985353ebfd0aa30c1a1a1c186b911c"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r8-unit-green.log",
+      "sha256": "05390f9ef0f2ea3a348b97cb83c7d7cfbfabbb2335e11d1bbce37fd84b30c569"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r8-unit-green.meta.json",
+      "sha256": "bc9d16d57452bb30687286d19c3b168b4bb4dc10dd93d804418135ad46655444"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r9-check.log",
+      "sha256": "31298e4827302321a73041e2d6ee510cfbd30f0791d214c3e2cb6900866d9e56"
+    },
+    {
+      "path": ".cimiloop/new-host-s1/d278-r9-check.meta.json",
+      "sha256": "6a4995a047ae7a9db06b5bab76b2b54af07ee20ac67b1bb7fdc3f6bed7056acf"
+    }
+  ],
+  "behavior_reds": [
+    {
+      "label": "r1-cancellation-red",
+      "passed": 0,
+      "failed": 17,
+      "reason": "Independent cancellation reader absent"
+    },
+    {
+      "label": "r5-sdk-prefix-red",
+      "passed": 17,
+      "failed": 1,
+      "reason": "Nonfinal model stop accepted before later steps"
+    },
+    {
+      "label": "r7-local-corrected-red",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 19,
+      "reason": "Valid Human Kernel cancellation reached missing collector cancellation behavior"
+    },
+    {
+      "label": "r10-location-red",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 20,
+      "reason": "Factory location drift was accepted"
+    },
+    {
+      "label": "r22-async-capacity-red",
+      "passed": 0,
+      "failed": 3,
+      "skipped": 24,
+      "reason": "Prepared written after capture location drift, release location drift accepted, cancellation capacity missing"
+    },
+    {
+      "label": "r23-async-capacity-green",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 24,
+      "complete_final_scope": false
+    }
+  ],
+  "diagnostic_limitations": [
+    "r3/r4 Local first reds had invalid Agent caller for Human CancelRun; not valid feature red evidence; originals retained",
+    "r6/r9 checks found TypeScript narrowing and constructed test collection typing; corrected before passing r24 and source freeze",
+    "First cancellation collector reused success path on second facts read and failed; both capture/readResult rereads now retain same original collection",
+    "r17 actual Native cancellation reached independent reader then Local evidence rejection; original g3WJGp / _l0wlvH retained, not reopened",
+    "r20 actual Native and HTTP Kernel cancellation committed/replayed, then test reused one-use bootstrap and failed; cached original session authentication fixed, old 8l73cg / _f0iXIA retained",
+    "r21 full 4-file Local diagnostic47passed predates async/capacity fixes and is not final current-source scope",
+    "r25 whole new Native file1passed uses sgxU2u / _kpPB3n, distinct from final r26 fixture; original retained",
+    "Initial CLI diagnostic used nonexistent apps/cli/dist/index.js and failed; package bin apps/cli/dist/bin.js correctly passes, both logs retained",
+    "An attempted baseline file overwrite for earlier red evidence was automatically rejected; nothing executed, existing changes preserved and valid corrected fixture behavior reds used",
+    "D277 initial Job controller native_control_unavailable cause remains unproven; D278 does not rewrite that failure or assert a repair"
+  ],
+  "preservation": {
+    "protected_untracked_files_not_read_or_staged": [
+      "QA5363D6C.tmp",
+      "QF192D3E3.tmp"
+    ],
+    "old_unknown_resources_untouched": true,
+    "original_failed_runs_reopened": false,
+    "bulk_cleanup": false,
+    "no_paid_request": true,
+    "no_push": true
+  },
+  "remaining": [
+    "V1-09 no-call/NotStarted original exclusive zero-effect proof, full parent/child terminal and final settlement, physical disk quota, historical capacity, all exceptional recovery and approved real model/account/bills",
+    "V1-21 actual Skill and pre-Plan/Task Human/Matt clarification",
+    "V1-22 Matt independent complete review, Superpowers fresh current-source verification and actual behavior comparison",
+    "V1-10 formal Agent workbench execute/query/stop/original continuation and production admission via shared Kernel service",
+    "V1-11 real ordinary Change to ReadyForDelivery with actual Skills, interruption recovery, full S1 and actionable integration guide"
+  ]
+}

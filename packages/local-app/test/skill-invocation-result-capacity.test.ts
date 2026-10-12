@@ -16,3 +16,7 @@ describe('complete original Skill capture capacity',()=>{
   expect(()=>parseSkillResultCaptureBytes(Buffer.from('{"status":"unknown","status":"succeeded"}'))).toThrow();
  });
 });
+
+it('adds original cancellation marker, proof and bounded incomplete metadata without changing historical success or Job capacity',()=>{
+ const old=skillResultCaptureLimits(false);expect(old).toEqual(SKILL_RESULT_CAPTURE_LIMITS);const cancelled=skillResultCaptureLimits(false,true),withJob=skillResultCaptureLimits(true,true);expect(cancelled.artifacts).toBe(old.artifacts+3);expect(cancelled.total_bytes).toBe(old.total_bytes+3*65536);expect(withJob.artifacts).toBe(cancelled.artifacts+1);expect(withJob.total_bytes).toBe(cancelled.total_bytes+65536);expect(cancelled.proof_bytes).toBe(old.proof_bytes);
+});

@@ -1,8 +1,8 @@
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';import {join,dirname,basename} from 'node:path';
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
-const readers=vi.hoisted(()=>({method:vi.fn(),provider:vi.fn(),model:vi.fn(),costs:vi.fn()}));
-vi.mock('@cimiloop/runtime-adapter',async original=>({...await original<typeof import('@cimiloop/runtime-adapter')>(),readAgentRuntimeNamedMethodResult:readers.method,readDedicatedAgentModelOriginals:readers.provider,readAgentRuntimeModelOriginals:readers.model,readOriginalDedicatedAgentRunCosts:readers.costs}));
+const readers=vi.hoisted(()=>({method:vi.fn(),provider:vi.fn(),model:vi.fn(),costs:vi.fn(),cancel:vi.fn(),collect:vi.fn()}));
+vi.mock('@cimiloop/runtime-adapter',async original=>({...await original<typeof import('@cimiloop/runtime-adapter')>(),readAgentRuntimeNamedMethodResult:readers.method,readDedicatedAgentModelOriginals:readers.provider,readAgentRuntimeModelOriginals:readers.model,readOriginalDedicatedAgentRunCosts:readers.costs,readAgentRuntimeNamedMethodCancellation:readers.cancel,collectAgentRuntimeOperation:readers.collect}));
 import {AgentStartLedger,digest} from '@cimiloop/runtime-adapter';
 import {LocalSkillInvocationResultCollection} from '../src/skill-invocation-result-local.js';
 import {LocalSkillInvocationStartCustody} from '../src/skill-invocation-start-custody-local.js';
@@ -93,4 +93,43 @@ it('refuses ambiguous, unknown, cancellation or unstarted labels as method-outpu
  const original={status:'Observed',method_result_reverified:false,method_failure_reverified:true,failure:{code:'agent_named_method_output_invalid',returned_text_digest:digest('PUBLIC original invalid output')},artifacts:[]};
  for(const method of [{...original,status:'Unknown'},{...original,method_result_reverified:true,output},{...original,failure:{...original.failure,code:'cancelled'}},{...original,failure:{...original.failure,code:'not_started'}},{...original,method_failure_reverified:false}]){readers.method.mockReturnValue(method);expect(()=>capture()).toThrow();}
  readers.method.mockReturnValue(original);const result=capture(),proof=JSON.parse(inputs.packages.content.readContent(result.report.result_proof_ref).toString());proof.method.failure.returned_text_digest=digest('PUBLIC forged failure text');const ref=inputs.packages.content.storeContent(Buffer.from(JSON.stringify(proof)),'skill_invocation_proof'),report=inputs.packages.content.storeContent(Buffer.from(JSON.stringify({...result.report,result_proof_ref:ref})),'skill_invocation_report');expect(()=>collector.readResult(f.project,invocation,report)).toThrow();
+});
+
+const cancelParent=()=>flowSuccess(new CimiLoopKernel({store:f.store,caller:{kind:'local_operator',project_id:f.project.id,actor_id:f.actor.id},now:()=>new Date().toISOString(),runVerifier:f.runPort}).execute(f.humanCommand('CancelRun','run',invocation.run_ref.id,{reason:'PUBLIC original child cancellation'},'technical_owner')));
+const installCancellation=()=>{
+ readers.method.mockReturnValue({status:'Unknown',method_result_reverified:false,artifacts:[]});
+ readers.cancel.mockReturnValue({format:'cimiloop/original-named-cancellation/1.0.0',status:'Observed',reason:'agent_named_cancellation_reverified',cancellation_reverified:true,method_result_reverified:false,matched_calls:0,costs_reconciled:false,domain_observation_produced:false,formal_agent_execution_enabled:false,artifacts:[]});
+ readers.collect.mockResolvedValue({format:'PUBLIC constructed original cancellation collection'});
+};
+const captureCancelled=async()=>{const method=Reflect.get(collector,'captureCancellationReconciliation');expect(method).toBeTypeOf('function');return method.call(collector,invocation.id,f.actor.id);};
+it('captures original cancelled child with final original bills and historical qualification, never succeeds or releases parent budget',async()=>{
+ cancelParent();installCancellation();const sequence=f.store.asOfEventSequence(),result=await captureCancelled();expect(result.report).toMatchObject({status:'cancelled',basis:'reconciliation',producer_actor_id:f.actor.id,usage:{cost_known:true,cost_micros:12,currency:'USD'}});expect(result.report).not.toHaveProperty('output');expect(f.store.asOfEventSequence()).toBe(sequence);
+ expect(collector.readResult(f.project,invocation,result.reference)).toEqual(result.report);
+ const service=await humanService(()=>({collector,release(){}})),request=humanRequest(),receipt=await service.reconcile(request);expect(receipt).toMatchObject({data:{observation:{resulting_status:'Cancelled'},run:{status:'Unknown',reservation_released:false}}});
+ expect(await(await humanService()).reconcile(request)).toEqual(receipt);expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.task().status).not.toBe('Satisfied');expect(f.task().usage.pending_reconciliation).toBe(true);
+});
+it.each(['kernel_cancel_missing','original_unknown','final_bill_missing','qualification_missing','agent_producer','no_calls'])('refuses %s cancelled capture without mutating Kernel',async kind=>{
+ if(kind!=='kernel_cancel_missing')cancelParent();installCancellation();if(kind==='original_unknown')readers.cancel.mockReturnValue({status:'Unknown',cancellation_reverified:false,artifacts:[]});if(kind==='final_bill_missing')readers.costs.mockImplementation(()=>{throw Error('PUBLIC missing original final bill');});if(kind==='qualification_missing')options.qualificationOriginals=undefined;if(kind==='no_calls')readers.provider.mockReturnValue({summary:{status:'Observed',original_requirement_pinned:true,budget_identity_pinned:true,unresolved:0},calls:[],artifacts:[]});
+ const sequence=f.store.asOfEventSequence();collector=new LocalSkillInvocationResultCollection(options);const method=Reflect.get(collector,'captureCancellationReconciliation');expect(method).toBeTypeOf('function');await expect(method.call(collector,invocation.id,kind==='agent_producer'?f.agent.id:f.actor.id)).rejects.toThrow();expect(f.store.asOfEventSequence()).toBe(sequence);
+});
+it('rejects altered cancellation proof, costs and inserted output on historical reread',async()=>{
+ cancelParent();installCancellation();const result=await captureCancelled(),content=inputs.packages.content;
+ for(const changes of [{status:'succeeded',output},{output},{usage:{cost_known:true,cost_micros:0,currency:'USD'}}]){const ref=content.storeContent(Buffer.from(JSON.stringify({...result.report,...changes})),'skill_invocation_report');expect(()=>collector.readResult(f.project,invocation,ref)).toThrow();}
+ const proof=JSON.parse(content.readContent(result.report.result_proof_ref).toString());proof.method.cancellation_reverified=false;const p=content.storeContent(Buffer.from(JSON.stringify(proof)),'skill_invocation_proof'),ref=content.storeContent(Buffer.from(JSON.stringify({...result.report,result_proof_ref:p})),'skill_invocation_report');expect(()=>collector.readResult(f.project,invocation,ref)).toThrow();
+});
+it('shared cancellation capture rechecks guard and releases after awaited original collection before saving or committing',async()=>{
+ cancelParent();installCancellation();let enter!:()=>void,resume!:(v:unknown)=>void;const entered=new Promise<void>(r=>enter=r),pending=new Promise<unknown>(r=>resume=r);readers.collect.mockImplementation(()=>{enter();return pending;});let expired=false;const release=vi.fn(),service=await humanService(()=>({collector,release})),request=humanRequest(),sequence=f.store.asOfEventSequence();
+ const result=service.reconcile(request,()=>{if(expired)throw Error('PUBLIC original session expired after collection');});await entered;expired=true;resume({format:'PUBLIC constructed original collection'});await expect(result).rejects.toThrow('PUBLIC original session expired after collection');expect(release).toHaveBeenCalledTimes(1);expect(f.store.asOfEventSequence()).toBe(sequence);
+});
+
+it('keeps original Human location fixed after a collector factory mutates the data root',async()=>{
+ const release=vi.fn(),service=await humanService(()=>{human!.location.dataDirectory=join(root,'PUBLIC foreign data');return{collector,release};}),request=humanRequest(),sequence=f.store.asOfEventSequence();await expect(service.reconcile(request)).rejects.toThrow();expect(release).toHaveBeenCalledTimes(1);expect(f.store.asOfEventSequence()).toBe(sequence);
+});
+
+it('refuses Human location drift after awaited cancellation capture before publishing prepared original',async()=>{
+ cancelParent();installCancellation();let enter!:()=>void,resume!:(v:unknown)=>void;const entered=new Promise<void>(r=>enter=r),pending=new Promise<unknown>(r=>resume=r);readers.collect.mockImplementation(()=>{enter();return pending;});const release=vi.fn(),service=await humanService(()=>({collector,release})),request=humanRequest(),sequence=f.store.asOfEventSequence();
+ const result=service.reconcile(request);await entered;human!.location.dataDirectory=join(root,'PUBLIC foreign root');resume({format:'PUBLIC original collection'});await expect(result).rejects.toThrow();expect(existsSync(join(dirname(f.path),'skill-reconciliation-originals',f.project.id,invocation.id,request.command_id,'prepared.json'))).toBe(false);expect(release).toHaveBeenCalledTimes(1);expect(f.store.asOfEventSequence()).toBe(sequence);
+});
+it('refuses release-time Human root drift while retaining the committed original receipt for exact recovery',async()=>{
+ const oldData=dirname(f.path),release=vi.fn(()=>{human!.location.dataDirectory=join(root,'PUBLIC release drift');}),service=await humanService(()=>({collector,release})),request=humanRequest(),sequence=f.store.asOfEventSequence();await expect(service.reconcile(request)).rejects.toThrow();expect(release).toHaveBeenCalledTimes(1);expect(f.store.asOfEventSequence()).toBe(sequence+1);human!.location.dataDirectory=oldData;expect(await(await humanService()).reconcile(request)).toMatchObject({command_type:'ReconcileSkillInvocation'});expect(f.store.asOfEventSequence()).toBe(sequence+1);
 });
