@@ -1,5 +1,8 @@
 # CimiLoop SDK 调用与 IPC 原字节账本 v0.1
 
+2026-10-13 D-287：原父当前候选服务接独立Native前缀、完整资料和Kernel原预约，最后回调后的源码/账本/票据/锚点终检保持原身份。隔离四文件56项及check通过；main精确集成52逻辑路径，check/CLI通过，103完整受影响文件仍在原进程验证、尚未提交。既有历史父Skill不能作为当前源码输出；实际候选Native全链、真实模型/Skill/预算账单及五组S1继续，默认正式Agent关闭、Schema242/用户库10/Host1不变，无付费、不push。 [实施与边界](CimiLoop-原父当前候选资料与独立预约核验-v0.1.md)。
+
+
 2026-10-13 D-282：正式父领域采集保存原catalog，独立核验packet3/config7/result2及原子结果；领域回调后复读原引用、Native全部字节、Job/observer和原SDK/IPC。Kernel提供当前Writer冻结只读视图，回调结束即失效。main保留独有修补、精确集成7源码，同一751源码下受影响24文件251项通过，原完整运行内Windows/Native15文件41项通过，均0跳过；覆盖并集39文件292项，但不是单次完整通过。原39/292运行291通过、1次IPC退出失败且原因未明，随后原IPC文件7项通过，失败不改判。check/CLI/242Schema通过，用户库10/Host1保持。模型、Skill、资格和账单仍含PUBLIC构造，正式Agent关闭，非S1；五组继续、无真实凭据读取、无付费、不push。[D-282实施记录](CimiLoop-父SDK调用原Skill-v0.1.md)。
 
 2026-10-13 D-281：父SDK固定run_skill连接原Kernel子预约、执行及历史只读结果，原请求先落盘；响应丢失复读原子，不重开Run或重复效果。Native结果独立核对SDK/IPC原请求与Kernel原回执，原Writer内只读不嵌套事务。D280后主工作区精确集成36源码，保留主独有修补；同一748源码冻结完整34文件230项通过、0跳过（含实际Windows/AppContainer），check/CLI/242Schema通过，用户库10/Host1保持。子执行/模型/资格/账单仍含PUBLIC构造，不是真实Skill或S1；领域collect、终态/费用组合、当前候选评审及五组验收继续。原失败保留，默认正式Agent关闭，无真实凭据读取、无付费、不push。[D-281实施记录](CimiLoop-父SDK调用原Skill-v0.1.md)。

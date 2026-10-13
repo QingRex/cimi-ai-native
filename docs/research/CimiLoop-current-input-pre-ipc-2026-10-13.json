@@ -1,0 +1,511 @@
+{
+  "recorded_at": "2026-10-13T06:35:41.246Z",
+  "decision": "D-288",
+  "status": "Current input and pre-IPC contracts passed in isolated worktrees; actual Native whole file terminal 2 pass 1 fail; main full still running",
+  "current_original_input": {
+    "worktree": "D:\\s1-a11e0e\\s1-current-candidate-G1iWw5",
+    "files": [
+      "packages/local-app/test/agent-parent-skill-candidate-native.test.ts",
+      "packages/runtime-adapter/test/agent-parent-current-input.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-native-prefix.test.ts",
+      "packages/local-app/test/agent-parent-candidate-materials.test.ts",
+      "packages/local-app/test/agent-model-workspace-local.test.ts"
+    ],
+    "tests_passed": 72,
+    "tests_failed": 0,
+    "source_files": 776,
+    "source_drift": [],
+    "typecheck_exit": 0,
+    "capability": "Independently reread exact original candidate against complete current source after the authenticated request has ended; no recapture or new effect",
+    "consumer_domain_path_connected": false
+  },
+  "pre_ipc_preparation": {
+    "worktree": "C:/Users/hector.he/.codex/worktrees/s1-native-current-candidate/cimi-ai-native",
+    "files": [
+      "packages/local-app/test/agent-parent-model-causal-admission.test.ts",
+      "packages/runtime-adapter/test/agent-ipc-causal-window.test.ts",
+      "packages/runtime-adapter/test/agent-ipc-current-request.test.ts"
+    ],
+    "tests_passed": 61,
+    "tests_failed": 0,
+    "source_files": 770,
+    "source_drift": [],
+    "typecheck_exit": 0,
+    "initial_red": {
+      "file": "d288-frozen-main-pre-ipc-r2-red.json",
+      "failed": 1,
+      "passed": 2,
+      "reason": "agent_ipc_causal_window_unproven"
+    },
+    "review_red": {
+      "file": "d286-r33-pre-ipc-final-seal-red.json",
+      "failed": 5,
+      "passed": 34
+    },
+    "implemented": "Only original pre-IPC preparation with original config/launcher/resources/suspension and no Native effects or current request may proceed to current model authority; missing registered config, running/ended/disposed resources, partial IPC and final-read drift remain denied",
+    "actual_native_whole_file": {
+      "original_session": 44457,
+      "status": "terminal failure",
+      "files": [
+        "tests/scenarios/agent-production-lifetime-runtime.test.ts"
+      ],
+      "task_budget_raised": false,
+      "old_failed_operations_reopened": false,
+      "exit_code": 1,
+      "tests_passed": 2,
+      "tests_failed": 1,
+      "tests_skipped": 0,
+      "source_drift": [],
+      "failed_test": "production lifetime joins the original approved Task joins dedicated HTTPS, original SDK reasoning/tool rounds, Native checks and the Workbench original receipt",
+      "diagnosis": {
+        "recorded_at": "2026-10-13T06:31:31.471Z",
+        "original_session": 44457,
+        "original_native_whole_file": {
+          "passed": 2,
+          "failed": 1,
+          "skipped": 0
+        },
+        "fixture": "cimiloop-production-lifetime-runtime-B81L6G",
+        "operation": "207e3cb2-85a0-492e-bb6c-081b7978305b",
+        "originals": [
+          [
+            "original-config.json",
+            "93e828d436f1a5b1b57c5dcee3aca2ba9f5ffb281e83e8b287d774c25f7d110d"
+          ],
+          [
+            "incomplete.json",
+            "9d52528505aba544e5792c1e45f81c7dc498fc96d3cfebde984e67d7cebf63c1"
+          ],
+          [
+            "agent-sandbox-cleanup.json",
+            "c93c5bc1a235797f4ab7c0a1ce1a5dffa25b2253b6a4f87b00ae36550dd558e5"
+          ]
+        ],
+        "deadline": {
+          "original_elapsed_ms": 479910,
+          "original_deadline_uptime_ms": 106952727,
+          "reason": "agent_sandbox_task_deadline",
+          "interruption_reason": "workspace_rehearsal_deadline",
+          "completion_proven": false
+        },
+        "timeline": [
+          {
+            "path": "agent-runtime-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/header.json",
+            "bytes": 1493,
+            "birth_time": "2026-10-13T06:15:51.172Z",
+            "modified_time": "2026-10-13T06:15:51.173Z"
+          },
+          {
+            "path": "agent-runtime-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/header.json",
+            "bytes": 1493,
+            "birth_time": "2026-10-13T06:15:51.179Z",
+            "modified_time": "2026-10-13T06:15:51.179Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/header.json",
+            "bytes": 2291,
+            "birth_time": "2026-10-13T06:19:22.981Z",
+            "modified_time": "2026-10-13T06:19:22.981Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0001/request.raw",
+            "bytes": 28378,
+            "birth_time": "2026-10-13T06:19:43.347Z",
+            "modified_time": "2026-10-13T06:19:43.348Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0001/request.json",
+            "bytes": 94,
+            "birth_time": "2026-10-13T06:19:43.351Z",
+            "modified_time": "2026-10-13T06:19:43.351Z"
+          },
+          {
+            "path": "agent-runtime-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/request.json",
+            "bytes": 28378,
+            "birth_time": "2026-10-13T06:19:57.190Z",
+            "modified_time": "2026-10-13T06:19:57.191Z"
+          },
+          {
+            "path": "agent-runtime-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/request.json",
+            "bytes": 28378,
+            "birth_time": "2026-10-13T06:19:57.194Z",
+            "modified_time": "2026-10-13T06:19:57.194Z"
+          },
+          {
+            "path": "agent-runtime-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/dedicated-registration.json",
+            "bytes": 139,
+            "birth_time": "2026-10-13T06:19:57.208Z",
+            "modified_time": "2026-10-13T06:19:57.208Z"
+          },
+          {
+            "path": "agent-dedicated-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/header.json",
+            "bytes": 1340,
+            "birth_time": "2026-10-13T06:19:57.212Z",
+            "modified_time": "2026-10-13T06:19:57.212Z"
+          },
+          {
+            "path": "agent-dedicated-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/header.json",
+            "bytes": 1340,
+            "birth_time": "2026-10-13T06:19:57.218Z",
+            "modified_time": "2026-10-13T06:19:57.218Z"
+          },
+          {
+            "path": "agent-runtime-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/dedicated-send-intent.json",
+            "bytes": 312,
+            "birth_time": "2026-10-13T06:20:11.259Z",
+            "modified_time": "2026-10-13T06:20:11.260Z"
+          },
+          {
+            "path": "agent-dedicated-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/request.json",
+            "bytes": 28378,
+            "birth_time": "2026-10-13T06:20:11.264Z",
+            "modified_time": "2026-10-13T06:20:11.264Z"
+          },
+          {
+            "path": "agent-dedicated-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/request.json",
+            "bytes": 28378,
+            "birth_time": "2026-10-13T06:20:11.268Z",
+            "modified_time": "2026-10-13T06:20:11.268Z"
+          },
+          {
+            "path": "agent-runtime-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/dedicated-budget-hold.json",
+            "bytes": 140,
+            "birth_time": "2026-10-13T06:20:43.331Z",
+            "modified_time": "2026-10-13T06:20:43.331Z"
+          },
+          {
+            "path": "agent-dedicated-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/budget-hold.json",
+            "bytes": 894,
+            "birth_time": "2026-10-13T06:20:43.334Z",
+            "modified_time": "2026-10-13T06:20:43.334Z"
+          },
+          {
+            "path": "agent-dedicated-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/provider-request.json",
+            "bytes": 28264,
+            "birth_time": "2026-10-13T06:21:39.197Z",
+            "modified_time": "2026-10-13T06:21:39.197Z"
+          },
+          {
+            "path": "agent-dedicated-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/dispatch.json",
+            "bytes": 166,
+            "birth_time": "2026-10-13T06:22:22.698Z",
+            "modified_time": "2026-10-13T06:22:22.698Z"
+          },
+          {
+            "path": "agent-runtime-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/dedicated-response.json",
+            "bytes": 219,
+            "birth_time": "2026-10-13T06:22:22.753Z",
+            "modified_time": "2026-10-13T06:22:22.754Z"
+          },
+          {
+            "path": "agent-dedicated-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/provider-response.json",
+            "bytes": 595,
+            "birth_time": "2026-10-13T06:22:22.756Z",
+            "modified_time": "2026-10-13T06:22:22.756Z"
+          },
+          {
+            "path": "agent-dedicated-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/receipt.json",
+            "bytes": 491,
+            "birth_time": "2026-10-13T06:22:22.758Z",
+            "modified_time": "2026-10-13T06:22:22.758Z"
+          },
+          {
+            "path": "agent-runtime-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0001/reply.json",
+            "bytes": 468,
+            "birth_time": "2026-10-13T06:22:22.763Z",
+            "modified_time": "2026-10-13T06:22:22.763Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0001/reply.raw",
+            "bytes": 630,
+            "birth_time": "2026-10-13T06:22:22.768Z",
+            "modified_time": "2026-10-13T06:22:22.768Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0001/reply.json",
+            "bytes": 94,
+            "birth_time": "2026-10-13T06:22:22.770Z",
+            "modified_time": "2026-10-13T06:22:22.771Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0002/request.raw",
+            "bytes": 345,
+            "birth_time": "2026-10-13T06:22:22.830Z",
+            "modified_time": "2026-10-13T06:22:22.830Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0002/request.json",
+            "bytes": 94,
+            "birth_time": "2026-10-13T06:22:22.832Z",
+            "modified_time": "2026-10-13T06:22:22.832Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0002/reply.raw",
+            "bytes": 1758,
+            "birth_time": "2026-10-13T06:22:34.904Z",
+            "modified_time": "2026-10-13T06:22:34.904Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0002/reply.json",
+            "bytes": 94,
+            "birth_time": "2026-10-13T06:22:34.907Z",
+            "modified_time": "2026-10-13T06:22:34.907Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0003/request.raw",
+            "bytes": 29206,
+            "birth_time": "2026-10-13T06:22:35.011Z",
+            "modified_time": "2026-10-13T06:22:35.011Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0003/request.json",
+            "bytes": 94,
+            "birth_time": "2026-10-13T06:22:35.014Z",
+            "modified_time": "2026-10-13T06:22:35.014Z"
+          },
+          {
+            "path": "agent-runtime-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0002/request.json",
+            "bytes": 29206,
+            "birth_time": "2026-10-13T06:22:46.748Z",
+            "modified_time": "2026-10-13T06:22:46.748Z"
+          },
+          {
+            "path": "agent-runtime-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0002/request.json",
+            "bytes": 29206,
+            "birth_time": "2026-10-13T06:22:46.753Z",
+            "modified_time": "2026-10-13T06:22:46.753Z"
+          },
+          {
+            "path": "agent-runtime-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0002/dedicated-send-intent.json",
+            "bytes": 312,
+            "birth_time": "2026-10-13T06:23:00.017Z",
+            "modified_time": "2026-10-13T06:23:00.017Z"
+          },
+          {
+            "path": "agent-dedicated-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0002/request.json",
+            "bytes": 29206,
+            "birth_time": "2026-10-13T06:23:00.021Z",
+            "modified_time": "2026-10-13T06:23:00.021Z"
+          },
+          {
+            "path": "agent-dedicated-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0002/request.json",
+            "bytes": 29206,
+            "birth_time": "2026-10-13T06:23:00.026Z",
+            "modified_time": "2026-10-13T06:23:00.026Z"
+          },
+          {
+            "path": "agent-runtime-model-starts/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0002/dedicated-budget-hold.json",
+            "bytes": 140,
+            "birth_time": "2026-10-13T06:23:41.044Z",
+            "modified_time": "2026-10-13T06:23:41.044Z"
+          },
+          {
+            "path": "agent-dedicated-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0002/budget-hold.json",
+            "bytes": 894,
+            "birth_time": "2026-10-13T06:23:41.048Z",
+            "modified_time": "2026-10-13T06:23:41.048Z"
+          },
+          {
+            "path": "agent-dedicated-model-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/model_0002/provider-request.json",
+            "bytes": 29100,
+            "birth_time": "2026-10-13T06:24:07.389Z",
+            "modified_time": "2026-10-13T06:24:07.389Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0003/reply.raw",
+            "bytes": 371,
+            "birth_time": "2026-10-13T06:24:45.058Z",
+            "modified_time": "2026-10-13T06:24:45.059Z"
+          },
+          {
+            "path": "agent-workspace-ipc-originals/01a133e5-92de-7572-8b59-8d56a1f4bd64/01a133e6-16d7-7511-a2da-2255f04ea85d/aadeb571-065c-4031-8daa-4d72fdea999d/0003/reply.json",
+            "bytes": 94,
+            "birth_time": "2026-10-13T06:24:45.061Z",
+            "modified_time": "2026-10-13T06:24:45.061Z"
+          }
+        ],
+        "metadata_only": true,
+        "actual_task_budget_raised": false,
+        "cause_of_excess_elapsed": "not_yet_proven",
+        "original_run_reopened": false,
+        "paid_requests": false,
+        "s1_complete": false
+      },
+      "readonly_custody_timings": {
+        "recorded_at": "2026-10-13T06:34:21.189Z",
+        "original_native_session": 44457,
+        "scope": "Only current failed PUBLIC fixture host and account custody helper readonly verify",
+        "helper_digest": "123a7cc98ffbd32817c13584231b8d53e3b3c5b20743cfe3c98c929f043f22b7",
+        "records": [
+          {
+            "root_index": 0,
+            "sample": 1,
+            "elapsed_ms": 189
+          },
+          {
+            "root_index": 1,
+            "sample": 1,
+            "elapsed_ms": 345
+          },
+          {
+            "root_index": 0,
+            "sample": 2,
+            "elapsed_ms": 572
+          },
+          {
+            "root_index": 1,
+            "sample": 2,
+            "elapsed_ms": 209
+          },
+          {
+            "root_index": 0,
+            "sample": 3,
+            "elapsed_ms": 180
+          },
+          {
+            "root_index": 1,
+            "sample": 3,
+            "elapsed_ms": 243
+          }
+        ],
+        "original_run_reopened": false,
+        "actual_task_budget_raised": false,
+        "original_failure_cause_proven": false,
+        "paid_requests": false,
+        "s1_complete": false
+      }
+    }
+  },
+  "main": {
+    "source_files": 774,
+    "original_session": 65967,
+    "complete_affected_files": 103,
+    "status": "running; production lifetime file has 3 original failures",
+    "diagnosis": {
+      "recorded_at": "2026-10-13T05:51:45.826Z",
+      "original_main_session": 65967,
+      "original_runner_still_active": true,
+      "records": [
+        {
+          "fixture": "cimiloop-production-lifetime-runtime-SyYgeG",
+          "operation": "bd63024b-2665-4855-827d-cb856d4b7841",
+          "originals": [
+            [
+              "incomplete.json",
+              "a92fc4a02b2ef1f175fb6394fff3eda142b6dbaf66aeaa51a283d4e4e5d82ff1"
+            ],
+            [
+              "agent-sandbox-interruption.json",
+              "b4df6aafd9c19be2feeb6e8888e1bbf8608249ce9cad931b28e52f199ca6eb01"
+            ],
+            [
+              "agent-sandbox-cleanup.json",
+              "a010d37110b0cbf13030e28b41de8467d33dc19532d1a36b0ca153c5af483362"
+            ]
+          ],
+          "phase": "registered",
+          "runtime_resumed": false,
+          "original_record_present": false,
+          "interruption_reason": "workspace_rehearsal_preparation_failed",
+          "native_reason": "agent_sandbox_parent_ended",
+          "exit_code": 125,
+          "current_operation_resources_disposed": true,
+          "completion_proven": false,
+          "root_cause": "not_yet_proven"
+        },
+        {
+          "fixture": "cimiloop-production-lifetime-runtime-cvNi86",
+          "operation": "013b31cd-d3b4-48fa-b380-dc121e43efd3",
+          "originals": [
+            [
+              "incomplete.json",
+              "941c3af0bc7e3f2dce1fe990d63a8a9cdc91b4066dc08942c8c27909c4a875d8"
+            ],
+            [
+              "agent-sandbox-interruption.json",
+              "38701217ea7d254ad18cc2dd3535a840739ce90f83bf29c5da858d38a62b0953"
+            ],
+            [
+              "agent-sandbox-cleanup.json",
+              "84e1c425519bf651c8dbda46aa3a6d8266c6a7d312d659c160eab8e7260039d9"
+            ]
+          ],
+          "phase": "registered",
+          "runtime_resumed": false,
+          "original_record_present": false,
+          "interruption_reason": "agent_dedicated_account_unavailable",
+          "native_reason": "agent_sandbox_parent_ended",
+          "exit_code": 125,
+          "current_operation_resources_disposed": true,
+          "completion_proven": false,
+          "root_cause": "not_yet_proven"
+        },
+        {
+          "fixture": "cimiloop-production-lifetime-runtime-GlFqB3",
+          "operation": "d08d30b4-654f-46d4-b5db-334e16258de2",
+          "originals": [
+            [
+              "incomplete.json",
+              "59e6d82ab1cb909a178668f73a4972e7b9f5068af20c9917ce9dcbe1b0ed8558"
+            ],
+            [
+              "agent-sandbox-interruption.json",
+              "32d2db82ba5aa0126d069e8d6e56ef88fa8c2593c9d16ff2ee926f472370fd79"
+            ],
+            [
+              "agent-sandbox-cleanup.json",
+              "edc5110df29ee7d712264eb56164dc332531bae8e68ba9e6a46ebc93ff622aba"
+            ]
+          ],
+          "phase": "registered",
+          "runtime_resumed": false,
+          "original_record_present": false,
+          "interruption_reason": "workspace_rehearsal_preparation_failed",
+          "native_reason": "agent_sandbox_parent_ended",
+          "exit_code": 125,
+          "current_operation_resources_disposed": true,
+          "completion_proven": false,
+          "root_cause": "not_yet_proven"
+        }
+      ],
+      "failed_before_actual_sdk_resume": true,
+      "no_original_run_reopened": true,
+      "no_task_budget_raised": true,
+      "old_computer_unknown_cleanup_proven": false,
+      "paid_requests": false,
+      "pushed": false,
+      "s1_complete": false
+    },
+    "source_not_modified_during_original_run": true,
+    "committed": false
+  },
+  "review": {
+    "kind": "ordinary independent code review",
+    "must_fix_initial": 2,
+    "must_fix_after_repairs": 0,
+    "tests_executed_by_reviewer": false,
+    "matt_complete": false,
+    "superpowers_complete": false
+  },
+  "evidence_boundaries": {
+    "actual_native_production_file_passed": false,
+    "real_model": false,
+    "real_skill": false,
+    "model_package_and_budgets_approved": false,
+    "old_computer_unknown_cleanup_proven": false,
+    "protocol_schema_count": 242,
+    "user_database_format": 10,
+    "host_ledger_format": 1,
+    "formal_agent_default_enabled": false,
+    "paid_requests": false,
+    "pushed": false,
+    "s1_complete": false
+  },
+  "remaining_groups": [
+    "V1-09",
+    "V1-21",
+    "V1-22",
+    "V1-10",
+    "V1-11"
+  ]
+}

@@ -13,7 +13,9 @@ import type{DedicatedAgentAccountLedger}from'@cimiloop/runtime-adapter';
 import type{LocalAgentRunFamilyVerification}from'./agent-run-family-costs-local.js';
 import {LocalPlanningClarificationAdmission,type LocalPlanningClarificationOptions} from './planning-clarification-local.js';
 
+import type{LocalAgentParentSkillResultPort}from'./agent-parent-skill-results-local.js';
 export interface LocalProject {
+  agentParentSkillResults?:LocalAgentParentSkillResultPort;
   location: ProjectLocation;
   instance: SoloInstance;
   store: SqliteProjectStore;
@@ -22,7 +24,7 @@ export interface LocalProject {
 
 // Only a trusted local launcher supplies the project directory and operator.
 // HTTP requests never select a database, filesystem path or caller identity.
-export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'>;agentRunFamilySkills?:LocalAgentRunFamilyVerification } = {}): LocalProject => {
+export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'>;agentRunFamilySkills?:LocalAgentRunFamilyVerification;agentParentSkillResults?:LocalAgentParentSkillResultPort } = {}): LocalProject => {
   const start = options.projectDir ? resolve(options.projectDir) : process.cwd();
   const location = locateProject(start, Boolean(options.projectDir) || existsSync(join(start, ".cimiloop", "instance.json")));
   if (!existsSync(location.instancePath) || !existsSync(location.databasePath)) {
@@ -37,7 +39,7 @@ export const openLocalProject = (options: { projectDir?: string; agentRunCostAcc
       !actor || actor.project_id !== project.id || actor.actor_type !== "human") {
       throw new LocalProjectError("本地入口与项目或 Human 身份不匹配", "CALLER_IDENTITY_MISMATCH", "forbidden");
     }
-    const runVerifier=new LocalRunVerifier(location.repositoryPath,location.dataDirectory,options.agentRunCostAccount,store,options.agentRunFamilySkills);
+    const runVerifier=new LocalRunVerifier(location.repositoryPath,location.dataDirectory,options.agentRunCostAccount,store,options.agentRunFamilySkills,options.agentParentSkillResults);
     const skillResults=options.skillInvocationResults??options.agentRunFamilySkills;
     if(skillResults){const readResult=skillResults.readResult;if(typeof readResult!=='function')throw Error('Skill historical reader unavailable');runVerifier.agent.skills={prepare:()=>{throw Error('Skill execution unavailable');},readResult:readResult.bind(skillResults)};}
     const kernel = new CimiLoopKernel({ store, caller: { kind: "local_operator", project_id: project.id, actor_id: actor.id },
@@ -45,7 +47,7 @@ export const openLocalProject = (options: { projectDir?: string; agentRunCostAcc
       runVerifier,
       providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory),
       ...(options.planningClarification?{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification)}:{}) });
-    return { location, instance, store, kernel };
+    return { location, instance, store, kernel,...(options.agentParentSkillResults?{agentParentSkillResults:Object.freeze({forOriginal:options.agentParentSkillResults.forOriginal.bind(options.agentParentSkillResults)})}:{}) };
   } catch (error) { store.close(); throw error; }
 };
 

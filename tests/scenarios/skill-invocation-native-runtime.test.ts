@@ -1,3 +1,4 @@
+import {createNativeFixtureRepository} from '../fixtures/native-fixture-root.js';
 import {constructedNamedTranscript} from '../fixtures/named-method-transcript.js';
 import {startWorkbench} from '../../apps/workbench/src/server.js';
 import {execFileSync} from 'node:child_process';
@@ -27,7 +28,7 @@ it.each(['succeeded','failed'] as const)('executes the original reserved child w
  const parent=join(process.cwd(),'.cimiloop','new-host-s1','skill-application-fixtures');mkdirSync(parent,{recursive:true});
  // CLR physical executable paths must stay below MAX_PATH. Use a fresh bounded
  // retained repository, not aliases/copies of a previously failed original Run.
- const root=mkdtempSync(join(parent,'cimiloop-skill-application-')),repository=mkdtempSync(join(process.cwd(),'_')),source=join(root,'public-source');mkdirSync(join(source,'skills','entry'),{recursive:true});mkdirSync(join(source,'skills','dependency','references'),{recursive:true});
+ const root=mkdtempSync(join(parent,'cimiloop-skill-application-')),repository=createNativeFixtureRepository(),source=join(root,'public-source');mkdirSync(join(source,'skills','entry'),{recursive:true});mkdirSync(join(source,'skills','dependency','references'),{recursive:true});
  writeFileSync(join(source,'LICENSE'),'Public constructed method package license\n');
  writeFileSync(join(source,'skills','entry','SKILL.md'),'---\nname: entry\ndescription: Constructed fixed method\n---\nInvoke dependency and read the original fixed input.\n');
  writeFileSync(join(source,'skills','dependency','SKILL.md'),'---\nname: dependency\ndescription: Constructed fixed dependency\n---\nRead the original artifact; propose findings only.\n');

@@ -20,7 +20,7 @@ export { replayFixedMethodTranscript, verifyFixedMethodSdkEffects } from "./fixe
 export { openPublicNamedMethodOriginals } from "./named-method-originals.js";
 export type { GatewayCreditPolicy, GatewayCreditConversationOriginalOptions, CreditReceipt } from "./gateway-credit.js";
 export { parseGatewayJson } from "./gateway-conversation.js";
-export { WindowsWorkspaceFileBroker, parseWorkspaceToolInvocation } from "./workspace-files.js";
+export { WindowsWorkspaceFileBroker, parseWorkspaceToolInvocation, validWorkspaceWorkerIdentity } from "./workspace-files.js";
 export type { WorkspaceToolInvocation, WorkspaceFileIdentity, WorkspaceNativePreparation, WorkspaceNativeCompletion, PreparedWorkspaceEffect, WorkspaceStagingOutcome } from "./workspace-files.js";
 export { WorkspaceToolHost, openWorkspaceToolHost, readWorkspaceToolRunFacts, readWorkspaceFileRunOriginals } from "./workspace-tool-host.js";
 export type { WorkspaceToolPhase } from "./workspace-tool-host.js";
@@ -42,7 +42,7 @@ export { verifyAgentRuntimeInterruption, verifyCollectedAgentRuntimeInterruption
 export { verifyAgentRuntimeCancellation, verifyCollectedAgentRuntimeCancellation } from './agent-runtime-cancellation.js';
 export { queryAgentRuntimeOperation, requestAgentRuntimeCancellation, readAgentRuntimeCancellationOriginal, recoverAgentRuntimeOperation, collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity } from "./agent-runtime-operation.js";
 export { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } from "./agent-workspace-ipc-journal.js";
-export { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
+export { readAgentRuntimeNativeResult, type AgentParentSkillHistoricalResultReader } from "./agent-runtime-result.js";
 export { readOriginalAgentWorkspaceOperation } from "./agent-workspace-sandbox-recovery.js";
 
 export { runOpenCodeWorkspaceRuntime } from "./opencode-workspace-runtime.js";
@@ -95,3 +95,10 @@ export {readAgentSkillPreparationZeroEffects} from './agent-skill-zero-effects.j
 export{AGENT_PARENT_SKILL_TOOLS,isAgentParentSkillToolSet}from'./agent-runtime-model.js';
 
 export{captureAgentParentSkillIpcPort,parseAgentParentSkillSdkCatalog,parseAgentParentSkillIpcRequest,parseAgentParentSkillIpcReceipt,type AgentParentSkillIpcPort,type AgentParentSkillSdkCatalog,type AgentParentSkillIpcReceipt}from'./agent-parent-skill-ipc.js';
+
+export {assertAgentParentSkillConfig} from './agent-parent-skill-config.js';
+
+export {projectAgentWorkspaceIpcCausalPrefix,type AgentWorkspaceIpcCurrentRequest} from './agent-ipc-causal-window.js';
+export {readAgentWorkspaceIpcCurrentRequest} from './agent-workspace-ipc.js';
+
+export{readAgentRuntimeNativePrefix,type AgentNativePrefixCut}from'./agent-runtime-result.js';

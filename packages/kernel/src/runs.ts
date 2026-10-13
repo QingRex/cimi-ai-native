@@ -35,7 +35,7 @@ export interface AgentRunVerifierPort {
   // Independent ongoing model/budget proof: current complete original workspace
   // and same-Run Native edit/IPC history plus live qualification. First-start
   // proof or arbitrary tool permission cannot substitute; absent means DENY.
-  checkModelAuthority?(project: Project, input: AgentRunLaunchAuthorityInput): Digest;
+  checkModelAuthority?(project: Project, input: AgentRunLaunchAuthorityInput,reader?:AgentRunOriginalResultReader): Digest;
   // Side-effect-free live admission check for one original Agent operation/tool.
   // Must re-read original host admission, current qualification/enforcement and
   // run/tool/SDK/account ownership. A model/import cannot install this port.
@@ -57,7 +57,15 @@ export interface AgentRunToolAuthorityInput extends AgentRunAdmissionInput {
 // Internal trusted-host API only; no new wire schema or persisted database format.
 export type AgentRunLaunchRequest = Omit<AgentToolAuthorityRequest, "action" | "resource">;
 export type AgentRunLaunchAuthorityInput = Omit<AgentRunToolAuthorityInput, "request"> & { request: AgentRunLaunchRequest };
+export type AgentParentSkillCandidateReader=AgentRunOriginalResultReader&Pick<StoreTransaction,'getProviderBinding'|'getProviderDescriptor'>;
+export interface AgentParentSkillCandidateAdmissionInput extends AgentRunAdmissionInput {
+ command:Extract<AnyCommand,{command_type:'ReserveSkillInvocation'}>;run:Run;record:AgentRunRecord;context:AgentContextManifest;binding:ProviderBinding;
+}
 export interface SkillInvocationVerifierPort {
+  // Explicit current-candidate path only. Independently read original Native
+  // source/check/input/admission facts; no captured verified flag or new base.
+  // The current writer reader expires after this synchronous callback.
+  verifyParentCandidate?(project:Project,input:AgentParentSkillCandidateAdmissionInput,reader:AgentParentSkillCandidateReader):Digest;
   // Independent synchronous read-only original child custody. Parent admission,
   // imported ALLOW and a model-selected method never substitute for this check.
   // Absence denies execution; no HTTP/CLI request can install this port.

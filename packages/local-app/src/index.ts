@@ -66,3 +66,7 @@ export type {HumanSkillRuntimeFactory,SkillRuntimeControlLease} from './skill-in
 export {LocalAgentParentSkillCalls} from './agent-parent-skill-calls-local.js';
 
 export{LocalAgentParentSkillHost,type AgentParentSkillHostReceipt}from'./agent-parent-skill-host-local.js';
+
+export type {LocalAgentParentSkillResultPort} from './agent-parent-skill-results-local.js';
+
+export{LocalAgentParentSkillCandidate}from'./agent-parent-skill-candidate-local.js';

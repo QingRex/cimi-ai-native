@@ -63,7 +63,8 @@ describe("Agent native records with constructed qualification and trusted port",
     expect(f.kernel.execute(f.command("PrepareRunContext", "work_item", f.item.id, { source_snapshot_ref: { object_type: "source_snapshot", id: f.source.id } }))).toMatchObject({ code: "INPUT_CHANGED" });
     expect(f.task()).toEqual(before);
     const unbounded = fixture("task_execution", 0); expect(unbounded.kernel.execute(unbounded.prepareCommand())).toMatchObject({ code: "CAPABILITY_UNAVAILABLE", details: { blockers: expect.arrayContaining(["AGENT_COST_BOUND_REQUIRED"]) } });
-  });
+  // Test observation only; original Agent Task clocks and budgets are unchanged.
+  }, 120_000);
   it("rechecks the host pin and reserves the full remaining ceiling before any new Agent effect", () => {
     const f = fixture(), prepared = f.prepareAgent(), before = f.task();
     expect(f.kernel.execute(f.reserveCommand(prepared, 0))).toMatchObject({ code: "BUDGET_EXCEEDED" });

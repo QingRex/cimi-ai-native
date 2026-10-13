@@ -550,6 +550,7 @@ export class SqliteProjectStore implements ProjectStore {
     try {
       const as_of_event_sequence = this.asOfEventSequence();
       const value = work({ getProject: () => this.getProject(), getChange: key => this.getChange(key),
+        getCommandReceipt:id=>new SqliteTransaction(this.#database).getCommandReceipt(id),
         getActor: id => this.getActor(id), listActors: () => this.listActors(), listAssignments: id => this.listAssignments(id),
         getProviderEvidence: id => this.getProviderEvidence(id), listProviderEvidence: () => this.listProviderEvidence(),
         getProviderEvaluation: id => this.getProviderEvaluation(id), listProviderEvaluations: () => this.listProviderEvaluations(),

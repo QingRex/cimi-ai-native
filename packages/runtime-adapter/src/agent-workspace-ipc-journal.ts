@@ -52,6 +52,15 @@ export class AgentWorkspaceIpcJournal {
     save(join(path, "request.json"), encode({ ordinal, digest: requestDigest }));
     const ticket = Object.freeze({ ordinal, path, request_digest: requestDigest }); this.tickets.add(ticket); return ticket;
   }
+  // Only a ticket minted by this original journal and still awaiting its reply
+  // may be read in the host's current request window. Bind complete immutable
+  // header bytes, not just a repeated nonce/scope in a substituted header.
+  readPendingRequest(ticket:ReturnType<AgentWorkspaceIpcJournal['request']>):unknown {
+    this.original();if(!this.tickets.has(ticket))fail();
+    const bytes=bytesAt(join(ticket.path,'request.raw'),TOOL_RECORD_BYTES),metadata=json(bytesAt(join(ticket.path,'request.json'),1024),1024);
+    if(!exact(metadata,['ordinal','digest'])||metadata.ordinal!==ticket.ordinal||metadata.digest!==ticket.request_digest||digest(bytes).value!==ticket.request_digest)fail();
+    const value=json(bytes);this.original();if(!this.tickets.has(ticket))fail();return value;
+  }
   reply(ticket: ReturnType<AgentWorkspaceIpcJournal["request"]>, raw: Buffer) {
     this.original(); if (!this.tickets.has(ticket)) fail(); const bytes = Buffer.from(raw);
     save(join(ticket.path, "reply.raw"), bytes); save(join(ticket.path, "reply.json"), encode({ ordinal: ticket.ordinal, digest: digest(bytes).value }));

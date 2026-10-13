@@ -1,3 +1,4 @@
+import {createNativeFixtureRepository} from '../fixtures/native-fixture-root.js';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync} from 'node:fs';import {join,dirname} from 'node:path';
 import {describe,it,expect} from 'vitest';import {AgentStartLedger,AgentNamedMethodHost,AgentRuntimeModelHost,AgentRunBudget,openWindowsAgentRunClock,runOpenCodeWorkspaceRuntime,digest} from '../../packages/runtime-adapter/dist/index.js';
 import {LocalSkillInvocationStartCustody,writeInstance} from '../../packages/local-app/dist/index.js';import {requestDigest} from '../../packages/kernel/src/index.js';import {createInternalId} from '../../packages/protocol/src/v2/index.js';
@@ -7,7 +8,7 @@ import {createSkillInvocationProject} from '../fixtures/skill-invocation-project
 // no actual SDK/Skill/model call, paid request, bill or S1 acceptance is asserted.
 describe.runIf(process.platform==='win32'&&process.arch==='x64')('original child Skill actual Native Human control',()=>{
 it('stops the original suspended child via Kernel and reopens only custody for query/collect/recovery',async()=>{
- const base=join(process.cwd(),'.cimiloop/new-host-s1/skill-control-fixtures');mkdirSync(base,{recursive:true});const retained=mkdtempSync(join(base,'cimiloop-original-control-')),root=mkdtempSync(join(process.cwd(),'_')),f=createSkillInvocationProject(root),data=dirname(f.path),host=join(data,'child-host');
+ const base=join(process.cwd(),'.cimiloop/new-host-s1/skill-control-fixtures');mkdirSync(base,{recursive:true});const retained=mkdtempSync(join(base,'cimiloop-original-control-')),root=createNativeFixtureRepository(),f=createSkillInvocationProject(root),data=dirname(f.path),host=join(data,'child-host');
  const hostIdentity={machine_digest:digest('constructed child control machine').value,principal_digest:digest('constructed child control principal').value};let ledger=AgentStartLedger.initialize(host,hostIdentity),custody=new LocalSkillInvocationStartCustody(root,data,ledger),server:WorkbenchServer|undefined,budget:AgentRunBudget|undefined;let started=false,sends=0,releases=0,opened=0;
  const prepare=f.runPort.agent.skills!.prepare.bind(f.runPort.agent.skills);f.runPort.agent.skills!.prepare=(p,r,c,b,i)=>custody.bindPreparation(p,r,c,b,i,prepare(p,r,c,b,i));
  const input=f.methodInput,invocation=f.reserveSkill().invocation;if(input.purpose!=="review")throw Error("fixed review input");

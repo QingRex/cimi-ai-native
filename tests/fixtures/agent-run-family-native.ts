@@ -1,3 +1,4 @@
+import {createNativeFixtureRepository} from './native-fixture-root.js';
 import{mkdtempSync,mkdirSync,readFileSync,writeFileSync}from'node:fs';import{tmpdir}from'node:os';import{join,dirname}from'node:path';import{expect}from'vitest';
 import{CimiLoopKernel}from'../../packages/kernel/src/index.js';import{contentDigest}from'../../packages/kernel/src/intent.js';
 import{LocalAgentModelAdmission,LocalAgentStartCustody,LocalAgentCheckAdmission}from'../../packages/local-app/dist/index.js';
@@ -7,9 +8,9 @@ export interface OriginalNativeParentPreparation{f:ReturnType<typeof createAgent
 // Actual protected Windows Host/check/clock/Native composition. All model,
 // provider/Skill qualifications and approvals remain explicitly constructed.
 export async function createOriginalNativeParent(options:{beforePrepare?:(input:OriginalNativeParentPreparation)=>Promise<void>}={}){
- const fixtureParent=process.cwd(),roots:string[]=[],stores:{close():void}[]=[],closers:(()=>Promise<void>)[]=[];
+ const roots:string[]=[],stores:{close():void}[]=[],closers:(()=>Promise<void>)[]=[];
  async function setup(editable=false,beforeReserve?:(prepared:{root:string;dataDirectory:string;ledger:Awaited<ReturnType<typeof initializeWindowsAgentStartLedger>>})=>Promise<void>){
-  mkdirSync(fixtureParent,{recursive:true});const root=mkdtempSync(join(fixtureParent,"_"));roots.push(root);
+  const root=createNativeFixtureRepository();roots.push(root);
   const f=createAgentRunProject(root,"task_execution",500,[{provider:"cimiloop_workspace",resource_type:"repository_path",locator:"src/**",version:"1.0.0"}],["read_files","run_checks",...(editable?["edit_files" as const]:[])],["src/**"],editable?["src/**"]:undefined,1800000);stores.push(f.store);
   const dataDirectory=dirname(f.path),harness="import {query} from './query.ts'; if(query()!=="+(editable?2:1)+")throw Error('actual source check');\n";
   writeFileSync(join(root,"src/check.mjs"),harness);f.git("add","src/check.mjs");f.git("commit","--quiet","-m","Actual fixed check input");const source=f.capture();

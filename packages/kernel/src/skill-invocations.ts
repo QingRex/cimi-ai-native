@@ -1,12 +1,12 @@
 import { SCHEMA_VERSION, compileValidator, SkillInvocationPreparationSchema, RawSkillInvocationObservationSchema,
-  AgentHostAdmissionReferenceSchema, type AnyCommand, type CommandSuccess, type Run, type Task,
+  AgentHostAdmissionReferenceSchema, DigestSchema, type Digest, type AnyCommand, type CommandSuccess, type Run, type Task,
   type SkillInvocation, type SkillInvocationObservation, type RawSkillInvocationObservation, type AgentContextManifest, type DomainError } from "@cimiloop/protocol/v2";
 import type { StoreTransaction } from "@cimiloop/store";
 import { assignmentIsEffective } from "./authorization.js";
 import { activeToolScopeProblems } from "./execution.js";
 import { agentRunBindingBlockers } from "./agent-runs.js";
 import { contentDigest, IntentFailure, type IntentContext } from "./intent.js";
-import { runContextDigest, runIsSettled, type RunVerifierPort } from "./runs.js";
+import { runContextDigest, runIsSettled, type RunVerifierPort, type AgentParentSkillCandidateReader, type AgentParentSkillCandidateAdmissionInput } from "./runs.js";
 import { runSkillInvocationFacts, skillInvocationInputDigest, skillInvocationState } from "./skill-invocation-facts.js";
 
 type Command = Extract<AnyCommand, { command_type: "ReserveSkillInvocation" | "RecordSkillInvocationObservation" | "ReconcileSkillInvocation" }>;
@@ -50,16 +50,40 @@ export const executeSkillInvocation = (tx: StoreTransaction, command: Command, c
     const blockers = agentRunBindingBlockers(tx, context.project, actor!, item, pins, context.now);
     if (blockers.length) return fail(command, "CAPABILITY_UNAVAILABLE", blockers.join("；"));
     const source = tx.getVerificationRecord("source_snapshot", record.source_snapshot_ref.id), workspace = tx.getRuntimeRecord("workspace_snapshot", record.workspace_before_ref.id);
-    if (!source || !workspace || !host!.sourceIsCurrent(context.project, source)) return fail(command, "INPUT_CHANGED", "父运行固定源码不可核验或已变化");
-    let prepared: import("@cimiloop/protocol/v2").SkillInvocationPreparation;
+    if (!source || !workspace) return fail(command, "INPUT_CHANGED", "父运行固定源码不可核验或已变化");
+    const currentCandidate=command.source.origin==='agent'&&command.source.producer==='cimiloop-parent-sdk-skill-current-candidate';
+    if(currentCandidate&&!port.verifyParentCandidate)return fail(command,'CAPABILITY_UNAVAILABLE','原父当前候选独立核验宿主未安装');
+    if(!currentCandidate&&!host!.sourceIsCurrent(context.project,source))return fail(command,'INPUT_CHANGED','父运行固定源码不可核验或已变化');
+    const candidateInput:AgentParentSkillCandidateAdmissionInput={command,run,record:record as import('@cimiloop/protocol/v2').AgentRunRecord,context:pins,binding,
+      task,work_item:item,source,workspace,runtime_binding:pins.runtime_binding,skill_bindings:pins.skill_bindings};
+    const readCandidate=():Digest=>{
+      let active=true;
+      const take=<T>(read:()=>T):T=>{if(!active)throw Error('Original parent candidate Writer reader expired');return structuredClone(read());};
+      const reader:AgentParentSkillCandidateReader=Object.freeze({
+        getCurrentProject:()=>take(()=>tx.getCurrentProject()),getActor:id=>take(()=>tx.getActor(id)),getRun:id=>take(()=>tx.getRun(id)),
+        getRuntimeRecord:(kind,id)=>take(()=>tx.getRuntimeRecord(kind,id)),listRuntimeRecords:(kind,changeId)=>take(()=>tx.listRuntimeRecords(kind,changeId)),
+        getCommandReceipt:id=>take(()=>tx.getCommandReceipt(id)),getExecutionObject:(kind,id)=>take(()=>tx.getExecutionObject(kind,id)),getVerificationRecord:(kind,id)=>take(()=>tx.getVerificationRecord(kind,id)),
+        getProviderBinding:id=>take(()=>tx.getProviderBinding(id)),getProviderDescriptor:id=>take(()=>tx.getProviderDescriptor(id))
+      });
+      try {
+        const value:unknown=port.verifyParentCandidate!(structuredClone(context.project),structuredClone(candidateInput),reader);
+        if(value instanceof Promise){void Promise.prototype.then.call(value,undefined,()=>{});throw Error('Asynchronous candidate proof unavailable');}
+        if(value!==null&&(typeof value==='object'||typeof value==='function')){let then:unknown;try{then=Reflect.get(value,'then');}catch{void Promise.resolve(value).then(undefined,()=>{});throw Error('Asynchronous candidate proof unavailable');}if(typeof then==='function'){void Promise.resolve(value).then(undefined,()=>{});throw Error('Asynchronous candidate proof unavailable');}}
+        return structuredClone(compileValidator<Digest>(DigestSchema)(value));
+      }finally{active=false;}
+    };
+    let prepared: import("@cimiloop/protocol/v2").SkillInvocationPreparation,candidateBefore:Digest|undefined;
     const invocation_key = context.id();
     try {
-      const admission = compileValidator<AgentContextManifest["host_admission_ref"]>(AgentHostAdmissionReferenceSchema)(host!.agent!.admitContext(context.project,
-        structuredClone({ task, work_item: item, source, workspace, runtime_binding: pins.runtime_binding, skill_bindings: pins.skill_bindings })));
-      if (!same(admission, record.host_admission_ref)) return fail(command, "INPUT_CHANGED", "Agent 宿主准入凭据已变化");
-      prepared = compileValidator<import("@cimiloop/protocol/v2").SkillInvocationPreparation>(SkillInvocationPreparationSchema)(port.prepare(context.project,
-        structuredClone(record), structuredClone(pins), structuredClone(binding), { invocation_key, method_name: command.payload.method_name, input_ref: structuredClone(command.payload.input_ref) }));
-    } catch (error) { if (error instanceof IntentFailure) throw error; return fail(command, "EVIDENCE_MISSING", "技能输入、包、Schema 或实际命名方法资格不可核验"); }
+      if(currentCandidate)candidateBefore=readCandidate();
+      else {
+        const admission=compileValidator<AgentContextManifest['host_admission_ref']>(AgentHostAdmissionReferenceSchema)(host!.agent!.admitContext(context.project,
+          structuredClone({task,work_item:item,source,workspace,runtime_binding:pins.runtime_binding,skill_bindings:pins.skill_bindings})));
+        if(!same(admission,record.host_admission_ref))return fail(command,'INPUT_CHANGED','Agent 宿主准入凭据已变化');
+      }
+      prepared=compileValidator<import('@cimiloop/protocol/v2').SkillInvocationPreparation>(SkillInvocationPreparationSchema)(port.prepare(context.project,
+        structuredClone(record),structuredClone(pins),structuredClone(binding),{invocation_key,method_name:command.payload.method_name,input_ref:structuredClone(command.payload.input_ref)}));
+    }catch(error){if(error instanceof IntentFailure)throw error;return fail(command,'EVIDENCE_MISSING','技能输入、原候选、包、Schema 或实际命名方法资格不可核验');}
     const request = prepared.request;
     if (request.invocation_key !== invocation_key || request.method_name !== command.payload.method_name) return fail(command, "BASELINE_MISMATCH", "命名技能请求与原调用不符");
     const descriptor = tx.getProviderDescriptor(binding.descriptor_ref.id)!;
@@ -68,6 +92,15 @@ export const executeSkillInvocation = (tx: StoreTransaction, command: Command, c
       prepared.package_ref.locator !== prepared.package_ref.digest.value || !same(prepared.input_schema_ref, binding.input_schema_ref) || !same(prepared.output_schema_ref, binding.output_schema_ref) ||
       binding.capability.capability_id !== (request.input.purpose === "clarification" ? "intent.clarify" : "verification.review") ||
       pins.boundary === "agent_independent_read_only" && request.input.purpose !== "review") return fail(command, "BASELINE_MISMATCH", "技能包、契约或能力用途与固定 Binding 不符");
+    if(currentCandidate){
+      try{if(!candidateBefore||!same(candidateBefore,readCandidate()))throw Error('Original candidate proof changed');}
+      catch{return fail(command,'EVIDENCE_MISSING','方法资格核验后原父当前候选不可再验');}
+      if(!same(tx.getRun(run.id),run)||!same(tx.getRuntimeRecord('run_record',record.id),record)||!same(tx.getRuntimeRecord('context_manifest',pins.id),pins)||
+        !same(tx.getActor(actor!.id),actor)||!same(tx.getExecutionObject('task',task.id),task)||!same(tx.getExecutionObject('work_item',item.id),item)||
+        !same(tx.getProviderBinding(binding.id),binding)||!same(tx.getVerificationRecord('source_snapshot',source.id),source)||!same(tx.getRuntimeRecord('workspace_snapshot',workspace.id),workspace))return fail(command,'INPUT_CHANGED','原父当前候选核验期间权限或固定关系改变');
+      const freshProblems=[...activeToolScopeProblems(tx,task,item,context.now),...agentRunBindingBlockers(tx,context.project,actor!,item,pins,context.now)];
+      if(freshProblems.length)return fail(command,'CAPABILITY_UNAVAILABLE',freshProblems.join('；'));
+    }
     const body = { schema_version: SCHEMA_VERSION, id: context.id(), project_id: context.project.id, created_at: context.now, producer_actor_id: actor!.id,
       change_id: record.change_id, task_id: record.task_id, work_item_ref: record.work_item_ref, definition_ref: record.definition_ref, contract_ref: record.contract_ref, plan_ref: record.plan_ref,
       run_ref: ref("run", run.id), run_operation_key: record.operation_key, invocation_key, context_ref: record.context_ref, executor_ref: record.executor_ref,

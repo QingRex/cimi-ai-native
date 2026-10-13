@@ -69,6 +69,8 @@ export interface PlanningReader extends IntentReader, ExecutionReader, Verificat
   listTargetVersions(): TargetVersion[];
 }
 export interface ProjectReader extends PlanningReader {
+  // Optional for legacy readers; current SQLite snapshots expose original receipts.
+  getCommandReceipt?(commandId:InternalId):CommandReceipt|undefined;
   getProject(): Project | undefined;
   getActor(actorId: InternalId): Actor | undefined;
   listActors(): Actor[];

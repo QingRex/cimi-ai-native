@@ -1,4 +1,6 @@
 import { spawn, type ChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
+import {AsyncLocalStorage} from 'node:async_hooks';
+import type {AgentWorkspaceIpcCurrentRequest} from './agent-ipc-causal-window.js';
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { buildWindowsAgentWorkspaceTransport, isolatedEnvironment } from "./native.js";
@@ -18,6 +20,18 @@ import {AgentNamedMethodHost,type AgentNamedMethodReceipt} from "./agent-named-m
 
 const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).sort().join(",") === [...keys].sort().join(",");
 function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
+interface OriginalRequestContext {scope:AgentWorkspaceToolScope;nonce:string;ticket:ReturnType<AgentWorkspaceIpcJournal['request']>;journal:AgentWorkspaceIpcJournal;active:boolean;available:()=>boolean}
+const originalRequestContext=new AsyncLocalStorage<OriginalRequestContext>();
+// Getter only: no public setter or JSON field can install a current request.
+// Inherited late async work retains the revoked context and fails closed.
+export function readAgentWorkspaceIpcCurrentRequest():AgentWorkspaceIpcCurrentRequest|null {
+ const current=originalRequestContext.getStore();if(!current)return null;
+ if(!current.active||!current.available())fail('agent_ipc_current_request_expired');
+ const frame=copyToolJson(current.journal.readPendingRequest(current.ticket));
+ if(!frame||typeof frame!=='object'||Array.isArray(frame)||!('call_id'in frame)||!('tool'in frame)||!('scope_digest'in frame)||typeof frame.call_id!=='string'||typeof frame.tool!=='string'||frame.scope_digest!==agentWorkspaceIpcScopeDigest(current.scope))fail('agent_ipc_current_request_unproven');
+ if(!current.active||!current.available())fail('agent_ipc_current_request_expired');
+ return{nonce:current.nonce,scope_digest:agentWorkspaceIpcScopeDigest(current.scope),ordinal:current.ticket.ordinal,request_digest:current.ticket.request_digest,call_id:frame.call_id,tool:frame.tool};
+}
 export const agentWorkspaceIpcScopeDigest = (raw: unknown): string => digest(JSON.stringify(parseAgentWorkspaceToolScope(raw))).value;
 // Only file arguments and the stable original SDK call ID cross this channel.
 // Project/Run/actor/operation/context/Binding/admission come from its host scope.
@@ -160,7 +174,9 @@ export class AgentWorkspaceToolIpc {
   }
   private async respond(bytes: Buffer, requestDigest: string) {
     if (!this.originals) fail("agent_ipc_originals_unproven");
-    const ticket = this.originals.request(bytes, requestDigest);
+    const originals=this.originals,ticket = originals.request(bytes, requestDigest);
+    const current:OriginalRequestContext={scope:structuredClone(this.scope),nonce:this.nonce,ticket,journal:originals,active:true,available:()=>!this.stopped&&!this.stopping.signal.aborted};
+    return originalRequestContext.run(current,async()=>{try{
     let receipt: AgentParentSkillIpcReceipt | AgentNamedMethodReceipt | WorkspaceToolReceipt | WorkspaceCheckReceipt | Awaited<ReturnType<AgentRuntimeModelHost["execute"]>>["receipt"] | null = null, replay = false, reason: string | null = null, callId: string | null = null;
     try {
       const frame = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(bytes), TOOL_RECORD_BYTES) as Record<string, unknown>;
@@ -198,8 +214,9 @@ export class AgentWorkspaceToolIpc {
     const reply = Buffer.from(JSON.stringify({ format: "cimiloop/agent-workspace-tool-reply/1.0.0", scope_digest: agentWorkspaceIpcScopeDigest(this.scope), request_digest: requestDigest,
       call_id: callId, outcome: reason ? "denied" : "completed", receipt, replay, reason, formal_agent_execution_enabled: false }));
     if (reply.length > TOOL_RECORD_BYTES) fail("agent_ipc_reply_limit");
-    this.originals.reply(ticket, reply);
+    originals.reply(ticket, reply);
     if (!this.stopped) this.child.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-ipc-host/1.0.0", request_digest: requestDigest, reply_base64: reply.toString("base64") }) + "\n");
+    }finally{current.active=false;}});
   }
   getEndpoint(): AgentWorkspaceIpcEndpoint { if (!this.endpoint || this.stopped) fail("agent_ipc_closed"); return structuredClone(this.endpoint); }
   snapshot() { return { attempts: structuredClone(this.attempts), closed: this.stopped, failure_reason: this.failure, formal_agent_execution_enabled: false as const }; }

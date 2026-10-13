@@ -33,7 +33,7 @@ export class LocalHumanAgentRunCostObservation{
    const family=lease.familySkills;
    if(family&&(typeof family.readResult!=='function'||typeof family.readPreparation!=='function'))throw Error('Original family reader unavailable');
    const familySkills=family?{readResult:family.readResult.bind(family),readPreparation:family.readPreparation.bind(family)}:undefined;
-   inner=openLocalProject({projectDir:this.local.location.repositoryPath,agentRunCostAccount:id=>{if(id!==original.run.id)throw Error('Foreign fee scope');return lease!.account;},...(familySkills?{agentRunFamilySkills:familySkills}:{})});
+   inner=openLocalProject({projectDir:this.local.location.repositoryPath,agentRunCostAccount:id=>{if(id!==original.run.id)throw Error('Foreign fee scope');return lease!.account;},...(familySkills?{agentRunFamilySkills:familySkills}:{}),...(this.local.agentParentSkillResults?{agentParentSkillResults:this.local.agentParentSkillResults}:{})});
    if(!isDeepStrictEqual(inner.instance,this.local.instance))throw Error('Original Human entry changed');
    const observer=new LocalAgentRuntimeObservation(inner,undefined,familySkills);
    return await(reconciling?observer.reconcileCosts(request,lease.account,authorize):observer.recordCosts(request,lease.account,authorize));

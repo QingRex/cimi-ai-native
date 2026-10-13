@@ -1,0 +1,164 @@
+{
+  "recorded_at": "2026-10-13T08:41:52.387Z",
+  "decision": "D-290",
+  "status": "Latest terminal reports consumed; formal production path remains incomplete",
+  "worktree": "C:/Users/hector.he/.codex/worktrees/s1-native-current-candidate/cimi-ai-native",
+  "changed_paths": [
+    "packages/local-app/src/agent-model-admission-local.ts",
+    "packages/local-app/test/agent-parent-model-causal-admission.test.ts"
+  ],
+  "behavior": "All installed Native/child callbacks precede one complete current source verification per before/after custody cut. Final pure original Native/check/Runtime/IPC/current-ticket closure follows source verification. Preparatory originals retain their extra final seal.",
+  "current_source_reads_per_model_assessment_before": 4,
+  "current_source_reads_per_model_assessment_after": 2,
+  "independent_custody_before_after_cuts_retained": true,
+  "authority_cached_across_await": false,
+  "actual_task_budget_raised": false,
+  "original_red": {
+    "failed": 3,
+    "passed": 39,
+    "complete_file": true,
+    "source_drift": []
+  },
+  "complete_contracts": {
+    "files": [
+      "packages/local-app/test/agent-parent-model-causal-admission.test.ts",
+      "packages/runtime-adapter/test/agent-ipc-causal-window.test.ts",
+      "packages/runtime-adapter/test/agent-ipc-current-request.test.ts"
+    ],
+    "passed": 64,
+    "failed": 0,
+    "skipped": 0,
+    "source_files": 770,
+    "source_drift": []
+  },
+  "typecheck": {
+    "exit_code": 0,
+    "source_files": 770,
+    "source_drift": []
+  },
+  "ordinary_review": {
+    "must_fix": 0,
+    "tests_run": false,
+    "matt_complete": false,
+    "superpowers_complete": false
+  },
+  "actual_native": {
+    "original_session": 25622,
+    "status": "terminal failure",
+    "files": [
+      "tests/scenarios/agent-production-lifetime-runtime.test.ts"
+    ],
+    "prior_original_session": 44457,
+    "prior_result": {
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0
+    },
+    "prior_failure_cause": "not_yet_proven",
+    "old_failed_operations_reopened": false,
+    "expected_task_budget_ms": 600000,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 0,
+    "source_files": 770,
+    "source_drift": [],
+    "failure": "Dedicated model sent 3 requests, expected 4; original Task deadline remained 600000ms."
+  },
+  "current_call": {
+    "original_session": 5401,
+    "status": "terminal passed",
+    "previous_result": {
+      "passed": 54,
+      "failed": 5
+    },
+    "negative_binding_claims_require_current_rerun": false,
+    "passed": 59,
+    "failed": 0,
+    "skipped": 0
+  },
+  "main": {
+    "original_session": 65967,
+    "status": "terminal failure",
+    "files": 103,
+    "passed": 943,
+    "failed": 5,
+    "skipped": 0,
+    "source_files": 774,
+    "source_drift": [],
+    "failed_files": [
+      "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts",
+      "D:/cc/cimi-ai-native/tests/scenarios/agent-run-family-settlement-native-runtime.test.ts",
+      "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-parent-skill-native-config.test.ts"
+    ]
+  },
+  "protocol_schema_count": 242,
+  "user_database_format": 10,
+  "host_ledger_format": 1,
+  "model_package_budgets_approved": false,
+  "real_model": false,
+  "real_skill": false,
+  "formal_agent_default_enabled": false,
+  "paid_requests": false,
+  "pushed": false,
+  "s1_complete": false,
+  "remaining_groups": [
+    "V1-09",
+    "V1-21",
+    "V1-22",
+    "V1-10",
+    "V1-11"
+  ],
+  "main_model_repairs": {
+    "integrated_paths": [
+      "packages/local-app/src/agent-model-admission-local.ts",
+      "packages/local-app/test/agent-parent-model-causal-admission.test.ts",
+      "packages/runtime-adapter/src/index.ts"
+    ],
+    "typecheck": {
+      "recorded_at": "2026-10-13T07:40:41.423Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 28624,
+      "files": [],
+      "source_files": 774,
+      "source_drift": [],
+      "main_integrated": true,
+      "current_main_committed": false,
+      "original_task_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "complete_contracts": {
+      "original_session": 49445,
+      "status": "terminal passed",
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "source_files": 774,
+      "source_drift": []
+    },
+    "actual_native": {
+      "original_session": 73422,
+      "status": "terminal passed",
+      "files": 2,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "source_files": 774,
+      "source_drift": [],
+      "original_task_budget_raised": false,
+      "old_failed_operations_reopened": false,
+      "qualification_model_bills": "PUBLIC constructed fixtures; actual Native/SDK/HTTP/Kernel",
+      "s1_complete": false
+    }
+  },
+  "main_native_config_whole_retest": {
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0,
+    "source_files": 774,
+    "source_drift": [],
+    "original_complete_main_failure_preserved": true
+  }
+}
