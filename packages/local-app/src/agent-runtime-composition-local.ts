@@ -41,7 +41,7 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
   return this.open({local:options.local,binary:options.binary,custody:options.custody,checks:options.checks,model,...(options.parentSkill?{parentSkill:options.parentSkill}:{})});
  }
  static openDedicatedPersistent(options:Omit<Options,"model"> & {local:AgentDedicatedModelContext;runId:string;connection:DedicatedModelConnection;account:DedicatedAgentAccountLedger}){
-  return this.openDedicated({...options,account:LocalAgentDedicatedAccount.open(options.local,options.runId,options.account)});
+  return this.openDedicated({...options,account:LocalAgentDedicatedAccount.open(options.local,options.runId,options.account).modelAccountPort()});
  }
  originalScope(runId:string){this.assertIdentity();return structuredClone(originalAgentWorkspaceScope(this.options.local,runId));}
  start(runId:string,beforeLaunch?:()=>void){

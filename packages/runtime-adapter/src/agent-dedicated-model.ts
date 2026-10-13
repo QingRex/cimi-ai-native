@@ -1,3 +1,4 @@
+import{captureDedicatedLedgerModelFullHold}from'./agent-dedicated-account.js';
 import {agentRuntimeClaimFormat} from './agent-job-policy.js';
 import { existsSync, realpathSync, lstatSync, mkdirSync, openSync, writeFileSync, fsyncSync, closeSync, readdirSync } from "node:fs";
 import { join, resolve, relative, isAbsolute, sep, dirname, basename } from "node:path";
@@ -62,6 +63,7 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
  if(!sha(port?.admission_digest)||typeof port.check!=="function"||typeof port.reserve!=="function"||typeof port.verifyHold!=="function"||connection.model!==connection.provider+"/"+profile.model)fail("agent_dedicated_account_unavailable");
  verifyCredentialLocation(repositoryPath,modelRoot,connection.credential_file);
  verifyCredentialLocation(repositoryPath,credentialBoundaryRoot,connection.credential_file);
+ const fullHold=captureDedicatedLedgerModelFullHold(port,scope,connection);
  const account={admission_digest:port.admission_digest,check:port.check.bind(port),reserve:port.reserve.bind(port),verifyHold:port.verifyHold.bind(port)},scopeDigest=digest(JSON.stringify(scope)).value,connectionDigest=digest(JSON.stringify(connection)).value;
  const path=connection.provider==="zhipuai"?"/api/paas/v4/chat/completions":"/api/coding/paas/v4/chat/completions";
  const boundary=dependencies.boundary??new GatewayNetworkBoundary({},path as DedicatedGatewayPath);if(!(boundary instanceof GatewayNetworkBoundary)||boundary.path!==path)fail("agent_dedicated_connection_mismatch");
@@ -80,6 +82,7 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
   if(!isDeepStrictEqual(read(join(spine,"header.json")),header)||!isDeepStrictEqual(read(join(originals,"header.json")),header))fail();};
  const inflight=new Map<string,{request:unknown;promise:Promise<DedicatedAgentReply["receipt"]>}>();
  const holdCheck=async(hold:DedicatedAgentBudgetHold)=>{try{await account.verifyHold(structuredClone(scope),structuredClone(hold));}catch{fail("agent_dedicated_budget_unproven");}};
+ const checkAndHold=async(hold:DedicatedAgentBudgetHold)=>{if(fullHold){try{await fullHold(structuredClone(scope),structuredClone(hold));}catch{fail('agent_dedicated_budget_unproven');}}else{await check(scope);await holdCheck(hold);}};
  const dispatch=async(request:ReturnType<typeof parseAgentRuntimeModelRequest>,signal?:AbortSignal)=>{
   initialize(request);const names=readdirSync(spine).filter(n=>n!=="header.json").sort();if(names.length>64||names.some((n,i)=>n!=="model_"+String(i+1).padStart(4,"0"))||!isDeepStrictEqual(readdirSync(originals).filter(n=>n!=="header.json").sort(),names))fail();
   const prior:DedicatedAgentReply[]=[];
@@ -106,12 +109,12 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
   save(sendAnchor,{format:"cimiloop/agent-dedicated-send-intent/1.0.0",header_digest:digest(JSON.stringify(header)).value,request_digest:prepared.input_digest,model_request_digest:digest(JSON.stringify(request)).value});
   const claim=join(spine,request.call_id),body=join(originals,request.call_id);try{mkdirSync(claim);}catch{fail("agent_dedicated_original_unknown");}save(join(claim,"request.json"),request);mkdirSync(body);save(join(body,"request.json"),request);
   let held:DedicatedAgentBudgetHold;try{held=structuredClone(await account.reserve(structuredClone(scope),structuredClone(budget),Buffer.from(prepared.body)));}catch{fail("agent_dedicated_budget_unproven");}const hold=held;verifyHold(hold,budget);save(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id,request.call_id,"dedicated-budget-hold.json"),{format:"cimiloop/agent-dedicated-budget-original/1.0.0",hold_digest:digest(JSON.stringify(hold)).value});save(join(body,"budget-hold.json"),hold);prepared.input_token_limit=hold.input_token_limit;
-  signal?.throwIfAborted();await check(scope);await holdCheck(hold);signal?.throwIfAborted();
+  signal?.throwIfAborted();await checkAndHold(hold);signal?.throwIfAborted();
   verifyCredentialLocation(repositoryPath,modelRoot,connection.credential_file);
  verifyCredentialLocation(repositoryPath,credentialBoundaryRoot,connection.credential_file);
   let key:string;try{key=await credential(connection);}catch{fail("dedicated_credential_unavailable");}
   if(!/^[a-zA-Z0-9._-]{8,512}$/.test(key))fail("invalid_gateway_http_credential");if(prepared.body.includes(Buffer.from(key))||JSON.stringify(parseGatewayJson(prepared.body.toString(),65536)).includes(key))fail("gateway_credential_in_request");
-  save(join(body,"provider-request.json"),prepared.body);signal?.throwIfAborted();await check(scope);await holdCheck(hold);signal?.throwIfAborted();
+  save(join(body,"provider-request.json"),prepared.body);signal?.throwIfAborted();await checkAndHold(hold);signal?.throwIfAborted();
   const pin=await boundary.resolve(8000,signal),tls=await boundary.connect(pin,8000,signal);
   // Full bound-hold verification includes current account/connection admission.
   // Local service also rechecks Kernel authority on both sides of its await.

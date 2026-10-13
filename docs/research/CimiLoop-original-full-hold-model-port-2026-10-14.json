@@ -1,0 +1,313 @@
+{
+  "decision": "D-298",
+  "recorded_at": "2026-10-13T17:11:03.439Z",
+  "status": "main complete account contract batch validated; fresh full Native running; full S1 active",
+  "base": "c21c2ea4047822a43a5bf8c568bc1601ce5c8d20",
+  "source_paths": [
+    "packages/runtime-adapter/src/agent-dedicated-account.ts",
+    "packages/runtime-adapter/src/agent-dedicated-model.ts",
+    "packages/local-app/src/agent-dedicated-account-local.ts",
+    "packages/local-app/src/skill-invocation-dedicated-account-local.ts",
+    "packages/local-app/src/agent-runtime-composition-local.ts",
+    "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+    "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+    "packages/local-app/test/agent-dedicated-account-local.test.ts",
+    "packages/runtime-adapter/src/index.ts"
+  ],
+  "owner_core_members": [
+    "closed",
+    "skillScopes",
+    "bills",
+    "attachment",
+    "billingOrigin",
+    "request",
+    "hold",
+    "anchorId",
+    "anchor",
+    "validate",
+    "validateCut",
+    "read",
+    "checkOriginal",
+    "finances",
+    "seals",
+    "originalSkillZeroCosts",
+    "familyAccountCut",
+    "originalAccountScopeFiles",
+    "options",
+    "original",
+    "ticket",
+    "db",
+    "attachmentRecovery"
+  ],
+  "capabilities": [
+    "original Ledger owner full live admission/connection/scope/hold/account and physical custody before and after await",
+    "frozen owner port and private brand captured before method wrapping",
+    "canonical #private core rejects public helper replacement as new authority",
+    "actual parent persistent Runtime and child Skill model composition use owner port",
+    "fixed Local Kernel guard on each await side and reserve beforeHold",
+    "only two adjacent check+hold pairs merge for true owner; generic/clone/fake flags keep old checks",
+    "initial and credential/TLS live gates retained; no ALLOW cache, original budget release or resend"
+  ],
+  "records": [
+    {
+      "record": "d297-native-r6-full-hold-owner-red",
+      "recorded_at": "2026-10-13T16:38:39.625Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 1,
+      "error": null,
+      "elapsed_ms": 8037,
+      "files": [
+        "packages/runtime-adapter/test/agent-dedicated-account.test.ts"
+      ],
+      "test_name_pattern": "owner-bound dedicated model account port",
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false,
+      "actual_test_files": 1,
+      "tests": {
+        "passed": 0,
+        "failed": 6,
+        "pending": 16
+      },
+      "actual_files": [
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts"
+      ]
+    },
+    {
+      "record": "d297-native-r7-full-hold-owner-check",
+      "recorded_at": "2026-10-13T16:45:09.424Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 26121,
+      "files": [],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    {
+      "record": "d297-native-r8-full-hold-owner-contracts",
+      "recorded_at": "2026-10-13T16:46:55.585Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 71985,
+      "files": [
+        "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "packages/runtime-adapter/test/agent-skill-account.test.ts",
+        "packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "packages/local-app/test/skill-invocation-dedicated-account.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false,
+      "actual_test_files": 4,
+      "tests": {
+        "passed": 93,
+        "failed": 0,
+        "pending": 0
+      },
+      "actual_files": [
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts"
+      ]
+    },
+    {
+      "record": "d297-native-r9-full-hold-owner-complete-check",
+      "recorded_at": "2026-10-13T16:49:27.371Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 15069,
+      "files": [],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    {
+      "record": "d297-native-r10-full-hold-complete-contracts",
+      "recorded_at": "2026-10-13T17:03:55.433Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 768607,
+      "files": [
+        "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "packages/runtime-adapter/test/agent-skill-account.test.ts",
+        "packages/runtime-adapter/test/agent-account-bills.test.ts",
+        "packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+        "packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+        "packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+        "packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "packages/local-app/test/agent-account-billing-local.test.ts",
+        "packages/local-app/test/agent-account-billing-entry.test.ts",
+        "packages/local-app/test/agent-run-family-settlement.test.ts",
+        "packages/local-app/test/agent-parent-skill-composition.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false,
+      "actual_test_files": 13,
+      "tests": {
+        "passed": 193,
+        "failed": 0,
+        "pending": 0
+      },
+      "actual_files": [
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/agent-account-billing-entry.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/agent-account-billing-local.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/agent-parent-skill-composition.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/agent-run-family-settlement.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-account-bills.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts"
+      ]
+    },
+    {
+      "record": "d298-main-r1-owner-port-check",
+      "recorded_at": "2026-10-13T16:52:56.564Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 46482,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    {
+      "record": "d298-main-r2-full-hold-complete-contracts",
+      "recorded_at": "2026-10-13T17:06:13.124Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 733438,
+      "files": [
+        "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "packages/runtime-adapter/test/agent-skill-account.test.ts",
+        "packages/runtime-adapter/test/agent-account-bills.test.ts",
+        "packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+        "packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+        "packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+        "packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "packages/local-app/test/agent-account-billing-local.test.ts",
+        "packages/local-app/test/agent-account-billing-entry.test.ts",
+        "packages/local-app/test/agent-run-family-settlement.test.ts",
+        "packages/local-app/test/agent-parent-skill-composition.test.ts"
+      ],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false,
+      "actual_test_files": 13,
+      "tests": {
+        "passed": 193,
+        "failed": 0,
+        "pending": 0
+      },
+      "actual_files": [
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-account-billing-entry.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-account-billing-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-parent-skill-composition.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-family-settlement.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-account-bills.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts"
+      ]
+    },
+    {
+      "record": "d298-main-r3-full-hold-help",
+      "recorded_at": "2026-10-13T17:08:31.856Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1197,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    }
+  ],
+  "correction": {
+    "recorded_at": "2026-10-13T16:46:37.387Z",
+    "record": "d297-native-r8-full-hold-owner-contracts",
+    "nonexistent_requested": "packages/local-app/test/skill-invocation-dedicated-account.test.ts",
+    "excluded_from_actual_file_count": true,
+    "actual_child_contract_file": "packages/local-app/test/skill-invocation-execution-local.test.ts",
+    "next_full_regression_required": true
+  },
+  "ordinary_review": {
+    "recorded_at": "2026-10-13T16:54:11.566Z",
+    "status": "no concrete must-fix in six source files and first owner account negatives",
+    "genuine_initialized_owner_brand": true,
+    "core_fixed_private": true,
+    "generic_check_and_hold_retained": true,
+    "initial_and_tls_gates_retained": true,
+    "no_format_or_history_rewrites_found": true,
+    "tests_run_by_reviewer": false,
+    "not_matt": true,
+    "not_superpowers": true,
+    "not_s1": true,
+    "actual_native_speedup_proven": false,
+    "additional_tls_and_local_cancel_tests": "executed by primary in later complete regression, not reviewer"
+  },
+  "native": {
+    "record": "d298-native-r1-complete-original-native",
+    "session": 85896,
+    "status": "running; no final proof",
+    "source_files": 790,
+    "original_ordinary_task_budget_ms": 600000,
+    "original_parent_task_budget_ms": 1800000,
+    "old_complete_original": "d294-native-r15-current-native-clock-fixed",
+    "old_passed": 49,
+    "old_failed": 1,
+    "old_skipped": 0,
+    "original_failure_preserved": true
+  },
+  "limitations": [
+    "local TLS credentials, model qualification, tariffs and approvals are PUBLIC construction; not genuine paid model/skill/S1",
+    "source count four fewer Kernel guards is not measured performance or current Task success",
+    "D294 current domain result3 remains uncommitted isolated until complete fresh evidence",
+    "unconfirmed specific model/package/currency/cash and credit caps forbid paid requests",
+    "all five V1-09/V1-21/V1-22/V1-10/V1-11 remain active"
+  ],
+  "schema_total": 242,
+  "project_database_format": 10,
+  "host_ledger_format": 1,
+  "account_historical_formats": [
+    1,
+    2
+  ],
+  "user_database_migrated": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests": false,
+  "pushed": false
+}
