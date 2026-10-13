@@ -101,4 +101,17 @@ describe("Workbench controls original Agent Runs with Human Kernel authority", (
     expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(1);
     expect(f.store.getRun(runId)!.cancel_requested).toBe(true);expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});
   });
+  it("denies physical cancel and recovery after current Human technical-owner revocation through HTTP", async () => {
+    f.store.transaction(tx => {
+      for (const assignment of tx.listAssignments(f.actor.id).filter(a => a.role_key === "technical_owner"))
+        tx.endAssignment({ ...assignment, ended_at: f.project.created_at, updated_at: f.project.created_at, revision: assignment.revision + 1 }, assignment.revision);
+    });
+    const sequence = f.store.asOfEventSequence(), run = f.store.getRun(runId), usage = f.task().usage;
+    for (const action of ["cancel", "recover"]) {
+      const result = await request(`/api/agent-runs/${runId}/${action}`, {});
+      expect(result.status).toBe(403); expect(result.body).toMatchObject({ code: "ROLE_NOT_ASSIGNED" });
+    }
+    expect((await request(`/api/agent-runs/${runId}`)).status).toBe(200);
+    expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.store.getRun(runId)).toEqual(run); expect(f.task().usage).toEqual(usage);
+  });
 });

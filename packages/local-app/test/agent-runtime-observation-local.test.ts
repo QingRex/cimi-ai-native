@@ -86,7 +86,7 @@ describe("original Agent Unknown observation joins the Kernel receipt",()=>{
  });
  it("recovers a committed response loss without recollecting or depending on later missing original Native files",async()=>{
  seed();const input=command(),execute=local.kernel.execute.bind(local.kernel),sequence=f.store.asOfEventSequence();let lost=true;
- local.kernel={getObject:local.kernel.getObject.bind(local.kernel),execute:raw=>{const result=execute(raw);if(lost&&!("code" in result)){lost=false;throw Error("Constructed committed response loss");}return result;}};
+ local.kernel={getObject:local.kernel.getObject.bind(local.kernel),authorizeAgentRunControl:local.kernel.authorizeAgentRunControl.bind(local.kernel),execute:raw=>{const result=execute(raw);if(lost&&!("code" in result)){lost=false;throw Error("Constructed committed response loss");}return result;}};
  await expect(new LocalAgentRuntimeObservation(local,{collect}).record(input)).rejects.toThrow("Constructed committed response loss");
  writeFileSync(join(claim.claimDirectory,"input.json"),'{}');collect.mockRejectedValue(Error("Must not recollect"));
  expect(await new LocalAgentRuntimeObservation(local,{collect}).record(input)).toMatchObject({command_type:"RecordRunObservation"});
@@ -115,8 +115,8 @@ describe("original Agent Unknown observation joins the Kernel receipt",()=>{
  it.each(["request","prepared"])("fails closed on a damaged persisted %s without rewriting it or producing an observation",async name=>{
  seed();const input=command(),sequence=f.store.asOfEventSequence(),execute=local.kernel.execute.bind(local.kernel);
  if(name==="request")collect.mockRejectedValueOnce(Error("Constructed collector interruption"));
- else local.kernel={getObject:local.kernel.getObject.bind(local.kernel),execute:()=>{throw Error("Constructed precommit interruption");}};
- await expect(service.record(input)).rejects.toThrow();local.kernel={getObject:local.kernel.getObject.bind(local.kernel),execute};
+ else local.kernel={getObject:local.kernel.getObject.bind(local.kernel),authorizeAgentRunControl:local.kernel.authorizeAgentRunControl.bind(local.kernel),execute:()=>{throw Error("Constructed precommit interruption");}};
+ await expect(service.record(input)).rejects.toThrow();local.kernel={getObject:local.kernel.getObject.bind(local.kernel),authorizeAgentRunControl:local.kernel.authorizeAgentRunControl.bind(local.kernel),execute};
  const file=join(local.location.dataDirectory,"agent-runtime-observations",f.project.id,runId,input.command_id,name+".json");writeFileSync(file,"broken");
  await expect(new LocalAgentRuntimeObservation(local,{collect}).record(input)).rejects.toMatchObject({code:"EVIDENCE_MISSING",category:"storage"});
  expect(readFileSync(file,"utf8")).toBe("broken");expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage.cost_reserved_micros).toBe(100);

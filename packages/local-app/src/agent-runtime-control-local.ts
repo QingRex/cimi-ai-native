@@ -17,7 +17,7 @@ export interface AgentRuntimeControlPort {
 type Operation = { outcome: "observed"; result: unknown } | { outcome: "unknown"; reason: string };
 export type AgentRuntimeControlContext = Pick<LocalProject, "location" | "instance" | "agentParentSkillResults"> & {
   store: Pick<LocalProject["store"], "getProject" | "getActor" | "getRun" | "getRuntimeRecord">;
-  kernel: Pick<LocalProject["kernel"], "getObject" | "execute"> & Partial<Pick<LocalProject["kernel"],"getRuns">>;
+  kernel: Pick<LocalProject["kernel"], "getObject" | "execute" | "authorizeAgentRunControl"> & Partial<Pick<LocalProject["kernel"],"getRuns">>;
 };
 const defaults: AgentRuntimeControlPort = { query: queryAgentRuntimeOperation, collect: collectAgentRuntimeOperation,
   requestCancellation: requestAgentRuntimeCancellation, recover: recoverAgentRuntimeOperation };
@@ -33,10 +33,19 @@ export const readHumanOriginalAgentRunInputs = (local: AgentRuntimeControlContex
 };
 // Human project control never impersonates the original Agent. Cancellation
 // authority is the Kernel command; this service only joins its original effect.
+// Each new physical retry/recovery also requires current Kernel permission.
 // No start/resume entry, domain observation or cost settlement is installed.
 export class LocalAgentRuntimeControl {
   private readonly parentResults:ReturnType<typeof captureLocalAgentParentSkillResults>;
-  constructor(private readonly local: AgentRuntimeControlContext, private readonly port: AgentRuntimeControlPort = defaults,parentResults:LocalAgentParentSkillResultPort|undefined=local.agentParentSkillResults) {this.parentResults=captureLocalAgentParentSkillResults(parentResults);}
+  readonly #controlKernel: AgentRuntimeControlContext["kernel"];
+  readonly #controlMethod: AgentRuntimeControlContext["kernel"]["authorizeAgentRunControl"];
+  readonly #authorizeControl: AgentRuntimeControlContext["kernel"]["authorizeAgentRunControl"];
+  constructor(private readonly local: AgentRuntimeControlContext, private readonly port: AgentRuntimeControlPort = defaults,parentResults:LocalAgentParentSkillResultPort|undefined=local.agentParentSkillResults) {
+    this.#controlKernel = local.kernel;
+    this.#controlMethod = local.kernel.authorizeAgentRunControl;
+    this.#authorizeControl = this.#controlMethod.bind(local.kernel);
+    this.parentResults=captureLocalAgentParentSkillResults(parentResults);
+  }
   private assertControlIdentity(identity: { location: AgentRuntimeControlContext['location']; instance: AgentRuntimeControlContext['instance']; store: AgentRuntimeControlContext['store']; kernel: AgentRuntimeControlContext['kernel'] }) {
     if (this.local.store !== identity.store || this.local.kernel !== identity.kernel ||
       !isDeepStrictEqual(this.local.location, identity.location) || !isDeepStrictEqual(this.local.instance, identity.instance))
@@ -48,19 +57,33 @@ export class LocalAgentRuntimeControl {
     this.assertControlIdentity(controlIdentity);
     return { ...original, controlIdentity };
   }
-  private async observe(original: ReturnType<LocalAgentRuntimeControl["original"]>, action: () => unknown | Promise<unknown>) {
+  private authorizeControl(original: ReturnType<LocalAgentRuntimeControl["original"]>) {
+    const current = () => {
+      this.assertControlIdentity(original.controlIdentity);
+      if (this.local.kernel !== this.#controlKernel || this.#controlKernel.authorizeAgentRunControl !== this.#controlMethod)
+        throw new LocalProjectError("原 Kernel 控制权限入口发生变化", "INPUT_CHANGED", "conflict");
+    };
+    current();
+    const permission = this.#authorizeControl(original.run.id);
+    current();
+    if ("code" in permission) throw permission;
+  }
+  private async observe(original: ReturnType<LocalAgentRuntimeControl["original"]>, action: () => unknown | Promise<unknown>, physicalControl = false) {
     this.assertControlIdentity(original.controlIdentity);
+    if (physicalControl) this.authorizeControl(original);
     let operation: Operation;
     try { operation = { outcome: "observed", result: await action() }; }
     catch (error) { operation = { outcome: "unknown", reason: error instanceof RuntimeAdapterError && /^[a-z_]{1,96}$/.test(error.reason)
       ? error.reason : "agent_original_operation_unavailable" }; }
     this.assertControlIdentity(original.controlIdentity);
+    if (physicalControl) this.authorizeControl(original);
     let fresh: ReturnType<LocalAgentRuntimeControl["original"]>;
     try { fresh = this.original(original.run.id); }
     catch { throw new LocalProjectError("采集期间原运行关系发生变化", "INPUT_CHANGED", "conflict"); }
     if (!isDeepStrictEqual({ scope: fresh.scope, record: fresh.record, context: fresh.context },
       { scope: original.scope, record: original.record, context: original.context })) throw new LocalProjectError("原运行资料已改变", "INPUT_CHANGED", "conflict");
     this.assertControlIdentity(original.controlIdentity);
+    if (physicalControl) this.authorizeControl(original);
     return { ok: true as const, run_id: original.run.id, operation, starts_run: false as const, domain_observation_produced: false as const };
   }
   async query(runId: string) { const original = this.original(runId); return this.observe(original, () => this.port.query(original.controlIdentity.location.dataDirectory, original.scope)); }
@@ -85,7 +108,7 @@ export class LocalAgentRuntimeControl {
     return original;
   }
   async retryCancellation(runId: string) { const original = this.cancelled(runId); return this.observe(original,
-    () => this.port.requestCancellation(original.controlIdentity.location.dataDirectory, original.scope)); }
+    () => this.port.requestCancellation(original.controlIdentity.location.dataDirectory, original.scope), true); }
   async recover(runId: string) { const original = this.cancelled(runId); return this.observe(original,
-    () => this.port.recover(original.controlIdentity.location.dataDirectory, original.scope)); }
+    () => this.port.recover(original.controlIdentity.location.dataDirectory, original.scope), true); }
 }

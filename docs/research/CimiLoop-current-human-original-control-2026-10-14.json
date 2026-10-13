@@ -1,0 +1,119 @@
+{
+  "batch": "D-302",
+  "recorded_at": "2026-10-13T19:29:44.644Z",
+  "base_commit": "5a1b3fb3d6c57f75ce02a4dc433c6419b7da800d",
+  "validation": {
+    "tests": {
+      "files": 7,
+      "passed": 78,
+      "failed": 0,
+      "pending": 0,
+      "meta": {
+        "recorded_at": "2026-10-13T19:28:45.084Z",
+        "worktree": "D:\\cc\\cimi-ai-native",
+        "exit_code": 0,
+        "error": null,
+        "elapsed_ms": 756134,
+        "files": [
+          "packages/local-app/test/agent-runtime-control-local.test.ts",
+          "packages/local-app/test/agent-runtime-observation-local.test.ts",
+          "packages/local-app/test/agent-run-reconciliation.test.ts",
+          "packages/local-app/test/skill-invocation-control-local.test.ts",
+          "apps/workbench/test/agent-runtime-control.test.ts",
+          "apps/workbench/test/agent-runtime-session-await.test.ts",
+          "apps/workbench/test/skill-control.test.ts"
+        ],
+        "source_files": 788,
+        "source_drift": [],
+        "original_budgets_raised": false,
+        "paid_requests": false,
+        "pushed": false
+      }
+    },
+    "check": {
+      "recorded_at": "2026-10-13T19:15:53.688Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 37757,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "help": {
+      "recorded_at": "2026-10-13T19:19:41.009Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1467,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "ordinary_review": {
+      "kind": "ordinary_engineering_review_not_Matt_Superpowers_or_S1",
+      "reviewer": "/root/review_native_result",
+      "reviewed_paths": [
+        "packages/local-app/src/agent-runtime-control-local.ts",
+        "packages/local-app/test/agent-runtime-control-local.test.ts",
+        "packages/local-app/test/agent-runtime-observation-local.test.ts",
+        "apps/workbench/test/agent-runtime-control.test.ts"
+      ],
+      "first_must_fix": "Physical callback can revoke actual technical_owner assignment and replace dynamic authorizeAgentRunControl with previously allowed permission; object identity alone misses method drift.",
+      "reproduction": "Four actual Kernel/SQLite negatives resolved incorrectly in d302-main-r5-permission-replacement-red; failures retained.",
+      "fix": "Constructor captures original Kernel object, original method and bound call before parent result capture; current identity and Kernel permission checked before physical effect, after await and after original scope reread.",
+      "final_result": "Previously identified object/method replacement loophole closed; no additional must-fix found in read-only current four-path diff review.",
+      "must_fix_remaining": 0,
+      "reviewer_tests_run": false,
+      "complete_Matt_review": false,
+      "S1_acceptance": false
+    }
+  },
+  "evidence_limits": {
+    "constructed_qualification": true,
+    "native_control_port": "controlled",
+    "actual_kernel_sqlite_role_revocation": true,
+    "real_model": false,
+    "real_runtime_skill": false,
+    "s1_accepted": false
+  },
+  "red_runs": [
+    "d302-main-r1-control-role-red",
+    "d302-main-r2-receipt-role-red",
+    "d302-main-r5-permission-replacement-red"
+  ],
+  "initial_errors": [
+    "First red receipt case used absent direct store getCommandReceipt; corrected to transaction reader and independently reproduced expected resolved failure.",
+    "First check required current Kernel control method absent in old observation test wrappers; wrappers now bind original method."
+  ],
+  "native": {
+    "session_id": 66214,
+    "source_files": 790,
+    "whole_run_terminal": false,
+    "first_parent_test": "failed",
+    "retained_fixture": "D:/s1-a11e0e/N-hA6H5R/_HQOHKf",
+    "cause": "unproven"
+  },
+  "next": [
+    "Explicit config7 original-operation reader compatibility with original parent binding and binary/controller identity.",
+    "Complete independently read Matt Standards and Spec reports, then fresh review for newer changes.",
+    "Model/package/currency/cash/credit approval and actual credential connection required before paid true end-to-end S1 evidence."
+  ],
+  "invariants": {
+    "schema": 242,
+    "project_database_format": 10,
+    "host_format": 1,
+    "formal_default_entry": false,
+    "goal": "active",
+    "paid_requests": false,
+    "pushed": false,
+    "unknown_tmp_touched": false,
+    "old_unknown_cleanup_proven": false
+  }
+}

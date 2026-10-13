@@ -80,4 +80,56 @@ describe("Human controls original Agent operations through Kernel cancellation",
     collect.mockImplementation(async () => { local.location.repositoryPath = dirname(root); return {}; });
     await expect(control.collect(runId)).rejects.toMatchObject({ code: "INPUT_CHANGED" });
   });
+  const revokeControl = () => f.store.transaction(tx => {
+    for (const assignment of tx.listAssignments(f.actor.id).filter(a => a.role_key === "technical_owner"))
+      tx.endAssignment({ ...assignment, ended_at: flowTime, updated_at: flowTime, revision: assignment.revision + 1 }, assignment.revision);
+  });
+  it.each(["retryCancellation", "recover"] as const)("denies %s after the original Human role is revoked, preserving cancellation and budget", async action => {
+    await control.stop(command()); cancel.mockClear(); recover.mockClear(); revokeControl();
+    const sequence = f.store.asOfEventSequence(), run = f.store.getRun(runId), usage = f.task().usage;
+    await expect(control[action](runId)).rejects.toMatchObject({ code: "ROLE_NOT_ASSIGNED" });
+    expect(cancel).not.toHaveBeenCalled(); expect(recover).not.toHaveBeenCalled();
+    expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.store.getRun(runId)).toEqual(run); expect(f.task().usage).toEqual(usage);
+    expect(await control.query(runId)).toMatchObject({ ok: true });
+  });
+  it("replaying an original cancellation receipt cannot grant physical control after role revocation", async () => {
+    const input = command(); await control.stop(input); cancel.mockClear(); revokeControl();
+    const receipt = f.store.transaction(tx => tx.getCommandReceipt(input.command_id)), sequence = f.store.asOfEventSequence();
+    await expect(control.stop(input)).rejects.toMatchObject({ code: "ROLE_NOT_ASSIGNED" });
+    expect(cancel).not.toHaveBeenCalled(); expect(f.store.transaction(tx => tx.getCommandReceipt(input.command_id))).toEqual(receipt);
+    expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+  });
+  it.each(["retryCancellation", "recover"] as const)("rechecks current Human control after awaiting %s", async action => {
+    await control.stop(command()); cancel.mockClear(); recover.mockClear();
+    const result = async () => { revokeControl(); return { requested: true }; };
+    if (action === "recover") recover.mockImplementation(result); else cancel.mockImplementation(result);
+    const sequence = f.store.asOfEventSequence(), usage = f.task().usage;
+    await expect(control[action](runId)).rejects.toMatchObject({ code: "ROLE_NOT_ASSIGNED" });
+    expect(action === "recover" ? recover : cancel).toHaveBeenCalledTimes(1);
+    expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.task().usage).toEqual(usage);
+    expect(f.store.getRun(runId)!.cancel_requested).toBe(true);
+  });
+  it.each(["retryCancellation", "recover"] as const)("rejects replaced Kernel permission after awaiting %s with real role revocation", async action => {
+    await control.stop(command()); cancel.mockClear(); recover.mockClear();
+    const permission = f.humanKernel.authorizeAgentRunControl(runId), method = f.humanKernel.authorizeAgentRunControl;
+    const stale = vi.fn(() => permission), result = async () => { revokeControl(); Reflect.set(f.humanKernel, "authorizeAgentRunControl", stale); return { requested: true }; };
+    if (action === "recover") recover.mockImplementation(result); else cancel.mockImplementation(result);
+    const sequence = f.store.asOfEventSequence(), usage = f.task().usage;
+    try {
+      await expect(control[action](runId)).rejects.toMatchObject({ code: "INPUT_CHANGED" });
+      expect(stale).not.toHaveBeenCalled(); expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.task().usage).toEqual(usage);
+    } finally { Reflect.set(f.humanKernel, "authorizeAgentRunControl", method); }
+  });
+  it.each(["method", "object"] as const)("rejects replaced Kernel permission %s between original physical attempts", async replacement => {
+    await control.stop(command()); cancel.mockClear(); recover.mockClear();
+    const kernel = local.kernel, method = kernel.authorizeAgentRunControl, permission = kernel.authorizeAgentRunControl(runId), stale = vi.fn(() => permission);
+    revokeControl(); const sequence = f.store.asOfEventSequence(), usage = f.task().usage;
+    if (replacement === "method") Reflect.set(kernel, "authorizeAgentRunControl", stale);
+    else local.kernel = { getObject: kernel.getObject.bind(kernel), execute: kernel.execute.bind(kernel), authorizeAgentRunControl: stale };
+    try {
+      await expect(control.retryCancellation(runId)).rejects.toMatchObject({ code: "INPUT_CHANGED" });
+      expect(cancel).not.toHaveBeenCalled(); expect(recover).not.toHaveBeenCalled(); expect(stale).not.toHaveBeenCalled();
+      expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.task().usage).toEqual(usage);
+    } finally { local.kernel = kernel; Reflect.set(kernel, "authorizeAgentRunControl", method); }
+  });
 });
