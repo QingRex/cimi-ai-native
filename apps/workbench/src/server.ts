@@ -13,6 +13,12 @@ const token = () => randomBytes(32).toString("base64url");
 const equal = (actual: string | undefined, expected: string | undefined) => Boolean(actual && expected &&
   Buffer.byteLength(actual) === Buffer.byteLength(expected) && timingSafeEqual(Buffer.from(actual), Buffer.from(expected)));
 class HttpFailure extends Error { constructor(readonly status: number, readonly code: string) { super(code); } }
+// A delayed rejection still belongs to the current Human request. Check its
+// session on both outcomes without swallowing the first active-session error.
+const awaitCurrentSession = async<P extends Promise<unknown>>(operation:()=>P,guard:()=>void):Promise<Awaited<P>> => {
+  let result:Awaited<P>;try{result=await operation();}catch(error){guard();throw error;}
+  guard();return result;
+};
 const header = (request: IncomingMessage, name: string) => {
   const entries = request.rawHeaders.filter((_value, index) => index % 2 === 0 && request.rawHeaders[index]!.toLowerCase() === name);
   if (entries.length > 1) throw new HttpFailure(400, "AMBIGUOUS_HEADER");
@@ -177,9 +183,9 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       const costsMatch = /^\/api\/agent-runs\/([^/]{1,200})\/costs$/.exec(url.pathname);
       if(costsMatch && request.method==='GET'){
         if(header(request,'transfer-encoding')!==undefined || (header(request,'content-length')!==undefined && header(request,'content-length')!=='0'))throw new HttpFailure(400,'INVALID_COMMAND');
-        const result=await agentBilling.query(decodeURIComponent(costsMatch[1]!));
-        if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
-        requireSession(request,false);send(response,200,result);return;
+        const guard=()=>{if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,false);};
+        const result=await awaitCurrentSession(()=>agentBilling.query(decodeURIComponent(costsMatch[1]!)),guard);
+        send(response,200,result);return;
       }
       const costObservationMatch = /^\/api\/agent-runs\/([^/]{1,200})\/(cost-observation|reconcile-original)$/.exec(url.pathname);
       if(costObservationMatch && request.method==='POST'){
@@ -188,14 +194,14 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         requireSession(request,true);
         if(!body||typeof body!=='object'||Array.isArray(body)||!('target' in body)||!body.target||typeof body.target!=='object'||!('id' in body.target)||body.target.id!==decodeURIComponent(costObservationMatch[1]!))throw new HttpFailure(400,'INVALID_COMMAND');
         const guard=()=>{if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,true);};
-        const result=await(costObservationMatch[2]==='reconcile-original'?agentCostObservation.reconcile(body,guard):agentCostObservation.record(body,guard));
-        if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');
-        requireSession(request,true);
+        const result=await awaitCurrentSession(()=>costObservationMatch[2]==='reconcile-original'?agentCostObservation.reconcile(body,guard):agentCostObservation.record(body,guard),guard);
         send(response,'code' in result?statusFor(result):200,result);return;
       }
       const agentMatch = /^\/api\/agent-runs\/([^/]{1,200})(?:\/(collect|stop|cancel|recover|observe|start))?$/.exec(url.pathname);
       if (agentMatch && request.method === "GET" && !agentMatch[2]) {
-        send(response, 200, await agentRuntime.query(decodeURIComponent(agentMatch[1]!))); return;
+        const guard=()=>{if(closing)throw new HttpFailure(503,"WORKBENCH_CLOSING");requireSession(request,false);};
+        const result=await awaitCurrentSession(()=>agentRuntime.query(decodeURIComponent(agentMatch[1]!)),guard);
+        send(response,200,result);return;
       }
       if (agentMatch && request.method === "POST" && agentMatch[2]) {
         const body = await readBody(request);
@@ -205,13 +211,14 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         if (action === "stop" || action === "observe") {
           if (!body || typeof body !== "object" || Array.isArray(body) || !("target" in body) || !body.target || typeof body.target !== "object" ||
             !("id" in body.target) || body.target.id !== runId) throw new HttpFailure(400, "INVALID_COMMAND");
-          const result = action === "observe" ? await agentObservation.record(body) : await agentRuntime.stop(body);
+          const guard=()=>{if(closing)throw new HttpFailure(503,"WORKBENCH_CLOSING");requireSession(request,true);};
+          const result=await awaitCurrentSession(()=>action === "observe" ? agentObservation.record(body,guard) : agentRuntime.stop(body),guard);
           send(response, "code" in result ? statusFor(result) : 200, result); return;
         }
         if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length) throw new HttpFailure(400, "INVALID_COMMAND");
         const guard=()=>{if(closing)throw new HttpFailure(503,"WORKBENCH_CLOSING");requireSession(request,true);};
-        const result = action === "start" ? await agentStart.start(runId,guard) : action === "collect" ? await agentRuntime.collect(runId) : action === "cancel" ? await agentRuntime.retryCancellation(runId) : await agentRuntime.recover(runId);
-        guard();send(response, 200, result); return;
+        const result=await awaitCurrentSession(()=>action === "start" ? agentStart.start(runId,guard) : action === "collect" ? agentRuntime.collect(runId) : action === "cancel" ? agentRuntime.retryCancellation(runId) : agentRuntime.recover(runId),guard);
+        send(response, 200, result); return;
       }
       if (url.pathname === "/api/commands" && request.method === "POST") {
         const body = await readBody(request);

@@ -31,6 +31,7 @@ interface Prepared { format:"cimiloop/agent-unknown-observation-prepared/1.0.0"|
 // IPC journal: 128 exchanges * four artifacts, header, ten Runtime files,
 // optional fixed-check catalog. Match the collector's actual bounded history.
 const MAX_ORIGINAL_ARTIFACTS=128*4+1+10+1;
+const originalPromiseThen=Promise.prototype.then;
 const exact=(value:unknown,keys:string[]):value is Record<string,unknown>=>!!value&&typeof value==="object"&&!Array.isArray(value)&&Object.keys(value).sort().join(",")===keys.sort().join(",");
 // The strict parser uses null-prototype objects. Normalize only after parsing
 // (including duplicate/dangerous-key checks) for persisted value comparisons.
@@ -177,7 +178,7 @@ export class LocalAgentRuntimeObservation {
  private readonly content:LocalEvidenceVerifier;
  constructor(private readonly local:AgentRuntimeControlContext,private readonly port:AgentRuntimeObservationPort={collect:collectAgentRuntimeOperation},private readonly familySkills?:LocalAgentRunFamilyVerification,parentResults:LocalAgentParentSkillResultPort|undefined=local.agentParentSkillResults){
  this.content=new LocalEvidenceVerifier(local.location.repositoryPath,local.location.dataDirectory);this.parentResults=captureLocalAgentParentSkillResults(parentResults);}
- async record(raw:unknown){return this.recordOriginal(raw,false);}
+ async record(raw:unknown,beforeCommit:()=>void=()=>{}){return this.recordOriginal(raw,false,undefined,false,beforeCommit);}
  async recordCosts(raw:unknown,account?:DedicatedAgentAccountLedger,beforeCommit:()=>void=()=>{}){return this.recordOriginal(raw,true,account,false,beforeCommit);}
  async reconcileCosts(raw:unknown,account?:DedicatedAgentAccountLedger,beforeCommit:()=>void=()=>{}){return this.recordOriginal(raw,true,account,true,beforeCommit);}
  private async recordOriginal(raw:unknown,billed:boolean,account?:DedicatedAgentAccountLedger,reconciling=false,beforeCommit:()=>void=()=>{}){
@@ -219,7 +220,12 @@ export class LocalAgentRuntimeObservation {
   catch{throw new LocalProjectError("原观测准备结果损坏；保留原请求核对","EVIDENCE_MISSING","storage");}
   // On an exact retry Kernel may return its prior immutable receipt even if
   // later Native files are gone. Never recollect or regenerate the report.
-  const guard:unknown=beforeCommit();if(guard&&typeof guard==='object'&&'then'in guard){void Promise.resolve(guard).catch(()=>undefined);throw Error('Synchronous original fee guard required');}
+  const guard:unknown=beforeCommit();if(guard!==undefined){
+   // Own actual Promise rejection without invoking an arbitrary thenable. A
+   // non-void result never becomes permission to commit an original command.
+   try{void originalPromiseThen.call(guard as Promise<unknown>,undefined,()=>undefined);}catch{}
+   throw Error('Synchronous original observation guard required');
+  }
   return executeLocalCommand(this.local,{...request,payload:{raw_result_ref:prepared.raw_result_ref}});
  }
 }

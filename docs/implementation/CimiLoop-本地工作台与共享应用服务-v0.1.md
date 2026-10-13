@@ -1,5 +1,7 @@
 # CimiLoop 本地工作台与共享应用服务 v0.1
 
+2026-10-14 D-296：工作台原Agent及费用等待的成功/同步throw/await reject均重新核对Human会话和关闭；原观察提交前复用共享strict-void守卫，拒绝Promise/函数thenable/false且保留prepared同请求恢复，原取消不撤销或重复。有效HTTP/共享反例已红测修复，未触发的早期观测钩子明确排除；普通工程复审非Matt/Superpowers。main精确3源码/测试路径，最后完整14文件105项、check/CLI帮助通过，788源码无漂移。原完整Native5文件50项49通过1失败：当前父SDK→Skill仍原30分钟Task到期，原子结果/父model4未回件保留，下一步收敛重复核验后同预算再验，非S1。五组目标、Schema242/库10/Host1保持，默认Agent关闭，不处理未知TMP/旧Unknown、不付费、不push。[本批记录](../plans/2026-10-13-cimiloop-workbench-original-await-session.md)。
+
 2026-10-10 D-262：原取消控制帧与独立Native取消证明已接入原采集、共享Human／CLI／HTTP／工作台ReconcileRun。Kernel原cancel_requested、完整调用账本与原认证费用同时成立时结清Cancelled原Run，启动次数不返还、Task不自动满足、原命令不重开账户或Run。实际Windows准备／挂起取消、普通EOF及错误取消帧通过；运行中SDK取消与费用结清仍是受控组合，真实模型／Skill／Matt／Superpowers及完整S1未通过。默认正式Agent关闭，库10／242 Schema、零付费及完整五组持续目标保持。 [实施记录](CimiLoop-原取消证明与终态核对-v0.1.md)。
 
 2026-10-10 D-261：原Native终态、独立SDK／领域结果、原IPC／模型调用和认证账单已接入共享Human ReconcileRun、同一编译CLI与工作台原请求恢复。受控组合验证原Run成功／失败、现金12及剩余预算结清，保留启动次数且不自动满足Task；真实Windows已知账单但缺Native原件时拒绝结清，88继续冻结。受控Native／SDK及公开批准／账单不是实际智谱、真实Skill／Matt／Superpowers或S1证据，完整Native故障与四项账户确认仍未解决。默认正式Agent关闭，库10／242 Schema及完整五组目标保持。 [实施记录](CimiLoop-原执行终态与账单核对-v0.1.md)。

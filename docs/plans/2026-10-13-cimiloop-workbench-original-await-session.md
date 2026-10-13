@@ -1,0 +1,15 @@
+# D-296 工作台原 Agent 等待后的 Human 会话
+
+工作台原Agent查询在await后未再核对会话，停止请求的原Kernel取消已提交后亦可把迟到结果返回给已过期页面。两个实际HTTP反例已复现并修复。观测入口现把同一Human会话/关闭守卫交给共享LocalAgentRuntimeObservation.record，在原采集和prepared之后、Kernel提交之前检查；观测完成后也再次检查，页面不能用过期会话接收新原结果。
+
+查询仍无领域写入。停止仍先由Kernel记录原CancelRun，等待期间过期只抑制迟到响应，不撤销原取消或以新ID重新停止。原观测prepared保留，过期守卫阻断新的Kernel观察后，同一Command ID/时间/内容在有效会话下接续可直接读取原prepared，不重新采集、启动Run或重复推进事件。未知费用继续冻结，Task仍待独立验收。
+
+复审发现共享观察末次守卫只拒对象thenable，函数thenable和false返回可推进Kernel。使用明确原采集端口的完整7项修复前报告为5通过2失败：函数thenable及false实际形成新观察。修补现在拒所有非undefined返回，固定原Promise.then以品牌调用接住真实Promise拒绝，不读取或执行任意thenable；异步resolve/reject、函数thenable及false拒绝后均可按原prepared和同步void守卫恢复。该异常在采集catch之外，HTTP首拒绝不变为泛CAPABILITY。Kernel保持唯一事件和业务权威，HTTP不能指定模型/账户/角色/源码/工厂。
+
+首次测试r1因受保护临时目录权限加载失败，未执行测试；r2有两个有效HTTP红例，但观测namespace钩子实际未触发，不充当过期证据。r5里的观测/Promise计数失败也不算业务红例，原报告均保留。随后改为显式原collect端口，要求collection计数严格为1；新HTTP观测与同请求恢复、原Kernel首事件计数和真实shared guard反例可核对。普通独立工程复审无新增必修，非Matt/Superpowers/S1。
+
+最后拒绝分支还发现业务Promise在过期后reject绕过守卫，六个实际HTTP反例原完整13项为7通过6失败；统一成功/同步throw/await reject出口检查后完整13项通过。有效会话下仍重抛原业务错误，过期/关闭用固定会话拒绝；常见LocalProjectError无category，不能将该缺口笼统说成全面清除pending。原14文件最终完整105项、0失败0跳过、788源码无漂移，check和CLI帮助通过。早期10文件77项及另外2文件9项是此前实现的原报告，不替代最终修补后14文件105项。源码仅main的server、共享观察API和新增测试，D-294实际Native另一个工作树789源码冻结未动；原完整5文件50项最终49通过1失败、0跳过、789源码无漂移；普通生产3场景和旧家族场景通过，当前父SDK→Skill在原30分钟Task截止点失败。原子Native退出/result已在失败fixture保留，父第4模型仅有请求无回复，不能算完整当前领域结果或费用结清；不抬原期限、不重开旧Run。源码复审指出多层重复历史/Native/账户cut，但耗时归因仍待实测，后续先收敛相邻重复核验而不缓存实时权限/资格/账单认证。默认正式Agent保持关闭，构造Native claim/模型/资格/账单不证明真实Skill/模型。
+
+Schema242、用户库10、Host1不变，未升级用户库、未读取真实凭据、未付费、未push、未处理未知TMP或旧Unknown资源。完整V1-09/21/22/10/11持续目标保持；后续完成实际当前领域结果3/生产组合和真实Skill、澄清、Matt独立评审、Superpowers源码验证、普通Change到ReadyForDelivery与可操作接入指南。
+
+证据：[本批研究记录](../research/CimiLoop-workbench-original-await-session-2026-10-13.json)、[原时钟修复](2026-10-13-cimiloop-original-clock-worker.md)。

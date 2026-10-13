@@ -1,5 +1,7 @@
 # CimiLoop 背景研究
 
+2026-10-14 D-296：工作台原Agent及费用等待的成功/同步throw/await reject均重新核对Human会话和关闭；原观察提交前复用共享strict-void守卫，拒绝Promise/函数thenable/false且保留prepared同请求恢复，原取消不撤销或重复。有效HTTP/共享反例已红测修复，未触发的早期观测钩子明确排除；普通工程复审非Matt/Superpowers。main精确3源码/测试路径，最后完整14文件105项、check/CLI帮助通过，788源码无漂移。原完整Native5文件50项49通过1失败：当前父SDK→Skill仍原30分钟Task到期，原子结果/父model4未回件保留，下一步收敛重复核验后同预算再验，非S1。五组目标、Schema242/库10/Host1保持，默认Agent关闭，不处理未知TMP/旧Unknown、不付费、不push。[本批记录](../plans/2026-10-13-cimiloop-workbench-original-await-session.md)。
+
 2026-10-13 D-295：正式原Native时钟通道接固定Worker，原入口15秒期限含传输等待，主线程迟到消费仍扣原Task预算；取消不重发/不提前释放原slot，首Native失败不被Worker后续故障覆盖，SAB仅诊断，close须原Native退出。实际17秒阻塞反例及两项独立复审缺陷均红测修复；跨Node入口参数失败也保留并修复。main精确9源码/测试路径，完整6文件33项、check/CLI帮助通过，787源码无漂移；隔离5文件29项通过。D-294领域结果3仍在隔离树，原完整实际Native组合5文件48通过2失败保留，修补后新原操作完整5文件继续验证。普通工程review非Matt/Superpowers，构造模型/资格/账单非真实Skill/模型/S1。五组目标、Schema242/库10/Host1保持、默认Agent关闭，不抬旧期限、不处理未知TMP/旧Unknown、不付费、不push。[本批记录](../plans/2026-10-13-cimiloop-original-clock-worker.md)。
 
 2026-10-13 D-293：共享只读工厂已连接真实Host当前结果及Kernel原Writer，泛历史对象不晋升；工厂前getter及跨模块初始化循环已实际复现并修复，固定owner转发保持原方法身份。main精确5路径、完整3文件30项、check/CLI帮助通过，隔离3文件30项通过，782源码无漂移。领域结果3与实际生产组合继续；非真实Skill/模型/Matt/Superpowers或S1。五组目标、Schema242/库10/Host1保持，默认Agent关闭、不付费、不push。[本批记录](../plans/2026-10-13-cimiloop-shared-current-result-reader.md)。

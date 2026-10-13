@@ -1,0 +1,293 @@
+{
+  "decision": "D-296",
+  "recorded_at": "2026-10-13T16:11:33.107Z",
+  "status": "main workbench session batch validated; Native current Skill incomplete; goal active",
+  "base": "683163229d329920b9053f6d1e62f27c99ac836a",
+  "source_paths": [
+    "apps/workbench/src/server.ts",
+    "packages/local-app/src/agent-runtime-observation-local.ts",
+    "apps/workbench/test/agent-runtime-session-await.test.ts"
+  ],
+  "capabilities": [
+    "Agent query checks current read session/closing after original await",
+    "stop preserves one original Kernel cancellation and suppresses late expired response",
+    "ordinary observation passes current session guard through shared original prepared-to-Kernel commit boundary",
+    "observation rechecks current write session/closing after awaited result",
+    "strict synchronous void original guard rejects Promise, fake/function thenable and false verdict",
+    "fixed original Promise.then owns genuine rejection without invoking arbitrary then",
+    "rejected request retains exact prepared and replays without recollection or new Run",
+    "success/synchronous throw/await rejection all check the current session for Agent execution/control and fee routes"
+  ],
+  "records": [
+    {
+      "record": "d296-main-r1-session-await-red",
+      "exit_code": 1,
+      "elapsed_ms": 1033,
+      "source_files": 788,
+      "source_drift": [],
+      "tests": {
+        "passed": 0,
+        "failed": 0,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d296-main-r2-session-await-red",
+      "exit_code": 1,
+      "elapsed_ms": 41159,
+      "source_files": 788,
+      "source_drift": [],
+      "tests": {
+        "passed": 0,
+        "failed": 3,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d296-main-r3-session-await-check",
+      "exit_code": 1,
+      "elapsed_ms": 32898,
+      "source_files": 788,
+      "source_drift": [],
+      "tests": null
+    },
+    {
+      "record": "d296-main-r4-session-await-check",
+      "exit_code": 0,
+      "elapsed_ms": 17775,
+      "source_files": 788,
+      "source_drift": [],
+      "tests": null
+    },
+    {
+      "record": "d296-main-r5-void-guard-red",
+      "exit_code": 1,
+      "elapsed_ms": 51037,
+      "source_files": 788,
+      "source_drift": [],
+      "tests": {
+        "passed": 2,
+        "failed": 5,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d296-main-r6-original-collection-void-red",
+      "exit_code": 1,
+      "elapsed_ms": 62536,
+      "source_files": 788,
+      "source_drift": [],
+      "tests": {
+        "passed": 5,
+        "failed": 2,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d296-main-r7-void-guard-check",
+      "exit_code": 0,
+      "elapsed_ms": 19910,
+      "source_files": 788,
+      "source_drift": [],
+      "tests": null
+    },
+    {
+      "record": "d296-main-r8-complete-session-control-regression",
+      "exit_code": 0,
+      "elapsed_ms": 808801,
+      "source_files": 788,
+      "source_drift": [],
+      "actual_test_files": 10,
+      "tests": {
+        "passed": 77,
+        "failed": 0,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d296-main-r9-complete-original-reconciliation",
+      "exit_code": 0,
+      "elapsed_ms": 257554,
+      "source_files": 788,
+      "source_drift": [],
+      "actual_test_files": 2,
+      "tests": {
+        "passed": 9,
+        "failed": 0,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d296-main-r11-await-rejection-red",
+      "exit_code": 1,
+      "elapsed_ms": 63080,
+      "source_files": 788,
+      "source_drift": [],
+      "actual_test_files": 1,
+      "tests": {
+        "passed": 7,
+        "failed": 6,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d296-main-r12-current-rejection-check",
+      "exit_code": 2,
+      "elapsed_ms": 11861,
+      "source_files": 788,
+      "source_drift": [],
+      "actual_test_files": null,
+      "tests": null
+    },
+    {
+      "record": "d296-main-r13-current-rejection-check",
+      "exit_code": 0,
+      "elapsed_ms": 29614,
+      "source_files": 788,
+      "source_drift": [],
+      "actual_test_files": null,
+      "tests": null
+    },
+    {
+      "record": "d296-main-r14-current-session-green",
+      "exit_code": 0,
+      "elapsed_ms": 63784,
+      "source_files": 788,
+      "source_drift": [],
+      "actual_test_files": 1,
+      "tests": {
+        "passed": 13,
+        "failed": 0,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d296-main-r15-complete-final-session-control",
+      "exit_code": 0,
+      "elapsed_ms": 806537,
+      "source_files": 788,
+      "source_drift": [],
+      "actual_test_files": 14,
+      "tests": {
+        "passed": 105,
+        "failed": 0,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d296-main-r16-current-final-help",
+      "exit_code": 0,
+      "elapsed_ms": 1107,
+      "source_files": 788,
+      "source_drift": [],
+      "actual_test_files": null,
+      "tests": null
+    }
+  ],
+  "evidence_corrections": [
+    {
+      "record": "d296-main-r1-session-await-red",
+      "scope": "no tests executed; protected scratch EPERM"
+    },
+    {
+      "record": "d296-main-r2-session-await-red",
+      "valid_red_cases": [
+        "actual awaited query session expiration",
+        "actual committed stop late response expiration"
+      ],
+      "excluded_case": "observation namespace hook did not execute; not session expiration proof"
+    },
+    {
+      "record": "d296-main-r5-void-guard-red",
+      "valid_red_cases": [
+        "callable thenable formed an original Kernel observation",
+        "false verdict formed an original Kernel observation"
+      ],
+      "excluded_cases": [
+        "observation namespace hook did not execute",
+        "resolved/rejected Promise collection counters used ineffective namespace hook"
+      ]
+    },
+    {
+      "record": "d296-main-r6-original-collection-void-red",
+      "valid": true,
+      "explicit_original_collect": true,
+      "passed": 5,
+      "failed": 2,
+      "red_cases": [
+        "callable thenable",
+        "false verdict"
+      ]
+    }
+  ],
+  "review": {
+    "ordinary_engineering": true,
+    "must_fix_closed": true,
+    "tests_run_by_reviewer": false,
+    "matt": false,
+    "superpowers": false
+  },
+  "validation": {
+    "final_record": "d296-main-r15-complete-final-session-control",
+    "actual_test_files": 14,
+    "passed": 105,
+    "failed": 0,
+    "pending": 0,
+    "source_files": 788,
+    "source_drift": [],
+    "check": "d296-main-r13-current-rejection-check",
+    "help": "d296-main-r16-current-final-help",
+    "early_unmatched_argument_not_counted": true
+  },
+  "parallel_native": {
+    "record": "d294-native-r15-current-native-clock-fixed",
+    "status": "terminal failed, original process consumed",
+    "source_files": 789,
+    "source_drift": [],
+    "actual_files": 5,
+    "passed": 49,
+    "failed": 1,
+    "pending": 0,
+    "parent_current_skill_task_deadline_ms": 1800000,
+    "original_failure_preserved": true,
+    "source_tree_modified": false,
+    "budgets_raised": false
+  },
+  "baselines": {
+    "schema_total": 242,
+    "project_database": 10,
+    "host_ledger": 1
+  },
+  "limits": [
+    "Native claim/qualifications/public model/bill fixtures are constructed",
+    "strict observation guard does not change other Human service nested guard implementations",
+    "no actual model/Skill/Matt/Superpowers acceptance by this batch",
+    "D294 current result domain still isolated and uncommitted"
+  ],
+  "goal": {
+    "status": "active",
+    "scope": [
+      "V1-09",
+      "V1-21",
+      "V1-22",
+      "V1-10",
+      "V1-11"
+    ],
+    "s1_accepted": false
+  },
+  "unknown_temp_paths_touched": false,
+  "old_unknown_resources_cleaned": false,
+  "real_credentials_read": false,
+  "paid_requests": false,
+  "pushed": false,
+  "retained_native_failure": {
+    "operation": "a84d3bdd-0988-4ca0-ab7c-a0fd3570251c",
+    "interruption": "workspace_rehearsal_deadline",
+    "native_exit": 12,
+    "cleanup_reason": "agent_sandbox_task_deadline",
+    "completion_proven": false,
+    "current_parent_execution_proven": false,
+    "clock_control_failure": null,
+    "real_skill": false
+  }
+}
