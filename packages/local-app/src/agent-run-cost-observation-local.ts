@@ -3,6 +3,7 @@ import{LocalAgentRuntimeObservation,parseLocalAgentObservationRequest,parseLocal
 import{readHumanOriginalAgentRunInputs}from'./agent-runtime-control-local.js';
 import{openLocalProject,type LocalProject}from'./project.js';import{LocalProjectError}from'./errors.js';
 import type{HumanAgentAccountFactory,AgentAccountBillingLease}from'./agent-account-billing-entry-local.js';
+const originalPromiseThen=Promise.prototype.then;
 // Kernel records fees; this service grants no execution/bill-write authority.
 export class LocalHumanAgentRunCostObservation{
  constructor(private readonly local:LocalProject,private readonly factory?:HumanAgentAccountFactory){}
@@ -12,7 +13,12 @@ export class LocalHumanAgentRunCostObservation{
   const request=(reconciling?parseLocalAgentReconciliationRequest:parseLocalAgentObservationRequest)(raw,this.local),original=readHumanOriginalAgentRunInputs(this.local,request.target.id);
   const human=structuredClone(this.local.instance),location=structuredClone(this.local.location);let guardFailed=false,guardError:unknown;
   const authorize=()=>{try{
-   const result:unknown=beforeCommit();if(result&&typeof result==='object'&&'then'in result){void Promise.resolve(result).catch(()=>undefined);throw Error('Synchronous original fee guard required');}
+   const result:unknown=beforeCommit();if(result!==undefined){
+    // Own genuine rejection without reading or executing an arbitrary then.
+    // A non-void result is never authority to commit or replay original fees.
+    try{void originalPromiseThen.call(result as Promise<unknown>,undefined,()=>undefined);}catch{}
+    throw Error('Synchronous original fee guard required');
+   }
    const fresh=readHumanOriginalAgentRunInputs(this.local,original.run.id);
    if(!isDeepStrictEqual(location,this.local.location)||!isDeepStrictEqual(human,this.local.instance)||!isDeepStrictEqual({scope:original.scope,record:original.record,context:original.context},{scope:fresh.scope,record:fresh.record,context:fresh.context}))throw Error('Original fee input changed');
   }catch(error){guardFailed=true;guardError=error;throw error;}};

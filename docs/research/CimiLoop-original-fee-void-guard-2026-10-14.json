@@ -1,0 +1,114 @@
+{
+  "decision": "D-299",
+  "recorded_at": "2026-10-13T17:48:35.905Z",
+  "behavior": "2026-10-14 D-299：共享 Human 费用服务在入口、账户 await 后、prepared 提交前及原回执重放要求同步 void 守卫。固定 Promise.prototype.then 仅接管真实 Promise 拒绝，不读取或执行任意 then/getter；false、函数和对象 thenable 不能授权。独立矩阵实现前 13 失败/6 通过，修复后 19 通过；两轮均有 11 旧项因过滤未执行，不能当完整验证。最后 main 完整 9 文件 80 项、0失败0跳过、check/CLI帮助通过，788 源码无漂移；同请求 prepared 恢复不重采、同回执不重开账户或重复事件。独立 Native 五文件复验尚无整轮终态，当前父 SDK→Skill 领域结果场景已报告 1 项失败；最终错误详情仍待整轮报告；隔离树 790 源码保持冻结，原普通 600000ms/父 1800000ms 预算不变。普通工程 review 非 Matt/Superpowers，PUBLIC 模型/账单非真实技能或 S1。Schema242/库10/Host1、默认 Agent 关闭和五组目标保持，不付费、不push、不处理未知 TMP 或旧 Unknown。",
+  "source_paths": [
+    "packages/local-app/src/agent-run-cost-observation-local.ts",
+    "packages/local-app/test/agent-run-cost-observation.test.ts"
+  ],
+  "verification": {
+    "matrix_red": {
+      "passed": 6,
+      "failed": 13,
+      "filtered_old_tests": 11
+    },
+    "matrix_green": {
+      "passed": 19,
+      "failed": 0,
+      "filtered_old_tests": 11
+    },
+    "full": {
+      "recorded_at": "2026-10-13T17:48:12.576Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 575862,
+      "files": [
+        "packages/local-app/test/agent-run-cost-observation.test.ts",
+        "packages/local-app/test/agent-run-reconciliation.test.ts",
+        "packages/local-app/test/agent-parent-run-reconciliation.test.ts",
+        "packages/local-app/test/agent-run-family-settlement.test.ts",
+        "apps/workbench/test/agent-run-cost-observation.test.ts",
+        "apps/workbench/test/agent-run-cost-observation-frontend.test.ts",
+        "apps/workbench/test/agent-runtime-session-await.test.ts",
+        "apps/workbench/test/agent-account-billing.test.ts",
+        "apps/workbench/test/agent-account-billing-frontend.test.ts"
+      ],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "actual_files": [
+        "D:/cc/cimi-ai-native/apps/workbench/test/agent-account-billing-frontend.test.ts",
+        "D:/cc/cimi-ai-native/apps/workbench/test/agent-account-billing.test.ts",
+        "D:/cc/cimi-ai-native/apps/workbench/test/agent-run-cost-observation-frontend.test.ts",
+        "D:/cc/cimi-ai-native/apps/workbench/test/agent-run-cost-observation.test.ts",
+        "D:/cc/cimi-ai-native/apps/workbench/test/agent-runtime-session-await.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-parent-run-reconciliation.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-cost-observation.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-family-settlement.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-reconciliation.test.ts"
+      ]
+    },
+    "check": {
+      "recorded_at": "2026-10-13T17:29:06.869Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 23309,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "help": {
+      "recorded_at": "2026-10-13T17:40:45.158Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1709,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    }
+  },
+  "engineering_review": {
+    "status": "no concrete must-fix reported",
+    "tests_run_by_reviewer": false,
+    "matt": false,
+    "superpowers": false
+  },
+  "native": {
+    "session": 85896,
+    "source_files": 790,
+    "status": "running",
+    "current_parent_scenario_failed": true,
+    "metadata": null,
+    "ordinary_budget_ms": 600000,
+    "parent_budget_ms": 1800000
+  },
+  "limitations": {
+    "real_model_approved": false,
+    "real_paid_bill": false,
+    "real_skill_accepted": false,
+    "s1_complete": false,
+    "default_formal_agent_enabled": false
+  },
+  "invariants": {
+    "schema": 242,
+    "project_database_format": 10,
+    "host_ledger_format": 1,
+    "paid_requests": false,
+    "pushed": false,
+    "old_unknown_cleanup": false
+  }
+}
