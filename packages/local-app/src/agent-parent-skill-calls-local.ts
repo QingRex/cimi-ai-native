@@ -152,3 +152,12 @@ export class LocalAgentParentSkillCalls{
   originals();signal?.throwIfAborted();if(this.options.beforeReply)synchronous(this.options.beforeReply);signal?.throwIfAborted();originals();return{invocation:structuredClone(invocation),replay};
  }
 }
+
+// Capture once in the owner after class initialization. Importers invoke these
+// declarations only after module initialization; no replaceable lookup at open.
+const fixedOriginalCalls=Object.freeze({reservation:LocalAgentParentSkillCalls.prototype.readOriginalReservationFromReader,history:LocalAgentParentSkillCalls.prototype.readOriginalFromReader,current:LocalAgentParentSkillCalls.prototype.readCurrentOriginalFromReader,identity:Object.getOwnPropertyDescriptor(LocalAgentParentSkillCalls.prototype,'originalIdentity')!.get!,catalog:Object.getOwnPropertyDescriptor(LocalAgentParentSkillCalls.prototype,'sdkCatalog')!.get!});
+export function fixedOriginalReservation(this:LocalAgentParentSkillCalls,...args:Parameters<LocalAgentParentSkillCalls['readOriginalReservationFromReader']>):ReturnType<LocalAgentParentSkillCalls['readOriginalReservationFromReader']>{return fixedOriginalCalls.reservation.apply(this,args);}
+export function fixedCallsHistory(this:LocalAgentParentSkillCalls,...args:Parameters<LocalAgentParentSkillCalls['readOriginalFromReader']>):ReturnType<LocalAgentParentSkillCalls['readOriginalFromReader']>{return fixedOriginalCalls.history.apply(this,args);}
+export function fixedCallsCurrent(this:LocalAgentParentSkillCalls,...args:Parameters<LocalAgentParentSkillCalls['readCurrentOriginalFromReader']>):ReturnType<LocalAgentParentSkillCalls['readCurrentOriginalFromReader']>{return fixedOriginalCalls.current.apply(this,args);}
+export function fixedCallsIdentity(this:LocalAgentParentSkillCalls):LocalAgentParentSkillCalls['originalIdentity']{return fixedOriginalCalls.identity.call(this);}
+export function fixedCallsCatalog(this:LocalAgentParentSkillCalls):LocalAgentParentSkillCalls['sdkCatalog']{return fixedOriginalCalls.catalog.call(this);}

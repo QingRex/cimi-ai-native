@@ -3,13 +3,11 @@ import{existsSync,mkdirSync,openSync,writeFileSync,fsyncSync,closeSync}from'node
 import{SCHEMA_VERSION,parseCommand,compileValidator,RawSkillInvocationObservationSchema,type SkillInvocation,type SkillMethodOutput,type AnyCommand}from'@cimiloop/protocol/v2';
 import{skillInvocationState,requestDigest,commandDigest}from'@cimiloop/kernel';
 import{copyToolJson,parseGatewayJson,bytesAt,digest,assertOrdinaryPath,directory,parseAgentParentCurrentInput,parseAgentParentSkillIpcRequest}from'@cimiloop/runtime-adapter';
-import{LocalAgentParentSkillCalls,parentSkillOriginalMetadata,type ParentSkillOriginalReader}from'./agent-parent-skill-calls-local.js';
+import{LocalAgentParentSkillCalls,parentSkillOriginalMetadata,fixedOriginalReservation,fixedCallsHistory,fixedCallsCurrent,fixedCallsIdentity,fixedCallsCatalog,type ParentSkillOriginalReader}from'./agent-parent-skill-calls-local.js';
 import{originalAgentWorkspaceScope}from'./agent-workspace-tools-local.js';
 import type{LocalSkillInvocationResultCollection}from'./skill-invocation-result-local.js';
 import{LocalProjectError}from'./errors.js';
 import{assertSkillResultRuntimeOriginalSeal,type SkillResultOriginalSeal}from'./skill-result-original-seal.js';
-const fixedOriginalReservation=LocalAgentParentSkillCalls.prototype.readOriginalReservationFromReader, fixedCallsHistory=LocalAgentParentSkillCalls.prototype.readOriginalFromReader, fixedCallsCurrent=LocalAgentParentSkillCalls.prototype.readCurrentOriginalFromReader;
-const fixedCallsIdentity:(this:LocalAgentParentSkillCalls)=>LocalAgentParentSkillCalls['originalIdentity']=Object.getOwnPropertyDescriptor(LocalAgentParentSkillCalls.prototype,'originalIdentity')!.get!, fixedCallsCatalog:(this:LocalAgentParentSkillCalls)=>LocalAgentParentSkillCalls['sdkCatalog']=Object.getOwnPropertyDescriptor(LocalAgentParentSkillCalls.prototype,'sdkCatalog')!.get!;
 type Local=Parameters<typeof LocalAgentParentSkillCalls.open>[0]['local'];
 interface Options{local:Local;calls:LocalAgentParentSkillCalls;execution:{start(invocationId:string):Promise<unknown>};results:Pick<LocalSkillInvocationResultCollection,'captureVerified'|'readResult'>&Partial<Pick<LocalSkillInvocationResultCollection,'readResultOriginalSeal'>>;beforeEffect:()=>void;beforeReply?:()=>void;now?:()=>string}
 export interface AgentParentSkillHostReceipt{format:'cimiloop/agent-parent-skill-receipt/1.0.0';scope_digest:string;catalog_digest:string;call_id:string;request_digest:string;invocation_id:string;invocation_key:string;observation_id:string;report_digest:string;status:'succeeded'|'failed';output:SkillMethodOutput|null;output_digest:string;formal_agent_execution_enabled:false}
@@ -113,3 +111,11 @@ export class LocalAgentParentSkillHost{
   this.guard(signal);if(!same(this.readIntent(frame,invocation),command))fail();const result=this.kernel.execute(command);if(!('ok'in result)||result.ok!==true||!('command_type'in result)||result.command_type!=='RecordSkillInvocationObservation'||!same(result.data.observation.invocation_ref,{object_type:'skill_invocation',id:invocation.id}))fail();this.guard(signal);known=this.known(invocation,frame,signal);if(!known||known.observation_id!==result.data.observation.id)fail();return this.reply(known,false,invocation,frame,signal);
  }
 }
+
+// Fixed owner dispatchers also avoid eager prototype reads through import cycles.
+const fixedOriginalHost=Object.freeze({history:LocalAgentParentSkillHost.prototype.readOriginal,historyWriter:LocalAgentParentSkillHost.prototype.readOriginalFromReader,current:LocalAgentParentSkillHost.prototype.readCurrentOriginal,currentWriter:LocalAgentParentSkillHost.prototype.readCurrentOriginalFromReader,catalog:Object.getOwnPropertyDescriptor(LocalAgentParentSkillHost.prototype,'sdkCatalog')!.get!});
+export function fixedHostHistory(this:LocalAgentParentSkillHost,...args:Parameters<LocalAgentParentSkillHost['readOriginal']>):ReturnType<LocalAgentParentSkillHost['readOriginal']>{return fixedOriginalHost.history.apply(this,args);}
+export function fixedHostHistoryWriter(this:LocalAgentParentSkillHost,...args:Parameters<LocalAgentParentSkillHost['readOriginalFromReader']>):ReturnType<LocalAgentParentSkillHost['readOriginalFromReader']>{return fixedOriginalHost.historyWriter.apply(this,args);}
+export function fixedHostCurrent(this:LocalAgentParentSkillHost,...args:Parameters<LocalAgentParentSkillHost['readCurrentOriginal']>):ReturnType<LocalAgentParentSkillHost['readCurrentOriginal']>{return fixedOriginalHost.current.apply(this,args);}
+export function fixedHostCurrentWriter(this:LocalAgentParentSkillHost,...args:Parameters<LocalAgentParentSkillHost['readCurrentOriginalFromReader']>):ReturnType<LocalAgentParentSkillHost['readCurrentOriginalFromReader']>{return fixedOriginalHost.currentWriter.apply(this,args);}
+export function fixedHostCatalog(this:LocalAgentParentSkillHost):LocalAgentParentSkillHost['sdkCatalog']{return fixedOriginalHost.catalog.call(this);}

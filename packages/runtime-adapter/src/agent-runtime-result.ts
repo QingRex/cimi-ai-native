@@ -9,11 +9,15 @@ import { RuntimeAdapterError, digest } from "./files.js";
 
 import {parseAgentParentSkillSdkCatalog,parseAgentParentSkillIpcRequest,parseAgentParentSkillIpcReceipt,type AgentParentSkillSdkCatalog,type AgentParentSkillIpcReceipt} from './agent-parent-skill-ipc.js';
 import {copyToolJson} from './tool-journal.js';
+import type {AgentParentCurrentInput} from './agent-parent-current-input.js';
 // Trusted read-only application service, bound by Kernel composition. A wire
 // receipt never supplies this reader and cannot establish child Native effects.
 export interface AgentParentSkillHistoricalResultReader {
  readonly sdkCatalog:AgentParentSkillSdkCatalog;
  readOriginal(raw:unknown):{receipt:AgentParentSkillIpcReceipt};
+ // Explicit independently current capability. Old readers retain historical
+ // meaning and are never upgraded from an SDK receipt or a matching digest.
+ readCurrentOriginal?(raw:unknown):{receipt:AgentParentSkillIpcReceipt;current_input:AgentParentCurrentInput};
 }
 function originalResult(value:unknown){
  if(value instanceof Promise){void Promise.prototype.then.call(value,undefined,()=>{});throw Error('Asynchronous original result');}

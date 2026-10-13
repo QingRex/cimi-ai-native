@@ -1,0 +1,168 @@
+{
+  "recorded_at": "2026-10-13T11:56:23.472Z",
+  "decision": "D-293",
+  "batch_parent_commit": "0861179d73436b8221dabfc3c41193a1d1936d41",
+  "status": "Shared read-only result factory connects genuine Host current reads using existing Kernel Writer; explicit domain result3 and production combination remain pending",
+  "main_integrated": true,
+  "paths": [
+    "packages/local-app/src/agent-parent-skill-calls-local.ts",
+    "packages/local-app/src/agent-parent-skill-host-local.ts",
+    "packages/local-app/src/agent-parent-skill-results-local.ts",
+    "packages/runtime-adapter/src/agent-runtime-result.ts",
+    "packages/local-app/test/agent-parent-skill-current-result.test.ts"
+  ],
+  "main_complete": {
+    "recorded_at": "2026-10-13T11:55:26.194Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 570026,
+    "files": [
+      "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+      "packages/local-app/test/agent-parent-skill-result-composition.test.ts",
+      "packages/local-app/test/agent-parent-skill-writer-readonly.test.ts"
+    ],
+    "source_files": 782,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 30,
+    "failed": 0,
+    "skipped": 0
+  },
+  "isolated_complete": {
+    "recorded_at": "2026-10-13T11:43:39.229Z",
+    "worktree": "D:\\s1-a11e0e\\s1-current-candidate-G1iWw5",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 524709,
+    "files": [
+      "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+      "packages/local-app/test/agent-parent-skill-result-composition.test.ts",
+      "packages/local-app/test/agent-parent-skill-writer-readonly.test.ts"
+    ],
+    "source_files": 782,
+    "source_drift": [],
+    "paid_requests": false,
+    "passed": 30,
+    "failed": 0,
+    "skipped": 0
+  },
+  "check": {
+    "recorded_at": "2026-10-13T11:44:28.717Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 31904,
+    "files": [],
+    "source_files": 782,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false
+  },
+  "help": {
+    "recorded_at": "2026-10-13T11:45:57.219Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 1608,
+    "files": [],
+    "source_files": 782,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false
+  },
+  "red": {
+    "recorded_at": "2026-10-13T11:30:28.258Z",
+    "worktree": "D:\\s1-a11e0e\\s1-current-candidate-G1iWw5",
+    "exit_code": 1,
+    "error": null,
+    "elapsed_ms": 438502,
+    "files": [
+      "packages/local-app/test/agent-parent-skill-current-result.test.ts"
+    ],
+    "source_files": 782,
+    "source_drift": [],
+    "paid_requests": false,
+    "passed": 18,
+    "failed": 1,
+    "skipped": 0,
+    "reason": "Genuine Host readOriginal instance getter executed once before original sealing"
+  },
+  "first_combination_failure": {
+    "recorded_at": "2026-10-13T11:21:00.499Z",
+    "worktree": "D:\\s1-a11e0e\\s1-current-candidate-G1iWw5",
+    "exit_code": 1,
+    "error": null,
+    "elapsed_ms": 398805,
+    "files": [
+      "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+      "packages/local-app/test/agent-parent-skill-result-composition.test.ts",
+      "packages/local-app/test/agent-parent-skill-writer-readonly.test.ts"
+    ],
+    "source_files": 782,
+    "source_drift": [],
+    "paid_requests": false,
+    "passed": 18,
+    "failed_assertions": 0,
+    "failed_loading_files": 2,
+    "reason": "Cross-module eager prototype capture through Calls/workspace/control/results/Host cycle"
+  },
+  "compiler_diagnostics": {
+    "failed_incremental_checks": [
+      "d287-r87-owner-dispatch-check",
+      "d287-r88-owner-return-check"
+    ],
+    "standalone_no_emit_exit": 0,
+    "standalone_declaration_exit": 0,
+    "force_build_exit": 0,
+    "original_pnpm_check": {
+      "recorded_at": "2026-10-13T11:34:25.157Z",
+      "worktree": "D:\\s1-a11e0e\\s1-current-candidate-G1iWw5",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 20720,
+      "files": [],
+      "source_files": 782,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    "compiled_module_import_exit": 0
+  },
+  "ordinary_review": {
+    "must_fix": 0,
+    "tests_run": false,
+    "matt_complete": false,
+    "superpowers_complete": false
+  },
+  "behavior": [
+    "Genuine Host is identified before instance historical method access",
+    "Each owner captures original methods/getters once after class initialization; consumers import fixed function declarations",
+    "Actual scoped Kernel Writer reused; no nested transactions",
+    "Genuine original Runtime/start/physical byte seal required before and after strict current joins",
+    "Only cloned receipt/current_input escapes; no seal, Writer or effect capability",
+    "Generic historical readers retain historical meaning and cannot gain current capability by adding a method"
+  ],
+  "protocol_schema_count": 242,
+  "user_database_format": 10,
+  "host_ledger_format": 1,
+  "formal_agent_default_enabled": false,
+  "paid_requests": false,
+  "pushed": false,
+  "real_model": false,
+  "real_skill": false,
+  "s1_complete": false,
+  "pending": [
+    "Explicit domain result3 using same successful child and complete current input",
+    "Actual production parent SDK/current candidate/Native Skill/known observations/parent result/family settlement",
+    "Approved model/package/currency and cash cap/credit cap with outside-repo credential connection",
+    "Full physical quota/history and exception recovery",
+    "All real Skills and pre-Plan/Task Human/Matt clarification",
+    "Independent complete Matt/fresh Superpowers and actual behavior comparison",
+    "Formal shared-service Workbench execution/query/stop/original continuation",
+    "Actual Change to ReadyForDelivery, recovery, S1 and actionable onboarding guide"
+  ]
+}
