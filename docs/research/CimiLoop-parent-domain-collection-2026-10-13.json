@@ -1,0 +1,259 @@
+{
+  "record": "D-282",
+  "recorded_at": "2026-10-13T01:37:31.918Z",
+  "base_commit": "15d0dc4b0c4a2f856e1d7158d48534f7f4f2096d",
+  "branch": "main",
+  "origin": {
+    "recorded_at": "2026-10-13T01:37:31.128Z",
+    "fetch_performed": true,
+    "head": "15d0dc4b0c4a2f856e1d7158d48534f7f4f2096d",
+    "branch": "main",
+    "origin_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+    "ahead_behind": "49\t0",
+    "pushed": false
+  },
+  "goal_status": "active",
+  "full_goal_scope": [
+    "V1-09",
+    "V1-21",
+    "V1-22",
+    "V1-10",
+    "V1-11"
+  ],
+  "pushed": false,
+  "s1_complete": false,
+  "formal_agent_execution_enabled": false,
+  "paid_requests_performed": false,
+  "real_credentials_read": false,
+  "protocol_schema_count": 242,
+  "database_format": 10,
+  "host_ledger_format": 1,
+  "node": "v24.19.0",
+  "pnpm": "12.4.2",
+  "capabilities": [
+    "Original catalog and historical child reader captured by formal collection",
+    "Parent packet3/config7/result2 domain result independently rechecks original child evidence",
+    "Domain callback followed by complete original Native/Job/observer/SDK/IPC byte rechecks",
+    "Frozen current Writer readonly view revoked after Kernel callback"
+  ],
+  "verification": {
+    "affected": {
+      "files": 24,
+      "passed": 251,
+      "failed": 0,
+      "skipped": 0,
+      "scope": [
+        "packages/local-app/test/agent-parent-skill-host.test.ts",
+        "packages/local-app/test/agent-parent-skill-calls.test.ts",
+        "packages/local-app/test/agent-parent-skill-ipc-local.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-ipc.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-gateway.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-correlation.test.ts",
+        "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+        "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+        "packages/runtime-adapter/test/opencode-parent-skill-tools.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-runtime.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-native-config.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-model.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-dedicated.test.ts",
+        "packages/local-app/test/agent-parent-skill-composition.test.ts",
+        "packages/local-app/test/agent-parent-skill-readonly.test.ts",
+        "packages/local-app/test/agent-parent-skill-writer-readonly.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-parent-result.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-result.test.ts",
+        "packages/local-app/test/skill-invocation-verified-result.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-parent-collection.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+        "packages/local-app/test/agent-parent-skill-kernel-reader.test.ts"
+      ],
+      "report": {
+        "path": ".cimiloop/new-host-s1/d282-main-r4-affected-current.json",
+        "sha256": "5b77165000ab2157348fb3ea01dc5f662bf05386a2846cce4848457b0f1e8165"
+      },
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d282-main-r4-affected-current.meta.json",
+        "sha256": "2438a952f04caa1b39e0cce5d7a8d8b463672255fc8986d6f65406872257115c"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d282-main-r4-affected-current.log",
+        "sha256": "35588c62a4862b9ae3f832ed753df698ef257c0d3a4f04fd37c4bfa825574bb9"
+      }
+    },
+    "native": {
+      "files": 15,
+      "passed": 41,
+      "failed": 0,
+      "skipped": 0,
+      "scope": [
+        "tests/scenarios/skill-invocation-control-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-native-runtime.test.ts",
+        "tests/scenarios/agent-named-method-runtime.test.ts",
+        "tests/scenarios/agent-runtime-cancellation-native.test.ts",
+        "packages/runtime-adapter/test/native-control-runtime.test.ts",
+        "packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-cancellation-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-not-started-native-runtime.test.ts",
+        "tests/scenarios/agent-dedicated-account-custody.test.ts",
+        "tests/scenarios/agent-account-bills-custody.test.ts",
+        "tests/scenarios/agent-start-custody-runtime.test.ts",
+        "tests/scenarios/agent-account-billing-entry-runtime.test.ts",
+        "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+        "tests/scenarios/agent-run-cost-observation-custody.test.ts",
+        "tests/scenarios/agent-run-family-settlement-native-runtime.test.ts"
+      ],
+      "from_original_full_run": true,
+      "report": {
+        "path": ".cimiloop/new-host-s1/d282-main-r2-full-current-native.json",
+        "sha256": "66076e0a6b0178dd1a4a009b6264fe7de207c6023fc3711e969cce6dc66f34ba"
+      },
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d282-main-r2-full-current-native.meta.json",
+        "sha256": "66ad4541642077e80707077fb8c0771bb458d7a6ce35d7a192090271f59051e8"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d282-main-r2-full-current-native.log",
+        "sha256": "350b639fa3e8aaab5ea4973d9c89bb7984e0608b2b43efce8f6c3b06dc45f103"
+      }
+    },
+    "original_full": {
+      "files": 39,
+      "passed": 291,
+      "failed": 1,
+      "skipped": 0,
+      "scope": [
+        "packages/local-app/test/agent-parent-skill-host.test.ts",
+        "packages/local-app/test/agent-parent-skill-calls.test.ts",
+        "packages/local-app/test/agent-parent-skill-ipc-local.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-ipc.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-gateway.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-correlation.test.ts",
+        "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+        "packages/runtime-adapter/test/agent-workspace-ipc-journal.test.ts",
+        "packages/runtime-adapter/test/opencode-parent-skill-tools.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-runtime.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-native-config.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-model.test.ts",
+        "packages/runtime-adapter/test/agent-parent-skill-dedicated.test.ts",
+        "packages/local-app/test/agent-parent-skill-composition.test.ts",
+        "packages/local-app/test/agent-parent-skill-readonly.test.ts",
+        "packages/local-app/test/agent-parent-skill-writer-readonly.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-parent-result.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-result.test.ts",
+        "packages/local-app/test/skill-invocation-verified-result.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-parent-collection.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+        "packages/local-app/test/agent-parent-skill-kernel-reader.test.ts",
+        "tests/scenarios/skill-invocation-control-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-native-runtime.test.ts",
+        "tests/scenarios/agent-named-method-runtime.test.ts",
+        "tests/scenarios/agent-runtime-cancellation-native.test.ts",
+        "packages/runtime-adapter/test/native-control-runtime.test.ts",
+        "packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-cancellation-native-runtime.test.ts",
+        "tests/scenarios/skill-invocation-not-started-native-runtime.test.ts",
+        "tests/scenarios/agent-dedicated-account-custody.test.ts",
+        "tests/scenarios/agent-account-bills-custody.test.ts",
+        "tests/scenarios/agent-start-custody-runtime.test.ts",
+        "tests/scenarios/agent-account-billing-entry-runtime.test.ts",
+        "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+        "tests/scenarios/agent-run-cost-observation-custody.test.ts",
+        "tests/scenarios/agent-run-family-settlement-native-runtime.test.ts"
+      ],
+      "status": "failed",
+      "ipc_exit_cause_unproven": true,
+      "report": {
+        "path": ".cimiloop/new-host-s1/d282-main-r2-full-current-native.json",
+        "sha256": "66076e0a6b0178dd1a4a009b6264fe7de207c6023fc3711e969cce6dc66f34ba"
+      },
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d282-main-r2-full-current-native.meta.json",
+        "sha256": "66ad4541642077e80707077fb8c0771bb458d7a6ce35d7a192090271f59051e8"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d282-main-r2-full-current-native.log",
+        "sha256": "350b639fa3e8aaab5ea4973d9c89bb7984e0608b2b43efce8f6c3b06dc45f103"
+      }
+    },
+    "original_ipc_diagnosis": {
+      "files": 1,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "old_failure_not_reclassified": true,
+      "report": {
+        "path": ".cimiloop/new-host-s1/d282-main-r3-original-ipc-diagnosis.json",
+        "sha256": "e8462cda1252aa51ace6325ecd254a06fcfeb93897466d70fef737e75edaf852"
+      },
+      "metadata": {
+        "path": ".cimiloop/new-host-s1/d282-main-r3-original-ipc-diagnosis.meta.json",
+        "sha256": "91eb064ab2a62650a94efdb391ab3e5c99d7d987b12559eca88a94e8ab313c1f"
+      },
+      "log": {
+        "path": ".cimiloop/new-host-s1/d282-main-r3-original-ipc-diagnosis.log",
+        "sha256": "565c7d40ca31c3fbe8bb24a13050e2ec0a886b78060016e51a8bb792ae5187eb"
+      }
+    },
+    "coverage_union": {
+      "files": 39,
+      "cases": 292,
+      "single_full_run_passed": false
+    },
+    "whole_repository": false,
+    "full_s1_acceptance": false,
+    "check": {
+      "path": ".cimiloop/new-host-s1/d282-main-r1-check.meta.json",
+      "sha256": "5ca11ec618db25c8f5d267d81de061538e75dec62335a91e03bb28e9a9374916"
+    },
+    "check_log": {
+      "path": ".cimiloop/new-host-s1/d282-main-r1-check.log",
+      "sha256": "d5a8950a8d51ea3b0ad539513d8abcaa487dfa26ff3ea7c3cf045a79c14f14e4"
+    },
+    "cli": {
+      "path": ".cimiloop/new-host-s1/d282-cli-help-final.log",
+      "sha256": "f98e6efe1a6ac5b43ca3463c99b48023e78aedae0036622a0e71e5f4f1556e2f"
+    }
+  },
+  "source": {
+    "files": 751,
+    "before": {
+      "path": ".cimiloop/new-host-s1/d282-main-integrated-source-before.json",
+      "sha256": "4257cdc58914e800275ec3efeaa2d001cabb9ca69caea9041bd9f8c9dc3b6865"
+    },
+    "original_full_after": {
+      "path": ".cimiloop/new-host-s1/d282-main-full-source-after.json",
+      "sha256": "4257cdc58914e800275ec3efeaa2d001cabb9ca69caea9041bd9f8c9dc3b6865"
+    },
+    "affected_before": {
+      "path": ".cimiloop/new-host-s1/d282-main-affected-current-source-before.json",
+      "sha256": "4257cdc58914e800275ec3efeaa2d001cabb9ca69caea9041bd9f8c9dc3b6865"
+    },
+    "affected_after": {
+      "path": ".cimiloop/new-host-s1/d282-main-affected-current-source-after.json",
+      "sha256": "4257cdc58914e800275ec3efeaa2d001cabb9ca69caea9041bd9f8c9dc3b6865"
+    },
+    "drift": [],
+    "exact_integration": {
+      "path": ".cimiloop/new-host-s1/d282-main-exact-integration.json",
+      "sha256": "c2192de2bdc85eca78a860e9659c41513043035156ec406a67c1956a2c1bbe27"
+    },
+    "main_only_repairs_preserved": true,
+    "candidate_sources": 7
+  },
+  "engineering_review": {
+    "path": ".cimiloop/new-host-s1/d282-engineering-review-main-final.json",
+    "sha256": "2bb315693e5a2816b7dff0dc99944a2832df9562f5bf72d228a2602dfbddf06e"
+  },
+  "limitations": [
+    "PUBLIC model/Skill/qualification/invoice fixtures do not prove real model/Skill/S1",
+    "One original full IPC-before-ready Native exit remains unexplained despite later exact file and whole affected passes",
+    "Current candidate input and original model IPC causal window require following implementation",
+    "Shared Local terminal/family cost composition, actual parent SDK child Native bills and continuation remain",
+    "Physical child cancellation, hard disk quotas/history capacity and complete exception recovery remain",
+    "Complete Matt, fresh Superpowers, pre-Plan/Task Human/Matt, formal Workbench and ordinary Change delivery remain",
+    "Only zhipuai provider approved; model/package/currency/cash cap/credit cap unconfirmed; no paid requests"
+  ]
+}

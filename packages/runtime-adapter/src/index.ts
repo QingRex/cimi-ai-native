@@ -53,7 +53,7 @@ export type { AgentRuntimeModelPort, AgentRuntimeModelResponse } from "./agent-r
 export { selectAgentRuntimeLifetime, withinAgentRuntimeTaskBudget } from "./agent-runtime-lifetime.js";
 
 export {isOriginalAgentNativeSuspension} from "./agent-native-suspension.js";
-export { originalTaskResultContract, verifyOriginalTaskExecutionResult, type OriginalTaskExecutionResult, type OriginalTaskDomainBasis } from "./agent-runtime-completion.js";
+export { originalTaskResultContract, verifyOriginalTaskExecutionResult, type OriginalTaskExecutionResult, type OriginalParentTaskExecutionResult, type OriginalTaskDomainBasis } from "./agent-runtime-completion.js";
 
 export { createDedicatedAgentRuntimeModel } from "./agent-dedicated-model.js";
 export type { DedicatedAgentAccountPort, DedicatedAgentBudgetRequest, DedicatedAgentBudgetHold } from "./agent-dedicated-model.js";

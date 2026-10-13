@@ -1,3 +1,7 @@
+import{join}from'node:path';
+import{isAgentParentSkillToolSet}from'./agent-runtime-model.js';
+import{parseAgentParentSkillSdkCatalog,parseAgentParentSkillIpcRequest,parseAgentParentSkillIpcReceipt,type AgentParentSkillIpcReceipt}from'./agent-parent-skill-ipc.js';
+import type{AgentParentSkillHistoricalResultReader}from'./agent-runtime-result.js';
 import {readOriginalAgentJobObservation} from './agent-job-policy.js';
 import {isOriginalAgentNativeSuspension} from "./agent-native-suspension.js";
 import { verifyCollectedDedicatedAgentModelOriginals } from "./agent-dedicated-model.js";
@@ -33,6 +37,10 @@ export interface OriginalTaskExecutionResult {
   required_checks: { check_id: string; call_id: string; source_digest: string; source_basis_digest: string | null }[];
   native_effect_reverified: true; model_account_custody_proven: false; costs_reconciled: false; task_acceptance_proven: false; current_workspace_applicability_proven: false;
 }
+export interface OriginalParentTaskExecutionResult extends Omit<OriginalTaskExecutionResult,'format'> {
+ format:'cimiloop/original-task-execution-result/2.0.0';parent_skill_catalog_digest:string;
+ parent_skill_calls:Pick<AgentParentSkillIpcReceipt,'call_id'|'invocation_id'|'invocation_key'|'observation_id'|'report_digest'|'output_digest'|'status'>[];
+}
 // Supplied independently from the Kernel's immutable records, never from the
 // Runtime packet or model answer. These pins describe the original Run's basis,
 // not the currently active Plan or a Task acceptance decision.
@@ -43,11 +51,20 @@ export interface OriginalTaskDomainBasis { definition: TaskDefinitionRecord; con
 // It cannot turn constructed model admission or token usage into account/bills,
 // nor can it substitute for Kernel Task evaluation or current source verification.
 export function verifyOriginalTaskExecutionResult(root: string, project: Project, record: AgentRunRecord, context: AgentContextManifest,
-  original: Original, collection: Collection, domain?: OriginalTaskDomainBasis): OriginalTaskExecutionResult | null {
+  original: Original, collection: Collection, domain?: OriginalTaskDomainBasis,parentReader?:AgentParentSkillHistoricalResultReader): OriginalTaskExecutionResult | OriginalParentTaskExecutionResult | null {
   try {
+    const originalBasis=structuredClone({project,record,context,original,collection,domain}),operationPath=original.operation;
     const scope = original.scope, input = object(original.input), packet = object(json(Buffer.from(String(input.prompt)), 32768));
+    const parent=packet.format==='cimiloop/agent-runtime-task-packet/3.0.0';
+    if(parent&&!exact(packet,['format','parent_skill_catalog','operation_key','context_digest','task','work_item','definition','contract','plan','context','check_catalog','result_contract'])||!parent&&('parent_skill_catalog'in packet||'parent_skill_original_binding'in input))return null;
+    const parentCatalog=parent?parseAgentParentSkillSdkCatalog(packet.parent_skill_catalog,scope):undefined;
+    if(parent&&(!parentReader||typeof parentReader.readOriginal!=='function'||!same(parseAgentParentSkillSdkCatalog(parentReader.sdkCatalog,scope),parentCatalog)))return null;
+    const readParent=parent?parentReader!.readOriginal.bind(parentReader!):undefined;
+    const parentIdentity=()=>{if(parent&&(!parentReader||!same(parseAgentParentSkillSdkCatalog(parentReader.sdkCatalog,scope),parentCatalog)))throw Error('Original parent reader catalog changed');};
+    const installedParent:AgentParentSkillHistoricalResultReader|undefined=parent?Object.freeze({get sdkCatalog(){parentIdentity();return structuredClone(parentCatalog!);},readOriginal(raw:unknown){parentIdentity();const result=readParent!(raw);parentIdentity();return result;}}):undefined;
+    const parentBinding=parentCatalog?{format:'cimiloop/agent-parent-skill-binding/1.0.0',scope_digest:collection.scope_digest,catalog_digest:parentCatalog.catalog_digest,sdk_catalog_digest:digest(JSON.stringify(parentCatalog)).value}:undefined;
     if (collection.scope_digest !== agentWorkspaceIpcScopeDigest(scope) || collection.status.operation !== original.operation ||
-      record.project_id !== project.id || context.project_id !== project.id || record.context_ref.id !== context.id || !same(record.input_digest, scope.context_digest) || packet.format !== "cimiloop/agent-runtime-task-packet/2.0.0" || packet.operation_key !== scope.operation_key || !same(packet.context_digest, scope.context_digest) ||
+      record.project_id !== project.id || context.project_id !== project.id || record.context_ref.id !== context.id || !same(record.input_digest, scope.context_digest) || (!parent&&packet.format !== "cimiloop/agent-runtime-task-packet/2.0.0") || packet.operation_key !== scope.operation_key || !same(packet.context_digest, scope.context_digest) ||
       !same(packet.context, context) || record.run_id !== scope.run_id || record.operation_key !== scope.operation_key || project.id !== scope.project_id ||
       collection.status.status !== "Stopped" || collection.status.resources_disposed !== true || collection.status.cancellation_requested !== false ||
       collection.synthetic_model_responses !== null || collection.model?.status !== "Observed" || collection.model.unresolved !== 0 ||
@@ -72,12 +89,17 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
       !same(definition.plan_ref, record.plan_ref) || !same(task.plan_ref, record.plan_ref) || !same(task.contract_ref, record.contract_ref) || !same(object(packet.plan).contract_ref, record.contract_ref)) return null;
     const names = new Set<string>();
     for (const artifact of collection.artifacts) { if (names.has(artifact.name)) return null; names.add(artifact.name); }
+    const collectedBytes=new Map<string,{bytes:Buffer;limit:number}>(),operationBytes=new Map<string,Buffer>();
     const artifact = (name: string, limit = 2 * 1024 * 1024): Buffer => {
-      const ref = collection.artifacts.find(a => a.name === name)?.reference; if (!ref) throw Error();
-      const bytes = bytesAt(ref.locator, limit); if (digest(bytes).value !== ref.digest?.value) throw Error(); return bytes;
+      const ref = collection.artifacts.find(a => a.name === name)?.reference; if (!ref||!same(ref,originalBasis.collection.artifacts.find(a=>a.name===name)?.reference)) throw Error();
+      const bytes = bytesAt(ref.locator, limit); if (digest(bytes).value !== ref.digest?.value) throw Error();const prior=collectedBytes.get(name);if(prior&&!prior.bytes.equals(bytes))throw Error('Collected original changed');if(!prior)collectedBytes.set(name,{bytes:Buffer.from(bytes),limit});return bytes;
     };
     const suspended=object(json(artifact("agent-sandbox-original.json"))), launch=object(json(artifact("original-launcher.json"))), resources=object(json(artifact("agent-sandbox-resources.json")));
     const config = object(json(artifact("original-config.json"))), disposal = object(json(artifact("agent-sandbox-cleanup.json"))), result = object(json(artifact("result.json")));
+    if(parent){for(const name of['original-config.json','original-launcher.json','agent-sandbox-resources.json','agent-sandbox-original.json','agent-sandbox-cleanup.json','result.json','stdout.raw']){const bytes=artifact(name),current=bytesAt(join(operationPath,name),2*1024*1024);if(!current.equals(bytes))return null;operationBytes.set(name,Buffer.from(current));}}
+    let parentBytes:Buffer|undefined;const parentPath=join(operationPath,'sandbox','config','parent-skill-catalog.json');
+    if(parent){parentBytes=artifact('parent-skill-catalog.json',16384);if(config.format!=='cimiloop/agent-workspace-sandbox-config/7.0.0'||config.parent_skill_tools!=='fixed_parent_skill/1.0.0'||config.method_tools!==undefined||config.method_original_binding!==undefined||object(input.provider_options).parent_skill_tools!=='fixed_parent_skill/1.0.0'||object(config.provider_options).parent_skill_tools!=='fixed_parent_skill/1.0.0'||!same(input.parent_skill_original_binding,parentBinding)||!same(config.parent_skill_original_binding,parentBinding)||!same(result.parent_skill_original_binding,parentBinding)||digest(parentBytes).value!==parentBinding!.sdk_catalog_digest||!same(json(parentBytes,16384),parentCatalog)||!bytesAt(parentPath,16384).equals(parentBytes))return null;}
+    else if(config.parent_skill_tools!==undefined||config.parent_skill_original_binding!==undefined||config.format==='cimiloop/agent-workspace-sandbox-config/7.0.0'||result.parent_skill_original_binding!==undefined)return null;
     if (config.prompt !== input.prompt || config.scope_digest !== collection.scope_digest || !same(config.owner, original.claim.owner) ||
       result.operation !== original.operation || !same(result.sandbox,suspended) ||
       result.format !== "cimiloop/opencode-workspace-runtime/1.0.0" || result.mode !== "host_gateway" || result.original_scope_digest !== collection.scope_digest ||
@@ -87,11 +109,12 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     const catalog = json(artifact("check-catalog.json", 262144)), recipes = object(catalog).recipes;
     if (!Array.isArray(recipes) || !same(contract, originalTaskResultContract(scope, record.definition_ref, definition.body.outputs, recipes.map(recipe => String(object(recipe).check_id))))) return null;
     const ipc = readAgentWorkspaceIpcOriginals(root, scope, String(config.pipe_nonce));
+    if(parent&&(ipc.header?.format!=='cimiloop/agent-workspace-ipc-originals/2.0.0'||ipc.header.endpoint.parent_skill_catalog_digest!==parentCatalog!.catalog_digest))return null;
     if (ipc.status !== "Observed" || ipc.unresolved !== 0 || !isOriginalAgentNativeSuspension(suspended,{nonce:config.nonce,supervisor:launch.supervisor,peer:resources.runtime,appcontainer_sid:ipc.header?.endpoint.appcontainer_sid}) ||
       !same(suspended.supervisor,ipc.header?.endpoint.supervisor)||!same(suspended.peer,ipc.header?.endpoint.peer)||resources.phase!=="ended"||resources.resources_disposed!==true) return null;
     const job=readOriginalAgentJobObservation(root,original.operation,input,config,launch,resources);
     if(job&&!job.bytes.equals(artifact('agent-job-observation.json',65536)))return null;
-    const native = readAgentRuntimeNativeResult(root, project, record, scope, ipc, catalog);
+    const native = readAgentRuntimeNativeResult(root, project, record, scope, ipc, catalog,installedParent);
     if (native.status !== "Verified" || !native.native_effect_reverified || native.unresolved_native_calls || native.unmatched_native_calls) return null;
     const steps: { session_id: string; message_id: string; text: string; reason: unknown; closed: boolean; tools: Record<string, unknown>[] }[] = [];
     let session: string | undefined, suspendedSeen=false, cleanupSeen=false;
@@ -120,6 +143,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     const header = object(json(artifact("model/header.json", 114688))), expectedAdmission = object(input.provider_options).admission_digest;
     if (!same(header.scope, scope) || header.task_packet_digest !== digest(String(input.prompt)).value || header.admission_digest !== expectedAdmission ||
       object(config.provider_options).admission_digest !== expectedAdmission || !Array.isArray(header.permitted)) return null;
+    if(parent?(!['cimiloop/agent-runtime-model-originals/3.0.0','cimiloop/agent-runtime-model-originals/4.0.0'].includes(String(header.format))||header.parent_skill_tools!=='fixed_parent_skill/1.0.0'||!isAgentParentSkillToolSet(header.permitted as string[])):header.parent_skill_tools!==undefined||isAgentParentSkillToolSet(header.permitted as string[]))return null;
     const model = readAgentRuntimeModelOriginals(root, scope);
     if (model.status !== "Observed" || model.admission_digest !== expectedAdmission || model.task_packet_digest !== digest(String(input.prompt)).value ||
       model.calls.length !== steps.length || ipc.header?.endpoint.model_admission_digest !== expectedAdmission ||
@@ -176,12 +200,18 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
       if (!latest || latest[1].ordinal < lastEdit || latest[1].receipt.outcome !== "passed" || latest[1].receipt.exit_code !== 0) throw Error();
       return { check_id: checkId, call_id: latest[0], source_digest: String(latest[1].receipt.source_digest), source_basis_digest: typeof latest[1].receipt.source_basis_digest === "string" ? latest[1].receipt.source_basis_digest : null };
     });
+    const parentCalls:OriginalParentTaskExecutionResult['parent_skill_calls']=[];
+    for(const[call_id,call]of calls){if(call.request.tool!=='run_skill')continue;if(!parentCatalog||!installedParent)return null;const frame=parseAgentParentSkillIpcRequest(call.request,parentCatalog),receipt=parseAgentParentSkillIpcReceipt(call.receipt,frame);parentCalls.push({call_id,invocation_id:receipt.invocation_id,invocation_key:receipt.invocation_key,observation_id:receipt.observation_id,report_digest:receipt.report_digest,output_digest:receipt.output_digest,status:receipt.status});}if(parentCalls.length>64)return null;
     const indexes = new Set<number>(), outputs: OriginalTaskExecutionResult["outputs"] = [];
     for (const output of terminal.outputs) {
       if (!exact(output, ["output_index", "evidence_call_ids"]) || !Number.isSafeInteger(output.output_index) || (output.output_index as number) < 0 || (output.output_index as number) >= definition.body.outputs.length ||
         indexes.has(output.output_index as number) || !Array.isArray(output.evidence_call_ids) || !output.evidence_call_ids.length || output.evidence_call_ids.length > 16 || new Set(output.evidence_call_ids).size !== output.evidence_call_ids.length) return null;
       for (const callId of output.evidence_call_ids) {
         if (!id(callId) || !calls.has(callId)) return null; const call = calls.get(callId)!;
+        // Fixed-input catalog1 can prove historical child output but cannot
+        // prove that an earlier review covers the current edited candidate.
+        // Current-candidate evidence is admitted only by its explicit reader.
+        if(call.request.tool==='run_skill')return null;
         if (call.request.tool === "run_check" && !requiredChecks.some(check => check.call_id === callId)) return null;
         if (call.request.tool !== "run_check" && [...calls.values()].some(later => later.ordinal > call.ordinal && later.request.tool === "replace_file" &&
           typeof later.request.path === "string" && typeof call.request.path === "string" && later.request.path.toUpperCase() === call.request.path.toUpperCase())) return null;
@@ -192,9 +222,19 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     // Refuse a mixed read if the original model/IPC spine changed while the
     // independent Native and SDK/result evidence was being assembled.
     if (!same(readAgentRuntimeModelOriginals(root, scope), model) || !same(readAgentWorkspaceIpcOriginals(root, scope, String(config.pipe_nonce)), ipc)) return null;
-    return { format: "cimiloop/original-task-execution-result/1.0.0", run_id: scope.run_id, operation_key: scope.operation_key, task_packet_digest: digest(String(input.prompt)).value,
+    if(parent){parentIdentity();if(!parentBytes||!bytesAt(parentPath,16384).equals(parentBytes)||!same(artifact('parent-skill-catalog.json',16384),parentBytes)||!same(readAgentRuntimeNativeResult(root,project,record,scope,ipc,catalog,installedParent),native))return null;parentIdentity();if(!same(readAgentRuntimeModelOriginals(root,scope),model)||!same(readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce)),ipc))return null;}
+    // No external callback occurs after this final proof. Recheck every read
+    // reference and byte plus the new parent operation files; a stable tool
+    // summary cannot stand in for changed original config/result/SDK bytes.
+    if(!same(readOriginalAgentJobObservation(root,operationPath,input,config,launch,resources),job))return null;
+    if(!same({project,record,context,original,collection,domain},originalBasis))return null;
+    for(const[name,captured]of collectedBytes){const ref=collection.artifacts.find(a=>a.name===name)?.reference;if(!ref||!same(ref,originalBasis.collection.artifacts.find(a=>a.name===name)?.reference)||!bytesAt(ref.locator,captured.limit).equals(captured.bytes))return null;}
+    for(const[name,bytes]of operationBytes)if(!bytesAt(join(operationPath,name),2*1024*1024).equals(bytes))return null;
+    if(parent&&(!parentBytes||!bytesAt(parentPath,16384).equals(parentBytes)))return null;
+    const resultBody={ run_id: scope.run_id, operation_key: scope.operation_key, task_packet_digest: digest(String(input.prompt)).value,
       definition_ref: structuredClone(record.definition_ref), sdk: { session_id: last.session_id, message_id: last.message_id, final_model_call_id: finalId, stdout_digest: digest(stdout).value, final_response_digest: reply.response_digest as string },
       outputs: outputs.sort((a, b) => a.output_index - b.output_index), summary: terminal.summary, required_checks: requiredChecks, native_effect_reverified: true,
-      model_account_custody_proven: false, costs_reconciled: false, task_acceptance_proven: false, current_workspace_applicability_proven: false };
+      model_account_custody_proven: false, costs_reconciled: false, task_acceptance_proven: false, current_workspace_applicability_proven: false } as const;
+    return parent?{format:'cimiloop/original-task-execution-result/2.0.0',...resultBody,parent_skill_catalog_digest:parentCatalog!.catalog_digest,parent_skill_calls:parentCalls}:{format:'cimiloop/original-task-execution-result/1.0.0',...resultBody};
   } catch { return null; }
 }

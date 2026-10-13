@@ -20,6 +20,9 @@ export interface AgentRunAdmissionInput extends AgentRunBindings {
   source: SourceSnapshot;
   workspace: WorkspaceSnapshot;
 }
+// Read-only current Writer, valid only during the original synchronous result
+// callback. No mutation, transaction, effect or caller authority is exposed.
+export type AgentRunOriginalResultReader=Pick<StoreTransaction,'getCurrentProject'|'getActor'|'getRun'|'getRuntimeRecord'|'getCommandReceipt'|'listRuntimeRecords'|'getExecutionObject'|'getVerificationRecord'>;
 export interface AgentRunResultDomainBasis { definition: TaskDefinitionRecord; contract: ContractVersion; plan: PlanVersion; run?: Run }
 export interface AgentRunVerifierPort {
   skills?: SkillInvocationVerifierPort;
@@ -45,7 +48,7 @@ export interface AgentRunVerifierPort {
   admitContext(project: Project, input: AgentRunAdmissionInput): AgentContextManifest["host_admission_ref"];
   // Verify original operation ownership and raw SDK/tool/native/billing proofs;
   // preserve Unknown when any original effect or cost cannot be reconciled.
-  readRunResult(project: Project, record: AgentRunRecord, context: AgentContextManifest, reference: Extract<RunObservation, { report: { format: "cimiloop/agent-run/1.0.0" } }>["raw_result_ref"], domain: AgentRunResultDomainBasis): unknown;
+  readRunResult(project: Project, record: AgentRunRecord, context: AgentContextManifest, reference: Extract<RunObservation, { report: { format: "cimiloop/agent-run/1.0.0" } }>["raw_result_ref"], domain: AgentRunResultDomainBasis,reader?:AgentRunOriginalResultReader): unknown;
 }
 export interface AgentRunToolAuthorityInput extends AgentRunAdmissionInput {
   request: AgentToolAuthorityRequest; record: AgentRunRecord; context: AgentContextManifest;
@@ -275,8 +278,15 @@ export const executeRun = (tx: StoreTransaction, command: RunCommand, context: I
         [definition, contract, plan].some(value => !equal(value.content_digest, contentDigest(value.body))) ||
         plan.body.task_definitions.filter(value => value.task_id === record!.task_id && value.version === definition.version).length !== 1 ||
         !plan.body.task_definitions.some(value => equal(value, definition.body))) throw new Error("Original Agent domain basis mismatch");
-      raw = compileValidator<RawRunObservation>(RawAgentRunObservationSchema)(host.agent.readRunResult(context.project, structuredClone(record!), structuredClone(manifest), command.payload.raw_result_ref,
-        structuredClone({ definition, contract, plan, run: original })));
+      let readerActive=true;
+      const take=<T>(read:()=>T):T=>{if(!readerActive)throw Error('Original Run result Writer reader expired');return structuredClone(read());};
+      const reader:AgentRunOriginalResultReader=Object.freeze({
+        getCurrentProject:()=>take(()=>tx.getCurrentProject()),getActor:id=>take(()=>tx.getActor(id)),getRun:id=>take(()=>tx.getRun(id)),
+        getRuntimeRecord:(kind,id)=>take(()=>tx.getRuntimeRecord(kind,id)),listRuntimeRecords:(kind,changeId)=>take(()=>tx.listRuntimeRecords(kind,changeId)),
+        getCommandReceipt:id=>take(()=>tx.getCommandReceipt(id)),getExecutionObject:(kind,id)=>take(()=>tx.getExecutionObject(kind,id)),getVerificationRecord:(kind,id)=>take(()=>tx.getVerificationRecord(kind,id))
+      });
+      try{raw = compileValidator<RawRunObservation>(RawAgentRunObservationSchema)(host.agent.readRunResult(context.project, structuredClone(record!), structuredClone(manifest), command.payload.raw_result_ref,
+        structuredClone({ definition, contract, plan, run: original }),reader));}finally{readerActive=false;}
       if (raw.format !== "cimiloop/agent-run/1.0.0" || !equal(raw.context_ref, record!.context_ref) || !equal(raw.runtime_binding, record!.runtime_binding) || !equal(raw.skill_bindings, record!.skill_bindings) || !equal(raw.host_admission_ref, record!.host_admission_ref)) throw new Error("Agent report pins mismatch");
     } else {
       if (command.payload.raw_result_ref.resource_type !== "manual_run") throw new Error("Human result reference required");

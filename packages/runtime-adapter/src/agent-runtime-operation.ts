@@ -21,6 +21,7 @@ import { recoverOpenCodeWorkspaceToolRehearsal, readOriginalAgentWorkspaceOperat
 import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { readAgentWorkspaceIpcOriginals, correlateAgentWorkspaceSdkOriginals } from "./agent-workspace-ipc-journal.js";
 import type { Project, AgentRunRecord } from "@cimiloop/protocol/v2";
+import{parseAgentParentSkillSdkCatalog}from'./agent-parent-skill-ipc.js';import type{AgentParentSkillHistoricalResultReader}from'./agent-runtime-result.js';
 import { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
 
 interface Claim { format: ReturnType<typeof agentRuntimeClaimFormat>; scope: AgentWorkspaceToolScope; input_digest: string; operation_id: string; owner: CreditProcessIdentity; synthetic_model_responses: true | null; formal_agent_execution_enabled: false }
@@ -175,8 +176,16 @@ export async function recoverAgentRuntimeOperation(root: string, rawScope: unkno
   if (!existsSync(join(original.operation, "original-config.json"))) return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };
   return recoverOpenCodeWorkspaceToolRehearsal({ root, operation: original.operation, scope: original.claim.scope });
 }
-export async function collectAgentRuntimeOperation(root: string, rawScope: unknown, nativeInputs?: { project: Project; record: AgentRunRecord },namedMethodInputs?:AgentNamedMethodResultInputs) {
-  const original = load(root, rawScope), status = await queryAgentRuntimeOperation(root, rawScope), artifacts = [], missing = [];
+export async function collectAgentRuntimeOperation(root: string, rawScope: unknown, nativeInputs?: { project: Project; record: AgentRunRecord },namedMethodInputs?:AgentNamedMethodResultInputs,parentReader?:AgentParentSkillHistoricalResultReader) {
+  const original=load(root,rawScope),parentClaim=Object.hasOwn(read(join(original.location.run,'input.json')) as object,'parent_skill_original_binding');
+  // Old partial registrations remain collectable Unknown after execution bytes
+  // disappear. Strict fresh execution custody belongs to the new parent reader;
+  // historical load/claim/input/key meaning is never upgraded on collection.
+  const readCollectionIdentity=()=>{const current=load(root,original.claim.scope);return parentClaim?readAgentRuntimeOriginalIdentity(root,original.claim.scope):structuredClone({claim:current.claim,input:read(join(current.location.run,'input.json'))});},originalIdentity=readCollectionIdentity();
+  const parentCatalog=parentReader?parseAgentParentSkillSdkCatalog(parentReader.sdkCatalog,original.claim.scope):undefined,readChild=parentReader?.readOriginal.bind(parentReader);
+  const parentGuard=()=>{if(parentReader&&!isDeepStrictEqual(parseAgentParentSkillSdkCatalog(parentReader.sdkCatalog,original.claim.scope),parentCatalog))fail('agent_runtime_parent_result_original_unproven');};
+  const installedParent:AgentParentSkillHistoricalResultReader|undefined=parentReader?Object.freeze({get sdkCatalog(){parentGuard();return structuredClone(parentCatalog!);},readOriginal(raw:unknown){parentGuard();const value=readChild!(raw);parentGuard();return value;}}):undefined;
+  const status=await queryAgentRuntimeOperation(root,rawScope);parentGuard();if(!isDeepStrictEqual(readCollectionIdentity(),originalIdentity))fail('agent_runtime_parent_result_original_unproven');const artifacts=[],missing=[];
   // Optional new immutable evidence; legacy operations keep their exact shape.
   const interruptionPath=join(original.operation,"agent-sandbox-interruption.json");
   const optionalBytes=(name:string)=>{const path=join(original.operation,name);assertOrdinaryPath(path);try{lstatSync(path);}catch(error){if(error&&typeof error==="object"&&"code" in error&&error.code==="ENOENT")return undefined;throw error;}return bytesAt(path,65536);};
@@ -215,7 +224,7 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
     ipc = { status: originals.status, reason: originals.reason, exchanges: originals.exchanges.length, unresolved: originals.unresolved, correlation,
       correlation_reason: correlation && correlation.links.length > 0 && !correlation.uncorrelated_exchanges && !correlation.unmatched_sdk_calls ? "agent_sdk_originals_correlated" : "agent_sdk_original_correlation_unproven" };
     if (nativeInputs) {
-      let catalog: unknown;
+      let catalog: unknown,parentBytes:Buffer|undefined;
       const input = read(join(original.location.run, "input.json")) as Record<string, unknown>;
       try {
         if (input.check_catalog_digest !== null && input.check_catalog_digest !== undefined) {
@@ -224,8 +233,18 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
           if (!catalog || (catalog as Record<string, unknown>).catalog_digest !== input.check_catalog_digest) throw Error("Original check catalog changed");
           artifacts.push({ name: "check-catalog.json", reference: rawReference(root, bytes, "agent_runtime_original_bytes", "check-catalog.json") });
         }
-        native = readAgentRuntimeNativeResult(root, nativeInputs.project, nativeInputs.record, original.claim.scope, originals, catalog);
-      } catch { native.reason = "agent_native_check_catalog_unproven"; }
+        const parentMode=Object.hasOwn(input,'parent_skill_original_binding');
+        if(parentMode){
+          if(namedMethodInputs||config.format!=='cimiloop/agent-workspace-sandbox-config/7.0.0'||config.parent_skill_tools!=='fixed_parent_skill/1.0.0'||(input.provider_options as Record<string,unknown>)?.parent_skill_tools!=='fixed_parent_skill/1.0.0'||(config.provider_options as Record<string,unknown>)?.parent_skill_tools!=='fixed_parent_skill/1.0.0')throw Error('Original parent mode mismatch');
+          const path=join(original.operation,'sandbox','config','parent-skill-catalog.json');parentBytes=bytesAt(path,16384);const sdkCatalog=parseAgentParentSkillSdkCatalog(copyToolJson(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(parentBytes),16384)),original.claim.scope),binding={format:'cimiloop/agent-parent-skill-binding/1.0.0',scope_digest:agentWorkspaceIpcScopeDigest(original.claim.scope),catalog_digest:sdkCatalog.catalog_digest,sdk_catalog_digest:digest(parentBytes).value};
+          if(parentBytes.toString('utf8')!==JSON.stringify(sdkCatalog)||!isDeepStrictEqual(input.parent_skill_original_binding,binding)||!isDeepStrictEqual(config.parent_skill_original_binding,binding)||originals.header?.endpoint.parent_skill_catalog_digest!==sdkCatalog.catalog_digest||originals.header.format!=='cimiloop/agent-workspace-ipc-originals/2.0.0'||installedParent&&!isDeepStrictEqual(installedParent.sdkCatalog,sdkCatalog))throw Error('Original parent catalog mismatch');
+          if(existsSync(join(original.operation,'result.json'))&&!isDeepStrictEqual((read(join(original.operation,'result.json')) as Record<string,unknown>).parent_skill_original_binding,binding))throw Error('Original parent result binding mismatch');
+          const packet=copyToolJson(parseGatewayJson(String(input.prompt),32768)) as Record<string,unknown>;if(packet.format!=='cimiloop/agent-runtime-task-packet/3.0.0'||!isDeepStrictEqual(parseAgentParentSkillSdkCatalog(packet.parent_skill_catalog,original.claim.scope),sdkCatalog))throw Error('Original parent Task mismatch');
+          artifacts.push({name:'parent-skill-catalog.json',reference:rawReference(root,parentBytes,'agent_runtime_original_bytes','parent-skill-catalog.json')});
+        }else if(config.format==='cimiloop/agent-workspace-sandbox-config/7.0.0'||config.parent_skill_original_binding!==undefined||originals.header?.endpoint.parent_skill_catalog_digest!==undefined||installedParent)throw Error('Legacy original cannot be reinterpreted as parent');
+        native = readAgentRuntimeNativeResult(root, nativeInputs.project, nativeInputs.record, original.claim.scope, originals, catalog,installedParent);
+        parentGuard();if(parentBytes&&!bytesAt(join(original.operation,'sandbox','config','parent-skill-catalog.json'),16384).equals(parentBytes)||!isDeepStrictEqual(read(configPath),config)||!isDeepStrictEqual(readCollectionIdentity(),originalIdentity)||!isDeepStrictEqual(readAgentWorkspaceIpcOriginals(root,original.claim.scope,String(config.pipe_nonce)),originals))throw Error('Original parent collection changed');
+      } catch { native = {...native,status:"Unknown",reason:Object.hasOwn(input,'parent_skill_original_binding')?"agent_native_parent_skill_original_unproven":"agent_native_check_catalog_unproven",native_effect_reverified:false}; }
     }
   }
   let model: {status:string; reason:string; calls:number; unresolved:number; model_account_custody_proven:false; costs_reconciled:false; formal_agent_execution_enabled:false} | undefined;
