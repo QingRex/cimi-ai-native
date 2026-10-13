@@ -1,5 +1,8 @@
 # CimiLoop 背景研究
 
+2026-10-13 D-291：共享原 Skill Collection 已接先固定 Runtime/全部原字节、原 Host/start 回调、完整语义再验、最终纯原件守卫的实际路径。原结果顺序两个实质漏洞红测修复；main 完整 6 文件 72 项和 check 通过，779 源码无漂移，原模型终检修补保留；隔离完整 6 文件 70 项通过。正式 Host 当前消费、领域结果 3 和生产组合继续，非完整 S1。PUBLIC 模型/资格/账单不代表真实批准；五组范围不缩小，Schema242/库10/Host1 不变、不付费、不push。[D-291记录](../plans/2026-10-13-cimiloop-original-result-seal.md)。
+
+
 2026-10-13 D-288/D-290/D-291：main准备阶段及模型终检修补后实际Native生产与家族整2文件4项通过，原配置整16项、模型终检整3文件64项通过，原103文件失败报告保留；隔离原启动锚/Host选定不可变票据/字节4文件50项通过，Runtime结果闭包及正式Host/领域结果3仍在实施。Schema242、用户库10、Host1保持，模型/资格/账单含PUBLIC构造，正式Agent关闭、五组S1未验收、不付费、不push。[D-291原结果依赖](../plans/2026-10-13-cimiloop-original-result-seal.md)。
 
 2026-10-13 D-287：原父当前候选服务接独立Native前缀、完整资料和Kernel原预约，最后回调后的源码/账本/票据/锚点终检保持原身份。隔离四文件56项及check通过；main精确集成52逻辑路径，check/CLI通过，103完整受影响文件仍在原进程验证、尚未提交。既有历史父Skill不能作为当前源码输出；实际候选Native全链、真实模型/Skill/预算账单及五组S1继续，默认正式Agent关闭、Schema242/用户库10/Host1不变，无付费、不push。 [实施与边界](../implementation/CimiLoop-原父当前候选资料与独立预约核验-v0.1.md)。

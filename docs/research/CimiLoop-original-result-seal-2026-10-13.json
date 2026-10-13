@@ -1,7 +1,7 @@
 {
-  "recorded_at": "2026-10-13T08:41:52.387Z",
+  "recorded_at": "2026-10-13T10:13:32.591Z",
   "decision": "D-291",
-  "status": "Original Host/start/byte closure verified; Runtime result dependency and Collection combination implemented, current verification pending",
+  "status": "Original Runtime/start/selected Host tickets and byte closure connected to Collection; ordering regressions fixed, formal Host/domain combination pending",
   "main": {
     "original_session": 65967,
     "status": "terminal failure",
@@ -41,18 +41,20 @@
     "namespace_fix_new_must_fix": 0,
     "tests_run": false,
     "matt_complete": false,
-    "superpowers_complete": false
+    "superpowers_complete": false,
+    "core_ordering_and_early_start_anchor_new_must_fix": 0,
+    "core_review_tests_run": false
   },
   "pending": [
-    "Runtime Node/controller independent registry and physical identity",
-    "Original child admission/dispatch anchors and no-callback selected immutable Host ticket cut",
-    "Revocable qualification and bill semantic callbacks before source and original closure",
-    "Host current result, explicit domain result3 and production composition",
-    "Main failure repairs, required checks and local batch commit",
-    "All five S1 groups and actual evidence"
+    "Formal Host current consumption and exact same Kernel reader",
+    "Explicit domain result3 and production parent-child Runtime combination",
+    "Real Skill and pre-Plan/Task Human/Matt clarification",
+    "Independent complete Matt, fresh Superpowers, actual behavior comparison",
+    "Formal Workbench Agent shared service path",
+    "Actual ordinary Change to ReadyForDelivery, interruption recovery, S1 and onboarding guide",
+    "Exact approved Zhipu model/package/cash and credit caps before any paid request"
   ],
-  "main_integrated": false,
-  "main_committed": false,
+  "main_integrated": true,
   "protocol_schema_count": 242,
   "user_database_format": 10,
   "host_ledger_format": 1,
@@ -155,5 +157,161 @@
     "skipped": 0,
     "source_files": 782,
     "source_drift": []
+  },
+  "batch_parent_commit": "e20631b73ca095bc0634893fe831939fbdd191b7",
+  "main_original_seal_check": {
+    "recorded_at": "2026-10-13T09:56:31.082Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 19644,
+    "files": [],
+    "source_files": 779,
+    "source_drift": [],
+    "paid_requests": false,
+    "pushed": false
+  },
+  "main_original_seal_complete": {
+    "recorded_at": "2026-10-13T10:07:38.443Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 562403,
+    "files": [
+      "packages/local-app/test/skill-invocation-verified-result.test.ts",
+      "packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+      "packages/local-app/test/skill-start-original-seal.test.ts",
+      "packages/local-app/test/skill-result-original-seal.test.ts",
+      "packages/runtime-adapter/test/agent-start-ticket-seal.test.ts",
+      "packages/runtime-adapter/test/agent-start-ledger.test.ts"
+    ],
+    "source_files": 779,
+    "source_drift": [],
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 72,
+    "failed": 0,
+    "skipped": 0
+  },
+  "isolated_original_order_complete": {
+    "recorded_at": "2026-10-13T09:32:49.728Z",
+    "worktree": "D:\\s1-a11e0e\\s1-current-candidate-G1iWw5",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 534827,
+    "files": [
+      "packages/local-app/test/skill-invocation-verified-result.test.ts",
+      "packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+      "packages/local-app/test/skill-start-original-seal.test.ts",
+      "packages/local-app/test/skill-result-original-seal.test.ts",
+      "packages/runtime-adapter/test/agent-start-ticket-seal.test.ts",
+      "packages/runtime-adapter/test/agent-start-ledger.test.ts"
+    ],
+    "source_files": 782,
+    "source_drift": [],
+    "paid_requests": false,
+    "passed": 70,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "6 complete files before the later dispatch callback anchor fix; not the final main source"
+  },
+  "ordering_regression_red": {
+    "passed": 10,
+    "failed": 2,
+    "skipped": 0,
+    "source_files": 782,
+    "source_drift": [],
+    "label": "r70-collection-order-package-baseline-red",
+    "reason": "last Host callback revokes bill authority after semantic approval; qualification callback self-consistently rewrites Runtime original prompt before late identity selection"
+  },
+  "inadequate_prior_order_tests": {
+    "r68": "12 passed but new negatives did not reach the intended boundary; not vulnerability proof",
+    "r69": "10 passed, 2 positive baselines failed for missing PUBLIC package originals; not ordering proof"
+  },
+  "ordering_fix": [
+    "Fixed Runtime and byte originals are selected before installed callbacks",
+    "Original Host/start callbacks precede complete fresh semantic Native/SDK/model/qualification/bill verification",
+    "Final guard independently rechecks early private Runtime and byte identities and original start/tickets without installed callbacks"
+  ],
+  "main_commit_pending_at_record_time": true,
+  "previous_main_original_seal_complete": {
+    "recorded_at": "2026-10-13T09:50:15.683Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 885044,
+    "files": [
+      "packages/local-app/test/skill-invocation-verified-result.test.ts",
+      "packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+      "packages/local-app/test/skill-start-original-seal.test.ts",
+      "packages/local-app/test/skill-result-original-seal.test.ts",
+      "packages/runtime-adapter/test/agent-start-ticket-seal.test.ts",
+      "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+      "packages/local-app/test/skill-invocation-execution-local.test.ts"
+    ],
+    "source_files": 779,
+    "source_drift": [],
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 93,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "7 complete files before dispatch callback anchor fix; not the final source result"
+  },
+  "main_sandbox_setup_failure": {
+    "recorded_at": "2026-10-13T09:35:06.134Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 1,
+    "error": null,
+    "elapsed_ms": 2690,
+    "files": [
+      "packages/local-app/test/skill-invocation-verified-result.test.ts",
+      "packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+      "packages/local-app/test/skill-start-original-seal.test.ts",
+      "packages/local-app/test/skill-result-original-seal.test.ts",
+      "packages/runtime-adapter/test/agent-start-ticket-seal.test.ts",
+      "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+      "packages/local-app/test/skill-invocation-execution-local.test.ts"
+    ],
+    "source_files": 779,
+    "source_drift": [],
+    "paid_requests": false,
+    "pushed": false,
+    "reason": "EPERM creating Vitest cache in protected owned Temp before suite load; no test executed; report retained, ACL not weakened"
+  },
+  "dispatch_callback_anchor_red": {
+    "recorded_at": "2026-10-13T09:54:32.309Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 1,
+    "error": null,
+    "elapsed_ms": 156287,
+    "files": [
+      "packages/local-app/test/skill-start-original-seal.test.ts"
+    ],
+    "source_files": 779,
+    "source_drift": [],
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 8,
+    "failed": 2,
+    "skipped": 0,
+    "reason": "same-byte dispatch replacement accepted during both original Host read and selected-ticket capture callbacks"
+  },
+  "dispatch_callback_anchor_fix": "Constructor-bound root/admission/dispatch physical identities and bytes are fixed before ANY installed Host callback and compared by final pure guard",
+  "isolated_host_current": {
+    "implemented": true,
+    "main_integrated": false,
+    "prior_complete_files": 5,
+    "prior_complete_passed": 55,
+    "prior_complete_failed": 0,
+    "prior_complete_skipped": 0,
+    "source_files": 782,
+    "source_drift": [],
+    "final_source_verification_pending": true,
+    "ordinary_review_must_fix": "Replaceable public Calls current/historical dispatch receives Writer and can bypass current-input parser; fixed class chain and independent fact parsing required",
+    "real_model": false,
+    "real_skill": false,
+    "paid_requests": false,
+    "s1_complete": false
   }
 }

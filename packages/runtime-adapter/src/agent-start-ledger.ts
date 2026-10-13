@@ -34,13 +34,69 @@ const ddl = [
   ...["origin", "tickets", "claims"].flatMap(table => ["UPDATE", "DELETE"].map(action =>
     `CREATE TRIGGER ${table}_${action.toLowerCase()} BEFORE ${action} ON ${table} BEGIN SELECT RAISE(ABORT, 'immutable start record'); END`))
 ];
+
+interface OriginalHostState{root:string;host:AgentStartHostIdentity;original:Identity;verify?:((root:string)=>void)|undefined}
+export interface AgentStartOriginalTicketSeal{readonly format:'cimiloop/agent-start-original-ticket-seal/1.0.0';readonly identity_digest:string;readonly tickets:readonly {readonly ticket:AgentStartTicket;readonly basis:unknown}[]}
+const originalHosts=new WeakMap<object,OriginalHostState>(),originalTicketSeals=new WeakMap<object,{state:OriginalHostState;tickets:AgentStartTicket[];rows:{ticket:AgentStartTicket;basis:unknown}[]}>();
+function freezeOriginal<T>(raw:T):T{if(raw&&typeof raw==='object'){for(const value of Object.values(raw))freezeOriginal(value);Object.freeze(raw);}return raw;}
+// Shared fixed origin reader. Installed custody verification belongs BEFORE
+// this reader; selected immutable ticket bytes survive unrelated new rows.
+function assertStoredOrigin(db:DatabaseSync,root:string,host:AgentStartHostIdentity,original:Identity):void{
+    const schema = db.prepare("SELECT sql FROM sqlite_schema WHERE sql IS NOT NULL ORDER BY sql").all().map(row => String(row.sql));
+    if (db.prepare("PRAGMA application_id").get()?.application_id !== applicationId || db.prepare("PRAGMA user_version").get()?.user_version !== 1 ||
+      !isDeepStrictEqual(schema, [...ddl].sort())) fail("agent_start_format_unproven");
+    if (db.prepare("PRAGMA quick_check").get()?.quick_check !== "ok" || db.prepare("PRAGMA foreign_key_check").all().length) fail("agent_start_corrupt");
+    const tickets = db.prepare("SELECT * FROM tickets").all(), claims = db.prepare("SELECT * FROM claims").all();
+    if (tickets.length > 1024 || claims.length > 4096) fail("agent_start_corrupt");
+    const ticketDigests = new Map<string, string>();
+    for (const row of tickets) {
+      if (typeof row.id !== "string" || !uuid.test(row.id) || typeof row.body !== "string" || typeof row.basis_digest !== "string" ||
+        row.basis_digest !== digest(row.body).value || encoded(object(row.body)) !== row.body) fail("agent_start_corrupt");
+      ticketDigests.set(row.id, row.basis_digest);
+    }
+    for (const row of claims) {
+      if (typeof row.ticket_id !== "string" || !ticketDigests.has(row.ticket_id) || typeof row.scope_body !== "string" ||
+        typeof row.material_digest !== "string" || !sha.test(row.material_digest)) fail("agent_start_corrupt");
+      const scope = parseAgentWorkspaceToolScope(object(row.scope_body));
+      const ticket: AgentStartTicket = { format: "cimiloop/agent-start-ticket/1.0.0", identity_digest: digest(encoded(original)).value, ticket_id: row.ticket_id, basis_digest: ticketDigests.get(row.ticket_id)! };
+      if (encoded(scope) !== row.scope_body || scope.run_id !== row.run_id || scope.operation_key !== row.operation_key ||
+        row.claim_digest !== digest(encoded({ ticket, scope, material_digest: { algorithm: "sha256", value: row.material_digest } })).value) fail("agent_start_corrupt");
+    }
+    const actual = { ...original, ...host, path_digest: digest(resolve(root)).value, directory_identity: identityAt(root, true), file_identity: identityAt(join(root, "starts.sqlite"), false) };
+    const row = db.prepare("SELECT body FROM origin WHERE singleton=1").get();
+    if (original.format !== "cimiloop/agent-start-origin/1.0.0" || !uuid.test(original.ledger_id) ||
+      Object.keys(original).sort().join(",") !== "directory_identity,file_identity,format,ledger_id,machine_digest,path_digest,principal_digest" ||
+      !isDeepStrictEqual(actual, original) || typeof row?.body !== "string" || !isDeepStrictEqual(object(row.body), original)) fail("agent_start_origin_changed");
+}
+function selectedOriginalTickets(state:OriginalHostState,raw:unknown):AgentStartTicket[]{
+ const tickets=copyToolJson(raw);if(!Array.isArray(tickets)||!tickets.length||tickets.length>16)fail('agent_start_original_ticket_selection_invalid');
+ const identity=digest(encoded(state.original)).value,seen=new Set<string>();
+ for(const ticket of tickets){if(!ticket||typeof ticket!=='object'||Array.isArray(ticket)||Object.keys(ticket).sort().join(',')!=='basis_digest,format,identity_digest,ticket_id'||ticket.format!=='cimiloop/agent-start-ticket/1.0.0'||ticket.identity_digest!==identity||typeof ticket.ticket_id!=='string'||!uuid.test(ticket.ticket_id)||typeof ticket.basis_digest!=='string'||!sha.test(ticket.basis_digest)||seen.has(ticket.ticket_id))fail('agent_start_original_ticket_selection_invalid');seen.add(ticket.ticket_id);}
+ return structuredClone(tickets) as AgentStartTicket[];
+}
+function readFixedOriginalTickets(state:OriginalHostState,tickets:AgentStartTicket[]){
+ const path=join(state.root,'starts.sqlite');identityAt(state.root,true);identityAt(path,false);
+ const db=new DatabaseSync(path,{readOnly:true,timeout:30000});
+ try{db.exec('BEGIN');assertStoredOrigin(db,state.root,state.host,state.original);
+  const rows=tickets.map(ticket=>{const row=db.prepare('SELECT basis_digest,body FROM tickets WHERE id=?').get(ticket.ticket_id);if(!row||typeof row.body!=='string'||row.basis_digest!==ticket.basis_digest||digest(row.body).value!==ticket.basis_digest)fail('agent_start_original_ticket_changed');const basis=object(row.body) as Record<string,unknown>;if(basis&&typeof basis==='object'&&!Array.isArray(basis)&&basis.format==='cimiloop/host-exclusive-ticket/1.0.0'){
+   if(Object.keys(basis).sort().join(',')!=='basis,format,id,namespace'||typeof basis.namespace!=='string'||!/^[a-z][a-z0-9_]{0,63}$/.test(basis.namespace)||typeof basis.id!=='string'||!sha.test(basis.id))fail('agent_start_exclusive_conflict');
+   const matches=db.prepare('SELECT body FROM tickets').all().filter(other=>{const body=object(String(other.body)) as Record<string,unknown>;return body&&typeof body==='object'&&!Array.isArray(body)&&body.format==='cimiloop/host-exclusive-ticket/1.0.0'&&body.namespace===basis.namespace&&body.id===basis.id;});if(matches.length!==1)fail('agent_start_exclusive_conflict');
+  }return{ticket:structuredClone(ticket),basis};});
+  assertStoredOrigin(db,state.root,state.host,state.original);db.exec('COMMIT');return structuredClone(rows);
+ }finally{db.close();}
+}
+// No ledger method or installed verify callback is entered by final closure.
+export function assertAgentStartOriginalTicketSeal(raw:unknown,expected:unknown):void{
+ if(!raw||typeof raw!=='object')fail('agent_start_original_ticket_seal_unproven');const sealed=originalTicketSeals.get(raw);if(!sealed||!isDeepStrictEqual(selectedOriginalTickets(sealed.state,expected),sealed.tickets)||!isDeepStrictEqual(readFixedOriginalTickets(sealed.state,sealed.tickets),sealed.rows))fail('agent_start_original_ticket_seal_unproven');
+}
+
 // Separate immutable host custody, never the Project database or an account bill.
 // Only explicit initialization of a NEW root is permitted; no missing original
 // registration is recreated. A ticket is pinned before Context/Run launch.
 export class AgentStartLedger {
   private exclusiveReadCut: {names:Set<string>;rows:{namespace:string;id:string;ticket:AgentStartTicket;basis:unknown}[]} | undefined;
   private exclusiveReadCutActive = false;
-  private constructor(private readonly root: string, private readonly host: AgentStartHostIdentity, private readonly db: DatabaseSync, private readonly original: Identity, private readonly verify?: (root: string) => void) {}
+  private constructor(private readonly root: string, private readonly host: AgentStartHostIdentity, private readonly db: DatabaseSync, private readonly original: Identity, private readonly verify?: (root: string) => void) {originalHosts.set(this,{root,host:structuredClone(host),original:structuredClone(original),verify});}
   get identityDigest(): string { return digest(encoded(this.original)).value; }
   static initialize(rawRoot: string, rawHost: AgentStartHostIdentity, protect?: (root: string) => void, verify?: (root: string) => void): AgentStartLedger {
     const root = assertOrdinaryPath(rawRoot), host = hostCopy(rawHost);
@@ -83,31 +139,7 @@ export class AgentStartLedger {
       catch (error) { this.db.exec("ROLLBACK"); throw error; }
     }
     this.verify?.(this.root);
-    const schema = this.db.prepare("SELECT sql FROM sqlite_schema WHERE sql IS NOT NULL ORDER BY sql").all().map(row => String(row.sql));
-    if (this.db.prepare("PRAGMA application_id").get()?.application_id !== applicationId || this.db.prepare("PRAGMA user_version").get()?.user_version !== 1 ||
-      !isDeepStrictEqual(schema, [...ddl].sort())) fail("agent_start_format_unproven");
-    if (this.db.prepare("PRAGMA quick_check").get()?.quick_check !== "ok" || this.db.prepare("PRAGMA foreign_key_check").all().length) fail("agent_start_corrupt");
-    const tickets = this.db.prepare("SELECT * FROM tickets").all(), claims = this.db.prepare("SELECT * FROM claims").all();
-    if (tickets.length > 1024 || claims.length > 4096) fail("agent_start_corrupt");
-    const ticketDigests = new Map<string, string>();
-    for (const row of tickets) {
-      if (typeof row.id !== "string" || !uuid.test(row.id) || typeof row.body !== "string" || typeof row.basis_digest !== "string" ||
-        row.basis_digest !== digest(row.body).value || encoded(object(row.body)) !== row.body) fail("agent_start_corrupt");
-      ticketDigests.set(row.id, row.basis_digest);
-    }
-    for (const row of claims) {
-      if (typeof row.ticket_id !== "string" || !ticketDigests.has(row.ticket_id) || typeof row.scope_body !== "string" ||
-        typeof row.material_digest !== "string" || !sha.test(row.material_digest)) fail("agent_start_corrupt");
-      const scope = parseAgentWorkspaceToolScope(object(row.scope_body));
-      const ticket: AgentStartTicket = { format: "cimiloop/agent-start-ticket/1.0.0", identity_digest: this.identityDigest, ticket_id: row.ticket_id, basis_digest: ticketDigests.get(row.ticket_id)! };
-      if (encoded(scope) !== row.scope_body || scope.run_id !== row.run_id || scope.operation_key !== row.operation_key ||
-        row.claim_digest !== digest(encoded({ ticket, scope, material_digest: { algorithm: "sha256", value: row.material_digest } })).value) fail("agent_start_corrupt");
-    }
-    const actual = { ...this.original, ...this.host, path_digest: digest(resolve(this.root)).value, directory_identity: identityAt(this.root, true), file_identity: identityAt(join(this.root, "starts.sqlite"), false) };
-    const row = this.db.prepare("SELECT body FROM origin WHERE singleton=1").get();
-    if (this.original.format !== "cimiloop/agent-start-origin/1.0.0" || !uuid.test(this.original.ledger_id) ||
-      Object.keys(this.original).sort().join(",") !== "directory_identity,file_identity,format,ledger_id,machine_digest,path_digest,principal_digest" ||
-      !isDeepStrictEqual(actual, this.original) || typeof row?.body !== "string" || !isDeepStrictEqual(object(row.body), this.original)) fail("agent_start_origin_changed");
+    assertStoredOrigin(this.db,this.root,this.host,this.original);
   }
   private transaction<T>(action: () => T, write = true): T {
     // A trusted synchronous guard may write while a reader is validating.
@@ -264,5 +296,15 @@ export class AgentStartLedger {
       return { created: true, claim_digest: claimDigest };
     });
   }
+
+  // Code-only synchronous capture after semantic admission. It grants no
+  // authority and never issues a ticket, claim, bill or model request.
+  captureOriginalTickets(raw:AgentStartTicket[]):AgentStartOriginalTicketSeal{
+    const state=originalHosts.get(this);if(!state)fail('agent_start_original_ticket_seal_unproven');const tickets=selectedOriginalTickets(state,raw);
+    const checked:unknown=state.verify?.(state.root);if(checked instanceof Promise||checked!==null&&(typeof checked==='object'||typeof checked==='function')&&typeof Reflect.get(checked,'then')==='function'){void Promise.resolve(checked).then(undefined,()=>{});fail('agent_start_original_ticket_seal_async');}if(checked!==undefined)fail('agent_start_original_ticket_seal_unproven');
+    const rows=readFixedOriginalTickets(state,tickets),seal=freezeOriginal({format:'cimiloop/agent-start-original-ticket-seal/1.0.0' as const,identity_digest:digest(encoded(state.original)).value,tickets:structuredClone(rows)});
+    originalTicketSeals.set(seal,{state,tickets:structuredClone(tickets),rows:structuredClone(rows)});return seal;
+  }
+
   close() { this.db.close(); }
 }

@@ -7,8 +7,9 @@ import {readOriginalSkillInvocation,readOriginalSkillInvocationFromReader,type S
 import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
 import {LocalSkillMethodInputs} from './skill-methods-local.js';
 import {LocalProjectError} from './errors.js';
+import {captureSkillResultOriginalSeal,captureSkillResultRuntimeOriginalBoundary,type SkillResultOriginalSeal} from './skill-result-original-seal.js';
 import {LocalNamedSkillMethodAssessment,type NamedSkillMethodOriginalsPort} from './skill-method-assessment-local.js';
-import type {ContentReference} from './evidence-local.js';
+import {LocalEvidenceVerifier,type ContentReference} from './evidence-local.js';
 
 interface Options {local:SkillInvocationExecutionContext;custody:LocalSkillInvocationStartCustody;inputs:LocalSkillMethodInputs;account?:DedicatedAgentAccountLedger;qualificationOriginals?:NamedSkillMethodOriginalsPort}
 const fail=()=>new LocalProjectError('原 Skill 结果及不可变证据不能独立核验','EVIDENCE_MISSING','conflict');
@@ -174,6 +175,18 @@ export class LocalSkillInvocationResultCollection {
    const report=compileValidator<RawSkillInvocationObservation>(RawSkillInvocationObservationSchema)({format:'cimiloop/skill-invocation/1.0.0',invocation_ref:{object_type:'skill_invocation',id:invocation.id},invocation_key:invocation.invocation_key,run_ref:invocation.run_ref,run_operation_key:invocation.run_operation_key,producer_actor_id:producer??invocation.executor_ref.id,input_digest:invocation.input_digest,observed_at,basis:reconciling?'reconciliation':'direct_observation',status:(reconciling||verified)?(collection?'cancelled':facts.method.method_failure_reverified?'failed':'succeeded'):'unknown',usage:this.usage(facts),result_proof_ref,resolves_observation_refs:resolves,...((reconciling||verified)&&!collection&&!facts.method.method_failure_reverified?{output:facts.method.output}:{})});
    const reference=content.storeContent(Buffer.from(JSON.stringify(report)),'skill_invocation_report');this.readResult(readOriginalSkillInvocation(this.options.local,invocationId).project,invocation,reference);return {report,reference};
   }catch{throw fail();}
+ }
+ // No effect or new capture: semantic verification still belongs to readResult.
+ // Select fixed originals before callbacks; finish semantic verification before
+ // the final pure dependency guard. No installed callback follows that guard.
+ readResultOriginalSeal(project:Project,invocation:SkillInvocation,reference:SkillInvocationObservation['raw_result_ref']):SkillResultOriginalSeal{
+  const original=this.original(invocation.id,true),root=join(this.options.local.location.dataDirectory,'skill-runtime-originals',project.id,invocation.invocation_key),content=this.options.inputs.packages.content;
+  if(!same(original.invocation,invocation)||original.project.id!==project.id||resolve(original.project.repository_path)!==resolve(project.repository_path))throw fail();
+  const raw=compileValidator<RawSkillInvocationObservation>(RawSkillInvocationObservationSchema)(decode(LocalEvidenceVerifier.prototype.readContent.call(content,reference))),limits={max_artifacts:SKILL_RESULT_CAPTURE_LIMITS.artifacts+4,max_total_bytes:SKILL_RESULT_CAPTURE_LIMITS.total_bytes+4*65536};
+  const before=captureSkillResultOriginalSeal({content,originalRoot:root,reportReference:reference,report:raw,...limits}),boundary=captureSkillResultRuntimeOriginalBoundary({content,originalRoot:root,project,invocation,parent:original.request.parent,recordId:original.record_id});
+  const start=this.options.custody.captureOriginalSeal(project,invocation,original.request.parent,original.record_id);
+  const report=this.readResult(project,invocation,reference);
+  return captureSkillResultOriginalSeal({content,originalRoot:root,reportReference:reference,report,...limits,execution:{boundary,before,start,project,invocation,parent:original.request.parent,recordId:original.record_id}});
  }
  // Read-only history is deliberately independent of current execution authority.
  // A cancelled/Unknown parent can collect its original; it cannot launch again.

@@ -3,9 +3,9 @@ import { join, resolve } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { compileValidator, SkillInvocationPreparationSchema, SkillMethodQualificationReferenceSchema, InternalIdSchema, type Project, type AgentRunRecord, type AgentContextManifest, type ProviderBinding, type SkillInvocation, type SkillInvocationPreparation } from '@cimiloop/protocol/v2';
 import { requestDigest } from '@cimiloop/kernel';
-import { AgentStartLedger, readOriginalSkillDispatchClosure, skillDispatchAnchorIdentity, parseDedicatedAgentSkillAccountScope, parseAgentWorkspaceToolScope, assertOrdinaryPath, bytesAt, parseGatewayJson, type AgentStartTicket, type AgentWorkspaceToolScope, type DedicatedAgentSkillScope } from '@cimiloop/runtime-adapter';
+import { AgentStartLedger, assertAgentStartOriginalTicketSeal, type AgentStartOriginalTicketSeal, readOriginalSkillDispatchClosure, skillDispatchAnchorIdentity, parseDedicatedAgentSkillAccountScope, parseAgentWorkspaceToolScope, assertOrdinaryPath, bytesAt, parseGatewayJson, type AgentStartTicket, type AgentWorkspaceToolScope, type DedicatedAgentSkillScope } from '@cimiloop/runtime-adapter';
 import { LocalEvidenceVerifier } from './evidence-local.js';
-const fail=():never=>{throw Error('Original Skill start custody unavailable');};
+const fail:()=>never=()=>{throw Error('Original Skill start custody unavailable');};
 const sha=(value:unknown):value is string=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const equal=(a:unknown,b:unknown)=>isDeepStrictEqual(a,b);
 const read=(path:string)=>structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(bytesAt(path,65536)),65536));
@@ -20,14 +20,15 @@ interface Admission {
 
 const custodyPaths=(dataDirectory:string,projectId:string,key:string)=>{compileValidator<string>(InternalIdSchema)(projectId);compileValidator<string>(InternalIdSchema)(key);const root=join(dataDirectory,'skill-invocation-start-originals',projectId,key);assertOrdinaryPath(root);return{root,admission:join(root,'admission.json'),dispatch:join(root,'dispatch.json'),id:requestDigest({project_id:projectId,invocation_key:key})};};
 const custodyBasis=(parent:AgentWorkspaceToolScope,record_id:string,context_id:string,skill_binding:SkillInvocation['skill_binding'],input_ref:SkillInvocation['input_ref'],preparation:SkillInvocationPreparation)=>({format:'cimiloop/skill-invocation-start-basis/1.0.0',parent,record_id,context_id,skill_binding,input_ref,preparation});
-const readAdmission=(content:LocalEvidenceVerifier,invocation:SkillInvocation)=>{const raw=structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(content.readContent(invocation.method_qualification_ref)),65536)) as Admission;if(!raw||Object.keys(raw).sort().join(',')!=='admission_anchor_identity,format,original_method_qualification_ref,ticket'||raw.format!=='cimiloop/skill-invocation-start-admission/1.0.0'||!sha(raw.admission_anchor_identity))fail();return raw;};
+const fixedReadContent=LocalEvidenceVerifier.prototype.readContent;
+const readAdmission=(content:LocalEvidenceVerifier,invocation:SkillInvocation)=>{const raw=structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(fixedReadContent.call(content,invocation.method_qualification_ref)),65536)) as Admission;if(!raw||Object.keys(raw).sort().join(',')!=='admission_anchor_identity,format,original_method_qualification_ref,ticket'||raw.format!=='cimiloop/skill-invocation-start-admission/1.0.0'||!sha(raw.admission_anchor_identity))fail();return raw;};
 // Read-only reuse of the same original birth/basis and independent file anchor.
 export function readOriginalSkillStartAdmission(repositoryPath:string,dataDirectory:string,project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string,stored:unknown) {
   const content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);
   if(project.id!==invocation.project_id||resolve(project.repository_path)!==resolve(repositoryPath))fail();
-  const raw=structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(content.readContent(invocation.method_qualification_ref)),65536)) as Admission;
+  const raw=structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(fixedReadContent.call(content,invocation.method_qualification_ref)),65536)) as Admission;
   if(!raw||Object.keys(raw).sort().join(',')!=='admission_anchor_identity,format,original_method_qualification_ref,ticket'||raw.format!=='cimiloop/skill-invocation-start-admission/1.0.0'||!sha(raw.admission_anchor_identity))fail();
-  const original=structuredClone(compileValidator<SkillInvocation['method_qualification_ref']>(SkillMethodQualificationReferenceSchema)(raw.original_method_qualification_ref));content.readContent(original);
+  const original=structuredClone(compileValidator<SkillInvocation['method_qualification_ref']>(SkillMethodQualificationReferenceSchema)(raw.original_method_qualification_ref));fixedReadContent.call(content,original);
   const path=custodyPaths(dataDirectory,project.id,invocation.invocation_key);
   if(identity(path.admission)!==raw.admission_anchor_identity||!equal(read(path.admission),{format:'cimiloop/skill-invocation-admission-anchor/1.0.0',ticket:raw.ticket}))fail();
   const prepared={request:invocation.request,package_ref:invocation.package_ref,input_schema_ref:invocation.input_schema_ref,output_schema_ref:invocation.output_schema_ref,method_qualification_ref:original};
@@ -40,6 +41,19 @@ export function readOriginalSkillStartAdmission(repositoryPath:string,dataDirect
  }
 
 const ns='skill_invocation_dispatch',returned='skill_invocation_returned';
+
+export interface SkillInvocationStartOriginalSeal{readonly format:'cimiloop/skill-start-original-seal/1.0.0';readonly project_id:string;readonly invocation_id:string;readonly invocation_key:string;readonly record_id:string;readonly parent:AgentWorkspaceToolScope;readonly child:DedicatedAgentSkillScope['child'];readonly admission_ticket:AgentStartTicket;readonly dispatch_ticket:AgentStartTicket;readonly material_digest:string}
+type BoundStart={repositoryPath:string;dataDirectory:string;ledger:AgentStartLedger};
+type StartArgs={project:Project;invocation:SkillInvocation;parent:AgentWorkspaceToolScope;recordId:string};
+const originalStarts=new WeakMap<object,BoundStart>(),startSeals=new WeakMap<object,{args:StartArgs;verify:()=>void}>();
+const startArgs=(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string)=>({project:{id:project.id,repository_path:resolve(project.repository_path)},invocation:structuredClone(invocation),parent:parseAgentWorkspaceToolScope(parent),recordId});
+function freezeStart<T>(raw:T):T{if(raw&&typeof raw==='object'){for(const value of Object.values(raw))freezeStart(value);Object.freeze(raw);}return raw;}
+function startPhysical(path:string,directory=false){assertOrdinaryPath(path);const stat=lstatSync(path,{bigint:true});if(stat.ino<=0n||(directory?!stat.isDirectory():!stat.isFile()))fail();return{path:resolve(path),device:String(stat.dev),inode:String(stat.ino),created_ns:String(stat.birthtimeNs)};}
+// No installed ledger/custody/qualification callback follows this guard.
+export function assertSkillInvocationStartOriginalSeal(raw:unknown,project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string):void{
+ if(!raw||typeof raw!=='object')fail();const sealed=startSeals.get(raw);if(!sealed||!equal(startArgs(project,invocation,parent,recordId),startArgs(sealed.args.project,sealed.args.invocation,sealed.args.parent,sealed.args.recordId)))fail();sealed.verify();
+}
+
 // Explicit prospective composition at original preparation only. An old
 // reserved invocation is never upgraded/wrapped on start or on a new machine.
 // This wrapper pins an original Host ticket and independently retained anchor;
@@ -47,7 +61,7 @@ const ns='skill_invocation_dispatch',returned='skill_invocation_returned';
 export class LocalSkillInvocationStartCustody {
  private readonly content:LocalEvidenceVerifier;
  constructor(private readonly repositoryPath:string,private readonly dataDirectory:string,private readonly ledger:AgentStartLedger) {
-  if(!(ledger instanceof AgentStartLedger))fail();this.content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);
+  if(!(ledger instanceof AgentStartLedger))fail();this.content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);originalStarts.set(this,{repositoryPath:resolve(repositoryPath),dataDirectory:resolve(dataDirectory),ledger});
  }
  private paths(projectId:string,key:string) {
   compileValidator<string>(InternalIdSchema)(projectId);compileValidator<string>(InternalIdSchema)(key);
@@ -119,4 +133,24 @@ export class LocalSkillInvocationStartCustody {
   if(state.state==='unclaimed'||!('material_digest' in state))fail();
   this.ledger.issueExclusive(returned,original.path.id,{dispatch_ticket:state.ticket,admission_ticket:original.ticket});
  }
+ // Captures only this original admission/dispatch. No launch, acknowledgement,
+ // bill, observation or reconciliation is manufactured by reading a seal.
+ captureOriginalSeal(project:Project,invocation:SkillInvocation,parent:AgentWorkspaceToolScope,recordId:string):SkillInvocationStartOriginalSeal{
+  const bound=originalStarts.get(this);if(!bound)fail();const args:StartArgs={project:structuredClone(project),invocation:structuredClone(invocation),parent:parseAgentWorkspaceToolScope(parent),recordId};
+  // Fix independent physical anchors before ANY installed Host verification.
+  // A same-byte replacement during original/selected-ticket callbacks cannot
+  // become the original dispatch merely because its immutable body matches.
+  const path=custodyPaths(bound.dataDirectory,args.project.id,args.invocation.invocation_key),rootIdentity=startPhysical(path.root,true),anchors=[path.admission,path.dispatch].map(path=>({path,physical:startPhysical(path),bytes:bytesAt(path,65536)}));
+  const original=this.original(args.project,args.invocation,args.parent,args.recordId),state=this.inspect(args.project,args.invocation,args.parent,args.recordId);const material='material_digest'in state?state.material_digest:undefined;if(state.state==='unclaimed'||typeof material!=='string'||!sha(material))fail();
+  const tickets=[original.ticket,state.ticket],ticketSeal:AgentStartOriginalTicketSeal=AgentStartLedger.prototype.captureOriginalTickets.call(bound.ledger,tickets);
+  const verify=()=>{
+   assertAgentStartOriginalTicketSeal(ticketSeal,tickets);
+   const actual=readOriginalSkillStartAdmission(bound.repositoryPath,bound.dataDirectory,args.project,args.invocation,args.parent,args.recordId,ticketSeal.tickets[0]!.basis);if(!equal(actual,original)||!equal(startPhysical(path.root,true),rootIdentity))fail();
+   const marker={format:'cimiloop/skill-invocation-dispatch-anchor/1.0.0',ticket:original.ticket,material_digest:material};if(!equal(read(path.dispatch),marker)||!equal(ticketSeal.tickets[1]!.basis,{format:'cimiloop/host-exclusive-ticket/1.0.0',namespace:ns,id:path.id,basis:marker}))fail();
+   for(const anchor of anchors)if(!equal(startPhysical(anchor.path),anchor.physical)||!bytesAt(anchor.path,65536).equals(anchor.bytes))fail();
+   assertAgentStartOriginalTicketSeal(ticketSeal,tickets);
+  };
+  verify();const seal=freezeStart({format:'cimiloop/skill-start-original-seal/1.0.0' as const,project_id:args.project.id,invocation_id:args.invocation.id,invocation_key:args.invocation.invocation_key,record_id:args.recordId,parent:structuredClone(args.parent),child:parseDedicatedAgentSkillAccountScope({...args.parent,operation_key:args.invocation.invocation_key,context_digest:args.invocation.input_digest}),admission_ticket:structuredClone(original.ticket),dispatch_ticket:structuredClone(state.ticket),material_digest:material});startSeals.set(seal,{args,verify});return seal;
+ }
+
 }
