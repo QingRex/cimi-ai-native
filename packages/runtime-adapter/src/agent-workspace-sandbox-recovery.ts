@@ -1,5 +1,6 @@
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
-import {readAgentRuntimeOriginalIdentity,readAgentRuntimeOriginalResourceIdentity} from './agent-runtime-operation.js';
+import {assertAgentParentSkillConfig} from './agent-parent-skill-config.js';
+import {readAgentRuntimeOriginalIdentity,readAgentRuntimeOriginalResourceIdentity,inspectAgentRuntimeOriginalRegistration} from './agent-runtime-operation.js';
 import { existsSync } from "node:fs";
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import { join, resolve, dirname, basename } from "node:path";
@@ -22,21 +23,37 @@ const record = (path: string) => copyToolJson(parseGatewayJson(bytesAt(path, 655
 function readOriginal(raw: { root: string; operation: string; scope: unknown }, verifyBinaryOriginal:boolean) {
   const scope = parseAgentWorkspaceToolScope(raw.scope), root = assertOrdinaryPath(raw.root), operation = assertOrdinaryPath(raw.operation);
   if (!uuid(basename(operation)) || dirname(operation) !== join(resolve(root), "workspace-tool-rehearsals")) fail();
-  const config = record(join(operation, "original-config.json"));
+  const rawConfig = record(join(operation, "original-config.json"));
+  if (!rawConfig || typeof rawConfig !== "object" || Array.isArray(rawConfig)) fail();
+  const config = rawConfig as Record<string, unknown>;
   const fields = ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options"];
   const namedConfig=exact(config,[...fields,'deadline_uptime_ms','prompt','lifetime_policy','binary_original','method_tools','method_original_binding'])&&config.format==='cimiloop/agent-workspace-sandbox-config/6.0.0';
-  if(namedConfig){try{const original=verifyBinaryOriginal?readAgentRuntimeOriginalIdentity(root,scope):readAgentRuntimeOriginalResourceIdentity(root,scope);if(original.operation!==operation||!isDeepStrictEqual(original.claim.owner,config.owner))fail();assertAgentNamedMethodConfig(config,original.input as Record<string,unknown>);}catch{fail();}}
+  const parentConfig=exact(config,[...fields,'deadline_uptime_ms','prompt','lifetime_policy','binary_original','parent_skill_tools','parent_skill_original_binding'])&&config.format==='cimiloop/agent-workspace-sandbox-config/7.0.0';
+  try { assertAgentParentSkillConfig(config); } catch { fail(); }
+  // Only explicit absence of BOTH claim identities preserves legacy reading.
+  // Existing/unknown registration must bind even a config with erased markers.
+  const registration=inspectAgentRuntimeOriginalRegistration(root,scope);
+  if(parentConfig||namedConfig||registration.status!=="absent"){
+    try{
+      const original=verifyBinaryOriginal
+        ? registration.status==="original"?registration.identity:readAgentRuntimeOriginalIdentity(root,scope)
+        : readAgentRuntimeOriginalResourceIdentity(root,scope);
+      if(original.operation!==operation||!isDeepStrictEqual(original.claim.owner,config.owner))fail();
+      assertAgentParentSkillConfig(config,original.input as Record<string,unknown>);
+      if(namedConfig)assertAgentNamedMethodConfig(config,original.input as Record<string,unknown>);
+    }catch{fail();}
+  }
   const oldConfig = exact(config, fields) && config.format === "cimiloop/agent-workspace-sandbox-config/1.0.0";
   const retainedConfig=exact(config,[...fields,"deadline_uptime_ms","prompt","lifetime_policy","binary_original"])&&config.format==="cimiloop/agent-workspace-sandbox-config/5.0.0"&&
     (typeof config.prompt==="string"&&config.lifetime_policy==="agent_task/1.0.0"||config.prompt===null&&config.lifetime_policy===null);
   const newConfig = (exact(config, [...fields, "deadline_uptime_ms"]) && config.format === "cimiloop/agent-workspace-sandbox-config/2.0.0" ||
     exact(config, [...fields, "deadline_uptime_ms", "prompt"]) && config.format === "cimiloop/agent-workspace-sandbox-config/3.0.0" && typeof config.prompt === "string" ||
-    exact(config,[...fields,"deadline_uptime_ms","prompt","lifetime_policy"]) && config.format === "cimiloop/agent-workspace-sandbox-config/4.0.0" && typeof config.prompt === "string" && config.lifetime_policy==="agent_task/1.0.0"||retainedConfig||namedConfig) &&
+    exact(config,[...fields,"deadline_uptime_ms","prompt","lifetime_policy"]) && config.format === "cimiloop/agent-workspace-sandbox-config/4.0.0" && typeof config.prompt === "string" && config.lifetime_policy==="agent_task/1.0.0"||retainedConfig||namedConfig||parentConfig) &&
     (config.deadline_uptime_ms === null || Number.isSafeInteger(config.deadline_uptime_ms) && Number(config.deadline_uptime_ms) > 0);
   if (!config || !oldConfig && !newConfig || !uuid(config.nonce) || !uuid(config.pipe_nonce) || config.root !== join(operation, "sandbox") ||
     !Number.isSafeInteger(config.elapsed_ms) || Number(config.elapsed_ms)<1000 || Number(config.elapsed_ms)>(config.lifetime_policy==="agent_task/1.0.0"?3600000:180000) ||
     typeof config.binary !== "string" || !validWorkspaceWorkerIdentity(config.owner) || config.scope_digest !== agentWorkspaceIpcScopeDigest(scope)) fail();
-  if(retainedConfig||namedConfig){const proof=config.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;if(!proof||proof.path!==config.binary||verifyBinaryOriginal&&!isDeepStrictEqual(readRuntimeBinaryOriginal(root,config.binary,proof.sha),proof))fail();}
+  if(retainedConfig||namedConfig||parentConfig){const proof=config.binary_original as ReturnType<typeof readRuntimeBinaryOriginal>;if(!proof||proof.path!==config.binary||verifyBinaryOriginal&&!isDeepStrictEqual(readRuntimeBinaryOriginal(root,config.binary,proof.sha),proof))fail();}
   if (!existsSync(join(operation, "original-launcher.json")) || !existsSync(join(operation, "agent-sandbox-resources.json"))) {
     return { scope, root, operation, config, launch: null, resources: null };
   }

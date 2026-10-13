@@ -1,0 +1,707 @@
+{
+  "batch": "D-303",
+  "recorded_at": "2026-10-13T19:50:08.824Z",
+  "base_commit": "888a56047fc75a70cf57bb0c3c3e960f35409531",
+  "validation": {
+    "tests": {
+      "files": 11,
+      "passed": 154,
+      "failed": 0,
+      "pending": 0,
+      "meta": {
+        "recorded_at": "2026-10-13T19:46:18.458Z",
+        "worktree": "D:\\cc\\cimi-ai-native",
+        "exit_code": 0,
+        "error": null,
+        "elapsed_ms": 147373,
+        "files": [
+          "packages/runtime-adapter/test/agent-parent-operation-recovery.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-parent-collection.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-parent-terminal.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-parent-cancellation.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-parent-interruption.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-parent-result.test.ts",
+          "packages/runtime-adapter/test/agent-named-method-cancellation.test.ts",
+          "packages/runtime-adapter/test/runtime-binary-originals.test.ts",
+          "packages/runtime-adapter/test/agent-parent-skill-native-config.test.ts"
+        ],
+        "source_files": 789,
+        "source_drift": [],
+        "original_budgets_raised": false,
+        "paid_requests": false,
+        "pushed": false
+      }
+    },
+    "check": {
+      "recorded_at": "2026-10-13T19:43:10.700Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 20108,
+      "files": [],
+      "source_files": 789,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "help": {
+      "recorded_at": "2026-10-13T19:44:05.821Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1727,
+      "files": [],
+      "source_files": 789,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "ordinary_review": {
+      "kind": "ordinary_engineering_review_not_Matt_Superpowers_or_S1",
+      "reviewer": "/root/review_native_result",
+      "first_must_fix": "Erasing all config parent markers and downgrading to config5 could be accepted while immutable original input still carries parent binding.",
+      "reproduction": "r5-erased-parent-marker-red: direct original reader and resource recovery incorrectly accepted the downgrade; 2 failures, 16 filtered cases retained.",
+      "fix": "Explicit absence of both original claim identities alone preserves legacy reading; existing/unknown registration binds original operation, owner and input to all config versions; config6/7 always require original identity. Resource-only recovery uses original resource identity and retains original controller proof despite missing execution bytes.",
+      "final_result": "Complete marker erasure loophole closed, no further must-fix found in production reader and original identity/inspection context. Added original config1-5 no-registration compatibility and full registered query/collect with Windows identity observer coverage.",
+      "must_fix_remaining": 0,
+      "reviewer_tests_run": false,
+      "complete_Matt_review": false,
+      "S1_acceptance": false
+    }
+  },
+  "red_runs": [
+    "d303-main-r1-parent-reader-red",
+    "d303-main-r2-compatible-parent-reader-red",
+    "d303-main-r5-erased-parent-marker-red"
+  ],
+  "initial_errors": [
+    "First TypeScript check rejected unknown JSON as Record; now object/array validation precedes cast.",
+    "Initial new-mode-only guard missed erasure of all config parent markers while immutable input remained parent. Two negatives reproduced before fixed original-mode check."
+  ],
+  "evidence_limits": {
+    "actual_claim_key_input_and_retained_file_custody": true,
+    "real_reader_and_windows_identity_observer": true,
+    "structural_registration_constructed": true,
+    "actual_runtime_process_or_resource_started_by_new_test": false,
+    "model_body_read": false,
+    "credential_read": false,
+    "real_model_or_Skill_qualification": false,
+    "s1_accepted": false
+  },
+  "native": {
+    "whole_terminal": true,
+    "meta": {
+      "recorded_at": "2026-10-13T19:46:28.799Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 1,
+      "error": null,
+      "elapsed_ms": 4254045,
+      "files": [
+        "tests/scenarios/agent-parent-current-result-native-runtime.test.ts",
+        "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+        "tests/scenarios/agent-run-family-settlement-native-runtime.test.ts",
+        "packages/local-app/test/agent-parent-model-causal-admission.test.ts",
+        "packages/local-app/test/agent-parent-model-kernel-reader.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    "passed": 49,
+    "failed": 1,
+    "pending": 0,
+    "new_reader_installed_in_that_run": false,
+    "retained_original_profile": {
+      "recorded_at": "2026-10-13T19:45:23.824Z",
+      "kind": "read-only retained first terminal parent operation, whole Native run still independent",
+      "root": "D:/s1-a11e0e/N-hA6H5R/_HQOHKf",
+      "operation": "952c5105-f74c-4645-a87d-f52d35c94755",
+      "native_session": 66214,
+      "parent_task_budget_ms": 1800000,
+      "original_deadline_raised": false,
+      "old_run_restarted": false,
+      "model_body_read": false,
+      "credential_read": false,
+      "terminal": {
+        "interruption_reason": "workspace_rehearsal_deadline",
+        "native_exit": {
+          "code": 12,
+          "signal": null
+        },
+        "completion_proven": false,
+        "cleanup_reason": "agent_sandbox_task_deadline",
+        "resources_disposed": true,
+        "cleanup_errors": [],
+        "clock_control_failure": null
+      },
+      "timeline": [
+        {
+          "path": "agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/header.json",
+          "bytes": 1558,
+          "modified_utc": "2026-10-13T18:36:42.227Z"
+        },
+        {
+          "path": "agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0001/request.json",
+          "bytes": 29153,
+          "modified_utc": "2026-10-13T18:38:47.545Z"
+        },
+        {
+          "path": "agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0001/reply.json",
+          "bytes": 476,
+          "modified_utc": "2026-10-13T18:39:33.888Z"
+        },
+        {
+          "path": "agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0002/request.json",
+          "bytes": 29997,
+          "modified_utc": "2026-10-13T18:39:47.832Z"
+        },
+        {
+          "path": "agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0002/reply.json",
+          "bytes": 390,
+          "modified_utc": "2026-10-13T18:40:33.130Z"
+        },
+        {
+          "path": "agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0003/request.json",
+          "bytes": 30932,
+          "modified_utc": "2026-10-13T18:41:18.963Z"
+        },
+        {
+          "path": "agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0003/reply.json",
+          "bytes": 447,
+          "modified_utc": "2026-10-13T18:42:42.095Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/header.json",
+          "bytes": 2778,
+          "modified_utc": "2026-10-13T18:44:50.520Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/header.json",
+          "bytes": 707,
+          "modified_utc": "2026-10-13T18:44:50.536Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/header.json",
+          "bytes": 1501,
+          "modified_utc": "2026-10-13T18:44:52.249Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/header.json",
+          "bytes": 1501,
+          "modified_utc": "2026-10-13T18:44:52.255Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/header.json",
+          "bytes": 2364,
+          "modified_utc": "2026-10-13T18:45:13.125Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0001/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:18.510Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0001/request.json",
+          "bytes": 19801,
+          "modified_utc": "2026-10-13T18:45:20.118Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0001/request.json",
+          "bytes": 19801,
+          "modified_utc": "2026-10-13T18:45:20.122Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/header.json",
+          "bytes": 1382,
+          "modified_utc": "2026-10-13T18:45:20.139Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/header.json",
+          "bytes": 1382,
+          "modified_utc": "2026-10-13T18:45:20.145Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0001/request.json",
+          "bytes": 19801,
+          "modified_utc": "2026-10-13T18:45:21.898Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0001/request.json",
+          "bytes": 19801,
+          "modified_utc": "2026-10-13T18:45:21.902Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0001/provider-request.json",
+          "bytes": 19675,
+          "modified_utc": "2026-10-13T18:45:27.249Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0001/provider-response.json",
+          "bytes": 486,
+          "modified_utc": "2026-10-13T18:45:30.152Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0001/reply.json",
+          "bytes": 387,
+          "modified_utc": "2026-10-13T18:45:30.161Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0001/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:30.171Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0002/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:30.224Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_3e472749d0fc7da92f8a5727cbd11ccf0d7946678e257023aaf709e509afde61/request.json",
+          "bytes": 344,
+          "modified_utc": "2026-10-13T18:45:30.411Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_3e472749d0fc7da92f8a5727cbd11ccf0d7946678e257023aaf709e509afde61/reply.json",
+          "bytes": 718,
+          "modified_utc": "2026-10-13T18:45:30.464Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0002/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:30.476Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0003/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:30.542Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0002/request.json",
+          "bytes": 20881,
+          "modified_utc": "2026-10-13T18:45:31.931Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0002/request.json",
+          "bytes": 20881,
+          "modified_utc": "2026-10-13T18:45:31.939Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0002/request.json",
+          "bytes": 20881,
+          "modified_utc": "2026-10-13T18:45:33.344Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0002/request.json",
+          "bytes": 20881,
+          "modified_utc": "2026-10-13T18:45:33.348Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0002/provider-request.json",
+          "bytes": 20741,
+          "modified_utc": "2026-10-13T18:45:38.330Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0002/provider-response.json",
+          "bytes": 491,
+          "modified_utc": "2026-10-13T18:45:41.202Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0002/reply.json",
+          "bytes": 392,
+          "modified_utc": "2026-10-13T18:45:41.209Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0003/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:41.218Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0004/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:41.252Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_45a7f0126e85501a85a02f004305207a23d512732b36e429345a6e49d3f68f47/request.json",
+          "bytes": 349,
+          "modified_utc": "2026-10-13T18:45:41.427Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_45a7f0126e85501a85a02f004305207a23d512732b36e429345a6e49d3f68f47/reply.json",
+          "bytes": 719,
+          "modified_utc": "2026-10-13T18:45:41.483Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0004/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:41.492Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0005/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:41.548Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0003/request.json",
+          "bytes": 21967,
+          "modified_utc": "2026-10-13T18:45:42.952Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0003/request.json",
+          "bytes": 21967,
+          "modified_utc": "2026-10-13T18:45:42.955Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0003/request.json",
+          "bytes": 21967,
+          "modified_utc": "2026-10-13T18:45:44.440Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0003/request.json",
+          "bytes": 21967,
+          "modified_utc": "2026-10-13T18:45:44.444Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0003/provider-request.json",
+          "bytes": 21813,
+          "modified_utc": "2026-10-13T18:45:49.672Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0003/provider-response.json",
+          "bytes": 507,
+          "modified_utc": "2026-10-13T18:45:53.026Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0003/reply.json",
+          "bytes": 408,
+          "modified_utc": "2026-10-13T18:45:53.032Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0005/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:53.041Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0006/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:53.074Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_14b01314b88063eaf37b7393ccfbe45682f88f616aba8cdd51ccd64c10133f04/request.json",
+          "bytes": 365,
+          "modified_utc": "2026-10-13T18:45:53.248Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_14b01314b88063eaf37b7393ccfbe45682f88f616aba8cdd51ccd64c10133f04/reply.json",
+          "bytes": 1570,
+          "modified_utc": "2026-10-13T18:45:53.301Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0006/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:53.310Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0007/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:45:53.365Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0004/request.json",
+          "bytes": 24076,
+          "modified_utc": "2026-10-13T18:45:55.037Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0004/request.json",
+          "bytes": 24076,
+          "modified_utc": "2026-10-13T18:45:55.042Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0004/request.json",
+          "bytes": 24076,
+          "modified_utc": "2026-10-13T18:45:56.541Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0004/request.json",
+          "bytes": 24076,
+          "modified_utc": "2026-10-13T18:45:56.547Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0004/provider-request.json",
+          "bytes": 23900,
+          "modified_utc": "2026-10-13T18:46:01.904Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0004/provider-response.json",
+          "bytes": 505,
+          "modified_utc": "2026-10-13T18:46:04.951Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0004/reply.json",
+          "bytes": 406,
+          "modified_utc": "2026-10-13T18:46:04.959Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0007/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:04.968Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0008/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:04.993Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_505f4afa53de43491a6e16fbf64382fed3649143e58bae80edfbed9e7e666ccb/request.json",
+          "bytes": 363,
+          "modified_utc": "2026-10-13T18:46:05.164Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_505f4afa53de43491a6e16fbf64382fed3649143e58bae80edfbed9e7e666ccb/reply.json",
+          "bytes": 1218,
+          "modified_utc": "2026-10-13T18:46:05.217Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0008/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:05.226Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0009/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:05.279Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0005/request.json",
+          "bytes": 25774,
+          "modified_utc": "2026-10-13T18:46:06.884Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0005/request.json",
+          "bytes": 25774,
+          "modified_utc": "2026-10-13T18:46:06.889Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0005/request.json",
+          "bytes": 25774,
+          "modified_utc": "2026-10-13T18:46:08.415Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0005/request.json",
+          "bytes": 25774,
+          "modified_utc": "2026-10-13T18:46:08.419Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0005/provider-request.json",
+          "bytes": 25576,
+          "modified_utc": "2026-10-13T18:46:13.687Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0005/provider-response.json",
+          "bytes": 573,
+          "modified_utc": "2026-10-13T18:46:17.829Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0005/reply.json",
+          "bytes": 474,
+          "modified_utc": "2026-10-13T18:46:17.839Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0009/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:17.848Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0010/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:17.891Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_cc1216c0fb7169c4f0f3674d96d26c5b2518ae779d1cc4eb63af5b70c5b23655/request.json",
+          "bytes": 431,
+          "modified_utc": "2026-10-13T18:46:18.070Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_cc1216c0fb7169c4f0f3674d96d26c5b2518ae779d1cc4eb63af5b70c5b23655/reply.json",
+          "bytes": 1843,
+          "modified_utc": "2026-10-13T18:46:18.136Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0010/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:18.147Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0011/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:18.236Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0006/request.json",
+          "bytes": 28106,
+          "modified_utc": "2026-10-13T18:46:19.776Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0006/request.json",
+          "bytes": 28106,
+          "modified_utc": "2026-10-13T18:46:19.782Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0006/request.json",
+          "bytes": 28106,
+          "modified_utc": "2026-10-13T18:46:21.556Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0006/request.json",
+          "bytes": 28106,
+          "modified_utc": "2026-10-13T18:46:21.560Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0006/provider-request.json",
+          "bytes": 27886,
+          "modified_utc": "2026-10-13T18:46:27.295Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0006/provider-response.json",
+          "bytes": 515,
+          "modified_utc": "2026-10-13T18:46:30.834Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0006/reply.json",
+          "bytes": 416,
+          "modified_utc": "2026-10-13T18:46:30.843Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0011/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:30.852Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0012/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:30.901Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_3d7cd122780356899f0182cc993bb5e140824372cb505a2b78fd222ef78b3c86/request.json",
+          "bytes": 373,
+          "modified_utc": "2026-10-13T18:46:31.092Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-named-method-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/sdk_3d7cd122780356899f0182cc993bb5e140824372cb505a2b78fd222ef78b3c86/reply.json",
+          "bytes": 1125,
+          "modified_utc": "2026-10-13T18:46:31.149Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0012/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:31.161Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0013/request.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:31.237Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0007/request.json",
+          "bytes": 29694,
+          "modified_utc": "2026-10-13T18:46:32.893Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0007/request.json",
+          "bytes": 29694,
+          "modified_utc": "2026-10-13T18:46:32.898Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-starts/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0007/request.json",
+          "bytes": 29694,
+          "modified_utc": "2026-10-13T18:46:34.608Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0007/request.json",
+          "bytes": 29694,
+          "modified_utc": "2026-10-13T18:46:34.611Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0007/provider-request.json",
+          "bytes": 29452,
+          "modified_utc": "2026-10-13T18:46:40.172Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-dedicated-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0007/provider-response.json",
+          "bytes": 460,
+          "modified_utc": "2026-10-13T18:46:43.471Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0007/reply.json",
+          "bytes": 401,
+          "modified_utc": "2026-10-13T18:46:43.477Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/agent-workspace-ipc-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/116b7f3a-06cd-4aaf-8b65-f5317175180a/0013/reply.json",
+          "bytes": 94,
+          "modified_utc": "2026-10-13T18:46:43.489Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/workspace-tool-rehearsals/fc0b32ce-3082-47c9-99f8-a774e4d78751/agent-sandbox-cleanup.json",
+          "bytes": 269,
+          "modified_utc": "2026-10-13T18:46:43.688Z"
+        },
+        {
+          "path": "skill-runtime-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a13693-c6bf-7151-ada1-380cee1bad50/workspace-tool-rehearsals/fc0b32ce-3082-47c9-99f8-a774e4d78751/result.json",
+          "bytes": 25597,
+          "modified_utc": "2026-10-13T18:46:43.974Z"
+        },
+        {
+          "path": "agent-parent-skill-result-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/header.json",
+          "bytes": 1990,
+          "modified_utc": "2026-10-13T18:47:47.580Z"
+        },
+        {
+          "path": "agent-parent-skill-result-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/sdk_9a61c00c27680fa13903161834f40dd3d4d61a6fe24458c5023b8e3abb255014/request.json",
+          "bytes": 1105,
+          "modified_utc": "2026-10-13T18:47:47.596Z"
+        },
+        {
+          "path": "agent-runtime-model-originals/01a1368c-ab96-7225-85b0-c2bae5c2c91a/01a1368d-052b-776a-935e-6a7200c53c43/model_0004/request.json",
+          "bytes": 32254,
+          "modified_utc": "2026-10-13T19:01:27.176Z"
+        }
+      ],
+      "interpretation": {
+        "saved_model_request_is_not_reply_or_paid_approval": true,
+        "new_config_reader_fix_does_not_prove_parent_timeout_cause": true,
+        "model_account_approved": false,
+        "real_skill_or_s1_proven": false
+      }
+    }
+  },
+  "matt_fixed_review": {
+    "base": "e789902379534c6e36ea6ebc14266ed5167b761c",
+    "tip": "5a1b3fb3d6c57f75ce02a4dc433c6419b7da800d",
+    "standards_complete": true,
+    "spec_status": "in_progress_incomplete_semantic_coverage",
+    "fresh_delta_required": true,
+    "Runtime_skill_qualification": false
+  },
+  "next": [
+    "After original Native whole terminal, verify exact old source snapshots before synchronizing D302/D303 into C candidate; preserve current domain3 implementation.",
+    "Confirm actual formal-owner parent timeout cause and revalidate executable parent/current-domain path within unchanged budgets.",
+    "Complete Spec report and independently fresh-review newer committed source.",
+    "Model/package/currency/cash/credit approval and actual secure credential connection remain required before paid S1 end-to-end evidence."
+  ],
+  "invariants": {
+    "schema": 242,
+    "project_database_format": 10,
+    "host_format": 1,
+    "formal_default_entry": false,
+    "goal": "active",
+    "paid_requests": false,
+    "pushed": false,
+    "unknown_tmp_touched": false,
+    "old_unknown_cleanup_proven": false
+  }
+}
