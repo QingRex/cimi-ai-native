@@ -23,7 +23,9 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("real hel
       }
       const stop = new AbortController(), aborted = clock.read(stop.signal);
       const assertion = expect(aborted).rejects.toThrow("agent_run_clock_channel_aborted");
-      await Promise.resolve(); await Promise.resolve();
+      // Observe actual Worker/Native dispatch without consuming its posted reply.
+      const dispatchStarted=performance.now();
+      while(clock.snapshot().requests_sent!==13&&performance.now()-dispatchStarted<5000) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,1);
       expect(clock.snapshot().requests_sent).toBe(13); stop.abort(); await assertion;
       const final = await clock.read();
       expect(final.uptime_ms).toBeGreaterThanOrEqual(readings[11]!.uptime_ms);

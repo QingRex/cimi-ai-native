@@ -22,3 +22,14 @@ describe('same held Native clock channel',()=>{
  });
  it('keeps the hard read deadline and refuses reuse after loss',async()=>{vi.useFakeTimers();const f=setup(),clock=await f.pending;const pending=clock.read(),rejected=expect(pending).rejects.toMatchObject({reason:'native_control_unavailable',controlFailure:{kind:'deadline',operation:'clock_continuous'}});await Promise.resolve();await Promise.resolve();await vi.advanceTimersByTimeAsync(15000);await rejected;await clock.close();await expect(clock.read()).rejects.toThrow();});
 });
+describe('host-to-Worker queue age retains the original control deadline',()=>{
+ afterEach(()=>vi.useRealTimers());
+ it('terminates a sent original read five seconds after a ten-second transport wait',async()=>{
+  vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});const f=setup(),clock=await f.pending;
+  try{await vi.advanceTimersByTimeAsync(10000);let failure:unknown;const pending=clock.read(undefined,0).catch(error=>{failure=error;});
+   await vi.advanceTimersByTimeAsync(0);expect(clock.snapshot().requests_sent).toBe(1);await vi.advanceTimersByTimeAsync(5000);
+   expect(failure).toMatchObject({reason:'native_control_unavailable',controlFailure:{kind:'deadline',operation:'clock_continuous',duration_ms:15000}});await pending;
+   expect(clock.snapshot()).toMatchObject({requests_sent:1,process_exited:true,closed:true});
+  }finally{await clock.close();}
+ });
+});

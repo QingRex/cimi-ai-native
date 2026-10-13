@@ -127,17 +127,18 @@ export class NativeAgentRunClockChannel {
       if (this.closed) return;
     }
   }
-  read(signal?: AbortSignal): Promise<AgentRunClockReading> {
+  read(signal?: AbortSignal, enqueuedAt = performance.now()): Promise<AgentRunClockReading> {
     if (signal?.aborted) return Promise.reject(new RuntimeAdapterError("agent_run_clock_channel_aborted"));
     if (this.closed) return Promise.reject(this.failure ?? unproven());
     if (this.queued >= 16) return Promise.reject(new RuntimeAdapterError("agent_run_clock_channel_capacity"));
-    const started = performance.now(), caller = deferred<AgentRunClockReading>();
+    if (!Number.isFinite(enqueuedAt) || enqueuedAt < 0 || enqueuedAt > performance.now()) return Promise.reject(unproven());
+    const started = enqueuedAt, caller = deferred<AgentRunClockReading>();
     let sent = false, expired: NativeControlError | undefined;
     const timer = setTimeout(() => {
       expired = this.control("deadline", "clock_continuous", started);
       if (sent) this.fail(expired);
       caller.reject(expired);
-    }, deadlineMs);
+    }, Math.max(0, deadlineMs - (performance.now() - started)));
     this.queued++;
     const original = this.tail.then(() => {
       if (this.closed) throw this.failure ?? unproven();
@@ -157,6 +158,8 @@ export class NativeAgentRunClockChannel {
     void original.then(caller.resolve, caller.reject).finally(() => signal?.removeEventListener("abort", abort));
     return caller.promise;
   }
+  // Internal transport acknowledgement: cancellation does not release its original queue slot.
+  drained(): Promise<void> { return this.tail.then(() => {}); }
   snapshot() { return { pid: this.child.pid ?? null, requests_sent: this.sequence, replies_validated: this.validated, process_exited: this.processExited, closed: this.closed }; }
   close(): Promise<void> {
     return this.closing ??= (async () => {

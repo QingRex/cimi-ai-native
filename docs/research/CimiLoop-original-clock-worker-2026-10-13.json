@@ -1,0 +1,267 @@
+{
+  "recorded_at": "2026-10-13T15:09:09.993Z",
+  "decision": "D-295",
+  "status": "clock batch validated on main; production combination pending; not S1 acceptance",
+  "main_base": "54f2eaba5f360f4e3ee250a88c3f13ce6ef89e75",
+  "remote_main": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "source_paths": [
+    "packages/runtime-adapter/src/agent-run-clock.ts",
+    "packages/runtime-adapter/src/agent-run-clock-channel.ts",
+    "packages/runtime-adapter/src/agent-run-clock-worker-channel.ts",
+    "packages/runtime-adapter/src/agent-run-clock-worker-wire.ts",
+    "packages/runtime-adapter/src/agent-run-clock-worker.ts",
+    "packages/runtime-adapter/test/agent-run-clock-channel.test.ts",
+    "packages/runtime-adapter/test/agent-run-clock-worker-channel.test.ts",
+    "tests/scenarios/agent-run-clock-blocked-runtime.test.ts",
+    "tests/scenarios/agent-run-clock-channel-runtime.test.ts"
+  ],
+  "capabilities": [
+    "production openWindowsAgentRunClock uses fixed compiled Worker",
+    "same Native owner PID/creation ticks, original helper, nonce and sequence",
+    "fresh pinned binary each original read; existing bounded frames/bytes/reads/queue",
+    "original host enqueue-to-frame 15000ms deadline includes transport age",
+    "main late consumption charges complete observation latency to immutable Task anchor",
+    "caller cancellation never reissues an original read or releases slot before drain",
+    "strict safe error frame retains first NativeControlError through Worker loss",
+    "SAB is diagnostic only; close requires actual Native exit and Worker exit"
+  ],
+  "records": [
+    {
+      "record": "d294-native-r4-clock-blocked-red",
+      "exit_code": 1,
+      "elapsed_ms": 44366,
+      "files": [
+        "tests/scenarios/agent-run-clock-blocked-runtime.test.ts"
+      ],
+      "source_files": 785,
+      "source_drift": [],
+      "tests": {
+        "passed": 0,
+        "failed": 2,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d294-native-r8-clock-queue-age-red",
+      "exit_code": 1,
+      "elapsed_ms": 1592,
+      "files": [
+        "packages/runtime-adapter/test/agent-run-clock-channel.test.ts"
+      ],
+      "source_files": 788,
+      "source_drift": [],
+      "tests": {
+        "passed": 6,
+        "failed": 1,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d294-native-r11-clock-first-failure-red",
+      "exit_code": 1,
+      "elapsed_ms": 1558,
+      "files": [
+        "packages/runtime-adapter/test/agent-run-clock-worker-channel.test.ts"
+      ],
+      "source_files": 789,
+      "source_drift": [],
+      "tests": {
+        "passed": 3,
+        "failed": 1,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d294-native-r12-clock-first-failure-green",
+      "exit_code": 0,
+      "elapsed_ms": 1932,
+      "files": [
+        "packages/runtime-adapter/test/agent-run-clock-worker-channel.test.ts",
+        "packages/runtime-adapter/test/agent-run-clock-channel.test.ts"
+      ],
+      "source_files": 789,
+      "source_drift": [],
+      "tests": {
+        "passed": 11,
+        "failed": 0,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d294-native-r14-clock-worker-final-green",
+      "exit_code": 0,
+      "elapsed_ms": 53841,
+      "files": [
+        "packages/runtime-adapter/test/agent-run-clock-worker-channel.test.ts",
+        "packages/runtime-adapter/test/agent-run-clock-channel.test.ts",
+        "packages/runtime-adapter/test/agent-run-budget.test.ts",
+        "tests/scenarios/agent-run-clock-blocked-runtime.test.ts",
+        "tests/scenarios/agent-run-clock-channel-runtime.test.ts"
+      ],
+      "source_files": 789,
+      "source_drift": [],
+      "tests": {
+        "passed": 29,
+        "failed": 0,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d295-main-r2-clock-native-and-task",
+      "exit_code": 1,
+      "elapsed_ms": 217043,
+      "files": [
+        "packages/runtime-adapter/test/agent-run-clock-worker-channel.test.ts",
+        "packages/runtime-adapter/test/agent-run-clock-channel.test.ts",
+        "packages/runtime-adapter/test/agent-run-budget.test.ts",
+        "tests/scenarios/agent-run-clock-blocked-runtime.test.ts",
+        "tests/scenarios/agent-run-clock-channel-runtime.test.ts",
+        "tests/scenarios/agent-run-budget-runtime.test.ts"
+      ],
+      "source_files": 787,
+      "source_drift": [],
+      "tests": {
+        "passed": 32,
+        "failed": 1,
+        "pending": 0
+      }
+    },
+    {
+      "record": "d295-main-r4-worker-argv-check",
+      "exit_code": 0,
+      "elapsed_ms": 23651,
+      "files": [],
+      "source_files": 787,
+      "source_drift": [],
+      "tests": null
+    },
+    {
+      "record": "d295-main-r6-clock-final-help",
+      "exit_code": 0,
+      "elapsed_ms": 1731,
+      "files": [],
+      "source_files": 787,
+      "source_drift": [],
+      "tests": null
+    },
+    {
+      "record": "d294-native-r13-clock-worker-final-check",
+      "exit_code": 0,
+      "elapsed_ms": 19823,
+      "files": [],
+      "source_files": 789,
+      "source_drift": [],
+      "tests": null
+    },
+    {
+      "record": "d295-main-r5-clock-native-and-task-final",
+      "exit_code": 0,
+      "elapsed_ms": 212337,
+      "files": [
+        "packages/runtime-adapter/test/agent-run-clock-worker-channel.test.ts",
+        "packages/runtime-adapter/test/agent-run-clock-channel.test.ts",
+        "packages/runtime-adapter/test/agent-run-budget.test.ts",
+        "tests/scenarios/agent-run-clock-blocked-runtime.test.ts",
+        "tests/scenarios/agent-run-clock-channel-runtime.test.ts",
+        "tests/scenarios/agent-run-budget-runtime.test.ts"
+      ],
+      "source_files": 787,
+      "source_drift": [],
+      "tests": {
+        "passed": 33,
+        "failed": 0,
+        "pending": 0
+      }
+    }
+  ],
+  "retained_failures": [
+    {
+      "record": "d294-native-r3-current-native-production-and-model",
+      "files": 5,
+      "passed": 48,
+      "failed": 2,
+      "pending": 0,
+      "source_files": 784,
+      "source_drift": [],
+      "operations": [
+        {
+          "id": "e3e210cb-e3be-49d1-968d-be7a9ad7e55f",
+          "reason": "native_control_unavailable",
+          "control_kind": "deadline",
+          "control_operation": "clock_continuous",
+          "control_duration_ms": 119778,
+          "control_deadline_ms": 15000,
+          "task_remaining_ms": 1751974
+        },
+        {
+          "id": "1da2d56f-8e50-4689-9894-5043ed13d117",
+          "reason": "agent_sandbox_task_deadline",
+          "task_budget_ms": 600000,
+          "model_0004": "Unknown with no original response"
+        }
+      ]
+    }
+  ],
+  "entry_failure": {
+    "record": "d295-main-r2-clock-native-and-task",
+    "original_case": "same original Task anchor across another Node host",
+    "verified_error_code": "ERR_INPUT_TYPE_NOT_ALLOWED",
+    "cause": "Worker inherited parent --input-type=module for a fixed JS file",
+    "fix": "fixed Worker execArgv=[]; exact source rebuilt and complete regression repeated"
+  },
+  "review": {
+    "kind": "ordinary engineering review only",
+    "original_deadline_age_red": true,
+    "original_first_failure_red": true,
+    "must_fix_closed": true,
+    "new_argv_fix_no_concrete_must_fix": true,
+    "tests_run_by_reviewer": false,
+    "matt": false,
+    "superpowers": false
+  },
+  "limits": [
+    "Worker abnormal death/error frames covered by constructed transport contracts; not actual Worker-loss acceptance",
+    "public constructed basis/model/provider/qualification/bills not real model/Skill acceptance",
+    "D294 current domain result remains isolated pending actual Native production combination",
+    "original dedicated production Task deadline failure not proven resolved"
+  ],
+  "production_reverification": {
+    "record": "d294-native-r15-current-native-clock-fixed",
+    "status": "running original process",
+    "source_files": 789,
+    "old_operations_restarted": false,
+    "old_task_deadlines_raised": false
+  },
+  "baseline": {
+    "schemas_total": 242,
+    "schemas_v1": 18,
+    "schemas_v2": 224,
+    "project_database_format": 10,
+    "host_ledger_format": 1
+  },
+  "goal": {
+    "status": "active",
+    "groups": [
+      "V1-09",
+      "V1-21",
+      "V1-22",
+      "V1-10",
+      "V1-11"
+    ],
+    "formal_default_agent_enabled": false,
+    "s1_accepted": false
+  },
+  "paid_requests": false,
+  "real_credentials_read": false,
+  "pushed": false,
+  "main_validation": {
+    "files": 6,
+    "passed": 33,
+    "failed": 0,
+    "pending": 0,
+    "source_files": 787,
+    "source_drift": [],
+    "check": "d295-main-r4-worker-argv-check",
+    "help": "d295-main-r6-clock-final-help"
+  }
+}
