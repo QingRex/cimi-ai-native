@@ -2,13 +2,16 @@ import{isDeepStrictEqual as same}from'node:util';
 import{existsSync,mkdirSync,openSync,writeFileSync,fsyncSync,closeSync}from'node:fs';import{join}from'node:path';
 import{SCHEMA_VERSION,parseCommand,compileValidator,RawSkillInvocationObservationSchema,type SkillInvocation,type SkillMethodOutput,type AnyCommand}from'@cimiloop/protocol/v2';
 import{skillInvocationState,requestDigest,commandDigest}from'@cimiloop/kernel';
-import{copyToolJson,parseGatewayJson,bytesAt,digest,assertOrdinaryPath,directory}from'@cimiloop/runtime-adapter';
+import{copyToolJson,parseGatewayJson,bytesAt,digest,assertOrdinaryPath,directory,parseAgentParentCurrentInput,parseAgentParentSkillIpcRequest}from'@cimiloop/runtime-adapter';
 import{LocalAgentParentSkillCalls,parentSkillOriginalMetadata,type ParentSkillOriginalReader}from'./agent-parent-skill-calls-local.js';
 import{originalAgentWorkspaceScope}from'./agent-workspace-tools-local.js';
 import type{LocalSkillInvocationResultCollection}from'./skill-invocation-result-local.js';
 import{LocalProjectError}from'./errors.js';
+import{assertSkillResultRuntimeOriginalSeal,type SkillResultOriginalSeal}from'./skill-result-original-seal.js';
+const fixedOriginalReservation=LocalAgentParentSkillCalls.prototype.readOriginalReservationFromReader, fixedCallsHistory=LocalAgentParentSkillCalls.prototype.readOriginalFromReader, fixedCallsCurrent=LocalAgentParentSkillCalls.prototype.readCurrentOriginalFromReader;
+const fixedCallsIdentity:(this:LocalAgentParentSkillCalls)=>LocalAgentParentSkillCalls['originalIdentity']=Object.getOwnPropertyDescriptor(LocalAgentParentSkillCalls.prototype,'originalIdentity')!.get!, fixedCallsCatalog:(this:LocalAgentParentSkillCalls)=>LocalAgentParentSkillCalls['sdkCatalog']=Object.getOwnPropertyDescriptor(LocalAgentParentSkillCalls.prototype,'sdkCatalog')!.get!;
 type Local=Parameters<typeof LocalAgentParentSkillCalls.open>[0]['local'];
-interface Options{local:Local;calls:LocalAgentParentSkillCalls;execution:{start(invocationId:string):Promise<unknown>};results:Pick<LocalSkillInvocationResultCollection,'captureVerified'|'readResult'>;beforeEffect:()=>void;beforeReply?:()=>void;now?:()=>string}
+interface Options{local:Local;calls:LocalAgentParentSkillCalls;execution:{start(invocationId:string):Promise<unknown>};results:Pick<LocalSkillInvocationResultCollection,'captureVerified'|'readResult'>&Partial<Pick<LocalSkillInvocationResultCollection,'readResultOriginalSeal'>>;beforeEffect:()=>void;beforeReply?:()=>void;now?:()=>string}
 export interface AgentParentSkillHostReceipt{format:'cimiloop/agent-parent-skill-receipt/1.0.0';scope_digest:string;catalog_digest:string;call_id:string;request_digest:string;invocation_id:string;invocation_key:string;observation_id:string;report_digest:string;status:'succeeded'|'failed';output:SkillMethodOutput|null;output_digest:string;formal_agent_execution_enabled:false}
 function waitOriginal<T>(original:Promise<T>,signal?:AbortSignal):Promise<T>{
  if(!signal)return original;
@@ -33,10 +36,10 @@ export class LocalAgentParentSkillHost{
  private readonly identity:LocalAgentParentSkillCalls['originalIdentity'];private readonly local:Local;private readonly options:Options;
  private readonly store:Local['store'];private readonly kernel:Local['kernel'];
  private readonly inflight=new Map<string,{frame:unknown;promise:Promise<{receipt:AgentParentSkillHostReceipt;replay:boolean}>}>();
- private constructor(options:Options){this.local=options.local;this.store=this.local.store;this.kernel=this.local.kernel;this.identity=options.calls.originalIdentity;this.options={...options,execution:{start:options.execution.start.bind(options.execution)},results:{captureVerified:options.results.captureVerified.bind(options.results),readResult:options.results.readResult.bind(options.results)},now:options.now??(()=>new Date().toISOString())};this.assertIdentity();}
- static open(options:Options){if(!(options.calls instanceof LocalAgentParentSkillCalls)||typeof options.execution?.start!=='function'||typeof options.results?.captureVerified!=='function'||typeof options.results?.readResult!=='function'||typeof options.beforeEffect!=='function'||options.beforeReply!==undefined&&typeof options.beforeReply!=='function'||options.now!==undefined&&typeof options.now!=='function')fail();return new LocalAgentParentSkillHost(options);}
- get sdkCatalog(){this.assertIdentity();return this.options.calls.sdkCatalog;}
- private assertIdentity(reader:Pick<Local['store'],'getProject'|'getActor'|'getRun'|'getRuntimeRecord'|'getExecutionObject'|'getVerificationRecord'>=this.store){if(this.local.store!==this.store||this.local.kernel!==this.kernel||!same(this.local.location,this.identity.location)||!same(this.local.caller,this.identity.caller)||reader.getRun(this.identity.scope.run_id)?.created_at!==this.identity.born_at||!same(originalAgentWorkspaceScope({...this.local,store:reader},this.identity.scope.run_id),this.identity.scope)||!same(this.options.calls.originalIdentity,this.identity))fail();}
+ private constructor(options:Options){this.local=options.local;this.store=this.local.store;this.kernel=this.local.kernel;this.identity=fixedCallsIdentity.call(options.calls);this.options={...options,execution:{start:options.execution.start.bind(options.execution)},results:{captureVerified:options.results.captureVerified.bind(options.results),readResult:options.results.readResult.bind(options.results),...(options.results.readResultOriginalSeal?{readResultOriginalSeal:options.results.readResultOriginalSeal.bind(options.results)}:{})},now:options.now??(()=>new Date().toISOString())};this.assertIdentity();}
+ static open(options:Options){if(!(options.calls instanceof LocalAgentParentSkillCalls)||typeof options.execution?.start!=='function'||typeof options.results?.captureVerified!=='function'||typeof options.results?.readResult!=='function'||options.results.readResultOriginalSeal!==undefined&&typeof options.results.readResultOriginalSeal!=='function'||typeof options.beforeEffect!=='function'||options.beforeReply!==undefined&&typeof options.beforeReply!=='function'||options.now!==undefined&&typeof options.now!=='function')fail();return new LocalAgentParentSkillHost(options);}
+ get sdkCatalog(){this.assertIdentity();return fixedCallsCatalog.call(this.options.calls);}
+ private assertIdentity(reader:Pick<Local['store'],'getProject'|'getActor'|'getRun'|'getRuntimeRecord'|'getExecutionObject'|'getVerificationRecord'>=this.store){if(this.local.store!==this.store||this.local.kernel!==this.kernel||!same(this.local.location,this.identity.location)||!same(this.local.caller,this.identity.caller)||reader.getRun(this.identity.scope.run_id)?.created_at!==this.identity.born_at||!same(originalAgentWorkspaceScope({...this.local,store:reader},this.identity.scope.run_id),this.identity.scope)||!same(fixedCallsIdentity.call(this.options.calls),this.identity))fail();}
  private guard(signal?:AbortSignal){signal?.throwIfAborted();this.assertIdentity();synchronous(this.options.beforeEffect);signal?.throwIfAborted();this.assertIdentity();const run=this.store.getRun(this.identity.scope.run_id);if(!run||!['Reserved','Running'].includes(run.status)||run.cancel_requested||run.reservation_released||!run.cost_known)fail();}
  async invoke(raw:unknown,signal?:AbortSignal):Promise<{receipt:AgentParentSkillHostReceipt;replay:boolean}>{
   signal?.throwIfAborted();const frame=copyToolJson(raw);if(!frame||typeof frame!=='object'||Array.isArray(frame)||!('call_id'in frame)||typeof frame.call_id!=='string'||!/^[a-zA-Z0-9_-]{1,128}$/.test(frame.call_id))fail();
@@ -56,12 +59,42 @@ export class LocalAgentParentSkillHost{
  // deliberately absent: cancelled parents may retain readable known history.
  // Both original command receipts, independent result bytes and current Kernel
  // state must agree; Unknown and Human reconciliations remain outside this port.
- readOriginal(raw:unknown):{receipt:AgentParentSkillHostReceipt}{return this.store.transaction(reader=>this.readOriginalFromReader(raw,reader));}
- readOriginalFromReader(raw:unknown,reader:ParentSkillOriginalReader):{receipt:AgentParentSkillHostReceipt}{
-  this.assertIdentity(parentSkillOriginalMetadata(reader));const original=this.options.calls.readOriginalFromReader(raw,reader),{frame,invocation}=original;
+ readOriginal(raw:unknown):{receipt:AgentParentSkillHostReceipt}{return this.store.transaction(reader=>this.#readOriginalCore(raw,reader));}
+ readOriginalFromReader(raw:unknown,reader:ParentSkillOriginalReader):{receipt:AgentParentSkillHostReceipt}{return this.#readOriginalCore(raw,reader);}
+ #readOriginalCore(raw:unknown,reader:ParentSkillOriginalReader):{receipt:AgentParentSkillHostReceipt}{
+  this.assertIdentity(parentSkillOriginalMetadata(reader));const original=fixedCallsHistory.call(this.options.calls,raw,reader),{frame,invocation}=original;
   const command=this.readIntent(frame,invocation);if(!command||command.command_type!=='RecordSkillInvocationObservation')fail();
-  const prove=()=>{this.assertIdentity(parentSkillOriginalMetadata(reader));if(!same(this.options.calls.readOriginalFromReader(frame,reader),original)||!same(this.readIntent(frame,invocation),command))fail();const observation=(()=>{const receipt=reader.getCommandReceipt(command.command_id);if(!receipt||receipt.command_id!==command.command_id||receipt.request_digest!==commandDigest(command)||!('ok'in receipt.result)||receipt.result.ok!==true||!('command_type'in receipt.result)||receipt.result.command_type!=='RecordSkillInvocationObservation')fail();const value=receipt.result.data.observation;if(!same(reader.getRuntimeRecord('skill_invocation_observation',value.id),value)||!same(value.raw_result_ref,command.payload.raw_result_ref)||value.invocation_ref.id!==invocation.id)fail();return value;})();this.assertIdentity(parentSkillOriginalMetadata(reader));return observation;};
+  const prove=()=>{this.assertIdentity(parentSkillOriginalMetadata(reader));if(!same(fixedCallsHistory.call(this.options.calls,frame,reader),original)||!same(this.readIntent(frame,invocation),command))fail();const observation=(()=>{const receipt=reader.getCommandReceipt(command.command_id);if(!receipt||receipt.command_id!==command.command_id||receipt.request_digest!==commandDigest(command)||!('ok'in receipt.result)||receipt.result.ok!==true||!('command_type'in receipt.result)||receipt.result.command_type!=='RecordSkillInvocationObservation')fail();const value=receipt.result.data.observation;if(!same(reader.getRuntimeRecord('skill_invocation_observation',value.id),value)||!same(value.raw_result_ref,command.payload.raw_result_ref)||value.invocation_ref.id!==invocation.id)fail();return value;})();this.assertIdentity(parentSkillOriginalMetadata(reader));return observation;};
   const observation=prove(),receipt=this.known(invocation,frame,undefined,()=>{if(!same(prove(),observation))fail();},parentSkillOriginalMetadata(reader));if(!receipt||receipt.observation_id!==observation.id)fail();prove();return{receipt:structuredClone(receipt)};
+ }
+ // Independently current applicability of the same settled original. This is
+ // read-only: no guard for effects, reservation, start, capture or Kernel command.
+ readCurrentOriginal(raw:unknown){return this.store.transaction(reader=>this.#readCurrentOriginal(raw,reader));}
+ readCurrentOriginalFromReader(raw:unknown,reader:ParentSkillOriginalReader){return this.#readCurrentOriginal(raw,reader);}
+ #readCurrentOriginal(raw:unknown,reader:ParentSkillOriginalReader){
+  this.assertIdentity(parentSkillOriginalMetadata(reader));
+  const original=fixedOriginalReservation.call(this.options.calls,raw,reader),{frame,invocation}=original;if(!original.input_candidate)fail();
+  const command=this.readIntent(frame,invocation);if(!command||command.command_type!=='RecordSkillInvocationObservation')fail();
+  const observe=()=>{
+   this.assertIdentity(parentSkillOriginalMetadata(reader));if(!same(fixedOriginalReservation.call(this.options.calls,frame,reader),original)||!same(this.readIntent(frame,invocation),command))fail();
+   const receipt=reader.getCommandReceipt(command.command_id);if(!receipt||receipt.command_id!==command.command_id||receipt.request_digest!==commandDigest(command)||!('ok'in receipt.result)||receipt.result.ok!==true||!('command_type'in receipt.result)||receipt.result.command_type!=='RecordSkillInvocationObservation')fail();
+   const observation=receipt.result.data.observation,state=skillInvocationState(reader.listRuntimeRecords('skill_invocation_observation',invocation.change_id).filter(o=>o.invocation_ref.id===invocation.id));
+   if(!same(reader.getRuntimeRecord('skill_invocation_observation',observation.id),observation)||!same(observation.raw_result_ref,command.payload.raw_result_ref)||observation.invocation_ref.id!==invocation.id||state.latest?.id!==observation.id||!state.settled||!state.costKnown||!['Succeeded','Failed'].includes(state.status))fail();
+   return structuredClone(observation);
+  };
+  const observation=observe(),project=reader.getCurrentProject(),readSeal=this.options.results.readResultOriginalSeal;if(!project||!readSeal)fail();
+  // Runtime and byte originals must be retained before even historical
+  // candidate callbacks can choose/rewrite a later original for this result.
+  const originals:SkillResultOriginalSeal=syncValue(readSeal(project,invocation,observation.raw_result_ref));assertSkillResultRuntimeOriginalSeal(originals,observation.report,observation.raw_result_ref);if(!same(observe(),observation))fail();
+  const historical=this.#readOriginalCore(frame,reader);if(historical.receipt.observation_id!==observation.id||historical.receipt.report_digest!==requestDigest(observation.report))fail();
+  assertSkillResultRuntimeOriginalSeal(originals,observation.report,observation.raw_result_ref);
+  const current=fixedCallsCurrent.call(this.options.calls,frame,reader),{current_input:rawCurrent,...currentOriginal}=current,current_input=parseAgentParentCurrentInput(rawCurrent,parseAgentParentSkillIpcRequest(frame,fixedCallsCatalog.call(this.options.calls)));
+  if(!same(currentOriginal,original)||current_input.command_id!==original.command.command_id||current_input.candidate_digest!==original.input_candidate.candidate_digest||!same(current_input.input_ref,original.input_candidate.input_ref)||!same(current_input.proof_ref,original.input_candidate.proof_ref)||!same(observe(),observation))fail();
+  // No installed reader follows the final current-source callback. Recheck
+  // exact original files/Kernel receipts and independently branded dependency
+  // closure, never trust a matching report or a declared verification flag.
+  this.assertIdentity(parentSkillOriginalMetadata(reader));assertSkillResultRuntimeOriginalSeal(originals,observation.report,observation.raw_result_ref);
+  return{receipt:structuredClone(historical.receipt),current_input:structuredClone(current_input),originals};
  }
  private resultPaths(frame:Record<string,unknown>&{call_id:string}){const root=join(this.identity.location.dataDirectory,'agent-parent-skill-result-originals',this.identity.scope.project_id,this.identity.scope.run_id),slot=join(root,frame.call_id);return{root,slot,header:join(root,'header.json'),intent:join(slot,'request.json'),anchor:join(root,frame.call_id+'.anchor.json')};}
  private readIntent(frame:Record<string,unknown>&{call_id:string},invocation:SkillInvocation):AnyCommand|undefined{

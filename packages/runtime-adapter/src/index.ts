@@ -106,3 +106,5 @@ export{readAgentRuntimeNativePrefix,type AgentNativePrefixCut}from'./agent-runti
 export type { AgentStartOriginalTicketSeal } from "./agent-start-ledger.js";
 
 export { readRuntimeBinaryOriginal } from "./runtime-binary-originals.js";
+
+export {parseAgentParentCurrentInput,type AgentParentCurrentInput} from './agent-parent-current-input.js';
