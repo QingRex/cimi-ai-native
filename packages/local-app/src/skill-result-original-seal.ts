@@ -13,7 +13,7 @@ function decoded(bytes:Buffer){const text=new TextDecoder('utf-8',{fatal:true}).
 // installed callbacks and requires unchanged originals after fresh semantics.
 export interface SkillResultRuntimeOriginalBoundary{readonly format:'cimiloop/skill-result-runtime-original-boundary/1.0.0';readonly identity_digest:string}
 interface BoundaryOptions{content:LocalEvidenceVerifier;originalRoot:string;project:Project;invocation:SkillInvocation;parent:AgentWorkspaceToolScope;recordId:string}
-const boundaries=new WeakMap<object,{args:unknown;identity:ReturnType<typeof readAgentRuntimeOriginalIdentity>;verify:()=>void}>();
+const boundaries=new WeakMap<object,{args:unknown;identity:ReturnType<typeof readAgentRuntimeOriginalIdentity>;verify:()=>ReturnType<typeof runtimeOriginal>}>();
 function boundaryArgs(e:BoundaryOptions){return{root:resolve(e.originalRoot),repositoryPath:resolve(e.content.repositoryPath),dataDirectory:resolve(e.content.dataDirectory),project:{id:e.project.id,repository_path:resolve(e.project.repository_path)},invocation:structuredClone(e.invocation),parent:structuredClone(e.parent),recordId:e.recordId};}
 function runtimeOriginal(root:string,child:AgentWorkspaceToolScope){const identity=readAgentRuntimeOriginalIdentity(root,child),input=identity.input as Record<string,unknown>;if(!input||typeof input!=='object'||Array.isArray(input)||!input.binary_original||!input.sandbox_original)fail();const observer=input.job_observer_original as ReturnType<typeof readRuntimeBinaryOriginal>|undefined;if(observer&&!same(readRuntimeBinaryOriginal(root,observer.path,observer.sha),observer))fail();return identity;}
 // Fixed readers only. Capture BEFORE Host, qualification or billing callbacks;
@@ -21,7 +21,7 @@ function runtimeOriginal(root:string,child:AgentWorkspaceToolScope){const identi
 export function captureSkillResultRuntimeOriginalBoundary(options:BoundaryOptions):SkillResultRuntimeOriginalBoundary{
  if(!(options.content instanceof LocalEvidenceVerifier))fail();const args=boundaryArgs(options),child=parseDedicatedAgentSkillAccountScope({...options.parent,operation_key:options.invocation.invocation_key,context_digest:options.invocation.input_digest});
  if(args.root!==resolve(join(args.dataDirectory,'skill-runtime-originals',options.project.id,options.invocation.invocation_key))||args.project.repository_path!==args.repositoryPath||options.project.id!==options.invocation.project_id||options.parent.project_id!==options.project.id||options.parent.run_id!==options.invocation.run_ref.id)fail();
- const identity=runtimeOriginal(args.root,child),verify=()=>{if(!same(boundaryArgs(options),args)||!same(runtimeOriginal(args.root,child),identity))fail();};verify();const boundary=freeze({format:'cimiloop/skill-result-runtime-original-boundary/1.0.0' as const,identity_digest:identity.identity_digest.value});boundaries.set(boundary,{args,identity,verify});return boundary;
+ const identity=runtimeOriginal(args.root,child),verify=()=>{if(!same(boundaryArgs(options),args))fail();const current=runtimeOriginal(args.root,child);if(!same(current,identity))fail();return current;};verify();const boundary=freeze({format:'cimiloop/skill-result-runtime-original-boundary/1.0.0' as const,identity_digest:identity.identity_digest.value});boundaries.set(boundary,{args,identity,verify});return boundary;
 }
 export function captureSkillResultOriginalSeal(options:Options):SkillResultOriginalSeal{
  if(!(options.content instanceof LocalEvidenceVerifier)||!Number.isSafeInteger(options.max_artifacts)||options.max_artifacts<1||options.max_artifacts>4096||!Number.isSafeInteger(options.max_total_bytes)||options.max_total_bytes<1||options.max_total_bytes>2147483648)fail();
@@ -35,9 +35,10 @@ export function captureSkillResultOriginalSeal(options:Options):SkillResultOrigi
   assertSkillInvocationStartOriginalSeal(e.start,e.project,e.invocation,e.parent,e.recordId);
   if(root!==resolve(join(contentLocation.dataDirectory,'skill-runtime-originals',e.project.id,e.invocation.invocation_key))||resolve(e.project.repository_path)!==resolve(contentLocation.repositoryPath)||report.invocation_ref.id!==e.invocation.id||report.invocation_key!==e.invocation.invocation_key||report.run_ref.id!==e.invocation.run_ref.id||report.run_operation_key!==e.invocation.run_operation_key||report.producer_actor_id!==e.invocation.executor_ref.id||!same(report.input_digest,e.invocation.input_digest))fail();
   const boundary=boundaries.get(e.boundary);if(!boundary||!same(boundary.args,boundaryArgs({content,originalRoot:root,project:e.project,invocation:e.invocation,parent:e.parent,recordId:e.recordId})))fail();
-  boundary.verify();assertSkillResultOriginalSeal(e.before,report,reference);
-  const identity=runtimeOriginal(root,e.start.child);if(!same(identity,boundary.identity))fail();
-  return identity;
+  assertSkillResultOriginalSeal(e.before,report,reference);
+  // This last fixed read validates the same captured identity and every original
+  // execution binary. Reuse its fresh return; never a previous authorization.
+  return boundary.verify();
  };
  const runtimeIdentity=readRuntime(),verifyRuntime=()=>{if(!same(readRuntime(),runtimeIdentity))fail();};
  const fileIdentity=(path:string)=>{assertOrdinaryPath(path);const stat=lstatSync(path,{bigint:true});if(stat.isSymbolicLink()||(!stat.isFile()&&!stat.isDirectory())||stat.ino<=0n)fail();return{device:String(stat.dev),inode:String(stat.ino),created_ns:String(stat.birthtimeNs)};};

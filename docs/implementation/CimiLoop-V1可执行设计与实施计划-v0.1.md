@@ -1,5 +1,7 @@
 # CimiLoop V1 可执行设计与实施计划 v0.1
 
+2026-10-14 D-297：原Skill结果最后封口使用私有边界本次新鲜返回的原Runtime身份，收敛相邻重复读取；start/父子scope/Node/controller/observer原物理登记及回调后复核保留，不缓存授权。PUBLIC observer fixture漏Job policy的早期失败不算产品红例，修正基线10项通过。main精确2源码/测试路径，完整6文件74项、check/CLI帮助通过，788源码无漂移；隔离6文件74项、check通过，790源码无漂移。此处不经过历史Host.known→readResult/facts链，不能声称已减少第4模型发送前核验或解决原30分钟Task失败；原Native5文件50项49通过1失败保留。下一批推进原持久账户完整hold与Kernel守卫的真实发送组合，泛端口不跳检查。普通工程review非Matt/Superpowers/S1；五组目标、Schema242/库10/Host1和默认Agent关闭保持，不付费、不push、不处理未知TMP或旧Unknown。[本批记录](../plans/2026-10-14-cimiloop-skill-runtime-fresh-boundary.md)。
+
 2026-10-14 D-296：工作台原Agent及费用等待的成功/同步throw/await reject均重新核对Human会话和关闭；原观察提交前复用共享strict-void守卫，拒绝Promise/函数thenable/false且保留prepared同请求恢复，原取消不撤销或重复。有效HTTP/共享反例已红测修复，未触发的早期观测钩子明确排除；普通工程复审非Matt/Superpowers。main精确3源码/测试路径，最后完整14文件105项、check/CLI帮助通过，788源码无漂移。原完整Native5文件50项49通过1失败：当前父SDK→Skill仍原30分钟Task到期，原子结果/父model4未回件保留，下一步收敛重复核验后同预算再验，非S1。五组目标、Schema242/库10/Host1保持，默认Agent关闭，不处理未知TMP/旧Unknown、不付费、不push。[本批记录](../plans/2026-10-13-cimiloop-workbench-original-await-session.md)。
 
 2026-10-13 D-295：正式原Native时钟通道接固定Worker，原入口15秒期限含传输等待，主线程迟到消费仍扣原Task预算；取消不重发/不提前释放原slot，首Native失败不被Worker后续故障覆盖，SAB仅诊断，close须原Native退出。实际17秒阻塞反例及两项独立复审缺陷均红测修复；跨Node入口参数失败也保留并修复。main精确9源码/测试路径，完整6文件33项、check/CLI帮助通过，787源码无漂移；隔离5文件29项通过。D-294领域结果3仍在隔离树，原完整实际Native组合5文件48通过2失败保留，修补后新原操作完整5文件继续验证。普通工程review非Matt/Superpowers，构造模型/资格/账单非真实Skill/模型/S1。五组目标、Schema242/库10/Host1保持、默认Agent关闭，不抬旧期限、不处理未知TMP/旧Unknown、不付费、不push。[本批记录](../plans/2026-10-13-cimiloop-original-clock-worker.md)。

@@ -1,0 +1,214 @@
+{
+  "decision": "D-297",
+  "recorded_at": "2026-10-13T16:42:13.493Z",
+  "status": "main final Runtime boundary batch validated; genuine sending-path owner port is next; full S1 active",
+  "base": "ad21a2e9c839afb404dcb3cd2ae7f660571f8b97",
+  "source_paths": [
+    "packages/local-app/src/skill-result-original-seal.ts",
+    "packages/local-app/test/skill-result-runtime-original-seal.test.ts"
+  ],
+  "capabilities": [
+    "boundary returns this last actual fresh identity after original before-seal",
+    "complete original start, scope, claim/input/key, Node/controller/observer physical proofs retained",
+    "verification runs before and after namespace/content originals",
+    "no prior authorization or hash/stat cache",
+    "actual original Kernel/Host contracts unchanged; byte-only cannot promote"
+  ],
+  "records": [
+    {
+      "record": "d297-native-r1-boundary-adversarial-baseline",
+      "recorded_at": "2026-10-13T16:18:35.723Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 1,
+      "error": null,
+      "elapsed_ms": 120303,
+      "files": [
+        "packages/local-app/test/skill-result-runtime-original-seal.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false,
+      "actual_test_files": 1,
+      "tests": {
+        "passed": 0,
+        "failed": 9,
+        "pending": 0
+      },
+      "actual_files": [
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/skill-result-runtime-original-seal.test.ts"
+      ]
+    },
+    {
+      "record": "d297-native-r2-boundary-valid-baseline",
+      "recorded_at": "2026-10-13T16:23:06.434Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 161318,
+      "files": [
+        "packages/local-app/test/skill-result-runtime-original-seal.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false,
+      "actual_test_files": 1,
+      "tests": {
+        "passed": 10,
+        "failed": 0,
+        "pending": 0
+      },
+      "actual_files": [
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/skill-result-runtime-original-seal.test.ts"
+      ]
+    },
+    {
+      "record": "d297-native-r4-fresh-boundary-implemented-check",
+      "recorded_at": "2026-10-13T16:24:42.479Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 13450,
+      "files": [],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    {
+      "record": "d297-native-r5-fresh-boundary-contracts",
+      "recorded_at": "2026-10-13T16:35:32.955Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 628256,
+      "files": [
+        "packages/local-app/test/skill-invocation-verified-result.test.ts",
+        "packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+        "packages/local-app/test/skill-start-original-seal.test.ts",
+        "packages/local-app/test/skill-result-original-seal.test.ts",
+        "packages/runtime-adapter/test/agent-start-ticket-seal.test.ts",
+        "packages/runtime-adapter/test/agent-start-ledger.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false,
+      "actual_test_files": 6,
+      "tests": {
+        "passed": 74,
+        "failed": 0,
+        "pending": 0
+      },
+      "actual_files": [
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/skill-invocation-verified-result.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/skill-result-original-seal.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/local-app/test/skill-start-original-seal.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-start-ledger.test.ts",
+        "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/packages/runtime-adapter/test/agent-start-ticket-seal.test.ts"
+      ]
+    },
+    {
+      "record": "d297-main-r2-fresh-boundary-implemented-check",
+      "recorded_at": "2026-10-13T16:28:07.087Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 17665,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    {
+      "record": "d297-main-r3-fresh-boundary-contracts",
+      "recorded_at": "2026-10-13T16:38:44.117Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 597929,
+      "files": [
+        "packages/local-app/test/skill-invocation-verified-result.test.ts",
+        "packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+        "packages/local-app/test/skill-start-original-seal.test.ts",
+        "packages/local-app/test/skill-result-original-seal.test.ts",
+        "packages/runtime-adapter/test/agent-start-ticket-seal.test.ts",
+        "packages/runtime-adapter/test/agent-start-ledger.test.ts"
+      ],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false,
+      "actual_test_files": 6,
+      "tests": {
+        "passed": 74,
+        "failed": 0,
+        "pending": 0
+      },
+      "actual_files": [
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-verified-result.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-result-original-seal.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-start-original-seal.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-start-ledger.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-start-ticket-seal.test.ts"
+      ]
+    },
+    {
+      "record": "d297-main-r4-fresh-boundary-help",
+      "recorded_at": "2026-10-13T16:41:27.114Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1181,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    }
+  ],
+  "early_invalid_fixture": "r1 nine failures at claim preparation: observer without existing Job resource policy; not product red",
+  "ordinary_review": {
+    "recorded_at": "2026-10-13T16:32:00.319Z",
+    "status": "no concrete must-fix",
+    "source_paths": [
+      "packages/local-app/src/skill-result-original-seal.ts",
+      "packages/local-app/test/skill-result-runtime-original-seal.test.ts"
+    ],
+    "genuine_start_scope_binding": true,
+    "final_fresh_original_runtime": true,
+    "live_authorization_cached": false,
+    "tests_run_by_reviewer": false,
+    "not_matt": true,
+    "not_superpowers": true,
+    "not_s1": true,
+    "performance_improvement_proven": false
+  },
+  "limitations": [
+    "D297 final result seal not used in historical Host.known/readResult/facts: no pre-model4 speedup claim",
+    "old full Native five files50:49passed1failed, actual original parent Task1800000 expired; no raise or replay",
+    "D294 current domain result3 remains isolated and uncommitted",
+    "PUBLIC model/method qualification/billing not genuine paid model/skill/Matt/Superpowers/S1",
+    "next original full-hold owner API six missing-feature reds are separate D298 source, not this main batch"
+  ],
+  "schema_total": 242,
+  "project_database_format": 10,
+  "host_ledger_format": 1,
+  "formal_agent_execution_enabled": false,
+  "paid_requests": false,
+  "pushed": false,
+  "goal_groups": [
+    "V1-09",
+    "V1-21",
+    "V1-22",
+    "V1-10",
+    "V1-11"
+  ]
+}
