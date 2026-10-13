@@ -9,7 +9,9 @@ const fail=()=>new LocalProjectError('原 Skill 账户范围、宿主或当前�
 // No default connection/admission, credential read, Run creation or DB upgrade.
 export class LocalSkillInvocationDedicatedAccount implements DedicatedAgentAccountPort {
  readonly #local:SkillInvocationExecutionContext;readonly #invocationId:string;readonly #account:DedicatedAgentAccountLedger;readonly #custody:LocalSkillInvocationStartCustody;readonly #relation:DedicatedAgentSkillScope;
- private constructor(local:SkillInvocationExecutionContext,invocationId:string,account:DedicatedAgentAccountLedger,custody:LocalSkillInvocationStartCustody,relation:DedicatedAgentSkillScope){this.#local=local;this.#invocationId=invocationId;this.#account=account;this.#custody=custody;this.#relation=relation;}
+ readonly #identity:{store:SkillInvocationExecutionContext['store'];kernel:SkillInvocationExecutionContext['kernel'];caller:SkillInvocationExecutionContext['caller'];location:SkillInvocationExecutionContext['location'];assessment:SkillInvocationExecutionContext['kernel']['assessSkillInvocationExecution']};
+ readonly #assess:SkillInvocationExecutionContext['kernel']['assessSkillInvocationExecution'];
+ private constructor(local:SkillInvocationExecutionContext,invocationId:string,account:DedicatedAgentAccountLedger,custody:LocalSkillInvocationStartCustody,relation:DedicatedAgentSkillScope){this.#local=local;this.#invocationId=invocationId;this.#account=account;this.#custody=custody;this.#relation=relation;this.#identity={store:local.store,kernel:local.kernel,caller:structuredClone(local.caller),location:structuredClone(local.location),assessment:local.kernel.assessSkillInvocationExecution};this.#assess=this.#identity.assessment.bind(this.#identity.kernel);}
  static async open(local:SkillInvocationExecutionContext,invocationId:string,account:DedicatedAgentAccountLedger,custody:LocalSkillInvocationStartCustody){
   try{
    if(!(account instanceof DedicatedAgentAccountLedger)||!(custody instanceof LocalSkillInvocationStartCustody))throw fail();
@@ -22,12 +24,18 @@ export class LocalSkillInvocationDedicatedAccount implements DedicatedAgentAccou
  get profile(){return this.#account.profile;}
  get scope(){return structuredClone(this.#relation.child);}
  get modelRoot(){return join(this.#local.location.dataDirectory,'skill-runtime-originals',this.#relation.parent.project_id,this.#relation.child.operation_key);}
+ // Trusted code may use controlled transport with the SAME original owner
+ // port. This carries no approval, credential or broader parent authority.
+ modelAccountPort(){this.#guard(this.#relation.child);return this.#modelAccountPort();}
+ #modelAccountPort(){return openDedicatedLedgerModelAccountPort(this.#account,this.#relation.child,()=>{this.#guard(this.#relation.child);});}
+ #assertIdentity(){const local=this.#local,original=this.#identity;if(local.store!==original.store||local.kernel!==original.kernel||local.kernel.assessSkillInvocationExecution!==original.assessment||!isDeepStrictEqual(local.caller,original.caller)||!isDeepStrictEqual(local.location,original.location))throw fail();}
  #guard(raw:AgentWorkspaceToolScope){
   try{
+   this.#assertIdentity();
    const scope=parseAgentWorkspaceToolScope(raw),original=readOriginalSkillInvocation(this.#local,this.#invocationId);
    const relation=this.#custody.accountScope(original.project,original.invocation,original.request.parent,original.record_id);
    if(!isDeepStrictEqual(scope,this.#relation.child)||!isDeepStrictEqual(relation,this.#relation))throw fail();
-   const assessment=this.#local.kernel.assessSkillInvocationExecution(structuredClone(original.request));
+   this.#assertIdentity();const assessment=this.#assess(structuredClone(original.request));this.#assertIdentity();
    if(!('decision' in assessment)||assessment.decision!=='ALLOW'||!assessment.authority||assessment.authority.invocation_id!==this.#invocationId||assessment.authority.invocation_key!==scope.operation_key||!isDeepStrictEqual(assessment.authority.input_digest,scope.context_digest))throw fail();
    return scope;
   }catch{throw fail();}
@@ -35,5 +43,5 @@ export class LocalSkillInvocationDedicatedAccount implements DedicatedAgentAccou
  async check(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection){const scope=this.#guard(raw);await this.#account.check(scope,connection);this.#guard(scope);}
  async reserve(raw:AgentWorkspaceToolScope,request:DedicatedAgentBudgetRequest,body:Uint8Array){const scope=this.#guard(raw),hold=await this.#account.reserve(scope,structuredClone(request),Buffer.from(body),()=>{this.#guard(scope);});this.#guard(scope);return hold;}
  async verifyHold(raw:AgentWorkspaceToolScope,hold:DedicatedAgentBudgetHold){const scope=this.#guard(raw);await this.#account.verifyHold(scope,structuredClone(hold));this.#guard(scope);}
- createModel(connection:DedicatedModelConnection){this.#guard(this.#relation.child);return createDedicatedAgentRuntimeModel({root:this.modelRoot,credentialBoundaryRoot:this.#local.location.dataDirectory,repositoryPath:this.#local.location.repositoryPath,scope:this.scope,connection,account:openDedicatedLedgerModelAccountPort(this.#account,this.#relation.child,()=>{this.#guard(this.#relation.child);}),methodTools:"fixed_named_method/1.0.0"});}
+ createModel(connection:DedicatedModelConnection){this.#guard(this.#relation.child);return createDedicatedAgentRuntimeModel({root:this.modelRoot,credentialBoundaryRoot:this.#local.location.dataDirectory,repositoryPath:this.#local.location.repositoryPath,scope:this.scope,connection,account:this.#modelAccountPort(),methodTools:"fixed_named_method/1.0.0"});}
 }

@@ -153,6 +153,27 @@ describe('original child Skill execution', () => {
    expect(local.kernel.assessAgentRunModel(request.parent)).toMatchObject({decision:'DENY'});expect(readDatabaseFormat(f.path)).toBe(10);
   }finally{a.account.close();}
  },240000);
+ it('shares the genuine child model account port with controlled transport without broadening its original scope',async()=>{
+  const a=accountFixture();try{const s=await a.open();expect(s.modelAccountPort).toBeTypeOf('function');const modelAccount=s.modelAccountPort(),scope=s.scope;
+   expect(Object.isFrozen(modelAccount)).toBe(true);await modelAccount.check(scope,a.connection);
+   const body=Buffer.from('PUBLIC original controlled child model body'),q={scope_digest:digest(JSON.stringify(scope)).value,admission_digest:a.account.admission_digest,connection_digest:digest(JSON.stringify(a.connection)).value,call_id:'model_0001',request_id:digest(invocation.id).value,request_digest:digest(body).value,input_bytes:body.length,max_output_tokens:512};
+   const hold=await modelAccount.reserve(scope,q,body);expect(await s.modelAccountPort().reserve(scope,q,body)).toEqual(hold);await modelAccount.verifyHold(scope,hold);
+   await expect(modelAccount.check(request.parent,a.connection)).rejects.toThrow();expect(a.account.snapshot()).toMatchObject({holds:1,cash_held_micros:30,credit_held_micro_units:10});expect(f.store.listRuns(f.change.id)).toHaveLength(1);expect(local.kernel.assessAgentRunModel(request.parent)).toMatchObject({decision:'DENY'});
+  }finally{a.account.close();}
+ },240000);
+ it('retains a genuine child port original hold when Human revokes authority during its admission await',async()=>{
+  const a=accountFixture();try{const s=await a.open();expect(s.modelAccountPort).toBeTypeOf('function');const modelAccount=s.modelAccountPort(),scope=s.scope,body=Buffer.from('PUBLIC child hold before original revoke'),q={scope_digest:digest(JSON.stringify(scope)).value,admission_digest:a.account.admission_digest,connection_digest:digest(JSON.stringify(a.connection)).value,call_id:'model_0001',request_id:digest(invocation.id).value,request_digest:digest(body).value,input_bytes:body.length,max_output_tokens:512},hold=await modelAccount.reserve(scope,q,body);
+   Reflect.set(s,'guard',()=>scope);a.onCheck(async()=>{flowSuccess(f.humanKernel.execute(f.humanCommand('CancelRun','run',f.currentRun().id,{reason:'PUBLIC cancel while genuine child model admission awaits'},'technical_owner')));});
+   await expect(modelAccount.verifyHold(scope,hold)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(a.account.snapshot()).toMatchObject({holds:1,cash_held_micros:30,credit_held_micro_units:10});expect(f.store.listRuns(f.change.id)).toHaveLength(1);expect(readDatabaseFormat(f.path)).toBe(10);
+  }finally{a.account.close();}
+ },240000);
+ it.each((['generic','owner'] as const).flatMap(port=>['kernel object','assessment method'].map(mode=>({port,mode}))))('pins the original Kernel against $mode replacement during $port child admission await',async({port,mode})=>{
+  const a=accountFixture();let kernel:any,method:any;try{const service=await a.open(),account=port==='owner'?service.modelAccountPort():service,scope=service.scope,body=Buffer.from('PUBLIC child hold before Kernel substitution'),q={scope_digest:digest(JSON.stringify(scope)).value,admission_digest:a.account.admission_digest,connection_digest:digest(JSON.stringify(a.connection)).value,call_id:'model_0001',request_id:digest(invocation.id).value,request_digest:digest(body).value,input_bytes:body.length,max_output_tokens:512},hold=await account.reserve(scope,q,body);
+   kernel=local.kernel;method=kernel.assessSkillInvocationExecution;const allowed=method.call(kernel,request),sequence=f.store.asOfEventSequence();let substitutedCalls=0;expect(allowed).toMatchObject({decision:'ALLOW'});
+   a.onCheck(async()=>{flowSuccess(f.humanKernel.execute(f.humanCommand('CancelRun','run',f.currentRun().id,{reason:'PUBLIC cancel before child Kernel substitution'},'technical_owner')));const substitute=()=>{substitutedCalls++;return structuredClone(allowed);};if(mode==='kernel object')Reflect.set(local,'kernel',{assessSkillInvocationExecution:substitute});else Reflect.set(kernel,'assessSkillInvocationExecution',substitute);});
+   await expect(account.verifyHold(scope,hold)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(substitutedCalls).toBe(0);expect(a.account.snapshot()).toMatchObject({holds:1,cash_held_micros:30,credit_held_micro_units:10});expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.store.getRun(scope.run_id)).toMatchObject({cancel_requested:true});
+  }finally{if(kernel){Reflect.set(local,'kernel',kernel);Reflect.set(kernel,'assessSkillInvocationExecution',method);}a.account.close();}
+ },240000);
  it('does not register or reserve a child after Human cancellation during awaited dedicated admission',async()=>{
   const a=accountFixture();try{a.onCheck(async()=>{flowSuccess(f.humanKernel.execute(f.humanCommand('CancelRun','run',f.currentRun().id,{reason:'cancel child account admission'},'technical_owner')));});
    await expect(a.open()).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(ledger.listExclusive('dedicated_account_skill_scope')).toHaveLength(0);expect(a.account.snapshot().holds).toBe(0);

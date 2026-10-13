@@ -1,0 +1,760 @@
+{
+  "decision": "D-300",
+  "recorded_at": "2026-10-13T18:36:48.088Z",
+  "behavior": "2026-10-14 D-300：核对生产与 Native 测试接线，原 current-parent 运行直接使用泛父/子账户；第4模型请求17:36:40已落盘，无reply，17:39:08原Task到期清理，incomplete退出12/未完成。这不能证明D-298 owner组合已验证，也不能单凭接线差异证明超时根因。共享子账户新增带私有原scope/Kernel守卫的冻结owner端口，生产createModel仍调用私有固定方法；main两份Native测试用同一原父/子owner端口，本地TLS与PUBLIC凭据/批准性质不变，所有期限与Native/SDK/费用/回执断言保留。新2反例基线失败/23旧项过滤；补充复审实测父子generic/owner的Kernel对象与assessment方法替换8项错误通过核验，固定原store/kernel/caller/location和bound assessment后8项反例通过。早期13文件195项未覆盖该漏洞，不作最终证明；最终main完整13文件203项、check/CLI帮助通过，788源码零漂移，验证同hold重放、await后撤权与资金保留。原 D-298 隔离 Native 整轮5文件50项49通过1失败、790源码零漂移，失败仍为父模型预期4次实际3次；原件保留。原进程终态后精确同步9路径，保留领域结果3并补入D-299费用守卫；隔离完整2文件37项与check通过。正式owner接线新完整5文件Native已在原普通600000ms/父1800000ms预算下运行，session66214、790源码冻结，尚无新终态。新端口接线的实际Native同预算再验仍必需；普通工程review非Matt/Superpowers/S1。Schema242/库10/Host1、默认Agent关闭、五组目标保持，不付费、不push、不处理旧Unknown或未知TMP。",
+  "source_paths": [
+    "packages/local-app/src/agent-dedicated-account-local.ts",
+    "packages/local-app/test/agent-dedicated-account-local.test.ts",
+    "packages/local-app/src/skill-invocation-dedicated-account-local.ts",
+    "packages/local-app/test/skill-invocation-execution-local.test.ts",
+    "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+    "tests/scenarios/agent-run-family-settlement-native-runtime.test.ts"
+  ],
+  "verification": {
+    "red": {
+      "passed": 0,
+      "failed": 2,
+      "filtered_old_tests": 23
+    },
+    "authority_replacement_red": {
+      "passed": 0,
+      "failed": 8,
+      "filtered_old_tests": 29
+    },
+    "authority_replacement_green": {
+      "passed": 8,
+      "failed": 0,
+      "filtered_old_tests": 29
+    },
+    "early_complete_excluded": {
+      "files": 13,
+      "passed": 195,
+      "authority_replacement_not_covered": true
+    },
+    "complete": {
+      "recorded_at": "2026-10-13T18:33:07.207Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 788161,
+      "files": [
+        "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "packages/runtime-adapter/test/agent-skill-account.test.ts",
+        "packages/runtime-adapter/test/agent-account-bills.test.ts",
+        "packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+        "packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+        "packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+        "packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "packages/local-app/test/agent-account-billing-local.test.ts",
+        "packages/local-app/test/agent-account-billing-entry.test.ts",
+        "packages/local-app/test/agent-run-family-settlement.test.ts",
+        "packages/local-app/test/agent-parent-skill-composition.test.ts"
+      ],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false,
+      "passed": 203,
+      "failed": 0,
+      "skipped": 0,
+      "actual_files": [
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-account-billing-entry.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-account-billing-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-parent-skill-composition.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-family-settlement.test.ts",
+        "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-account-bills.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+        "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-skill-account.test.ts"
+      ]
+    },
+    "check": {
+      "recorded_at": "2026-10-13T18:16:53.749Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 18422,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "help": {
+      "recorded_at": "2026-10-13T18:32:29.992Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1327,
+      "files": [],
+      "source_files": 788,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "isolated": {
+      "recorded_at": "2026-10-13T18:31:38.866Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 463394,
+      "files": [
+        "packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "packages/local-app/test/skill-invocation-execution-local.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0
+    },
+    "isolated_check": {
+      "recorded_at": "2026-10-13T18:22:27.718Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 28437,
+      "files": [],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false
+    }
+  },
+  "ordinary_review": {
+    "initial_no_must_fix_corrected": true,
+    "supplementary_kernel_replacement_must_fix_reproduced": true,
+    "final_must_fix": [],
+    "tests_run_by_reviewer": false,
+    "matt": false,
+    "superpowers": false
+  },
+  "original_native_failure": {
+    "recorded_at": "2026-10-13T17:57:27.096Z",
+    "kind": "retained current original failure read-only evidence; no new operation",
+    "correction": "prior parent_generic_account detector expected object closure immediately after account and missed the adjacent parentSkillTools field; prior false is not absence proof",
+    "root": "D:/s1-a11e0e/N-hA6H5R/_WeHOm1",
+    "operation": "d6543dd1-150a-4883-b534-be355cd14551",
+    "parent_run": "01a1363d-5f8d-744a-a4c3-d451124b25d0",
+    "native_session": 85896,
+    "parent_task_budget_ms": 1800000,
+    "original_deadline_raised": false,
+    "old_run_restarted": false,
+    "terminal": {
+      "interruption_reason": "workspace_rehearsal_deadline",
+      "native_exit": {
+        "code": 12,
+        "signal": null
+      },
+      "completion_proven": false,
+      "cleanup_reason": "agent_sandbox_task_deadline",
+      "resources_disposed": true,
+      "cleanup_errors": [],
+      "clock_control_failure": null
+    },
+    "timeline": [
+      {
+        "path": "agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/header.json",
+        "bytes": 1558,
+        "modified_utc": "2026-10-13T17:09:41.331Z"
+      },
+      {
+        "path": "agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0001/request.json",
+        "bytes": 29153,
+        "modified_utc": "2026-10-13T17:11:59.185Z"
+      },
+      {
+        "path": "agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0001/reply.json",
+        "bytes": 476,
+        "modified_utc": "2026-10-13T17:13:04.538Z"
+      },
+      {
+        "path": "agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0002/request.json",
+        "bytes": 29997,
+        "modified_utc": "2026-10-13T17:13:20.932Z"
+      },
+      {
+        "path": "agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0002/reply.json",
+        "bytes": 390,
+        "modified_utc": "2026-10-13T17:14:29.024Z"
+      },
+      {
+        "path": "agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0003/request.json",
+        "bytes": 30932,
+        "modified_utc": "2026-10-13T17:15:16.924Z"
+      },
+      {
+        "path": "agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0003/reply.json",
+        "bytes": 447,
+        "modified_utc": "2026-10-13T17:17:16.445Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/header.json",
+        "bytes": 2778,
+        "modified_utc": "2026-10-13T17:19:33.204Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/header.json",
+        "bytes": 707,
+        "modified_utc": "2026-10-13T17:19:33.220Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/header.json",
+        "bytes": 1501,
+        "modified_utc": "2026-10-13T17:19:35.038Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/header.json",
+        "bytes": 1501,
+        "modified_utc": "2026-10-13T17:19:35.046Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/header.json",
+        "bytes": 2365,
+        "modified_utc": "2026-10-13T17:20:00.373Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0001/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:06.038Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0001/request.json",
+        "bytes": 19801,
+        "modified_utc": "2026-10-13T17:20:07.852Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0001/request.json",
+        "bytes": 19801,
+        "modified_utc": "2026-10-13T17:20:07.856Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/header.json",
+        "bytes": 1382,
+        "modified_utc": "2026-10-13T17:20:07.878Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/header.json",
+        "bytes": 1382,
+        "modified_utc": "2026-10-13T17:20:07.885Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0001/request.json",
+        "bytes": 19801,
+        "modified_utc": "2026-10-13T17:20:09.555Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0001/request.json",
+        "bytes": 19801,
+        "modified_utc": "2026-10-13T17:20:09.559Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0001/provider-request.json",
+        "bytes": 19675,
+        "modified_utc": "2026-10-13T17:20:17.260Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0001/provider-response.json",
+        "bytes": 486,
+        "modified_utc": "2026-10-13T17:20:22.179Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0001/reply.json",
+        "bytes": 387,
+        "modified_utc": "2026-10-13T17:20:22.190Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0001/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:22.201Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0002/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:22.261Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_4412e397f4acaa1ebcda0e0e1257d5120b034a04d951fe0104a1ad59530ad442/request.json",
+        "bytes": 344,
+        "modified_utc": "2026-10-13T17:20:22.478Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_4412e397f4acaa1ebcda0e0e1257d5120b034a04d951fe0104a1ad59530ad442/reply.json",
+        "bytes": 718,
+        "modified_utc": "2026-10-13T17:20:22.544Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0002/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:22.555Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0003/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:22.652Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0002/request.json",
+        "bytes": 20881,
+        "modified_utc": "2026-10-13T17:20:24.565Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0002/request.json",
+        "bytes": 20881,
+        "modified_utc": "2026-10-13T17:20:24.568Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0002/request.json",
+        "bytes": 20881,
+        "modified_utc": "2026-10-13T17:20:26.116Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0002/request.json",
+        "bytes": 20881,
+        "modified_utc": "2026-10-13T17:20:26.120Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0002/provider-request.json",
+        "bytes": 20741,
+        "modified_utc": "2026-10-13T17:20:33.796Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0002/provider-response.json",
+        "bytes": 491,
+        "modified_utc": "2026-10-13T17:20:38.748Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0002/reply.json",
+        "bytes": 392,
+        "modified_utc": "2026-10-13T17:20:38.755Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0003/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:38.765Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0004/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:38.842Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_858edb7014c015ccdb886f52cf5b2f2021aa6733cc334263b76fd1acd1dbe80e/request.json",
+        "bytes": 349,
+        "modified_utc": "2026-10-13T17:20:39.023Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_858edb7014c015ccdb886f52cf5b2f2021aa6733cc334263b76fd1acd1dbe80e/reply.json",
+        "bytes": 719,
+        "modified_utc": "2026-10-13T17:20:39.083Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0004/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:39.093Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0005/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:39.167Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0003/request.json",
+        "bytes": 21967,
+        "modified_utc": "2026-10-13T17:20:40.786Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0003/request.json",
+        "bytes": 21967,
+        "modified_utc": "2026-10-13T17:20:40.791Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0003/request.json",
+        "bytes": 21967,
+        "modified_utc": "2026-10-13T17:20:42.411Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0003/request.json",
+        "bytes": 21967,
+        "modified_utc": "2026-10-13T17:20:42.417Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0003/provider-request.json",
+        "bytes": 21813,
+        "modified_utc": "2026-10-13T17:20:50.599Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0003/provider-response.json",
+        "bytes": 507,
+        "modified_utc": "2026-10-13T17:20:55.863Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0003/reply.json",
+        "bytes": 408,
+        "modified_utc": "2026-10-13T17:20:55.871Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0005/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:55.881Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0006/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:55.910Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_b672d6607ab6a2a473d949d69447d984321286b25e2b72354bd9776e1aae5a87/request.json",
+        "bytes": 365,
+        "modified_utc": "2026-10-13T17:20:56.128Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_b672d6607ab6a2a473d949d69447d984321286b25e2b72354bd9776e1aae5a87/reply.json",
+        "bytes": 1570,
+        "modified_utc": "2026-10-13T17:20:56.205Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0006/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:56.215Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0007/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:20:56.366Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0004/request.json",
+        "bytes": 24076,
+        "modified_utc": "2026-10-13T17:20:58.362Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0004/request.json",
+        "bytes": 24076,
+        "modified_utc": "2026-10-13T17:20:58.366Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0004/request.json",
+        "bytes": 24076,
+        "modified_utc": "2026-10-13T17:21:00.412Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0004/request.json",
+        "bytes": 24076,
+        "modified_utc": "2026-10-13T17:21:00.415Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0004/provider-request.json",
+        "bytes": 23900,
+        "modified_utc": "2026-10-13T17:21:07.884Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0004/provider-response.json",
+        "bytes": 505,
+        "modified_utc": "2026-10-13T17:21:13.108Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0004/reply.json",
+        "bytes": 406,
+        "modified_utc": "2026-10-13T17:21:13.114Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0007/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:13.126Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0008/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:13.199Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_f93aa2406db6f7acdffbe9da21b78c4f9c11641437fe2ac05cec29d4e9f133df/request.json",
+        "bytes": 363,
+        "modified_utc": "2026-10-13T17:21:13.396Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_f93aa2406db6f7acdffbe9da21b78c4f9c11641437fe2ac05cec29d4e9f133df/reply.json",
+        "bytes": 1218,
+        "modified_utc": "2026-10-13T17:21:13.457Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0008/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:13.470Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0009/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:13.546Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0005/request.json",
+        "bytes": 25774,
+        "modified_utc": "2026-10-13T17:21:15.734Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0005/request.json",
+        "bytes": 25774,
+        "modified_utc": "2026-10-13T17:21:15.739Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0005/request.json",
+        "bytes": 25774,
+        "modified_utc": "2026-10-13T17:21:17.955Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0005/request.json",
+        "bytes": 25774,
+        "modified_utc": "2026-10-13T17:21:17.961Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0005/provider-request.json",
+        "bytes": 25576,
+        "modified_utc": "2026-10-13T17:21:25.685Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0005/provider-response.json",
+        "bytes": 573,
+        "modified_utc": "2026-10-13T17:21:30.185Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0005/reply.json",
+        "bytes": 474,
+        "modified_utc": "2026-10-13T17:21:30.192Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0009/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:30.205Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0010/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:30.269Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_1c8c5ee82ccb94736969694cc8368758c1e39b8e287efcdf0878d503f1a4d625/request.json",
+        "bytes": 431,
+        "modified_utc": "2026-10-13T17:21:30.480Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_1c8c5ee82ccb94736969694cc8368758c1e39b8e287efcdf0878d503f1a4d625/reply.json",
+        "bytes": 1843,
+        "modified_utc": "2026-10-13T17:21:30.540Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0010/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:30.550Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0011/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:30.616Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0006/request.json",
+        "bytes": 28106,
+        "modified_utc": "2026-10-13T17:21:32.059Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0006/request.json",
+        "bytes": 28106,
+        "modified_utc": "2026-10-13T17:21:32.064Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0006/request.json",
+        "bytes": 28106,
+        "modified_utc": "2026-10-13T17:21:33.646Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0006/request.json",
+        "bytes": 28106,
+        "modified_utc": "2026-10-13T17:21:33.649Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0006/provider-request.json",
+        "bytes": 27886,
+        "modified_utc": "2026-10-13T17:21:40.302Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0006/provider-response.json",
+        "bytes": 515,
+        "modified_utc": "2026-10-13T17:21:44.815Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0006/reply.json",
+        "bytes": 416,
+        "modified_utc": "2026-10-13T17:21:44.825Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0011/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:44.834Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0012/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:44.908Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_3a3cfaaea07b5d518c7d853dc3d72d0d5c37ebe1da770e56115186eb231da371/request.json",
+        "bytes": 373,
+        "modified_utc": "2026-10-13T17:21:45.068Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-named-method-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/sdk_3a3cfaaea07b5d518c7d853dc3d72d0d5c37ebe1da770e56115186eb231da371/reply.json",
+        "bytes": 1125,
+        "modified_utc": "2026-10-13T17:21:45.122Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0012/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:45.134Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0013/request.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:45.196Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0007/request.json",
+        "bytes": 29694,
+        "modified_utc": "2026-10-13T17:21:46.643Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0007/request.json",
+        "bytes": 29694,
+        "modified_utc": "2026-10-13T17:21:46.648Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-starts/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0007/request.json",
+        "bytes": 29694,
+        "modified_utc": "2026-10-13T17:21:48.210Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0007/request.json",
+        "bytes": 29694,
+        "modified_utc": "2026-10-13T17:21:48.214Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0007/provider-request.json",
+        "bytes": 29452,
+        "modified_utc": "2026-10-13T17:21:54.937Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-dedicated-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0007/provider-response.json",
+        "bytes": 460,
+        "modified_utc": "2026-10-13T17:21:59.407Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0007/reply.json",
+        "bytes": 401,
+        "modified_utc": "2026-10-13T17:21:59.415Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/agent-workspace-ipc-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/17401e58-f930-4797-980f-3195c8562f67/0013/reply.json",
+        "bytes": 94,
+        "modified_utc": "2026-10-13T17:21:59.424Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/workspace-tool-rehearsals/73887e12-6ad8-41eb-86bc-7e48fe5f3cc7/agent-sandbox-cleanup.json",
+        "bytes": 269,
+        "modified_utc": "2026-10-13T17:21:59.650Z"
+      },
+      {
+        "path": "skill-runtime-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a13645-9d1b-7215-8020-3db92c95f736/workspace-tool-rehearsals/73887e12-6ad8-41eb-86bc-7e48fe5f3cc7/result.json",
+        "bytes": 25599,
+        "modified_utc": "2026-10-13T17:21:59.941Z"
+      },
+      {
+        "path": "agent-parent-skill-result-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/header.json",
+        "bytes": 1990,
+        "modified_utc": "2026-10-13T17:22:59.610Z"
+      },
+      {
+        "path": "agent-parent-skill-result-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/sdk_7255bbeb54e199f836c68dcf515cdf8fdf284bc33a5115d89b3992270ccd6e9b/request.json",
+        "bytes": 1105,
+        "modified_utc": "2026-10-13T17:22:59.626Z"
+      },
+      {
+        "path": "agent-runtime-model-originals/01a1363d-0f06-74d4-b1b6-bd8609190163/01a1363d-5f8d-744a-a4c3-d451124b25d0/model_0004/request.json",
+        "bytes": 32254,
+        "modified_utc": "2026-10-13T17:36:40.449Z"
+      }
+    ],
+    "fixture_account_composition": {
+      "source_path": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native/tests/scenarios/agent-parent-current-result-native-runtime.test.ts",
+      "parent_generic_account": true,
+      "child_generic_account": true,
+      "parent_owner_port_used": false,
+      "child_owner_port_used": false,
+      "production_parent_owner_port_present": true
+    },
+    "interpretation": {
+      "actual_parent_completed": false,
+      "whole_five_file_report_pending": true,
+      "model_four_request_is_not_response_or_paid_approval": true,
+      "generic_fixture_does_not_prove_formal_owner_port_native_combination": true,
+      "fixture_difference_is_not_proven_cause_of_task_failure": true,
+      "new_native_original_validation_required": true,
+      "real_model_or_skill_or_s1_proven": false
+    },
+    "native_meta": {
+      "recorded_at": "2026-10-13T18:18:44.999Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 1,
+      "error": null,
+      "elapsed_ms": 4207315,
+      "files": [
+        "tests/scenarios/agent-parent-current-result-native-runtime.test.ts",
+        "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+        "tests/scenarios/agent-run-family-settlement-native-runtime.test.ts",
+        "packages/local-app/test/agent-parent-model-causal-admission.test.ts",
+        "packages/local-app/test/agent-parent-model-kernel-reader.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 790,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    "native_state": "原 D-298 隔离 Native 整轮5文件50项49通过1失败、790源码零漂移，失败仍为父模型预期4次实际3次；原件保留。原进程终态后精确同步9路径，保留领域结果3并补入D-299费用守卫；隔离完整2文件37项与check通过。正式owner接线新完整5文件Native已在原普通600000ms/父1800000ms预算下运行，session66214、790源码冻结，尚无新终态。",
+    "final_counts": {
+      "files": 5,
+      "passed": 49,
+      "failed": 1,
+      "skipped": 0
+    }
+  },
+  "new_formal_owner_native": {
+    "session": 66214,
+    "status": "running",
+    "source_files": 790,
+    "ordinary_budget_ms": 600000,
+    "parent_budget_ms": 1800000
+  },
+  "formal_owner_native_reverification_complete": false,
+  "actual_speedup_proven": false,
+  "real_model_approval": false,
+  "real_skill_accepted": false,
+  "s1_complete": false,
+  "default_formal_agent_enabled": false,
+  "schema": 242,
+  "project_database_format": 10,
+  "host_ledger_format": 1,
+  "paid_requests": false,
+  "pushed": false
+}

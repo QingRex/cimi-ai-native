@@ -159,7 +159,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const boundary=new GatewayNetworkBoundary({resolve:async()=>[{address:"8.8.8.8",family:4,ttl_seconds:60}],connect:options=>{const socket=tlsConnect({...options,host:"127.0.0.1",port:address.port,ca:certificate});Object.defineProperty(socket,"remoteAddress",{get:()=>"8.8.8.8"});return socket;}});
   const account=LocalAgentDedicatedAccount.open(f.local,f.reserved.run.id,ledger);
   expect(LocalAgentRuntimeComposition.openDedicatedPersistent({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,runId:f.reserved.run.id,connection,account:ledger}).originalScope(f.reserved.run.id)).toEqual(f.scope);
-  const dedicated=createDedicatedAgentRuntimeModel({root:f.dataDirectory,repositoryPath:f.root,scope:f.scope,connection,account},{boundary,readCredential:async()=>{credentials++;return fixtureKey;}});
+  const dedicated=createDedicatedAgentRuntimeModel({root:f.dataDirectory,repositoryPath:f.root,scope:f.scope,connection,account:account.modelAccountPort()},{boundary,readCredential:async()=>{credentials++;return fixtureKey;}});
   const runtime=LocalAgentRuntimeComposition.open({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,model:dedicated});
   writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});
   let accountReleases=0; const server=await startWorkbench({projectDir:f.root,agentRuntimeForRun:()=>runtime,agentAccountForRun:()=>({account:ledger,release(){accountReleases++;}})});closers.push(()=>server.close());

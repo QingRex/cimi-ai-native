@@ -11,7 +11,9 @@ export type AgentDedicatedModelContext=AgentRuntimeStartContext & {kernel:Pick<L
 // can install this service or choose its original account ledger.
 export class LocalAgentDedicatedAccount implements DedicatedAgentAccountPort {
  readonly #local:AgentDedicatedModelContext;readonly #scope:AgentWorkspaceToolScope;readonly #account:DedicatedAgentAccountLedger;
- private constructor(local:AgentDedicatedModelContext,scope:AgentWorkspaceToolScope,account:DedicatedAgentAccountLedger){this.#local=local;this.#scope=scope;this.#account=account;}
+ readonly #identity:{store:AgentDedicatedModelContext['store'];kernel:AgentDedicatedModelContext['kernel'];caller:AgentDedicatedModelContext['caller'];location:AgentDedicatedModelContext['location'];assessment:AgentDedicatedModelContext['kernel']['assessAgentRunModel']};
+ readonly #assess:AgentDedicatedModelContext['kernel']['assessAgentRunModel'];
+ private constructor(local:AgentDedicatedModelContext,scope:AgentWorkspaceToolScope,account:DedicatedAgentAccountLedger){this.#local=local;this.#scope=scope;this.#account=account;this.#identity={store:local.store,kernel:local.kernel,caller:structuredClone(local.caller),location:structuredClone(local.location),assessment:local.kernel.assessAgentRunModel};this.#assess=this.#identity.assessment.bind(this.#identity.kernel);}
  static open(local:AgentDedicatedModelContext,runId:string,account:DedicatedAgentAccountLedger){
   if(!(account instanceof DedicatedAgentAccountLedger))throw new LocalProjectError('原持久账户服务尚未安装','CAPABILITY_UNAVAILABLE','conflict');
   return new LocalAgentDedicatedAccount(local,structuredClone(originalAgentWorkspaceScope(local,runId)),account);
@@ -19,9 +21,10 @@ export class LocalAgentDedicatedAccount implements DedicatedAgentAccountPort {
  modelAccountPort(){return openDedicatedLedgerModelAccountPort(this.#account,this.#scope,()=>{this.#guard(this.#scope);});}
  get admission_digest(){return this.#account.admission_digest;}
  get profile(){return this.#account.profile;}
- #guard(raw:AgentWorkspaceToolScope){const scope=parseAgentWorkspaceToolScope(raw);
+ #assertIdentity(){const local=this.#local,original=this.#identity;if(local.store!==original.store||local.kernel!==original.kernel||local.kernel.assessAgentRunModel!==original.assessment||!isDeepStrictEqual(local.caller,original.caller)||!isDeepStrictEqual(local.location,original.location))throw new LocalProjectError('原账户 Kernel 与调用方身份已改变','CAPABILITY_UNAVAILABLE','conflict');}
+ #guard(raw:AgentWorkspaceToolScope){this.#assertIdentity();const scope=parseAgentWorkspaceToolScope(raw);
   if(!isDeepStrictEqual(scope,this.#scope)||!isDeepStrictEqual(originalAgentWorkspaceScope(this.#local,this.#scope.run_id),this.#scope))throw new LocalProjectError('原账户调用范围不匹配','CAPABILITY_UNAVAILABLE','conflict');
-  const assessment=this.#local.kernel.assessAgentRunModel(structuredClone(scope));
+  this.#assertIdentity();const assessment=this.#assess(structuredClone(scope));this.#assertIdentity();
   if(!('decision' in assessment)||assessment.decision!=='ALLOW')throw new LocalProjectError('原 Run 当前权限或准入不可证明','CAPABILITY_UNAVAILABLE','conflict');
   return scope;
  }
