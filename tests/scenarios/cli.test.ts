@@ -7,6 +7,7 @@ import { createInternalId } from "../../packages/protocol/dist/index.js";
 import { createM0Database } from "../fixtures/m0-database.js";
 import { compileValidator, FlowStatusResultSchema, IntentShowResultSchema, ExecutionShowResultSchema, parseCommandSuccess, type CommandSuccess, type FlowStatusResult, type IntentShowResult, type ExecutionShowResult } from "../../packages/protocol/dist/v2/index.js";
 import { contractBody, planBody } from "../fixtures/intent-project.js";
+import { openLocalProject } from "../../packages/local-app/dist/index.js";
 
 const temporaryDirectories: string[] = [];
 const cli = resolve("apps/cli/dist/bin.js");
@@ -31,11 +32,30 @@ afterEach(() => {
 });
 
 describe("cimiloop CLI", () => {
-  it("confirms real Contract and Plan, starts a Change and replays every original command after later writes", () => {
+  it("confirms Contract, rejects unclarified Plan creation, and replays historical manual planning receipts through the real CLI", () => {
     const root = mkdtempSync(join(tmpdir(), "cimiloop-cli-intent-")); temporaryDirectories.push(root);
     const appData = join(root, "app-data"), history: { args: string[]; result: CommandSuccess }[] = [];
     const act = <T extends CommandSuccess["command_type"]>(type: T, args: string[]): Extract<CommandSuccess, { command_type: T }> => {
-      const full = ["--command-id", createInternalId(), ...args], result = parseCommandSuccess(run(root, appData, full));
+      const commandId = createInternalId(), full = ["--command-id", commandId, ...args];
+      if (["SubmitPlanProposal", "ConfirmPlan", "InitializePlanTasks"].includes(type)) {
+        // Trusted test embedding seeds historical manual receipts only. The
+        // executable CLI has no legacy switch or real Matt/model qualification.
+        const context = openLocalProject({ projectDir: root, legacyManualPlanning: true });
+        try {
+          const change = context.store.listChanges().find(item => item.display_key === args[2])!;
+          const flag = (name: string) => args[args.indexOf(name) + 1]!;
+          const payload = type === "SubmitPlanProposal" ? { body: JSON.parse(readFileSync(flag("--file"), "utf8")), base_version_ref: change.plan_ref ?? null }
+            : type === "InitializePlanTasks" ? { plan_ref: { object_type: "plan_version", id: flag("--plan-id"), domain_version: Number(flag("--plan-version")) } }
+            : { proposal_ref: { object_type: "plan_proposal", id: flag("--proposal-id"), domain_version: Number(flag("--proposal-revision")) },
+              decision_request_ref: { object_type: "decision_request", id: flag("--request-id") }, decision_ref: { object_type: "decision", id: flag("--decision-id") },
+              input_digest: { algorithm: "sha256", value: flag("--input-digest") } };
+          parseCommandSuccess(context.kernel.execute({ schema_version: "2.0.0", command_type: type, command_id: commandId, correlation_id: createInternalId(),
+            requested_at: new Date().toISOString(), project_id: context.instance.project_id, actor_id: context.instance.actor_id, acting_role: "technical_owner",
+            source: { origin: "human_cli", producer: "cimiloop-cli", repository_path: context.location.repositoryPath },
+            target: { object_type: "change", id: change.id }, expected_revision: change.revision, payload }));
+        } finally { context.store.close(); }
+      }
+      const result = parseCommandSuccess(run(root, appData, full));
       expect(result.command_type).toBe(type); history.push({ args: full, result }); return result as Extract<CommandSuccess, { command_type: T }>;
     };
     const initialized = act("InitializeProject", ["init", "--owner-name", "Bound Human", "--yes"]), actorId = initialized.data.actor.id;
@@ -51,6 +71,9 @@ describe("cimiloop CLI", () => {
       return act(kind === "contract" ? "ConfirmContract" : "ConfirmPlan", [kind, "confirm", change.display_key, "--proposal-id", proposalId, "--proposal-revision", "1", "--request-id", request.id, "--decision-id", decision.id, "--input-digest", request.input_digest.value]);
     };
     const contract = confirm("contract", contractProposal.id); writeFileSync(planFile, JSON.stringify(planBody(change.id, contract.data.change.contract_ref!)));
+    const unclarified = spawnSync(process.execPath, ["--no-warnings", cli, "--project-dir", root, "--json", "plan", "submit", change.display_key, "--file", planFile], { encoding: "utf8", env: { ...process.env, LOCALAPPDATA: appData } });
+    expect(unclarified.status).toBe(1); expect(unclarified.stderr).toBe("");
+    expect(JSON.parse(unclarified.stdout)).toMatchObject({ error: { code: "EVIDENCE_MISSING" } });
     const planProposal = act("SubmitPlanProposal", ["plan", "submit", change.display_key, "--file", planFile]).data.proposal;
     const plan = confirm("plan", planProposal.id), planRef = plan.data.change.plan_ref!;
     const tasks = act("InitializePlanTasks", ["task", "initialize", change.display_key, "--plan-id", planRef.id, "--plan-version", String(planRef.domain_version)]).data.tasks;

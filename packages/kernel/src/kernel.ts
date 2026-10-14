@@ -1,4 +1,5 @@
 import { assessSkillInvocationExecution, parseSkillInvocationExecutionRequest, type SkillInvocationExecutionAssessment } from './skill-invocation-execution.js';
+import { MattClarificationUnavailable } from './planning-clarification.js';
 import {
   ProtocolValidationError,
   SCHEMA_VERSION,
@@ -77,6 +78,9 @@ export interface KernelDependencies {
   runVerifier?: RunVerifierPort;
   providerVerifier?: ProviderVerifierPort;
   planningClarification?:PlanningClarificationPort;
+  // Trusted embedding compatibility only; never a command/HTTP/Agent option.
+  // Historical manual setup is not verified Human/Matt planning admission.
+  legacyManualPlanning?:true;
 }
 
 const defaultClock = (): string => new Date().toISOString();
@@ -110,7 +114,8 @@ export class CimiLoopKernel {
     this.#evidenceVerifier = dependencies.evidenceVerifier;
     this.#runVerifier = dependencies.runVerifier;
     this.#providerVerifier = dependencies.providerVerifier;
-    this.#planningClarification=dependencies.planningClarification;
+    if(dependencies.legacyManualPlanning===true&&dependencies.planningClarification!==undefined)throw Error('legacy_manual_planning_with_original_verifier_denied');
+    this.#planningClarification=dependencies.planningClarification??(dependencies.legacyManualPlanning===true?undefined:Object.freeze({verifyOriginal(){throw new MattClarificationUnavailable();}}));
   }
 
   execute(input: unknown): KernelResult {

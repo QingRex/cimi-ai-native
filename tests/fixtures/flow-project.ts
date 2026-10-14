@@ -17,7 +17,8 @@ export const createFlowProject = (directory: string, options: FlowFixtureOptions
   if (init.command_type !== "InitializeProject") throw new Error("init expected");
   const { project, actor, assignment } = init.data;
   const caller: CallerContext = { kind: "local_operator", project_id: project.id, actor_id: actor.id };
-  const kernel = new CimiLoopKernel({ store, caller, now: () => flowTime });
+  // Explicit historical manual seeding; no real Matt/model/S1 admission.
+  const kernel = new CimiLoopKernel({ store, caller, now: () => flowTime, legacyManualPlanning: true });
   const context = (role = "project_owner") => ({ ...flowBase(), project_id: project.id, actor_id: actor.id, acting_role: role });
   const projectCommand = <P>(commandType: string, payload: P, role = "project_owner") => ({ ...context(role), command_type: commandType,
     target: { object_type: "project", id: project.id }, expected_revision: store.getProject()!.revision, payload });

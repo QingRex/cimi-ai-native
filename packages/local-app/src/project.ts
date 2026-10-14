@@ -24,7 +24,8 @@ export interface LocalProject {
 
 // Only a trusted local launcher supplies the project directory and operator.
 // HTTP requests never select a database, filesystem path or caller identity.
-export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'>;agentRunFamilySkills?:LocalAgentRunFamilyVerification;agentParentSkillResults?:LocalAgentParentSkillResultPort } = {}): LocalProject => {
+export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;legacyManualPlanning?:true;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'>;agentRunFamilySkills?:LocalAgentRunFamilyVerification;agentParentSkillResults?:LocalAgentParentSkillResultPort } = {}): LocalProject => {
+  if(options.legacyManualPlanning===true&&options.planningClarification!==undefined)throw new LocalProjectError('旧人工兼容不能同时安装正式前置澄清端口','INVALID_COMMAND','conflict');
   const start = options.projectDir ? resolve(options.projectDir) : process.cwd();
   const location = locateProject(start, Boolean(options.projectDir) || existsSync(join(start, ".cimiloop", "instance.json")));
   if (!existsSync(location.instancePath) || !existsSync(location.databasePath)) {
@@ -46,7 +47,7 @@ export const openLocalProject = (options: { projectDir?: string; agentRunCostAcc
       evidenceVerifier: new LocalEvidenceVerifier(location.repositoryPath, location.dataDirectory),
       runVerifier,
       providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory),
-      ...(options.planningClarification?{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification)}:{}) });
+      ...(options.legacyManualPlanning===true?{legacyManualPlanning:true}:{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification??{})}) });
     return { location, instance, store, kernel,...(options.agentParentSkillResults?{agentParentSkillResults:Object.freeze({forOriginal:options.agentParentSkillResults.forOriginal.bind(options.agentParentSkillResults)})}:{}) };
   } catch (error) { store.close(); throw error; }
 };

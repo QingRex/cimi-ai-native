@@ -11,7 +11,8 @@ import { createIntentProject, contractBody, planBody } from "../../../tests/fixt
 import { flowSuccess } from "../../../tests/fixtures/flow-project.js";
 import { startWorkbench, type WorkbenchServer } from "../src/server.js";
 
-// Actual Human/Kernel/SQLite/HTTP/CLI effects. No model or Matt invocation.
+// Historical manual local fixtures use explicit compatibility. The final
+// browser case installs a controlled Matt callback, never real Skill/S1 proof.
 describe("Human clarification creates the original Plan candidate before tasks", () => {
   let root: string, f: ReturnType<typeof createIntentProject>, local: ReturnType<typeof openLocalProject>, service: LocalPrePlanClarification, server: WorkbenchServer | undefined;
   beforeEach(() => {
@@ -19,7 +20,7 @@ describe("Human clarification creates the original Plan candidate before tasks",
     f = createIntentProject(root, { databasePath: join(root, ".cimiloop", "project.db") });
     writeInstance(join(root, ".cimiloop", "instance.json"), { schema_version: "1.0.0", instance_id: f.project.instance_id,
       project_id: f.project.id, actor_id: f.actor.id, created_at: f.project.created_at });
-    local = openLocalProject({ projectDir: root }); service = new LocalPrePlanClarification(local);
+    local = openLocalProject({ projectDir: root, legacyManualPlanning: true }); service = new LocalPrePlanClarification(local);
   });
   afterEach(async () => {
     await server?.close(); server = undefined; local?.store.close(); f?.store.close();
@@ -51,7 +52,7 @@ describe("Human clarification creates the original Plan candidate before tasks",
     local.kernel.execute = (command => { const result = execute(command); if ((command as { command_type?: string }).command_type === "SubmitPlanProposal" && !("code" in result)) throw Error("Constructed post-commit response loss"); return result; }) as typeof local.kernel.execute;
     expect(() => service.advance(x.change.id, x.session.id, x.candidate)).toThrow("Constructed post-commit response loss");
     expect(service.show(x.change.id, x.session.id)).toMatchObject({ session: { pending: true, submitted: false } });
-    local.store.close(); local = openLocalProject({ projectDir: root }); service = new LocalPrePlanClarification(local);
+    local.store.close(); local = openLocalProject({ projectDir: root, legacyManualPlanning: true }); service = new LocalPrePlanClarification(local);
     const result = service.advance(x.change.id, x.session.id, x.candidate);
     expect(result).toMatchObject({ session: { pending: false, submitted: true }, command_result: { command_type: "SubmitPlanProposal" } });
     expect(service.advance(x.change.id, x.session.id, x.candidate)).toEqual(result); expect(f.store.asOfEventSequence()).toBe(before + 1);
@@ -63,7 +64,7 @@ describe("Human clarification creates the original Plan candidate before tasks",
     expect(Buffer.byteLength(JSON.stringify(x.candidate))).toBeLessThan(131072);
     local.kernel.execute = (command => { const result = execute(command); if ((command as { command_type?: string }).command_type === "SubmitPlanProposal" && !("code" in result)) throw Error("Constructed large post-commit response loss"); return result; }) as typeof local.kernel.execute;
     expect(() => service.advance(x.change.id, x.session.id, x.candidate)).toThrow("Constructed large post-commit response loss");
-    local.store.close(); local = openLocalProject({ projectDir: root }); service = new LocalPrePlanClarification(local);
+    local.store.close(); local = openLocalProject({ projectDir: root, legacyManualPlanning: true }); service = new LocalPrePlanClarification(local);
     const result = service.advance(x.change.id, x.session.id, x.candidate);
     expect(result).toMatchObject({ session: { pending: false, submitted: true }, command_result: { command_type: "SubmitPlanProposal" } });
     expect(service.advance(x.change.id, x.session.id, x.candidate)).toEqual(result); expect(f.store.asOfEventSequence()).toBe(sequence + 1);
@@ -109,7 +110,7 @@ describe("Human clarification creates the original Plan candidate before tasks",
     expect(cli.status).toBe(0); expect(JSON.parse(cli.stdout)).toEqual(started); expect(readFileSync(file, "utf8")).toBe(JSON.stringify(request));
   });
   it("submits the original plan candidate from the actual browser after Human answers and recovers its lost response", async () => {
-    const change = f.create(); f.prepareContract(change.id); server = await startWorkbench({ projectDir: root });
+    const change = f.create(); f.prepareContract(change.id); server = await startWorkbench({ projectDir: root, planningClarification: { matt: { verifyOriginal() {} } } });
     const { JSDOM } = createRequire(import.meta.url)("jsdom"), dom = new JSDOM(readFileSync(new URL("../public/index.html", import.meta.url), "utf8"), { url: server.bootstrapUrl, runScripts: "outside-only", pretendToBeVisual: true });
     let lost = false, lose = true;
     dom.window.fetch = async (path: string, init: RequestInit = {}) => {

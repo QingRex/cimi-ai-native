@@ -4,12 +4,12 @@ import {createInternalId} from '@cimiloop/protocol/v2';
 import {writeInstance,openLocalProject,LocalPrePlanClarification} from '@cimiloop/local-app';
 import {createIntentProject,planBody} from '../../../tests/fixtures/intent-project.js';
 import {startWorkbench,type WorkbenchServer} from '../src/server.js';
-describe('code-installed strict planning admission in the existing HTTP paths',()=>{
+describe('default strict planning admission in the existing HTTP paths',()=>{
  let root:string,f:ReturnType<typeof createIntentProject>,server:WorkbenchServer|undefined;
  beforeEach(()=>{root=mkdtempSync(join(tmpdir(),'cimiloop-http-plan-admission-'));f=createIntentProject(root,{databasePath:join(root,'.cimiloop','project.db')});
   writeInstance(join(root,'.cimiloop','instance.json'),{schema_version:'1.0.0',instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});});
  afterEach(async()=>{await server?.close();server=undefined;f?.store.close();console.info('Retained D-263 owned HTTP originals: '+root);});
- async function connection(){server=await startWorkbench({projectDir:root,planningClarification:{}});
+ async function connection(){server=await startWorkbench({projectDir:root});
   const login=await fetch(server.origin+'/api/session',{method:'POST',headers:{Origin:server.origin,'Content-Type':'application/json'},body:JSON.stringify({bootstrap:new URL(server.bootstrapUrl).hash.slice(1)})});
   const cookie=login.headers.get('set-cookie')!.split(';')[0]!,csrf=(await login.json() as {csrf:string}).csrf;
   return async(path:string,body:unknown)=>{const response=await fetch(server!.origin+path,{method:'POST',headers:{Origin:server!.origin,Cookie:cookie,'Content-Type':'application/json','X-CimiLoop-CSRF':csrf},body:JSON.stringify(body)});return {status:response.status,body:await response.json()};};

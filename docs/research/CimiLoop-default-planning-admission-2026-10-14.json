@@ -1,0 +1,173 @@
+{
+  "format": "cimiloop/research/default-planning-admission/1.0.0",
+  "batch": "D-307",
+  "recorded_at": "2026-10-14T04:28:26.196Z",
+  "base_commit": "96882552d489084c4d6d5226782e07117a19a66f",
+  "default_admission": {
+    "kernel": "missing original verifier refuses otherwise valid new planning commands",
+    "shared_application": "Human originals then Matt originals required",
+    "commands": [
+      "SubmitPlanProposal",
+      "ConfirmPlan",
+      "InitializePlanTasks"
+    ],
+    "serialized_legacy_switch": false,
+    "trusted_legacy_embedding_only": true,
+    "success_receipt_replay_precedes_new_verification": true
+  },
+  "validation": {
+    "recorded_at": "2026-10-14T04:28:08.549Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 325860,
+    "files": [
+      "packages/local-app/test/planning-default-admission.test.ts",
+      "packages/local-app/test/planning-clarification.test.ts",
+      "apps/workbench/test/planning-clarification-admission.test.ts",
+      "apps/workbench/test/plan-clarification.test.ts",
+      "apps/workbench/test/clarification.test.ts",
+      "tests/scenarios/cli.test.ts",
+      "tests/scenarios/cli-query.test.ts"
+    ],
+    "source_files": 791,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 60,
+    "failed": 0,
+    "skipped": 0,
+    "report_sha256": "86e01ab977fddb433aad2def8dc5e30db90e76a2d7b768088109b03c31a3799e",
+    "check": {
+      "recorded_at": "2026-10-14T04:22:24.513Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 20614,
+      "files": [],
+      "source_files": 791,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "help": {
+      "recorded_at": "2026-10-14T04:24:33.094Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1318,
+      "files": [],
+      "source_files": 791,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    }
+  },
+  "retained_failures": [
+    {
+      "label": "r1-default-planning-red",
+      "passed": 2,
+      "failed": 3,
+      "meaning": "Default missing port originally permitted new Plan and Task writes"
+    },
+    {
+      "label": "r3-default-planning-contracts",
+      "passed": 23,
+      "failed": 2,
+      "meaning": "Test assumptions corrected: rejected commands do not retain success receipts; fixture clock must remain flowTime"
+    },
+    {
+      "label": "r6-default-planning-shared-entry",
+      "passed": 59,
+      "failed": 1,
+      "meaning": "Old CLI positive planning test expected unclarified new write. Formal CLI now refuses; historical receipts seeded through explicit trusted embedding and replayed through unchanged actual CLI"
+    }
+  ],
+  "ordinary_engineering_review": {
+    "conclusion": "no_must_fix_found_in_reviewed_changes",
+    "report_sha256": "f7cd061806172105d9b2b26a2eb342b6bc32ad05576926665a866991ed813974",
+    "independent_tests_run": false,
+    "formal_matt_or_superpowers_acceptance": false
+  },
+  "native_startup_diagnosis": {
+    "recorded_at": "2026-10-14T04:04:40.232Z",
+    "root": "D:\\s1-a11e0e\\N-hA6H5R\\J-VgS6Bs",
+    "pinned_binary": {
+      "path": "D:\\s1-a11e0e\\N-hA6H5R\\J-VgS6Bs\\runtime-binary-originals\\5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e\\runtime.exe",
+      "digest": {
+        "algorithm": "sha256",
+        "value": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e"
+      }
+    },
+    "mode": "fresh own startup diagnosis only; no Run or model",
+    "environment_difference": [
+      "BUN_JSC_useJIT=0 for interpreter variant only"
+    ],
+    "system_security_settings_changed": false,
+    "actual_credentials_read": false,
+    "paid_requests": false,
+    "stability_proven": false,
+    "real_model_or_skill_or_s1": false,
+    "results": [
+      {
+        "variant": "original",
+        "nonce": "ac6525a3-5eeb-4082-84b6-e548b5b490a3",
+        "elapsed_ms": 1403,
+        "child_exit": 3,
+        "child_error": null,
+        "proof": {
+          "pid": 39460,
+          "profile": "CimiLoop.ac6525a35eeb408284b6e548b5b490a3",
+          "phase": "ended",
+          "reason": "exited",
+          "exit_code": 3
+        },
+        "resources_disposed": true,
+        "cleanup_errors": null,
+        "network_mode": "deny_all",
+        "capabilities": [],
+        "version_seen": false,
+        "stderr_bytes": 850,
+        "stderr_sha256": "5827610b02414ce90e04d069f515378f0ecd82394aed63581fd5bfc7bf323617"
+      },
+      {
+        "variant": "interpreter",
+        "nonce": "820e988f-b052-4307-a816-8633f0ad26a2",
+        "elapsed_ms": 1547,
+        "child_exit": 0,
+        "child_error": null,
+        "proof": {
+          "pid": 41084,
+          "profile": "CimiLoop.820e988fb0524307a8168633f0ad26a2",
+          "phase": "ended",
+          "reason": "exited",
+          "exit_code": 0
+        },
+        "resources_disposed": true,
+        "cleanup_errors": null,
+        "network_mode": "deny_all",
+        "capabilities": [],
+        "version_seen": true,
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "boundaries": {
+    "schema_count": 242,
+    "project_database_format": 10,
+    "host_database_format": 1,
+    "default_formal_agent_enabled": false,
+    "real_matt_skill_proven": false,
+    "full_native_sdk_chain_proven": false,
+    "real_model_proven": false,
+    "s1_complete": false,
+    "paid_requests": false,
+    "pushed": false,
+    "unknown_resource_actions": false
+  },
+  "next": "Implement retained original Native startup profile with explicit historical compatibility, then complete actual PUBLIC Native SDK/fee/domain combination; real paid model/account remains pending approval."
+}
