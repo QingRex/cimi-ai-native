@@ -1,0 +1,372 @@
+{
+  "format": "cimiloop/research/parent-skill-domain-execution-path/1.0.0",
+  "batch": "D-309",
+  "recorded_at": "2026-10-14T06:37:11.175Z",
+  "base_commit": "d91c0b9ff9d27871a489c2c8f1d2e9fa4198fbe9",
+  "capability": {
+    "current_parent_sdk_result_reading": true,
+    "result_format": "cimiloop/original-task-execution-result/3.0.0",
+    "original_current_input_and_source_seals": true,
+    "independent_kernel_writer": true,
+    "observation_and_terminal_reader_wired": true,
+    "complete_execution_chain_proven": false,
+    "task_accepted": false
+  },
+  "integration": {
+    "recorded_at": "2026-10-14T05:51:37.641Z",
+    "base_commit": "d91c0b9ff9d27871a489c2c8f1d2e9fa4198fbe9",
+    "candidate": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+    "paths": [
+      "packages/local-app/src/agent-parent-skill-calls-local.ts",
+      "packages/local-app/src/agent-parent-skill-candidate-local.ts",
+      "packages/local-app/src/agent-parent-skill-host-local.ts",
+      "packages/local-app/src/agent-parent-skill-results-local.ts",
+      "packages/local-app/src/agent-runtime-observation-local.ts",
+      "packages/local-app/src/runs-local.ts",
+      "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+      "packages/local-app/test/current-parent-input-seal.test.ts",
+      "packages/runtime-adapter/src/agent-runtime-completion.ts",
+      "packages/runtime-adapter/src/agent-runtime-result.ts",
+      "packages/runtime-adapter/src/index.ts",
+      "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+      "tests/scenarios/agent-parent-current-result-native-runtime.test.ts"
+    ],
+    "before": [
+      {
+        "path": "packages/local-app/src/agent-parent-skill-calls-local.ts",
+        "sha256": "6568d6cc533efffe346212b314caefa050ad5da5f617528f4d411a2fb5a5752e"
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-candidate-local.ts",
+        "sha256": "b4ff06f76a8b54229227c8921e953f4e8919d493b85ff7b304e7d31657416b69"
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-host-local.ts",
+        "sha256": "53e084b5770bfb5eee14cfc612b2bd3e4f5d4c27c03e24e65c13f5397037ada3"
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-results-local.ts",
+        "sha256": "2c5325ccfe4679288999281064c90a96c42f6970feffdc68df750ca85fd681aa"
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-observation-local.ts",
+        "sha256": "13238eba7792dabcf33892657093bfdf34b706627bde0befc7ea3b2f69475089"
+      },
+      {
+        "path": "packages/local-app/src/runs-local.ts",
+        "sha256": "50de1976f430047df175c43b468e3fbffce40b419b0f3aa782ee08d08cdf6ae6"
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+        "sha256": "2ed080e92e7f58fdcd1a56b05500f8839d8bee813d3413ab704e97610947407c"
+      },
+      {
+        "path": "packages/local-app/test/current-parent-input-seal.test.ts",
+        "sha256": null
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-completion.ts",
+        "sha256": "739df08ff3b3d07effa9849533d35f1ae0ecf58cc7da4292053eb438233cc612"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-result.ts",
+        "sha256": "9f92e81e09a2b9f9bf4255f34cb69bde01df73b72e5483e03e6e3fca71f4fedc"
+      },
+      {
+        "path": "packages/runtime-adapter/src/index.ts",
+        "sha256": "bd49ad06ae88c4ded74b6111789daacbb06a96ec361c7f98eb596d0f468bf9b4"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+        "sha256": "92e4553a1ed16cac70d5ffc03480de0f6fb5c1dfb8f60045d0bc4e87df868244"
+      },
+      {
+        "path": "tests/scenarios/agent-parent-current-result-native-runtime.test.ts",
+        "sha256": null
+      }
+    ],
+    "after": [
+      {
+        "path": "packages/local-app/src/agent-parent-skill-calls-local.ts",
+        "sha256": "3b28190885c15c38ed564b29dcba83248d85d2afd2bd8b42c30cbef207328d66"
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-candidate-local.ts",
+        "sha256": "5645ff25b9b155b17ef7d9f08e11ff01d8eff48df5a858b226c01e83b1fbd94c"
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-host-local.ts",
+        "sha256": "069fdc7ee0274bbc172231bfda408a936f15f7a9435b8fa1b1b8d1f814107729"
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-results-local.ts",
+        "sha256": "da24096293e6d6171986466e71326ef1a190442edea5e0d1d92377efa3ebea39"
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-observation-local.ts",
+        "sha256": "6ad157a4bf8724f4ee4cee59698da86787bf5683e6acdc2d042d1f7c46467c88"
+      },
+      {
+        "path": "packages/local-app/src/runs-local.ts",
+        "sha256": "a63e0236b1a012fd979e893ced50aeacc72e7064ddeffd4f2dc93a4824e901de"
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+        "sha256": "1f7b73d8a3f1250a43cab51a53d96ca23e7c2d956729699714a676ba487b1e6b"
+      },
+      {
+        "path": "packages/local-app/test/current-parent-input-seal.test.ts",
+        "sha256": "81e95d6005ed2c5f5443ccb86f97c9c91516e9c810aaac8f6f1d53377ad16193"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-completion.ts",
+        "sha256": "0ce434a39642bb793b4e893dcff2c89d1c67998b1fd2a895328279cff170af95"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-result.ts",
+        "sha256": "a43b83542abb9f0d9a6e6074a8ee05f878cface7ac5c62054b955bc9cfa802a5"
+      },
+      {
+        "path": "packages/runtime-adapter/src/index.ts",
+        "sha256": "53570896a116b698c3778355f4b7dd26a3ad6d6770b4745a3283ab9a4d803427"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+        "sha256": "0ed7f206c9e36b28f90ef4ca73288be4c55ebf33d8ab81f828ac558ea7fcbf6e"
+      },
+      {
+        "path": "tests/scenarios/agent-parent-current-result-native-runtime.test.ts",
+        "sha256": "a4b1efd77dda81caa79a25e2cc83713575fd07b972ffaa2a6cfe390b4250cdb0"
+      }
+    ],
+    "candidate_source_files": 794,
+    "all_candidate_source_normalized_equal": true,
+    "candidate_not_modified": true,
+    "old_operations_reopened": false,
+    "paid_requests": false,
+    "pushed": false
+  },
+  "final_candidate_sync": {
+    "recorded_at": "2026-10-14T06:34:14.923Z",
+    "candidate": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+    "terminal_original_preserved": true,
+    "terminal_native_latest_main_verified": false,
+    "previous_source_files": 794,
+    "current_source_files": 795,
+    "paths": [
+      "packages/runtime-adapter/src/agent-runtime-completion.ts",
+      "packages/runtime-adapter/test/agent-parent-current-batch.test.ts"
+    ],
+    "before": [
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-completion.ts",
+        "sha256": "0ce434a39642bb793b4e893dcff2c89d1c67998b1fd2a895328279cff170af95"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-current-batch.test.ts",
+        "sha256": null
+      }
+    ],
+    "after": [
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-completion.ts",
+        "sha256": "2de8c6a0e2556f6bd0a42036569f95afe065e9e721743f071775fc4dec11ff63"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-current-batch.test.ts",
+        "sha256": "6474b341802e78af548bba0b747c1ac58aa975529462db47e5b2ed02802656ad"
+      }
+    ],
+    "normalized_all_source_equal": true,
+    "unrelated_source_drift": [],
+    "original_run_reopened": false,
+    "new_native_started": false,
+    "paid_requests": false,
+    "pushed": false
+  },
+  "validation": {
+    "affected_full_files": 6,
+    "passed": 118,
+    "failed": 0,
+    "skipped": 0,
+    "source_files": 795,
+    "meta": {
+      "recorded_at": "2026-10-14T06:31:09.333Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1014125,
+      "files": [
+        "packages/runtime-adapter/test/agent-parent-operation-recovery.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+        "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+        "packages/local-app/test/current-parent-input-seal.test.ts",
+        "packages/runtime-adapter/test/agent-parent-current-batch.test.ts",
+        "packages/runtime-adapter/test/agent-parent-current-input.test.ts"
+      ],
+      "source_files": 795,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "files": [
+      {
+        "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-parent-skill-current-result.test.ts",
+        "status": "passed",
+        "passed": 35
+      },
+      {
+        "path": "D:/cc/cimi-ai-native/packages/local-app/test/current-parent-input-seal.test.ts",
+        "status": "passed",
+        "passed": 5
+      },
+      {
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-parent-current-batch.test.ts",
+        "status": "passed",
+        "passed": 10
+      },
+      {
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-parent-current-input.test.ts",
+        "status": "passed",
+        "passed": 12
+      },
+      {
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-parent-operation-recovery.test.ts",
+        "status": "passed",
+        "passed": 25
+      },
+      {
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+        "status": "passed",
+        "passed": 31
+      }
+    ],
+    "report_sha256": "c203d0322990b301eef4bc902d58b040c347a26a8bb156fba859f304b1da950d",
+    "check": {
+      "recorded_at": "2026-10-14T06:05:28.834Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 53767,
+      "files": [],
+      "source_files": 795,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "help": {
+      "recorded_at": "2026-10-14T06:34:20.357Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1152,
+      "files": [],
+      "source_files": 795,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "capacity_red": {
+      "report": "d309-main-r4-current-batch-capacity-red.json",
+      "passed": 5,
+      "failed": 4,
+      "sha256": "1c007015bb1a75a457a68d6680d68c11d8f628397857c4a9c53896f207904242"
+    },
+    "initial_red_note": "r3=6passed3failed; its65-item positive rejection occurred through the wrong aggregate-node guard, so the65 count case was corrected to small null entries for r4. Original reports retained.",
+    "capacity_final": {
+      "report": "d309-main-r6-current-batch-frame-boundary.json",
+      "passed": 10,
+      "failed": 0,
+      "included_in118_not_additional": true
+    }
+  },
+  "ordinary_engineering_review": {
+    "review": "D309 ordinary independent engineering review",
+    "base_commit": "d91c0b9ff9d27871a489c2c8f1d2e9fa4198fbe9",
+    "independent_tests_run": false,
+    "source_changed_by_reviewer": false,
+    "original_findings": [
+      {
+        "priority": "P2",
+        "path": "packages/runtime-adapter/src/agent-runtime-completion.ts",
+        "line": 50,
+        "issue": "synchronousCurrentBatch copies a complete up-to64 result batch through the single-frame4096-node limit; individually valid results can be rejected, blocking domain3 and reconciliation",
+        "recommendation": "Validate own array shape and bounded length; copy bounded original frames independently; retain strict receipt/current input parsing and wire comparison",
+        "status": "source_closed",
+        "incremental_review": "Each receipt/current_input retains original nodes/depth. Arrays refuse holes, extras, accessors and Proxy; original parsing/wire joins remain. No new must-fix."
+      }
+    ],
+    "parent_validation": {
+      "red_report": "d309-main-r4-current-batch-capacity-red.json",
+      "passed": 5,
+      "failed": 4,
+      "final_boundary_report": "d309-main-r6-current-batch-frame-boundary.json",
+      "final_passed": 10,
+      "final_failed": 0,
+      "independently_run_by_reviewer": false
+    },
+    "limits": [
+      "Native session8891 pending at review time, candidate not yet synchronized with batch-copy fix",
+      "Ordinary engineering review, not formal Matt/Superpowers, real Skill approval or S1 acceptance"
+    ],
+    "must_fix_findings": [],
+    "s1_acceptance": false
+  },
+  "actual_native": {
+    "recorded_at": "2026-10-14T06:21:00.344Z",
+    "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+    "exit_code": 1,
+    "error": null,
+    "elapsed_ms": 1955546,
+    "files": [
+      "tests/scenarios/agent-parent-current-result-native-runtime.test.ts"
+    ],
+    "source_files": 794,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "report_sha256": "98ef18d43326e04374fce92c97201600aa210ebdb106e2d91f85d96db379895f",
+    "own_public_fixture": "D:/s1-a11e0e/N-hA6H5R/_PMDkeG",
+    "operation_id": "a1a2db9c-5191-44a5-a09c-91bb0d1359db",
+    "model_calls_expected": 4,
+    "model_calls_actual": 3,
+    "original_task_budget_ms": 1800000,
+    "native_cleanup": {
+      "reason": "agent_sandbox_task_deadline",
+      "exit_code": 12,
+      "resources_disposed": true,
+      "cleanup_errors": []
+    },
+    "fourth_host_request_exists": true,
+    "fourth_dedicated_send_intent_exists": false,
+    "fourth_provider_dispatch_exists": false,
+    "request_bodies_read": false,
+    "child_native_returned": true,
+    "child_bill_returned": true,
+    "parent_terminal_and_total_fee_chain_reached": false,
+    "originals_retained": true,
+    "latest_main_batch_copy_fix_present_in_this_run": false
+  },
+  "boundaries": {
+    "schema_count": 242,
+    "project_database_format": 10,
+    "host_database_format": 1,
+    "default_formal_agent_enabled": false,
+    "paid_requests": false,
+    "pushed": false,
+    "real_user_credentials_read": false,
+    "real_model_approved": false,
+    "real_skill_proven": false,
+    "s1_accepted": false,
+    "old_unknown_resources_touched": false,
+    "unknown_tmp_touched": false
+  },
+  "next": "Fix excessive synchronous original-result revalidation on the actual parent path, preserving fresh Kernel authority, original account/provider final cuts and existing Task/DNS deadlines. Verify any late-qualification callback ledger closure gap with a targeted red case before changing semantics. Then run only the affected fresh Native chain, and continue trusted shared Workbench composition/real clarification and Skill/ordinary Change acceptance."
+}

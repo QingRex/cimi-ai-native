@@ -18,6 +18,8 @@ export interface AgentParentSkillHistoricalResultReader {
  // Explicit independently current capability. Old readers retain historical
  // meaning and are never upgraded from an SDK receipt or a matching digest.
  readCurrentOriginal?(raw:unknown):{receipt:AgentParentSkillIpcReceipt;current_input:AgentParentCurrentInput};
+ // All current child reads end before one fixed complete source/original cut.
+ readCurrentOriginals?(raw:unknown[]):{receipt:AgentParentSkillIpcReceipt;current_input:AgentParentCurrentInput}[];
 }
 function originalResult(value:unknown){
  if(value instanceof Promise){void Promise.prototype.then.call(value,undefined,()=>{});throw Error('Asynchronous original result');}

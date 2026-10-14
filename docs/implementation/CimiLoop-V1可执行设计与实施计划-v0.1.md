@@ -1,5 +1,7 @@
 # CimiLoop V1 可执行设计与实施计划 v0.1
 
+2026-10-14 D-309：父SDK Skill原输出已接当前领域结果3／观察／终态读取，批量容量及getter边界修复；完整六文件118项、check／CLI帮助通过。实际Native整链路因父原Task到期仍失败，未到总费用结算；真实模型／Skill与S1未验收，继续修复主路径。[本批状态](../plans/2026-10-14-cimiloop-parent-skill-domain-execution-path.md)。
+
 2026-10-14 D-308：新原操作固定记录 bun_interpreter/1.0.0，严格 config8/9/10、claim3 与原输入绑定；真实控制器仅设置本进程/子进程环境，旧版本不回填或重解释。共享观察补齐 claim3 的独立 Job 原件名额，525合法、526拒绝且不产生效果。分阶段合并覆盖18文件266项通过（读取器13/254、实际Windows/Native/SDK五文件12项），不是一次18文件整轮通过；792源码各轮零漂移，生产源码切面一致，pnpm check/CLI帮助通过。实际SDK/HTTPS/编辑/检查/观察重放与原取消完成；模型、资格、账户与账单仍含PUBLIC构造，不证明真实模型/Skill或S1。失败报告及原件保留，普通独立工程复审未独立跑测试。默认正式Agent关闭，Schema242/库10/Host1保持，五组继续、不付费、不push、不处理旧Unknown。[本批记录](../plans/2026-10-14-cimiloop-original-native-startup-policy.md)。
 
 2026-10-14 D-307：Kernel 与共享应用服务默认要求 Plan／Task 前原始澄清；三个创建入口缺核验端口拒绝，CLI／HTTP 不再静默走旧人工路径。缺 Human 原件 EVIDENCE_MISSING，Human 完整但缺 Matt 为 CAPABILITY_UNAVAILABLE；成功原回执照常重放、不重复效果。旧人工兼容仅可信代码显式选择且不能同时装正式端口，不是 JSON／CLI／HTTP 开关或真实 Matt。完整7文件60项零失败零跳过、791源码零漂移，pnpm check／CLI帮助通过，普通独立工程复审无 must-fix（未独立跑测试）。Schema242／库10／Host1保持，默认正式 Agent 仍关闭。Native 新自有 --version 单对实验原模式 exit3、仅进程解释执行变量模式 exit0；两次清理正面确认，但不代表完整 SDK、真实模型／Skill 或 S1。五组继续、不付费、不push、不处理旧 Unknown。[本批记录](../plans/2026-10-14-cimiloop-default-planning-admission.md)。

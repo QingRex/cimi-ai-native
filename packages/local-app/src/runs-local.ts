@@ -1,3 +1,4 @@
+import{parseAgentParentCurrentInput,type AgentParentCurrentInput}from'@cimiloop/runtime-adapter';
 import { execFileSync } from "node:child_process";
 import {isDeepStrictEqual} from 'node:util';
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from "node:fs";
@@ -209,3 +210,21 @@ export class LocalRunVerifier implements RunVerifierPort {
     return JSON.parse(this.content.readContent(reference).toString("utf8"));
   }
 }
+
+// Private current-source retention for the final multi-result consumption cut.
+// Owner methods are captured once after class initialization, never from an
+// installed verifier during final reads. Fresh private readers are not exposed.
+const fixedCurrentCandidateRead=LocalRunVerifier.prototype.readOriginalCandidate;
+const retainedRunMethods=Object.fromEntries(Object.entries(Object.getOwnPropertyDescriptors(LocalRunVerifier.prototype)).filter(([name])=>name!=='constructor'));
+const retainedContentMethods=Object.fromEntries(Object.entries(Object.getOwnPropertyDescriptors(LocalEvidenceVerifier.prototype)).filter(([name])=>name!=='constructor'));
+interface RetainedCurrentParentInput{fact:AgentParentCurrentInput;source:LocalRunVerifier;args:Parameters<LocalRunVerifier['readOriginalCandidate']>}
+const retainedCurrentParentInputs=new WeakMap<object,RetainedCurrentParentInput>();
+export function captureOriginalCurrentParentInput(raw:unknown,frame:Parameters<typeof parseAgentParentCurrentInput>[1],runs:LocalRunVerifier,...args:Parameters<LocalRunVerifier['readOriginalCandidate']>):AgentParentCurrentInput{
+ const fact=parseAgentParentCurrentInput(raw,frame);if(!(runs instanceof LocalRunVerifier)||resolve(args[0].repository_path)!==resolve(runs.repositoryPath)||fact.materials_digest!==args[2].materials_digest||fact.projection_digest!==args[2].projection_digest)throw Error('Complete original current input basis unproven');
+ const source=new LocalRunVerifier(runs.repositoryPath,runs.dataDirectory),saved=structuredClone(args);Object.defineProperties(source,retainedRunMethods);Object.defineProperties(source.content,retainedContentMethods);Object.freeze(source.content);Object.freeze(source);
+ fixedCurrentCandidateRead.apply(source,saved);retainedCurrentParentInputs.set(fact,{fact:structuredClone(fact),source,args:saved});return fact;
+}
+// Parsing/cloning strips private retention unless this explicit internal copy
+// joins byte-for-byte identical current facts. Generic facts remain unretained.
+export function retainOriginalCurrentParentInput(from:object,to:object):void{const held=retainedCurrentParentInputs.get(from);if(!held)return;if(!isDeepStrictEqual(from,held.fact)||!isDeepStrictEqual(to,held.fact))throw Error('Original current input copy changed');retainedCurrentParentInputs.set(to,held);}
+export function assertOriginalCurrentParentInput(raw:object):void{const held=retainedCurrentParentInputs.get(raw);if(!held||!isDeepStrictEqual(raw,held.fact))throw Error('Original current input private retention missing');fixedCurrentCandidateRead.apply(held.source,held.args);if(!isDeepStrictEqual(raw,held.fact))throw Error('Original current input changed during final source read');}

@@ -1,4 +1,8 @@
 import {agentWorkspaceConfigBaseFormat,assertAgentRuntimeStartupOriginal} from './agent-runtime-startup.js';
+import{readWorkspaceFileRunOriginals}from'./workspace-tool-host.js';
+import{AgentWorkspaceCheckHost}from'./workspace-checks.js';
+import{parseAgentParentCurrentInput,type AgentParentCurrentInput}from'./agent-parent-current-input.js';
+import{copyToolJson}from'./tool-journal.js';
 import{join}from'node:path';
 import{isAgentParentSkillToolSet}from'./agent-runtime-model.js';
 import{parseAgentParentSkillSdkCatalog,parseAgentParentSkillIpcRequest,parseAgentParentSkillIpcReceipt,type AgentParentSkillIpcReceipt}from'./agent-parent-skill-ipc.js';
@@ -6,7 +10,7 @@ import type{AgentParentSkillHistoricalResultReader}from'./agent-runtime-result.j
 import {readOriginalAgentJobObservation} from './agent-job-policy.js';
 import {isOriginalAgentNativeSuspension} from "./agent-native-suspension.js";
 import { verifyCollectedDedicatedAgentModelOriginals } from "./agent-dedicated-model.js";
-import { isDeepStrictEqual } from "node:util";
+import { isDeepStrictEqual, types } from "node:util";
 import { compileValidator, TaskDefinitionRecordSchema, ContractVersionSchema, PlanVersionSchema, TaskSchema, WorkItemSchema,
   type Project, type AgentRunRecord, type AgentContextManifest, type TaskDefinitionRecord, type ContractVersion, type PlanVersion, type Task, type WorkItem, type Run } from "@cimiloop/protocol/v2";
 import { bytesAt, digest, RuntimeAdapterError } from "./files.js";
@@ -42,6 +46,28 @@ export interface OriginalParentTaskExecutionResult extends Omit<OriginalTaskExec
  format:'cimiloop/original-task-execution-result/2.0.0';parent_skill_catalog_digest:string;
  parent_skill_calls:Pick<AgentParentSkillIpcReceipt,'call_id'|'invocation_id'|'invocation_key'|'observation_id'|'report_digest'|'output_digest'|'status'>[];
 }
+export interface OriginalCurrentParentTaskExecutionResult extends Omit<OriginalParentTaskExecutionResult,'format'|'current_workspace_applicability_proven'>{format:'cimiloop/original-task-execution-result/3.0.0';parent_current_inputs:AgentParentCurrentInput[];current_workspace_applicability_proven:true}
+// Each original result keeps the existing single-frame limits. The aggregate
+// is bounded by the independent 64-call contract, never by one tool frame.
+export function copyAgentParentCurrentBatch(value:unknown):unknown[]{
+ if(types.isPromise(value)){void Promise.prototype.then.call(value,undefined,()=>{});throw Error('Async current batch');}
+ if(types.isProxy(value)||!Array.isArray(value)||Object.getPrototypeOf(value)!==Array.prototype)throw Error('Current batch invalid');
+ const length=Object.getOwnPropertyDescriptor(value,'length');
+ if(!length||!('value'in length)||!Number.isSafeInteger(length.value)||length.value<0||length.value>64||Reflect.ownKeys(value).length!==length.value+1)throw Error('Current batch invalid');
+ const result:unknown[]=[];
+ for(let i=0;i<length.value;i++){
+  const item=Object.getOwnPropertyDescriptor(value,String(i));
+  if(!item||!('value'in item))throw Error('Current batch invalid');
+  const entry=item.value;
+  if(!entry||typeof entry!=='object'||types.isProxy(entry)||Array.isArray(entry)||![null,Object.prototype].includes(Object.getPrototypeOf(entry))||Reflect.ownKeys(entry).length!==2)throw Error('Current batch invalid');
+  const receipt=Object.getOwnPropertyDescriptor(entry,'receipt'),input=Object.getOwnPropertyDescriptor(entry,'current_input');
+  if(!receipt||!input||!('value'in receipt)||!('value'in input)||!receipt.enumerable||!input.enumerable)throw Error('Current batch invalid');
+  // The receipt and current fact are independently bounded original frames;
+  // a wrapper must not subtract the other's nodes or depth allowance.
+  result.push({receipt:copyToolJson(receipt.value),current_input:copyToolJson(input.value)});
+ }
+ return result;
+}
 // Supplied independently from the Kernel's immutable records, never from the
 // Runtime packet or model answer. These pins describe the original Run's basis,
 // not the currently active Plan or a Task acceptance decision.
@@ -52,15 +78,15 @@ export interface OriginalTaskDomainBasis { definition: TaskDefinitionRecord; con
 // It cannot turn constructed model admission or token usage into account/bills,
 // nor can it substitute for Kernel Task evaluation or current source verification.
 export function verifyOriginalTaskExecutionResult(root: string, project: Project, record: AgentRunRecord, context: AgentContextManifest,
-  original: Original, collection: Collection, domain?: OriginalTaskDomainBasis,parentReader?:AgentParentSkillHistoricalResultReader): OriginalTaskExecutionResult | OriginalParentTaskExecutionResult | null {
+  original: Original, collection: Collection, domain?: OriginalTaskDomainBasis,parentReader?:AgentParentSkillHistoricalResultReader): OriginalTaskExecutionResult | OriginalParentTaskExecutionResult | OriginalCurrentParentTaskExecutionResult | null {
   try {
-    const originalBasis=structuredClone({project,record,context,original,collection,domain}),operationPath=original.operation;
+    const originalBasis=structuredClone({project,record,context,original,collection,domain}),operationPath=original.operation,nativeLedgerBasis={files:structuredClone(readWorkspaceFileRunOriginals(root,project,record)),checks:structuredClone(AgentWorkspaceCheckHost.readRunOriginals(root,project,record))};
     const scope = original.scope, input = object(original.input), packet = object(json(Buffer.from(String(input.prompt)), 32768));
     const parent=packet.format==='cimiloop/agent-runtime-task-packet/3.0.0';
     if(parent&&!exact(packet,['format','parent_skill_catalog','operation_key','context_digest','task','work_item','definition','contract','plan','context','check_catalog','result_contract'])||!parent&&('parent_skill_catalog'in packet||'parent_skill_original_binding'in input))return null;
     const parentCatalog=parent?parseAgentParentSkillSdkCatalog(packet.parent_skill_catalog,scope):undefined;
     if(parent&&(!parentReader||typeof parentReader.readOriginal!=='function'||!same(parseAgentParentSkillSdkCatalog(parentReader.sdkCatalog,scope),parentCatalog)))return null;
-    const readParent=parent?parentReader!.readOriginal.bind(parentReader!):undefined;
+    const readParent=parent?parentReader!.readOriginal.bind(parentReader!):undefined,currentBatchMethod=parent?parentReader!.readCurrentOriginals:undefined,readCurrentBatch=typeof currentBatchMethod==='function'?currentBatchMethod.bind(parentReader!):undefined;
     const parentIdentity=()=>{if(parent&&(!parentReader||!same(parseAgentParentSkillSdkCatalog(parentReader.sdkCatalog,scope),parentCatalog)))throw Error('Original parent reader catalog changed');};
     const installedParent:AgentParentSkillHistoricalResultReader|undefined=parent?Object.freeze({get sdkCatalog(){parentIdentity();return structuredClone(parentCatalog!);},readOriginal(raw:unknown){parentIdentity();const result=readParent!(raw);parentIdentity();return result;}}):undefined;
     const parentBinding=parentCatalog?{format:'cimiloop/agent-parent-skill-binding/1.0.0',scope_digest:collection.scope_digest,catalog_digest:parentCatalog.catalog_digest,sdk_catalog_digest:digest(JSON.stringify(parentCatalog)).value}:undefined;
@@ -204,7 +230,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     });
     const parentCalls:OriginalParentTaskExecutionResult['parent_skill_calls']=[];
     for(const[call_id,call]of calls){if(call.request.tool!=='run_skill')continue;if(!parentCatalog||!installedParent)return null;const frame=parseAgentParentSkillIpcRequest(call.request,parentCatalog),receipt=parseAgentParentSkillIpcReceipt(call.receipt,frame);parentCalls.push({call_id,invocation_id:receipt.invocation_id,invocation_key:receipt.invocation_key,observation_id:receipt.observation_id,report_digest:receipt.report_digest,output_digest:receipt.output_digest,status:receipt.status});}if(parentCalls.length>64)return null;
-    const indexes = new Set<number>(), outputs: OriginalTaskExecutionResult["outputs"] = [];
+    const indexes = new Set<number>(), outputs: OriginalTaskExecutionResult["outputs"] = [],currentCalls=new Map<string,{frame:ReturnType<typeof parseAgentParentSkillIpcRequest>;receipt:AgentParentSkillIpcReceipt}>();
     for (const output of terminal.outputs) {
       if (!exact(output, ["output_index", "evidence_call_ids"]) || !Number.isSafeInteger(output.output_index) || (output.output_index as number) < 0 || (output.output_index as number) >= definition.body.outputs.length ||
         indexes.has(output.output_index as number) || !Array.isArray(output.evidence_call_ids) || !output.evidence_call_ids.length || output.evidence_call_ids.length > 16 || new Set(output.evidence_call_ids).size !== output.evidence_call_ids.length) return null;
@@ -213,7 +239,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
         // Fixed-input catalog1 can prove historical child output but cannot
         // prove that an earlier review covers the current edited candidate.
         // Current-candidate evidence is admitted only by its explicit reader.
-        if(call.request.tool==='run_skill')return null;
+        if(call.request.tool==='run_skill'){if(!parentCatalog||!readCurrentBatch)return null;const frame=parseAgentParentSkillIpcRequest(call.request,parentCatalog),receipt=parseAgentParentSkillIpcReceipt(call.receipt,frame);if(receipt.status!=='succeeded')return null;currentCalls.set(callId,{frame,receipt});}
         if (call.request.tool === "run_check" && !requiredChecks.some(check => check.call_id === callId)) return null;
         if (call.request.tool !== "run_check" && [...calls.values()].some(later => later.ordinal > call.ordinal && later.request.tool === "replace_file" &&
           typeof later.request.path === "string" && typeof call.request.path === "string" && later.request.path.toUpperCase() === call.request.path.toUpperCase())) return null;
@@ -225,9 +251,12 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     // independent Native and SDK/result evidence was being assembled.
     if (!same(readAgentRuntimeModelOriginals(root, scope), model) || !same(readAgentWorkspaceIpcOriginals(root, scope, String(config.pipe_nonce)), ipc)) return null;
     if(parent){parentIdentity();if(!parentBytes||!bytesAt(parentPath,16384).equals(parentBytes)||!same(artifact('parent-skill-catalog.json',16384),parentBytes)||!same(readAgentRuntimeNativeResult(root,project,record,scope,ipc,catalog,installedParent),native))return null;parentIdentity();if(!same(readAgentRuntimeModelOriginals(root,scope),model)||!same(readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce)),ipc))return null;}
+    const currentInputs:AgentParentCurrentInput[]=[];
+    if(currentCalls.size){if(!readCurrentBatch||currentCalls.size>64)return null;const expected=[...currentCalls.values()],values=copyAgentParentCurrentBatch(readCurrentBatch(expected.map(value=>structuredClone(value.frame))));if(!Array.isArray(values)||values.length!==expected.length)return null;for(let i=0;i<expected.length;i++){const value=values[i],original=expected[i]!;if(!exact(value,['receipt','current_input']))return null;const receipt=parseAgentParentSkillIpcReceipt(value.receipt,original.frame),fact=parseAgentParentCurrentInput(value.current_input,original.frame);if(!same(receipt,original.receipt)||receipt.status!=='succeeded')return null;currentInputs.push(fact);}}
     // No external callback occurs after this final proof. Recheck every read
     // reference and byte plus the new parent operation files; a stable tool
     // summary cannot stand in for changed original config/result/SDK bytes.
+    if(!same(readAgentRuntimeModelOriginals(root,scope),model)||!same(readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce)),ipc)||!same(readWorkspaceFileRunOriginals(root,project,record),nativeLedgerBasis.files)||!same(AgentWorkspaceCheckHost.readRunOriginals(root,project,record),nativeLedgerBasis.checks))return null;
     if(!same(readOriginalAgentJobObservation(root,operationPath,input,config,launch,resources),job))return null;
     if(!same({project,record,context,original,collection,domain},originalBasis))return null;
     for(const[name,captured]of collectedBytes){const ref=collection.artifacts.find(a=>a.name===name)?.reference;if(!ref||!same(ref,originalBasis.collection.artifacts.find(a=>a.name===name)?.reference)||!bytesAt(ref.locator,captured.limit).equals(captured.bytes))return null;}
@@ -237,6 +266,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
       definition_ref: structuredClone(record.definition_ref), sdk: { session_id: last.session_id, message_id: last.message_id, final_model_call_id: finalId, stdout_digest: digest(stdout).value, final_response_digest: reply.response_digest as string },
       outputs: outputs.sort((a, b) => a.output_index - b.output_index), summary: terminal.summary, required_checks: requiredChecks, native_effect_reverified: true,
       model_account_custody_proven: false, costs_reconciled: false, task_acceptance_proven: false, current_workspace_applicability_proven: false } as const;
+    if(currentInputs.length)return{format:'cimiloop/original-task-execution-result/3.0.0',...resultBody,parent_skill_catalog_digest:parentCatalog!.catalog_digest,parent_skill_calls:parentCalls,parent_current_inputs:currentInputs,current_workspace_applicability_proven:true};
     return parent?{format:'cimiloop/original-task-execution-result/2.0.0',...resultBody,parent_skill_catalog_digest:parentCatalog!.catalog_digest,parent_skill_calls:parentCalls}:{format:'cimiloop/original-task-execution-result/1.0.0',...resultBody};
   } catch { return null; }
 }

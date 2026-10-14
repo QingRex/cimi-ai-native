@@ -1,3 +1,4 @@
+import{retainOriginalCurrentParentInput}from'./runs-local.js';
 import{isDeepStrictEqual as same}from'node:util';import{existsSync,openSync,closeSync,fsyncSync,writeFileSync,mkdirSync}from'node:fs';import{dirname,join}from'node:path';
 import{commandDigest}from'@cimiloop/kernel';
 import{SCHEMA_VERSION,parseCommand,compileValidator,SkillMethodInputReferenceSchema,type SkillInvocation,type AnyCommand}from'@cimiloop/protocol/v2';
@@ -115,14 +116,14 @@ export class LocalAgentParentSkillCalls{
   if(current){
    if(!('input_recipe'in entry)||!input_candidate||!this.candidates?.readCurrentOriginal)fail();
    const request:AgentParentSkillCandidateRequest=structuredClone({scope:this.scope,command_id:command.command_id,frame:{...frame,call_id:String(frame.call_id)},recipe:entry.input_recipe});
-   current_input=parseAgentParentCurrentInput(withOriginalReader(reader,scoped=>this.candidates!.readCurrentOriginal!({...request,candidate:structuredClone(input_candidate),reader:scoped})),parseAgentParentSkillIpcRequest(frame,this.#sdkCatalogProjection()));
+   const rawCurrent=withOriginalReader(reader,scoped=>this.candidates!.readCurrentOriginal!({...request,candidate:structuredClone(input_candidate),reader:scoped}));current_input=parseAgentParentCurrentInput(rawCurrent,parseAgentParentSkillIpcRequest(frame,this.#sdkCatalogProjection()));retainOriginalCurrentParentInput(rawCurrent,current_input);
    if(current_input.command_id!==command.command_id||current_input.candidate_digest!==input_candidate.candidate_digest||!same(current_input.input_ref,input_candidate.input_ref)||!same(current_input.proof_ref,input_candidate.proof_ref))fail();
    // Current-source verification is the last installed callback. Its result
    // cannot replace an original reservation or change its immutable input.
    const receipt=reader.getCommandReceipt(command.command_id);
    if(!receipt||receipt.request_digest!==commandDigest(command)||!('ok'in receipt.result)||receipt.result.ok!==true||!('command_type'in receipt.result)||receipt.result.command_type!=='ReserveSkillInvocation'||!same(receipt.result.data.invocation,invocation)||!same(reader.getRuntimeRecord('skill_invocation',invocation.id),invocation))fail();
   }
-  identity();if(!same(read(headerPath),header)||!same(read(path),intent)||!same(read(anchorPath),anchor)||birth&&!same(read(birth.path),birth.value))fail();identity();return structuredClone({frame:frame as Record<string,unknown>&{call_id:string},command,invocation,...(input_candidate?{input_candidate}:{}),...(current_input?{current_input}:{})});
+  identity();if(!same(read(headerPath),header)||!same(read(path),intent)||!same(read(anchorPath),anchor)||birth&&!same(read(birth.path),birth.value))fail();identity();const result=structuredClone({frame:frame as Record<string,unknown>&{call_id:string},command,invocation,...(input_candidate?{input_candidate}:{}),...(current_input?{current_input}:{})});if(current_input&&result.current_input)retainOriginalCurrentParentInput(current_input,result.current_input);return result;
  }
  // Independent current applicability; no reservation, resolve or new effects.
  readCurrentOriginal(raw:unknown){return this.store.transaction(reader=>this.#readCurrentOriginal(raw,reader));}

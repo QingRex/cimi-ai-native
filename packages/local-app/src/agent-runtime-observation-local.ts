@@ -96,7 +96,7 @@ const validateCollection=(root:string,identity:Identity,value:unknown)=>{
  verifyCollectedAgentRuntimeCancellation({scope_digest:agentWorkspaceIpcScopeDigest(identity.scope),owner:identity.claim.owner,operation_id:identity.claim.operation_id,cancellation_digest:marker?.digest.value??null,operation:identity.operation,input:identity.input,...(marker?{markerBytes:marker.bytes}:{})},value as unknown as Parameters<typeof verifyCollectedAgentRuntimeCancellation>[1]);
 };
 
-import {captureLocalAgentParentSkillResults,type LocalAgentParentSkillResultPort} from './agent-parent-skill-results-local.js';
+import {captureLocalAgentParentSkillResults,captureOriginalCurrentParentResultSeal,type LocalAgentParentSkillResultPort} from './agent-parent-skill-results-local.js';
 import type {ParentSkillOriginalReader} from './agent-parent-skill-calls-local.js';
 export class LocalAgentRunResultVerifier {
  private readonly parentResults:ReturnType<typeof captureLocalAgentParentSkillResults>;
@@ -119,12 +119,14 @@ export class LocalAgentRunResultVerifier {
   let finalExecutionSnapshot:(()=>void)|undefined;
   let finalExecutionContent:ReturnType<typeof verifyOriginalTaskExecutionResult>|undefined;
   if(proof.execution_result_ref){const verified=verifyOriginalTaskExecutionResult(this.dataDirectory,project,record,context,proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>,domain,parentReader);
-    if(!verified||!isDeepStrictEqual(parsed(this.content.readContent(proof.execution_result_ref)),verified))throw Error("Original task execution result unproven");finalExecutionContent=structuredClone(verified);finalExecutionSnapshot=captureOriginalAgentExecutionSnapshot(this.dataDirectory,project,record,proof.original,collection as CollectionForFinalTerminal,verified.format==='cimiloop/original-task-execution-result/2.0.0');}
+    if(!verified||!isDeepStrictEqual(parsed(this.content.readContent(proof.execution_result_ref)),verified))throw Error("Original task execution result unproven");finalExecutionContent=structuredClone(verified);finalExecutionSnapshot=captureOriginalAgentExecutionSnapshot(this.dataDirectory,project,record,proof.original,collection as CollectionForFinalTerminal,verified.format!=='cimiloop/original-task-execution-result/1.0.0');}
   if(proof.format==="cimiloop/agent-failed-observation-proof/1.0.0"&&classifyOriginalAgentExecutionFailure(proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>)!==proof.execution_failure)throw Error("Original failed execution unproven");
   // No installed callback follows final original rereads. In the successful
   // execution branch the domain reader already guards the catalog and Native
   // after its final child callback; another getter here could reopen that gap.
   if(!proof.execution_result_ref&&!proof.terminal&&parentReader)void parentReader.sdkCatalog;
+  const currentExecution=finalExecutionContent?.format==='cimiloop/original-task-execution-result/3.0.0'||proof.terminal&&'execution'in proof.terminal&&proof.terminal.execution?.format==='cimiloop/original-task-execution-result/3.0.0';
+  const finalCurrentSeal=currentExecution?captureOriginalCurrentParentResultSeal(parentReader):undefined;
   // All parent result callbacks finish before the final bill authentication.
   if(proof.cost_evidence){
    const familyV2=proof.cost_evidence.format==='cimiloop/agent-run-family-cost-evidence/2.0.0';
@@ -140,6 +142,7 @@ export class LocalAgentRunResultVerifier {
    !isDeepStrictEqual(readAgentRuntimeOriginalIdentity(this.dataDirectory,intent.scope),proof.original))throw Error('Original parent result changed during verification');
   if(proof.terminal)verifyOriginalAgentTerminalSnapshot(this.dataDirectory,project,record,proof.original,collection as CollectionForFinalTerminal,proof.terminal);
   finalExecutionSnapshot?.();
+  finalCurrentSeal?.();
   // The nested content remains independently available after the last bill
   // callback, as do its fixed reference and the Native execution originals.
   if(proof.execution_result_ref&&!isDeepStrictEqual(parsed(this.content.readContent(proof.execution_result_ref)),finalExecutionContent))throw Error("Original task execution content changed during final bill verification");
