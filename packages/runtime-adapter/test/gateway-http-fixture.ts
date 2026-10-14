@@ -2,7 +2,7 @@ import { createServer } from "node:https";
 import { connect as tlsConnect, type TLSSocket } from "node:tls";
 import type { Duplex } from "node:stream";
 import { fileURLToPath } from "node:url";
-import { GatewayNetworkBoundary } from "../src/gateway-network.js";
+import { GatewayNetworkBoundary, type DedicatedGatewayPath } from "../src/gateway-network.js";
 import { bytesAt, digest } from "../src/files.js";
 import { GATEWAY_HTTP_HEADER_BYTES, GATEWAY_HTTP_RESPONSE_BYTES } from "../src/gateway-http.js";
 
@@ -10,7 +10,7 @@ export const HTTP_FIXTURE_KEY = "CIMILOOP_HTTP_PUBLIC_FIXTURE_KEY";
 export type HttpFixtureMode = "valid" | "length" | "reasoning" | "cache" | "redirect" | "status" | "encoded" | "partial" | "oversize" | "chunked_oversize" |
   "header_oversize" | "duplicate_type" | "wrong_type" | "trailer" | "invalid_utf8" | "malformed" | "wrong_model" | "wrong_id" | "usage_inconsistent" | "input_overflow" |
   "output_overflow" | "tools" | "extra_usage" | "reasoning_secret" | "escaped_secret" | "timeout" | "disconnect" | "upgrade" | "information" | "bad_finish" | "secret_error";
-export const httpFixture = async (options: { mode?: HttpFixtureMode; onRequest?: () => void; untrusted?: boolean; monotonic?:()=>number;
+export const httpFixture = async (options: { mode?: HttpFixtureMode; onRequest?: () => void; untrusted?: boolean; monotonic?:()=>number; path?: DedicatedGatewayPath;
   reply?: (body: unknown) => { content_type: string; chunks: readonly Buffer[]; incomplete?: boolean; hang?: boolean } } = {}) => {
   const mode = options.mode ?? "valid", certificate = bytesAt(fileURLToPath(new URL("../fixtures/gateway-http-tls/cert.pem", import.meta.url)));
   const observations: { path: string; method: string; host: string; authenticated: boolean; input_digest: string; body: unknown }[] = [];
@@ -68,7 +68,7 @@ export const httpFixture = async (options: { mode?: HttpFixtureMode; onRequest?:
     connect: dialOptions => {
       dials++; tlsSocket = tlsConnect({ ...dialOptions, host: "127.0.0.1", port: address.port, ...(options.untrusted ? {} : { ca: certificate }) });
       Object.defineProperty(tlsSocket, "remoteAddress", { configurable: true, get: () => "8.8.8.8" }); return tlsSocket;
-    } });
+    } }, options.path);
   return { boundary, port: address.port, observations, counts: () => ({ dns, dials }), socket: () => tlsSocket,
     close: async () => { tlsSocket?.destroy(); for (const socket of sockets) socket.destroy(); await new Promise<void>(done => server.close(() => done())); } };
 };

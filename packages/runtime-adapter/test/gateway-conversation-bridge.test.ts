@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdtempSync, writeFileSync, rmSync, existsSync, readdirSync, lstatSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readdirSync, lstatSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { bytesAt, digest, directory, readJson } from "../src/files.js";
@@ -15,17 +15,18 @@ import { runOpenCodeConversationProbe, PINNED_CONVERSATION_OPENCODE_SHA } from "
 import { httpFixture } from "./gateway-http-fixture.js";
 const windows = process.platform === "win32" && process.arch === "x64";
 describe.skipIf(!windows)("versioned tool IPC in actual Windows AppContainers", () => {
-  let root: string, launcher: string;
-  beforeAll(async () => { root = mkdtempSync(join(tmpdir(), "cimiloop-conversation-ipc-test-")); launcher = await buildWindowsLauncher(root); }, 60000);
+  const fixtureParent = process.env.CIMILOOP_NATIVE_TEST_ROOT ?? tmpdir(), fixturePrefix = "conv-ipc-";
+  let root: string, launcher: string, retainFailedProbe = false;
+  beforeAll(async () => { mkdirSync(fixtureParent, { recursive: true }); root = mkdtempSync(join(fixtureParent, fixturePrefix)); launcher = await buildWindowsLauncher(root); }, 60000);
   afterAll(() => {
-    if (!root || !resolve(root).startsWith(resolve(tmpdir()) + sep + "cimiloop-conversation-ipc-test-")) throw Error("Unexpected cleanup root");
+    if (!root || !resolve(root).startsWith(resolve(fixtureParent) + sep + fixturePrefix)) throw Error("Unexpected cleanup root");
     // Keep evidence needed for recovery if any owned controller failed cleanup.
     const inspect = (path: string, depth = 0) => {
       if (depth > 5) return;
       const ownership = join(path, "native-ownership.json"); if (existsSync(ownership) && !(readJson(ownership) as { resources_disposed: boolean }).resources_disposed) throw Error("Retain unrecovered native fixture: " + path);
       for (const name of readdirSync(path)) { const child = join(path, name); if (lstatSync(child).isDirectory() && name !== "sandbox" && name !== "tools") inspect(child, depth + 1); }
     };
-    inspect(root); rmSync(root, { recursive: true, force: true });
+    inspect(root); if (!retainFailedProbe) rmSync(root, { recursive: true, force: true });
   });
   const run = async (scenario: string) => {
     const nonce = randomUUID(), operationKey = "fixture_" + nonce.replaceAll("-", ""), path = directory(join(root, operationKey)), sandbox = directory(join(path, "sandbox"));
@@ -77,10 +78,12 @@ describe.skipIf(!windows)("versioned tool IPC in actual Windows AppContainers", 
     await expect(runOpenCodeConversationProbe({ root: join(root, "must-not-create"), binary: launcher, maxElapsedMs: 999 })).rejects.toThrow("invalid_conversation_probe_elapsed");
   });
   it("runs pinned OpenCode 1.18.34 through tool proposal, actual public read, associated result and final SSE reply", async () => {
-    const binary = join(process.env.APPDATA!, "npm", "node_modules", "opencode-ai", "bin", "opencode.exe"); expect(digest(bytesAt(binary, 512 * 1024 * 1024)).value).toBe(PINNED_CONVERSATION_OPENCODE_SHA);
+    retainFailedProbe = true;
+    const binary = join(process.env.APPDATA!, "npm", "node_modules", "opencode-ai", "node_modules", "opencode-windows-x64", "bin", "opencode.exe"); expect(digest(bytesAt(binary, 512 * 1024 * 1024)).value).toBe(PINNED_CONVERSATION_OPENCODE_SHA);
     const result = await runOpenCodeConversationProbe({ root: join(root, "actual-opencode"), binary });
-    expect(result).toMatchObject({ outcome: "Passed", tool_result_verified: true, final_text_verified: true, final_finish_verified: true, private_state_removed: true,
+    expect(result, result.path).toMatchObject({ outcome: "Passed", tool_result_verified: true, final_text_verified: true, final_finish_verified: true, private_state_removed: true,
       actual_credentials_read: 0, external_model_requests: 0, billing_admission_ready: false, formal_execution_enabled: false });
     expect(result.upstream).toHaveLength(2); expect(result.host.budget).toMatchObject({ completed: 2, held_micro_units: 92000000 });
+    retainFailedProbe = false;
   }, 60000);
 });

@@ -100,6 +100,31 @@ async function ownerHost(){const f=await host(),root=mkdtempSync(join(tmpdir(),'
  const ledger=DedicatedAgentAccountLedger.initialize({origin,repositoryPath:f.root,root:join(root,'account'),policy,connection:f.connection,admission:{check:async()=>{await Promise.resolve();if(!allowed)throw Error('PUBLIC approval revoked');}},custody:{protect:()=>{},verify:()=>{}}}),account=openDedicatedLedgerModelAccountPort(ledger,f.scope,()=>{});
  return{...f,ledger,account,revokeOwner:()=>{allowed=false;},close:async()=>{ledger.close();origin.close();await f.tls.close();}};}
 describe('genuine original owner model sending and generic fallback',()=>{
+ it('keeps the genuine original owner endpoint across a credential callback runtime write attempt',async()=>{
+  const f=await ownerHost();let changed:boolean|undefined;
+  try{
+   const model=createDedicatedAgentRuntimeModel({root:f.root,repositoryPath:f.root,scope:f.scope,connection:f.connection,account:f.account},{boundary:f.tls.boundary,readCredential:async()=>{await Promise.resolve();changed=Reflect.set(f.tls.boundary,'path','/api/paas/v4/chat/completions');return HTTP_FIXTURE_KEY;}}),h=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']);
+   expect((await h.execute(f.request)).receipt.finish).toBe('stop');
+   expect((await h.execute(f.request)).replay).toBe(true);
+   expect(f.tls.observations).toHaveLength(1);
+   expect(f.tls.observations[0]!.path).toBe('/api/coding/paas/v4/chat/completions');
+   expect(changed).toBe(false);
+   expect(f.ledger.snapshot().holds).toBe(1);
+   expect(f.tls.counts()).toEqual({dns:1,dials:1});
+  }finally{await f.close();}
+ });
+ it('retains the genuine original hold and sends no HTTP when a callback tries to replace the endpoint getter',async()=>{
+  const f=await ownerHost();
+  try{
+   const model=createDedicatedAgentRuntimeModel({root:f.root,repositoryPath:f.root,scope:f.scope,connection:f.connection,account:f.account},{boundary:f.tls.boundary,readCredential:async()=>{await Promise.resolve();Object.defineProperty(f.tls.boundary,'path',{get:()=>'/api/paas/v4/chat/completions'});return HTTP_FIXTURE_KEY;}}),h=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']);
+   await expect(h.execute(f.request)).rejects.toThrow();
+   await expect(h.execute(f.request)).rejects.toThrow();
+   expect(f.tls.observations).toHaveLength(0);
+   expect(f.ledger.snapshot().holds).toBe(1);
+   expect(f.tls.counts()).toEqual({dns:0,dials:0});
+   expect(readAgentRuntimeModelOriginals(f.root,f.scope).status).toBe('Unknown');
+  }finally{await f.close();}
+ });
  it('sends one original TLS request with the fixed owner port and replays its same held budget',async()=>{const f=await ownerHost();try{const model=createDedicatedAgentRuntimeModel({root:f.root,repositoryPath:f.root,scope:f.scope,connection:f.connection,account:f.account},{boundary:f.tls.boundary,readCredential:async()=>HTTP_FIXTURE_KEY}),h=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']);expect((await h.execute(f.request)).receipt.finish).toBe('stop');expect((await h.execute(f.request)).replay).toBe(true);expect(f.tls.observations).toHaveLength(1);expect(f.ledger.snapshot().holds).toBe(1);}finally{await f.close();}});
  it('rechecks genuine approval after the credential await and retains one Unknown hold with zero HTTP sends',async()=>{const f=await ownerHost();try{const model=createDedicatedAgentRuntimeModel({root:f.root,repositoryPath:f.root,scope:f.scope,connection:f.connection,account:f.account},{boundary:f.tls.boundary,readCredential:async()=>{await Promise.resolve();f.revokeOwner();return HTTP_FIXTURE_KEY;}}),h=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']);await expect(h.execute(f.request)).rejects.toThrow('agent_dedicated_budget_unproven');await expect(h.execute(f.request)).rejects.toThrow();expect(f.tls.observations).toHaveLength(0);expect(f.ledger.snapshot().holds).toBe(1);expect(readAgentRuntimeModelOriginals(f.root,f.scope).status).toBe('Unknown');}finally{await f.close();}});
  it('does not promote a copied owner port with a fake flag and empty hold verifier over its rejecting generic check',async()=>{const f=await ownerHost();let held=false;try{const original=f.account,copy={...original,full_model_hold:true,check:async(...args:Parameters<DedicatedAgentAccountPort['check']>)=>{if(held)throw Error('PUBLIC generic check refused');await original.check(...args);},reserve:async(...args:Parameters<DedicatedAgentAccountPort['reserve']>)=>{const hold=await original.reserve(...args);held=true;return hold;},verifyHold:async()=>{}},model=createDedicatedAgentRuntimeModel({root:f.root,repositoryPath:f.root,scope:f.scope,connection:f.connection,account:copy},{boundary:f.tls.boundary,readCredential:async()=>{throw Error('PUBLIC credential must not be read');}}),h=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']);await expect(h.execute(f.request)).rejects.toThrow('agent_dedicated_account_unavailable');expect(held).toBe(true);expect(f.tls.observations).toHaveLength(0);expect(f.ledger.snapshot().holds).toBe(1);}finally{await f.close();}});

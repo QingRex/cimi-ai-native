@@ -1,0 +1,392 @@
+{
+  "format": "cimiloop/research/fixed-gateway-original-endpoint/1.0.0",
+  "batch": "D-305",
+  "recorded_at": "2026-10-14T03:01:04.726Z",
+  "base_commit": "5626448255c11211af7666af773e6101c2a7f8eb",
+  "problem": "Trusted callback could mutate TypeScript-only readonly boundary.path after original provider/account/connection validation, switching the actual HTTPS endpoint.",
+  "implementation": {
+    "path": "constructor-owned non-writable non-configurable data property",
+    "reflect_write": "returns false; original pin and HTTP endpoint retained",
+    "getter_replacement": "throws; original Unknown hold retained with zero HTTP and no resend",
+    "approved_paths": [
+      "/api/coding/paas/v4/chat/completions",
+      "/api/paas/v4/chat/completions"
+    ],
+    "public_interface_changed": false,
+    "formats_changed": false
+  },
+  "native_fixture": {
+    "binary_version": "1.18.34",
+    "binary_sha256": "5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e",
+    "binary_location": "APPDATA/npm/node_modules/opencode-ai/node_modules/opencode-windows-x64/bin/opencode.exe",
+    "wrong_wrapper_sha256": "21c366f53283d5b5e1cdbbec2aafc98286b4c1075a4c3d5afd5ce1f5c9bf46dd",
+    "fixture_parent": "CIMILOOP_NATIVE_TEST_ROOT ?? tmpdir()",
+    "fixture_prefix": "conv-ipc-",
+    "budgets_or_sha_relaxed": false,
+    "failed_probe_retained_until_all_assertions_pass": true,
+    "long_root_diagnostic": {
+      "operation_key": "conversation_8d7a5d1b4e90478bbefd6d9d925e763a",
+      "native_reason": "disk_observation_unavailable",
+      "exit_code": 11,
+      "http_requests": 0,
+      "root": "D:/s1-a11e0e/cimiloop-owned-protected-scratch-OZa9zY/cimiloop-conversation-ipc-test-AQKWqB/actual-opencode/conversation-probes/conversation_8d7a5d1b4e90478bbefd6d9d925e763a",
+      "original_retained": true
+    },
+    "causality_limit": "Short-root compatibility was verified. The exact old observer exception and the separate current-parent 15-minute gap were not proven by this batch."
+  },
+  "red": {
+    "recorded_at": "2026-10-14T02:48:55.420Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 1,
+    "error": null,
+    "elapsed_ms": 7672,
+    "files": [
+      "packages/runtime-adapter/test/gateway-http.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-model.test.ts"
+    ],
+    "source_files": 789,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 2,
+    "failed": 5,
+    "pending": 84,
+    "assertion_failures": [
+      "genuine original owner model sending and generic fallback keeps the genuine original owner endpoint across a credential callback runtime write attempt",
+      "genuine original owner model sending and generic fallback retains the genuine original hold and sends no HTTP when a callback tries to replace the endpoint getter",
+      "bounded HTTPS over the original verified TLS connection keeps the original endpoint after a runtime write attempt before DNS",
+      "bounded HTTPS over the original verified TLS connection keeps the original endpoint after a runtime write attempt after TLS",
+      "bounded HTTPS over the original verified TLS connection keeps the original endpoint after a runtime write attempt at HTTP takeover"
+    ],
+    "json_sha256": "85e888b2883a02bb610c4ae32bb3c617086ee00a3cedda81f68dcfd4df5fb43f"
+  },
+  "initial_full": {
+    "recorded_at": "2026-10-14T02:51:19.116Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 1,
+    "error": null,
+    "elapsed_ms": 58158,
+    "files": [
+      "packages/runtime-adapter/test/gateway-network.test.ts",
+      "packages/runtime-adapter/test/gateway-http.test.ts",
+      "packages/runtime-adapter/test/gateway-conversation-host.test.ts",
+      "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts",
+      "packages/runtime-adapter/test/gateway-host.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-dedicated.test.ts"
+    ],
+    "source_files": 789,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 195,
+    "failed": 1,
+    "pending": 0,
+    "assertion_failures": [
+      "versioned tool IPC in actual Windows AppContainers runs pinned OpenCode 1.18.34 through tool proposal, actual public read, associated result and final SSE reply"
+    ],
+    "json_sha256": "8fe64f1c24cbaa057149d665be26c2053eb4f2d16fc0b0ad5b46b51bc21dbe65"
+  },
+  "native_before_short_root": {
+    "recorded_at": "2026-10-14T02:53:28.607Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 1,
+    "error": null,
+    "elapsed_ms": 65074,
+    "files": [
+      "packages/runtime-adapter/test/gateway-network.test.ts",
+      "packages/runtime-adapter/test/gateway-http.test.ts",
+      "packages/runtime-adapter/test/gateway-conversation-host.test.ts",
+      "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts",
+      "packages/runtime-adapter/test/gateway-host.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-dedicated.test.ts"
+    ],
+    "source_files": 789,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 195,
+    "failed": 1,
+    "pending": 0,
+    "assertion_failures": [
+      "versioned tool IPC in actual Windows AppContainers runs pinned OpenCode 1.18.34 through tool proposal, actual public read, associated result and final SSE reply"
+    ],
+    "json_sha256": "e2cb8245542445c9fe2d4e1b908c465b9f735d1002a7b31938138be8c231b96a"
+  },
+  "retained_native_diagnostic": {
+    "recorded_at": "2026-10-14T02:54:49.272Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 1,
+    "error": null,
+    "elapsed_ms": 9530,
+    "files": [
+      "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts"
+    ],
+    "source_files": 789,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 0,
+    "failed": 1,
+    "pending": 7,
+    "assertion_failures": [
+      "versioned tool IPC in actual Windows AppContainers runs pinned OpenCode 1.18.34 through tool proposal, actual public read, associated result and final SSE reply"
+    ],
+    "json_sha256": "eff8068a4721a257b1b8fa1a67188b4ee249826b39d2b879504126ef7d369bcd"
+  },
+  "short_root_diagnostic": {
+    "recorded_at": "2026-10-14T02:56:19.165Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 12389,
+    "files": [
+      "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts"
+    ],
+    "source_files": 789,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 1,
+    "failed": 0,
+    "pending": 7,
+    "assertion_failures": [],
+    "json_sha256": "8d650c9f76a332f56edee5b510b804103a845944d85c1da95158fdf7238843f3"
+  },
+  "final": {
+    "recorded_at": "2026-10-14T03:00:18.041Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 72029,
+    "files": [
+      "packages/runtime-adapter/test/gateway-network.test.ts",
+      "packages/runtime-adapter/test/gateway-http.test.ts",
+      "packages/runtime-adapter/test/gateway-conversation-host.test.ts",
+      "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts",
+      "packages/runtime-adapter/test/gateway-host.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-dedicated.test.ts"
+    ],
+    "source_files": 789,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false,
+    "passed": 196,
+    "failed": 0,
+    "pending": 0,
+    "assertion_failures": [],
+    "json_sha256": "2ebea456392b5302b8f6fa3a4609926d066681a64658f5a9b2a106f7aa6bc675"
+  },
+  "type_check": {
+    "recorded_at": "2026-10-14T02:59:21.774Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 15856,
+    "files": [],
+    "source_files": 789,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false
+  },
+  "cli_help": {
+    "recorded_at": "2026-10-14T02:50:22.279Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 1547,
+    "files": [],
+    "source_files": 789,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false
+  },
+  "source_paths": [
+    {
+      "path": "packages/runtime-adapter/src/gateway-network.ts",
+      "sha256": "14cddcfd82936c20d5a68e1730d058aa37b042a8dadf695b41f9e819bbf1399e"
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-http-fixture.ts",
+      "sha256": "71bb1d7eb0038fb809e7f69aff09116b1605430185d7999b2b28892aa9f41681"
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-http.test.ts",
+      "sha256": "3d3e0ce2158f798f34afafda732e4cfe770fe2ac937f82a302248a488990609b"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+      "sha256": "fc4d0658b58d42208155882e9e4dcef05ffc447bbf1ffd4dbbd97d4f07b467b5"
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts",
+      "sha256": "2b5e1e176bbd7b8aef9453cbd1db0baa433f1aed32a82c059d6f7e792b21c99c"
+    }
+  ],
+  "test_files": [
+    {
+      "path": "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+      "passed": 22,
+      "failed": 0,
+      "pending": 0
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+      "passed": 47,
+      "failed": 0,
+      "pending": 0
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-parent-skill-dedicated.test.ts",
+      "passed": 7,
+      "failed": 0,
+      "pending": 0
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts",
+      "passed": 8,
+      "failed": 0,
+      "pending": 0
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-conversation-host.test.ts",
+      "passed": 23,
+      "failed": 0,
+      "pending": 0
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-host.test.ts",
+      "passed": 17,
+      "failed": 0,
+      "pending": 0
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-http.test.ts",
+      "passed": 44,
+      "failed": 0,
+      "pending": 0
+    },
+    {
+      "path": "packages/runtime-adapter/test/gateway-network.test.ts",
+      "passed": 28,
+      "failed": 0,
+      "pending": 0
+    }
+  ],
+  "review": {
+    "format": "cimiloop/ordinary-engineering-review/1.0.0",
+    "batch": "D-305",
+    "reviewer": "/root/review_native_result",
+    "base_commit": "5626448255c11211af7666af773e6101c2a7f8eb",
+    "workspace": "D:/cc/cimi-ai-native",
+    "review_mode": "source_and_tests_read_only",
+    "reviewed_paths": [
+      "packages/runtime-adapter/src/gateway-network.ts",
+      "packages/runtime-adapter/test/gateway-http-fixture.ts",
+      "packages/runtime-adapter/test/gateway-http.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+      "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts"
+    ],
+    "upstream_read_only_context": [
+      "packages/runtime-adapter/src/gateway-http.ts",
+      "packages/runtime-adapter/src/agent-dedicated-model.ts",
+      "packages/runtime-adapter/src/gateway-conversation-probe.ts",
+      "docs/plans/2026-10-09-cimiloop-S1跨电脑接续.md:381"
+    ],
+    "conclusion": "no_remaining_must_fix_found_after_failure_retention_re_review",
+    "must_fix_findings": [],
+    "resolved_review_findings": [
+      {
+        "priority": "P1",
+        "path": "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts",
+        "line": 82,
+        "issue": "Failed-probe retention is enabled only after the probe returns, and is cleared implicitly when outcome is Passed before the remaining assertions run.",
+        "trigger": "The actual probe throws after producing originals, or it returns Passed but a subsequent result/upstream/budget assertion fails. If the ownership record says resources_disposed=true, afterAll still removes the failed fixture because retainFailedProbe remains false.",
+        "minimal_fix": "Set retainFailedProbe=true before invoking the actual probe and reset it to false only after every final assertion succeeds. Keep the existing original ownership inspection and cleanup-root checks.",
+        "status": "fixed_by_parent_and_source_re_read_by_reviewer",
+        "fix_verified_in_source": "retainFailedProbe=true is now the first statement of the actual Native test, before binary hashing and probe invocation. It becomes false only after every result, upstream and budget assertion succeeds. Source/test were not modified by this reviewer."
+      }
+    ],
+    "evidence": [
+      "GatewayNetworkBoundary constructor validates the same two accepted endpoints and defines path as an own enumerable, non-writable, non-configurable data property.",
+      "Dedicated model entry validates the original provider path; DNS pin construction and HTTP emission subsequently read that same fixed path.",
+      "The added tests exercise Reflect.set before DNS, after TLS and at HTTP takeover, plus genuine owner credential callbacks using Reflect.set or getter redefinition; the two explicitly constructed legal endpoints remain covered.",
+      "The additional bridge-test change selects the nested opencode-windows-x64 native executable instead of the npm wrapper. It preserves the exact SHA assertion, 60000ms test observation limit and existing Native/tool/final-response assertions.",
+      "The upstream conversation probe independently checks the unchanged fixed SHA before creating its launcher or pinning the executable. The pin remains 5283c2cd5b4285855daa97e6f7d17bf48146227cdf2a940e79e0f2b7869fd06e.",
+      "The latest bridge fixture uses CIMILOOP_NATIVE_TEST_ROOT or tmpdir, creates its own conv-ipc- root and retains the existing original Native ownership check before cleanup. These changes do not relax binary qualification or the original 30000ms probe / 60000ms test observation limits.",
+      "The reported failure-retention window is closed in the current source: the real probe test retains by default before hashing or invocation and permits cleanup only after all final assertions pass. Original ownership inspection remains unchanged."
+    ],
+    "validation": {
+      "independent_tests_run": false,
+      "independent_native_execution": false,
+      "independent_installed_binary_hash_check": false,
+      "reported_by_parent_only": {
+        "first_complete_eight_file_run": {
+          "passed": 195,
+          "failed": 1,
+          "skipped": 0
+        },
+        "first_failure": "Bridge test selected npm wrapper; assertion rejected its SHA before Native execution.",
+        "installed_nested_binary_hash": "Parent reports independent GetFileHash matching the original pin and installed version 1.18.34.",
+        "correct_binary_native_diagnostic": "Parent reports disk_observation_unavailable/exit11 with zero HTTP on a new owned long protected-TMP fixture; original root retained. This does not establish the cause of a parent Task deadline.",
+        "short_root_regression_before_retention_fix": {
+          "report": "r9",
+          "files": 8,
+          "passed": 196,
+          "failed": 0,
+          "skipped": 0,
+          "source_files": 789,
+          "source_drift": 0,
+          "independently_run_by_reviewer": false
+        },
+        "check_before_retention_fix": "Parent reports r10 check passed.",
+        "final_complete_regression": "r11 full eight-file regression and r12 final check are running after the retention fix; no passing result assumed."
+      }
+    },
+    "boundaries": {
+      "no_source_or_test_edits_by_reviewer": true,
+      "only_this_ignored_report_written": true,
+      "actual_credentials_read": 0,
+      "paid_model_requests": 0,
+      "unknown_resource_actions": 0,
+      "real_model_approval_proven": false,
+      "formal_matt_or_superpowers_acceptance": false,
+      "s1_accepted": false
+    },
+    "limitations": [
+      "This is ordinary engineering review, not full Matt/Superpowers method acceptance.",
+      "The review does not treat arbitrary replacement of other trusted methods as a normal serialized-payload attack.",
+      "Source inspection does not independently prove regression success, production stability or real model/account qualification."
+    ]
+  },
+  "actual_capability": "Original dedicated endpoint remains fixed across awaited credential/approval code and DNS/TLS/HTTP handoff. Same original request/budget hold replay stays one effect.",
+  "limits": {
+    "paid_requests": false,
+    "actual_credentials_read": false,
+    "real_model_qualification": false,
+    "real_skill_qualification": false,
+    "full_native_s1": false,
+    "superpowers_behavior_comparison": false,
+    "formal_agent_execution_enabled": false,
+    "S1_accepted": false,
+    "goal_completed": false,
+    "pushed": false,
+    "unknown_resources_touched": false,
+    "schema": 242,
+    "project_database_format": 10,
+    "host_database_format": 1
+  }
+}

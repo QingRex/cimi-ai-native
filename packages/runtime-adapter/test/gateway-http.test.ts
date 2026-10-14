@@ -12,6 +12,39 @@ import { HTTP_FIXTURE_KEY, httpFixture, type HttpFixtureMode } from "./gateway-h
 
 const input = () => ({ request_id: randomUUID(), messages: [{ role: "user", content: "public synthetic hello" }], input_tokens: 100, max_output_tokens: 32 });
 describe("bounded HTTPS over the original verified TLS connection", () => {
+  it.each(["before DNS", "after TLS", "at HTTP takeover"])("keeps the original endpoint after a runtime write attempt %s", async stage => {
+    const f = await httpFixture();
+    try {
+      const transport = new GatewayHttpTransport(f.boundary), prepared = transport.prepare(input());
+      let changed: boolean | undefined;
+      const mutate = () => { changed = Reflect.set(f.boundary, "path", "/api/paas/v4/chat/completions"); };
+      if (stage === "before DNS") mutate();
+      const pin = await f.boundary.resolve(), connection = await f.boundary.connect(pin);
+      if (stage === "after TLS") mutate();
+      if (stage === "at HTTP takeover") {
+        const consume = f.boundary.consumeHttpConnection.bind(f.boundary);
+        f.boundary.consumeHttpConnection = current => { const socket = consume(current); mutate(); return socket; };
+      }
+      await transport.send(prepared, connection, HTTP_FIXTURE_KEY);
+      expect(f.observations).toHaveLength(1);
+      expect(f.observations[0]!.path).toBe("/api/coding/paas/v4/chat/completions");
+      expect(pin.path).toBe("/api/coding/paas/v4/chat/completions");
+      expect(changed).toBe(false);
+      expect(f.counts()).toEqual({ dns: 1, dials: 1 });
+      await expect(transport.send(prepared, connection, HTTP_FIXTURE_KEY)).rejects.toThrow("gateway_http_request_unowned");
+    } finally { await f.close(); }
+  });
+  it.each(["/api/coding/paas/v4/chat/completions", "/api/paas/v4/chat/completions"] as const)("uses the explicitly constructed endpoint %s", async path => {
+    const f = await httpFixture({ path });
+    try {
+      const transport = new GatewayHttpTransport(f.boundary), pin = await f.boundary.resolve();
+      await transport.send(transport.prepare(input()), await f.boundary.connect(pin), HTTP_FIXTURE_KEY);
+      expect(pin.path).toBe(path);
+      expect(f.observations).toHaveLength(1);
+      expect(f.observations[0]!.path).toBe(path);
+      expect(f.counts()).toEqual({ dns: 1, dials: 1 });
+    } finally { await f.close(); }
+  });
   it.each(["valid", "length", "reasoning", "cache"] as const)("uses exactly one handshake and immutable fixed wire bytes: %s", async mode => {
     const f = await httpFixture({ mode });
     try {

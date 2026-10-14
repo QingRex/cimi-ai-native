@@ -51,8 +51,15 @@ export class GatewayNetworkBoundary {
   private readonly dial: NonNullable<NetworkDependencies["connect"]>;
   private readonly now: () => number;
   private readonly monotonic: () => number;
-  constructor(dependencies: NetworkDependencies = {}, readonly path: DedicatedGatewayPath = DEDICATED_GATEWAY_PATH) { if (![DEDICATED_GATEWAY_PATH,"/api/paas/v4/chat/completions"].includes(path)) throw new RuntimeAdapterError("gateway_path_denied"); this.resolver = dependencies.resolve ?? resolvePublicHost; this.dial = dependencies.connect ?? tlsConnect;
-    this.now = dependencies.now ?? Date.now; this.monotonic = dependencies.monotonic ?? (() => performance.now()); }
+  constructor(dependencies: NetworkDependencies = {}, readonly path: DedicatedGatewayPath = DEDICATED_GATEWAY_PATH) {
+    if (![DEDICATED_GATEWAY_PATH,"/api/paas/v4/chat/completions"].includes(path)) throw new RuntimeAdapterError("gateway_path_denied");
+    // TypeScript readonly does not survive at runtime. Keep the constructor's
+    // endpoint fixed across account/credential awaits and TLS-to-HTTP takeover;
+    // the DNS pin and HTTP request must use the same approved provider path.
+    Object.defineProperty(this, "path", { value: path, enumerable: true, writable: false, configurable: false });
+    this.resolver = dependencies.resolve ?? resolvePublicHost; this.dial = dependencies.connect ?? tlsConnect;
+    this.now = dependencies.now ?? Date.now; this.monotonic = dependencies.monotonic ?? (() => performance.now());
+  }
   async resolve(deadlineMs = 8000, signal?: AbortSignal): Promise<GatewayAddressPin> {
     if (!Number.isSafeInteger(deadlineMs) || deadlineMs < 25 || deadlineMs > 30000) throw new RuntimeAdapterError("invalid_gateway_network_deadline");
     if (signal?.aborted) throw new RuntimeAdapterError("gateway_network_aborted");
