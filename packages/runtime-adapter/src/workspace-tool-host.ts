@@ -5,6 +5,7 @@ import { parseToolAssessment } from "./tool-journal.js";
 import { parseWorkspaceToolInvocation, WindowsWorkspaceFileBroker, type PreparedWorkspaceEffect } from "./workspace-files.js";
 import { WorkspaceToolJournal, workspaceToolAuthorityRequest, WORKSPACE_TOOL_SLOT_BYTES, type WorkspaceToolReceipt } from "./workspace-tool-journal.js";
 import { RuntimeAdapterError, digest, directory, bytesAt, atomicJson, assertOrdinaryPath } from "./files.js";
+import { rememberOriginalObservation } from "./runtime-binary-originals.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { buildWindowsLauncher } from "./native.js";
 import { creditHostDependencies } from "./gateway-credit-owner.js";
@@ -109,6 +110,10 @@ export function readWorkspaceToolRunFacts(dataDirectory: string, project: Projec
 }
 
 export function readWorkspaceFileRunOriginals(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
+  record: Pick<RunRecord, "run_id" | "operation_key" | "executor_ref" | "input_digest">) {
+  return rememberOriginalObservation("workspace-files\0"+dataDirectory+"\0"+project.id+"\0"+record.run_id+"\0"+record.operation_key,()=>readWorkspaceFileRunOriginalsNow(dataDirectory,project,record));
+}
+function readWorkspaceFileRunOriginalsNow(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
   record: Pick<RunRecord, "run_id" | "operation_key" | "executor_ref" | "input_digest">) {
   const paths = location(dataDirectory, project.id), marker = existsSync(paths.marker), journal = existsSync(paths.journal);
   if (!marker && !journal) return { facts: { invocations: 0, unresolved: 0, has_effect: false }, calls: [] };

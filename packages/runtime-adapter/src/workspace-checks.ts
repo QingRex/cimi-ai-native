@@ -1,5 +1,5 @@
 import {resolveWorkspaceCheckSourceBasis} from "./workspace-check-source-basis.js";
-import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
+import {digestRuntimeBinaryFile, readRuntimeBinaryOriginal, rememberOriginalObservation} from "./runtime-binary-originals.js";
 import {readWorkspaceFileRunOriginals} from "./workspace-tool-host.js";
 import { spawn } from "node:child_process";
 import { setImmediate as yieldImmediate } from "node:timers/promises";
@@ -90,8 +90,8 @@ export class WorkspaceCheckInstallation {
     if(!isDeepStrictEqual(readRuntimeBinaryOriginal(this.dataDirectory,this.node.path,this.node.digest.value),this.binaryOriginal))fail("workspace_check_binary_changed");
     const stat = lstatSync(assertOrdinaryPath(this.files.repositoryPath), { bigint: true });
     if (!stat.isDirectory() || String(stat.dev) !== this.originalRoot.dev || String(stat.ino) !== this.originalRoot.ino ||
-      bytesAt(join(this.root, "policy.json"), 4096).toString("utf8") !== this.encoded || digest(bytesAt(this.node.path, 512 * 1024 * 1024)).value !== this.node.digest.value ||
-      digest(bytesAt(this.originalBinary, 512 * 1024 * 1024)).value !== this.node.digest.value) fail("workspace_check_policy_conflict");
+      bytesAt(join(this.root, "policy.json"), 4096).toString("utf8") !== this.encoded || digestRuntimeBinaryFile(this.node.path) !== this.node.digest.value ||
+      digestRuntimeBinaryFile(this.originalBinary) !== this.node.digest.value) fail("workspace_check_policy_conflict");
   }
 }
 export function parseWorkspaceCheckCall(raw: unknown): WorkspaceCheckCall {
@@ -388,6 +388,10 @@ export class AgentWorkspaceCheckHost {
     return this.readRunOriginals(dataDirectory, project, record).facts;
   }
   static readRunOriginals(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
+    record: Pick<RunRecord, "run_id" | "run_kind" | "operation_key" | "executor_ref" | "input_digest"> & Partial<Pick<AgentWorkspaceToolScope, "runtime_binding" | "skill_bindings" | "host_admission_ref">>) {
+    return rememberOriginalObservation("workspace-checks\0"+dataDirectory+"\0"+project.id+"\0"+record.run_id+"\0"+record.operation_key,()=>AgentWorkspaceCheckHost.readRunOriginalsNow(dataDirectory,project,record));
+  }
+  private static readRunOriginalsNow(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
     record: Pick<RunRecord, "run_id" | "run_kind" | "operation_key" | "executor_ref" | "input_digest"> & Partial<Pick<AgentWorkspaceToolScope, "runtime_binding" | "skill_bindings" | "host_admission_ref">>) {
     const root = assertOrdinaryPath(join(dataDirectory, "workspace-checks", project.id)), facts = { invocations: 0, unresolved: 0, has_effect: false };
     const calls: { scope: AgentWorkspaceToolScope; call: WorkspaceCheckCall; recipe: WorkspaceCheckRecipe; policy_digest: string; node_digest: string; receipt: WorkspaceCheckReceipt | null }[] = [];

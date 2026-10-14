@@ -8,6 +8,48 @@ function fail():never {throw new RuntimeAdapterError("runtime_binary_original_un
 type Physical={dev:string;ino:string;birthtime_ns:string};
 const physical=(path:string,kind:"file"|"directory"="file"):Physical=>{const s=lstatSync(assertOrdinaryPath(path),{bigint:true});if(kind==="file"? !s.isFile()||s.nlink!==1n:!s.isDirectory())fail();return {dev:String(s.dev),ino:String(s.ino),birthtime_ns:String(s.birthtimeNs)};};
 const identity=(path:string)=>{const s=lstatSync(assertOrdinaryPath(path),{bigint:true});if(s.size<1n||s.size>BigInt(fileLimit))fail();return {...physical(path),bytes:Number(s.size)};};
+// One synchronous observation may hash the same retained binary many times.
+// Repeats inside that observation reuse the first byte digest. The outermost
+// observation hashes every path again before it returns, so a same-inode
+// rewrite cannot survive the turn. Calls outside a turn always read bytes.
+type BinaryHit={dev:string;ino:string;birthtime_ns:string;bytes:number;sha:string};
+type ObservationMemo={key:string;value:unknown;hits:number;rerun:()=>unknown;identity?:object};
+let binaryTurn:Map<string,BinaryHit>|undefined,binaryDepth=0,observationMemos:ObservationMemo[]|undefined,observationBypass=false,bypassCache:Map<string,unknown>|undefined;
+function contentSha(path:string,fresh=false){const id=identity(path),key=resolve(path),hit=!fresh?binaryTurn?.get(key):undefined;if(hit&&hit.dev===id.dev&&hit.ino===id.ino&&hit.birthtime_ns===id.birthtime_ns&&hit.bytes===id.bytes)return hit.sha;const sha=digest(bytesAt(path,fileLimit)).value;if(!fresh&&binaryTurn)binaryTurn.set(key,{dev:id.dev,ino:id.ino,birthtime_ns:id.birthtime_ns,bytes:id.bytes,sha});return sha;}
+export function digestRuntimeBinaryFile(path:string){return contentSha(path);}
+// Repeated original observations inside one synchronous proof reuse the first
+// plain result. A single observation is not replayed. Reused observations are
+// read again before the outermost proof returns and must still be equal.
+export function rememberOriginalObservation<T>(key:string,produce:()=>T):T{
+ if(!observationMemos)return produce();
+ if(observationBypass){const cached=bypassCache?.get(key);if(cached)return structuredClone(cached) as T;const value=produce();bypassCache?.set(key,value);return structuredClone(value) as T;}
+ const hit=observationMemos.find(entry=>entry.key===key);
+ if(hit){hit.hits++;return structuredClone(hit.value) as T;}
+ const value=produce();observationMemos.push({key,value:structuredClone(value),hits:1,rerun:produce});return value;
+}
+// Branded originals keep the object that owns their private verifier. A repeated
+// observation returns that same object. The outermost proof reads it again.
+export function rememberOriginalIdentity<T extends object>(key:string,produce:()=>T):T{
+ if(observationBypass||!observationMemos)return produce();
+ const hit=observationMemos.find(entry=>entry.key===key);
+ if(hit?.identity){hit.hits++;return hit.identity as T;}
+ const identity=produce();observationMemos.push({key,value:structuredClone(identity),identity,hits:1,rerun:produce});return identity;
+}
+export function digestBoundedOriginalFile(path:string,maximum:number,bytes?:Buffer){const stat=lstatSync(assertOrdinaryPath(path),{bigint:true});if(!stat.isFile()||stat.isSymbolicLink()||stat.size>BigInt(maximum))fail();const id={dev:String(stat.dev),ino:String(stat.ino),birthtime_ns:String(stat.birthtimeNs),bytes:Number(stat.size)},key=resolve(path);if(!bytes&&binaryTurn){const hit=binaryTurn.get(key);if(hit&&hit.dev===id.dev&&hit.ino===id.ino&&hit.birthtime_ns===id.birthtime_ns&&hit.bytes===id.bytes)return hit.sha;}const body=bytes??bytesAt(path,maximum);if(body.length!==Number(stat.size))fail();if(stat.nlink!==1n||stat.ino<=0n||stat.size<1n)return digest(body).value;const sha=digest(body).value;if(binaryTurn&&!observationBypass)binaryTurn.set(key,{...id,sha});return sha;}
+export function withRuntimeBinaryProofTurn<T>(run:()=>T):T{
+ const outer=binaryDepth===0;if(outer){binaryTurn=new Map();observationMemos=[];}binaryDepth++;
+ try{
+  const value=run();
+  if(outer){
+   observationBypass=true;bypassCache=new Map();
+   try{for(const entry of observationMemos!){if(entry.hits<=1)continue;const already=bypassCache.get(entry.key),fresh=already??entry.rerun();if(!already)bypassCache.set(entry.key,fresh);if(!isDeepStrictEqual(structuredClone(fresh),entry.value))fail();}}
+   finally{observationBypass=false;bypassCache=undefined;}
+   for(const [path,hit] of binaryTurn!)if(contentSha(path,true)!==hit.sha)fail();
+  }
+  return value;
+ }
+ finally{binaryDepth--;if(binaryDepth===0){binaryTurn=undefined;observationMemos=undefined;}}
+}
 const syncFile=(path:string)=>{const fd=openSync(path,"r+");try{fsyncSync(fd);}finally{closeSync(fd);}};
 const save=(path:string,value:unknown)=>{writeFileSync(assertOrdinaryPath(path),JSON.stringify(value),{flag:"wx"});syncFile(path);};
 const read=(path:string):unknown=>JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytesAt(path,16384)));
@@ -64,10 +106,12 @@ function snapshot(s:Store,path:string,sha:string,rows=audit(s).rows){
  const row=rows.find(x=>x.sha===sha), expectedPath=row?.origin==="legacy"?join(s.root,"tools",sha,"runtime.exe"):join(s.base,sha,"runtime.exe");
  if(!row||row.state!=="retained"||path!==expectedPath)fail();
  const current=identity(path);
- if(current.dev!==row.dev||current.ino!==row.ino||current.birthtime_ns!==row.birthtime_ns||current.bytes!==row.bytes||digest(bytesAt(path,fileLimit)).value!==sha)fail();
+ if(current.dev!==row.dev||current.ino!==row.ino||current.birthtime_ns!==row.birthtime_ns||current.bytes!==row.bytes||contentSha(path)!==sha)fail();
  return {format:"cimiloop/runtime-binary-original-proof/1.0.0",path,sha,bytes:current.bytes,origin:row.origin as "retained"|"legacy",physical:physical(path),registry_digest:s.registry_digest,reservation_digest:digest(bytesAt(join(s.claims,sha,"reserved.json"),16384)).value,retention_digest:digest(bytesAt(join(s.claims,sha,"retained.json"),16384)).value,prior_custody_proven:false as const,physical_quota_enforced:false as const};
 }
 // Read-only revalidation: never initializes, repairs, copies or frees capacity.
+// This proof is not an observation memo. Callers compare it with the retained
+// JSON proof; a cloned replay is not that proof.
 export function readRuntimeBinaryOriginal(root:string,path:string,sha:string){
  let s:Store|undefined;
  try {if(!/^[a-f0-9]{64}$/.test(sha))fail();s=open(root,false);s.db.exec("BEGIN");const proof=snapshot(s,resolve(path),sha);s.db.exec("COMMIT");return proof;}

@@ -2,7 +2,7 @@ import {join,relative,isAbsolute,resolve} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
 import {requestDigest} from '@cimiloop/kernel';
 import {compileValidator,RawSkillInvocationObservationSchema,type RawSkillInvocationObservation,type SkillInvocation,type SkillInvocationObservation,type Project} from '@cimiloop/protocol/v2';
-import {bytesAt,digest,readAgentSkillPreparationZeroEffects,collectAgentRuntimeOperation,readAgentRuntimeNamedMethodCancellation,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,readAgentRuntimeModelOriginals,DedicatedAgentAccountLedger,readOriginalDedicatedAgentRunCosts,withOriginalDedicatedAgentRunCostRead,type OriginalDedicatedAgentRunCostReader} from '@cimiloop/runtime-adapter';
+import {bytesAt,digest,readAgentSkillPreparationZeroEffects,collectAgentRuntimeOperation,readAgentRuntimeNamedMethodCancellation,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,readAgentRuntimeModelOriginals,DedicatedAgentAccountLedger,readOriginalDedicatedAgentRunCosts,withOriginalDedicatedAgentRunCostRead,rememberOriginalIdentity,rememberOriginalObservation,withStartCustodyVerifyTurn,type OriginalDedicatedAgentRunCostReader} from '@cimiloop/runtime-adapter';
 import {readOriginalSkillInvocation,readOriginalSkillInvocationFromReader,type SkillInvocationExecutionContext} from './skill-invocation-execution-local.js';
 import {LocalSkillInvocationStartCustody,assertSkillInvocationStartOriginalSeal} from './skill-invocation-start-custody-local.js';
 import {LocalSkillMethodInputs} from './skill-methods-local.js';
@@ -64,26 +64,31 @@ export class LocalSkillInvocationResultCollection {
   const dispatch={ticket:state.ticket,material_digest:state.material_digest};
   const relation=custody.accountScope(original.project,original.invocation,original.request.parent,original.record_id),root=join(local.location.dataDirectory,'skill-runtime-originals',original.project.id,original.invocation.invocation_key);
   if(collection&&local.store.getRun(original.invocation.run_ref.id)?.cancel_requested!==true)throw fail();
-  const result=collection?readAgentRuntimeNamedMethodCancellation(root,relation.child,plan,collection):readAgentRuntimeNamedMethodResult(root,relation.child,plan),provider=readDedicatedAgentModelOriginals(root,relation.child),model=readAgentRuntimeModelOriginals(root,relation.child);
-  const succeeded=result.method_result_reverified===true&&!!result.output&&result.method_failure_reverified===undefined&&result.failure===undefined;
-  const failed=result.method_result_reverified===false&&result.method_failure_reverified===true&&result.output===undefined&&result.output_digest===undefined&&result.failure?.code==='agent_named_method_output_invalid'&&
-   Object.keys(result.failure).sort().join(',')==='code,returned_text_digest'&&result.failure.returned_text_digest?.algorithm==='sha256'&&/^[a-f0-9]{64}$/.test(result.failure.returned_text_digest.value);
-  const cancelled=!!collection&&'cancellation_reverified' in result&&result.cancellation_reverified===true&&result.method_result_reverified===false&&result.output===undefined&&result.output_digest===undefined&&result.method_failure_reverified===undefined&&result.failure===undefined;
-  if(result.status!=='Observed'||!(collection?cancelled:succeeded||failed)||provider.summary.status!=='Observed'||!provider.summary.original_requirement_pinned||!provider.summary.budget_identity_pinned||provider.summary.unresolved||!provider.calls.length||model.status!=='Observed'||!same(provider.calls.map(c=>c.call_id),model.calls.map(c=>c.call_id)))throw fail();
-  const artifacts:Artifact[]=[...result.artifacts.map(a=>({...a,name:'method/'+a.name})),...provider.artifacts.map(a=>({...a,name:'provider/'+a.name}))];
-  if(artifacts.length>limitsFor(artifacts).artifacts||new Set(artifacts.map(a=>a.name)).size!==artifacts.length)throw fail();
-  for(const a of artifacts){const rel=relative(resolve(root),resolve(a.path));if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../')||digest(bytesAt(a.path,4*1024*1024)).value!==a.digest)throw fail();}
+  // Repeated reads inside one synchronous proof share the first closed original.
+  // Account costs stay outside that memory and still run on every facts call.
+  const observed=rememberOriginalObservation(['skill-original-facts',resolve(root),id,String(existingReader),String(billed),String(reconciling),String(verified),collection?requestDigest(collection):''].join('\0'),()=>{
+   const result=collection?readAgentRuntimeNamedMethodCancellation(root,relation.child,plan,collection):readAgentRuntimeNamedMethodResult(root,relation.child,plan),provider=readDedicatedAgentModelOriginals(root,relation.child),model=readAgentRuntimeModelOriginals(root,relation.child);
+   const succeeded=result.method_result_reverified===true&&!!result.output&&result.method_failure_reverified===undefined&&result.failure===undefined;
+   const failed=result.method_result_reverified===false&&result.method_failure_reverified===true&&result.output===undefined&&result.output_digest===undefined&&result.failure?.code==='agent_named_method_output_invalid'&&
+    Object.keys(result.failure).sort().join(',')==='code,returned_text_digest'&&result.failure.returned_text_digest?.algorithm==='sha256'&&/^[a-f0-9]{64}$/.test(result.failure.returned_text_digest.value);
+   const cancelled=!!collection&&'cancellation_reverified' in result&&result.cancellation_reverified===true&&result.method_result_reverified===false&&result.output===undefined&&result.output_digest===undefined&&result.method_failure_reverified===undefined&&result.failure===undefined;
+   if(result.status!=='Observed'||!(collection?cancelled:succeeded||failed)||provider.summary.status!=='Observed'||!provider.summary.original_requirement_pinned||!provider.summary.budget_identity_pinned||provider.summary.unresolved||!provider.calls.length||model.status!=='Observed'||!same(provider.calls.map(c=>c.call_id),model.calls.map(c=>c.call_id)))throw fail();
+   const artifacts:Artifact[]=[...result.artifacts.map(a=>({...a,name:'method/'+a.name})),...provider.artifacts.map(a=>({...a,name:'provider/'+a.name}))];
+   if(artifacts.length>limitsFor(artifacts).artifacts||new Set(artifacts.map(a=>a.name)).size!==artifacts.length)throw fail();
+   for(const a of artifacts){const rel=relative(resolve(root),resolve(a.path));if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../')||digest(bytesAt(a.path,4*1024*1024)).value!==a.digest)throw fail();}
+   const {artifacts:_,...method}=result;return {method,provider:{summary:provider.summary,calls:provider.calls},artifacts};
+  });
   let cost_evidence:ReturnType<typeof readOriginalDedicatedAgentRunCosts>|undefined;
   if(billed){
    if(!(this.options.account instanceof DedicatedAgentAccountLedger))throw fail();
    cost_evidence=readCosts(root,relation.child,this.options.account);
    const record=local.store.getRuntimeRecord('run_record',original.record_id);
-   if(!record||typeof cost_evidence.costs.currency!=='string'||cost_evidence.costs.currency!==record.cost_currency||!same(cost_evidence.calls,provider.calls))throw fail();
+   if(!record||typeof cost_evidence.costs.currency!=='string'||cost_evidence.costs.currency!==record.cost_currency||!same(cost_evidence.calls,observed.provider.calls))throw fail();
   }
   if((reconciling||verified)&&(!this.options.qualificationOriginals||typeof this.options.qualificationOriginals.verify!=='function'))throw fail();
   const qualification=(reconciling||verified)?new LocalNamedSkillMethodAssessment(local.location.repositoryPath,local.location.dataDirectory).verifyHistoricalQualification(original.project,original.descriptor,{method_qualification_ref:custody.originalQualification(original.project,original.invocation,original.request.parent,original.record_id),runtime_binding:original.invocation.runtime_binding,request:original.invocation.request},this.options.qualificationOriginals):undefined;
-  const {artifacts:_,...method}=result;
-  return {format:verified?(failed?'cimiloop/original-skill-result-failed-verified/1.0.0':'cimiloop/original-skill-result-verified/1.0.0'):cancelled?'cimiloop/original-skill-cancelled-reconciliation/1.0.0':failed?(reconciling?'cimiloop/original-skill-result-failed-reconciliation/1.0.0':billed?'cimiloop/original-skill-result-failed-billed-candidate/1.0.0':'cimiloop/original-skill-result-failed-candidate/1.0.0'):(reconciling?'cimiloop/original-skill-result-reconciliation/1.0.0':billed?'cimiloop/original-skill-result-billed-candidate/1.0.0':'cimiloop/original-skill-result-candidate/1.0.0'),invocation:original.invocation,parent:relation.parent,scope:relation.child,dispatch,plan_digest:requestDigest(plan),method,provider:{summary:provider.summary,calls:provider.calls},artifacts,qualification_reverified:false,model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false,...(cost_evidence?{bills_reverified:true,cost_evidence}:{}),...(qualification?{qualification_reverified_original:qualification}:{}),...(collection?{collection,cancellation_reverified:true,completion_proven:false}:{})};
+  const failed=observed.method.method_failure_reverified===true,cancelled=!!collection;
+  return {format:verified?(failed?'cimiloop/original-skill-result-failed-verified/1.0.0':'cimiloop/original-skill-result-verified/1.0.0'):cancelled?'cimiloop/original-skill-cancelled-reconciliation/1.0.0':failed?(reconciling?'cimiloop/original-skill-result-failed-reconciliation/1.0.0':billed?'cimiloop/original-skill-result-failed-billed-candidate/1.0.0':'cimiloop/original-skill-result-failed-candidate/1.0.0'):(reconciling?'cimiloop/original-skill-result-reconciliation/1.0.0':billed?'cimiloop/original-skill-result-billed-candidate/1.0.0':'cimiloop/original-skill-result-candidate/1.0.0'),invocation:original.invocation,parent:relation.parent,scope:relation.child,dispatch,plan_digest:requestDigest(plan),method:observed.method,provider:observed.provider,artifacts:observed.artifacts,qualification_reverified:false,model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false,...(cost_evidence?{bills_reverified:true,cost_evidence}:{}),...(qualification?{qualification_reverified_original:qualification}:{}),...(collection?{collection,cancellation_reverified:true,completion_proven:false}:{})};
  }
  capture(invocationId:string):{report:RawSkillInvocationObservation;reference:SkillInvocationObservation['raw_result_ref']}{
   return this.captureOriginal(invocationId,false);
@@ -193,7 +198,7 @@ export class LocalSkillInvocationResultCollection {
  // Read-only history is deliberately independent of current execution authority.
  // A cancelled/Unknown parent can collect its original; it cannot launch again.
  readResult(project:Project,invocation:SkillInvocation,reference:SkillInvocationObservation['raw_result_ref']):RawSkillInvocationObservation{
-  try{
+  try{return withStartCustodyVerifyTurn(()=>{
    if(reference.resource_type!=='skill_invocation_report')throw fail();const content=this.options.inputs.packages.content;
    const raw=compileValidator<RawSkillInvocationObservation>(RawSkillInvocationObservationSchema)(decode(content.readContent(reference)));
    if(raw.status==='not_started')return this.readNotStartedResult(project,invocation,reference);
@@ -207,13 +212,13 @@ export class LocalSkillInvocationResultCollection {
    // Byte retention is not qualification or Runtime approval. Direct verified
    // history also retains namespace membership and physical originals before
    // callbacks; semantic verification and final account cuts remain mandatory.
-   const retained=verified&&!reconciling?captureSkillResultOriginalSeal({content:fixedContent,originalRoot,reportReference:reference,report:raw,max_artifacts:SKILL_RESULT_CAPTURE_LIMITS.artifacts+4,max_total_bytes:SKILL_RESULT_CAPTURE_LIMITS.total_bytes+4*65536}):undefined;
+   const retained=verified&&!reconciling?rememberOriginalIdentity(['skill-result-seal',resolve(originalRoot),reference.locator,raw.result_proof_ref.locator].join('\0'),()=>captureSkillResultOriginalSeal({content:fixedContent,originalRoot,reportReference:reference,report:raw,max_artifacts:SKILL_RESULT_CAPTURE_LIMITS.artifacts+4,max_total_bytes:SKILL_RESULT_CAPTURE_LIMITS.total_bytes+4*65536})):undefined;
    // Both Known direct and Human terminal results bind execution originals
    // before any installed callbacks, including the account scope callback.
    // Existing Unknown candidates gain no qualification. NotStarted is separate.
    const runtimeOriginal=verified||reconciling?this.original(invocation.id,true):undefined;
    const runtimeOptions=runtimeOriginal?{content:fixedContent,originalRoot,project,invocation,parent:runtimeOriginal.request.parent,recordId:runtimeOriginal.record_id}:undefined;
-   const runtimeBoundary=runtimeOptions?captureSkillResultRuntimeOriginalBoundary(runtimeOptions):undefined;
+   const runtimeBoundary=runtimeOptions?rememberOriginalIdentity(['skill-result-boundary',resolve(originalRoot),invocation.id,runtimeOptions.recordId].join('\0'),()=>captureSkillResultRuntimeOriginalBoundary(runtimeOptions)):undefined;
    // Host callbacks during capture precede the fresh cost window; the retained
    // byte/Runtime boundary prevents them from selecting changed originals.
    const startOriginal=runtimeOptions?captureStartOriginal.call(identity.custody,project,invocation,runtimeOptions.parent,runtimeOptions.recordId):undefined;
@@ -245,6 +250,6 @@ export class LocalSkillInvocationResultCollection {
    const original=this.original(invocation.id,true),account=this.options.account;if(!(account instanceof DedicatedAgentAccountLedger))throw fail();
    const relation=this.options.custody.accountScope(original.project,original.invocation,original.request.parent,original.record_id),root=join(identity.location.dataDirectory,'skill-runtime-originals',original.project.id,original.invocation.invocation_key);
    return withOriginalDedicatedAgentRunCostRead(root,relation.child,account,read,()=>closeOriginals());
-  }catch{throw fail();}
+  });}catch{throw fail();}
  }
 }

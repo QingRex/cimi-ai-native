@@ -1,9 +1,10 @@
 import {agentWorkspaceConfigBaseFormat} from './agent-runtime-startup.js';
 import {readOriginalAgentJobObservation} from './agent-job-policy.js';
-import {join} from 'node:path';
+import {join,resolve} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
 import type {SkillMethodOutput,Digest} from '@cimiloop/protocol/v2';
 import {bytesAt,digest,RuntimeAdapterError} from './files.js';
+import {rememberOriginalObservation,withRuntimeBinaryProofTurn} from './runtime-binary-originals.js';
 import {parseGatewayJson} from './gateway-conversation.js';
 import {readAgentRuntimeOriginalIdentity} from './agent-runtime-operation.js';
 import {readOriginalAgentWorkspaceOperation} from './agent-workspace-sandbox-recovery.js';
@@ -30,7 +31,7 @@ const object=(bytes:Buffer,limit=65536):Record<string,unknown>=>{const raw=json(
 export function readAgentRuntimeNamedMethodResult(root:string,rawScope:unknown,inputs?:AgentNamedMethodResultInputs):AgentNamedMethodResult {
  const summary:AgentNamedMethodResult={status:'Unknown',reason:inputs?'agent_method_result_unproven':'agent_method_original_inputs_missing',matched_calls:0,method_result_reverified:false,artifacts:[],model_account_custody_proven:false,costs_reconciled:false,domain_observation_produced:false,formal_agent_execution_enabled:false};
  if(!inputs)return summary;
- try {
+ try {return withRuntimeBinaryProofTurn(()=>rememberOriginalObservation('named-method\0'+resolve(root)+'\0'+digest(JSON.stringify(rawScope)).value+'\0'+digest(JSON.stringify(inputs)).value,()=>{
   const identity=readAgentRuntimeOriginalIdentity(root,rawScope),scope=identity.scope;
   const critical=['original-config.json','original-launcher.json','agent-sandbox-resources.json','agent-sandbox-original.json','result.json'].map(name=>{const path=join(identity.operation,name),bytes=bytesAt(path,name==='result.json'?4*1024*1024:65536);return {name,path,digest:digest(bytes).value,bytes};});
   const original=readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}),config=original.config,input=identity.input as Record<string,unknown>;
@@ -91,5 +92,5 @@ export function readAgentRuntimeNamedMethodResult(root:string,rawScope:unknown,i
     !same(readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}),original))fail();
   if(failure)return {...summary,status:'Observed',reason:'agent_named_method_output_invalid',matched_calls:seen.size,method_failure_reverified:true,failure,artifacts};
   if(!output)fail();return {...summary,status:'Observed',reason:'agent_named_method_result_reverified',matched_calls:seen.size,method_result_reverified:true,output,output_digest:digest(JSON.stringify(output)),artifacts};
- }catch{return summary;}
+  }));}catch{return summary;}
 }

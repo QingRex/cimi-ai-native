@@ -1,7 +1,7 @@
 import {agentWorkspaceConfigBaseFormat,assertAgentRuntimeStartupOriginal} from '@cimiloop/runtime-adapter';
 import {existsSync} from 'node:fs';import {join} from 'node:path';import {isDeepStrictEqual} from 'node:util';
 import {requestDigest,type AgentRunLaunchAuthorityInput,type AgentRunOriginalResultReader} from '@cimiloop/kernel';import type {Project,Digest} from '@cimiloop/protocol/v2';
-import {bytesAt,parseGatewayJson,readWorkspaceFileRunOriginals,inspectAgentRuntimeOriginalRegistration,readAgentWorkspaceIpcOriginals,readAgentRuntimeNativeResult,AgentWorkspaceCheckHost,digest,validWorkspaceWorkerIdentity,assertOrdinaryPath,readAgentWorkspaceIpcCurrentRequest,projectAgentWorkspaceIpcCausalPrefix,type AgentParentSkillHistoricalResultReader} from '@cimiloop/runtime-adapter';
+import {bytesAt,parseGatewayJson,readWorkspaceFileRunOriginals,inspectAgentRuntimeOriginalRegistration,readAgentWorkspaceIpcOriginals,readAgentRuntimeNativeResult,AgentWorkspaceCheckHost,digest,validWorkspaceWorkerIdentity,assertOrdinaryPath,readAgentWorkspaceIpcCurrentRequest,projectAgentWorkspaceIpcCausalPrefix,withRuntimeBinaryProofTurn,withStartCustodyVerifyTurn,type AgentParentSkillHistoricalResultReader} from '@cimiloop/runtime-adapter';
 import {captureLocalAgentParentSkillResults} from './agent-parent-skill-results-local.js';
 import {LocalRunVerifier} from './runs-local.js';import {LocalAgentStartCustody} from './agent-start-custody-local.js';import {LocalAgentCheckAdmission} from './agent-check-admission-local.js';
 
@@ -30,7 +30,7 @@ export class LocalAgentModelAdmission {
  private readonly parentResults:ReturnType<typeof captureLocalAgentParentSkillResults>;
  private fixed?:{key:string;manifest:ReturnType<LocalRunVerifier['readWorkspace']>;admitted:ReturnType<LocalAgentCheckAdmission['forRun']>};
  constructor(private readonly repositoryPath:string,private readonly dataDirectory:string,private readonly custody:LocalAgentStartCustody,private readonly checks:LocalAgentCheckAdmission,private readonly parentReader?:(reader:AgentRunOriginalResultReader)=>AgentParentSkillHistoricalResultReader){this.runs=new LocalRunVerifier(repositoryPath,dataDirectory);const factory=parentReader;this.parentResults=captureLocalAgentParentSkillResults(factory?{forOriginal:(_scope,writer)=>{if(!writer)throw Error('Original model snapshot reader missing');return factory(writer);}}:undefined);}
- checkModelAuthority(project:Project,raw:AgentRunLaunchAuthorityInput,reader?:AgentRunOriginalResultReader):Digest {
+ checkModelAuthority(project:Project,raw:AgentRunLaunchAuthorityInput,reader?:AgentRunOriginalResultReader):Digest {return withStartCustodyVerifyTurn(()=>withRuntimeBinaryProofTurn(()=>{
   const input=structuredClone(raw),scope=input.request;
   const key=requestDigest({project,input:{request:scope,context:input.context,record:{id:input.record.id,workspace:input.record.workspace_before_ref},workspace:input.workspace,source:input.source,actions:input.work_item.allowed_actions,resources:input.work_item.allowed_resources}});
   if(!this.fixed){this.fixed={key,manifest:this.runs.readWorkspace(project,input.workspace),admitted:this.checks.forRun(project,{task:input.task,work_item:input.work_item,source:input.source,workspace:input.workspace,runtime_binding:input.runtime_binding,skill_bindings:input.skill_bindings},input.record,input.context,scope,this.custody)};}
@@ -85,5 +85,5 @@ export class LocalAgentModelAdmission {
   };
   const before=read(),live=this.custody.checkModelAuthority(project,input),after=read();if(!isDeepStrictEqual(before,after))throw Error('Original model authority changed during verification');
   return {algorithm:'sha256',value:requestDigest({original:before,live})};
- }
+ }));}
 }

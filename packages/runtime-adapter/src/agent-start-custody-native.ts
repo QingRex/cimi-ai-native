@@ -8,6 +8,17 @@ import { assertOrdinaryPath, atomicJson, bytesAt, digest, directory, readJson, R
 import { isolatedEnvironment } from "./native.js";
 
 type Action = "identity" | "protect" | "verify";
+type VerifyHit={dev:string;ino:string;birthtimeNs:string;result:string};
+let custodyDepth=0;
+const custodyResets=new Set<()=>void>(),custodyRechecks=new Set<()=>void>();
+// One synchronous observation may ask Windows to re-verify the same protected
+// directory many times. Repeats reuse that process result. The outermost
+// observation runs the helper again and must see the same digest.
+export function withStartCustodyVerifyTurn<T>(run:()=>T):T{
+ const outer=custodyDepth===0;if(outer)for(const reset of custodyResets)reset();custodyDepth++;
+ try{const value=run();if(outer)for(const recheck of custodyRechecks)recheck();return value;}
+ finally{custodyDepth--;}
+}
 export async function openWindowsAgentStartCustody(toolsRoot: string, signal?: AbortSignal) {
   signal?.throwIfAborted();
   if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_start_custody_required");
@@ -29,16 +40,31 @@ export async function openWindowsAgentStartCustody(toolsRoot: string, signal?: A
   const expected = (readJson(metadata) as { digest?: { value?: string } }).digest?.value;
   if (!expected || digest(bytesAt(binary)).value !== expected) throw new RuntimeAdapterError("agent_start_custody_binary_changed");
   // Freeze helper identity; later metadata edits cannot change this live port.
+  const seen=new Map<string,VerifyHit>();
+  const execute=(action:Action,root:string)=>{
+    if (digest(bytesAt(binary)).value !== expected) throw Error();
+    const started = performance.now();
+    const result = execFileSync(binary, [action, assertOrdinaryPath(root)], {
+      windowsHide: true, timeout: 15000, maxBuffer: 16384, encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"], env: isolatedEnvironment()
+    });
+    if (performance.now() - started >= 15000 || !/^[a-f0-9]{64}$/.test(result)) throw Error();
+    return result;
+  };
+  custodyResets.add(()=>seen.clear());
+  custodyRechecks.add(()=>{for(const [root,hit] of seen){try{const stat=lstatSync(root,{bigint:true});if(!stat.isDirectory()||String(stat.dev)!==hit.dev||String(stat.ino)!==hit.ino||String(stat.birthtimeNs)!==hit.birthtimeNs||execute("verify",root)!==hit.result)throw new RuntimeAdapterError("agent_start_directory_custody_unproven");}catch(error){if(error instanceof RuntimeAdapterError&&error.reason==="agent_start_directory_custody_unproven")throw error;throw new RuntimeAdapterError("agent_start_directory_custody_unproven");}}});
   return (action: Action, root: string): string => {
     try {
-      if (digest(bytesAt(binary)).value !== expected) throw Error();
-      const started = performance.now();
-      const result = execFileSync(binary, [action, assertOrdinaryPath(root)], {
-        windowsHide: true, timeout: 15000, maxBuffer: 16384, encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"], env: isolatedEnvironment()
-      });
-      if (performance.now() - started >= 15000 || !/^[a-f0-9]{64}$/.test(result)) throw Error();
-      return result;
+      if(action==="verify"&&custodyDepth>0){
+        const stat=lstatSync(assertOrdinaryPath(root),{bigint:true});
+        if(!stat.isDirectory())throw Error();
+        const hit=seen.get(root);
+        if(hit&&hit.dev===String(stat.dev)&&hit.ino===String(stat.ino)&&hit.birthtimeNs===String(stat.birthtimeNs))return hit.result;
+        const result=execute(action,root);
+        seen.set(root,{dev:String(stat.dev),ino:String(stat.ino),birthtimeNs:String(stat.birthtimeNs),result});
+        return result;
+      }
+      return execute(action,root);
     } catch {
       if (action === "verify") { try { lstatSync(root); } catch (missing) {
         if (missing && typeof missing === "object" && "code" in missing && missing.code === "ENOENT") throw new RuntimeAdapterError("agent_start_original_missing");

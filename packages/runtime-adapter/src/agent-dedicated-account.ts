@@ -68,7 +68,7 @@ function synchronousModelGuard(guard:()=>void){const result:unknown=guard();if(r
 export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  readonly admission_digest:string;
  readonly #options:OpenOptions;readonly #original:AccountOrigin;readonly #ticket:AgentStartTicket;readonly #db:DatabaseSync;#attachmentRecovery:boolean;
- #closed=false;
+ #closed=false;#writerDepth=0;
  readonly #skillScopes:DedicatedAgentSkillScopeRegistry;
  #bills:AccountBillingStore|undefined;
  #attachment:LegacyAccountBillingAttachment|undefined;
@@ -170,12 +170,14 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   }
   if(!this.#bills&&(cash>BigInt(this.#original.policy.cash_limit_micros)||credits>BigInt(this.#original.policy.credit_limit_micro_units)))fail("agent_account_corrupt");return{rows,funds:this.#finances(rows)};
  }
- // Reads reserve the SAME parent writer cut. A WAL reader snapshot must not
- // compare an old account intent with a concurrently committed Host/bill row.
+ // Reads reserve the SAME parent writer cut. A synchronous recheck already
+ // inside this cut joins it; it must not open a second transaction. A WAL
+ // reader snapshot must not compare an old account intent with a concurrently
+ // committed Host/bill row.
  // Real protected Host audits and four-part child registration contend across
  // processes. Match the Host's bounded 30s writer wait; after acquisition the
  // complete fresh audit and final Kernel effect guard still run. No resend.
- #read<T>(action:(rows:Row[],funds:AccountFunds)=>T,write=false):T {this.#db.exec("BEGIN IMMEDIATE");this.#skillScopes.beginCut();try{const {rows,funds}=this.#validate(),out=action(rows,funds);if(write){this.#skillScopes.refreshCut();this.#validate();}this.#db.exec("COMMIT");return out;}catch(error){this.#db.exec("ROLLBACK");throw error;}finally{this.#skillScopes.endCut();}}
+ #read<T>(action:(rows:Row[],funds:AccountFunds)=>T,write=false):T {const nested=this.#writerDepth>0;if(!nested){this.#db.exec("BEGIN IMMEDIATE");this.#skillScopes.beginCut();}this.#writerDepth++;try{const {rows,funds}=this.#validate(),out=action(rows,funds);if(write){this.#skillScopes.refreshCut();this.#validate();}if(!nested)this.#db.exec("COMMIT");return out;}catch(error){if(!nested)this.#db.exec("ROLLBACK");throw error;}finally{this.#writerDepth--;if(!nested)this.#skillScopes.endCut();}}
  async check(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection):Promise<void>{return this.#checkOriginal(raw,connection);}
  async #checkOriginal(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection,verify?:(rows:Row[])=>void):Promise<void>{const scope=parseAgentWorkspaceToolScope(raw),fixed=copy(validateModelConnection(connection));if(!isDeepStrictEqual(fixed,this.#options.connection))fail("agent_account_connection_changed");const budget=(_rows:Row[],funds:AccountFunds)=>{this.#skillScopes.assertOpen(scope);if(funds.overBudget)fail("agent_account_budget_exhausted");};
   const relation=this.#read((rows,funds)=>{budget(rows,funds);this.#skillScopes.assertCompatible(scope,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));const relation=this.#skillScopes.relation(scope);if(!relation&&this.#skillScopes.isKnownChild(scope))fail("agent_account_skill_scope_unregistered");verify?.(rows);return relation;});

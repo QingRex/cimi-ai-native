@@ -8,6 +8,7 @@ import { validWorkspaceWorkerIdentity } from "./workspace-files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { copyToolJson, TOOL_RECORD_BYTES } from "./tool-journal.js";
 import type { AgentWorkspaceIpcEndpoint } from "./agent-workspace-ipc.js";
+import { rememberOriginalObservation } from "./runtime-binary-originals.js";
 
 const exact = (v: unknown, keys: string[]): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v) && Object.keys(v).sort().join(",") === [...keys].sort().join(",");
 const sha = (v: unknown): v is string => typeof v === "string" && /^[a-f0-9]{64}$/.test(v);
@@ -69,6 +70,9 @@ export class AgentWorkspaceIpcJournal {
 }
 
 export function readAgentWorkspaceIpcOriginals(root: string, rawScope: unknown, nonce: string) {
+  return rememberOriginalObservation("ipc\0"+root+"\0"+nonce+"\0"+JSON.stringify(rawScope),()=>readAgentWorkspaceIpcOriginalsNow(root,rawScope,nonce));
+}
+function readAgentWorkspaceIpcOriginalsNow(root: string, rawScope: unknown, nonce: string) {
   root = assertOrdinaryPath(root); const scope = parseAgentWorkspaceToolScope(rawScope), path = assertOrdinaryPath(location(root, scope, nonce));
   if (!existsSync(path)) return { status: "Unknown" as const, reason: "agent_ipc_original_registration_missing", path, header: null, exchanges: [], unresolved: 0, artifacts: [], formal_agent_execution_enabled: false as const };
   const headerBytes = bytesAt(join(path, "header.json"), TOOL_RECORD_BYTES), header = json(headerBytes);

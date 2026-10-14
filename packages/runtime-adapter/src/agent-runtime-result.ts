@@ -100,11 +100,14 @@ export function readAgentRuntimeNativePrefix(root:string,project:Pick<Project,'i
   const earlier=originals.exchanges.slice(0,index);if(!earlier.length||earlier.some(row=>row.state!=='reply_recorded'||!row.request||!row.reply))throw Error('Original earlier effects unresolved');
   const prefix={...spine,exchanges:earlier.filter(row=>!(row.request&&typeof row.request==='object'&&'tool'in row.request&&row.request.tool==='model_step')),unresolved:0};
   const fileIds=new Set<string>(),checkIds=new Set<string>();for(const row of prefix.exchanges){const request=row.request as Record<string,unknown>;if(request.tool==='run_check')checkIds.add(String(request.call_id));else if(['read_file','replace_file'].includes(String(request.tool)))fileIds.add(String(request.call_id));}
-  const all=()=>({files:readWorkspaceFileRunOriginals(root,project,record),checks:AgentWorkspaceCheckHost.readRunOriginals(root,project,record)}),before=all();
+  const all=()=>({files:readWorkspaceFileRunOriginals(root,project,record),checks:AgentWorkspaceCheckHost.readRunOriginals(root,project,record)});
   const selection=(full:ReturnType<typeof all>)=>{const files=full.files.calls.filter(row=>fileIds.has(row.input.call_id)),checks=full.checks.calls.filter(row=>checkIds.has(row.call.call_id));return{files:{...full.files,calls:files,facts:{invocations:files.length,unresolved:files.filter(row=>['reserved','executing','unknown'].includes(row.state)).length,has_effect:files.some(row=>row.state!=='not_started')}},checks:{...full.checks,calls:checks,facts:{invocations:checks.length,unresolved:checks.filter(row=>!row.receipt).length,has_effect:checks.some(row=>!!row.receipt)}}};};
-  const native=reverifyOriginalNative(root,project,record,scope,prefix,catalog,parentReader,()=>selection(all()));
-  if(native.status!=='Verified'||!isDeepStrictEqual(all(),before)||!isDeepStrictEqual(readAgentWorkspaceIpcOriginals(root,scope,nonce),spine)||!isDeepStrictEqual(originals,spine))throw Error('Original historical effects changed');
+  let verified:ReturnType<typeof all>|undefined;
+  const native=reverifyOriginalNative(root,project,record,scope,prefix,catalog,parentReader,()=>{verified=all();return selection(verified);});
+  const after=all();
+  if(native.status!=='Verified'||!verified||!isDeepStrictEqual(after,verified)||!isDeepStrictEqual(readAgentWorkspaceIpcOriginals(root,scope,nonce),spine)||!isDeepStrictEqual(originals,spine))throw Error('Original historical effects changed');
   const originalArtifacts=spine.artifacts.filter(row=>row.name==='header.json'||row.name.slice(0,4)<cut.ordinal||row.name===cut.ordinal+'/request.raw'||row.name===cut.ordinal+'/request.json').map(({name,digest})=>({name,digest}));
-  return{...denied,status:'VerifiedHistoricalPrefix' as const,reason:'agent_native_historical_prefix_reverified',cut:structuredClone(cut),prefix_digest:digest(JSON.stringify({header:spine.header,exchanges:earlier.map(({ordinal,request_digest,reply_digest,state})=>({ordinal,request_digest,reply_digest,state})),artifacts:originalArtifacts})).value,native,file_calls:structuredClone(selection(before).files.calls),check_calls:structuredClone(selection(before).checks.calls)};
+  const selected=selection(after);
+  return{...denied,status:'VerifiedHistoricalPrefix' as const,reason:'agent_native_historical_prefix_reverified',cut:structuredClone(cut),prefix_digest:digest(JSON.stringify({header:spine.header,exchanges:earlier.map(({ordinal,request_digest,reply_digest,state})=>({ordinal,request_digest,reply_digest,state})),artifacts:originalArtifacts})).value,native,file_calls:structuredClone(selected.files.calls),check_calls:structuredClone(selected.checks.calls)};
  }catch{return denied;}
 }

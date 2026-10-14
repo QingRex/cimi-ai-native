@@ -1,5 +1,6 @@
 import{captureDedicatedLedgerModelFullHold}from'./agent-dedicated-account.js';
 import {agentRuntimeClaimFormat} from './agent-job-policy.js';
+import { rememberOriginalObservation } from "./runtime-binary-originals.js";
 import { existsSync, realpathSync, lstatSync, mkdirSync, openSync, writeFileSync, fsyncSync, closeSync, readdirSync } from "node:fs";
 import { join, resolve, relative, isAbsolute, sep, dirname, basename } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -140,6 +141,10 @@ const originalSummary=(scope:AgentWorkspaceToolScope,status:DedicatedAgentOrigin
 // Independent read-only evidence path. No port, credential, budget mutation,
 // native launch or network dependency is accepted by this API. Usage is no bill.
 export function readDedicatedAgentModelOriginals(root:string,rawScope:unknown):{summary:DedicatedAgentOriginalSummary;calls:DedicatedAgentOriginalCall[];artifacts:{name:string;path:string;digest:string}[]}{
+ let key:string|undefined;try{key="dedicated-model\0"+resolve(root)+"\0"+digest(JSON.stringify(rawScope)).value;}catch{key=undefined;}
+ return key?rememberOriginalObservation(key,()=>readDedicatedAgentModelOriginalsNow(root,rawScope)):readDedicatedAgentModelOriginalsNow(root,rawScope);
+}
+function readDedicatedAgentModelOriginalsNow(root:string,rawScope:unknown):{summary:DedicatedAgentOriginalSummary;calls:DedicatedAgentOriginalCall[];artifacts:{name:string;path:string;digest:string}[]}{
  try{root=assertOrdinaryPath(root);const scope=parseAgentWorkspaceToolScope(rawScope),hostSpine=join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id),spine=join(root,"agent-dedicated-model-starts",scope.project_id,scope.run_id),body=join(root,"agent-dedicated-model-originals",scope.project_id,scope.run_id),registrationPath=join(hostSpine,"model_0001/dedicated-registration.json");
   const present=(p:string)=>{assertOrdinaryPath(p);try{lstatSync(p);return true;}catch(error){if(error&&typeof error==="object"&&"code" in error&&error.code==="ENOENT")return false;throw error;}};
   const listing=(p:string)=>{assertOrdinaryPath(p);if(!lstatSync(p).isDirectory())fail();const names=readdirSync(p).sort();if(names.length>65)fail();return names;};
