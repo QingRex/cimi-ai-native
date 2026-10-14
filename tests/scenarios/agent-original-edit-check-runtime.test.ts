@@ -16,13 +16,14 @@ import { flowSuccess } from "../fixtures/flow-project.js";
 // Overall test includes setup, a NEW constructed approved ten-minute Task and
 // collection/HTTP observation. No old Run, Task, cap failure or evidence is changed.
 vi.setConfig({testTimeout:780000});
+const nativeFixtureRoot=process.env.CIMILOOP_NATIVE_TEST_ROOT??tmpdir();
 // Actual current-source Windows/AppContainer, host model IPC, SDK, Node checks,
 // original host custody and Task clock. Replies/full account qualification are
 // constructed. This is executable-path coverage, never real model or S1 evidence.
 describe.runIf(process.platform==="win32"&&process.arch==="x64")("original Agent edit followed by fixed check and Kernel observation",()=>{
  const roots:string[]=[],stores:{close():void}[]=[],closers:(()=>Promise<void>)[]=[];
  afterEach(async context=>{while(closers.length)await closers.pop()!();while(stores.length)stores.pop()!.close();for(const root of roots.splice(0)){
-  if(!resolve(root).startsWith(resolve(tmpdir())+sep+"cimiloop-original-edit-check-runtime-"))throw Error("Unsafe cleanup");
+  if(!resolve(root).startsWith(resolve(nativeFixtureRoot)+sep+"cimiloop-original-edit-check-runtime-"))throw Error("Unsafe cleanup");
   const operations=join(root,".git/cimiloop/workspace-tool-rehearsals");if(existsSync(operations))for(const name of readdirSync(operations)){
    const proof=join(operations,name,"agent-sandbox-cleanup.json");if(!existsSync(proof)||JSON.parse(readFileSync(proof,"utf8")).resources_disposed!==true)throw Error("Retain original Native resources: "+root);
   }
@@ -31,7 +32,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("original Agent
   console.error("Retain original host-model fixture: "+root);
  }});
  async function setup(){
-  const root=mkdtempSync(join(tmpdir(),"cimiloop-original-edit-check-runtime-"));roots.push(root);
+  const root=mkdtempSync(join(nativeFixtureRoot,"cimiloop-original-edit-check-runtime-"));roots.push(root);
   const f=createAgentRunProject(root,"task_execution",100,[{provider:"cimiloop_workspace",resource_type:"repository_path",locator:"src/**",version:"1.0.0"}],["read_files","edit_files","run_checks"],["src/**"],["src/**"],600000);stores.push(f.store);
   const dataDirectory=dirname(f.path),harness="import {query} from './query.ts'; if(query()!==2)throw Error('actual source check');\n";
   writeFileSync(join(root,"src/check.mjs"),harness);f.git("add","src/check.mjs");f.git("commit","--quiet","-m","Actual fixed check input");const source=f.capture();
@@ -98,7 +99,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("original Agent
   expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(14);
   const config=JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"));
   expect(config.elapsed_ms).toBeGreaterThan(180000);expect(config.elapsed_ms).toBeLessThanOrEqual(600000);
-  expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/5.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
+  expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/8.0.0",startup_profile:'bun_interpreter/1.0.0',lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
   expect(readRuntimeBinaryOriginal(f.dataDirectory,config.binary,config.binary_original.sha)).toEqual(config.binary_original);
   expect(JSON.parse(readFileSync(join(collected.status.operation,"result.json"),"utf8"))).toMatchObject({format:"cimiloop/opencode-workspace-runtime/1.0.0",synthetic_model_responses:null,external_model_requests:null,actual_credentials_read:null,formal_agent_execution_enabled:false});
   expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");

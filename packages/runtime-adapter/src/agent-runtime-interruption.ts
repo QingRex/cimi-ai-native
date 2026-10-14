@@ -1,3 +1,4 @@
+import {agentWorkspaceConfigBaseFormat} from './agent-runtime-startup.js';
 import {assertAgentParentSkillConfig} from './agent-parent-skill-config.js';
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
 import {isDeepStrictEqual} from "node:util";
@@ -21,7 +22,7 @@ export function verifyAgentRuntimeInterruption(basis:{scope_digest:string;owner:
  !validWorkspaceWorkerIdentity(record.owner)||!validWorkspaceWorkerIdentity(record.supervisor)||!isDeepStrictEqual(config.owner,record.owner)||!isDeepStrictEqual(launch.owner,record.owner)||!isDeepStrictEqual(resources.owner,record.owner)||
  !isDeepStrictEqual(launch.supervisor,record.supervisor)||!isDeepStrictEqual(resources.supervisor,record.supervisor)||record.config_digest!==digest(configBytes!).value||resources.config_digest!==record.config_digest||resources.scope_digest!==record.scope_digest||
  typeof record.nonce!=="string"||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(record.nonce)||[config,launch,resources,cleanup].some(value=>value.nonce!==record.nonce)||
- !/^cimiloop\/agent-workspace-sandbox-config\/[1-7]\.0\.0$/.test(String(config.format))||!["cimiloop/agent-workspace-launcher/1.0.0","cimiloop/agent-workspace-launcher/2.0.0"].includes(String(launch.format))||
+ !/^cimiloop\/agent-workspace-sandbox-config\/[1-7]\.0\.0$/.test(String(agentWorkspaceConfigBaseFormat(config)))||!["cimiloop/agent-workspace-launcher/1.0.0","cimiloop/agent-workspace-launcher/2.0.0"].includes(String(launch.format))||
  resources.format!=="cimiloop/agent-workspace-resources/1.0.0"||resources.phase!=="ended"||resources.resources_disposed!==true||!isDeepStrictEqual(resources.runtime,record.runtime)||
  cleanup.format!=="cimiloop/agent-workspace-sandbox/1.0.0"||cleanup.phase!=="ended"||cleanup.reason!==record.reason||cleanup.exit_code!==125||cleanup.resources_disposed!==true||cleanup.formal_agent_execution_enabled!==false||!Array.isArray(cleanup.cleanup_errors)||cleanup.cleanup_errors.length!==0)fail();
  try{assertAgentNamedMethodConfig(config);assertAgentParentSkillConfig(config);}catch{fail();}
@@ -50,7 +51,7 @@ export function verifyCollectedAgentRuntimeInterruption(basis:{scope_digest:stri
   const launch=copyToolJson(parseGatewayJson(bytesAt(join(basis.operation,"original-launcher.json"),65536).toString("utf8"),65536)) as Record<string,unknown>;
   const input=basis.input as Record<string,unknown>;
   try{assertAgentNamedMethodConfig(config,input);assertAgentParentSkillConfig(config,input);}catch{fail();}
-  if(!input||!input.binary_original||!input.sandbox_original||!["cimiloop/agent-workspace-sandbox-config/5.0.0","cimiloop/agent-workspace-sandbox-config/6.0.0","cimiloop/agent-workspace-sandbox-config/7.0.0"].includes(String(config.format))||launch.format!=="cimiloop/agent-workspace-launcher/2.0.0"||!isDeepStrictEqual(config.binary_original,input.binary_original)||!isDeepStrictEqual(launch.launcher_original,input.sandbox_original))fail();
+  if(!input||!input.binary_original||!input.sandbox_original||!["cimiloop/agent-workspace-sandbox-config/5.0.0","cimiloop/agent-workspace-sandbox-config/6.0.0","cimiloop/agent-workspace-sandbox-config/7.0.0"].includes(String(agentWorkspaceConfigBaseFormat(config)))||launch.format!=="cimiloop/agent-workspace-launcher/2.0.0"||!isDeepStrictEqual(config.binary_original,input.binary_original)||!isDeepStrictEqual(launch.launcher_original,input.sandbox_original))fail();
  }
  return value;
 }

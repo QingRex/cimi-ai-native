@@ -1,0 +1,388 @@
+{
+  "format": "cimiloop/research/original-native-startup-policy/1.0.0",
+  "batch": "D-308",
+  "recorded_at": "2026-10-14T05:41:50.504Z",
+  "base_commit": "c71a8bb57768e54cdba365ea973cef1014900e2f",
+  "implementation": {
+    "profile": "bun_interpreter/1.0.0",
+    "config_versions": {
+      "ordinary": 8,
+      "named_method": 9,
+      "parent_skill": 10
+    },
+    "claim_version": 3,
+    "historical_configs_unchanged": true,
+    "process_local_environment_only": true,
+    "original_config_input_binding": true,
+    "job_artifact_slot_for_claim2_and_claim3": 1,
+    "schema_count": 242,
+    "project_database_format": 10,
+    "host_database_format": 1
+  },
+  "validation": {
+    "coverage_union": [
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-parent-model-causal-admission.test.ts",
+        "passed": 42
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-parent-model-kernel-reader.test.ts",
+        "passed": 3
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-failure-local.test.ts",
+        "passed": 20
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-job-policy.test.ts",
+        "passed": 18
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-cancellation.test.ts",
+        "passed": 24
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-named-method-result.test.ts",
+        "passed": 2
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-parent-operation-recovery.test.ts",
+        "passed": 25
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-parent-skill-native-config.test.ts",
+        "passed": 20
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+        "passed": 28
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+        "passed": 19
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+        "passed": 32
+      },
+      {
+        "suite": "r9-full-startup-reader-history",
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-runtime-parent-terminal.test.ts",
+        "passed": 5
+      },
+      {
+        "suite": "r10-final-reader-capacity",
+        "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-runtime-observation-local.test.ts",
+        "passed": 16
+      },
+      {
+        "suite": "r12-actual-original-native-sdk",
+        "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-original-edit-check-runtime.test.ts",
+        "passed": 1
+      },
+      {
+        "suite": "r12-actual-original-native-sdk",
+        "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-production-lifetime-runtime.test.ts",
+        "passed": 3
+      },
+      {
+        "suite": "r12-actual-original-native-sdk",
+        "path": "D:/cc/cimi-ai-native/tests/scenarios/opencode-workspace-runtime.test.ts",
+        "passed": 4
+      },
+      {
+        "suite": "r12-actual-original-native-sdk",
+        "path": "D:/cc/cimi-ai-native/tests/scenarios/skill-invocation-control-native-runtime.test.ts",
+        "passed": 1
+      },
+      {
+        "suite": "r14-current-packet-native",
+        "path": "D:/cc/cimi-ai-native/tests/scenarios/agent-host-model-runtime.test.ts",
+        "passed": 3
+      }
+    ],
+    "files": 18,
+    "passed": 266,
+    "not_single_full_run": true,
+    "production_sources_unchanged_between_selected_phases": true,
+    "suites": [
+      {
+        "label": "r9-full-startup-reader-history",
+        "recorded_at": "2026-10-14T04:57:10.758Z",
+        "worktree": "D:\\cc\\cimi-ai-native",
+        "exit_code": 1,
+        "error": null,
+        "elapsed_ms": 328065,
+        "files": [
+          "packages/runtime-adapter/test/agent-parent-skill-native-config.test.ts",
+          "packages/runtime-adapter/test/agent-job-policy.test.ts",
+          "packages/runtime-adapter/test/agent-parent-operation-recovery.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-parent-terminal.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+          "packages/local-app/test/agent-runtime-failure-local.test.ts",
+          "packages/local-app/test/agent-runtime-observation-local.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+          "packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+          "packages/runtime-adapter/test/agent-named-method-result.test.ts",
+          "packages/runtime-adapter/test/agent-named-method-cancellation.test.ts",
+          "packages/local-app/test/agent-parent-model-causal-admission.test.ts",
+          "packages/local-app/test/agent-parent-model-kernel-reader.test.ts"
+        ],
+        "source_files": 792,
+        "source_drift": [],
+        "original_budgets_raised": false,
+        "paid_requests": false,
+        "pushed": false,
+        "passed": 252,
+        "failed": 2,
+        "skipped": 0,
+        "report_sha256": "d7b277492911d35f10c0fb37529527631693a49ccbb0d74f88cc4fbfcd3ddf7d"
+      },
+      {
+        "label": "r10-final-reader-capacity",
+        "recorded_at": "2026-10-14T05:03:54.676Z",
+        "worktree": "D:\\cc\\cimi-ai-native",
+        "exit_code": 0,
+        "error": null,
+        "elapsed_ms": 234453,
+        "files": [
+          "packages/local-app/test/agent-runtime-observation-local.test.ts"
+        ],
+        "source_files": 792,
+        "source_drift": [],
+        "original_budgets_raised": false,
+        "paid_requests": false,
+        "pushed": false,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "report_sha256": "982dae7f5065303cff15b1c1a9eba7b98b9172735ec57dfedcf354a33685a5f1"
+      },
+      {
+        "label": "r12-actual-original-native-sdk",
+        "recorded_at": "2026-10-14T05:33:53.375Z",
+        "worktree": "D:\\cc\\cimi-ai-native",
+        "exit_code": 1,
+        "error": null,
+        "elapsed_ms": 1599477,
+        "files": [
+          "tests/scenarios/opencode-workspace-runtime.test.ts",
+          "tests/scenarios/agent-host-model-runtime.test.ts",
+          "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+          "tests/scenarios/agent-original-edit-check-runtime.test.ts",
+          "tests/scenarios/skill-invocation-control-native-runtime.test.ts"
+        ],
+        "source_files": 792,
+        "source_drift": [],
+        "original_budgets_raised": false,
+        "paid_requests": false,
+        "pushed": false,
+        "passed": 11,
+        "failed": 1,
+        "skipped": 0,
+        "report_sha256": "156cea5bfbd906d3c28d05875e76b911cce98e7d960465db2ec3a7d19833ec91"
+      },
+      {
+        "label": "r14-current-packet-native",
+        "recorded_at": "2026-10-14T05:41:35.127Z",
+        "worktree": "D:\\cc\\cimi-ai-native",
+        "exit_code": 0,
+        "error": null,
+        "elapsed_ms": 343394,
+        "files": [
+          "tests/scenarios/agent-host-model-runtime.test.ts"
+        ],
+        "source_files": 792,
+        "source_drift": [],
+        "original_budgets_raised": false,
+        "paid_requests": false,
+        "pushed": false,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "report_sha256": "66d8930e4f157b28d5c23ebe339ae4227bdc5e59551e66f6381baa9a91a40897"
+      }
+    ],
+    "check": {
+      "recorded_at": "2026-10-14T05:34:53.487Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 14939,
+      "files": [],
+      "source_files": 792,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "help": {
+      "recorded_at": "2026-10-14T05:41:24.594Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1543,
+      "files": [],
+      "source_files": 792,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    }
+  },
+  "retained_failures": [
+    {
+      "label": "r1-original-startup-red",
+      "passed": 17,
+      "failed": 3,
+      "valid_behavior_red": true
+    },
+    {
+      "label": "r2-startup-claim-red",
+      "passed": 17,
+      "failed": 1,
+      "valid_behavior_red": true
+    },
+    {
+      "label": "r5-startup-history-contracts",
+      "passed": 97,
+      "failed": 10,
+      "reason": "Constructed legacy result config omitted its version; explicitly declared historical config3 without weakening assertions"
+    },
+    {
+      "label": "r6-claim-three-capacity-red",
+      "valid_capacity_red": false,
+      "reason": "New test used wrong bound and an observer file in repository source; not acceptance evidence"
+    },
+    {
+      "label": "r9-full-startup-reader-history",
+      "passed": 252,
+      "failed": 2,
+      "reason": "Same new fixture preparation errors; corrected test only to525/526 and observer in own .git data; production fix retained"
+    },
+    {
+      "label": "r12-actual-original-native-sdk",
+      "passed": 11,
+      "failed": 1,
+      "reason": "PUBLIC host-model fixture expected packet1 but original request carries current packet2; callback rejected before response. Native exited1/stderr0/positive cleanup, not Bun crash evidence. Only expectation updated; new whole host-model file revalidated"
+    }
+  ],
+  "ordinary_engineering_review": {
+    "review": "D308 ordinary independent engineering review",
+    "base": "c71a8bb",
+    "workspace": "D:/cc/cimi-ai-native",
+    "independent_tests_run": false,
+    "source_or_native_changed_by_reviewer": false,
+    "reviewed_boundaries": [
+      "Prospective config8/9/10 map explicitly to old ordinary/named/parent modes; original input binds startup profile",
+      "Claim3 selector requires the fixed startup profile and the pre-existing Job policy and observer proof; claim1/2 remain distinct",
+      "Native exact config validation precedes process-local BUN_JSC_useJIT=0; CreateProcess inherits only this controller environment",
+      "Recovery, collection, completion, named result, cancellation, interruption, failure, terminal and model preparation version branches",
+      "Native reflection contract and actual SDK scenario expectation changes",
+      "Host-model fixture packet2 expectation matches the unchanged ordinary LocalAgentRuntimeComposition producer at line77"
+    ],
+    "must_fix_findings": [],
+    "resolved_findings": [
+      {
+        "priority": "P1",
+        "path": "packages/local-app/src/agent-runtime-observation-local.ts",
+        "line": 86,
+        "status": "source_closed_parent_reported_unit_green_native_pending",
+        "reviewed_fix": "MAX_ORIGINAL_ARTIFACTS is 524; the same one Job artifact slot applies to explicit claim2 and claim3. The corrected shared Kernel fixture puts its constructed observer in the excluded .git data directory, accepts 525 and rejects 526 without an event, new Run or budget release.",
+        "issue": "Collection artifact upper bound grants one Job observation slot only for claim2; prospective claim3 retains the same required Job observation and loses that slot.",
+        "impact": "A valid full-capacity new collection is rejected as Original collection mismatch, preventing original observation or fee reconciliation.",
+        "minimal_fix": "Grant the existing Job marker slot to claim2 and claim3 while preserving claim1's historical bound. Add a claim3 exact-limit positive case and limit-plus-one rejection."
+      },
+      {
+        "priority": "P2",
+        "path": "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+        "lines": [
+          32,
+          116,
+          179
+        ],
+        "status": "source_closed_parent_reported_native_branch_green_remaining_host_fixture_pending",
+        "reviewed_fix": "Prospective actual scenarios now assert claim3/config8 and the fixed startup profile, retaining Job, binary, lifetime, fee and original replay assertions.",
+        "additional_path": "tests/scenarios/agent-original-edit-check-runtime.test.ts:101",
+        "issue": "Actual scenarios creating new Runtime operations retain assertions for claim2/config5 although the upgraded Engine always produces claim3/config8.",
+        "minimal_fix": "Update only prospective version/profile expectations and retain all original Job, deadline, binary custody, fee and replay assertions. Historical constructed configs keep their original versions."
+      }
+    ],
+    "incremental_review": {
+      "legacy_completion_fixture": "Constructed old fixture now explicitly declares historical config3 instead of an invalid missing format; no reader or authority gate relaxed.",
+      "parent_reported_previous_six_file_result": {
+        "passed": 97,
+        "failed": 10,
+        "scope": "Intermediate report, not final acceptance; failures identified by parent as old completion fixture missing format"
+      },
+      "parent_reported_capacity_red": "The earlier 524/525 fixture had an incorrect boundary and placed its observer in tracked source scope; its failure is NOT effective evidence of the claimed capacity red. A proposed temporary old-branch reproduction was rejected by automatic approval review, never executed or retried.",
+      "corrected_capacity_source_review": "Base bound 128*4+1+10+1=524; claim3 adds exactly one Job artifact slot. The observed-input source remains unchanged by the observer in local.location.dataDirectory.",
+      "parent_reported_thirteen_file_r9": {
+        "files": 13,
+        "total": 254,
+        "passed": 252,
+        "failed": 2,
+        "scope": "Twelve complete files passed 238 cases; observation file passed 14 and failed the two incorrect capacity fixtures. Not a complete all-green command."
+      },
+      "parent_reported_corrected_observation_r10": {
+        "files": 1,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "scope": "Corrected 525/526 fixture; source792 stable per parent. Combined staged coverage with the twelve r9 passing files, NOT one thirteen-file all-green invocation."
+      },
+      "parent_reported_legacy_completion": "The explicit historical config3 fixture completed all 19 cases according to parent; reviewer did not independently run tests.",
+      "parent_reported_native_r12": {
+        "files": 5,
+        "total": 12,
+        "passed": 11,
+        "failed": 1,
+        "skipped": 0,
+        "duration_ms": 1599477,
+        "scope": "Four complete files passed nine cases: production lifetime three, edit/check one, workspace four, held child control one. Host-model file retained one positive failure because its old fixture expected packet1 while the ordinary producer emitted packet2. Not a complete five-file all-green invocation."
+      },
+      "host_model_incremental_source_review": "Only execute's packet1 expectation changes to packet2. The unchanged ordinary producer explicitly emits packet2 with original result_contract; Native, model call counts, exact IPC joins, budget, custody, Unknown and original receipt assertions remain. No production packet fallback or permission widening introduced.",
+      "parent_reported_r13": "pnpm check passed according to parent; not independently run",
+      "new_validation": "Host-model complete three-case r14 replay uses new owned fixture/Run and is still pending; no outcome assumed. Earlier original failure remains separate."
+    },
+    "limitations": [
+      "No tests, build, Native, model, credential or paid request executed by this reviewer",
+      "One read-only tool call did not return and was stopped; its additional source reads were subsequently completed without tests or source changes",
+      "No causality claim that interpreter startup fixes historical Bun crashes or parent Task expiry",
+      "Not Matt or Superpowers method evidence, real model or Skill approval, stability proof or S1 acceptance"
+    ],
+    "formal_method_acceptance": false,
+    "real_model_approval": false,
+    "s1_acceptance": false
+  },
+  "approval_review": {
+    "rejected_action": "Temporarily revert production capacity branch to reproduce corrected red",
+    "reason": "No guaranteed restoration; may leave production regression",
+    "executed": false,
+    "retried_or_bypassed": false,
+    "safer_path": "Keep production fix, correct only own fixture and verify actual bounds"
+  },
+  "boundaries": {
+    "paid_requests": false,
+    "pushed": false,
+    "real_user_credentials_read": false,
+    "default_formal_agent_enabled": false,
+    "real_model_approved": false,
+    "real_skill_proven": false,
+    "s1_accepted": false,
+    "old_unknown_resources_touched": false,
+    "old_private_input_read": false
+  },
+  "next": "Preserve candidate C domain differences; combine new retained startup policy with full actual parent SDK/domain/fee path, then complete remaining real method/approval/Workbench/Change delivery requirements."
+}

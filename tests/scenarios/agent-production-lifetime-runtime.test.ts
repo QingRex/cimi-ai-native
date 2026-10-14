@@ -29,7 +29,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
  // this host rejected Windows custody; neither historical location is repaired.
  function originalJob(root:string,scope:unknown,operation:string){
   const identity=readAgentRuntimeOriginalIdentity(root,scope),input=identity.input as Record<string,unknown>,read=(name:string)=>JSON.parse(readFileSync(join(operation,name),'utf8'));
-  expect(identity.claim.format).toBe('cimiloop/agent-runtime-operation-claim/2.0.0');expect(input.job_resource_policy).toEqual(AGENT_JOB_RESOURCE_POLICY);
+  expect(identity.claim.format).toBe('cimiloop/agent-runtime-operation-claim/3.0.0');expect(input.startup_profile).toBe('bun_interpreter/1.0.0');expect(input.job_resource_policy).toEqual(AGENT_JOB_RESOURCE_POLICY);
   const observed=readOriginalAgentJobObservation(root,operation,input,read('original-config.json'),read('original-launcher.json'),read('agent-sandbox-resources.json'));
   expect(observed).not.toBeNull();expect(observed!.proof).toMatchObject({limit_flags:8712,active_process_limit:1,job_memory_limit_bytes:2147483648,process_memory_limit_bytes:0,peer_in_job:true});return observed!;
  }
@@ -113,7 +113,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const config=JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"));
   expect(collected.artifacts.some(a=>a.name==="agent-job-observation.json")).toBe(true);originalJob(f.dataDirectory,f.scope,collected.status.operation);
   expect(config.elapsed_ms).toBeGreaterThan(180000);expect(config.elapsed_ms).toBeLessThanOrEqual(600000);
-  expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/5.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
+  expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/8.0.0",startup_profile:'bun_interpreter/1.0.0',lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
   expect(readRuntimeBinaryOriginal(f.dataDirectory,config.binary,config.binary_original.sha)).toEqual(config.binary_original);
   expect(JSON.parse(readFileSync(join(collected.status.operation,"result.json"),"utf8"))).toMatchObject({format:"cimiloop/opencode-workspace-runtime/1.0.0",synthetic_model_responses:null,external_model_requests:null,actual_credentials_read:null,formal_agent_execution_enabled:false});
   expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
@@ -176,7 +176,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("production lif
   const config=JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"));
   expect(collected.artifacts.some(a=>a.name==="agent-job-observation.json")).toBe(true);originalJob(f.dataDirectory,f.scope,collected.status.operation);
   expect(config.elapsed_ms).toBeGreaterThan(180000);expect(config.elapsed_ms).toBeLessThanOrEqual(600000);
-  expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/5.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
+  expect(config).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/8.0.0",startup_profile:'bun_interpreter/1.0.0',lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest},binary_original:{format:"cimiloop/runtime-binary-original-proof/1.0.0",physical_quota_enforced:false,prior_custody_proven:false}});
   expect(readRuntimeBinaryOriginal(f.dataDirectory,config.binary,config.binary_original.sha)).toEqual(config.binary_original);
   expect(JSON.parse(readFileSync(join(collected.status.operation,"result.json"),"utf8"))).toMatchObject({format:"cimiloop/opencode-workspace-runtime/1.0.0",synthetic_model_responses:null,external_model_requests:null,actual_credentials_read:null,formal_agent_execution_enabled:false});
   expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");

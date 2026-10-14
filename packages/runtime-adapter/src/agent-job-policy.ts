@@ -5,6 +5,7 @@ import {validWorkspaceWorkerIdentity} from './workspace-files.js';
 import type {CreditProcessIdentity} from './gateway-credit.js';
 import {parseGatewayJson} from './gateway-conversation.js';
 import {readRuntimeBinaryOriginal} from './runtime-binary-originals.js';
+import {AGENT_RUNTIME_STARTUP_PROFILE} from './agent-runtime-startup.js';
 // Prospective independent OS Job evidence. This does not prove disk quota,
 // provider approval or historical resource custody and never changes a Job.
 export const AGENT_JOB_RESOURCE_POLICY=Object.freeze({format:'cimiloop/agent-job-resource-policy/1.0.0' as const,limit_flags:0x2000|0x8|0x200,active_process_limit:1,job_memory_limit_bytes:2147483648,process_memory_limit_bytes:0});
@@ -13,13 +14,15 @@ export interface AgentJobObservation {format:'cimiloop/agent-job-observation/1.0
 const exact=(value:unknown,keys:string[]):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value)&&same(Object.keys(value).sort(),[...keys].sort());
 // Host-private compatibility gate: old readers reject claim2. No user DB or
 // public schema upgrade, and no historical claim or evidence is rewritten.
-export function agentRuntimeClaimFormat(input:unknown):'cimiloop/agent-runtime-operation-claim/1.0.0'|'cimiloop/agent-runtime-operation-claim/2.0.0'{
+export function agentRuntimeClaimFormat(input:unknown):'cimiloop/agent-runtime-operation-claim/1.0.0'|'cimiloop/agent-runtime-operation-claim/2.0.0'|'cimiloop/agent-runtime-operation-claim/3.0.0'{
  if(!input||typeof input!=='object'||Array.isArray(input))throw new RuntimeAdapterError('agent_runtime_job_policy_unproven');
  const value=input as Record<string,unknown>,policy=Object.hasOwn(value,'job_resource_policy'),observer=Object.hasOwn(value,'job_observer_original');
+ const startup=Object.hasOwn(value,'startup_profile');
+ if(startup&&(value.startup_profile!==AGENT_RUNTIME_STARTUP_PROFILE||!policy||!observer))throw new RuntimeAdapterError('agent_runtime_startup_original_unproven');
  if(!policy&&!observer)return 'cimiloop/agent-runtime-operation-claim/1.0.0';
  const proof=value.job_observer_original as ReturnType<typeof readRuntimeBinaryOriginal>;
  if(!policy||!observer||!same(value.job_resource_policy,AGENT_JOB_RESOURCE_POLICY)||!proof||proof.format!=='cimiloop/runtime-binary-original-proof/1.0.0'||typeof proof.path!=='string'||!proof.path||!/^[a-f0-9]{64}$/.test(proof.sha)||!Number.isSafeInteger(proof.bytes)||proof.bytes<=0)throw new RuntimeAdapterError('agent_runtime_job_policy_unproven');
- return 'cimiloop/agent-runtime-operation-claim/2.0.0';
+ return startup?'cimiloop/agent-runtime-operation-claim/3.0.0':'cimiloop/agent-runtime-operation-claim/2.0.0';
 }
 function fail():never{throw new RuntimeAdapterError('agent_job_observation_unproven');}
 export function verifyAgentJobObservation(basis:AgentJobObservationBasis,raw:unknown):AgentJobObservation{

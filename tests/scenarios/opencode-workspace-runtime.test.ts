@@ -12,6 +12,7 @@ import { nativeProbe } from "../../packages/runtime-adapter/src/probe.js";
 import { createAgentRunProject } from "../fixtures/agent-run-project.js";
 import { flowSuccess, flowTime } from "../fixtures/flow-project.js";
 vi.setConfig({ testTimeout: 120000 });
+const nativeFixtureRoot=process.env.CIMILOOP_NATIVE_TEST_ROOT??tmpdir();
 
 // Actual pinned OpenCode, OS AppContainer token, custom tools, Kernel queries
 // and Git effects. Model responses and qualification remain constructed.
@@ -19,14 +20,15 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("OpenCode
   const roots: string[] = [], closers: (() => Promise<void>)[] = [], stores: { close(): void }[] = [];
   afterEach(async () => {
     while (closers.length) await closers.pop()!(); while (stores.length) stores.pop()!.close();
-    while (roots.length) { const root = roots.pop()!; if (!resolve(root).startsWith(resolve(tmpdir()) + sep + "cimiloop-opencode-workspace-")) throw Error("Unsafe test cleanup");
+    while (roots.length) { const root = roots.pop()!; if (!resolve(root).startsWith(resolve(nativeFixtureRoot) + sep + "cimiloop-opencode-workspace-")) throw Error("Unsafe test cleanup");
       const data = join(root, ".git", "cimiloop", "workspace-tool-rehearsals");
       if (existsSync(data)) for (const name of readdirSync(data)) { const operation = join(data, name), proof = join(operation, "agent-sandbox-cleanup.json");
         if (!existsSync(proof) || JSON.parse(readFileSync(proof, "utf8")).resources_disposed !== true) throw Error("Retain original sandbox resources: " + operation); }
-      rmSync(root, { recursive: true, force: true }); }
+      // Keep this batch's actual SDK and startup evidence through all assertions.
+      console.error('Retain original OpenCode workspace fixture: '+root); }
   });
   async function setup() {
-    const root = mkdtempSync(join(tmpdir(), "cimiloop-opencode-workspace-")); roots.push(root);
+    const root = mkdtempSync(join(nativeFixtureRoot, "cimiloop-opencode-workspace-")); roots.push(root);
     const f = createAgentRunProject(root, "task_execution", 100, undefined, ["read_files", "edit_files"]); stores.push(f.store);
     f.runPort.agent.checkToolAuthority = (project, input) => contentDigest({ constructed: true, project_id: project.id, request: input.request });
     const kernel = new CimiLoopKernel({ store: f.store, caller: f.caller, now: () => flowTime, runVerifier: f.runPort });

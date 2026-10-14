@@ -57,7 +57,9 @@ describe("original structured Task execution result", () => {
     if (options.refreshTerminal !== false) { responses[1].content[0].text = JSON.stringify(terminal); events.find(event => event.type === "text").part.text = JSON.stringify(terminal); }
     collection.artifacts = []; const artifact = (name: string, value: any, raw = false) => { const bytes = Buffer.from(raw ? value : JSON.stringify(value)); collection.artifacts.push({ name, reference: rawReference(root, bytes, "agent_runtime_original_bytes", name) }); };
     const prompt = JSON.stringify(options.packet ?? base.packet), owner = { pid: 1234, creation_ticks: "1", image: process.execPath }, admission = digest("constructed unapproved model/account").value;
-    const config = { prompt, nonce: "constructed_nonce", pipe_nonce: "constructed_pipe", scope_digest: collection.scope_digest, owner, provider_options: { admission_digest: admission } };
+    // Explicit historical config3 constructed result fixture; no prospective
+    // interpreter policy, actual Native/account or S1 qualification is supplied.
+    const config = { format:'cimiloop/agent-workspace-sandbox-config/3.0.0', prompt, nonce: "constructed_nonce", pipe_nonce: "constructed_pipe", scope_digest: collection.scope_digest, owner, provider_options: { admission_digest: admission } };
     const disposal = { format: "cimiloop/agent-workspace-sandbox/1.0.0", phase: "ended", nonce: config.nonce, reason: "exited", exit_code: 0, resources_disposed: true, cleanup_errors: [], formal_agent_execution_enabled: false, ...options.disposal };
     const supervisor={pid:2345,creation_ticks:"2",image:process.execPath},peer={pid:2346,creation_ticks:"3",image:process.execPath},appcontainer_sid="S-1-15-2-1-2-3-4-5-6-7";
     const suspended={format:"cimiloop/agent-workspace-sandbox/1.0.0",phase:"suspended",nonce:config.nonce,supervisor,peer,appcontainer_sid,network_capability_sids:[],active_process_limit:1,...options.suspended};

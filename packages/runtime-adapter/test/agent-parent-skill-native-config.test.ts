@@ -3,6 +3,7 @@ import {tmpdir} from 'node:os';import {join} from 'node:path';import {fileURLToP
 import {execFile,execFileSync} from 'node:child_process';import {promisify} from 'node:util';
 import {beforeAll,describe,it,expect,vi} from 'vitest';
 import {buildWindowsAgentWorkspaceSandbox,isolatedEnvironment} from '../src/native.js';import {digest} from '../src/files.js';
+import {assertAgentParentSkillConfig} from '../src/agent-parent-skill-config.js';
 vi.setConfig({testTimeout:30000,hookTimeout:120000});
 // Actual compiled production C# methods and exact saved config/catalog bytes.
 // No Native process/Job/AppContainer effects, provider call or qualification.
@@ -22,7 +23,7 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('parent Skill o
   const config={format:'cimiloop/agent-workspace-sandbox-config/7.0.0',nonce:'PUBLIC nonce',root:'PUBLIC root',binary:'PUBLIC binary',owner:{},pipe_nonce:'PUBLIC pipe nonce',scope_digest,elapsed_ms:600000,provider_options:{admission_digest:digest('PUBLIC model admission').value,parent_skill_tools:'fixed_parent_skill/1.0.0'},deadline_uptime_ms:123456789,prompt:'PUBLIC complete original Task packet',lifetime_policy:'agent_task/1.0.0',binary_original:{format:'cimiloop/runtime-binary-original-proof/1.0.0',path:'PUBLIC binary'},parent_skill_tools:'fixed_parent_skill/1.0.0',parent_skill_original_binding:{format:'cimiloop/agent-parent-skill-binding/1.0.0',scope_digest,catalog_digest,sdk_catalog_digest:digest(bytes).value}};
   const modules=mkdtempSync(join(fixture,'modules-'));writeFileSync(join(modules,'parent-skill-catalog.json'),bytes,{flag:'wx'});return{config,catalog,bytes,modules};
  }
- const read=(mode:string,config:unknown,modules?:string)=>JSON.parse(execFileSync(contract,[core],{input:JSON.stringify({mode,config,modules,production:true,checks_only:false})+'\n',windowsHide:true,timeout:15000,encoding:'utf8',env:isolatedEnvironment()}));
+ const read=(mode:string,config:unknown,modules?:string)=>JSON.parse(execFileSync(contract,[core],{input:JSON.stringify({mode,config,modules,production:true,checks_only:false})+'\n',windowsHide:true,timeout:15000,encoding:'utf8',env:{...isolatedEnvironment(),BUN_JSC_useJIT:'external-fixture-value'}}));
  it('accepts only explicit saved Native7 with original parent scope, catalog pin, Task policy and finite original deadline',()=>{const f=basis();expect(read('config',f.config)).toMatchObject({accepted:true,result:123456789});});
  it('reads the original fixed alias catalog bytes bound to the same scope and private catalog digest',()=>{const f=basis();expect(read('catalog',f.config,f.modules)).toMatchObject({accepted:true});});
  it('grants exactly the four fixed ordinary parent SDK tools under default deny',()=>{const f=basis();expect(read('permissions',f.config)).toEqual({accepted:true,result:{'*':'deny',cimi_read:'allow',cimi_replace:'allow',cimi_check:'allow',cimi_run_skill:'allow'}});});
@@ -39,5 +40,41 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('parent Skill o
   expect(read('config',ordinary)).toMatchObject({accepted:true});expect(read('permissions',ordinary)).toEqual({accepted:true,result:{'*':'deny',cimi_read:'allow',cimi_replace:'allow',cimi_check:'allow'}});
   const named={...ordinary,format:'cimiloop/agent-workspace-sandbox-config/6.0.0',method_tools:'fixed_named_method/1.0.0',method_original_binding:{format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('header').value,anchor_digest:digest('anchor').value}};
   expect(read('config',named)).toMatchObject({accepted:true});expect(read('permissions',named)).toEqual({accepted:true,result:{'*':'deny',cimi_invoke_skill:'allow',cimi_read_method_resource:'allow'}});
+ });
+ function currentModes(){
+  const f=basis(),parent={...f.config,format:'cimiloop/agent-workspace-sandbox-config/10.0.0',startup_profile:'bun_interpreter/1.0.0'};
+  const ordinary:Record<string,unknown>={...parent,format:'cimiloop/agent-workspace-sandbox-config/8.0.0',provider_options:{admission_digest:f.config.provider_options.admission_digest}};
+  Reflect.deleteProperty(ordinary,'parent_skill_tools');Reflect.deleteProperty(ordinary,'parent_skill_original_binding');
+  const named={...ordinary,format:'cimiloop/agent-workspace-sandbox-config/9.0.0',method_tools:'fixed_named_method/1.0.0',method_original_binding:{format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('header').value,anchor_digest:digest('anchor').value}};
+  return {f,ordinary,named,parent};
+ }
+ it('accepts explicit interpreter config8/9/10 with the same original Task deadline and exact tool authority',()=>{
+  const {ordinary,named,parent,f}=currentModes();
+  for(const config of [ordinary,named,parent])expect(read('config',config)).toMatchObject({accepted:true,result:123456789});
+  expect(read('permissions',ordinary)).toEqual({accepted:true,result:{'*':'deny',cimi_read:'allow',cimi_replace:'allow',cimi_check:'allow'}});
+  expect(read('permissions',named)).toEqual({accepted:true,result:{'*':'deny',cimi_invoke_skill:'allow',cimi_read_method_resource:'allow'}});
+  expect(read('permissions',parent)).toEqual({accepted:true,result:{'*':'deny',cimi_read:'allow',cimi_replace:'allow',cimi_check:'allow',cimi_run_skill:'allow'}});
+  expect(read('catalog',parent,f.modules)).toMatchObject({accepted:true});
+ });
+ it('the actual retained Native startup method fixes only new child interpreter policy and preserves historical ambient meaning',()=>{
+  const {parent,f}=currentModes();
+  expect(read('startup',parent)).toEqual({accepted:true,result:{before:'external-fixture-value',after:'0'}});
+  expect(read('startup',f.config)).toEqual({accepted:true,result:{before:'external-fixture-value',after:'external-fixture-value'}});
+ });
+ it('binds the Node parent reader to the original startup profile without promoting or downgrading historical config7',()=>{
+  const {parent}=currentModes();
+  const input={...parent};
+  expect(assertAgentParentSkillConfig(parent,input)).toBe(true);
+  const missing={...input};Reflect.deleteProperty(missing,'startup_profile');
+  expect(()=>assertAgentParentSkillConfig(parent,missing)).toThrow();
+  expect(()=>assertAgentParentSkillConfig({...parent,format:'cimiloop/agent-workspace-sandbox-config/7.0.0'},input)).toThrow();
+ });
+ it('rejects missing, changed and extra startup authority before touching the Native child environment',()=>{
+  const {parent}=currentModes();
+  for(const patch of [{startup_profile:undefined},{startup_profile:'ambient_jit'},{startup_profile:{profile:'bun_interpreter/1.0.0',approved:true}},{startup_profile:'bun_interpreter/1.0.0',extra_environment:{BUN_JSC_useJIT:'1'}}]){
+   const config={...parent,...patch};if(config.startup_profile===undefined)Reflect.deleteProperty(config,'startup_profile');
+   expect(read('config',config)).toMatchObject({accepted:false});
+   expect(read('startup',config)).toMatchObject({accepted:false});
+  }
  });
 });

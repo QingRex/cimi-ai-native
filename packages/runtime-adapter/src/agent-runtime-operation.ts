@@ -1,3 +1,4 @@
+import {agentWorkspaceConfigBaseFormat} from './agent-runtime-startup.js';
 import {agentRuntimeClaimFormat} from './agent-job-policy.js';
 import {readAgentRuntimeNamedMethodResult,type AgentNamedMethodResultInputs} from './agent-named-method-result.js';
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
@@ -38,7 +39,7 @@ function load(root: string, rawScope: unknown) {
   root = assertOrdinaryPath(root);
   const scope = parseAgentWorkspaceToolScope(rawScope), location = paths(root, scope), raw = read(join(location.run, "claim.json"));
   if (!exact(raw, ["format", "scope", "input_digest", "operation_id", "owner", "synthetic_model_responses", "formal_agent_execution_enabled"]) ||
-    !["cimiloop/agent-runtime-operation-claim/1.0.0","cimiloop/agent-runtime-operation-claim/2.0.0"].includes(String(raw.format)) || !sha(raw.input_digest) || !uuid(raw.operation_id) || !validWorkspaceWorkerIdentity(raw.owner) ||
+    !["cimiloop/agent-runtime-operation-claim/1.0.0","cimiloop/agent-runtime-operation-claim/2.0.0","cimiloop/agent-runtime-operation-claim/3.0.0"].includes(String(raw.format)) || !sha(raw.input_digest) || !uuid(raw.operation_id) || !validWorkspaceWorkerIdentity(raw.owner) ||
     (raw.synthetic_model_responses !== true && raw.synthetic_model_responses !== null) || raw.formal_agent_execution_enabled !== false || !isDeepStrictEqual(parseAgentWorkspaceToolScope(raw.scope), scope)) fail("agent_runtime_claim_unproven");
   const claim = raw as unknown as Claim, key = read(join(location.key, "original.json"));
   if (digest(bytesAt(join(location.run, "input.json"), 65536)).value !== claim.input_digest) fail("agent_runtime_input_unproven");
@@ -235,13 +236,13 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
         }
         const parentMode=Object.hasOwn(input,'parent_skill_original_binding');
         if(parentMode){
-          if(namedMethodInputs||config.format!=='cimiloop/agent-workspace-sandbox-config/7.0.0'||config.parent_skill_tools!=='fixed_parent_skill/1.0.0'||(input.provider_options as Record<string,unknown>)?.parent_skill_tools!=='fixed_parent_skill/1.0.0'||(config.provider_options as Record<string,unknown>)?.parent_skill_tools!=='fixed_parent_skill/1.0.0')throw Error('Original parent mode mismatch');
+          if(namedMethodInputs||agentWorkspaceConfigBaseFormat(config)!=='cimiloop/agent-workspace-sandbox-config/7.0.0'||config.parent_skill_tools!=='fixed_parent_skill/1.0.0'||(input.provider_options as Record<string,unknown>)?.parent_skill_tools!=='fixed_parent_skill/1.0.0'||(config.provider_options as Record<string,unknown>)?.parent_skill_tools!=='fixed_parent_skill/1.0.0')throw Error('Original parent mode mismatch');
           const path=join(original.operation,'sandbox','config','parent-skill-catalog.json');parentBytes=bytesAt(path,16384);const sdkCatalog=parseAgentParentSkillSdkCatalog(copyToolJson(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(parentBytes),16384)),original.claim.scope),binding={format:'cimiloop/agent-parent-skill-binding/1.0.0',scope_digest:agentWorkspaceIpcScopeDigest(original.claim.scope),catalog_digest:sdkCatalog.catalog_digest,sdk_catalog_digest:digest(parentBytes).value};
           if(parentBytes.toString('utf8')!==JSON.stringify(sdkCatalog)||!isDeepStrictEqual(input.parent_skill_original_binding,binding)||!isDeepStrictEqual(config.parent_skill_original_binding,binding)||originals.header?.endpoint.parent_skill_catalog_digest!==sdkCatalog.catalog_digest||originals.header.format!=='cimiloop/agent-workspace-ipc-originals/2.0.0'||installedParent&&!isDeepStrictEqual(installedParent.sdkCatalog,sdkCatalog))throw Error('Original parent catalog mismatch');
           if(existsSync(join(original.operation,'result.json'))&&!isDeepStrictEqual((read(join(original.operation,'result.json')) as Record<string,unknown>).parent_skill_original_binding,binding))throw Error('Original parent result binding mismatch');
           const packet=copyToolJson(parseGatewayJson(String(input.prompt),32768)) as Record<string,unknown>;if(packet.format!=='cimiloop/agent-runtime-task-packet/3.0.0'||!isDeepStrictEqual(parseAgentParentSkillSdkCatalog(packet.parent_skill_catalog,original.claim.scope),sdkCatalog))throw Error('Original parent Task mismatch');
           artifacts.push({name:'parent-skill-catalog.json',reference:rawReference(root,parentBytes,'agent_runtime_original_bytes','parent-skill-catalog.json')});
-        }else if(config.format==='cimiloop/agent-workspace-sandbox-config/7.0.0'||config.parent_skill_original_binding!==undefined||originals.header?.endpoint.parent_skill_catalog_digest!==undefined||installedParent)throw Error('Legacy original cannot be reinterpreted as parent');
+        }else if(agentWorkspaceConfigBaseFormat(config)==='cimiloop/agent-workspace-sandbox-config/7.0.0'||config.parent_skill_original_binding!==undefined||originals.header?.endpoint.parent_skill_catalog_digest!==undefined||installedParent)throw Error('Legacy original cannot be reinterpreted as parent');
         native = readAgentRuntimeNativeResult(root, nativeInputs.project, nativeInputs.record, original.claim.scope, originals, catalog,installedParent);
         parentGuard();if(parentBytes&&!bytesAt(join(original.operation,'sandbox','config','parent-skill-catalog.json'),16384).equals(parentBytes)||!isDeepStrictEqual(read(configPath),config)||!isDeepStrictEqual(readCollectionIdentity(),originalIdentity)||!isDeepStrictEqual(readAgentWorkspaceIpcOriginals(root,original.claim.scope,String(config.pipe_nonce)),originals))throw Error('Original parent collection changed');
       } catch { native = {...native,status:"Unknown",reason:Object.hasOwn(input,'parent_skill_original_binding')?"agent_native_parent_skill_original_unproven":"agent_native_check_catalog_unproven",native_effect_reverified:false}; }
@@ -276,7 +277,7 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
   const fresh = load(root, rawScope);
   if (!isDeepStrictEqual(fresh.claim, original.claim)) fail("agent_runtime_claim_changed");
   if(cancellation&&cancelOriginal)artifacts.push({name:'agent-runtime-cancel.json',reference:rawReference(root,cancelOriginal.bytes,'agent_runtime_original_bytes','agent-runtime-cancel.json')});
-  const namedConfig=existsSync(configPath)&&(read(configPath) as Record<string,unknown>).format==='cimiloop/agent-workspace-sandbox-config/6.0.0';
+  const namedConfig=existsSync(configPath)&&agentWorkspaceConfigBaseFormat(read(configPath) as Record<string,unknown>)==='cimiloop/agent-workspace-sandbox-config/6.0.0';
   const named_method=namedConfig?readAgentRuntimeNamedMethodResult(root,rawScope,namedMethodInputs):undefined;
   if(named_method?.method_result_reverified||named_method?.method_failure_reverified)for(const a of named_method.artifacts){const bytes=bytesAt(a.path,['stdout.raw','result.json'].includes(a.name)?4*1024*1024:114688);if(digest(bytes).value!==a.digest)fail('agent_method_original_unproven');const name='named-method/'+a.name;artifacts.push({name,reference:rawReference(root,bytes,'agent_runtime_original_bytes',name)});}
   return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(named_method?{named_method}:{}), ...(model ? {model} : {}), ...(dedicated_model?{dedicated_model}:{}), ...(interruption?{interruption}:{}),...(cancellation?{cancellation}:{}),

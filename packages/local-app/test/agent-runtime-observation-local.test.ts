@@ -12,6 +12,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { CimiLoopKernel } from "@cimiloop/kernel";
 import { collectAgentRuntimeOperation } from "@cimiloop/runtime-adapter";
+import {AGENT_JOB_RESOURCE_POLICY,readRuntimeBinaryOriginal} from '@cimiloop/runtime-adapter';
+import {pinBinary} from '../../runtime-adapter/src/native.js';
 import { rawReference } from "../../runtime-adapter/src/files.js";
 import { claimAgentRuntimeOperation } from "../../runtime-adapter/src/agent-runtime-operation.js";
 import { createAgentRunProject } from "../../../tests/fixtures/agent-run-project.js";
@@ -128,6 +130,20 @@ describe("original Agent Unknown observation joins the Kernel receipt",()=>{
  return {name,reference:rawReference(local.location.dataDirectory,Buffer.from("constructed-history"),"agent_runtime_original_bytes",name)};});return collected;});
  expect(await service.record(command())).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"unknown",usage:{cost_known:false}}}}});
  expect(f.task().usage.cost_reserved_micros).toBe(100);
+ });
+ it.each([525,526])('claim3 retains its original Job artifact slot and refuses one more: %s artifacts',async count=>{
+  // Actual original claim/key and shared Kernel write; constructed executable
+  // bytes/references only. This is capacity coverage, not Native/Job evidence.
+  const source=join(local.location.dataDirectory,'PUBLIC-observer.exe');writeFileSync(source,'PUBLIC constructed observer bytes, never executed');
+  const binary=pinBinary(local.location.dataDirectory,source),observer=readRuntimeBinaryOriginal(local.location.dataDirectory,binary.path,binary.digest.value);
+  const scope=originalAgentWorkspaceScope({...local,store:f.store,caller:f.caller,kernel:f.kernel},runId);
+  claim=claimAgentRuntimeOperation(local.location.dataDirectory,scope,{purpose:'constructed-incomplete-original',startup_profile:'bun_interpreter/1.0.0',job_resource_policy:AGENT_JOB_RESOURCE_POLICY,job_observer_original:observer},{pid:1234,creation_ticks:'123456',image:process.execPath});
+  collect.mockImplementation(async(...args)=>{const collected=await collectAgentRuntimeOperation(...args);
+   collected.artifacts=Array.from({length:count},(_,index)=>{const name='constructed-claim3-history-'+index;return{name,reference:rawReference(local.location.dataDirectory,Buffer.from('PUBLIC constructed history'),'agent_runtime_original_bytes',name)};});return collected;});
+  const sequence=f.store.asOfEventSequence();
+  if(count===525)expect(await service.record(command())).toMatchObject({command_type:'RecordRunObservation',data:{observation:{report:{status:'unknown',usage:{cost_known:false}}}}});
+  else {await expect(service.record(command())).rejects.toThrow();expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.store.listRuntimeRecords('run_observation',f.change.id)).toHaveLength(0);}
+  expect(collect).toHaveBeenCalledTimes(1);expect(f.task().usage.cost_reserved_micros).toBe(100);expect(f.store.listRuns(f.change.id)).toHaveLength(1);
  });
  it("records independently pinned Native deadline failure through Kernel and retains unknown cost and the original budget",async()=>{
   seed();const config={format:"cimiloop/agent-workspace-sandbox-config/2.0.0",nonce:claim.operationId,owner:{},scope_digest:"constructed",deadline_uptime_ms:60000};

@@ -1,4 +1,5 @@
 import {AGENT_JOB_RESOURCE_POLICY,verifyAgentJobObservation} from './agent-job-policy.js';
+import {AGENT_RUNTIME_STARTUP_PROFILE} from './agent-runtime-startup.js';
 import {selectAgentRuntimeLifetime} from "./agent-runtime-lifetime.js";
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
 import{captureAgentParentSkillIpcPort,type AgentParentSkillIpcPort}from"./agent-parent-skill-ipc.js";
@@ -108,7 +109,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   lifetime.check(); if (!validWorkspaceWorkerIdentity(owner)) fail("workspace_rehearsal_owner_unproven");
   budget?.assertScope(scope);
   const claim = claimAgentRuntimeOperation(root, scope, { purpose: production ? "agent_runtime" : "workspace_rehearsal", mode: production ? "host_gateway" : checksOnly ? "checks" : "files", binary_digest: pinned.digest,binary_original:binaryOriginal,
-    sandbox_digest: sandboxBinary.digest, sandbox_original:sandboxBinary.original, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
+    sandbox_digest: sandboxBinary.digest, sandbox_original:sandboxBinary.original, startup_profile:AGENT_RUNTIME_STARTUP_PROFILE, modules: originalModules.map(({ name, digest }) => ({ name, digest })), check_catalog_digest: checkCatalog?.catalog_digest ?? null,
     job_resource_policy:AGENT_JOB_RESOURCE_POLICY,job_observer_original:jobObserver.original, provider_options: providerOptions, ...(parentBinding?{parent_skill_original_binding:parentBinding}:{}), ...(method?{method_original_binding:method.originalBinding}:{}), ...(production ? { prompt: options.prompt,...(model?.originalBinding?{model_original_binding:model.originalBinding}:{}) } : {}), requested_elapsed_ms: policy.requested_ms, ...(production?{lifetime_policy:policy.policy}:{}), deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null }, owner);
   cancellationWatch = setInterval(() => { try { if (agentRuntimeCancellationRequested(root, scope)) lifetime.stop("workspace_rehearsal_cancel_requested"); }
     catch { lifetime.stop("workspace_rehearsal_claim_unproven"); } }, 100);
@@ -136,7 +137,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const globalConfig = directory(join(config, "global", "opencode")); writeFileSync(join(globalConfig, ".gitignore"), "node_modules\npackage.json\npackage-lock.json\nbun.lock\n.gitignore\n", { flag: "wx" });
   writeFileSync(join(operation, "workspace-private-canary.txt"), "Synthetic private workspace canary\n", { flag: "wx" });
   const nonce = randomUUID(), pipeNonce = randomUUID(), scopeDigest = agentWorkspaceIpcScopeDigest(scope);
-  const originalConfig = { format:parent?"cimiloop/agent-workspace-sandbox-config/7.0.0":method?"cimiloop/agent-workspace-sandbox-config/6.0.0":"cimiloop/agent-workspace-sandbox-config/5.0.0", ...(parentBinding?{parent_skill_tools:"fixed_parent_skill/1.0.0",parent_skill_original_binding:parentBinding}:{}), ...(method?{method_tools:"fixed_named_method/1.0.0",method_original_binding:method.originalBinding}:{}), binary_original:binaryOriginal, nonce, root: sandbox, binary: pinned.path, owner,
+  const originalConfig = { format:parent?"cimiloop/agent-workspace-sandbox-config/10.0.0":method?"cimiloop/agent-workspace-sandbox-config/9.0.0":"cimiloop/agent-workspace-sandbox-config/8.0.0", startup_profile:AGENT_RUNTIME_STARTUP_PROFILE, ...(parentBinding?{parent_skill_tools:"fixed_parent_skill/1.0.0",parent_skill_original_binding:parentBinding}:{}), ...(method?{method_tools:"fixed_named_method/1.0.0",method_original_binding:method.originalBinding}:{}), binary_original:binaryOriginal, nonce, root: sandbox, binary: pinned.path, owner,
     pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null, prompt:production?options.prompt:null, lifetime_policy:production?policy.policy:null };
   atomicJson(join(operation, "original-config.json"), originalConfig);
   if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");

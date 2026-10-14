@@ -9,19 +9,21 @@ import { contentDigest } from "../../packages/kernel/src/intent.js";
 import { LocalAgentRuntimeComposition, LocalAgentStartCustody, LocalAgentCheckAdmission, LocalAgentWorkspaceToolService, openLocalAgentRunBudget, writeInstance } from "../../packages/local-app/src/index.js";
 import { initializeWindowsAgentStartLedger, AgentRuntimeModelHost, runOpenCodeWorkspaceRuntime, collectAgentRuntimeOperation, requestAgentRuntimeCancellation, parseAgentWorkspaceToolScope,
  readAgentRuntimeModelOriginals, type AgentRuntimeModelPort, type WorkspaceCheckTemplate } from "../../packages/runtime-adapter/dist/index.js";
+import {readAgentRuntimeOriginalIdentity} from '../../packages/runtime-adapter/dist/index.js';
 import { digest } from "../../packages/runtime-adapter/src/files.js";
 import { createAgentRunProject } from "../fixtures/agent-run-project.js";
 import { flowSuccess } from "../fixtures/flow-project.js";
 // Overall test includes fixture setup, the original <=180s Runtime/Task and
 // collection/HTTP observation. This does not extend any business/Native budget.
 vi.setConfig({testTimeout:360000});
+const nativeFixtureRoot=process.env.CIMILOOP_NATIVE_TEST_ROOT??tmpdir();
 // Actual current-source Windows/AppContainer, host model IPC, SDK, Node checks,
 // original host custody and Task clock. Replies/full account qualification are
 // constructed. This is executable-path coverage, never real model or S1 evidence.
 describe.runIf(process.platform==="win32"&&process.arch==="x64")("host model joins the original Agent Runtime",()=>{
  const roots:string[]=[],stores:{close():void}[]=[],closers:(()=>Promise<void>)[]=[];
  afterEach(async context=>{while(closers.length)await closers.pop()!();while(stores.length)stores.pop()!.close();for(const root of roots.splice(0)){
-  if(!resolve(root).startsWith(resolve(tmpdir())+sep+"cimiloop-host-model-runtime-"))throw Error("Unsafe cleanup");
+  if(!resolve(root).startsWith(resolve(nativeFixtureRoot)+sep+"cimiloop-host-model-runtime-"))throw Error("Unsafe cleanup");
   const operations=join(root,".git/cimiloop/workspace-tool-rehearsals");if(existsSync(operations))for(const name of readdirSync(operations)){
    const proof=join(operations,name,"agent-sandbox-cleanup.json");if(!existsSync(proof)||JSON.parse(readFileSync(proof,"utf8")).resources_disposed!==true)throw Error("Retain original Native resources: "+root);
   }
@@ -30,7 +32,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("host model joi
   console.error("Retain original host-model fixture: "+root);
  }});
  async function setup(){
-  const root=mkdtempSync(join(tmpdir(),"cimiloop-host-model-runtime-"));roots.push(root);
+  const root=mkdtempSync(join(nativeFixtureRoot,"cimiloop-host-model-runtime-"));roots.push(root);
   const f=createAgentRunProject(root,"task_execution",100,[{provider:"cimiloop_workspace",resource_type:"repository_path",locator:"src/**",version:"1.0.0"}],["read_files","run_checks"],["src/**"],undefined,180000);stores.push(f.store);
   const dataDirectory=dirname(f.path),harness="import {query} from './query.ts'; if(query()!==1)throw Error('actual source check');\n";
   writeFileSync(join(root,"src/check.mjs"),harness);f.git("add","src/check.mjs");f.git("commit","--quiet","-m","Actual fixed check input");const source=f.capture();
@@ -54,7 +56,7 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("host model joi
   const local={caller:f.caller,store:f.store,kernel,location:{repositoryKind:"git" as const,repositoryPath:root,dataDirectory,databasePath:f.path,instancePath:join(dataDirectory,"instance.json"),suggestedName:"Actual host model path; constructed account"}};
   const binary=join(process.env.APPDATA!,"npm/node_modules/opencode-ai/node_modules/opencode-windows-x64/bin/opencode.exe");let sends=0;
   const model:AgentRuntimeModelPort={admission_digest:digest("constructed model/account qualification").value,check:async current=>{expect(current).toEqual(scope);const assessment=kernel.assessAgentRunLaunch(current);if(!("decision" in assessment)||assessment.decision!=="ALLOW")throw Error(JSON.stringify(assessment));},execute:async input=>{
-   expect(JSON.stringify(input.prompt)).toContain("cimiloop/agent-runtime-task-packet/1.0.0");expect(JSON.stringify(input.prompt)).not.toContain("line truncated");sends++;const name=sends===1?"cimi_read":sends===2?"cimi_check":null;
+   expect(JSON.stringify(input.prompt)).toContain("cimiloop/agent-runtime-task-packet/2.0.0");expect(JSON.stringify(input.prompt)).not.toContain("line truncated");sends++;const name=sends===1?"cimi_read":sends===2?"cimi_check":null;
    if(name)return {content:[{type:"tool-call",tool_call_id:"model_tool_"+sends,tool_name:name,arguments:JSON.stringify(name==="cimi_read"?{path:"src/query.ts",expected_digest:digest(readFileSync(join(root,"src/query.ts"))).value}:{check_id:"query_test"})}],usage:{input_tokens:5,output_tokens:5},finish:"tool_calls"};
    return {content:[{type:"text",text:"Constructed final model response after actual checks"}],usage:{input_tokens:5,output_tokens:5},finish:"stop"};
   }};
@@ -70,7 +72,8 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("host model joi
   expect(collected.native).toMatchObject({status:"Verified",matched_calls:2,native_effect_reverified:true});expect(collected.ipc).toMatchObject({exchanges:5,correlation:{uncorrelated_exchanges:0,unmatched_sdk_calls:0}});
   const original=readAgentRuntimeModelOriginals(f.dataDirectory,f.scope);expect(original.calls[0]!.request.prompt).toBeDefined();expect(original.calls).toHaveLength(3);
   expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(11);
-  expect(JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"))).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/4.0.0",lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest}});
+  expect(JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"))).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/8.0.0",startup_profile:'bun_interpreter/1.0.0',lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest}});
+  expect(readAgentRuntimeOriginalIdentity(f.dataDirectory,f.scope)).toMatchObject({claim:{format:'cimiloop/agent-runtime-operation-claim/3.0.0'},input:{startup_profile:'bun_interpreter/1.0.0'}});
   expect(JSON.parse(readFileSync(join(collected.status.operation,"result.json"),"utf8"))).toMatchObject({format:"cimiloop/opencode-workspace-runtime/1.0.0",synthetic_model_responses:null,external_model_requests:null,actual_credentials_read:null,formal_agent_execution_enabled:false});
   expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
   writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});

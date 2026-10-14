@@ -1,3 +1,4 @@
+import {agentWorkspaceConfigBaseFormat} from './agent-runtime-startup.js';
 import {assertAgentParentSkillConfig} from './agent-parent-skill-config.js';
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
 import{isDeepStrictEqual as same}from'node:util';import{join}from'node:path';import{existsSync}from'node:fs';
@@ -17,7 +18,7 @@ export function verifyAgentRuntimeCancellation(basis:AgentCancellationBasis,read
   !phases.includes(String(proof.phase))||proof.runtime_resumed!==(proof.phase==='running')||proof.scope_digest!==basis.scope_digest||config.scope_digest!==basis.scope_digest||!same(proof.owner,basis.owner)||
   !validWorkspaceWorkerIdentity(proof.owner)||!validWorkspaceWorkerIdentity(proof.supervisor)||!same(config.owner,proof.owner)||!same(launch.owner,proof.owner)||!same(resources.owner,proof.owner)||!same(launch.supervisor,proof.supervisor)||!same(resources.supervisor,proof.supervisor)||
   proof.config_digest!==digest(configBytes!).value||resources.config_digest!==proof.config_digest||resources.scope_digest!==proof.scope_digest||typeof proof.nonce!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(proof.nonce)||[config,launch,resources,cleanup].some(v=>v.nonce!==proof.nonce)||
-  !['cimiloop/agent-workspace-sandbox-config/5.0.0','cimiloop/agent-workspace-sandbox-config/6.0.0','cimiloop/agent-workspace-sandbox-config/7.0.0'].includes(String(config.format))||launch.format!=='cimiloop/agent-workspace-launcher/2.0.0'||resources.format!=='cimiloop/agent-workspace-resources/1.0.0'||resources.phase!=='ended'||resources.resources_disposed!==true||!same(resources.runtime,proof.runtime)||
+  !['cimiloop/agent-workspace-sandbox-config/5.0.0','cimiloop/agent-workspace-sandbox-config/6.0.0','cimiloop/agent-workspace-sandbox-config/7.0.0'].includes(String(agentWorkspaceConfigBaseFormat(config)))||launch.format!=='cimiloop/agent-workspace-launcher/2.0.0'||resources.format!=='cimiloop/agent-workspace-resources/1.0.0'||resources.phase!=='ended'||resources.resources_disposed!==true||!same(resources.runtime,proof.runtime)||
   cleanup.format!=='cimiloop/agent-workspace-sandbox/1.0.0'||cleanup.phase!=='ended'||cleanup.reason!==proof.reason||cleanup.exit_code!==130||cleanup.resources_disposed!==true||cleanup.formal_agent_execution_enabled!==false||!Array.isArray(cleanup.cleanup_errors)||cleanup.cleanup_errors.length)fail();
  try{assertAgentNamedMethodConfig(config);assertAgentParentSkillConfig(config);}catch{fail();}
  const created=['runtime_created','suspended','running'].includes(String(proof.phase));if(created?!validWorkspaceWorkerIdentity(proof.runtime):proof.runtime!==null)fail();

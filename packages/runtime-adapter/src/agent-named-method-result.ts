@@ -1,3 +1,4 @@
+import {agentWorkspaceConfigBaseFormat} from './agent-runtime-startup.js';
 import {readOriginalAgentJobObservation} from './agent-job-policy.js';
 import {join} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
@@ -33,7 +34,7 @@ export function readAgentRuntimeNamedMethodResult(root:string,rawScope:unknown,i
   const identity=readAgentRuntimeOriginalIdentity(root,rawScope),scope=identity.scope;
   const critical=['original-config.json','original-launcher.json','agent-sandbox-resources.json','agent-sandbox-original.json','result.json'].map(name=>{const path=join(identity.operation,name),bytes=bytesAt(path,name==='result.json'?4*1024*1024:65536);return {name,path,digest:digest(bytes).value,bytes};});
   const original=readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}),config=original.config,input=identity.input as Record<string,unknown>;
-  if(config.format!=='cimiloop/agent-workspace-sandbox-config/6.0.0'||!original.launch||!original.resources)fail();
+  if(agentWorkspaceConfigBaseFormat(config)!=='cimiloop/agent-workspace-sandbox-config/6.0.0'||!original.launch||!original.resources)fail();
   const job=readOriginalAgentJobObservation(root,identity.operation,input,config,original.launch,original.resources);
   if(job)critical.push({name:'agent-job-observation.json',path:join(identity.operation,'agent-job-observation.json'),digest:job.digest.value,bytes:job.bytes});
   const method=readAgentNamedMethodOriginals(root,scope,inputs.profile,inputs.files,config.method_original_binding);

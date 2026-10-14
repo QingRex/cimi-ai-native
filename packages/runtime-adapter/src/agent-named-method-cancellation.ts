@@ -1,3 +1,4 @@
+import {agentWorkspaceConfigBaseFormat} from './agent-runtime-startup.js';
 import {join,resolve,relative,isAbsolute} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
 import {bytesAt,digest,RuntimeAdapterError} from './files.js';
@@ -34,7 +35,7 @@ export function readAgentRuntimeNamedMethodCancellation(root:string,rawScope:unk
    if(!a||typeof a.name!=='string'||names.has(a.name)||a.reference.provider!=='cimiloop-runtime-probe'||a.reference.resource_type!=='agent_runtime_original_bytes'||a.reference.version!==a.name||a.reference.digest?.algorithm!=='sha256'||a.reference.locator!==join(resolve(root),'blobs',a.reference.digest.value)||digest(bytesAt(a.reference.locator,4*1024*1024)).value!==a.reference.digest.value)fail();names.add(a.name);
   }
   const original=readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}),config=original.config,launch=original.launch,resources=original.resources,marker=readAgentRuntimeCancellationOriginal(root,scope);
-  if(config.format!=='cimiloop/agent-workspace-sandbox-config/6.0.0'||!launch||!resources||!marker||config.prompt!==input.prompt||!same(config.owner,identity.claim.owner)||!same(config.binary_original,input.binary_original)||!same(launch.launcher_original,input.sandbox_original))fail();
+  if(agentWorkspaceConfigBaseFormat(config)!=='cimiloop/agent-workspace-sandbox-config/6.0.0'||!launch||!resources||!marker||config.prompt!==input.prompt||!same(config.owner,identity.claim.owner)||!same(config.binary_original,input.binary_original)||!same(launch.launcher_original,input.sandbox_original))fail();
   const cancellation=verifyCollectedAgentRuntimeCancellation({scope_digest:scopeDigest,owner:identity.claim.owner,operation_id:identity.claim.operation_id,cancellation_digest:marker!.digest.value,operation:identity.operation,input,...{markerBytes:marker!.bytes}},collection);
   if(!cancellation||!cancellation.runtime_resumed||cancellation.phase!=='running')fail();
   const artifacts:OriginalNamedCancellation['artifacts']=[];

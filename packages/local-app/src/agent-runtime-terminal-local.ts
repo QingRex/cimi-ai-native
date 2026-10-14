@@ -1,3 +1,4 @@
+import {agentWorkspaceConfigBaseFormat} from '@cimiloop/runtime-adapter';
 import {existsSync} from 'node:fs';
 import {assertAgentParentSkillConfig,parseAgentParentSkillSdkCatalog,isAgentParentSkillToolSet,type AgentParentSkillHistoricalResultReader} from '@cimiloop/runtime-adapter';
 import {captureLocalAgentParentSkillResults} from './agent-parent-skill-results-local.js';
@@ -23,7 +24,7 @@ export function readOriginalAgentTerminal(root:string,project:Project,record:Age
  const marker=readAgentRuntimeCancellationOriginal(root,identity.scope);
  const cancellation=verifyCollectedAgentRuntimeCancellation({scope_digest:agentWorkspaceIpcScopeDigest(identity.scope),owner:identity.claim.owner,operation_id:identity.claim.operation_id,cancellation_digest:marker?.digest.value??null,operation:identity.operation,input:identity.input,...(marker?{markerBytes:marker.bytes}:{})},collection);
  if(cancellation&&(!domain?.run||domain.run.id!==record.run_id||domain.run.project_id!==project.id||domain.run.record_ref.id!==record.id||domain.run.cancel_requested!==true))throw Error('Kernel original cancellation unproven');
- if((parent?config.format!=='cimiloop/agent-workspace-sandbox-config/7.0.0':config.format!=='cimiloop/agent-workspace-sandbox-config/5.0.0')||launch?.format!=='cimiloop/agent-workspace-launcher/2.0.0'||
+ if((parent?agentWorkspaceConfigBaseFormat(config)!=='cimiloop/agent-workspace-sandbox-config/7.0.0':agentWorkspaceConfigBaseFormat(config)!=='cimiloop/agent-workspace-sandbox-config/5.0.0')||launch?.format!=='cimiloop/agent-workspace-launcher/2.0.0'||
   !same(config.binary_original,input.binary_original)||!input.binary_original||!same(launch.launcher_original,input.sandbox_original)||!input.sandbox_original||
   config.prompt!==input.prompt||config.lifetime_policy!=='agent_task/1.0.0'||config.lifetime_policy!==input.lifetime_policy||config.deadline_uptime_ms!==input.deadline_uptime_ms||
   !same(config.owner,identity.claim.owner)||resources?.resources_disposed!==true||!['ended','recovered'].includes(String(resources.phase))||

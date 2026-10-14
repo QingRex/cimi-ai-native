@@ -9,6 +9,7 @@ import { readRuntimeBinaryOriginal } from "../src/runtime-binary-originals.js";
 import { claimAgentRuntimeOperation, recoverAgentRuntimeOperation, queryAgentRuntimeOperation, collectAgentRuntimeOperation } from "../src/agent-runtime-operation.js";
 import { agentWorkspaceIpcScopeDigest } from "../src/agent-workspace-ipc.js";
 import { readOriginalAgentWorkspaceOperation } from "../src/agent-workspace-sandbox-recovery.js";
+import {AGENT_JOB_RESOURCE_POLICY} from '../src/agent-job-policy.js';
 
 // Actual original claim/key/input, retained binary custody and production reader.
 // Constructed executable bytes/owner only: no Native process or model/Skill qualification.
@@ -20,7 +21,7 @@ describe("parent config7 original operation reader and resource-only recovery", 
       rmSync(root, { recursive: true, force: true });
     }
   });
-  const setup = () => {
+  const setup = (startup=false) => {
     const root = mkdtempSync(join(tmpdir(), "cimiloop-parent-operation-original-")); roots.push(root);
     const source = join(root, "constructed-runtime.exe"); writeFileSync(source, "PUBLIC constructed runtime bytes, never executed");
     const binary = pinBinary(root, source), proof = readRuntimeBinaryOriginal(root, binary.path, binary.digest.value);
@@ -30,9 +31,9 @@ describe("parent config7 original operation reader and resource-only recovery", 
     const owner = { pid: 1234, creation_ticks: "123456", image: process.execPath }, scope_digest = agentWorkspaceIpcScopeDigest(scope);
     const binding = { format: "cimiloop/agent-parent-skill-binding/1.0.0", scope_digest, catalog_digest: digest("PUBLIC fixed private catalog").value, sdk_catalog_digest: digest("PUBLIC fixed SDK catalog").value };
     const input = { binary_original: proof, parent_skill_original_binding: binding, prompt: "PUBLIC original parent Task packet", lifetime_policy: "agent_task/1.0.0", deadline_uptime_ms: 123456789,
-      provider_options: { admission_digest: digest("PUBLIC original model admission").value, parent_skill_tools: "fixed_parent_skill/1.0.0" } };
+      provider_options: { admission_digest: digest("PUBLIC original model admission").value, parent_skill_tools: "fixed_parent_skill/1.0.0" },...(startup?{startup_profile:'bun_interpreter/1.0.0',job_resource_policy:AGENT_JOB_RESOURCE_POLICY,job_observer_original:proof}: {}) };
     const claim = claimAgentRuntimeOperation(root, scope, input, owner), nonce = createInternalId();
-    const config: Record<string, unknown> = { format: "cimiloop/agent-workspace-sandbox-config/7.0.0", nonce, root: join(claim.operation, "sandbox"), binary: proof.path, owner, pipe_nonce: createInternalId(), scope_digest,
+    const config: Record<string, unknown> = { format: startup?"cimiloop/agent-workspace-sandbox-config/10.0.0":"cimiloop/agent-workspace-sandbox-config/7.0.0",...(startup?{startup_profile:'bun_interpreter/1.0.0'}:{}), nonce, root: join(claim.operation, "sandbox"), binary: proof.path, owner, pipe_nonce: createInternalId(), scope_digest,
       elapsed_ms: 600000, provider_options: input.provider_options, deadline_uptime_ms: input.deadline_uptime_ms, prompt: input.prompt, lifetime_policy: input.lifetime_policy, binary_original: proof,
       parent_skill_tools: "fixed_parent_skill/1.0.0", parent_skill_original_binding: binding };
     mkdirSync(claim.operation, { recursive: true }); const path = join(claim.operation, "original-config.json");
@@ -44,6 +45,17 @@ describe("parent config7 original operation reader and resource-only recovery", 
     expect(f.read()).toMatchObject({ config: { format: "cimiloop/agent-workspace-sandbox-config/7.0.0", parent_skill_original_binding: f.input.parent_skill_original_binding }, launch: null, resources: null });
     expect(readFileSync(f.path)).toEqual(before); expect(readFileSync(join(f.claim.claimDirectory, "claim.json"))).toEqual(claimBytes);
     expect(existsSync(join(f.claim.operation, "original-launcher.json"))).toBe(false);
+  });
+  it('keeps config10 and claim3 bound to the same original startup policy while missing Native registration stays Unknown',async()=>{
+    const f=setup(true),claimPath=join(f.claim.claimDirectory,'claim.json'),before=readFileSync(claimPath);
+    expect(JSON.parse(before.toString())).toHaveProperty('format','cimiloop/agent-runtime-operation-claim/3.0.0');
+    expect(f.read()).toMatchObject({config:{format:'cimiloop/agent-workspace-sandbox-config/10.0.0',startup_profile:'bun_interpreter/1.0.0'},launch:null,resources:null});
+    expect(await recoverAgentRuntimeOperation(f.root,f.scope)).toMatchObject({outcome:'unknown',resources_disposed:false,completion_proven:false});
+    expect(readFileSync(claimPath)).toEqual(before);
+    f.config.format='cimiloop/agent-workspace-sandbox-config/7.0.0';delete f.config.startup_profile;f.save();
+    expect(()=>f.read()).toThrow();expect(readFileSync(claimPath)).toEqual(before);
+    const old=setup();old.config.format='cimiloop/agent-workspace-sandbox-config/10.0.0';old.config.startup_profile='bun_interpreter/1.0.0';old.save();
+    expect(()=>old.read()).toThrow();
   });
   it("recovers only the same original registration as Unknown without creating Native resources or a new claim", async () => {
     const f = setup(), before = readFileSync(join(f.claim.claimDirectory, "claim.json"));

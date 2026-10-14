@@ -59,22 +59,42 @@ partial class AppContainer {
   // Production control consumes the same frozen Task uptime deadline.
   static bool AgentControlExpired(Stopwatch watch) { return AgentTaskExpired()||(!agentProductionTask&&watch.ElapsedMilliseconds>=10000); }
   static bool AgentTaskExpired() { return agentTaskDeadline!=0&&AgentTickCount()>=agentTaskDeadline; }
+  // Explicit prospective child startup profile. Historical formats keep their
+  // original ambient semantics and cannot acquire this policy by an extra key.
+  static string AgentStartupFormat(Dictionary<string,object> config) {
+    string format=config["format"] as string;int version;
+    if(format=="cimiloop/agent-workspace-sandbox-config/8.0.0")version=5;
+    else if(format=="cimiloop/agent-workspace-sandbox-config/9.0.0")version=6;
+    else if(format=="cimiloop/agent-workspace-sandbox-config/10.0.0")version=7;
+    else {if(config.ContainsKey("startup_profile"))throw new InvalidDataException();return format;}
+    if(!config.ContainsKey("startup_profile")||config["startup_profile"] as string!="bun_interpreter/1.0.0")throw new InvalidDataException();
+    return "cimiloop/agent-workspace-sandbox-config/"+version.ToString()+".0.0";
+  }
+  static void AgentConfigKeys(Dictionary<string,object> config,params string[] keys) {
+    AgentStartupFormat(config);
+    var expected=new List<string>(keys);if(config.ContainsKey("startup_profile"))expected.Add("startup_profile");
+    AgentKeys(config,expected.ToArray());
+  }
+  static void AgentConfigureStartupEnvironment(Dictionary<string,object> config) {
+    AgentConfigDeadline(config); // Validate all original fields before effect.
+    if(config.ContainsKey("startup_profile"))Environment.SetEnvironmentVariable("BUN_JSC_useJIT","0");
+  }
   static ulong AgentConfigDeadline(Dictionary<string,object> config) {
-    string format=config["format"] as string;
+    string format=AgentStartupFormat(config);
     if(format=="cimiloop/agent-workspace-sandbox-config/1.0.0") { AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options"); return 0; }
     if(format=="cimiloop/agent-workspace-sandbox-config/5.0.0"||format=="cimiloop/agent-workspace-sandbox-config/6.0.0"||format=="cimiloop/agent-workspace-sandbox-config/7.0.0") {
       if(format=="cimiloop/agent-workspace-sandbox-config/7.0.0") {
-        AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy","binary_original","parent_skill_tools","parent_skill_original_binding");
+        AgentConfigKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy","binary_original","parent_skill_tools","parent_skill_original_binding");
         if(config["parent_skill_tools"] as string!="fixed_parent_skill/1.0.0"||!(config["prompt"] is string)||config["lifetime_policy"] as string!="agent_task/1.0.0"||config["deadline_uptime_ms"]==null)throw new InvalidDataException();
         var binding=config["parent_skill_original_binding"] as Dictionary<string,object>;if(binding==null)throw new InvalidDataException();
         AgentKeys(binding,"format","scope_digest","catalog_digest","sdk_catalog_digest");
         if(binding["format"] as string!="cimiloop/agent-parent-skill-binding/1.0.0"||binding["scope_digest"] as string!=config["scope_digest"] as string)throw new InvalidDataException();
         foreach(string key in new[]{"scope_digest","catalog_digest","sdk_catalog_digest"})if(!System.Text.RegularExpressions.Regex.IsMatch(binding[key] as string??"","^[a-f0-9]{64}$"))throw new InvalidDataException();
       } else if(format=="cimiloop/agent-workspace-sandbox-config/6.0.0") {
-        AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy","binary_original","method_tools","method_original_binding");
+        AgentConfigKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy","binary_original","method_tools","method_original_binding");
         if(config["method_tools"] as string!="fixed_named_method/1.0.0"||!(config["prompt"] is string)||config["lifetime_policy"] as string!="agent_task/1.0.0"||config["deadline_uptime_ms"]==null)throw new InvalidDataException();
         var method=config["method_original_binding"] as Dictionary<string,object>;if(method==null)throw new InvalidDataException();AgentKeys(method,"format","profile_digest","header_digest","anchor_digest");if(method["format"] as string!="cimiloop/agent-named-method-binding/1.0.0")throw new InvalidDataException();foreach(string key in new[]{"profile_digest","header_digest","anchor_digest"})if(!System.Text.RegularExpressions.Regex.IsMatch(method[key] as string??"","^[a-f0-9]{64}$"))throw new InvalidDataException();
-      } else AgentKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy","binary_original");
+      } else AgentConfigKeys(config,"format","nonce","root","binary","owner","pipe_nonce","scope_digest","elapsed_ms","provider_options","deadline_uptime_ms","prompt","lifetime_policy","binary_original");
       if(!((config["prompt"] is string&&config["lifetime_policy"] as string=="agent_task/1.0.0")||(config["prompt"]==null&&config["lifetime_policy"]==null))) throw new InvalidDataException();
       var binaryProof=config["binary_original"] as Dictionary<string,object>; if(binaryProof==null||binaryProof["path"] as string!=config["binary"] as string||binaryProof["format"] as string!="cimiloop/runtime-binary-original-proof/1.0.0") throw new InvalidDataException();
     }
@@ -88,7 +108,7 @@ partial class AppContainer {
   }
   static void AgentParentSkillCatalog(Dictionary<string,object> config,string modules) {
     AgentConfigDeadline(config);
-    if(config["format"] as string!="cimiloop/agent-workspace-sandbox-config/7.0.0")throw new InvalidDataException();
+    if(AgentStartupFormat(config)!="cimiloop/agent-workspace-sandbox-config/7.0.0")throw new InvalidDataException();
     var binding=(Dictionary<string,object>)config["parent_skill_original_binding"];
     // Hash bounded ORIGINAL bytes: ReadAllText strips BOMs and cannot prove
     // the same physical SDK module. No unbounded allocation precedes the cap.
@@ -110,9 +130,10 @@ partial class AppContainer {
     }
   }
   static Dictionary<string,object> AgentWorkspacePermissions(Dictionary<string,object> config,bool production,bool checksOnly) {
+    AgentConfigDeadline(config);
     var permission=new Dictionary<string,object>{{"*","deny"}};
     bool parent=config.ContainsKey("parent_skill_tools"),named=config.ContainsKey("method_tools")&&config["method_tools"] as string=="fixed_named_method/1.0.0";
-    if(parent){AgentConfigDeadline(config);if(!production||checksOnly||named||config["format"] as string!="cimiloop/agent-workspace-sandbox-config/7.0.0")throw new InvalidDataException();}
+    if(parent){if(!production||checksOnly||named||AgentStartupFormat(config)!="cimiloop/agent-workspace-sandbox-config/7.0.0")throw new InvalidDataException();}
     if(named){if(!production)throw new InvalidDataException();permission.Add("cimi_invoke_skill","allow");permission.Add("cimi_read_method_resource","allow");}
     else if(!checksOnly){permission.Add("cimi_read","allow");permission.Add("cimi_replace","allow");}
     var options=(Dictionary<string,object>)config["provider_options"];
@@ -290,7 +311,7 @@ partial class AppContainer {
       var options=(Dictionary<string,object>)config["provider_options"];
       bool production=taskPolicy||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/3.0.0",checksOnly=options.ContainsKey("check_only");
       if(production) {
-        if(config["format"] as string=="cimiloop/agent-workspace-sandbox-config/7.0.0"){
+        if(AgentStartupFormat(config)=="cimiloop/agent-workspace-sandbox-config/7.0.0"){
           AgentKeys(options,"admission_digest","parent_skill_tools");if(options["parent_skill_tools"] as string!="fixed_parent_skill/1.0.0")throw new InvalidDataException();AgentParentSkillCatalog(config,modules);
         }else AgentKeys(options,"admission_digest");
         if(!(options["admission_digest"] is string)||!System.Text.RegularExpressions.Regex.IsMatch((string)options["admission_digest"],"^[a-f0-9]{64}$")||agentTaskDeadline==0) throw new InvalidDataException();
@@ -325,6 +346,7 @@ partial class AppContainer {
       Grant(modules,principal,FileSystemRights.ReadAndExecute|FileSystemRights.WriteAttributes,true,true); Grant(binary,principal,FileSystemRights.ReadAndExecute,false,false);
       AgentCheckpoint("granted",owner);
       mapping=AgentMap(root); AgentCheckpoint("mapped",owner); string privateState=mapping+"\\state";
+      AgentConfigureStartupEnvironment(config);
       foreach(string name in new string[] {"TEMP","TMP","USERPROFILE","HOME","OPENCODE_TEST_HOME"}) Environment.SetEnvironmentVariable(name,privateState);
       Environment.SetEnvironmentVariable("APPDATA",privateState+"\\AppData\\Roaming"); Environment.SetEnvironmentVariable("LOCALAPPDATA",privateState+"\\AppData\\Local");
       foreach(string name in new string[] {"DATA","CONFIG","CACHE","STATE"}) Environment.SetEnvironmentVariable("XDG_"+name+"_HOME",privateState+"\\"+name.ToLower());

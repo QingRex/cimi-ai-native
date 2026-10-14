@@ -1,12 +1,14 @@
 import {isDeepStrictEqual as same} from 'node:util';
 import {RuntimeAdapterError} from './files.js';
+import {agentWorkspaceConfigBaseFormat,assertAgentRuntimeStartupOriginal} from './agent-runtime-startup.js';
 const fail=():never=>{throw new RuntimeAdapterError('agent_parent_skill_config_unproven');};
 const owns=(v:unknown,key:string)=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.hasOwn(v,key);
 const options=(v:unknown):Record<string,unknown>=>v&&typeof v==='object'&&!Array.isArray(v)?v as Record<string,unknown>:{};
 // Config7 is an explicit fixed parent SDK mode. Old configs retain their original
 // meaning and cannot acquire parent tools by an extra flag or binding.
 export function assertAgentParentSkillConfig(config:Record<string,unknown>,input?:Record<string,unknown>):boolean {
- const parent=config.format==='cimiloop/agent-workspace-sandbox-config/7.0.0',provider=options(config.provider_options);
+ assertAgentRuntimeStartupOriginal(config,input);
+ const parent=agentWorkspaceConfigBaseFormat(config)==='cimiloop/agent-workspace-sandbox-config/7.0.0',provider=options(config.provider_options);
  if(!parent){if(owns(config,'parent_skill_tools')||owns(config,'parent_skill_original_binding')||owns(provider,'parent_skill_tools')||input&&(owns(input,'parent_skill_original_binding')||owns(options(input.provider_options),'parent_skill_tools')))fail();return false;}
  const binding=options(config.parent_skill_original_binding);
  if(config.parent_skill_tools!=='fixed_parent_skill/1.0.0'||provider.parent_skill_tools!=='fixed_parent_skill/1.0.0'||

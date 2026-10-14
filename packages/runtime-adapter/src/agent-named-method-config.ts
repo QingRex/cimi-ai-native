@@ -1,9 +1,11 @@
 import {isDeepStrictEqual as same} from 'node:util';
 import {RuntimeAdapterError} from './files.js';
+import {agentWorkspaceConfigBaseFormat,assertAgentRuntimeStartupOriginal} from './agent-runtime-startup.js';
 // Explicit config6 compatibility. It grants only fixed-material method tools;
 // collected evidence must bind them to the original operation's exact pins.
 export function assertAgentNamedMethodConfig(config:Record<string,unknown>,input?:Record<string,unknown>):boolean {
- const named=config.format==='cimiloop/agent-workspace-sandbox-config/6.0.0';
+ assertAgentRuntimeStartupOriginal(config,input);
+ const named=agentWorkspaceConfigBaseFormat(config)==='cimiloop/agent-workspace-sandbox-config/6.0.0';
  const fail=():never=>{throw new RuntimeAdapterError('agent_method_config_unproven');};
  if(!named){if(config.method_tools!==undefined||config.method_original_binding!==undefined||input?.method_original_binding!==undefined)fail();return false;}
  const binding=config.method_original_binding as Record<string,unknown>;

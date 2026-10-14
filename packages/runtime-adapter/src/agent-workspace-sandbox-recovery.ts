@@ -1,5 +1,6 @@
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
 import {assertAgentParentSkillConfig} from './agent-parent-skill-config.js';
+import {agentWorkspaceConfigBaseFormat} from './agent-runtime-startup.js';
 import {readAgentRuntimeOriginalIdentity,readAgentRuntimeOriginalResourceIdentity,inspectAgentRuntimeOriginalRegistration} from './agent-runtime-operation.js';
 import { existsSync } from "node:fs";
 import {readRuntimeBinaryOriginal} from "./runtime-binary-originals.js";
@@ -26,14 +27,15 @@ function readOriginal(raw: { root: string; operation: string; scope: unknown }, 
   const rawConfig = record(join(operation, "original-config.json"));
   if (!rawConfig || typeof rawConfig !== "object" || Array.isArray(rawConfig)) fail();
   const config = rawConfig as Record<string, unknown>;
-  const fields = ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options"];
-  const namedConfig=exact(config,[...fields,'deadline_uptime_ms','prompt','lifetime_policy','binary_original','method_tools','method_original_binding'])&&config.format==='cimiloop/agent-workspace-sandbox-config/6.0.0';
-  const parentConfig=exact(config,[...fields,'deadline_uptime_ms','prompt','lifetime_policy','binary_original','parent_skill_tools','parent_skill_original_binding'])&&config.format==='cimiloop/agent-workspace-sandbox-config/7.0.0';
+  const configFormat=agentWorkspaceConfigBaseFormat(config);
+  const fields = ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options",...(Object.hasOwn(config,'startup_profile')?['startup_profile']:[])];
+  const namedConfig=exact(config,[...fields,'deadline_uptime_ms','prompt','lifetime_policy','binary_original','method_tools','method_original_binding'])&&configFormat==='cimiloop/agent-workspace-sandbox-config/6.0.0';
+  const parentConfig=exact(config,[...fields,'deadline_uptime_ms','prompt','lifetime_policy','binary_original','parent_skill_tools','parent_skill_original_binding'])&&configFormat==='cimiloop/agent-workspace-sandbox-config/7.0.0';
   try { assertAgentParentSkillConfig(config); } catch { fail(); }
   // Only explicit absence of BOTH claim identities preserves legacy reading.
   // Existing/unknown registration must bind even a config with erased markers.
   const registration=inspectAgentRuntimeOriginalRegistration(root,scope);
-  if(parentConfig||namedConfig||registration.status!=="absent"){
+  if(parentConfig||namedConfig||Object.hasOwn(config,'startup_profile')||registration.status!=="absent"){
     try{
       const original=verifyBinaryOriginal
         ? registration.status==="original"?registration.identity:readAgentRuntimeOriginalIdentity(root,scope)
@@ -44,7 +46,7 @@ function readOriginal(raw: { root: string; operation: string; scope: unknown }, 
     }catch{fail();}
   }
   const oldConfig = exact(config, fields) && config.format === "cimiloop/agent-workspace-sandbox-config/1.0.0";
-  const retainedConfig=exact(config,[...fields,"deadline_uptime_ms","prompt","lifetime_policy","binary_original"])&&config.format==="cimiloop/agent-workspace-sandbox-config/5.0.0"&&
+  const retainedConfig=exact(config,[...fields,"deadline_uptime_ms","prompt","lifetime_policy","binary_original"])&&configFormat==="cimiloop/agent-workspace-sandbox-config/5.0.0"&&
     (typeof config.prompt==="string"&&config.lifetime_policy==="agent_task/1.0.0"||config.prompt===null&&config.lifetime_policy===null);
   const newConfig = (exact(config, [...fields, "deadline_uptime_ms"]) && config.format === "cimiloop/agent-workspace-sandbox-config/2.0.0" ||
     exact(config, [...fields, "deadline_uptime_ms", "prompt"]) && config.format === "cimiloop/agent-workspace-sandbox-config/3.0.0" && typeof config.prompt === "string" ||
