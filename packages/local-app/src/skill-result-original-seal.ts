@@ -23,6 +23,12 @@ export function captureSkillResultRuntimeOriginalBoundary(options:BoundaryOption
  if(args.root!==resolve(join(args.dataDirectory,'skill-runtime-originals',options.project.id,options.invocation.invocation_key))||args.project.repository_path!==args.repositoryPath||options.project.id!==options.invocation.project_id||options.parent.project_id!==options.project.id||options.parent.run_id!==options.invocation.run_ref.id)fail();
  const identity=runtimeOriginal(args.root,child),verify=()=>{if(!same(boundaryArgs(options),args))fail();const current=runtimeOriginal(args.root,child);if(!same(current,identity))fail();return current;};verify();const boundary=freeze({format:'cimiloop/skill-result-runtime-original-boundary/1.0.0' as const,identity_digest:identity.identity_digest.value});boundaries.set(boundary,{args,identity,verify});return boundary;
 }
+// Final fixed read after installed account/qualification callbacks. The private
+// capture must match the original relation; JSON flags/digests confer no brand.
+export function assertSkillResultRuntimeOriginalBoundary(raw:unknown,options:BoundaryOptions):void{
+ if(!raw||typeof raw!=='object'||!(options.content instanceof LocalEvidenceVerifier))fail();
+ const boundary=boundaries.get(raw);if(!boundary||!same(boundary.args,boundaryArgs(options)))fail();boundary.verify();
+}
 export function captureSkillResultOriginalSeal(options:Options):SkillResultOriginalSeal{
  if(!(options.content instanceof LocalEvidenceVerifier)||!Number.isSafeInteger(options.max_artifacts)||options.max_artifacts<1||options.max_artifacts>4096||!Number.isSafeInteger(options.max_total_bytes)||options.max_total_bytes<1||options.max_total_bytes>2147483648)fail();
  const content=options.content,contentLocation={repositoryPath:content.repositoryPath,dataDirectory:content.dataDirectory},root=assertOrdinaryPath(resolve(options.originalRoot)),report=structuredClone(validate(copyToolJson(options.report))),reference=structuredClone(options.reportReference);

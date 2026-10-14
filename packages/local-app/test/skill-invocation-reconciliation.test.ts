@@ -1,8 +1,9 @@
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync,existsSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,renameSync,rmSync,existsSync} from 'node:fs';
+import{pinBinary}from'../../runtime-adapter/src/native.js';import{claimAgentRuntimeOperation}from'../../runtime-adapter/src/agent-runtime-operation.js';import{readRuntimeBinaryOriginal}from'@cimiloop/runtime-adapter';
 import {tmpdir} from 'node:os';import {join,dirname,basename} from 'node:path';
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
 const readers=vi.hoisted(()=>({method:vi.fn(),provider:vi.fn(),model:vi.fn(),costs:vi.fn(),cancel:vi.fn(),collect:vi.fn()}));
-vi.mock('@cimiloop/runtime-adapter',async original=>({...await original<typeof import('@cimiloop/runtime-adapter')>(),readAgentRuntimeNamedMethodResult:readers.method,readDedicatedAgentModelOriginals:readers.provider,readAgentRuntimeModelOriginals:readers.model,readOriginalDedicatedAgentRunCosts:readers.costs,readAgentRuntimeNamedMethodCancellation:readers.cancel,collectAgentRuntimeOperation:readers.collect}));
+vi.mock('@cimiloop/runtime-adapter',async original=>({...await original<typeof import('@cimiloop/runtime-adapter')>(),readAgentRuntimeNamedMethodResult:readers.method,readDedicatedAgentModelOriginals:readers.provider,readAgentRuntimeModelOriginals:readers.model,readOriginalDedicatedAgentRunCosts:readers.costs,withOriginalDedicatedAgentRunCostRead:(root:string,scope:unknown,account:unknown,consume:(read:(...args:unknown[])=>unknown)=>unknown,close?:()=>void)=>{const before=readers.costs(root,scope,account),value=consume((...args:unknown[])=>{expect(args).toEqual([root,scope,account]);return structuredClone(before);});expect(readers.costs(root,scope,account)).toEqual(before);close?.();return value;},readAgentRuntimeNamedMethodCancellation:readers.cancel,collectAgentRuntimeOperation:readers.collect}));
 import {AgentStartLedger,digest} from '@cimiloop/runtime-adapter';
 import {LocalSkillInvocationResultCollection} from '../src/skill-invocation-result-local.js';
 import {LocalSkillInvocationStartCustody} from '../src/skill-invocation-start-custody-local.js';
@@ -18,6 +19,7 @@ import {flowSuccess} from '../../../tests/fixtures/flow-project.js';
 // deliberately constructed here; real Native coverage is a separate full file.
 let root:string,f:ReturnType<typeof createSkillInvocationProject>,ledger:AgentStartLedger,account:ReturnType<typeof createAccountBillingEntry>,collector:LocalSkillInvocationResultCollection,invocation:any,local:any,inputs:LocalSkillMethodInputs,custody:LocalSkillInvocationStartCustody,options:any;let human:ReturnType<typeof openLocalProject>|undefined;
 const output={purpose:'review',findings:[],limitations:['Public constructed reader fixture only']};
+let runtimeBinaryPath:string;
 const capture=(c=collector)=>{const method=Reflect.get(c,'captureReconciliation');expect(method).toBeTypeOf('function');return method.call(c,invocation.id,f.actor.id);};
 beforeEach(()=>{
  vi.resetAllMocks();root=mkdtempSync(join(tmpdir(),'cimiloop-skill-reconciliation-'));f=createSkillInvocationProject(root);ledger=AgentStartLedger.initialize(join(dirname(f.path),'child-host'),{machine_digest:digest('constructed machine').value,principal_digest:digest('constructed principal').value});
@@ -31,9 +33,20 @@ beforeEach(()=>{
  account=createAccountBillingEntry({currency:'USD',credentialOutside:true});readers.costs.mockReturnValue({costs:{cash_charged_micros:12,credit_charged_micro_units:4,currency:'USD',costs_reconciled:true},calls,scope:relation.child});
  vi.spyOn(LocalNamedSkillMethodAssessment.prototype,'verifyHistoricalQualification').mockReturnValue({qualification_ref:custody.originalQualification(original.project,invocation,original.request.parent,original.record_id),assessment:{profile:'controlled_execution',outcome:'ALLOW'}} as any);
  options={local,custody,inputs,account:account.account,qualificationOriginals:{verify:()=>{throw Error('Reader mocked explicitly in this unit fixture');}}};collector=new LocalSkillInvocationResultCollection(options);
+ // Actual immutable claim/pin registry over PUBLIC constructed binary bytes;
+ // no Native launch or real model/Skill qualification is implied.
+ const nodePath=join(root,'PUBLIC-node.exe'),controllerPath=join(root,'PUBLIC-controller.exe');writeFileSync(nodePath,'PUBLIC fixed Node original');writeFileSync(controllerPath,'PUBLIC fixed controller original');const node=pinBinary(modelRoot,nodePath),controller=pinBinary(modelRoot,controllerPath);runtimeBinaryPath=node.path;
+ claimAgentRuntimeOperation(modelRoot,relation.child,{prompt:'PUBLIC immutable original prompt',binary_original:readRuntimeBinaryOriginal(modelRoot,node.path,node.digest.value),sandbox_original:readRuntimeBinaryOriginal(modelRoot,controller.path,controller.digest.value)},{pid:1234,creation_ticks:'123456',image:process.execPath});
  flowSuccess(f.observeSkill(invocation,'unknown',{usage:{cost_known:false}}));
 });
 afterEach(()=>{human?.store.close();human=undefined;vi.restoreAllMocks();account?.close();ledger?.close();f?.store.close();if(root){if(dirname(root)!==tmpdir()||!basename(root).startsWith('cimiloop-skill-reconciliation-'))throw Error('Unsafe cleanup');rmSync(root,{recursive:true,force:true});}});
+it.each(['Runtime binary','admission.json','dispatch.json'])('rejects Human reconciliation original %s moved by the final account callback',kind=>{
+ const result=capture();expect(collector.readResult(f.project,invocation,result.reference)).toEqual(result.report);
+ const costs=readers.costs.getMockImplementation()!(),path=kind==='Runtime binary'?runtimeBinaryPath:join(dirname(f.path),'skill-invocation-start-originals',f.project.id,invocation.invocation_key,kind),retained=path+'.PUBLIC-retained',sequence=f.store.asOfEventSequence();let checks=0,moved=false;
+ readers.costs.mockImplementation(()=>{if(++checks===2){renameSync(path,retained);moved=true;}return costs;});
+ try{expect(()=>collector.readResult(f.project,invocation,result.reference)).toThrow();expect(checks).toBe(2);expect(moved).toBe(true);expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.currentRun().status).toBe('Unknown');}
+ finally{if(moved)renameSync(retained,path);}
+});
 it('captures exact original success/output/costs and covers all prior unknown observations without domain mutation',()=>{
  const sequence=f.store.asOfEventSequence(),prior=f.store.listRuntimeRecords('skill_invocation_observation',f.change.id),result=capture();
  expect(result.report).toMatchObject({status:'succeeded',basis:'reconciliation',producer_actor_id:f.actor.id,output,usage:{cost_known:true,cost_micros:12,currency:'USD'},resolves_observation_refs:prior.map(o=>({object_type:'skill_invocation_observation',id:o.id}))});

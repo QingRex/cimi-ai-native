@@ -1,0 +1,246 @@
+{
+  "format": "cimiloop/research/skill-result-final-original-closure/1.0.0",
+  "batch": "D-310",
+  "recorded_at": "2026-10-14T08:02:21.861Z",
+  "base_commit": "eedf7c5d87d9ed54759a675f6a2f34e16d571f66",
+  "capability": {
+    "synchronous_fee_window": true,
+    "fresh_full_account_cuts_per_window": 2,
+    "no_cross_call_cache": true,
+    "scoped_reader_expires": true,
+    "direct_and_human_known_terminal_originals_closed": true,
+    "pure_final_runtime_and_start_guard": true,
+    "complete_native_execution_chain_proven": false,
+    "performance_improvement_proven": false,
+    "task_accepted": false
+  },
+  "validation": {
+    "phased_full_files": 5,
+    "distinct_passed_tests": 78,
+    "single_all_green_run": false,
+    "retained_files": [
+      {
+        "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-cost-original-cut.test.ts",
+        "passed": 7,
+        "status": "passed"
+      },
+      {
+        "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-result-original-seal.test.ts",
+        "passed": 18,
+        "status": "passed"
+      },
+      {
+        "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+        "passed": 10,
+        "status": "passed"
+      }
+    ],
+    "final_direct_and_human": {
+      "meta": {
+        "recorded_at": "2026-10-14T07:58:28.222Z",
+        "worktree": "D:\\cc\\cimi-ai-native",
+        "exit_code": 0,
+        "error": null,
+        "elapsed_ms": 1164771,
+        "files": [
+          "packages/local-app/test/skill-invocation-verified-result.test.ts",
+          "packages/local-app/test/skill-invocation-reconciliation.test.ts"
+        ],
+        "source_files": 795,
+        "source_drift": [],
+        "original_budgets_raised": false,
+        "paid_requests": false,
+        "pushed": false
+      },
+      "passed": 43,
+      "failed": 0,
+      "skipped": 0,
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+          "passed": 26
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-verified-result.test.ts",
+          "passed": 17
+        }
+      ],
+      "report_sha256": "f96e1833005ae370204d4345d12dee582cfb33aa532fc9b55e37c1af9c82e6e6"
+    },
+    "check": {
+      "recorded_at": "2026-10-14T07:38:17.276Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 19450,
+      "files": [],
+      "source_files": 795,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "help": {
+      "recorded_at": "2026-10-14T07:40:18.870Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1639,
+      "files": [],
+      "source_files": 795,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false
+    },
+    "valid_behavioral_reds": [
+      {
+        "label": "d310-main-r1-final-qualification-cost-red",
+        "passed": 12,
+        "failed": 2,
+        "skipped": 0,
+        "meta": {
+          "recorded_at": "2026-10-14T06:45:48.279Z",
+          "worktree": "D:\\cc\\cimi-ai-native",
+          "exit_code": 1,
+          "error": null,
+          "elapsed_ms": 326947,
+          "files": [
+            "packages/local-app/test/skill-invocation-verified-result.test.ts"
+          ],
+          "source_files": 795,
+          "source_drift": [],
+          "original_budgets_raised": false,
+          "paid_requests": false,
+          "pushed": false
+        },
+        "report_sha256": "8ce3c20ff2127b5c99eec7daaf595bcc374a8b36ce3709c71ece140df19dc678"
+      },
+      {
+        "label": "d310-main-r9-final-runtime-binary-red",
+        "passed": 0,
+        "failed": 1,
+        "skipped": 14,
+        "meta": {
+          "recorded_at": "2026-10-14T07:22:39.691Z",
+          "worktree": "D:\\cc\\cimi-ai-native",
+          "exit_code": 1,
+          "error": null,
+          "elapsed_ms": 44549,
+          "files": [
+            "packages/local-app/test/skill-invocation-verified-result.test.ts"
+          ],
+          "source_files": 795,
+          "source_drift": [],
+          "original_budgets_raised": false,
+          "paid_requests": false,
+          "pushed": false
+        },
+        "report_sha256": "f5e4baf4dcded4fe9d732a8b3beb5d664dee8fef1880e031307475f96692221a"
+      },
+      {
+        "label": "d310-main-r12-human-runtime-and-start-red",
+        "passed": 0,
+        "failed": 5,
+        "skipped": 38,
+        "meta": {
+          "recorded_at": "2026-10-14T07:36:25.723Z",
+          "worktree": "D:\\cc\\cimi-ai-native",
+          "exit_code": 1,
+          "error": null,
+          "elapsed_ms": 137255,
+          "files": [
+            "packages/local-app/test/skill-invocation-verified-result.test.ts",
+            "packages/local-app/test/skill-invocation-reconciliation.test.ts"
+          ],
+          "source_files": 795,
+          "source_drift": [],
+          "original_budgets_raised": false,
+          "paid_requests": false,
+          "pushed": false
+        },
+        "report_sha256": "ff9fdb0ef12c40f54b35748336d349899410de4fa9af436187fe7d9a1f607ff8"
+      }
+    ],
+    "preserved_intermediate": {
+      "r8": {
+        "passed": 64,
+        "failed": 8,
+        "meta": {
+          "recorded_at": "2026-10-14T07:21:15.738Z",
+          "worktree": "D:\\cc\\cimi-ai-native",
+          "exit_code": 1,
+          "error": null,
+          "elapsed_ms": 965248,
+          "files": [
+            "packages/runtime-adapter/test/agent-run-cost-original-cut.test.ts",
+            "packages/local-app/test/skill-invocation-verified-result.test.ts",
+            "packages/local-app/test/skill-invocation-reconciliation.test.ts",
+            "packages/local-app/test/skill-result-original-seal.test.ts",
+            "packages/local-app/test/skill-result-runtime-original-seal.test.ts"
+          ],
+          "source_files": 795,
+          "source_drift": [],
+          "original_budgets_raised": false,
+          "paid_requests": false,
+          "pushed": false
+        },
+        "report_sha256": "2ec44547abb361faf735c617597741bdf30be516175414bf4a0e0ade74cf3ecc"
+      },
+      "r11": {
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "meta": {
+          "recorded_at": "2026-10-14T07:32:44.271Z",
+          "worktree": "D:\\cc\\cimi-ai-native",
+          "exit_code": 0,
+          "error": null,
+          "elapsed_ms": 487321,
+          "files": [
+            "packages/local-app/test/skill-invocation-verified-result.test.ts",
+            "packages/local-app/test/skill-result-runtime-original-seal.test.ts"
+          ],
+          "source_files": 795,
+          "source_drift": [],
+          "original_budgets_raised": false,
+          "paid_requests": false,
+          "pushed": false
+        },
+        "report_sha256": "3138b9e7b11131de0a01cc60583bccca651890a2adce983fe8e2715fb2842351"
+      },
+      "notes": [
+        "r8 direct fixture lacked immutable skill package; failed-output fixture lost its original artifact before first mock call. PUBLIC originals restored; production requirements not relaxed.",
+        "r6 five-file load failure executed zero tests due to treating the own admission data field as a prototype getter. Fixed own descriptor; it is not acceptance evidence.",
+        "r4 compiler process exited with 0xc0000005 before a successful fixed-source check; the exception is retained and is not a passing check."
+      ]
+    }
+  },
+  "ordinary_engineering_review": {
+    "independent_source_review": true,
+    "required_findings_closed": [
+      "direct Known Runtime originals after final account callback",
+      "Human reconciliation Runtime originals after final account callback",
+      "direct/Human admission and dispatch originals after final account callback"
+    ],
+    "new_required_findings": [],
+    "reviewer_ran_tests": false,
+    "formal_matt_or_superpowers_s1_review": false
+  },
+  "boundaries": {
+    "schema_count": 242,
+    "project_database_format": 10,
+    "host_database_format": 1,
+    "wire_formats_changed": false,
+    "default_formal_agent_enabled": false,
+    "paid_requests": false,
+    "real_credentials_read": false,
+    "real_model_approved": false,
+    "real_skill_proven": false,
+    "s1_accepted": false,
+    "pushed": false,
+    "old_unknown_resources_touched": false,
+    "unknown_tmp_touched": false
+  },
+  "next": "Run one fresh affected actual parent/child Native/SDK/current-domain/HTTP/family-fee chain with the fixed original Task budget. Preserve the D309 deadline failure, do not reopen or extend its Run. Then install the complete trusted shared Workbench composition and finish real clarification/Skill and ordinary Change acceptance."
+}

@@ -1,5 +1,7 @@
 # CimiLoop V1 可执行设计与实施计划 v0.1
 
+2026-10-14 D-310：同次Skill结果读取保留两次新鲜完整费用审计，并在末账户回调后纯核对直接／人工Known结果的Runtime与启动登记原件；分阶段五文件78项、check／CLI帮助通过。Native整链路耗时改善及真实模型／Skill／S1仍待验证。[本批状态](../plans/2026-10-14-cimiloop-skill-result-final-original-closure.md)。
+
 2026-10-14 D-309：父SDK Skill原输出已接当前领域结果3／观察／终态读取，批量容量及getter边界修复；完整六文件118项、check／CLI帮助通过。实际Native整链路因父原Task到期仍失败，未到总费用结算；真实模型／Skill与S1未验收，继续修复主路径。[本批状态](../plans/2026-10-14-cimiloop-parent-skill-domain-execution-path.md)。
 
 2026-10-14 D-308：新原操作固定记录 bun_interpreter/1.0.0，严格 config8/9/10、claim3 与原输入绑定；真实控制器仅设置本进程/子进程环境，旧版本不回填或重解释。共享观察补齐 claim3 的独立 Job 原件名额，525合法、526拒绝且不产生效果。分阶段合并覆盖18文件266项通过（读取器13/254、实际Windows/Native/SDK五文件12项），不是一次18文件整轮通过；792源码各轮零漂移，生产源码切面一致，pnpm check/CLI帮助通过。实际SDK/HTTPS/编辑/检查/观察重放与原取消完成；模型、资格、账户与账单仍含PUBLIC构造，不证明真实模型/Skill或S1。失败报告及原件保留，普通独立工程复审未独立跑测试。默认正式Agent关闭，Schema242/库10/Host1保持，五组继续、不付费、不push、不处理旧Unknown。[本批记录](../plans/2026-10-14-cimiloop-original-native-startup-policy.md)。

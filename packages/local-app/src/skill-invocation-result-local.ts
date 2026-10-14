@@ -2,12 +2,12 @@ import {join,relative,isAbsolute,resolve} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
 import {requestDigest} from '@cimiloop/kernel';
 import {compileValidator,RawSkillInvocationObservationSchema,type RawSkillInvocationObservation,type SkillInvocation,type SkillInvocationObservation,type Project} from '@cimiloop/protocol/v2';
-import {bytesAt,digest,readAgentSkillPreparationZeroEffects,collectAgentRuntimeOperation,readAgentRuntimeNamedMethodCancellation,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,readAgentRuntimeModelOriginals,DedicatedAgentAccountLedger,readOriginalDedicatedAgentRunCosts} from '@cimiloop/runtime-adapter';
+import {bytesAt,digest,readAgentSkillPreparationZeroEffects,collectAgentRuntimeOperation,readAgentRuntimeNamedMethodCancellation,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,readAgentRuntimeModelOriginals,DedicatedAgentAccountLedger,readOriginalDedicatedAgentRunCosts,withOriginalDedicatedAgentRunCostRead,type OriginalDedicatedAgentRunCostReader} from '@cimiloop/runtime-adapter';
 import {readOriginalSkillInvocation,readOriginalSkillInvocationFromReader,type SkillInvocationExecutionContext} from './skill-invocation-execution-local.js';
-import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
+import {LocalSkillInvocationStartCustody,assertSkillInvocationStartOriginalSeal} from './skill-invocation-start-custody-local.js';
 import {LocalSkillMethodInputs} from './skill-methods-local.js';
 import {LocalProjectError} from './errors.js';
-import {captureSkillResultOriginalSeal,captureSkillResultRuntimeOriginalBoundary,type SkillResultOriginalSeal} from './skill-result-original-seal.js';
+import {captureSkillResultOriginalSeal,captureSkillResultRuntimeOriginalBoundary,assertSkillResultRuntimeOriginalBoundary,assertSkillResultOriginalSeal,type SkillResultOriginalSeal} from './skill-result-original-seal.js';
 import {LocalNamedSkillMethodAssessment,type NamedSkillMethodOriginalsPort} from './skill-method-assessment-local.js';
 import {LocalEvidenceVerifier,type ContentReference} from './evidence-local.js';
 
@@ -34,6 +34,8 @@ export function parseSkillResultCaptureBytes(bytes:Buffer):unknown {
  return structuredClone(value);
 }
 const decode=parseSkillResultCaptureBytes;
+const readOriginalContent=LocalEvidenceVerifier.prototype.readContent;
+const captureStartOriginal=LocalSkillInvocationStartCustody.prototype.captureOriginalSeal;
 type CancellationCollection=Awaited<ReturnType<typeof collectAgentRuntimeOperation>>;
 type Artifact={name:string;path:string;digest:string};
 // Code-only shared capture and Kernel verifier. Complete Native/method/model
@@ -53,7 +55,7 @@ export class LocalSkillInvocationResultCollection {
   return{relation:custody.accountScope(original.project,invocation,original.request.parent,original.record_id),inputs:inputs.readInvocation(original.project,original.descriptor,invocation)};
  }
  private original(id:string,existingReader=false){const local=this.options.local;return existingReader?readOriginalSkillInvocationFromReader(local,local.store,id):readOriginalSkillInvocation(local,id);}
- private facts(id:string,existingReader=false,billed=false,reconciling=false,collection?:CancellationCollection,verified=false){
+ private facts(id:string,existingReader=false,billed=false,reconciling=false,collection?:CancellationCollection,verified=false,readCosts:OriginalDedicatedAgentRunCostReader=readOriginalDedicatedAgentRunCosts){
   const {local,custody,inputs}=this.options,original=this.original(id,existingReader),plan=inputs.readInvocation(original.project,original.descriptor,original.invocation);
   const state=custody.inspect(original.project,original.invocation,original.request.parent,original.record_id);
   if(state.state==='unclaimed'||!('material_digest' in state)||state.material_digest!==requestDigest(plan))throw fail();
@@ -74,7 +76,7 @@ export class LocalSkillInvocationResultCollection {
   let cost_evidence:ReturnType<typeof readOriginalDedicatedAgentRunCosts>|undefined;
   if(billed){
    if(!(this.options.account instanceof DedicatedAgentAccountLedger))throw fail();
-   cost_evidence=readOriginalDedicatedAgentRunCosts(root,relation.child,this.options.account);
+   cost_evidence=readCosts(root,relation.child,this.options.account);
    const record=local.store.getRuntimeRecord('run_record',original.record_id);
    if(!record||typeof cost_evidence.costs.currency!=='string'||cost_evidence.costs.currency!==record.cost_currency||!same(cost_evidence.calls,provider.calls))throw fail();
   }
@@ -198,7 +200,25 @@ export class LocalSkillInvocationResultCollection {
    const proof=decode(content.readContent(raw.result_proof_ref)) as {format?:unknown;observed_at?:unknown;artifacts?:Array<Artifact&{reference:ContentReference}>;collection?:CancellationCollection};
    const verified=!!proof&&['cimiloop/original-skill-result-verified/1.0.0','cimiloop/original-skill-result-failed-verified/1.0.0'].includes(String(proof.format)),reconciling=raw.basis==='reconciliation';if(reconciling){if(verified||!['succeeded','failed','cancelled'].includes(raw.status)||!raw.usage.cost_known)throw fail();this.human(raw.producer_actor_id);}else if(raw.basis!=='direct_observation'||raw.resolves_observation_refs.length||(verified?!['succeeded','failed'].includes(raw.status)||!raw.usage.cost_known:raw.status!=='unknown'))throw fail();
    const collection=raw.status==='cancelled'?proof.collection:undefined;if(raw.status==='cancelled'&&!collection)throw fail();
-   const billed=raw.usage.cost_known,facts=this.facts(invocation.id,true,billed,reconciling,collection,verified),original=this.original(invocation.id,true);
+   const billed=raw.usage.cost_known,local=this.options.local,identity={caller:structuredClone(local.caller),location:structuredClone(local.location),store:local.store,kernel:local.kernel,custody:this.options.custody,inputs:this.options.inputs,account:this.options.account,qualification:this.options.qualificationOriginals};
+   const fixedContent=new LocalEvidenceVerifier(content.repositoryPath,content.dataDirectory);
+   Object.freeze(fixedContent);let closeOriginals:()=>void=()=>{throw fail();};
+   const originalRoot=join(identity.location.dataDirectory,'skill-runtime-originals',project.id,invocation.invocation_key);
+   // Byte retention is not qualification or Runtime approval. Direct verified
+   // history also retains namespace membership and physical originals before
+   // callbacks; semantic verification and final account cuts remain mandatory.
+   const retained=verified&&!reconciling?captureSkillResultOriginalSeal({content:fixedContent,originalRoot,reportReference:reference,report:raw,max_artifacts:SKILL_RESULT_CAPTURE_LIMITS.artifacts+4,max_total_bytes:SKILL_RESULT_CAPTURE_LIMITS.total_bytes+4*65536}):undefined;
+   // Both Known direct and Human terminal results bind execution originals
+   // before any installed callbacks, including the account scope callback.
+   // Existing Unknown candidates gain no qualification. NotStarted is separate.
+   const runtimeOriginal=verified||reconciling?this.original(invocation.id,true):undefined;
+   const runtimeOptions=runtimeOriginal?{content:fixedContent,originalRoot,project,invocation,parent:runtimeOriginal.request.parent,recordId:runtimeOriginal.record_id}:undefined;
+   const runtimeBoundary=runtimeOptions?captureSkillResultRuntimeOriginalBoundary(runtimeOptions):undefined;
+   // Host callbacks during capture precede the fresh cost window; the retained
+   // byte/Runtime boundary prevents them from selecting changed originals.
+   const startOriginal=runtimeOptions?captureStartOriginal.call(identity.custody,project,invocation,runtimeOptions.parent,runtimeOptions.recordId):undefined;
+   const read=(readCosts:OriginalDedicatedAgentRunCostReader=readOriginalDedicatedAgentRunCosts)=>{
+   const facts=this.facts(invocation.id,true,billed,reconciling,collection,verified,readCosts),original=this.original(invocation.id,true);
    if(!same(invocation,facts.invocation)||project.id!==original.project.id||resolve(project.repository_path)!==resolve(original.project.repository_path))throw fail();
    if(!proof||typeof proof!=='object'||!Array.isArray(proof.artifacts)||proof.artifacts.length!==facts.artifacts.length)throw fail();
    let total=0;for(const [i,a] of proof.artifacts.entries()){
@@ -206,9 +226,25 @@ export class LocalSkillInvocationResultCollection {
     if(total>limitsFor(facts.artifacts).total_bytes||a.reference.resource_type!=='provider_probe_artifact'||!same(a,{...expected,reference:a.reference})||digest(body).value!==expected.digest||!content.readContent(a.reference).equals(body))throw fail();
    }
    const resolves=reconciling?this.unresolved(invocation.id):[];
-   if(!same(proof,{...facts,observed_at:raw.observed_at,artifacts:proof.artifacts,...(reconciling?{producer_actor_id:raw.producer_actor_id,resolves_observation_refs:resolves}:{})})||!same(this.facts(invocation.id,true,billed,reconciling,collection,verified),facts))throw fail();
+   if(!same(proof,{...facts,observed_at:raw.observed_at,artifacts:proof.artifacts,...(reconciling?{producer_actor_id:raw.producer_actor_id,resolves_observation_refs:resolves}:{})})||!same(this.facts(invocation.id,true,billed,reconciling,collection,verified,readCosts),facts))throw fail();
    const expected={format:'cimiloop/skill-invocation/1.0.0',invocation_ref:{object_type:'skill_invocation',id:invocation.id},invocation_key:invocation.invocation_key,run_ref:invocation.run_ref,run_operation_key:invocation.run_operation_key,producer_actor_id:reconciling?raw.producer_actor_id:invocation.executor_ref.id,input_digest:invocation.input_digest,observed_at:raw.observed_at,basis:reconciling?'reconciliation':'direct_observation',status:(reconciling||verified)?(collection?'cancelled':facts.method.method_failure_reverified?'failed':'succeeded'):'unknown',usage:this.usage(facts),result_proof_ref:raw.result_proof_ref,resolves_observation_refs:resolves,...((reconciling||verified)&&!collection&&!facts.method.method_failure_reverified?{output:facts.method.output}:{})};
-   if(!same(raw,expected))throw fail();return raw;
+   if(!same(raw,expected))throw fail();
+   const captured=structuredClone(proof.artifacts),root=resolve(join(identity.location.dataDirectory,'skill-runtime-originals',project.id,invocation.invocation_key)),reportBytes=readOriginalContent.call(fixedContent,reference),proofBytes=readOriginalContent.call(fixedContent,raw.result_proof_ref);
+   closeOriginals=()=>{
+    // Fixed data readers only: all installed callbacks have already completed.
+    if(this.options.local!==local||local.store!==identity.store||local.kernel!==identity.kernel||!same(local.caller,identity.caller)||!same(local.location,identity.location)||this.options.custody!==identity.custody||this.options.inputs!==identity.inputs||this.options.account!==identity.account||this.options.qualificationOriginals!==identity.qualification)throw fail();
+    if(retained)assertSkillResultOriginalSeal(retained,raw,reference);
+    if(!readOriginalContent.call(fixedContent,reference).equals(reportBytes)||!readOriginalContent.call(fixedContent,raw.result_proof_ref).equals(proofBytes))throw fail();
+    for(const a of captured){const path=resolve(a.path),rel=relative(root,path);if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../'))throw fail();const body=bytesAt(path,4*1024*1024);if(digest(body).value!==a.digest||!readOriginalContent.call(fixedContent,a.reference).equals(body))throw fail();}
+    if(startOriginal&&runtimeOptions)assertSkillInvocationStartOriginalSeal(startOriginal,project,invocation,runtimeOptions.parent,runtimeOptions.recordId);
+    if(runtimeBoundary&&runtimeOptions)assertSkillResultRuntimeOriginalBoundary(runtimeBoundary,runtimeOptions);
+   };
+   return raw;
+   };
+   if(!billed){const value=read();closeOriginals();return value;}
+   const original=this.original(invocation.id,true),account=this.options.account;if(!(account instanceof DedicatedAgentAccountLedger))throw fail();
+   const relation=this.options.custody.accountScope(original.project,original.invocation,original.request.parent,original.record_id),root=join(identity.location.dataDirectory,'skill-runtime-originals',original.project.id,original.invocation.invocation_key);
+   return withOriginalDedicatedAgentRunCostRead(root,relation.child,account,read,()=>closeOriginals());
   }catch{throw fail();}
  }
 }

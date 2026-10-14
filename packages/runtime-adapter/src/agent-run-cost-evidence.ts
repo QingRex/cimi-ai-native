@@ -1,4 +1,4 @@
-import{isDeepStrictEqual}from'node:util';
+import{isDeepStrictEqual,types}from'node:util';
 import{DedicatedAgentAccountLedger}from'./agent-dedicated-account.js';
 import{readDedicatedAgentModelOriginals}from'./agent-dedicated-model.js';
 import{parseAgentWorkspaceToolScope,type AgentWorkspaceToolScope}from'./agent-workspace-authority.js';
@@ -8,19 +8,50 @@ import type{DedicatedAgentSkillScope}from'./agent-skill-account-scope.js';
 import type{AgentNamedMethodResultInputs}from'./agent-named-method-result.js';
 import{readAgentSkillPreparationZeroEffects}from'./agent-skill-zero-effects.js';
 const readRunCostOriginals=DedicatedAgentAccountLedger.prototype.readRunCostOriginals;
+const originalAdmission=(account:DedicatedAgentAccountLedger)=>{const field=Object.getOwnPropertyDescriptor(account,'admission_digest');if(!field||!('value'in field)||typeof field.value!=='string')throw new RuntimeAdapterError('agent_run_cost_originals_unproven');return field.value;};
+const originalProfile=Object.getOwnPropertyDescriptor(DedicatedAgentAccountLedger.prototype,'profile')!.get!;
+export interface OriginalDedicatedAgentRunCostEvidence{
+ format:'cimiloop/agent-run-cost-evidence/1.0.0';scope:AgentWorkspaceToolScope;
+ model:ReturnType<typeof readDedicatedAgentModelOriginals>['summary'];calls:ReturnType<typeof readDedicatedAgentModelOriginals>['calls'];
+ costs:ReturnType<DedicatedAgentAccountLedger['readRunCostOriginals']>['costs'];starts_run:false;kernel_costs_reconciled:false;
+}
+export type OriginalDedicatedAgentRunCostReader=(root:string,scope:unknown,account:DedicatedAgentAccountLedger)=>OriginalDedicatedAgentRunCostEvidence;
 // Historical read only. Code-installed bill authentication, not JSON/usage.
-export function readOriginalDedicatedAgentRunCosts(root:string,rawScope:unknown,account:DedicatedAgentAccountLedger){
+export function readOriginalDedicatedAgentRunCosts(root:string,rawScope:unknown,account:DedicatedAgentAccountLedger):OriginalDedicatedAgentRunCostEvidence{
+ return withOriginalDedicatedAgentRunCostRead(root,rawScope,account,read=>read(root,rawScope,account));
+}
+// One synchronous historical read. Its bounded reader cannot escape this
+// window, choose another account/scope/root or become execution permission.
+// finalGuard is fixed application byte closure, never an installed Host,
+// qualification, billing or model callback. It runs after their final audit.
+export function withOriginalDedicatedAgentRunCostRead<T>(root:string,rawScope:unknown,account:DedicatedAgentAccountLedger,
+ consume:(read:OriginalDedicatedAgentRunCostReader)=>T,finalGuard?:(value:T)=>void):T{
  const deny=():never=>{throw new RuntimeAdapterError('agent_run_cost_originals_unproven');};
- if(!(account instanceof DedicatedAgentAccountLedger))deny();
+ if(!(account instanceof DedicatedAgentAccountLedger)||typeof consume!=='function'||finalGuard!==undefined&&typeof finalGuard!=='function')deny();
+ const admission=originalAdmission(account),profile=originalProfile.call(account);
  const scope=parseAgentWorkspaceToolScope(rawScope),original=readDedicatedAgentModelOriginals(root,scope),s=original.summary,cut=readRunCostOriginals.call(account,scope),costs=cut.costs;
- if(s.status!=='Observed'||!s.original_requirement_pinned||!s.budget_identity_pinned||!s.calls||s.unresolved||s.admission_digest!==account.admission_digest||!isDeepStrictEqual(s.profile,account.profile)||
+ if(s.status!=='Observed'||!s.original_requirement_pinned||!s.budget_identity_pinned||!s.calls||s.unresolved||s.admission_digest!==admission||!isDeepStrictEqual(s.profile,profile)||
   !costs.costs_reconciled||costs.unresolved||costs.holds!==original.calls.length||costs.holds!==s.calls||cut.holds.length!==costs.holds||new Set(cut.holds.map(h=>h.call_id)).size!==cut.holds.length||!costs.bill_originals.length)deny();
  for(const call of original.calls){const matching=cut.holds.filter(h=>h.call_id===call.call_id),hold=matching[0];
   if(call.state!=='reply_recorded'||!call.provider_response_id||matching.length!==1||!hold||!isDeepStrictEqual(hold,call.hold)||hold.account_digest!==costs.account_digest||hold.connection_digest!==s.connection_digest||hold.admission_digest!==s.admission_digest||hold.request_id!==call.request_id||hold.request_digest!==call.request_digest)deny();
  }
- // Independent snapshots cannot splice a newer account into an older spine.
- if(!isDeepStrictEqual(cut,readRunCostOriginals.call(account,scope))||!isDeepStrictEqual(original,readDedicatedAgentModelOriginals(root,scope)))deny();
- return{format:'cimiloop/agent-run-cost-evidence/1.0.0' as const,scope,model:original.summary,calls:original.calls,costs,starts_run:false as const,kernel_costs_reconciled:false as const};
+ const evidence={format:'cimiloop/agent-run-cost-evidence/1.0.0' as const,scope,model:original.summary,calls:original.calls,costs,starts_run:false as const,kernel_costs_reconciled:false as const};
+ let active=true;const read:OriginalDedicatedAgentRunCostReader=(selectedRoot,selectedScope,selectedAccount)=>{
+  if(!active||resolve(selectedRoot)!==resolve(root)||selectedAccount!==account||!isDeepStrictEqual(parseAgentWorkspaceToolScope(selectedScope),scope))deny();
+  return structuredClone(evidence);
+ };
+ const synchronous=(value:unknown)=>{
+  if(types.isPromise(value)){void Promise.prototype.then.call(value,undefined,()=>{});deny();}
+  if(value!==null&&(typeof value==='object'||typeof value==='function')){
+   for(let current=value,depth=0;current!==null;current=Object.getPrototypeOf(current),depth++)if(depth>16||types.isProxy(current)||Object.getOwnPropertyDescriptor(current,'then'))deny();
+  }
+ };
+ let result:T;try{result=consume(read);synchronous(result);}finally{active=false;}
+ // Independent final audit follows ALL semantic callbacks, not every internal
+ // read. Provider originals close after the final installed account callback.
+ if(!isDeepStrictEqual(cut,readRunCostOriginals.call(account,scope))||!isDeepStrictEqual(admission,originalAdmission(account))||!isDeepStrictEqual(profile,originalProfile.call(account))||!isDeepStrictEqual(original,readDedicatedAgentModelOriginals(root,scope)))deny();
+ if(finalGuard){const value:unknown=finalGuard(result);synchronous(value);if(value!==undefined)deny();}
+ return result;
 }
 
 // The complete immutable registration set is compared by the original account.
