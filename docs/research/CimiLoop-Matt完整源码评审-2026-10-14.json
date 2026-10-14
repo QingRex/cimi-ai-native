@@ -1,0 +1,151 @@
+{
+  "batch": "D-304",
+  "recorded_at": "2026-10-14T02:34:29.879Z",
+  "reviewed_tip": "0fd7a75b3fd9b1a64795c2663a64d4fa7cb9da58",
+  "actual_skill_source": {
+    "path": "C:/Users/hector.he/.agents/skills/mattpocock-skills/skills/in-progress/review/SKILL.md",
+    "commit": "5d78bd0903420f97c791f834201e550c765699f8",
+    "sha256": "6b9188cbf826b04ee4535ce3e7ba97f765631e117404ef4f59cfa5a174f73a9f"
+  },
+  "exports": [
+    {
+      "path": "docs/research/reviews/2026-10-14-matt-standards-fixed.json",
+      "original": "d301-matt-standards-full-report.json",
+      "original_sha256": "9258ab4e6588d478c723ce58d377178e9b6e1a10570eef2f73c458fe848ba1a2",
+      "export_sha256": "9258ab4e6588d478c723ce58d377178e9b6e1a10570eef2f73c458fe848ba1a2",
+      "mechanical_local_link_rewrite_only": false
+    },
+    {
+      "path": "docs/research/reviews/2026-10-14-matt-standards-fixed.md",
+      "original": "d301-matt-standards-full-report.md",
+      "original_sha256": "379d5179302c93df6850e22341cbafb3d5f6d55df55e0f2ba5410f5d9ab6668f",
+      "export_sha256": "042bd8171c345f8ad407394ab4226724ebbfbc966e74bc8cf433cd01356f3793",
+      "mechanical_local_link_rewrite_only": true
+    },
+    {
+      "path": "docs/research/reviews/2026-10-14-matt-spec-fixed.json",
+      "original": "d301-matt-spec-full-report.json",
+      "original_sha256": "b4336f8567df362203ecd0944f26faad68eb50ee20488ee448648004daed23cb",
+      "export_sha256": "b4336f8567df362203ecd0944f26faad68eb50ee20488ee448648004daed23cb",
+      "mechanical_local_link_rewrite_only": false
+    },
+    {
+      "path": "docs/research/reviews/2026-10-14-matt-spec-fixed.md",
+      "original": "d301-matt-spec-full-report.md",
+      "original_sha256": "ed090e3a69f320b09e9a8d37be70e4f918809e7c724ecc927b45830655b870d1",
+      "export_sha256": "ed090e3a69f320b09e9a8d37be70e4f918809e7c724ecc927b45830655b870d1",
+      "mechanical_local_link_rewrite_only": true
+    },
+    {
+      "path": "docs/research/reviews/2026-10-14-matt-standards-delta.json",
+      "original": "d303-matt-standards-fresh-delta-report.json",
+      "original_sha256": "7f4558b9a4915f7d89d0c532483295fa952dd8db252979f38284072a4ea1b691",
+      "export_sha256": "7f4558b9a4915f7d89d0c532483295fa952dd8db252979f38284072a4ea1b691",
+      "mechanical_local_link_rewrite_only": false
+    },
+    {
+      "path": "docs/research/reviews/2026-10-14-matt-standards-delta.md",
+      "original": "d303-matt-standards-fresh-delta-report.md",
+      "original_sha256": "610d3604ce144c1c720ec0f30451405e1bb70d5a721ecf7373409f19e45462df",
+      "export_sha256": "4e11b8d836ca3488a38b7ce12e9bec797ad72e26b9618cb5805f23dd4b5a6761",
+      "mechanical_local_link_rewrite_only": true
+    },
+    {
+      "path": "docs/research/reviews/2026-10-14-matt-spec-delta.json",
+      "original": "d303-matt-spec-fresh-delta-report.json",
+      "original_sha256": "1ed0d03919b6da17fc2cdbc4d8104f0ed1803fef9c2d76c6ca4bdba5636d2f40",
+      "export_sha256": "1ed0d03919b6da17fc2cdbc4d8104f0ed1803fef9c2d76c6ca4bdba5636d2f40",
+      "mechanical_local_link_rewrite_only": false
+    },
+    {
+      "path": "docs/research/reviews/2026-10-14-matt-spec-delta.md",
+      "original": "d303-matt-spec-fresh-delta-report.md",
+      "original_sha256": "856931a42a0163c9271ec5bfc44207a8be759fba410378641fef2d5cd4e79bfb",
+      "export_sha256": "856931a42a0163c9271ec5bfc44207a8be759fba410378641fef2d5cd4e79bfb",
+      "mechanical_local_link_rewrite_only": true
+    }
+  ],
+  "independent_axes_preserved": true,
+  "candidate_sync": {
+    "recorded_at": "2026-10-13T19:53:13.351Z",
+    "main_commit": "0fd7a75b3fd9b1a64795c2663a64d4fa7cb9da58",
+    "candidate": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+    "previous_terminal_native": {
+      "session_id": 66214,
+      "source_files": 790,
+      "source_drift": [],
+      "whole_tests": 50,
+      "passed": 49,
+      "failed": 1
+    },
+    "terminal_source_hashes_verified_before_writes": true,
+    "owned_base_content_verified": "5a1b3fb3d6c57f75ce02a4dc433c6419b7da800d",
+    "paths": [
+      "packages/local-app/src/agent-runtime-control-local.ts",
+      "packages/local-app/test/agent-runtime-control-local.test.ts",
+      "packages/local-app/test/agent-runtime-observation-local.test.ts",
+      "apps/workbench/test/agent-runtime-control.test.ts",
+      "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts",
+      "packages/runtime-adapter/test/agent-parent-operation-recovery.test.ts"
+    ],
+    "retained_D294_current_domain_candidate": true,
+    "new_run_started": false,
+    "paid_requests": false,
+    "pushed": false
+  },
+  "candidate_validation": {
+    "check": {
+      "recorded_at": "2026-10-13T19:56:21.875Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 31701,
+      "files": [],
+      "test_name_pattern": null,
+      "source_files": 791,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    "meta": {
+      "recorded_at": "2026-10-13T20:13:20.814Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 873497,
+      "files": [
+        "packages/runtime-adapter/test/agent-parent-operation-recovery.test.ts",
+        "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+        "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+        "packages/local-app/test/current-parent-input-seal.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 791,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    "files": 4,
+    "passed": 95,
+    "failed": 0,
+    "pending": 0
+  },
+  "limits": {
+    "actual_source_review": true,
+    "reviewer_dynamic_tests": false,
+    "historical_raw_logs_replayed": false,
+    "Runtime_SkillInvocation_produced": false,
+    "real_model_or_Skill_qualification": false,
+    "Superpowers_behaviour_comparison_complete": false,
+    "S1_complete": false
+  },
+  "next": [
+    "Close still-conditional HTTP endpoint drift with actual TLS negative before implementation.",
+    "Measure parent/child result capture and repeated independent verification costs, fix actual deadline cause without changing budgets or evidence freshness.",
+    "Complete real default planning clarification/application execution/delivery path; wait for explicit model/package/cash/credit approval before paid requests."
+  ],
+  "paid_requests": false,
+  "pushed": false,
+  "goal": "active",
+  "schema": 242,
+  "project_database_format": 10,
+  "host_format": 1
+}

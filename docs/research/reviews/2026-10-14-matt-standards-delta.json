@@ -1,0 +1,231 @@
+{
+  "kind": "Actual Matt review Standards axis complete fresh static delta",
+  "base": "5a1b3fb3d6c57f75ce02a4dc433c6419b7da800d",
+  "tip": "0fd7a75b3fd9b1a64795c2663a64d4fa7cb9da58",
+  "diff_command": "git diff 5a1b3fb3d6c57f75ce02a4dc433c6419b7da800d...0fd7a75b3fd9b1a64795c2663a64d4fa7cb9da58",
+  "commits": [
+    "888a56047fc75a70cf57bb0c3c3e960f35409531",
+    "0fd7a75b3fd9b1a64795c2663a64d4fa7cb9da58"
+  ],
+  "skill": {
+    "path": "C:\\Users\\hector.he\\.agents\\skills\\mattpocock-skills\\skills\\in-progress\\review\\SKILL.md",
+    "commit": "5d78bd0903420f97c791f834201e550c765699f8",
+    "sha256": "6b9188cbf826b04ee4535ce3e7ba97f765631e117404ef4f59cfa5a174f73a9f",
+    "local_definition_modified": false
+  },
+  "review_complete": true,
+  "outcome": "ST-01_closed_no_new_confirmed_rule_violation_ST-02_conditional_advisory_remains",
+  "standards_sources": [
+    "CONTEXT.md",
+    "docs/architecture/CimiLoop整体能力架构-v0.1.md",
+    "docs/architecture/CimiLoop角色与权限模型-v0.1.md",
+    "docs/architecture/CimiLoop验证与证据模型-v0.1.md",
+    "docs/architecture/CimiLoop存储与Solo-Team演进模型-v0.1.md"
+  ],
+  "standards_rules_applied": [
+    "Kernel sole domain mutation authority and atomic command/event/outbox",
+    "current identity/role/scope and no implicit authority",
+    "immutable evidence and raw provenance",
+    "Unknown retained instead of invented results",
+    "exact source/artifact/contract/plan applicability",
+    "historical ID/schema/meaning and original-request compatibility"
+  ],
+  "coverage": {
+    "changed_paths": 14,
+    "paths": [
+      {
+        "path": "apps/workbench/test/agent-runtime-control.test.ts",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "All added HTTP revocation assertions read with actual session, cancellation and shared store fixture; role denial is 403 while historical query stays readable."
+      },
+      {
+        "path": "docs/implementation/CimiLoop-SDK调用与IPC原字节账本-v0.1.md",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "All added D302/D303 dated statements read; qualification limits, old Native49/1 and source version separation preserved."
+      },
+      {
+        "path": "docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "All new progress statements and modified 7.2 migration paragraph read; CURRENT_DATABASE_FORMAT=10, requireCurrentFormat and MigrationRunner9-to10 guard installation checked from fixed source."
+      },
+      {
+        "path": "docs/plans/2026-10-09-cimiloop-S1跨电脑接续.md",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "All added dated records read; older run frozen state kept historically; newer D303 whole terminal explicit; no timeout-cause or real Skill/S1 claim."
+      },
+      {
+        "path": "docs/plans/2026-10-14-cimiloop-current-human-original-control.md",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "Full new document read; revoke-after-await can reject result without rolling back attempted physical action; independent review and constructed qualification limits explicit."
+      },
+      {
+        "path": "docs/plans/2026-10-14-cimiloop-parent-original-config-seven.md",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "Full new document read; config7 and erased-marker correction tied to immutable original input; structural observer does not certify OS resources or qualification; legacy migration wording checked."
+      },
+      {
+        "path": "docs/research/CimiLoop-current-human-original-control-2026-10-14.json",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "All 119 lines read; recorded 78-case validation, retained red/API/type errors, ordinary-review limits and then-current Native nonterminal reported distinctly. Records not treated as reviewer-executed tests."
+      },
+      {
+        "path": "docs/research/CimiLoop-parent-original-config-seven-2026-10-14.json",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "All 707 lines read in contiguous chunks; 154-case validation, retained errors, full metadata timeline, old Native49/1 and unavailable reply distinguished from qualification/causality; underlying model bodies not opened."
+      },
+      {
+        "path": "docs/research/README.md",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "All D302/D303 additions read; dated historical state and evidence qualification limits remain explicit."
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-control-local.ts",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "Full fixed-tip source and changed hunks read; private original Kernel/method/bound call; role checks before physical action, after await and after original relation reread; cancellation and immutable receipts preserved."
+      },
+      {
+        "path": "packages/local-app/test/agent-runtime-control-local.test.ts",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "Full added cases plus original fixture/control context; before/after actual assignment revocation, exact receipt replay, method/object substitution, no physical callbacks before denial and no event/budget change."
+      },
+      {
+        "path": "packages/local-app/test/agent-runtime-observation-local.test.ts",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "All three wrapper changes read with unchanged response-loss/precommit/prepared corruption assertions; binds real authorization method rather than creating ALLOW."
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "Full source and old diff read; exact config7, parent guard, explicit absent versus original/unknown registration; resource/execution identity separated; original controller required and no completion manufacture."
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-operation-recovery.test.ts",
+        "source": "fixed git diff/show 0fd7a75",
+        "semantic_review_complete": true,
+        "review_notes": "Full 139-line source read; claim/key/input and retained file custody; incomplete registration remains Unknown; mode/owner/field/erased-marker negatives; registered5/6 and absent1-5 compatibility; full structural registration plus actual Windows observer preserves Unknown."
+      }
+    ],
+    "uncompleted_paths": [],
+    "code_and_test_paths": 6,
+    "document_paths": 8,
+    "completed_paths": 14
+  },
+  "finding_statuses": [
+    {
+      "evidence": "Original Kernel object, method and bound call private; replaced owner/method rejected; current scoped/time-valid technical_owner checked before new effect and after await/reread. Existing cancellation receipt cannot grant a new attempt after revocation.",
+      "rules": [
+        "Role model section2 principles1/4/5 lines56/59/60",
+        "Role model section12 invariants6/10 lines302/306"
+      ],
+      "status": "closed_in_0fd7a75_static_source",
+      "id": "ST-01",
+      "fix_lines": "39-46,58-69,71-85,110-113",
+      "fix_file": "packages/local-app/src/agent-runtime-control-local.ts",
+      "old_fixed_report_unchanged": true
+    },
+    {
+      "id": "ST-02",
+      "details": {
+        "id": "ST-02",
+        "priority": 2,
+        "classification": "judgement_defense_in_depth",
+        "confidence": "medium_static_conditional",
+        "file": "packages/runtime-adapter/src/gateway-http.ts",
+        "line": 168,
+        "title": "Pin the HTTP request path to the original approved connection",
+        "trigger": "An installed account/credential/network hook changes the public runtime boundary.path after createDedicatedAgentRuntimeModel has checked its initial path. This requires trusted JavaScript callback mutation; no ordinary UI/model payload setter was found.",
+        "observed_code": "GatewayNetworkBoundary constructor assigns readonly path as a normal runtime property. The immutable DNS pin includes the original path. Dedicated model checks boundary.path only at creation (line 69), then awaits installed hooks. consumeHttpConnection checks socket/peer/cert/expiry but not path; HTTPS POST later reads current boundary.path (line 168).",
+        "impact": "The request may go to a different provider endpoint while the account/budget hold remains bound to the original connection_digest. Static finding is conditional on trusted callback drift, so it is advisory rather than a demonstrated normal-input authorization bypass.",
+        "standards": [
+          {
+            "file": "docs/architecture/CimiLoop角色与权限模型-v0.1.md",
+            "lines": "60,306",
+            "section": "2.5 and 12.10",
+            "rule": "Permissions are limited by scope/actions/effective period; Runtime may not expand authority."
+          },
+          {
+            "file": "docs/architecture/CimiLoop验证与证据模型-v0.1.md",
+            "lines": "61,187",
+            "section": "2.7 and 6",
+            "rule": "Applicability must bind exact necessary environment/configuration dimensions; do not associate mismatching configuration results with the current claim."
+          }
+        ],
+        "related_code": [
+          "packages/runtime-adapter/src/agent-dedicated-model.ts:68-69",
+          "packages/runtime-adapter/src/agent-dedicated-model.ts:108-124",
+          "packages/runtime-adapter/src/gateway-network.ts:54",
+          "packages/runtime-adapter/src/gateway-network.ts:86-90",
+          "packages/runtime-adapter/src/gateway-network.ts:138-151"
+        ],
+        "validation": "Static property and async call-chain inspection only; no requests or credentials accessed.",
+        "recommendation": "Capture an immutable approved path for the transport and compare it with the owned pin when the socket is consumed. Avoid reading a replaceable public property at send time."
+      },
+      "status": "unresolved_conditional_advisory",
+      "unchanged_paths": [
+        "packages/runtime-adapter/src/gateway-http.ts",
+        "packages/runtime-adapter/src/gateway-network.ts",
+        "packages/runtime-adapter/src/agent-dedicated-model.ts"
+      ]
+    }
+  ],
+  "new_findings": [],
+  "context_reads": [
+    "packages/kernel/src/kernel.ts:376-393",
+    "apps/workbench/src/server.ts:201-222",
+    "packages/runtime-adapter/src/agent-runtime-operation.ts:34-103",
+    "packages/runtime-adapter/src/agent-parent-skill-config.ts",
+    "packages/runtime-adapter/src/agent-named-method-config.ts",
+    "packages/runtime-adapter/src/native.ts:nativeControl",
+    "packages/store-sqlite/src/database-format.ts:5,requireCurrentFormat",
+    "packages/store-sqlite/src/migration-runner.ts:check/apply format installation"
+  ],
+  "reported_validation_only": {
+    "old_Native": {
+      "pending": 0,
+      "passed": 49,
+      "failed": 1,
+      "new_reader_installed": false
+    },
+    "D303": {
+      "pending": 0,
+      "passed": 154,
+      "failed": 0
+    },
+    "D302": {
+      "pending": 0,
+      "passed": 78,
+      "failed": 0
+    },
+    "reviewer_reran": false
+  },
+  "constraints": {
+    "model_bodies_read": false,
+    "old_292_13_report_modified": false,
+    "SDK_invoked": false,
+    "external_issues_or_messages": false,
+    "credentials_read": false,
+    "Native_invoked_or_modified": false,
+    "source_modified": false,
+    "push": false,
+    "builds_executed": false,
+    "paid_requests": false,
+    "S1_acceptance": false,
+    "real_Runtime_Skill_qualification": false,
+    "tests_executed": false,
+    "user_database_modified": false
+  },
+  "scope_limit": "Fixed main commits only. Parent-reported C791 exact synchronization and running session63235 are outside this delta proof; no Native worktree/runtime inspection performed."
+}

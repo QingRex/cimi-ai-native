@@ -1,0 +1,275 @@
+{
+  "axis": "Spec",
+  "status": "complete_fresh_delta_semantic_review",
+  "base": "5a1b3fb3d6c57f75ce02a4dc433c6419b7da800d",
+  "tip": "0fd7a75b3fd9b1a64795c2663a64d4fa7cb9da58",
+  "fixed_original_report_preserved": ".cimiloop/new-host-s1/d301-matt-spec-full-report.json",
+  "skill": "C:/Users/hector.he/.agents/skills/mattpocock-skills/skills/in-progress/review/SKILL.md",
+  "scope": {
+    "all_semantics_reviewed": true,
+    "document_paths": 8,
+    "all_paths": 14,
+    "code_paths": 6
+  },
+  "path_coverage": [
+    {
+      "path": "apps/workbench/test/agent-runtime-control.test.ts",
+      "kind": "code",
+      "reviewed": true,
+      "method": "complete_fixed_changed_test_semantics",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "docs/implementation/CimiLoop-SDK调用与IPC原字节账本-v0.1.md",
+      "kind": "document",
+      "reviewed": true,
+      "method": "complete_changed_markdown_semantics_exact_repeated_claims_deduplicated",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md",
+      "kind": "document",
+      "reviewed": true,
+      "method": "complete_changed_markdown_semantics_exact_repeated_claims_deduplicated",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "docs/plans/2026-10-09-cimiloop-S1跨电脑接续.md",
+      "kind": "document",
+      "reviewed": true,
+      "method": "complete_changed_markdown_semantics_exact_repeated_claims_deduplicated",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "docs/plans/2026-10-14-cimiloop-current-human-original-control.md",
+      "kind": "document",
+      "reviewed": true,
+      "method": "complete_changed_markdown_semantics_exact_repeated_claims_deduplicated",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "docs/plans/2026-10-14-cimiloop-parent-original-config-seven.md",
+      "kind": "document",
+      "reviewed": true,
+      "method": "complete_changed_markdown_semantics_exact_repeated_claims_deduplicated",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "docs/research/CimiLoop-current-human-original-control-2026-10-14.json",
+      "kind": "document",
+      "reviewed": true,
+      "method": "full_fixed_research_record_read_no_execution_verification",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "docs/research/CimiLoop-parent-original-config-seven-2026-10-14.json",
+      "kind": "document",
+      "reviewed": true,
+      "method": "full_fixed_research_record_read_no_execution_verification",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "docs/research/README.md",
+      "kind": "document",
+      "reviewed": true,
+      "method": "complete_changed_markdown_semantics_exact_repeated_claims_deduplicated",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "packages/local-app/src/agent-runtime-control-local.ts",
+      "kind": "code",
+      "reviewed": true,
+      "method": "full_fixed_new_source_and_complete_diff",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "packages/local-app/test/agent-runtime-control-local.test.ts",
+      "kind": "code",
+      "reviewed": true,
+      "method": "complete_fixed_changed_test_semantics",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "packages/local-app/test/agent-runtime-observation-local.test.ts",
+      "kind": "code",
+      "reviewed": true,
+      "method": "complete_fixed_changed_test_semantics",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts",
+      "kind": "code",
+      "reviewed": true,
+      "method": "full_fixed_new_source_and_complete_diff",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-parent-operation-recovery.test.ts",
+      "kind": "code",
+      "reviewed": true,
+      "method": "complete_fixed_changed_test_semantics",
+      "requirements": [
+        "V1-09",
+        "V1-10",
+        "invariant.original-identities"
+      ]
+    }
+  ],
+  "closed_original_findings": [
+    {
+      "status": "closed_at_new_tip_source_level",
+      "sources": [
+        "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts:29",
+        "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts:32",
+        "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts:43"
+      ],
+      "validation_boundary": "New full registered query/collect test uses real reader and actual Windows observer, with PUBLIC constructed executable bytes, PID and resource registration. No actual parent Runtime or recovered AppContainer is proved by this test; this reviewer ran none.",
+      "id": "SPEC-WRONG-01",
+      "detail": "Exact config7 joins newConfig. Every explicit parent mode requires immutable original operation/owner/input; registered or unknown old-mode registration also binds input, so removing all config/provider parent markers does not silently downgrade an original parent. Resource-only recovery preserves claim/key/input/controller checks while execution bytes may be missing; no restart/completion is fabricated.",
+      "spec": [
+        "5a1b3fb:docs/plans/2026-10-09-cimiloop-S1跨电脑接续.md:363",
+        "5a1b3fb:docs/plans/2026-10-09-cimiloop-S1跨电脑接续.md:366",
+        "5a1b3fb:docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md:482"
+      ]
+    }
+  ],
+  "supported_new_behavior": [
+    {
+      "sources": [
+        "packages/local-app/src/agent-runtime-control-local.ts:40",
+        "packages/local-app/src/agent-runtime-control-local.ts:58",
+        "packages/local-app/src/agent-runtime-control-local.ts:72",
+        "packages/local-app/src/agent-runtime-control-local.ts:109"
+      ],
+      "spec": [
+        "5a1b3fb:docs/plans/2026-10-09-cimiloop-S1跨电脑接续.md:366",
+        "5a1b3fb:docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md:482"
+      ],
+      "id": "D302.current-human-control",
+      "detail": "Original Kernel object, original authorizeAgentRunControl method and bound call captured before parent callback; retryCancellation/recover require current permission before physical effect, after await and after original relationship reread. Replacement object/method is rejected before stale method invocation. Permission failure stays outside Unknown-catching block. Read-only query/collect remain distinct. Old cancellation receipt can be replayed but cannot grant another physical action after role revocation; already attempted action is not rolled back."
+    }
+  ],
+  "new_confirmed_wrong_behavior": [],
+  "extra_scope_confirmed": [],
+  "remaining_partial": [
+    {
+      "status": "unchanged_main_partial",
+      "id": "SPEC-PARTIAL-01",
+      "detail": "Current run_skill Task output proof remains result3 only in separate candidate; delta does not change completion/result3 implementation."
+    },
+    {
+      "status": "unchanged_partial",
+      "id": "SPEC-PARTIAL-02",
+      "detail": "No real pre-Plan Matt host or universal default Human/Matt Plan/Task enforcement added."
+    }
+  ],
+  "requirement_matrix": [
+    {
+      "status": "old_config7_gap_closed_other_partial",
+      "evidence": "Format/identity/recovery source gap closed; real model/account/bill approvals, disk hard quota/history/full cross-boot-login recovery and current domain result remain unproved.",
+      "id": "V1-09"
+    },
+    {
+      "status": "shared_control_improved_formal_native_acceptance_missing",
+      "evidence": "Current Human role and original recovery source are reinforced; actual production parent SDK/current result and full formal Workbench acceptance not established.",
+      "id": "V1-10"
+    },
+    {
+      "status": "unchanged_partial",
+      "evidence": "Real Skill and all Plan/Task Human/Matt gap unaffected.",
+      "id": "V1-21"
+    },
+    {
+      "status": "unchanged_real_methods_and_comparison_missing",
+      "evidence": "This fresh independent source review is not a Native SkillInvocation or fresh real Superpowers/method behavior evaluation.",
+      "id": "V1-22"
+    },
+    {
+      "status": "unchanged_real_ready_for_delivery_s1_missing",
+      "evidence": "No real ordinary Change end-to-end Skill/interruption/acceptance/ReadyForDelivery or full verified operator guide added.",
+      "id": "V1-11"
+    },
+    {
+      "status": "source_controls_supported_full_acceptance_unproved",
+      "evidence": "Old command/Run/operation retained and response-loss receipt does not renew physical permission. Unknown/partial resource remains Unknown; no second launch or domain authority.",
+      "id": "S1.R2.R4.A9"
+    },
+    {
+      "status": "documentation_sync_only",
+      "evidence": "V1 plan synchronizes new project format10 and explicit old1-9 migration; no store/schema migration files changed or user DB action executed.",
+      "id": "S1.R5.R6"
+    },
+    {
+      "status": "no_confirmed_extra_scope",
+      "evidence": "All 14 delta paths reviewed; no implementation expansion found.",
+      "id": "S2-S4"
+    }
+  ],
+  "reported_checks_not_run_by_reviewer": {
+    "D303": "11 complete files154 passed, zero skips; check/help and789 source no drift as research record claims",
+    "D302": "7 complete files 78 passed, zero skips; check/help and 788 source no drift as research record claims",
+    "old_native": "D303 record says frozen C790 five files50 cases49/1, parent fourth request recorded without reply and Task deadline exit12. It did not install new reader; cause not proved."
+  },
+  "limitations": [
+    "No builds/tests/SDK/Native actions or credential/model/paid access were executed by this review.",
+    "Only fixed Git objects were read; all truncated portions relevant to changed semantics were separately reread.",
+    "Both new research JSON records were fully read, including retained timeline metadata; their referenced original artifacts/tests were not independently executed or opened.",
+    "All repeated D302/D303 Markdown claims were read once and applied to exact duplicates; migration paragraph separately read.",
+    "Actual C791 synchronization/new four-contract result was reported by Root and is not independently verified or attributed to fixed main delta.",
+    "Tool setup helper returned orchestrator_helper_exit_nonzero Some(-1073741819) on one unstarted read command; successful read retries used identical fixed refs. It is not a project Native failure or approval rejection."
+  ],
+  "pending_paths": [],
+  "summary_word_count": 353
+}

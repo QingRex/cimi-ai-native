@@ -1,0 +1,3988 @@
+{
+  "kind": "Actual Matt review Standards axis complete static source review",
+  "base": "e789902379534c6e36ea6ebc14266ed5167b761c",
+  "tip": "5a1b3fb3d6c57f75ce02a4dc433c6419b7da800d",
+  "diff_command": "git diff e789902379534c6e36ea6ebc14266ed5167b761c...5a1b3fb3d6c57f75ce02a4dc433c6419b7da800d",
+  "skill": {
+    "path": "C:\\Users\\hector.he\\.agents\\skills\\mattpocock-skills\\skills\\in-progress\\review\\SKILL.md",
+    "commit": "5d78bd0903420f97c791f834201e550c765699f8",
+    "sha256": "6b9188cbf826b04ee4535ce3e7ba97f765631e117404ef4f59cfa5a174f73a9f",
+    "local_definition_modified": false
+  },
+  "commits": [
+    "5a1b3fb3d6c57f75ce02a4dc433c6419b7da800d fix(local-app): pin original authority in model account owner ports",
+    "e9f7abd362f6aa589d9e7865c7b1e458acc1a6c1 fix(local-app): require synchronous original fee commit guards",
+    "59a4c271d6a0cda64bc430c594eca133f63da47f perf(runtime): bind complete original model account hold checks",
+    "c21c2ea4047822a43a5bf8c568bc1601ce5c8d20 perf(runtime): reuse fresh original result boundary identity",
+    "ad21a2e9c839afb404dcb3cd2ae7f660571f8b97 fix(workbench): recheck human session after original agent waits",
+    "683163229d329920b9053f6d1e62f27c99ac836a fix(runtime): isolate original native task clock control",
+    "54f2eaba5f360f4e3ee250a88c3f13ce6ef89e75 feat(runtime): connect shared current parent skill result readers",
+    "0861179d73436b8221dabfc3c41193a1d1936d41 feat(runtime): verify current original parent skill results",
+    "62b5a2bf8f11de973c74ffbb0ae4c44dab639488 fix(runtime): retain original result identity across verification callbacks",
+    "e20631b73ca095bc0634893fe831939fbdd191b7 feat(runtime): verify original parent candidates and model admission cuts",
+    "1de156266de9d0d7cebfd5a387594b29b7e2092b feat(runtime): verify original parent domain collection and writer reads",
+    "15d0dc4b0c4a2f856e1d7158d48534f7f4f2096d feat(runtime): connect original parent SDK skill calls and verified reads",
+    "656334214bcc8831547735debb2f8c836e518e6b feat(runtime): reconcile complete original parent and skill fees",
+    "67e5ff8e8fd49fcf8ed08a1838c9f71e313a2567 feat(skill): reconcile permanently closed originals as not started",
+    "370b332c9d7bf27251655121208a176d01a5abfc feat(skill): reconcile original cancellation and bills",
+    "655ee7cfb18f99a6f776f0684d005f62992c7eb5 feat(skill): control original invocations from workbench",
+    "d0387fdb70b99222344d6e5f010d2ef34ef04d4b feat(skill): reconcile original method output failures",
+    "dd83e138dce4bfa7b9c379018c87ea461b323afb feat(skill): reconcile original child results through shared service",
+    "28c53a395a453b53cb15a52e2364f07b084e1c29 feat(runtime): verify original job resource policy",
+    "303ac68f377eec9a02155294a6627582af5453eb fix(runtime): verify original parent native settlement",
+    "5d34d4bf4124f0acb55d79ddafd43c62b335233d feat: reconcile original parent and skill family costs",
+    "d5b3d1d20d8e874a60be61c19229a51bd4b29544 feat(runtime): verify original skill bills in Kernel observations",
+    "d38de7fe72fcd98a6b46ec3a139f7154faefc786 feat(runtime): collect original skill application results without replay",
+    "b96a0b090b99d4054a6fa7a9756c939c5267400a feat(cimiloop): verify original named-method runtime results",
+    "b1d265d13aecd3a5603faac123cdc0fe436dd73a feat(cimiloop): compose original named-method native execution",
+    "fa8bc6424dcd341ad349c6cce58931f91662e7b4 feat(cimiloop): bind original skill model accounts",
+    "7c300b71f833e60f0e4e3a3c9a85e7e32c886800 feat(cimiloop): bind original Skill dispatch custody",
+    "5dec078a1b33989dba996be58de2df8d67fd0f31 feat(cimiloop): own and replay original startup",
+    "4a38055a981fcd335f7b341c30613785d02ce092 feat(cimiloop): attach original bills to legacy accounts",
+    "0e3e46a2e555f4c53506110bc5eafb69aa05b240 feat(cimiloop): enforce installed pre-plan clarification",
+    "069a8c6d9b4399976a6e60520fba7df2d36e5031 feat(cimiloop): reconcile original Native cancellation and bills",
+    "c282e3916e80d5c0bd18659354fcc84ddfe3348f feat(cimiloop): reconcile original Agent terminal and bills",
+    "b8fde0d45317de785c7b74d0b722dbe09c5c01dc feat(cimiloop): record original bill cash through Kernel",
+    "7c214a3d976640a6e02181c974cc06b6b59e9ca6 feat(cimiloop): expose original Run account cost queries",
+    "3a244c63fbd1e7d0697d5b4f07be18f930936a68 feat(runtime): add original account bills and balance custody",
+    "790f05d2ca8c7b02bcc2fd795c359072c95968b2 feat(cimiloop): persist account holds and bind model IPC to original Task",
+    "f6785da5aecc67a043987bd6b943caeb31e25698 feat: verify dedicated originals in shared Run observations",
+    "de98188d4352d50a0fb9396e3adf19236f645e75 feat: join dedicated model requests to original Runtime",
+    "adcf170a724fc713be12e61e7ad7145beacd77da fix: retain controlled original Native interruptions",
+    "4e3fc9f7bd35713cd942b4e33757151d32712d34 feat: connect original Agent startup to Workbench",
+    "9df86a3e46f1d5ab2426c60a5713fd208b399e54 feat: verify original task outputs against Kernel domain records",
+    "554514d7225a38cff4e66e5fba1e13181d1e6fbf feat: connect Human plan clarification and original candidate recovery",
+    "4334dfa0120cdf276949e21259e80e9ed549a59a fix(runtime): yield I/O before fresh Agent tool admission",
+    "912650345a7c771d170756e9a9170d03b73d5a34 fix(runtime): retain original recovery controllers and compile recipes",
+    "d6c2f8725adb7e62645700109eeb34eb6eea69d1 fix(runtime): retain original executables and freeze custody proofs",
+    "1e4061aa00e7a61787be88f31259c616554cf9d3 feat(runtime): verify original structured Task outputs (D-247)",
+    "f87bda2fad5ae0ef80ce53274e14121d8c7ff0c1 fix(runtime): use pinned native helper for fresh start custody",
+    "f4ace8518ad14f2e5dce53479d84085f2e2e4338 fix(runtime): hold native clock through original task lifetime",
+    "f190d1f638722270c16e1397cecc872ab7c8a32d fix(runtime): enforce native control deadlines and retain first failure",
+    "5ecc3c85f0df816da6872ade913c3bbd0de7480b feat(runtime): verify fixed checks after original Run edits (D-243)",
+    "43bcf8fa2794b42026fd96664e2b192739f27b5e fix(runtime): bind production lifetime and staging to original Task",
+    "41b2102f187c5e709fb41eefa4cb7e46248c07f5 feat(runtime): verify original Native failure through Kernel observation (D-241)",
+    "7fbed42b7b881a26278f69be3b3ca78a1e254aab feat(runtime): compose original host model and native execution (D-240)",
+    "b4ca333bd580d4e533c78cb337bf0222409a5eb4 feat(cimiloop): add pre-plan Human clarification and original-request recovery",
+    "741ce2d76c37c8455b3c9da0d58e66284717bab1 fix(runtime): interrupt original SDK waits on native failure (D-238)",
+    "8fbb5c3e9c7ebfbae401513a10bede054d1d3620 feat(runtime): pin original host first-start custody",
+    "5474abfec8c5eeb46a7281201fbd31db53836137 feat(runtime): bind original Agent launch to current Kernel authority",
+    "3ce9f236532107433dcc1bb19d91d9b53ccb8865 feat(runtime): record original Agent Unknown observations through Kernel",
+    "682020e03c22a6febf42e9e96e65cce3bff6e467 feat(workbench): control original Agent operations through Human Kernel authority",
+    "65dc65d8222c80f5b3425e6dd72f7479dbd77b66 feat(runtime): independently verify original Native receipts"
+  ],
+  "review_complete": true,
+  "outcome": "one_documented_rule_violation_and_one_conditional_judgement",
+  "source_scope": {
+    "main_changed_paths": [
+      ".gitignore",
+      "CONTEXT.md",
+      "README.md",
+      "apps/cli/src/agent-account-costs.ts",
+      "apps/cli/src/agent-run-cost-observation.ts",
+      "apps/cli/src/agent-runtime-start.ts",
+      "apps/cli/src/bin.ts",
+      "apps/cli/src/commands.ts",
+      "apps/cli/test/agent-account-costs.test.ts",
+      "apps/cli/test/agent-run-cost-observation.test.ts",
+      "apps/cli/test/agent-runtime-start.test.ts",
+      "apps/workbench/public/app.js",
+      "apps/workbench/src/server.ts",
+      "apps/workbench/test/agent-account-billing-frontend.test.ts",
+      "apps/workbench/test/agent-account-billing.test.ts",
+      "apps/workbench/test/agent-run-cost-observation-frontend.test.ts",
+      "apps/workbench/test/agent-run-cost-observation.test.ts",
+      "apps/workbench/test/agent-runtime-control.test.ts",
+      "apps/workbench/test/agent-runtime-frontend.test.ts",
+      "apps/workbench/test/agent-runtime-session-await.test.ts",
+      "apps/workbench/test/agent-runtime-start-frontend.test.ts",
+      "apps/workbench/test/agent-runtime-start-ownership.test.ts",
+      "apps/workbench/test/agent-runtime-start.test.ts",
+      "apps/workbench/test/clarification.test.ts",
+      "apps/workbench/test/frontend.test.ts",
+      "apps/workbench/test/plan-clarification.test.ts",
+      "apps/workbench/test/planning-clarification-admission.test.ts",
+      "apps/workbench/test/skill-control-frontend.test.ts",
+      "apps/workbench/test/skill-control.test.ts",
+      "apps/workbench/test/skill-reconciliation.test.ts",
+      "docs/README.md",
+      "docs/architecture/CimiLoop整体能力架构-v0.1.md",
+      "docs/implementation/CimiLoop-Human计划澄清与原候选恢复-v0.1.md",
+      "docs/implementation/CimiLoop-Native原回执独立核验-v0.1.md",
+      "docs/implementation/CimiLoop-Native控制期限与首异常保留-v0.1.md",
+      "docs/implementation/CimiLoop-SDK调用与IPC原字节账本-v0.1.md",
+      "docs/implementation/CimiLoop-Skill原应用执行与结果采集-v0.1.md",
+      "docs/implementation/CimiLoop-Skill原账单用量与领域观察-v0.1.md",
+      "docs/implementation/CimiLoop-V1可执行设计与实施计划-v0.1.md",
+      "docs/implementation/CimiLoop-named-method-independent-result-v0.1.md",
+      "docs/implementation/CimiLoop-named-method-native-composition-v0.1.md",
+      "docs/implementation/CimiLoop-original-skill-execution-v0.1.md",
+      "docs/implementation/CimiLoop-original-start-ownership-v0.1.md",
+      "docs/implementation/CimiLoop-skill-account-composition-v0.1.md",
+      "docs/implementation/CimiLoop-专用模型原件共同核验-v0.1.md",
+      "docs/implementation/CimiLoop-专用模型原请求衔接-v0.1.md",
+      "docs/implementation/CimiLoop-原Agent启动授权与共享组合-v0.1.md",
+      "docs/implementation/CimiLoop-原Agent待核对观测与Kernel接通-v0.1.md",
+      "docs/implementation/CimiLoop-原Job内存策略核验与结清-v0.1.md",
+      "docs/implementation/CimiLoop-原Native失败结果与Kernel观测-v0.1.md",
+      "docs/implementation/CimiLoop-原Native输入关闭与执行中断-v0.1.md",
+      "docs/implementation/CimiLoop-原Runtime异常退出与SDK等待中断-v0.1.md",
+      "docs/implementation/CimiLoop-原Run修改后固定检查-v0.1.md",
+      "docs/implementation/CimiLoop-原Run费用共享入口-v0.1.md",
+      "docs/implementation/CimiLoop-原Skill取消终态与费用核对-v0.1.md",
+      "docs/implementation/CimiLoop-原Skill工作台控制与恢复-v0.1.md",
+      "docs/implementation/CimiLoop-原Skill方法输出失败与费用核对-v0.1.md",
+      "docs/implementation/CimiLoop-原Skill未启动封闭与零效果核对-v0.1.md",
+      "docs/implementation/CimiLoop-原Skill终态与历史资格核对-v0.1.md",
+      "docs/implementation/CimiLoop-原Task结构化执行产物与Kernel观测-v0.1.md",
+      "docs/implementation/CimiLoop-原取消证明与终态核对-v0.1.md",
+      "docs/implementation/CimiLoop-原启动账本新鲜Native权限核验-v0.1.md",
+      "docs/implementation/CimiLoop-原宿主持有的Native时钟通道-v0.1.md",
+      "docs/implementation/CimiLoop-原宿主首次启动账本与Runtime组合-v0.1.md",
+      "docs/implementation/CimiLoop-原恢复控制器保留与编译配方-v0.1.md",
+      "docs/implementation/CimiLoop-原执行二进制保留与历史容量-v0.1.md",
+      "docs/implementation/CimiLoop-原执行产物领域依据与Kernel核验-v0.1.md",
+      "docs/implementation/CimiLoop-原执行终态与账单核对-v0.1.md",
+      "docs/implementation/CimiLoop-原父子完整费用与终态结清-v0.1.md",
+      "docs/implementation/CimiLoop-原父子运行费用聚合-v0.1.md",
+      "docs/implementation/CimiLoop-原父当前候选资料与独立预约核验-v0.1.md",
+      "docs/implementation/CimiLoop-原父运行领域核验与结清-v0.1.md",
+      "docs/implementation/CimiLoop-原监督回读与新鲜工具准入-v0.1.md",
+      "docs/implementation/CimiLoop-原账单费用Kernel接通-v0.1.md",
+      "docs/implementation/CimiLoop-原账户账单与余额核验-v0.1.md",
+      "docs/implementation/CimiLoop-宿主模型与正式Runtime执行组合-v0.1.md",
+      "docs/implementation/CimiLoop-工作台原Agent启动衔接-v0.1.md",
+      "docs/implementation/CimiLoop-工作台原Agent运行控制-v0.1.md",
+      "docs/implementation/CimiLoop-持久账户原预算与共享组合-v0.1.md",
+      "docs/implementation/CimiLoop-旧账户原账单兼容接通-v0.1.md",
+      "docs/implementation/CimiLoop-本地工作台与共享应用服务-v0.1.md",
+      "docs/implementation/CimiLoop-父SDK调用原Skill-v0.1.md",
+      "docs/implementation/CimiLoop-生产执行期限与原Task组合-v0.1.md",
+      "docs/implementation/CimiLoop-计划前Human澄清与原请求接续-v0.1.md",
+      "docs/implementation/CimiLoop-计划前置Kernel核验-v0.1.md",
+      "docs/implementation/README.md",
+      "docs/plans/2026-09-18-cimiloop-capability-architecture-discussion-plan.md",
+      "docs/plans/2026-10-09-cimiloop-S1跨电脑接续.md",
+      "docs/plans/2026-10-10-cimiloop-Human计划澄清实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-named-method-independent-result.md",
+      "docs/plans/2026-10-10-cimiloop-named-method-native-composition.md",
+      "docs/plans/2026-10-10-cimiloop-original-skill-execution.md",
+      "docs/plans/2026-10-10-cimiloop-original-start-ownership.md",
+      "docs/plans/2026-10-10-cimiloop-skill-account-composition.md",
+      "docs/plans/2026-10-10-cimiloop-专用模型原件共同核验实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-专用模型原请求衔接实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-原Native输入关闭实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-原Run费用入口实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-原取消证明与终态核对实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-原执行产物领域依据实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-原执行终态与账单核对实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-原账单费用Kernel接通实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-原账户账单与余额实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-工作台原Agent启动衔接实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-持久账户原预算实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-旧账户原账单兼容接通实施设计.md",
+      "docs/plans/2026-10-10-cimiloop-计划前置核验实施设计.md",
+      "docs/plans/2026-10-11-cimiloop-original-family-costs.md",
+      "docs/plans/2026-10-11-cimiloop-original-job-policy.md",
+      "docs/plans/2026-10-11-cimiloop-original-parent-domain.md",
+      "docs/plans/2026-10-11-cimiloop-original-skill-control.md",
+      "docs/plans/2026-10-11-cimiloop-original-skill-failure.md",
+      "docs/plans/2026-10-11-cimiloop-original-skill-terminal.md",
+      "docs/plans/2026-10-11-cimiloop-skill-application-result.md",
+      "docs/plans/2026-10-11-cimiloop-skill-billed-observation.md",
+      "docs/plans/2026-10-12-cimiloop-original-family-settlement.md",
+      "docs/plans/2026-10-12-cimiloop-original-skill-cancellation.md",
+      "docs/plans/2026-10-12-cimiloop-original-skill-not-started.md",
+      "docs/plans/2026-10-12-cimiloop-parent-sdk-skill.md",
+      "docs/plans/2026-10-13-cimiloop-current-host-result.md",
+      "docs/plans/2026-10-13-cimiloop-current-input-pre-ipc.md",
+      "docs/plans/2026-10-13-cimiloop-current-parent-candidate.md",
+      "docs/plans/2026-10-13-cimiloop-current-result-consumption.md",
+      "docs/plans/2026-10-13-cimiloop-model-final-source-cut.md",
+      "docs/plans/2026-10-13-cimiloop-original-clock-worker.md",
+      "docs/plans/2026-10-13-cimiloop-original-result-seal.md",
+      "docs/plans/2026-10-13-cimiloop-shared-current-result-reader.md",
+      "docs/plans/2026-10-13-cimiloop-workbench-original-await-session.md",
+      "docs/plans/2026-10-14-cimiloop-formal-owner-native-composition.md",
+      "docs/plans/2026-10-14-cimiloop-original-fee-void-guard.md",
+      "docs/plans/2026-10-14-cimiloop-original-full-hold-model-port.md",
+      "docs/plans/2026-10-14-cimiloop-skill-runtime-fresh-boundary.md",
+      "docs/research/CimiLoop-Human计划澄清与原候选恢复-2026-10-10.json",
+      "docs/research/CimiLoop-Native原回执独立核验-2026-10-09.json",
+      "docs/research/CimiLoop-Native控制期限与首异常保留-2026-10-09.json",
+      "docs/research/CimiLoop-current-call-consumption-2026-10-13.json",
+      "docs/research/CimiLoop-current-host-result-2026-10-13.json",
+      "docs/research/CimiLoop-current-input-pre-ipc-2026-10-13.json",
+      "docs/research/CimiLoop-formal-owner-native-composition-2026-10-14.json",
+      "docs/research/CimiLoop-model-final-source-cut-2026-10-13.json",
+      "docs/research/CimiLoop-named-method-independent-result-2026-10-11.json",
+      "docs/research/CimiLoop-named-method-native-composition-2026-10-10.json",
+      "docs/research/CimiLoop-original-clock-worker-2026-10-13.json",
+      "docs/research/CimiLoop-original-family-costs-2026-10-11.json",
+      "docs/research/CimiLoop-original-family-settlement-2026-10-12.json",
+      "docs/research/CimiLoop-original-fee-void-guard-2026-10-14.json",
+      "docs/research/CimiLoop-original-full-hold-model-port-2026-10-14.json",
+      "docs/research/CimiLoop-original-job-policy-2026-10-11.json",
+      "docs/research/CimiLoop-original-parent-domain-2026-10-11.json",
+      "docs/research/CimiLoop-original-parent-sdk-skill-2026-10-13.json",
+      "docs/research/CimiLoop-original-result-seal-2026-10-13.json",
+      "docs/research/CimiLoop-original-skill-cancellation-2026-10-12.json",
+      "docs/research/CimiLoop-original-skill-control-2026-10-11.json",
+      "docs/research/CimiLoop-original-skill-execution-2026-10-10.json",
+      "docs/research/CimiLoop-original-skill-failure-2026-10-11.json",
+      "docs/research/CimiLoop-original-skill-not-started-2026-10-12.json",
+      "docs/research/CimiLoop-original-skill-terminal-2026-10-11.json",
+      "docs/research/CimiLoop-original-start-ownership-2026-10-10.json",
+      "docs/research/CimiLoop-parent-domain-collection-2026-10-13.json",
+      "docs/research/CimiLoop-shared-current-result-reader-2026-10-13.json",
+      "docs/research/CimiLoop-skill-account-composition-2026-10-10.json",
+      "docs/research/CimiLoop-skill-application-result-2026-10-11.json",
+      "docs/research/CimiLoop-skill-billed-observation-2026-10-11.json",
+      "docs/research/CimiLoop-skill-runtime-fresh-boundary-2026-10-14.json",
+      "docs/research/CimiLoop-workbench-original-await-session-2026-10-13.json",
+      "docs/research/CimiLoop-专用模型原件共同核验-2026-10-10.json",
+      "docs/research/CimiLoop-专用模型原请求衔接-2026-10-10.json",
+      "docs/research/CimiLoop-原Agent启动授权与共享组合-2026-10-09.json",
+      "docs/research/CimiLoop-原Agent待核对观测与Kernel接通-2026-10-09.json",
+      "docs/research/CimiLoop-原Native失败结果与Kernel观测-2026-10-09.json",
+      "docs/research/CimiLoop-原Native输入关闭与执行中断-2026-10-10.json",
+      "docs/research/CimiLoop-原Runtime异常退出与SDK等待中断-2026-10-09.json",
+      "docs/research/CimiLoop-原Run修改后固定检查-2026-10-09.json",
+      "docs/research/CimiLoop-原Run费用共享入口-2026-10-10.json",
+      "docs/research/CimiLoop-原Task结构化执行产物与Kernel观测-2026-10-09.json",
+      "docs/research/CimiLoop-原取消证明与终态核对-2026-10-10.json",
+      "docs/research/CimiLoop-原启动账本新鲜Native权限核验-2026-10-09.json",
+      "docs/research/CimiLoop-原宿主持有的Native时钟通道-2026-10-09.json",
+      "docs/research/CimiLoop-原宿主首次启动账本与Runtime组合-2026-10-09.json",
+      "docs/research/CimiLoop-原恢复控制器保留与编译配方-2026-10-09.json",
+      "docs/research/CimiLoop-原执行二进制保留与历史容量-2026-10-09.json",
+      "docs/research/CimiLoop-原执行产物领域依据与Kernel核验-2026-10-10.json",
+      "docs/research/CimiLoop-原执行终态与账单核对-2026-10-10.json",
+      "docs/research/CimiLoop-原父当前候选资料与独立预约核验-2026-10-13.json",
+      "docs/research/CimiLoop-原监督回读与新鲜工具准入-2026-10-10.json",
+      "docs/research/CimiLoop-原账单费用Kernel接通-2026-10-10.json",
+      "docs/research/CimiLoop-原账户账单与余额核验-2026-10-10.json",
+      "docs/research/CimiLoop-宿主模型与正式Runtime执行组合-2026-10-09.json",
+      "docs/research/CimiLoop-工作台原Agent启动衔接-2026-10-10.json",
+      "docs/research/CimiLoop-工作台原Agent运行控制-2026-10-09.json",
+      "docs/research/CimiLoop-持久账户原预算与共享组合-2026-10-10.json",
+      "docs/research/CimiLoop-旧账户原账单兼容接通-2026-10-10.json",
+      "docs/research/CimiLoop-生产执行期限与原Task组合-2026-10-09.json",
+      "docs/research/CimiLoop-计划前Human澄清与原请求接续-2026-10-09.json",
+      "docs/research/CimiLoop-计划前置Kernel核验-2026-10-10.json",
+      "docs/research/README.md",
+      "packages/kernel/src/agent-run-authority.ts",
+      "packages/kernel/src/agent-run-launch.ts",
+      "packages/kernel/src/agent-run-model.ts",
+      "packages/kernel/src/agent-tool-authority.ts",
+      "packages/kernel/src/execution.ts",
+      "packages/kernel/src/index.ts",
+      "packages/kernel/src/intent.ts",
+      "packages/kernel/src/kernel.ts",
+      "packages/kernel/src/planning-clarification.ts",
+      "packages/kernel/src/runs.ts",
+      "packages/kernel/src/skill-invocation-execution.ts",
+      "packages/kernel/src/skill-invocations.ts",
+      "packages/local-app/src/agent-account-billing-entry-local.ts",
+      "packages/local-app/src/agent-account-billing-local.ts",
+      "packages/local-app/src/agent-check-admission-local.ts",
+      "packages/local-app/src/agent-dedicated-account-local.ts",
+      "packages/local-app/src/agent-model-admission-local.ts",
+      "packages/local-app/src/agent-parent-skill-calls-local.ts",
+      "packages/local-app/src/agent-parent-skill-candidate-local.ts",
+      "packages/local-app/src/agent-parent-skill-host-local.ts",
+      "packages/local-app/src/agent-parent-skill-results-local.ts",
+      "packages/local-app/src/agent-run-budget-local.ts",
+      "packages/local-app/src/agent-run-cost-observation-local.ts",
+      "packages/local-app/src/agent-run-family-costs-local.ts",
+      "packages/local-app/src/agent-runtime-composition-local.ts",
+      "packages/local-app/src/agent-runtime-control-local.ts",
+      "packages/local-app/src/agent-runtime-failure-local.ts",
+      "packages/local-app/src/agent-runtime-human-start-local.ts",
+      "packages/local-app/src/agent-runtime-observation-local.ts",
+      "packages/local-app/src/agent-runtime-operations-local.ts",
+      "packages/local-app/src/agent-runtime-start-local.ts",
+      "packages/local-app/src/agent-runtime-terminal-local.ts",
+      "packages/local-app/src/agent-start-custody-local.ts",
+      "packages/local-app/src/agent-workspace-tools-local.ts",
+      "packages/local-app/src/clarification-local.ts",
+      "packages/local-app/src/evidence-local.ts",
+      "packages/local-app/src/index.ts",
+      "packages/local-app/src/planning-clarification-local.ts",
+      "packages/local-app/src/project.ts",
+      "packages/local-app/src/runs-local.ts",
+      "packages/local-app/src/skill-invocation-control-local.ts",
+      "packages/local-app/src/skill-invocation-dedicated-account-local.ts",
+      "packages/local-app/src/skill-invocation-execution-local.ts",
+      "packages/local-app/src/skill-invocation-native-composition-local.ts",
+      "packages/local-app/src/skill-invocation-reconciliation-local.ts",
+      "packages/local-app/src/skill-invocation-result-local.ts",
+      "packages/local-app/src/skill-invocation-start-custody-local.ts",
+      "packages/local-app/src/skill-method-assessment-local.ts",
+      "packages/local-app/src/skill-result-original-seal.ts",
+      "packages/local-app/test/agent-account-billing-entry.test.ts",
+      "packages/local-app/test/agent-account-billing-local.test.ts",
+      "packages/local-app/test/agent-admitted-source-local.test.ts",
+      "packages/local-app/test/agent-dedicated-account-local.test.ts",
+      "packages/local-app/test/agent-family-cost-proof-capacity.test.ts",
+      "packages/local-app/test/agent-model-workspace-local.test.ts",
+      "packages/local-app/test/agent-parent-candidate-materials.test.ts",
+      "packages/local-app/test/agent-parent-execution-content-final-fees.test.ts",
+      "packages/local-app/test/agent-parent-execution-final-fees.test.ts",
+      "packages/local-app/test/agent-parent-model-causal-admission.test.ts",
+      "packages/local-app/test/agent-parent-model-kernel-reader.test.ts",
+      "packages/local-app/test/agent-parent-run-final-fees.test.ts",
+      "packages/local-app/test/agent-parent-run-reconciliation.test.ts",
+      "packages/local-app/test/agent-parent-skill-calls.test.ts",
+      "packages/local-app/test/agent-parent-skill-candidate-native.test.ts",
+      "packages/local-app/test/agent-parent-skill-composition.test.ts",
+      "packages/local-app/test/agent-parent-skill-current-candidate.test.ts",
+      "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+      "packages/local-app/test/agent-parent-skill-host.test.ts",
+      "packages/local-app/test/agent-parent-skill-ipc-local.test.ts",
+      "packages/local-app/test/agent-parent-skill-kernel-candidate.test.ts",
+      "packages/local-app/test/agent-parent-skill-kernel-reader.test.ts",
+      "packages/local-app/test/agent-parent-skill-readonly.test.ts",
+      "packages/local-app/test/agent-parent-skill-result-composition.test.ts",
+      "packages/local-app/test/agent-parent-skill-writer-readonly.test.ts",
+      "packages/local-app/test/agent-run-cost-observation.test.ts",
+      "packages/local-app/test/agent-run-family-settlement.test.ts",
+      "packages/local-app/test/agent-run-reconciliation.test.ts",
+      "packages/local-app/test/agent-runtime-control-local.test.ts",
+      "packages/local-app/test/agent-runtime-failure-local.test.ts",
+      "packages/local-app/test/agent-runtime-human-start-local.test.ts",
+      "packages/local-app/test/agent-runtime-observation-local.test.ts",
+      "packages/local-app/test/agent-runtime-parent-failure-local.test.ts",
+      "packages/local-app/test/agent-runtime-start-local.test.ts",
+      "packages/local-app/test/original-family-settlement-fixture.ts",
+      "packages/local-app/test/planning-clarification.test.ts",
+      "packages/local-app/test/skill-invocation-control-local.test.ts",
+      "packages/local-app/test/skill-invocation-execution-local.test.ts",
+      "packages/local-app/test/skill-invocation-not-started.test.ts",
+      "packages/local-app/test/skill-invocation-reconciliation.test.ts",
+      "packages/local-app/test/skill-invocation-result-capacity.test.ts",
+      "packages/local-app/test/skill-invocation-verified-result.test.ts",
+      "packages/local-app/test/skill-result-original-seal.test.ts",
+      "packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+      "packages/local-app/test/skill-start-original-seal.test.ts",
+      "packages/runtime-adapter/native/AgentJobObserver.cs",
+      "packages/runtime-adapter/native/AgentRunClock.cs",
+      "packages/runtime-adapter/native/AgentStartCustody.cs",
+      "packages/runtime-adapter/native/AgentWorkspaceSandbox.cs",
+      "packages/runtime-adapter/native/AgentWorkspaceTransport.cs",
+      "packages/runtime-adapter/src/agent-account-bills.ts",
+      "packages/runtime-adapter/src/agent-dedicated-account.ts",
+      "packages/runtime-adapter/src/agent-dedicated-codec.ts",
+      "packages/runtime-adapter/src/agent-dedicated-model.ts",
+      "packages/runtime-adapter/src/agent-ipc-causal-window.ts",
+      "packages/runtime-adapter/src/agent-job-policy.ts",
+      "packages/runtime-adapter/src/agent-legacy-account-billing.ts",
+      "packages/runtime-adapter/src/agent-named-method-cancellation.ts",
+      "packages/runtime-adapter/src/agent-named-method-config.ts",
+      "packages/runtime-adapter/src/agent-named-method-host.ts",
+      "packages/runtime-adapter/src/agent-named-method-result.ts",
+      "packages/runtime-adapter/src/agent-native-suspension.ts",
+      "packages/runtime-adapter/src/agent-parent-current-input.ts",
+      "packages/runtime-adapter/src/agent-parent-skill-config.ts",
+      "packages/runtime-adapter/src/agent-parent-skill-ipc.ts",
+      "packages/runtime-adapter/src/agent-run-budget.ts",
+      "packages/runtime-adapter/src/agent-run-clock-channel.ts",
+      "packages/runtime-adapter/src/agent-run-clock-worker-channel.ts",
+      "packages/runtime-adapter/src/agent-run-clock-worker-wire.ts",
+      "packages/runtime-adapter/src/agent-run-clock-worker.ts",
+      "packages/runtime-adapter/src/agent-run-clock.ts",
+      "packages/runtime-adapter/src/agent-run-cost-evidence.ts",
+      "packages/runtime-adapter/src/agent-runtime-cancellation.ts",
+      "packages/runtime-adapter/src/agent-runtime-completion.ts",
+      "packages/runtime-adapter/src/agent-runtime-interruption.ts",
+      "packages/runtime-adapter/src/agent-runtime-lifetime.ts",
+      "packages/runtime-adapter/src/agent-runtime-model.ts",
+      "packages/runtime-adapter/src/agent-runtime-operation.ts",
+      "packages/runtime-adapter/src/agent-runtime-result.ts",
+      "packages/runtime-adapter/src/agent-sandbox-build-originals.ts",
+      "packages/runtime-adapter/src/agent-skill-account-scope.ts",
+      "packages/runtime-adapter/src/agent-skill-dispatch-closure.ts",
+      "packages/runtime-adapter/src/agent-skill-zero-effects.ts",
+      "packages/runtime-adapter/src/agent-start-custody-native.ts",
+      "packages/runtime-adapter/src/agent-start-ledger.ts",
+      "packages/runtime-adapter/src/agent-start-origin-windows.ts",
+      "packages/runtime-adapter/src/agent-workspace-ipc-journal.ts",
+      "packages/runtime-adapter/src/agent-workspace-ipc.ts",
+      "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts",
+      "packages/runtime-adapter/src/agent-workspace-tool-host.ts",
+      "packages/runtime-adapter/src/execution-lifetime.ts",
+      "packages/runtime-adapter/src/fixed-method.ts",
+      "packages/runtime-adapter/src/gateway-conversation.ts",
+      "packages/runtime-adapter/src/gateway-http.ts",
+      "packages/runtime-adapter/src/gateway-network.ts",
+      "packages/runtime-adapter/src/index.ts",
+      "packages/runtime-adapter/src/native.ts",
+      "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+      "packages/runtime-adapter/src/opencode-workspace-runtime.ts",
+      "packages/runtime-adapter/src/runtime-binary-originals.ts",
+      "packages/runtime-adapter/src/windows-compiler.ts",
+      "packages/runtime-adapter/src/workspace-check-source-basis.ts",
+      "packages/runtime-adapter/src/workspace-checks.ts",
+      "packages/runtime-adapter/src/workspace-tool-host.ts",
+      "packages/runtime-adapter/src/workspace-tool-journal.ts",
+      "packages/runtime-adapter/test/agent-account-bills.test.ts",
+      "packages/runtime-adapter/test/agent-authority-scheduling.test.ts",
+      "packages/runtime-adapter/test/agent-child-claim.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+      "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+      "packages/runtime-adapter/test/agent-exclusive-snapshot.test.ts",
+      "packages/runtime-adapter/test/agent-ipc-causal-window.test.ts",
+      "packages/runtime-adapter/test/agent-ipc-current-request.test.ts",
+      "packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+      "packages/runtime-adapter/test/agent-job-policy.test.ts",
+      "packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+      "packages/runtime-adapter/test/agent-named-method-cancellation.test.ts",
+      "packages/runtime-adapter/test/agent-named-method-host.test.ts",
+      "packages/runtime-adapter/test/agent-named-method-result.test.ts",
+      "packages/runtime-adapter/test/agent-native-input-close.test.ts",
+      "packages/runtime-adapter/test/agent-parent-current-input.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-correlation.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-dedicated.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-gateway.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-ipc.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-model.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-native-config.test.ts",
+      "packages/runtime-adapter/test/agent-parent-skill-runtime.test.ts",
+      "packages/runtime-adapter/test/agent-run-budget.test.ts",
+      "packages/runtime-adapter/test/agent-run-clock-channel.test.ts",
+      "packages/runtime-adapter/test/agent-run-clock-owner-worker.mjs",
+      "packages/runtime-adapter/test/agent-run-clock-worker-channel.test.ts",
+      "packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+      "packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-lifetime.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-model.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-native-prefix.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-parent-cancellation.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-parent-collection.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-parent-interruption.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-parent-result.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-parent-terminal.test.ts",
+      "packages/runtime-adapter/test/agent-runtime-result.test.ts",
+      "packages/runtime-adapter/test/agent-sandbox-build-originals.test.ts",
+      "packages/runtime-adapter/test/agent-sandbox-compile-stop.test.ts",
+      "packages/runtime-adapter/test/agent-skill-account.test.ts",
+      "packages/runtime-adapter/test/agent-skill-dispatch-closure.test.ts",
+      "packages/runtime-adapter/test/agent-skill-zero-effects.test.ts",
+      "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+      "packages/runtime-adapter/test/agent-start-ticket-seal.test.ts",
+      "packages/runtime-adapter/test/agent-workspace-ipc-peer.mjs",
+      "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+      "packages/runtime-adapter/test/execution-lifetime.test.ts",
+      "packages/runtime-adapter/test/gateway-http-fixture.ts",
+      "packages/runtime-adapter/test/native-control-failure.test.ts",
+      "packages/runtime-adapter/test/native-control-runtime.test.ts",
+      "packages/runtime-adapter/test/opencode-parent-skill-tools.test.ts",
+      "packages/runtime-adapter/test/original-family-costs-fixture.ts",
+      "packages/runtime-adapter/test/runtime-binary-originals.test.ts",
+      "packages/runtime-adapter/test/windows-original-paths.test.ts",
+      "packages/runtime-adapter/test/workspace-check-contract.test.ts",
+      "packages/runtime-adapter/test/workspace-check-originals.test.ts",
+      "packages/runtime-adapter/test/workspace-check-source-basis.test.ts",
+      "packages/runtime-adapter/test/workspace-tool-journal.test.ts",
+      "packages/runtime-adapter/transport/agent-workspace-ipc-client.mjs",
+      "packages/runtime-adapter/transport/opencode-host-gateway-provider.mjs",
+      "packages/runtime-adapter/transport/opencode-named-method-tools.mjs",
+      "packages/runtime-adapter/transport/opencode-parent-skill-tools.mjs",
+      "packages/runtime-adapter/transport/opencode-workspace-tools.js",
+      "packages/store-sqlite/src/project-store.ts",
+      "packages/store-sqlite/test/agent-run-launch.test.ts",
+      "packages/store-sqlite/test/agent-run-model.test.ts",
+      "packages/store-sqlite/test/agent-runs.test.ts",
+      "packages/store-sqlite/test/runs.test.ts",
+      "packages/store/src/index.ts",
+      "tests/fixtures/agent-account-billing-entry.ts",
+      "tests/fixtures/agent-job-resource-host.cs",
+      "tests/fixtures/agent-parent-skill-config-contract.cs",
+      "tests/fixtures/agent-run-cost-observation.ts",
+      "tests/fixtures/agent-run-family-native.ts",
+      "tests/fixtures/agent-run-family-skill.ts",
+      "tests/fixtures/agent-run-project.ts",
+      "tests/fixtures/agent-start-ledger-lock-holder.mjs",
+      "tests/fixtures/native-fixture-root.ts",
+      "tests/scenarios/agent-account-billing-entry-runtime.test.ts",
+      "tests/scenarios/agent-account-bills-custody.test.ts",
+      "tests/scenarios/agent-check-admission-runtime.test.ts",
+      "tests/scenarios/agent-dedicated-account-custody.test.ts",
+      "tests/scenarios/agent-host-model-runtime.test.ts",
+      "tests/scenarios/agent-ipc-task-budget.test.ts",
+      "tests/scenarios/agent-named-method-runtime.test.ts",
+      "tests/scenarios/agent-original-edit-check-runtime.test.ts",
+      "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+      "tests/scenarios/agent-run-budget-runtime.test.ts",
+      "tests/scenarios/agent-run-clock-blocked-runtime.test.ts",
+      "tests/scenarios/agent-run-clock-channel-runtime.test.ts",
+      "tests/scenarios/agent-run-cost-observation-custody.test.ts",
+      "tests/scenarios/agent-run-family-settlement-native-runtime.test.ts",
+      "tests/scenarios/agent-runtime-cancellation-native.test.ts",
+      "tests/scenarios/agent-runtime-operation.test.ts",
+      "tests/scenarios/agent-start-custody-clock-runtime.test.ts",
+      "tests/scenarios/agent-start-custody-runtime.test.ts",
+      "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+      "tests/scenarios/named-skill-method-assessment.test.ts",
+      "tests/scenarios/opencode-check-runtime.test.ts",
+      "tests/scenarios/opencode-startup-recovery.test.ts",
+      "tests/scenarios/skill-invocation-cancellation-native-runtime.test.ts",
+      "tests/scenarios/skill-invocation-control-native-runtime.test.ts",
+      "tests/scenarios/skill-invocation-native-runtime.test.ts",
+      "tests/scenarios/skill-invocation-not-started-native-runtime.test.ts",
+      "tests/scenarios/workspace-check-original-edits.test.ts"
+    ],
+    "main_code_path_count": 292,
+    "main_document_path_count": 168,
+    "native_actual_difference_count": 13,
+    "complete_code_patch_bytes": 2908794
+  },
+  "standards_sources": [
+    "CONTEXT.md",
+    "docs/architecture/CimiLoop整体能力架构-v0.1.md",
+    "docs/architecture/CimiLoop角色与权限模型-v0.1.md",
+    "docs/architecture/CimiLoop验证与证据模型-v0.1.md",
+    "docs/architecture/CimiLoop存储与Solo-Team演进模型-v0.1.md"
+  ],
+  "standards_rules_applied": [
+    "Kernel sole domain mutation authority and atomic command/event/outbox",
+    "current identity/role/scope and no implicit authority",
+    "immutable evidence and raw provenance",
+    "Unknown retained instead of invented results",
+    "exact source/artifact/contract/plan applicability",
+    "historical ID/schema/meaning and original-request compatibility"
+  ],
+  "no_independent_coding_style_source": true,
+  "tooling_enforced_issues_excluded": true,
+  "coverage": {
+    "method": "All 292 fixed-main changed code paths reviewed semantically through complete changed hunks/new or deleted source plus relevant current/historical implementation and test context. Shared test fixtures were compared by exact fixed-tip file diffs, with every non-identical hunk and any truncated output gap read separately. All 13 actual Native differences read as actual file contents. Inventory/added-line scans are supplementary, never the completion criterion. No tests/build/Native operations were executed.",
+    "main": [
+      {
+        "path": "apps/cli/src/agent-account-costs.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/cli/src/agent-run-cost-observation.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/cli/src/agent-runtime-start.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/cli/src/bin.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/cli/src/commands.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/cli/test/agent-account-costs.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/cli/test/agent-run-cost-observation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/cli/test/agent-runtime-start.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/public/app.js",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/src/server.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-account-billing-frontend.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-account-billing.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-run-cost-observation-frontend.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-run-cost-observation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-runtime-control.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-runtime-frontend.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-runtime-session-await.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-runtime-start-frontend.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-runtime-start-ownership.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/agent-runtime-start.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/clarification.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/frontend.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/plan-clarification.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/planning-clarification-admission.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/skill-control-frontend.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/skill-control.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "apps/workbench/test/skill-reconciliation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/agent-run-authority.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/agent-run-launch.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/agent-run-model.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/agent-tool-authority.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/execution.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/index.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/intent.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/kernel.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/planning-clarification.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/runs.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/skill-invocation-execution.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/kernel/src/skill-invocations.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-account-billing-entry-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-account-billing-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-check-admission-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-dedicated-account-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-model-admission-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-calls-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-candidate-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-host-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-results-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-run-budget-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-run-cost-observation-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-run-family-costs-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-composition-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-control-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": "ST-01",
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-failure-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-human-start-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-observation-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-operations-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-start-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-terminal-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-start-custody-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/agent-workspace-tools-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/clarification-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/evidence-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/index.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/planning-clarification-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/project.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/runs-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/skill-invocation-control-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/skill-invocation-dedicated-account-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/skill-invocation-execution-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/skill-invocation-native-composition-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/skill-invocation-reconciliation-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/skill-invocation-result-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/skill-invocation-start-custody-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/skill-method-assessment-local.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/src/skill-result-original-seal.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-account-billing-entry.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-account-billing-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-admitted-source-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-dedicated-account-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-family-cost-proof-capacity.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-model-workspace-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-candidate-materials.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-execution-content-final-fees.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-execution-final-fees.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-model-causal-admission.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-model-kernel-reader.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-run-final-fees.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-run-reconciliation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-calls.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-candidate-native.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-composition.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-current-candidate.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-host.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-ipc-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-kernel-candidate.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-kernel-reader.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-readonly.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-result-composition.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-writer-readonly.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-run-cost-observation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-run-family-settlement.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-run-reconciliation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-runtime-control-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-runtime-failure-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-runtime-human-start-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-runtime-observation-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-runtime-parent-failure-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/agent-runtime-start-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/original-family-settlement-fixture.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/planning-clarification.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/skill-invocation-control-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/skill-invocation-execution-local.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/skill-invocation-not-started.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/skill-invocation-reconciliation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/skill-invocation-result-capacity.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/skill-invocation-verified-result.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/skill-result-original-seal.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/skill-result-runtime-original-seal.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/local-app/test/skill-start-original-seal.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/native/AgentJobObserver.cs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/native/AgentRunClock.cs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/native/AgentStartCustody.cs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/native/AgentWorkspaceSandbox.cs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/native/AgentWorkspaceTransport.cs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-account-bills.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-dedicated-account.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-dedicated-codec.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-dedicated-model.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": "ST-02",
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-ipc-causal-window.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-job-policy.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-legacy-account-billing.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-named-method-cancellation.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-named-method-config.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-named-method-host.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-named-method-result.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-native-suspension.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-parent-current-input.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-parent-skill-config.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-parent-skill-ipc.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-run-budget.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-run-clock-channel.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-run-clock-worker-channel.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-run-clock-worker-wire.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-run-clock-worker.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-run-clock.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-run-cost-evidence.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-cancellation.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-completion.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-interruption.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-lifetime.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-model.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-operation.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-result.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-sandbox-build-originals.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-skill-account-scope.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-skill-dispatch-closure.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-skill-zero-effects.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-start-custody-native.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-start-ledger.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-start-origin-windows.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-ipc-journal.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-ipc.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-workspace-tool-host.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/execution-lifetime.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/fixed-method.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/gateway-conversation.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/gateway-http.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": "ST-02",
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/gateway-network.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": "ST-02",
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/index.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/native.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/opencode-workspace-rehearsal.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/opencode-workspace-runtime.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/runtime-binary-originals.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/windows-compiler.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/workspace-check-source-basis.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/workspace-checks.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/workspace-tool-host.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/src/workspace-tool-journal.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-account-bills.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-authority-scheduling.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-child-claim.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-exclusive-snapshot.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-ipc-causal-window.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-ipc-current-request.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-job-native-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-job-policy.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-legacy-account-billing.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-named-method-cancellation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-named-method-host.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-named-method-result.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-native-input-close.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-current-input.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-skill-correlation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-skill-dedicated.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-skill-gateway.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-skill-ipc.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-skill-model.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-skill-native-config.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-parent-skill-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-run-budget.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-run-clock-channel.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-run-clock-owner-worker.mjs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-run-clock-worker-channel.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-cancellation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-completion.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-interruption.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-lifetime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-model.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-native-prefix.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-operation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-parent-cancellation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-parent-collection.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-parent-interruption.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-parent-result.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-parent-terminal.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-result.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-sandbox-build-originals.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-sandbox-compile-stop.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-skill-account.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-skill-dispatch-closure.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-skill-zero-effects.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-start-ledger.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-start-ticket-seal.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-workspace-ipc-peer.mjs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-workspace-ipc.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/execution-lifetime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/gateway-http-fixture.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/native-control-failure.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/native-control-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/opencode-parent-skill-tools.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/original-family-costs-fixture.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/runtime-binary-originals.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/windows-original-paths.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/workspace-check-contract.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/workspace-check-originals.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/workspace-check-source-basis.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/test/workspace-tool-journal.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/transport/agent-workspace-ipc-client.mjs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/transport/opencode-host-gateway-provider.mjs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/transport/opencode-named-method-tools.mjs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/transport/opencode-parent-skill-tools.mjs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/runtime-adapter/transport/opencode-workspace-tools.js",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/store-sqlite/src/project-store.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/store-sqlite/test/agent-run-launch.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/store-sqlite/test/agent-run-model.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/store-sqlite/test/agent-runs.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/store-sqlite/test/runs.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "packages/store/src/index.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/fixtures/agent-account-billing-entry.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/fixtures/agent-job-resource-host.cs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/fixtures/agent-parent-skill-config-contract.cs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/fixtures/agent-run-cost-observation.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/fixtures/agent-run-family-native.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/fixtures/agent-run-family-skill.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/fixtures/agent-run-project.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/fixtures/agent-start-ledger-lock-holder.mjs",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/fixtures/native-fixture-root.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-account-billing-entry-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-account-bills-custody.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-check-admission-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-dedicated-account-custody.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-host-model-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-ipc-task-budget.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-named-method-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-original-edit-check-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-production-lifetime-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-run-budget-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-run-clock-blocked-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-run-clock-channel-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-run-cost-observation-custody.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-run-family-settlement-native-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-runtime-cancellation-native.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-runtime-operation.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-start-custody-clock-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-start-custody-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/agent-workspace-ipc-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/named-skill-method-assessment.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/opencode-check-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/opencode-startup-recovery.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/skill-invocation-cancellation-native-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/skill-invocation-control-native-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/skill-invocation-native-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/skill-invocation-not-started-native-runtime.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      },
+      {
+        "path": "tests/scenarios/workspace-check-original-edits.test.ts",
+        "added_line_rule_scan": true,
+        "contextual_review": "changed_hunks_read_with_relevant_context",
+        "finding_ids": null,
+        "semantic_dimensions": [
+          "documented Kernel identity/role/scope and writer boundary",
+          "original request/identity/schema compatibility",
+          "immutable raw provenance and Unknown/terminal/acceptance separation"
+        ]
+      }
+    ],
+    "main_contextual_completed_count": 292,
+    "main_contextual_partial_count": 0,
+    "main_contextual_uncompleted_paths": [],
+    "native": [
+      {
+        "path": "packages/local-app/src/agent-parent-skill-calls-local.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "6568d6cc533efffe346212b314caefa050ad5da5f617528f4d411a2fb5a5752e",
+        "native_manifest_sha256": "3b28190885c15c38ed564b29dcba83248d85d2afd2bd8b42c30cbef207328d66"
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-candidate-local.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "b4ff06f76a8b54229227c8921e953f4e8919d493b85ff7b304e7d31657416b69",
+        "native_manifest_sha256": "5645ff25b9b155b17ef7d9f08e11ff01d8eff48df5a858b226c01e83b1fbd94c"
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-host-local.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "53e084b5770bfb5eee14cfc612b2bd3e4f5d4c27c03e24e65c13f5397037ada3",
+        "native_manifest_sha256": "069fdc7ee0274bbc172231bfda408a936f15f7a9435b8fa1b1b8d1f814107729"
+      },
+      {
+        "path": "packages/local-app/src/agent-parent-skill-results-local.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "2c5325ccfe4679288999281064c90a96c42f6970feffdc68df750ca85fd681aa",
+        "native_manifest_sha256": "da24096293e6d6171986466e71326ef1a190442edea5e0d1d92377efa3ebea39"
+      },
+      {
+        "path": "packages/local-app/src/agent-runtime-observation-local.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "c8813ebe91f211cdc5e69f8a71251676fc99d86c12bf03eb0d819056a55587ce",
+        "native_manifest_sha256": "0bc330f299d6de6bc0ed88c1d63de759582cdb81efb38fa57069916e7fe5c8c0"
+      },
+      {
+        "path": "packages/local-app/src/runs-local.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "ff5bce41713e95ba63ad716e0a28283389811cd227eb48c74a04440efba658d6",
+        "native_manifest_sha256": "a63e0236b1a012fd979e893ced50aeacc72e7064ddeffd4f2dc93a4824e901de"
+      },
+      {
+        "path": "packages/local-app/test/agent-parent-skill-current-result.test.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "2ed080e92e7f58fdcd1a56b05500f8839d8bee813d3413ab704e97610947407c",
+        "native_manifest_sha256": "1f7b73d8a3f1250a43cab51a53d96ca23e7c2d956729699714a676ba487b1e6b"
+      },
+      {
+        "path": "packages/local-app/test/current-parent-input-seal.test.ts",
+        "method": "Actual previously untracked full source read",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": null,
+        "native_manifest_sha256": "81e95d6005ed2c5f5443ccb86f97c9c91516e9c810aaac8f6f1d53377ad16193"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-completion.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "2744cbf7d8bab5eb02b0ea35916ebad7bd44ee2e3bca04bc3b3e5c79d9e3c878",
+        "native_manifest_sha256": "02d44747230b90d491a4894acd9f1d2e0e97cd2dbf4a8d369d8cba5d1e90684f"
+      },
+      {
+        "path": "packages/runtime-adapter/src/agent-runtime-result.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "9f92e81e09a2b9f9bf4255f34cb69bde01df73b72e5483e03e6e3fca71f4fedc",
+        "native_manifest_sha256": "a43b83542abb9f0d9a6e6074a8ee05f878cface7ac5c62054b955bc9cfa802a5"
+      },
+      {
+        "path": "packages/runtime-adapter/src/index.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "fce01ac175e55efca8c54d56aff79af7cde623f9533799921fa89be43c6a1b4e",
+        "native_manifest_sha256": "1d504a7a1478daceb1bb7bd88db7eeb53d36b54e47a94c6147fecee3b3e89387"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-runtime-parent-completion.test.ts",
+        "method": "Actual filesystem no-index content diff read; source context separately inspected",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": "92e4553a1ed16cac70d5ffc03480de0f6fb5c1dfb8f60045d0bc4e87df868244",
+        "native_manifest_sha256": "0ed7f206c9e36b28f90ef4ca73288be4c55ebf33d8ab81f828ac558ea7fcbf6e"
+      },
+      {
+        "path": "tests/scenarios/agent-parent-current-result-native-runtime.test.ts",
+        "method": "Actual previously untracked full source read",
+        "changed_content_read": true,
+        "tests_executed": false,
+        "main_sha256": null,
+        "native_manifest_sha256": "c3895a97a67e2556c5c9779738a759e7a6de37bda03dabb5350dda86e04b8126"
+      }
+    ],
+    "documents": "Changed document paths inventoried; normative current constraints and relevant history excerpts were read. Full 168-document editorial review not performed."
+  },
+  "findings": [
+    {
+      "id": "ST-01",
+      "priority": 2,
+      "classification": "documented_permission_rule_violation",
+      "confidence": "high_static",
+      "file": "packages/local-app/src/agent-runtime-control-local.ts",
+      "line": 82,
+      "end_line": 90,
+      "title": "Recheck current Human authority before physical retry and recovery",
+      "trigger": "An original Run already has cancel_requested=true; revoke or expire the local Human technical_owner assignment, then make a new /api/agent-runs/<run>/cancel or /recover POST with the still-valid workbench session.",
+      "observed_code": "cancelled() checks original Human identity and the historical cancel_requested flag only. retryCancellation()/recover() call physical ports. Kernel.getObject() is a read query without assignment authorization. The new Kernel.authorizeAgentRunControl() requires a current technical_owner, but the parent control path never calls it. The child control path does call it.",
+      "impact": "A Human who no longer has the control role can request a new original Native cancellation marker or resource recovery. A past authorized cancellation is used as continuing authority for a new Human physical operation.",
+      "standards": [
+        {
+          "file": "docs/architecture/CimiLoop角色与权限模型-v0.1.md",
+          "lines": "56,59-60",
+          "section": "2 core principles 1,4,5",
+          "rule": "Each formal action must have Actor, acting role, scope and authorization basis; missing roles do not implicitly expand authority; assignment permissions have scope/actions/effective time."
+        },
+        {
+          "file": "docs/architecture/CimiLoop角色与权限模型-v0.1.md",
+          "lines": "302,306",
+          "section": "12 invariants 6,10",
+          "rule": "Revoked authority preserves history but prohibits new Commands; Adapter/Runtime cannot expand authority."
+        }
+      ],
+      "related_code": [
+        "packages/kernel/src/kernel.ts:201-206",
+        "packages/kernel/src/kernel.ts:376-393",
+        "packages/local-app/src/skill-invocation-control-local.ts:26-28",
+        "apps/workbench/src/server.ts:201-222",
+        "packages/runtime-adapter/src/agent-runtime-operation.ts:174-178",
+        "packages/runtime-adapter/src/agent-workspace-sandbox-recovery.ts:75"
+      ],
+      "validation": "Static end-to-end call tracing only; no test or Native operation executed.",
+      "recommendation": "Use Kernel.authorizeAgentRunControl for parent physical operations and recheck it at relevant await/effect boundaries, as child control does. Keep historical query and collection separately read-only."
+    },
+    {
+      "id": "ST-02",
+      "priority": 2,
+      "classification": "judgement_defense_in_depth",
+      "confidence": "medium_static_conditional",
+      "file": "packages/runtime-adapter/src/gateway-http.ts",
+      "line": 168,
+      "title": "Pin the HTTP request path to the original approved connection",
+      "trigger": "An installed account/credential/network hook changes the public runtime boundary.path after createDedicatedAgentRuntimeModel has checked its initial path. This requires trusted JavaScript callback mutation; no ordinary UI/model payload setter was found.",
+      "observed_code": "GatewayNetworkBoundary constructor assigns readonly path as a normal runtime property. The immutable DNS pin includes the original path. Dedicated model checks boundary.path only at creation (line 69), then awaits installed hooks. consumeHttpConnection checks socket/peer/cert/expiry but not path; HTTPS POST later reads current boundary.path (line 168).",
+      "impact": "The request may go to a different provider endpoint while the account/budget hold remains bound to the original connection_digest. Static finding is conditional on trusted callback drift, so it is advisory rather than a demonstrated normal-input authorization bypass.",
+      "standards": [
+        {
+          "file": "docs/architecture/CimiLoop角色与权限模型-v0.1.md",
+          "lines": "60,306",
+          "section": "2.5 and 12.10",
+          "rule": "Permissions are limited by scope/actions/effective period; Runtime may not expand authority."
+        },
+        {
+          "file": "docs/architecture/CimiLoop验证与证据模型-v0.1.md",
+          "lines": "61,187",
+          "section": "2.7 and 6",
+          "rule": "Applicability must bind exact necessary environment/configuration dimensions; do not associate mismatching configuration results with the current claim."
+        }
+      ],
+      "related_code": [
+        "packages/runtime-adapter/src/agent-dedicated-model.ts:68-69",
+        "packages/runtime-adapter/src/agent-dedicated-model.ts:108-124",
+        "packages/runtime-adapter/src/gateway-network.ts:54",
+        "packages/runtime-adapter/src/gateway-network.ts:86-90",
+        "packages/runtime-adapter/src/gateway-network.ts:138-151"
+      ],
+      "validation": "Static property and async call-chain inspection only; no requests or credentials accessed.",
+      "recommendation": "Capture an immutable approved path for the transport and compare it with the owned pin when the socket is consumed. Avoid reading a replaceable public property at send time."
+    }
+  ],
+  "non_findings": [
+    "main completion.ts:214 refuses Skill calls as current Task output evidence; do not credit native-only domain3 implementation to main",
+    "Native actual 13-file differences add privately retained current complete-source proof, multi-child final closure and bill-afterward closure; no confirmed Standards violation identified in those changed contents",
+    "Test source and research record presence are not test execution evidence or S1 acceptance"
+  ],
+  "constraints": {
+    "tests_executed": false,
+    "builds_executed": false,
+    "native_modified": false,
+    "native_restarted": false,
+    "credentials_read": false,
+    "paid_requests": false,
+    "external_messages": false,
+    "issues_created": false,
+    "push": false,
+    "real_runtime_skill_qualified": false,
+    "s1_complete": false
+  },
+  "memory_use": {
+    "file": "MEMORY.md",
+    "lines": "373-383",
+    "rollout_id": "01a0c86c-4c5c-7091-ab8e-4d18b94b19e6",
+    "note": "Terminology and evidence-scope orientation only; current findings rely on fresh repository source reads"
+  },
+  "review_completion_basis": "Complete static semantic coverage of fixed 292-code-path main range and 13 actual frozen Native differences against all five documented normative sources. Full 168-document editorial review and dynamic verification are outside this Standards completion claim."
+}
