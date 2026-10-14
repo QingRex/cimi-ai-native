@@ -268,12 +268,20 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
    audit();if(!isDeepStrictEqual(readOriginalSkillDispatchClosure(this.#options.origin,relation),closure))fail('agent_account_skill_zero_unproven');audit();
    return {format:'cimiloop/original-skill-zero-costs/1.0.0' as const,scope:copy(relation.child),account_digest:this.#options.accountDigest,account_ticket:copy(this.#ticket),closure,holds:0,cash_charged_micros:0,credit_charged_micro_units:0,currency:this.#billingOrigin.currency,credit_unit:this.#billingOrigin.credit_unit,zero_costs_proven:true as const,starts_run:false as const};
  }
- readRunCosts(raw:AgentWorkspaceToolScope){const scope=parseAgentWorkspaceToolScope(raw),scopeDigest=digest(JSON.stringify(scope)).value;return this.#read((rows,funds)=>{
+ #runCosts(scope:AgentWorkspaceToolScope,rows:Row[],funds:AccountFunds){const scopeDigest=digest(JSON.stringify(scope)).value;
   this.#skillScopes.assertCompatible(scope,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));
   if((!this.#skillScopes.relation(scope)&&this.#skillScopes.children(scope).length>0))fail("agent_account_family_costs_required");
   const selected=rows.filter(r=>r.scope_digest===scopeDigest),items=funds.records.flatMap(r=>r.projection.items).filter(i=>i.scope_digest===scopeDigest),unresolved=selected.length-items.length;
   return{account_digest:this.#options.accountDigest,scope_digest:scopeDigest,currency:this.#billingOrigin?.currency??null,credit_unit:this.#billingOrigin?.credit_unit??null,holds:selected.length,unresolved,costs_reconciled:!!this.#bills&&selected.length>0&&unresolved===0,cash_charged_micros:Number(items.reduce((n,i)=>n+BigInt(i.cash_charged_micros),0n)),credit_charged_micro_units:Number(items.reduce((n,i)=>n+BigInt(i.credit_charged_micro_units),0n)),bill_originals:funds.records.filter(r=>r.projection.items.some(i=>i.scope_digest===scopeDigest)).map(r=>({bill_id:r.projection.bill_id,bytes_digest:r.bytes_digest,projection_digest:digest(JSON.stringify(r.projection)).value})),starts_run:false as const};
- });}
+ }
+ readRunCosts(raw:AgentWorkspaceToolScope){const scope=parseAgentWorkspaceToolScope(raw);return this.#read((rows,funds)=>this.#runCosts(scope,rows,funds));}
+ // One original account cut owns both fees and their complete hold set. The
+ // independent Runtime reader still captures a second fresh cut after all
+ // provider evidence checks; no cross-call or cross-await approval is cached.
+ readRunCostOriginals(raw:AgentWorkspaceToolScope){const scope=parseAgentWorkspaceToolScope(raw);return this.#read((rows,funds)=>({
+  costs:this.#runCosts(scope,rows,funds),
+  holds:rows.filter(row=>isDeepStrictEqual(parse(String(row.scope)),scope)).map(row=>copy(parse(String(row.hold)) as DedicatedAgentBudgetHold)).sort((a,b)=>a.call_id.localeCompare(b.call_id))
+ }));}
  readRunFamilyCosts(raw:AgentWorkspaceToolScope,rawChildren:AgentWorkspaceToolScope[]) {
   const parent=parseAgentWorkspaceToolScope(raw),children=rawChildren.map(parseAgentWorkspaceToolScope);
   return this.#read((rows,funds)=>{

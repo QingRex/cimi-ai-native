@@ -7,18 +7,19 @@ import{join,resolve}from'node:path';
 import type{DedicatedAgentSkillScope}from'./agent-skill-account-scope.js';
 import type{AgentNamedMethodResultInputs}from'./agent-named-method-result.js';
 import{readAgentSkillPreparationZeroEffects}from'./agent-skill-zero-effects.js';
+const readRunCostOriginals=DedicatedAgentAccountLedger.prototype.readRunCostOriginals;
 // Historical read only. Code-installed bill authentication, not JSON/usage.
 export function readOriginalDedicatedAgentRunCosts(root:string,rawScope:unknown,account:DedicatedAgentAccountLedger){
  const deny=():never=>{throw new RuntimeAdapterError('agent_run_cost_originals_unproven');};
  if(!(account instanceof DedicatedAgentAccountLedger))deny();
- const scope=parseAgentWorkspaceToolScope(rawScope),original=readDedicatedAgentModelOriginals(root,scope),s=original.summary,costs=account.readRunCosts(scope);
+ const scope=parseAgentWorkspaceToolScope(rawScope),original=readDedicatedAgentModelOriginals(root,scope),s=original.summary,cut=readRunCostOriginals.call(account,scope),costs=cut.costs;
  if(s.status!=='Observed'||!s.original_requirement_pinned||!s.budget_identity_pinned||!s.calls||s.unresolved||s.admission_digest!==account.admission_digest||!isDeepStrictEqual(s.profile,account.profile)||
-  !costs.costs_reconciled||costs.unresolved||costs.holds!==original.calls.length||costs.holds!==s.calls||!costs.bill_originals.length)deny();
- for(const call of original.calls){const hold=account.readOriginalHold(scope,call.call_id);
-  if(call.state!=='reply_recorded'||!call.provider_response_id||!hold||!isDeepStrictEqual(hold,call.hold)||hold.account_digest!==costs.account_digest||hold.connection_digest!==s.connection_digest||hold.admission_digest!==s.admission_digest||hold.request_id!==call.request_id||hold.request_digest!==call.request_digest)deny();
+  !costs.costs_reconciled||costs.unresolved||costs.holds!==original.calls.length||costs.holds!==s.calls||cut.holds.length!==costs.holds||new Set(cut.holds.map(h=>h.call_id)).size!==cut.holds.length||!costs.bill_originals.length)deny();
+ for(const call of original.calls){const matching=cut.holds.filter(h=>h.call_id===call.call_id),hold=matching[0];
+  if(call.state!=='reply_recorded'||!call.provider_response_id||matching.length!==1||!hold||!isDeepStrictEqual(hold,call.hold)||hold.account_digest!==costs.account_digest||hold.connection_digest!==s.connection_digest||hold.admission_digest!==s.admission_digest||hold.request_id!==call.request_id||hold.request_digest!==call.request_digest)deny();
  }
  // Independent snapshots cannot splice a newer account into an older spine.
- if(!isDeepStrictEqual(original,readDedicatedAgentModelOriginals(root,scope))||!isDeepStrictEqual(costs,account.readRunCosts(scope)))deny();
+ if(!isDeepStrictEqual(cut,readRunCostOriginals.call(account,scope))||!isDeepStrictEqual(original,readDedicatedAgentModelOriginals(root,scope)))deny();
  return{format:'cimiloop/agent-run-cost-evidence/1.0.0' as const,scope,model:original.summary,calls:original.calls,costs,starts_run:false as const,kernel_costs_reconciled:false as const};
 }
 

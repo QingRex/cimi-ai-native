@@ -1,0 +1,431 @@
+{
+  "format": "cimiloop/research/fresh-original-fee-cuts/1.0.0",
+  "batch": "D-306",
+  "recorded_at": "2026-10-14T03:42:38.343Z",
+  "base_commit": "a12ad6ce3db70356a48073e3f5c7c1080a4a4645",
+  "implementation": {
+    "old_complete_account_audits": "number of original calls + 2 per single-run fee reader",
+    "new_complete_account_audits": 2,
+    "full_audit_retained": true,
+    "scope_holds_complete": true,
+    "per_call_identity_checks_retained": true,
+    "prototype_owner_method_pinned": true,
+    "after_final_account_callback_provider_reread": true,
+    "cross_call_or_await_allow_cache": false,
+    "old_fee_output_format_unchanged": true,
+    "old_family_rules_unchanged": true,
+    "reserve_or_send_or_bill_effects_added": false
+  },
+  "red": {
+    "passed": 2,
+    "failed": 1,
+    "pending": 0,
+    "actual_audits": 3,
+    "expected_audits": 2,
+    "artifact_sha256": "1770dccc5421e9d7b730701eabd66982aab26d834cba460a0fcddca71eef4f76"
+  },
+  "final_suites": [
+    {
+      "recorded_at": "2026-10-14T03:28:45.634Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 607377,
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/apps/workbench/test/agent-run-cost-observation.test.ts",
+          "passed": 5,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-family-cost-proof-capacity.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-cost-observation.test.ts",
+          "passed": 30,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/agent-run-family-settlement.test.ts",
+          "passed": 7,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-result-capacity.test.ts",
+          "passed": 4,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-account.test.ts",
+          "passed": 22,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+          "passed": 47,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-cost-original-cut.test.ts",
+          "passed": 3,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-costs.test.ts",
+          "passed": 6,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/runtime-adapter/test/agent-run-family-settlement.test.ts",
+          "passed": 14,
+          "failed": 0,
+          "pending": 0
+        }
+      ],
+      "source_files": 790,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false,
+      "passed": 141,
+      "failed": 0,
+      "pending": 0,
+      "report_sha256": "a53f6c361e0ced9cad827cd3e5d25adead170ca6b6dfc57d480953d961a0a033"
+    },
+    {
+      "recorded_at": "2026-10-14T03:39:12.460Z",
+      "worktree": "D:\\cc\\cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 1176809,
+      "files": [
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-not-started.test.ts",
+          "passed": 9,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-reconciliation.test.ts",
+          "passed": 23,
+          "failed": 0,
+          "pending": 0
+        },
+        {
+          "path": "D:/cc/cimi-ai-native/packages/local-app/test/skill-invocation-verified-result.test.ts",
+          "passed": 12,
+          "failed": 0,
+          "pending": 0
+        }
+      ],
+      "source_files": 790,
+      "source_drift": [],
+      "original_budgets_raised": false,
+      "paid_requests": false,
+      "pushed": false,
+      "passed": 44,
+      "failed": 0,
+      "pending": 0,
+      "report_sha256": "a452a54c962fb8dede723347357b53fd3496c96becdc3e2336a782aee0ee06a6"
+    }
+  ],
+  "type_check": {
+    "recorded_at": "2026-10-14T03:17:19.779Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 43888,
+    "files": [],
+    "source_files": 790,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false
+  },
+  "cli_help": {
+    "recorded_at": "2026-10-14T03:28:34.199Z",
+    "worktree": "D:\\cc\\cimi-ai-native",
+    "exit_code": 0,
+    "error": null,
+    "elapsed_ms": 1471,
+    "files": [],
+    "source_files": 790,
+    "source_drift": [],
+    "original_budgets_raised": false,
+    "paid_requests": false,
+    "pushed": false
+  },
+  "source_paths": [
+    {
+      "path": "packages/runtime-adapter/src/agent-dedicated-account.ts",
+      "sha256": "10c5f74b89d0c8d40e21b39b6da25c7da18082e3b265ce54e00750f7909dfb43"
+    },
+    {
+      "path": "packages/runtime-adapter/src/agent-run-cost-evidence.ts",
+      "sha256": "3fdd1e48c462700388df410ee4f3693a083d750a26c1fd9683a5d140b4d14163"
+    },
+    {
+      "path": "packages/runtime-adapter/test/original-family-costs-fixture.ts",
+      "sha256": "43e4f28a4b26cce56646f3c6505865e615775479c6f998554e0e23ca08582027"
+    },
+    {
+      "path": "packages/runtime-adapter/test/agent-run-cost-original-cut.test.ts",
+      "sha256": "d84cd03474e4f7407af0eacf640927454f3cef4c1ff74e4f5e7a45344094644c"
+    }
+  ],
+  "review": {
+    "format": "cimiloop/ordinary-engineering-review/1.0.0",
+    "batch": "D-306",
+    "reviewer": "/root/review_native_result",
+    "base_commit": "a12ad6ce3db70356a48073e3f5c7c1080a4a4645",
+    "workspace": "D:/cc/cimi-ai-native",
+    "scope": "single-run original fee and complete hold-set audit consolidation",
+    "reviewed_paths": [
+      "packages/runtime-adapter/src/agent-dedicated-account.ts",
+      "packages/runtime-adapter/src/agent-run-cost-evidence.ts",
+      "packages/runtime-adapter/test/original-family-costs-fixture.ts",
+      "packages/runtime-adapter/test/agent-run-cost-original-cut.test.ts"
+    ],
+    "conclusion": "no_must_fix_found_in_reviewed_changes",
+    "must_fix_findings": [],
+    "evidence": [
+      "readRunCostOriginals obtains both the original cost projection and the complete scope-matching hold set inside one existing #read account writer cut. Its holds are copied and sorted, with no external mutable row reference returned.",
+      "Both readRunCosts and readRunCostOriginals use the same #runCosts projection, preserving the old fee format and the requirement to use family costs when registered children exist.",
+      "The Runtime reader captures the Ledger owner prototype method at module initialization and uses .call on the original account. Replacing an own readRunCostOriginals method does not replace that fixed reader.",
+      "Runtime checks equal call/hold counts, unique hold call IDs, one exact matching hold per original model call, original account/connection/admission/request identities, and the complete immutable hold value.",
+      "The second account cut is compared with the first, then provider/model originals are independently reread after the final installed account authentication/custody callbacks.",
+      "The modified reader does not call reserve, model execute, bill observe or Kernel commands. It continues to report starts_run=false and kernel_costs_reconciled=false.",
+      "The new test file checks an observable complete account custody audit bound together with real fee amounts and no new sends, final-cut authentication loss, provider-byte mutation during the final account cut, and fresh subsequent reads."
+    ],
+    "validation": {
+      "independent_tests_run": false,
+      "independent_native_execution": false,
+      "parent_reported_only": {
+        "behavioral_red": "Parent reports the existing one-hold reader performed three complete account custody audits; the requested bound is two fresh full audits independent of the number of holds.",
+        "typecheck": "Parent reports pnpm check passed.",
+        "final_affected_regression": "Ten fee/family/Workbench files are running at review time; no passing result assumed.",
+        "native_profile": "A fresh PUBLIC current-parent Native profile is running in the separate frozen C workspace. This review did not inspect old requests or run another Native process."
+      }
+    },
+    "boundaries": {
+      "only_this_ignored_report_written": true,
+      "no_source_or_test_edits_by_reviewer": true,
+      "actual_credentials_read": 0,
+      "paid_model_requests": 0,
+      "old_unknown_resource_actions": 0,
+      "real_model_or_skill_qualification_proven": false,
+      "formal_matt_or_superpowers_acceptance": false,
+      "s1_accepted": false
+    },
+    "limitations": [
+      "This is ordinary engineering review, not Matt/Superpowers acceptance or a real account/model/Skill qualification.",
+      "The two-audit bound is a source/test contract; this review does not independently prove wall-clock improvement or completion within the original Task deadline.",
+      "Family-wide readers retain their existing implementations; this change does not remove their per-call audits.",
+      "Kernel observation/reconciliation remains independently responsible for business authority and budget release."
+    ]
+  },
+  "candidate_sync": {
+    "recorded_at": "2026-10-14T03:05:19.482Z",
+    "main_commit": "a12ad6ce3db70356a48073e3f5c7c1080a4a4645",
+    "candidate": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+    "original_candidate_source_files": 791,
+    "verified_previous_terminal_source_snapshot": true,
+    "owned_base": "5626448255c11211af7666af773e6101c2a7f8eb",
+    "before": [
+      {
+        "path": "packages/runtime-adapter/src/gateway-network.ts",
+        "sha256": "686ccf15e8287c69589b9468ac9d9bb299aa8a62c238d2d8a1e02147afcee15d"
+      },
+      {
+        "path": "packages/runtime-adapter/test/gateway-http-fixture.ts",
+        "sha256": "47cb8d2ff1a1a96bb23997a9edd8fe5c9490eb6b42aadb9f725d532843633ebf"
+      },
+      {
+        "path": "packages/runtime-adapter/test/gateway-http.test.ts",
+        "sha256": "32335da989ef0c988eba13089cae5514c58a034185d8be6830e342edd23b2577"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "sha256": "60ace848380761b091750774e9f040fb8f507fa2753da6d84bd68215fff15927"
+      },
+      {
+        "path": "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts",
+        "sha256": "8b114783fcc076ecabb662892e0515767df92ac2b44e6161f0ce3cc69a56c7c2"
+      }
+    ],
+    "after": [
+      {
+        "path": "packages/runtime-adapter/src/gateway-network.ts",
+        "sha256": "14cddcfd82936c20d5a68e1730d058aa37b042a8dadf695b41f9e819bbf1399e"
+      },
+      {
+        "path": "packages/runtime-adapter/test/gateway-http-fixture.ts",
+        "sha256": "71bb1d7eb0038fb809e7f69aff09116b1605430185d7999b2b28892aa9f41681"
+      },
+      {
+        "path": "packages/runtime-adapter/test/gateway-http.test.ts",
+        "sha256": "3d3e0ce2158f798f34afafda732e4cfe770fe2ac937f82a302248a488990609b"
+      },
+      {
+        "path": "packages/runtime-adapter/test/agent-dedicated-model.test.ts",
+        "sha256": "fc4d0658b58d42208155882e9e4dcef05ffc447bbf1ffd4dbbd97d4f07b467b5"
+      },
+      {
+        "path": "packages/runtime-adapter/test/gateway-conversation-bridge.test.ts",
+        "sha256": "2b5e1e176bbd7b8aef9453cbd1db0baa433f1aed32a82c059d6f7e792b21c99c"
+      }
+    ],
+    "retained_D294_thirteen_differences": true,
+    "run_started": false,
+    "paid_requests": false,
+    "unknown_resources_touched": false
+  },
+  "candidate_build_checks": [
+    {
+      "recorded_at": "2026-10-14T03:05:58.448Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 18001,
+      "files": [],
+      "test_name_pattern": null,
+      "source_files": 791,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    {
+      "recorded_at": "2026-10-14T03:09:49.725Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 18426,
+      "files": [],
+      "test_name_pattern": null,
+      "source_files": 791,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    {
+      "recorded_at": "2026-10-14T03:12:14.936Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 0,
+      "error": null,
+      "elapsed_ms": 17595,
+      "files": [],
+      "test_name_pattern": null,
+      "source_files": 791,
+      "source_drift": [],
+      "paid_requests": false
+    }
+  ],
+  "fresh_native_profile": {
+    "runner": "d306-native-r4-public-current-parent-profile",
+    "session_handle": 11429,
+    "state_at_document_capture": "terminal_consumed",
+    "root": "D:/s1-a11e0e/N-hA6H5R/_j8leSF",
+    "trace_path": "D:/s1-a11e0e/N-hA6H5R/_j8leSF/.git/cimiloop/d306-public-native-cost-timings.jsonl",
+    "trace_contains_only_timestamps_labels_counts": true,
+    "trace_observed_at": "2026-10-14T03:42:38.498Z",
+    "trace_snapshot": [
+      {
+        "at": "2026-10-14T03:13:28.806Z",
+        "elapsed_ms": 0.07300000000395812,
+        "name": "fresh-public-fixture",
+        "root": "D:\\s1-a11e0e\\N-hA6H5R\\_j8leSF",
+        "old_request_body_read": false,
+        "paid_requests": false
+      },
+      {
+        "at": "2026-10-14T03:25:04.012Z",
+        "elapsed_ms": 695206.1897,
+        "name": "child.execution.start"
+      }
+    ],
+    "terminal_meta": {
+      "recorded_at": "2026-10-14T03:27:16.536Z",
+      "worktree": "C:/Users/hector.he/.codex/worktrees/s1-current-native-combination/cimi-ai-native",
+      "exit_code": 1,
+      "error": null,
+      "elapsed_ms": 864807,
+      "files": [
+        "tests/scenarios/agent-parent-current-result-native-runtime.test.ts"
+      ],
+      "test_name_pattern": null,
+      "source_files": 791,
+      "source_drift": [],
+      "paid_requests": false
+    },
+    "terminal_tests": {
+      "passed": 0,
+      "failed": 1,
+      "pending": 0
+    },
+    "expected_parent_calls": 4,
+    "actual_parent_calls": 3,
+    "child_native": {
+      "reason": "workspace_rehearsal_runtime_failed",
+      "exit_code": 3,
+      "bun_elapsed_ms": 48,
+      "bun_crash": "segmentation fault 0xFFFFFFFFFFFFFFFF",
+      "reported_stack_module": "LHShield64.dll",
+      "resources_disposed": true,
+      "cleanup_errors": []
+    },
+    "parent_native": {
+      "reason": "workspace_rehearsal_runtime_failed",
+      "exit_code": 1,
+      "error": "agent_dedicated_account_unavailable",
+      "resources_disposed": true,
+      "cleanup_errors": []
+    },
+    "fee_result_collection_reached": false,
+    "source_files": 791,
+    "source_frozen": true,
+    "main_account_fee_fix_installed": false,
+    "old_run_restarted": false,
+    "original_task_budget_ms": 1800000,
+    "scene_timeout_ms": 2400000,
+    "budgets_raised": false,
+    "whole_chain_success_proven": false,
+    "exact_parent_timeout_cause_proven": false,
+    "diagnostic_io_does_not_change_original_return_or_error": true,
+    "concurrent_main_regressions": true
+  },
+  "automatic_approval": {
+    "rejected_action": "Read old _HQOHKf original input.json",
+    "stated_reason": "Existing input may contain private request or prompt content; key-only output still reads the body.",
+    "rejected_read_executed": false,
+    "workaround_used": false,
+    "safe_alternative": "New own PUBLIC fixture and metadata-only timing. No old request-body read."
+  },
+  "limits": {
+    "actual_account_sqlite_host_tls_used": true,
+    "actual_windows_parent_child_profile_started": true,
+    "real_model_qualification": false,
+    "real_skill_qualification": false,
+    "real_paid_bill_authentication": false,
+    "complete_native_acceptance": false,
+    "full_Matt_or_Superpowers": false,
+    "S1_accepted": false,
+    "goal_completed": false,
+    "formal_agent_execution_enabled": false,
+    "paid_requests": false,
+    "real_credential_reads": false,
+    "pushed": false,
+    "unknown_resources_touched": false,
+    "schema": 242,
+    "project_database_format": 10,
+    "host_database_format": 1
+  }
+}
