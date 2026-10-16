@@ -27,6 +27,12 @@ const fixture = (options: { records?: GatewayDnsAddress[]; alter?: (socket: Obse
   return { boundary, socket, advance: (ms: number) => { time += ms; }, dnsCalls: () => dnsCalls, dialCalls: () => dialCalls, captured: () => captured };
 };
 describe("public gateway DNS and exact TLS boundary", () => {
+  it("pins an OpenAI-compatible host on the same 30 second DNS pin", async () => {
+    const boundary = new GatewayNetworkBoundary({ resolve: async () => [record()], now: () => Date.now(), monotonic: () => 0 }, "/v1/chat/completions", "api.x.ai");
+    const pin = await boundary.resolve();
+    expect(pin.host).toBe("api.x.ai"); expect(pin.path).toBe("/v1/chat/completions"); expect(pin.port).toBe(443);
+    expect(() => new GatewayNetworkBoundary({}, "/v1/chat/completions", "127.0.0.1")).toThrow("gateway_path_denied");
+  });
   it("hands off only its original connection once and does not consume it on a copied claim", async () => {
     const f = fixture(), connection = await f.boundary.connect(await f.boundary.resolve());
     expect(Object.isFrozen(connection)).toBe(true); expect(Object.isFrozen(connection.observation)).toBe(true);

@@ -12,7 +12,7 @@ const text=(v:unknown,max=65536):v is string=>typeof v==="string"&&v.isWellForme
 const id=(v:unknown):v is string=>typeof v==="string"&&/^[a-zA-Z0-9_-]{1,128}$/.test(v);
 function fail():never{throw new RuntimeAdapterError("agent_dedicated_contract_unproven");}
 export function parseDedicatedAgentProfile(raw:unknown):DedicatedAgentProfile{
- if(!fields(raw,["model","thinking"])||typeof raw.model!=="string"||!/^glm-[a-z0-9.-]+$/.test(raw.model)||!["enabled","disabled"].includes(String(raw.thinking))||raw.thinking==="disabled"&&/^glm-5\.3(?:-flash)?$/.test(raw.model))fail();
+ if(!fields(raw,["model","thinking"])||typeof raw.model!=="string"||!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(raw.model)||!["enabled","disabled"].includes(String(raw.thinking))||raw.thinking==="disabled"&&/^glm-5\.3(?:-flash)?$/.test(raw.model))fail();
  return structuredClone(raw) as unknown as DedicatedAgentProfile;
 }
 // Preserved/interleaved reasoning is restored from the host's corresponding
@@ -37,10 +37,10 @@ export function prepareDedicatedAgentRequest(request:Request,rawProfile:Dedicate
      const args=JSON.stringify(part.input);parseGatewayJson(args,16384);calls.push({id:part.toolCallId,type:"function",function:{name:part.toolName,arguments:args}});used.add(part.toolCallId);pending.set(part.toolCallId,part.toolName);
     }else fail();}
    if(calls.length)parseGatewayFunctionCalls(calls,tools);
-   const original=prior[assistant++]!;if(!text(original.reasoning_content,16384)||profile.thinking==="disabled"&&original.reasoning_content)fail();
+   const original=prior[assistant++]!;if(!text(original.reasoning_content,16384)||profile.model.startsWith("glm-")&&profile.thinking==="disabled"&&original.reasoning_content)fail();
    const visible=original.receipt.content.filter(p=>p.type==="text").map(p=>p.text).join(""),originalCalls=original.receipt.content.filter(p=>p.type==="tool-call");
    if(visible!==content||calls.length!==originalCalls.length||calls.some((call,i)=>{const p=originalCalls[i]!;return call.id!==p.tool_call_id||call.function.name!==p.tool_name||!isDeepStrictEqual(parseGatewayJson(call.function.arguments,16384),parseGatewayJson(p.arguments,16384));}))fail();
-   messages.push({role:"assistant",content:content||null,...(calls.length?{tool_calls:calls}:{}),...(profile.thinking==="enabled"?{reasoning_content:original.reasoning_content}:{})});
+   messages.push({role:"assistant",content:content||null,...(calls.length?{tool_calls:calls}:{}),...(profile.model.startsWith("glm-")&&profile.thinking==="enabled"?{reasoning_content:original.reasoning_content}:{})});
   }else if(raw.role==="tool"){
    if(!Array.isArray(raw.content)||!raw.content.length)fail();for(const part of raw.content){if(!fields(part,["type","toolCallId","toolName","output"])||part.type!=="tool-result"||!id(part.toolCallId)||pending.get(part.toolCallId)!==part.toolName||!fields(part.output,["type","value"]))fail();
     const output=part.output,content=(output.type==="text"||output.type==="error-text")&&text(output.value)?output.value:output.type==="json"?JSON.stringify(output.value):fail();if(!text(content))fail();parseGatewayJson(JSON.stringify(output.value),65536);
@@ -49,7 +49,8 @@ export function prepareDedicatedAgentRequest(request:Request,rawProfile:Dedicate
  }
  if(pending.size||assistant!==prior.length||!messages.length||messages.length>128||!["user","tool"].includes(String(messages.at(-1)!.role)))fail();
  const request_id=digest(JSON.stringify([request.scope_digest,request.admission_digest,request.call_id])).value;
- const body=Buffer.from(JSON.stringify({model:profile.model,request_id,messages,max_tokens:request.max_output_tokens,stream:false,n:1,thinking:{type:profile.thinking,...(profile.thinking==="enabled"?{clear_thinking:false}:{})},...(tools.length?{tools,tool_choice:"auto"}:{})}));
+ const openai=!profile.model.startsWith("glm-");
+ const body=Buffer.from(JSON.stringify({model:profile.model,request_id,messages,max_tokens:request.max_output_tokens,stream:false,n:1,...(openai?{}:{thinking:{type:profile.thinking,...(profile.thinking==="enabled"?{clear_thinking:false}:{})}}),...(tools.length?{tools,tool_choice:"auto"}:{})}));
  if(body.length>65536)fail();return {body,request_id,input_digest:digest(body).value,request:structuredClone(request),profile,tools,prior_call_ids:[...used],input_token_limit:1000000};
 }
 export function parseDedicatedAgentResponse(bytes:Buffer,p:PreparedDedicatedAgentRequest,key:string):DedicatedAgentReply{
@@ -58,7 +59,7 @@ export function parseDedicatedAgentResponse(bytes:Buffer,p:PreparedDedicatedAgen
  if(JSON.stringify(v).includes(key))throw new RuntimeAdapterError("gateway_credential_disclosure_blocked");
  if(!fields(v,["id","model","request_id","choices","usage"],["object","created"])||!id(v.id)||v.model!==p.profile.model||v.request_id!==p.request_id||(v.object!==undefined&&v.object!=="chat.completion")||(v.created!==undefined&&(!Number.isSafeInteger(v.created)||Number(v.created)<0))||!Array.isArray(v.choices)||v.choices.length!==1)fail();
  const c=v.choices[0];if(!fields(c,["index","message","finish_reason"])||c.index!==0||!["stop","tool_calls"].includes(String(c.finish_reason))||!fields(c.message,["role","content"],["tool_calls","reasoning_content"])||c.message.role!=="assistant"||(c.message.content!==null&&!text(c.message.content,16384)))fail();
- const reasoning=c.message.reasoning_content??"";if(!text(reasoning,16384)||p.profile.thinking==="disabled"&&reasoning)fail();
+ const reasoning=c.message.reasoning_content??"";if(!text(reasoning,16384)||p.profile.model.startsWith("glm-")&&p.profile.thinking==="disabled"&&reasoning)fail();
  const u=v.usage;if(!fields(u,["prompt_tokens","completion_tokens","total_tokens"],["prompt_tokens_details"])||![u.prompt_tokens,u.completion_tokens,u.total_tokens].every(n=>Number.isSafeInteger(n)&&Number(n)>=0)||Number(u.prompt_tokens)>p.input_token_limit||Number(u.completion_tokens)>p.request.max_output_tokens||u.total_tokens!==Number(u.prompt_tokens)+Number(u.completion_tokens)||u.prompt_tokens_details!==undefined&&(!fields(u.prompt_tokens_details,["cached_tokens"])||!Number.isSafeInteger(u.prompt_tokens_details.cached_tokens)||Number(u.prompt_tokens_details.cached_tokens)<0||Number(u.prompt_tokens_details.cached_tokens)>Number(u.prompt_tokens)))fail();
  const content:AgentRuntimeModelResponse["content"]=[];if(typeof c.message.content==="string"&&c.message.content.length)content.push({type:"text",text:c.message.content});
  if(c.finish_reason==="tool_calls"){const calls=parseGatewayFunctionCalls(c.message.tool_calls,p.tools);for(const call of calls){if(p.prior_call_ids.includes(call.id))fail();content.push({type:"tool-call",tool_call_id:call.id,tool_name:call.function.name,arguments:call.function.arguments});}}

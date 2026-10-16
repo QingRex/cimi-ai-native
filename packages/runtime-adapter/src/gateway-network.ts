@@ -11,9 +11,9 @@ export const DEDICATED_GATEWAY_POLICY_DIGEST = digest(JSON.stringify({ format: "
   port: 443, path: DEDICATED_GATEWAY_PATH, model: "glm-5.3", all_dns_answers_public: true, maximum_addresses: 32,
   maximum_pin_age_ms: 30000, expiry_clock: "monotonic", ttl_origin: "dns_query_start", tls_hostname_verification: true, proxy: false, redirects: false, retries: 0 })).value;
 export interface GatewayDnsAddress { address: string; family: 4 | 6; ttl_seconds: number }
-export type DedicatedGatewayPath = typeof DEDICATED_GATEWAY_PATH | "/api/paas/v4/chat/completions";
+export type DedicatedGatewayPath = typeof DEDICATED_GATEWAY_PATH | "/api/paas/v4/chat/completions" | "/v1/chat/completions";
 export interface GatewayAddressPin {
-  readonly host: typeof DEDICATED_GATEWAY_HOST; readonly port: 443; readonly path: DedicatedGatewayPath;
+  readonly host: string; readonly port: 443; readonly path: DedicatedGatewayPath;
   readonly resolved_at: string; readonly expires_at: string; readonly addresses: readonly GatewayDnsAddress[];
   readonly selected: Readonly<GatewayDnsAddress>; readonly digest: string;
 }
@@ -27,12 +27,12 @@ interface NetworkDependencies {
   now?: () => number;
   monotonic?: () => number;
 }
-const resolvePublicHost = async (signal: AbortSignal): Promise<GatewayDnsAddress[]> => {
+const resolvePublicHost = async (signal: AbortSignal, host: string): Promise<GatewayDnsAddress[]> => {
   const resolver = new Resolver({ timeout: 5000, tries: 1 }), cancel = () => resolver.cancel();
   signal.addEventListener("abort", cancel, { once: true });
   try {
     if (signal.aborted) throw new RuntimeAdapterError("gateway_network_aborted");
-    const values = await Promise.allSettled([resolver.resolve4(DEDICATED_GATEWAY_HOST, { ttl: true }), resolver.resolve6(DEDICATED_GATEWAY_HOST, { ttl: true })]);
+    const values = await Promise.allSettled([resolver.resolve4(host, { ttl: true }), resolver.resolve6(host, { ttl: true })]);
     const records: GatewayDnsAddress[] = [];
     for (const [index, value] of values.entries()) {
       if (value.status === "rejected") {
@@ -45,19 +45,23 @@ const resolvePublicHost = async (signal: AbortSignal): Promise<GatewayDnsAddress
   } finally { signal.removeEventListener("abort", cancel); }
 };
 export class GatewayNetworkBoundary {
+  readonly host: string;
   private readonly pins = new WeakMap<GatewayAddressPin, { expires: number; consumed: boolean }>();
   private readonly connections = new WeakMap<GatewayTlsConnection, { pin: GatewayAddressPin; expires: number; consumed: boolean; bytesWritten: number }>();
   private readonly resolver: NonNullable<NetworkDependencies["resolve"]>;
   private readonly dial: NonNullable<NetworkDependencies["connect"]>;
   private readonly now: () => number;
   private readonly monotonic: () => number;
-  constructor(dependencies: NetworkDependencies = {}, readonly path: DedicatedGatewayPath = DEDICATED_GATEWAY_PATH) {
-    if (![DEDICATED_GATEWAY_PATH,"/api/paas/v4/chat/completions"].includes(path)) throw new RuntimeAdapterError("gateway_path_denied");
+  constructor(dependencies: NetworkDependencies = {}, readonly path: DedicatedGatewayPath = DEDICATED_GATEWAY_PATH, host = DEDICATED_GATEWAY_HOST) {
+    if (![DEDICATED_GATEWAY_PATH,"/api/paas/v4/chat/completions","/v1/chat/completions"].includes(path)) throw new RuntimeAdapterError("gateway_path_denied");
+    if (host !== DEDICATED_GATEWAY_HOST && (isIP(host) !== 0 || !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(host))) throw new RuntimeAdapterError("gateway_path_denied");
     // TypeScript readonly does not survive at runtime. Keep the constructor's
     // endpoint fixed across account/credential awaits and TLS-to-HTTP takeover;
     // the DNS pin and HTTP request must use the same approved provider path.
     Object.defineProperty(this, "path", { value: path, enumerable: true, writable: false, configurable: false });
-    this.resolver = dependencies.resolve ?? resolvePublicHost; this.dial = dependencies.connect ?? tlsConnect;
+    this.host = host;
+    Object.defineProperty(this, "host", { value: host, enumerable: true, writable: false, configurable: false });
+    this.resolver = dependencies.resolve ?? (signal => resolvePublicHost(signal, host)); this.dial = dependencies.connect ?? tlsConnect;
     this.now = dependencies.now ?? Date.now; this.monotonic = dependencies.monotonic ?? (() => performance.now());
   }
   async resolve(deadlineMs = 8000, signal?: AbortSignal): Promise<GatewayAddressPin> {
@@ -91,7 +95,7 @@ export class GatewayNetworkBoundary {
     const lifetime = Math.min(30000, ...addresses.map(a => a.ttl_seconds * 1000)), expires = time + lifetime;
     if (this.monotonic() >= started + lifetime) throw new RuntimeAdapterError("gateway_address_pin_expired");
     addresses.forEach(Object.freeze); Object.freeze(addresses);
-    const value = { host: DEDICATED_GATEWAY_HOST, port: 443 as const, path: this.path, resolved_at: new Date(time).toISOString(),
+    const value = { host: this.host, port: 443 as const, path: this.path, resolved_at: new Date(time).toISOString(),
       expires_at: new Date(expires).toISOString(), addresses, selected: addresses[0]! } as const;
     const pin = Object.freeze({ ...value, digest: digest(JSON.stringify(value)).value });
     this.pins.set(pin, { expires: started + lifetime, consumed: false }); return pin;
@@ -121,8 +125,8 @@ export class GatewayNetworkBoundary {
       const timer = setTimeout(() => finish("gateway_tls_deadline_exhausted"), deadlineMs);
       signal?.addEventListener("abort", cancel, { once: true });
       try {
-        const options: ConnectionOptions & { family: 4 | 6 } = { host: pin.selected.address, port: 443, family: pin.selected.family, servername: DEDICATED_GATEWAY_HOST,
-          rejectUnauthorized: true, minVersion: "TLSv1.2", checkServerIdentity: (_host, certificate) => checkServerIdentity(DEDICATED_GATEWAY_HOST, certificate) };
+        const options: ConnectionOptions & { family: 4 | 6 } = { host: pin.selected.address, port: 443, family: pin.selected.family, servername: pin.host,
+          rejectUnauthorized: true, minVersion: "TLSv1.2", checkServerIdentity: (_host, certificate) => checkServerIdentity(pin.host, certificate) };
         socket = this.dial(options);
         socket.on("error", () => finish("gateway_tls_unproven"));
         socket.once("close", () => { if (!settled) finish("gateway_tls_unproven"); });
@@ -132,7 +136,7 @@ export class GatewayNetworkBoundary {
             if (this.monotonic() >= owner.expires) throw new RuntimeAdapterError("gateway_address_pin_expired");
             if (!socket!.authorized || !socket!.remoteAddress || !gatewayPeerMatchesPin(pin.selected.address, socket!.remoteAddress)) throw new RuntimeAdapterError("gateway_tls_peer_unproven");
             const cert = socket!.getPeerCertificate(), protocol = socket!.getProtocol();
-            if (!cert.raw?.length || checkServerIdentity(DEDICATED_GATEWAY_HOST, cert) || !["TLSv1.2", "TLSv1.3"].includes(protocol ?? "")) throw new RuntimeAdapterError("gateway_tls_identity_unproven");
+            if (!cert.raw?.length || checkServerIdentity(pin.host, cert) || !["TLSv1.2", "TLSv1.3"].includes(protocol ?? "")) throw new RuntimeAdapterError("gateway_tls_identity_unproven");
             finish(undefined, { peer_address: socket!.remoteAddress, protocol: protocol!, certificate_digest: digest(cert.raw).value });
           } catch (error) { finish(error instanceof RuntimeAdapterError ? error.reason : "gateway_tls_identity_unproven"); }
         });
@@ -153,7 +157,7 @@ export class GatewayNetworkBoundary {
         !socket.remoteAddress || !gatewayPeerMatchesPin(owned.pin.selected.address, socket.remoteAddress) || socket.bytesWritten !== owned.bytesWritten || socket.readableLength > 0)
         throw new RuntimeAdapterError("gateway_tls_connection_changed");
       const certificate = socket.getPeerCertificate();
-      if (!certificate.raw?.length || checkServerIdentity(DEDICATED_GATEWAY_HOST, certificate) || digest(certificate.raw).value !== connection.observation.certificate_digest ||
+      if (!certificate.raw?.length || checkServerIdentity(owned.pin.host, certificate) || digest(certificate.raw).value !== connection.observation.certificate_digest ||
         socket.getProtocol() !== connection.observation.protocol) throw new RuntimeAdapterError("gateway_tls_connection_changed");
       return socket;
     } catch (error) { socket.destroy(); throw error; }

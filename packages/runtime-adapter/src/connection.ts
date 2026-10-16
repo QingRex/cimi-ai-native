@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { isIP } from "node:net";
 import { isAbsolute, join } from "node:path";
 import type { Digest } from "@cimiloop/protocol/v2";
 import { bytesAt, digest, RuntimeAdapterError } from "./files.js";
@@ -7,28 +8,42 @@ import { isolatedEnvironment } from "./native.js";
 
 export interface DedicatedModelConnection {
   format: "cimiloop/dedicated-model/1.0.0";
-  provider: "zhipuai-coding-plan" | "zhipuai";
+  provider: "zhipuai-coding-plan" | "zhipuai" | "openai-compatible";
   model: string;
   credential_file: string;
   credential_digest: Digest;
+  endpoint?: string;
 }
+const credentialDigest = (hash: DedicatedModelConnection["credential_digest"]) => !!hash && typeof hash === "object" &&
+  Object.keys(hash).sort().join(",") === "algorithm,value" && hash.algorithm === "sha256" && /^[0-9a-f]{64}$/.test(hash.value);
+const modelSuffix = (provider: string, model: string) => model.startsWith(`${provider}/`) ? model.slice(provider.length + 1) : "";
 export const validateModelConnection = (input: unknown): DedicatedModelConnection => {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
   const config = input as DedicatedModelConnection;
-  const hash = config.credential_digest;
-  if (Object.keys(config).sort().join(",") !== "credential_digest,credential_file,format,model,provider" ||
-    config.format !== "cimiloop/dedicated-model/1.0.0" || !["zhipuai", "zhipuai-coding-plan"].includes(config.provider) ||
-    typeof config.model !== "string" || !config.model.startsWith(`${config.provider}/`) || !/^glm-[a-z0-9.-]+$/.test(config.model.slice(config.provider.length + 1)) ||
-    typeof config.credential_file !== "string" || !isAbsolute(config.credential_file) || !hash || typeof hash !== "object" ||
-    Object.keys(hash).sort().join(",") !== "algorithm,value" || hash.algorithm !== "sha256" || !/^[0-9a-f]{64}$/.test(hash.value)) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
+  const keys = Object.keys(config).sort().join(","), openai = config.provider === "openai-compatible";
+  if (config.format !== "cimiloop/dedicated-model/1.0.0" || typeof config.model !== "string" || typeof config.credential_file !== "string" ||
+    !isAbsolute(config.credential_file) || !credentialDigest(config.credential_digest) || !modelSuffix(config.provider, config.model)) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
+  if (openai) {
+    if (keys !== "credential_digest,credential_file,endpoint,format,model,provider" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(modelSuffix(config.provider, config.model))) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
+    let url: URL;
+    try { url = new URL(String(config.endpoint)); } catch { throw new RuntimeAdapterError("invalid_dedicated_model_connection"); }
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || (url.port !== "" && url.port !== "443") || url.pathname !== "/v1/chat/completions" ||
+      isIP(url.hostname) || !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(url.hostname)) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
+    return config;
+  }
+  if (keys !== "credential_digest,credential_file,format,model,provider" || !["zhipuai", "zhipuai-coding-plan"].includes(config.provider) ||
+    !/^glm-[a-z0-9.-]+$/.test(modelSuffix(config.provider, config.model))) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
   return config;
 };
 export const loadModelConnection = (file: string): DedicatedModelConnection => {
   try { return validateModelConnection(JSON.parse(bytesAt(file, 16 * 1024).toString("utf8"))); }
   catch { throw new RuntimeAdapterError("invalid_dedicated_model_connection"); }
 };
-export const modelEndpoint = (connection: DedicatedModelConnection): string => connection.provider === "zhipuai-coding-plan"
-  ? "https://open.bigmodel.cn/api/coding/paas/v4" : "https://open.bigmodel.cn/api/paas/v4";
+export const modelEndpoint = (connection: DedicatedModelConnection): string => {
+  const config = validateModelConnection(connection);
+  if (config.provider === "openai-compatible") return new URL(String(config.endpoint)).origin;
+  return config.provider === "zhipuai-coding-plan" ? "https://open.bigmodel.cn/api/coding/paas/v4" : "https://open.bigmodel.cn/api/paas/v4";
+};
 const decryptScript = `Add-Type -AssemblyName System.Security
 $cipher = [Convert]::FromBase64String($env:CIMILOOP_DPAPI_CIPHERTEXT)
 $entropy = [Text.Encoding]::UTF8.GetBytes('CimiLoop runtime agent credential v1')

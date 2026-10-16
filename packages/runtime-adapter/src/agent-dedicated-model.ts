@@ -6,7 +6,7 @@ import { join, resolve, relative, isAbsolute, sep, dirname, basename } from "nod
 import { isDeepStrictEqual } from "node:util";
 import { assertOrdinaryPath, bytesAt, directory, digest, RuntimeAdapterError } from "./files.js";
 import { validateModelConnection, readDedicatedApiKey, type DedicatedModelConnection } from "./connection.js";
-import { GatewayNetworkBoundary, type DedicatedGatewayPath } from "./gateway-network.js";
+import { GatewayNetworkBoundary } from "./gateway-network.js";
 import { GatewayHttpTransport } from "./gateway-http.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { parseDedicatedAgentProfile, parseDedicatedAgentResponse, prepareDedicatedAgentRequest, type DedicatedAgentProfile, type DedicatedAgentReply } from "./agent-dedicated-codec.js";
@@ -66,8 +66,9 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
  verifyCredentialLocation(repositoryPath,credentialBoundaryRoot,connection.credential_file);
  const fullHold=captureDedicatedLedgerModelFullHold(port,scope,connection);
  const account={admission_digest:port.admission_digest,check:port.check.bind(port),reserve:port.reserve.bind(port),verifyHold:port.verifyHold.bind(port)},scopeDigest=digest(JSON.stringify(scope)).value,connectionDigest=digest(JSON.stringify(connection)).value;
- const path=connection.provider==="zhipuai"?"/api/paas/v4/chat/completions":"/api/coding/paas/v4/chat/completions";
- const boundary=dependencies.boundary??new GatewayNetworkBoundary({},path as DedicatedGatewayPath);if(!(boundary instanceof GatewayNetworkBoundary)||boundary.path!==path)fail("agent_dedicated_connection_mismatch");
+ const path=connection.provider==="openai-compatible"?"/v1/chat/completions":connection.provider==="zhipuai"?"/api/paas/v4/chat/completions":"/api/coding/paas/v4/chat/completions";
+ const host=connection.provider==="openai-compatible"?new URL(String(connection.endpoint)).hostname:"open.bigmodel.cn";
+ const boundary=dependencies.boundary??new GatewayNetworkBoundary({},path,host);if(!(boundary instanceof GatewayNetworkBoundary)||boundary.path!==path||boundary.host!==host)fail("agent_dedicated_connection_mismatch");
  const transport=new GatewayHttpTransport(boundary),credential=dependencies.readCredential??readDedicatedApiKey;
  const root=modelRoot,spine=join(root,"agent-dedicated-model-starts",scope.project_id,scope.run_id),originals=join(root,"agent-dedicated-model-originals",scope.project_id,scope.run_id);
  const header={format:parentMode?'cimiloop/agent-dedicated-model-originals/3.0.0':namedMode?'cimiloop/agent-dedicated-model-originals/2.0.0':'cimiloop/agent-dedicated-model-originals/1.0.0',scope,admission_digest:account.admission_digest,connection_digest:connectionDigest,profile,...(parentMode?{parent_skill_tools:parentMode}:{}),...(namedMode?{method_tools:namedMode}:{})};
