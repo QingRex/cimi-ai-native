@@ -28,7 +28,7 @@ export class LocalHumanAgentRuntimeStart {
   const prior=readLocalAgentRuntimeStartOriginal(this.local.location.dataDirectory,original.scope);check();if(prior)return prior;
   if(!this.factory)throw unavailable();
   let staged:Awaited<ReturnType<HumanAgentRuntimeFactory>>;
-  try{staged=await this.factory(runId,this.local);}catch{check();throw unavailable();}
+  try{staged=await this.factory(runId,this.local);}catch(error){check();if(error instanceof LocalProjectError && error.details.production_admission==="unapproved")throw error;throw unavailable();}
   let runtime:LocalAgentRuntimeComposition,release:(()=>void|Promise<void>)|undefined;
   try{
    try{

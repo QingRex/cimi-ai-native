@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { resolve } from "node:path";
+import { productionAgentRuntime } from "@cimiloop/local-app";
 import { startWorkbench } from "./server.js";
 
 const args = process.argv.slice(2);
@@ -11,7 +12,7 @@ for (let index = 0; index < args.length; index++) {
   else { process.stderr.write("无法识别参数；使用 --help 查看用法。\n"); process.exit(2); }
 }
 try {
-  const workbench = await startWorkbench({ projectDir, port });
+  const workbench = await startWorkbench({ projectDir, port, agentRuntimeForRun: productionAgentRuntime });
   const executable = process.platform === "win32" ? "rundll32.exe" : process.platform === "darwin" ? "open" : "xdg-open";
   const browserArgs = process.platform === "win32" ? ["url.dll,FileProtocolHandler", workbench.bootstrapUrl] : [workbench.bootstrapUrl];
   const launched = new Promise<void>((done, reject) => execFile(executable, browserArgs, { windowsHide: true }, error => error ? reject(error) : done()));

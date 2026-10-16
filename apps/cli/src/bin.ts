@@ -21,6 +21,7 @@ import { outputError } from "./output.js";
 import { CliInputError } from "./input.js";
 import { runtimeProbe, runtimeOperation, runtimeRecover, runtimeTransportProbe, runtimeGatewayProbe, runtimeGatewayBridgeProbe, runtimeGatewayNetworkProbe, runtimeGatewayCreditProbe } from "./runtime-probe.js";
 import {createAgentCostsCommand} from './agent-account-costs.js';
+import {productionAgentRuntime} from '@cimiloop/local-app';
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 
@@ -292,7 +293,7 @@ for (const [name, kind] of [["prepare-context", "PrepareRunContext"], ["reserve"
   command.action((id, options, command) => runMutation(kind, id, { ...globals(command), ...options }));
 }
 runs.command("show <change>").action((id, _options, command) => showRuns(id, globals(command)));
-runs.addCommand(createAgentStartOriginalCommand());
+runs.addCommand(createAgentStartOriginalCommand(productionAgentRuntime));
 runs.addCommand(createAgentCostsCommand());
 runs.addCommand(createAgentCostObservationCommand());
 runs.addCommand(createAgentReconcileOriginalCommand());
