@@ -4,7 +4,7 @@ import { dirname, basename, join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { pinBinary } from "../src/native.js";
 import { digest } from "../src/files.js";
-import { readRuntimeBinaryOriginal, withRuntimeBinaryProofTurn } from "../src/runtime-binary-originals.js";
+import { readRuntimeBinaryOriginal, withRuntimeBinaryProofTurn, digestRuntimeBinaryFile, proveRetainedBinaryProof, snapshotRuntimeBinaryProofIdentities } from "../src/runtime-binary-originals.js";
 import { DatabaseSync } from "node:sqlite";
 // Actual host files/SQLite only, never Native/model/account/Skill qualification.
 describe("retained original runtime binaries", () => {
@@ -42,6 +42,16 @@ describe("retained original runtime binaries", () => {
   expect(before.physical.ino).not.toBe(String(now.ino));
   expect(()=>readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value)).toThrow(/runtime_binary_original_unproven/);
   renameSync(pinned.path,join(f.root,"PUBLIC-replacement-retained.exe"));renameSync(retained,pinned.path);
+ });
+ it("rechecks a sealed proof by physical identity and rejects a same-byte replacement",()=>{
+  const f=setup(),pinned=pinBinary(f.root,f.binary);
+  const identities=withRuntimeBinaryProofTurn(()=>{digestRuntimeBinaryFile(pinned.path);return snapshotRuntimeBinaryProofIdentities();});
+  expect(identities.some(hit=>hit.path===resolve(pinned.path))).toBe(true);
+  proveRetainedBinaryProof(identities);
+  const retained=join(f.root,"PUBLIC-sealed-retained.exe");
+  renameSync(pinned.path,retained);copyFileSync(retained,pinned.path);
+  expect(()=>proveRetainedBinaryProof(identities)).toThrow(/runtime_binary_original_unproven/);
+  renameSync(pinned.path,join(f.root,"PUBLIC-sealed-replacement.exe"));renameSync(retained,pinned.path);
  });
  it("adopts available legacy bytes at their original path, without inventing prior custody",()=>{
   const f=setup(), hash=digest(readFileSync(f.binary)).value, path=join(f.root,"tools",hash,"runtime.exe");mkdirSync(dirname(path),{recursive:true});copyFileSync(f.binary,path);

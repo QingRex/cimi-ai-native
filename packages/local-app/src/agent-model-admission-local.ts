@@ -1,7 +1,7 @@
 import {agentWorkspaceConfigBaseFormat,assertAgentRuntimeStartupOriginal} from '@cimiloop/runtime-adapter';
 import {existsSync} from 'node:fs';import {join} from 'node:path';import {isDeepStrictEqual} from 'node:util';
 import {requestDigest,type AgentRunLaunchAuthorityInput,type AgentRunOriginalResultReader} from '@cimiloop/kernel';import type {Project,Digest} from '@cimiloop/protocol/v2';
-import {bytesAt,parseGatewayJson,readWorkspaceFileRunOriginals,inspectAgentRuntimeOriginalRegistration,readAgentWorkspaceIpcOriginals,readAgentRuntimeNativeResult,AgentWorkspaceCheckHost,digest,validWorkspaceWorkerIdentity,assertOrdinaryPath,readAgentWorkspaceIpcCurrentRequest,projectAgentWorkspaceIpcCausalPrefix,withRuntimeBinaryProofTurn,withStartCustodyVerifyTurn,type AgentParentSkillHistoricalResultReader} from '@cimiloop/runtime-adapter';
+import {bytesAt,parseGatewayJson,readWorkspaceFileRunOriginals,inspectAgentRuntimeOriginalRegistration,readAgentWorkspaceIpcOriginals,readAgentRuntimeNativeResult,AgentWorkspaceCheckHost,digest,validWorkspaceWorkerIdentity,assertOrdinaryPath,readAgentWorkspaceIpcCurrentRequest,projectAgentWorkspaceIpcCausalPrefix,proveRetainedBinaryProof,snapshotRuntimeBinaryProofIdentities,withRuntimeBinaryProofTurn,withStartCustodyVerifyTurn,type AgentParentSkillHistoricalResultReader,type RetainedBinaryProofIdentity} from '@cimiloop/runtime-adapter';
 import {captureLocalAgentParentSkillResults} from './agent-parent-skill-results-local.js';
 import {LocalRunVerifier} from './runs-local.js';import {LocalAgentStartCustody} from './agent-start-custody-local.js';import {LocalAgentCheckAdmission} from './agent-check-admission-local.js';
 
@@ -29,14 +29,16 @@ export class LocalAgentModelAdmission {
  private readonly runs:LocalRunVerifier;
  private readonly parentResults:ReturnType<typeof captureLocalAgentParentSkillResults>;
  private fixed?:{key:string;manifest:ReturnType<LocalRunVerifier['readWorkspace']>;admitted:ReturnType<LocalAgentCheckAdmission['forRun']>};
+ private sealed?:{key:string;survey:unknown;identities:RetainedBinaryProofIdentity[];childRequired:boolean};
  constructor(private readonly repositoryPath:string,private readonly dataDirectory:string,private readonly custody:LocalAgentStartCustody,private readonly checks:LocalAgentCheckAdmission,private readonly parentReader?:(reader:AgentRunOriginalResultReader)=>AgentParentSkillHistoricalResultReader){this.runs=new LocalRunVerifier(repositoryPath,dataDirectory);const factory=parentReader;this.parentResults=captureLocalAgentParentSkillResults(factory?{forOriginal:(_scope,writer)=>{if(!writer)throw Error('Original model snapshot reader missing');return factory(writer);}}:undefined);}
- checkModelAuthority(project:Project,raw:AgentRunLaunchAuthorityInput,reader?:AgentRunOriginalResultReader):Digest {return withStartCustodyVerifyTurn(()=>withRuntimeBinaryProofTurn(()=>{
+ checkModelAuthority(project:Project,raw:AgentRunLaunchAuthorityInput,reader?:AgentRunOriginalResultReader):Digest {return withStartCustodyVerifyTurn(()=>{
   const input=structuredClone(raw),scope=input.request;
   const key=requestDigest({project,input:{request:scope,context:input.context,record:{id:input.record.id,workspace:input.record.workspace_before_ref},workspace:input.workspace,source:input.source,actions:input.work_item.allowed_actions,resources:input.work_item.allowed_resources}});
   if(!this.fixed){this.fixed={key,manifest:this.runs.readWorkspace(project,input.workspace),admitted:this.checks.forRun(project,{task:input.task,work_item:input.work_item,source:input.source,workspace:input.workspace,runtime_binding:input.runtime_binding,skill_bindings:input.skill_bindings},input.record,input.context,scope,this.custody)};}
   if(this.fixed.key!==key)throw Error('Original model inputs changed');
   this.checks.verifyInstallation();
-  const read=()=>{
+  let childRequired=false;
+  const read=(proveChild:boolean)=>{
    const files=readWorkspaceFileRunOriginals(this.dataDirectory,project,input.record),checkCalls=AgentWorkspaceCheckHost.readRunOriginals(this.dataDirectory,project,input.record),runtime=inspectAgentRuntimeOriginalRegistration(this.dataDirectory,scope);
    if(runtime.status==='unknown'||files.facts.unresolved||checkCalls.facts.unresolved)throw Error('Original execution is unresolved');
    const {admitted,manifest}=this.fixed!;
@@ -62,10 +64,16 @@ export class LocalAgentModelAdmission {
     // Read the actual installed catalog from its original admission. Its digest
     // is the exact one pinned by the authenticated IPC header, never caller data.
     const historical=prefix.exchanges.some(exchange=>exchange.request&&typeof exchange.request==='object'&&'tool'in exchange.request&&exchange.request.tool==='run_skill');
+    if(historical)childRequired=true;
     if(historical&&(!reader||!this.parentResults))throw Error('Independent current Kernel reader for original children missing');
-    const child=historical?this.parentResults!(scope,reader!):undefined;
-    const native=readAgentRuntimeNativeResult(this.dataDirectory,project,input.record,scope,prefix,{...catalog,catalog_digest:digest(JSON.stringify(catalog)).value},child);
-    if(native.status!=='Verified')throw Error('Native/IPC prefix unproven: '+native.reason);
+    // The first proof enters the child. A later proof inside the same admission
+    // re-reads the sealed bytes and physical identity; it does not re-enter the
+    // child callback or reuse an earlier ALLOW decision.
+    if(proveChild){
+     const child=historical?this.parentResults!(scope,reader!):undefined;
+     const native=readAgentRuntimeNativeResult(this.dataDirectory,project,input.record,scope,prefix,{...catalog,catalog_digest:digest(JSON.stringify(catalog)).value},child);
+     if(native.status!=='Verified')throw Error('Native/IPC prefix unproven: '+native.reason);
+    }else if(historical&&!(this.sealed&&this.sealed.identities.length))throw Error('Original child proof missing');
    }
    if(ipc&&runtime.status==='original'){const config=parseGatewayJson(bytesAt(join(runtime.identity.operation,'original-config.json'),65536).toString('utf8'),65536) as Record<string,unknown>;if(!isDeepStrictEqual(readAgentWorkspaceIpcOriginals(this.dataDirectory,scope,String(config.pipe_nonce)),ipc))throw Error('Original IPC bytes changed during child verification');}
    if(!isDeepStrictEqual(readAgentWorkspaceIpcCurrentRequest(),current))throw Error('Original IPC current request changed');
@@ -83,7 +91,18 @@ export class LocalAgentModelAdmission {
    }
    return {workspace,files,checks:checkCalls,runtime,ipc,admitted,current,causal,preparation};
   };
-  const before=read(),live=this.custody.checkModelAuthority(project,input),after=read();if(!isDeepStrictEqual(before,after))throw Error('Original model authority changed during verification');
-  return {algorithm:'sha256',value:requestDigest({original:before,live})};
- }));}
+  const finish=(proveChild:boolean)=>{
+   const before=read(proveChild);
+   if(!proveChild){if(!this.sealed||!isDeepStrictEqual(before,this.sealed.survey))throw Error('Original model evidence changed');proveRetainedBinaryProof(this.sealed.identities);}
+   const live=this.custody.checkModelAuthority(project,input),after=read(proveChild);
+   if(!isDeepStrictEqual(before,after))throw Error('Original model authority changed during verification');
+   if(!proveChild)proveRetainedBinaryProof(this.sealed!.identities);
+   return {before,live};
+  };
+  const repeat=this.sealed?.key===key&&(this.sealed.identities.length>0||!this.sealed.childRequired);
+  if(repeat){try{const proven=finish(false);return {algorithm:'sha256' as const,value:requestDigest({original:proven.before,live:proven.live})};}catch{/* The sealed bytes are not the current originals. Prove these bytes before sending. */}}
+  const turned=withRuntimeBinaryProofTurn(()=>{childRequired=false;const proven=finish(true);return {proven,identities:snapshotRuntimeBinaryProofIdentities(),childRequired};});
+  this.sealed={key,survey:turned.proven.before,identities:turned.identities,childRequired:turned.childRequired};
+  return {algorithm:'sha256' as const,value:requestDigest({original:turned.proven.before,live:turned.proven.live})};
+ });}
 }

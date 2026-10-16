@@ -45,6 +45,15 @@ function replayOriginalObservations(){
  try{for(const entry of observationMemos!){if(entry.hits<=1)continue;const already=bypassCache.get(entry.key),fresh=already??entry.rerun();if(!already)bypassCache.set(entry.key,fresh);if(!isDeepStrictEqual(structuredClone(fresh),entry.value))fail();}}
  finally{observationBypass=false;bypassCache=undefined;}
 }
+export type RetainedBinaryProofIdentity={path:string;dev:string;ino:string;birthtime_ns:string;bytes:number;bytes_sha:string};
+// A later admission may recheck these identities without re-entering a child
+// callback. The snapshot is only valid inside the turn that hashed the files.
+export function snapshotRuntimeBinaryProofIdentities():RetainedBinaryProofIdentity[]{
+ if(!binaryTurn)fail();return [...binaryTurn.entries()].map(([path,hit])=>({path,dev:hit.dev,ino:hit.ino,birthtime_ns:hit.birthtime_ns,bytes:hit.bytes,bytes_sha:hit.sha}));
+}
+export function proveRetainedBinaryProof(hits:readonly RetainedBinaryProofIdentity[]):void{
+ for(const hit of hits){const id=identity(hit.path);if(id.dev!==hit.dev||id.ino!==hit.ino||id.birthtime_ns!==hit.birthtime_ns||id.bytes!==hit.bytes||contentSha(hit.path,true)!==hit.bytes_sha)fail();}
+}
 export function withRuntimeBinaryProofTurn<T>(run:()=>T):T{
  const outer=binaryDepth===0;if(outer){binaryTurn=new Map();observationMemos=[];}binaryDepth++;
  try{
