@@ -59,7 +59,7 @@ describe("retained original runtime binaries", () => {
   const hit=identities.find(item=>item.path===resolve(big));expect(hit).toBeTruthy();
   const forged=identities.map(item=>item.path===hit!.path?{...item,bytes_usn:"1"}:item);
   expect(proveRetainedBinaryProof(forged)).toBeUndefined();
-  const body=readFileSync(big);body[0]^=0xff;writeFileSync(big,body);
+  const body=readFileSync(big);body.writeUInt8(body.readUInt8(0)^0xff,0);writeFileSync(big,body);
   expect(()=>proveRetainedBinaryProof(identities)).toThrow(/runtime_binary_original_unproven/);
   if(process.platform==="win32"&&hit!.bytes_usn!==undefined)expect(hit!.bytes_usn).toMatch(/^\d+$/);
  });
@@ -68,7 +68,7 @@ describe("retained original runtime binaries", () => {
   const identities=withRuntimeBinaryProofTurn(()=>{readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value);return snapshotRuntimeBinaryProofIdentities();});
   const sha=withRetainedBinaryRecheck(identities,()=>{const one=readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value),two=readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value);expect(two).toEqual(one);return one.sha;});
   expect(sha).toBe(pinned.digest.value);
-  const body=readFileSync(pinned.path);body[0]^=0xff;writeFileSync(pinned.path,body);
+  const body=readFileSync(pinned.path);body.writeUInt8(body.readUInt8(0)^0xff,0);writeFileSync(pinned.path,body);
   expect(()=>withRetainedBinaryRecheck(identities,()=>readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value))).toThrow(/runtime_binary_original_unproven/);
  });
  it("reuses a sealed digest only inside one recheck and still rejects changed bytes",()=>{
