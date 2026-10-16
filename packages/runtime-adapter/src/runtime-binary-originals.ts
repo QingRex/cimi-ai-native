@@ -3,6 +3,7 @@ import { constants, mkdirSync, existsSync, copyFileSync, openSync, closeSync, fs
 import { join, resolve, toNamespacedPath } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { bytesAt, digest, assertOrdinaryPath, directory, RuntimeAdapterError } from "./files.js";
+import { readFileWriteGenerations, retainedBinaryWriteGenerationFloor } from "./file-write-generation.js";
 const applicationId=0x4349424f, maximumEntries=128, maximumBytes=4*1024*1024*1024, fileLimit=512*1024*1024;
 function fail():never {throw new RuntimeAdapterError("runtime_binary_original_unproven");}
 type Physical={dev:string;ino:string;birthtime_ns:string};
@@ -16,8 +17,8 @@ const identity=(path:string)=>{const s=lstatSync(assertOrdinaryPath(path),{bigin
 // old proof. Calls outside a turn always read bytes.
 type BinaryHit={dev:string;ino:string;birthtime_ns:string;bytes:number;sha:string};
 type ObservationMemo={key:string;value:unknown;hits:number;rerun:()=>unknown;identity?:object};
-let binaryTurn:Map<string,BinaryHit>|undefined,binaryDepth=0,observationMemos:ObservationMemo[]|undefined,observationBypass=false,bypassCache:Map<string,unknown>|undefined;
-function contentSha(path:string,fresh=false){const id=identity(path),key=resolve(path),hit=!fresh?binaryTurn?.get(key):undefined;if(hit&&hit.dev===id.dev&&hit.ino===id.ino&&hit.birthtime_ns===id.birthtime_ns&&hit.bytes===id.bytes)return hit.sha;const sha=digest(bytesAt(path,fileLimit)).value;if(!fresh&&binaryTurn)binaryTurn.set(key,{dev:id.dev,ino:id.ino,birthtime_ns:id.birthtime_ns,bytes:id.bytes,sha});return sha;}
+let binaryTurn:Map<string,BinaryHit>|undefined,binaryDepth=0,observationMemos:ObservationMemo[]|undefined,observationBypass=false,bypassCache:Map<string,unknown>|undefined,retainedFresh:Map<string,BinaryHit>|undefined;
+function contentSha(path:string,fresh=false){const id=identity(path),key=resolve(path);if(!fresh&&retainedFresh?.has(key)){const held=retainedFresh.get(key)!;if(held.dev!==id.dev||held.ino!==id.ino||held.birthtime_ns!==id.birthtime_ns||held.bytes!==id.bytes)fail();return held.sha;}const hit=!fresh?binaryTurn?.get(key):undefined;if(hit&&hit.dev===id.dev&&hit.ino===id.ino&&hit.birthtime_ns===id.birthtime_ns&&hit.bytes===id.bytes)return hit.sha;const sha=digest(bytesAt(path,fileLimit)).value;if(!fresh&&binaryTurn)binaryTurn.set(key,{dev:id.dev,ino:id.ino,birthtime_ns:id.birthtime_ns,bytes:id.bytes,sha});return sha;}
 export function digestRuntimeBinaryFile(path:string){return contentSha(path);}
 // Repeated original observations inside one synchronous proof reuse the first
 // plain result. A single observation is not replayed. Reused observations are
@@ -45,14 +46,46 @@ function replayOriginalObservations(){
  try{for(const entry of observationMemos!){if(entry.hits<=1)continue;const already=bypassCache.get(entry.key),fresh=already??entry.rerun();if(!already)bypassCache.set(entry.key,fresh);if(!isDeepStrictEqual(structuredClone(fresh),entry.value))fail();}}
  finally{observationBypass=false;bypassCache=undefined;}
 }
-export type RetainedBinaryProofIdentity={path:string;dev:string;ino:string;birthtime_ns:string;bytes:number;bytes_sha:string};
+export type RetainedBinaryProofIdentity={path:string;dev:string;ino:string;birthtime_ns:string;bytes:number;bytes_sha:string;bytes_usn?:string};
 // A later admission may recheck these identities without re-entering a child
 // callback. The snapshot is only valid inside the turn that hashed the files.
+// bytes_usn is the NTFS write generation observed with that hash. It is absent
+// when the generation cannot be read; absence never skips the byte hash.
 export function snapshotRuntimeBinaryProofIdentities():RetainedBinaryProofIdentity[]{
- if(!binaryTurn)fail();return [...binaryTurn.entries()].map(([path,hit])=>({path,dev:hit.dev,ino:hit.ino,birthtime_ns:hit.birthtime_ns,bytes:hit.bytes,bytes_sha:hit.sha}));
+ if(!binaryTurn)fail();
+ const entries=[...binaryTurn.entries()],large=entries.filter(([,hit])=>hit.bytes>=retainedBinaryWriteGenerationFloor).map(([path])=>path);
+ const generations=large.length?readFileWriteGenerations(large):undefined;
+ return entries.map(([path,hit])=>{const usn=hit.bytes>=retainedBinaryWriteGenerationFloor?generations?.get(path):undefined;return {path,dev:hit.dev,ino:hit.ino,birthtime_ns:hit.birthtime_ns,bytes:hit.bytes,bytes_sha:hit.sha,...(usn?{bytes_usn:usn}:{})};});
 }
 export function proveRetainedBinaryProof(hits:readonly RetainedBinaryProofIdentity[]):void{
- for(const hit of hits){const id=identity(hit.path);if(id.dev!==hit.dev||id.ino!==hit.ino||id.birthtime_ns!==hit.birthtime_ns||id.bytes!==hit.bytes||contentSha(hit.path,true)!==hit.bytes_sha)fail();}
+ const large=hits.filter(hit=>hit.bytes>=retainedBinaryWriteGenerationFloor&&hit.bytes_usn).map(hit=>hit.path);
+ const generations=large.length?readFileWriteGenerations(large):undefined;
+ for(const hit of hits){
+  const id=identity(hit.path);if(id.dev!==hit.dev||id.ino!==hit.ino||id.birthtime_ns!==hit.birthtime_ns||id.bytes!==hit.bytes)fail();
+  // Same write generation after the survey: the sealed bytes were not written.
+  // A mismatch, a new file, or an unreadable generation still hashes.
+  const usn=hit.bytes_usn&&hit.bytes>=retainedBinaryWriteGenerationFloor?generations?.get(resolve(hit.path)):undefined;
+  if(usn&&usn===hit.bytes_usn)continue;
+  if(contentSha(hit.path,true)!==hit.bytes_sha)fail();
+ }
+}
+// One later admission recheck may reuse the sealed byte digest while it re-reads
+// the same survey. Physical identity is checked before that reuse. After the
+// survey, the sealed NTFS write generation is read again. Unchanged generation
+// closes that file; any other result hashes it. Neither result is kept.
+export function withRetainedBinaryRecheck<T>(hits:readonly RetainedBinaryProofIdentity[],run:()=>T):T{
+ if(retainedFresh)fail();
+ const installed=new Map<string,BinaryHit>();
+ for(const hit of hits){const id=identity(hit.path);if(id.dev!==hit.dev||id.ino!==hit.ino||id.birthtime_ns!==hit.birthtime_ns||id.bytes!==hit.bytes)fail();installed.set(resolve(hit.path),{dev:hit.dev,ino:hit.ino,birthtime_ns:hit.birthtime_ns,bytes:hit.bytes,sha:hit.bytes_sha});}
+ retainedFresh=installed;recheckProofs=new Map();
+ try{
+  const value=run();
+  const pending=recheckProofs? [...recheckProofs.values()]:[];
+  recheckProofs=undefined;
+  for(const hit of pending)if(!isDeepStrictEqual(readRuntimeBinaryOriginal(hit.root,hit.path,hit.sha),hit.proof))fail();
+  proveRetainedBinaryProof(hits);return value;
+ }
+ finally{retainedFresh=undefined;recheckProofs=undefined;}
 }
 export function withRuntimeBinaryProofTurn<T>(run:()=>T):T{
  const outer=binaryDepth===0;if(outer){binaryTurn=new Map();observationMemos=[];}binaryDepth++;
@@ -129,12 +162,19 @@ function snapshot(s:Store,path:string,sha:string,rows=audit(s).rows){
  if(current.dev!==row.dev||current.ino!==row.ino||current.birthtime_ns!==row.birthtime_ns||current.bytes!==row.bytes||contentSha(path)!==sha)fail();
  return {format:"cimiloop/runtime-binary-original-proof/1.0.0",path,sha,bytes:current.bytes,origin:row.origin as "retained"|"legacy",physical:physical(path),registry_digest:s.registry_digest,reservation_digest:digest(bytesAt(join(s.claims,sha,"reserved.json"),16384)).value,retention_digest:digest(bytesAt(join(s.claims,sha,"retained.json"),16384)).value,prior_custody_proven:false as const,physical_quota_enforced:false as const};
 }
+type RetainedProof=ReturnType<typeof snapshot>;
+// Repeats inside one recheck reuse the registry audit. Physical identity is
+// checked on every repeat. The recheck reads the registry again before it
+// returns, so a changed registration cannot keep the earlier proof.
+let recheckProofs:Map<string,{root:string;path:string;sha:string;proof:RetainedProof}>|undefined;
 // Read-only revalidation: never initializes, repairs, copies or frees capacity.
 // This proof is not an observation memo. Callers compare it with the retained
 // JSON proof; a cloned replay is not that proof.
 export function readRuntimeBinaryOriginal(root:string,path:string,sha:string){
+ const resolved=resolve(path),key=resolve(root)+"\0"+resolved+"\0"+sha;
+ if(recheckProofs){const hit=recheckProofs.get(key);if(hit){const id=identity(resolved);if(id.dev!==hit.proof.physical.dev||id.ino!==hit.proof.physical.ino||id.birthtime_ns!==hit.proof.physical.birthtime_ns||id.bytes!==hit.proof.bytes)fail();return structuredClone(hit.proof);}}
  let s:Store|undefined;
- try {if(!/^[a-f0-9]{64}$/.test(sha))fail();s=open(root,false);s.db.exec("BEGIN");const proof=snapshot(s,resolve(path),sha);s.db.exec("COMMIT");return proof;}
+ try {if(!/^[a-f0-9]{64}$/.test(sha))fail();s=open(root,false);s.db.exec("BEGIN");const proof=snapshot(s,resolved,sha);s.db.exec("COMMIT");if(recheckProofs)recheckProofs.set(key,{root,path:resolved,sha,proof});return proof;}
  catch(error){if(error instanceof RuntimeAdapterError)throw error;throw new RuntimeAdapterError("runtime_binary_original_unproven");}finally{s?.db.close();}
 }
 // Host-private registry format1 is new; this does not migrate user DB10.

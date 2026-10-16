@@ -10,7 +10,7 @@ vi.mock('@cimiloop/runtime-adapter',async original=>{const real=await original<R
  readAgentRuntimeNativeResult:(_root:unknown,_project:unknown,_record:unknown,_scope:unknown,prefix:{exchanges:{request:{tool:string}}[]},_catalog:unknown,reader?:{readOriginal(raw:unknown):unknown})=>{state.native_reads++;for(const row of prefix.exchanges){if(row.request.tool==='run_skill'){if(!reader)return{status:'Unknown',reason:'Original child reader missing'};reader.readOriginal(row.request);}}return{status:'Verified'};}
 };});
 import {createInternalId} from '@cimiloop/protocol/v2';
-import {digest} from '@cimiloop/runtime-adapter';
+import {digest,digestRuntimeBinaryFile} from '@cimiloop/runtime-adapter';
 import {LocalAgentModelAdmission} from '../src/agent-model-admission-local.js';
 // Shared admission contract with controlled Native/custody ports. It does not
 // establish actual OS, child Native, real model/Skill or S1 qualification.
@@ -85,5 +85,12 @@ describe('parent model admission joins the exact current IPC request and indepen
  it('seals original current request after the last current workspace read before model admission can return',()=>{const s=setup();state.workspace_change=()=>{if(state.workspace_reads===2)state.current=null;};expect(()=>s.verify()).toThrow();expect(state.live_reads).toBe(1);});
  it('seals original IPC after the last current workspace read instead of accepting a stale causal projection',()=>{const s=setup();state.workspace_change=()=>{if(state.workspace_reads===2)(state.ipc as {unresolved:number}).unresolved=2;};expect(()=>s.verify()).toThrow();expect(state.live_reads).toBe(1);});
  it('seals original Native file effects after the last current workspace read before model admission can return',()=>{const s=setup();state.workspace_change=()=>{if(state.workspace_reads===2)state.files.push({PUBLIC:'late original Native effect'});};expect(()=>s.verify()).toThrow();expect(state.live_reads).toBe(1);});
+ it('does not re-enter a completed child when a later check still matches the sealed bytes',()=>{
+  const s=setup('model_step',true),binary=join(s.root,'PUBLIC-sealed-model-binary.bin');writeFileSync(binary,'sealed model bytes');
+  s.checks.verifyInstallation=()=>{digestRuntimeBinaryFile(binary);};
+  s.verify();const native=state.native_reads,child=state.child_reads,live=state.live_reads;
+  expect(s.verify()).toMatchObject({algorithm:'sha256'});
+  expect(state.native_reads).toBe(native);expect(state.child_reads).toBe(child);expect(state.live_reads).toBe(live+1);
+ });
 
 });

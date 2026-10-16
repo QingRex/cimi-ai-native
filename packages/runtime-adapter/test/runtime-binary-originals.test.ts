@@ -4,7 +4,7 @@ import { dirname, basename, join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { pinBinary } from "../src/native.js";
 import { digest } from "../src/files.js";
-import { readRuntimeBinaryOriginal, withRuntimeBinaryProofTurn, digestRuntimeBinaryFile, proveRetainedBinaryProof, snapshotRuntimeBinaryProofIdentities } from "../src/runtime-binary-originals.js";
+import { readRuntimeBinaryOriginal, withRuntimeBinaryProofTurn, digestRuntimeBinaryFile, proveRetainedBinaryProof, snapshotRuntimeBinaryProofIdentities, withRetainedBinaryRecheck } from "../src/runtime-binary-originals.js";
 import { DatabaseSync } from "node:sqlite";
 // Actual host files/SQLite only, never Native/model/account/Skill qualification.
 describe("retained original runtime binaries", () => {
@@ -52,6 +52,31 @@ describe("retained original runtime binaries", () => {
   renameSync(pinned.path,retained);copyFileSync(retained,pinned.path);
   expect(()=>proveRetainedBinaryProof(identities)).toThrow(/runtime_binary_original_unproven/);
   renameSync(pinned.path,join(f.root,"PUBLIC-sealed-replacement.exe"));renameSync(retained,pinned.path);
+ });
+ it("rechecks a large sealed file without treating a forged write generation as the bytes",()=>{
+  const f=setup(),big=join(f.root,"large.exe");writeFileSync(big,Buffer.alloc(1024*1024,7));
+  const identities=withRuntimeBinaryProofTurn(()=>{digestRuntimeBinaryFile(big);return snapshotRuntimeBinaryProofIdentities();});
+  const hit=identities.find(item=>item.path===resolve(big));expect(hit).toBeTruthy();
+  const forged=identities.map(item=>item.path===hit!.path?{...item,bytes_usn:"1"}:item);
+  expect(proveRetainedBinaryProof(forged)).toBeUndefined();
+  const body=readFileSync(big);body[0]^=0xff;writeFileSync(big,body);
+  expect(()=>proveRetainedBinaryProof(identities)).toThrow(/runtime_binary_original_unproven/);
+  if(process.platform==="win32"&&hit!.bytes_usn!==undefined)expect(hit!.bytes_usn).toMatch(/^\d+$/);
+ });
+ it("reuses one runtime registry audit inside a recheck and still rejects changed bytes",()=>{
+  const f=setup(),pinned=pinBinary(f.root,f.binary);
+  const identities=withRuntimeBinaryProofTurn(()=>{readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value);return snapshotRuntimeBinaryProofIdentities();});
+  const sha=withRetainedBinaryRecheck(identities,()=>{const one=readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value),two=readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value);expect(two).toEqual(one);return one.sha;});
+  expect(sha).toBe(pinned.digest.value);
+  const body=readFileSync(pinned.path);body[0]^=0xff;writeFileSync(pinned.path,body);
+  expect(()=>withRetainedBinaryRecheck(identities,()=>readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value))).toThrow(/runtime_binary_original_unproven/);
+ });
+ it("reuses a sealed digest only inside one recheck and still rejects changed bytes",()=>{
+  const f=setup(),pinned=pinBinary(f.root,f.binary);
+  const identities=withRuntimeBinaryProofTurn(()=>{digestRuntimeBinaryFile(pinned.path);return snapshotRuntimeBinaryProofIdentities();});
+  expect(withRetainedBinaryRecheck(identities,()=>digestRuntimeBinaryFile(pinned.path))).toBe(pinned.digest.value);
+  const body=readFileSync(pinned.path);body[0]=body[0]===0x41?0x42:0x41;writeFileSync(pinned.path,body);
+  expect(()=>withRetainedBinaryRecheck(identities,()=>{expect(digestRuntimeBinaryFile(pinned.path)).toBe(pinned.digest.value);})).toThrow(/runtime_binary_original_unproven/);
  });
  it("adopts available legacy bytes at their original path, without inventing prior custody",()=>{
   const f=setup(), hash=digest(readFileSync(f.binary)).value, path=join(f.root,"tools",hash,"runtime.exe");mkdirSync(dirname(path),{recursive:true});copyFileSync(f.binary,path);

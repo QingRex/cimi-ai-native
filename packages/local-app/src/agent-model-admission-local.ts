@@ -1,7 +1,7 @@
 import {agentWorkspaceConfigBaseFormat,assertAgentRuntimeStartupOriginal} from '@cimiloop/runtime-adapter';
 import {existsSync} from 'node:fs';import {join} from 'node:path';import {isDeepStrictEqual} from 'node:util';
 import {requestDigest,type AgentRunLaunchAuthorityInput,type AgentRunOriginalResultReader} from '@cimiloop/kernel';import type {Project,Digest} from '@cimiloop/protocol/v2';
-import {bytesAt,parseGatewayJson,readWorkspaceFileRunOriginals,inspectAgentRuntimeOriginalRegistration,readAgentWorkspaceIpcOriginals,readAgentRuntimeNativeResult,AgentWorkspaceCheckHost,digest,validWorkspaceWorkerIdentity,assertOrdinaryPath,readAgentWorkspaceIpcCurrentRequest,projectAgentWorkspaceIpcCausalPrefix,proveRetainedBinaryProof,snapshotRuntimeBinaryProofIdentities,withRuntimeBinaryProofTurn,withStartCustodyVerifyTurn,type AgentParentSkillHistoricalResultReader,type RetainedBinaryProofIdentity} from '@cimiloop/runtime-adapter';
+import {bytesAt,parseGatewayJson,readWorkspaceFileRunOriginals,inspectAgentRuntimeOriginalRegistration,readAgentWorkspaceIpcOriginals,readAgentRuntimeNativeResult,AgentWorkspaceCheckHost,digest,validWorkspaceWorkerIdentity,assertOrdinaryPath,readAgentWorkspaceIpcCurrentRequest,projectAgentWorkspaceIpcCausalPrefix,snapshotRuntimeBinaryProofIdentities,withRetainedBinaryRecheck,withRuntimeBinaryProofTurn,withStartCustodyVerifyTurn,type AgentParentSkillHistoricalResultReader,type RetainedBinaryProofIdentity} from '@cimiloop/runtime-adapter';
 import {captureLocalAgentParentSkillResults} from './agent-parent-skill-results-local.js';
 import {LocalRunVerifier} from './runs-local.js';import {LocalAgentStartCustody} from './agent-start-custody-local.js';import {LocalAgentCheckAdmission} from './agent-check-admission-local.js';
 
@@ -36,7 +36,6 @@ export class LocalAgentModelAdmission {
   const key=requestDigest({project,input:{request:scope,context:input.context,record:{id:input.record.id,workspace:input.record.workspace_before_ref},workspace:input.workspace,source:input.source,actions:input.work_item.allowed_actions,resources:input.work_item.allowed_resources}});
   if(!this.fixed){this.fixed={key,manifest:this.runs.readWorkspace(project,input.workspace),admitted:this.checks.forRun(project,{task:input.task,work_item:input.work_item,source:input.source,workspace:input.workspace,runtime_binding:input.runtime_binding,skill_bindings:input.skill_bindings},input.record,input.context,scope,this.custody)};}
   if(this.fixed.key!==key)throw Error('Original model inputs changed');
-  this.checks.verifyInstallation();
   let childRequired=false;
   const read=(proveChild:boolean)=>{
    const files=readWorkspaceFileRunOriginals(this.dataDirectory,project,input.record),checkCalls=AgentWorkspaceCheckHost.readRunOriginals(this.dataDirectory,project,input.record),runtime=inspectAgentRuntimeOriginalRegistration(this.dataDirectory,scope);
@@ -93,16 +92,20 @@ export class LocalAgentModelAdmission {
   };
   const finish=(proveChild:boolean)=>{
    const before=read(proveChild);
-   if(!proveChild){if(!this.sealed||!isDeepStrictEqual(before,this.sealed.survey))throw Error('Original model evidence changed');proveRetainedBinaryProof(this.sealed.identities);}
+   // A proof turn returns cloned bytes. The later recheck reads the same
+   // original again, so Buffer and Uint8Array are the same bytes.
+   if(!proveChild&&(!this.sealed||!isDeepStrictEqual(structuredClone(before),structuredClone(this.sealed.survey))))throw Error('Original model evidence changed');
    const live=this.custody.checkModelAuthority(project,input),after=read(proveChild);
    if(!isDeepStrictEqual(before,after))throw Error('Original model authority changed during verification');
-   if(!proveChild)proveRetainedBinaryProof(this.sealed!.identities);
    return {before,live};
   };
   const repeat=this.sealed?.key===key&&(this.sealed.identities.length>0||!this.sealed.childRequired);
-  if(repeat){try{const proven=finish(false);return {algorithm:'sha256' as const,value:requestDigest({original:proven.before,live:proven.live})};}catch{/* The sealed bytes are not the current originals. Prove these bytes before sending. */}}
-  const turned=withRuntimeBinaryProofTurn(()=>{childRequired=false;const proven=finish(true);return {proven,identities:snapshotRuntimeBinaryProofIdentities(),childRequired};});
-  this.sealed={key,survey:turned.proven.before,identities:turned.identities,childRequired:turned.childRequired};
+  // The sealed survey is compared again. Afterwards the NTFS write generation is
+  // read, and a missing or changed generation hashes the bytes. This does not
+  // keep an ALLOW decision across the account await.
+  if(repeat){try{const proven=withRetainedBinaryRecheck(this.sealed!.identities,()=>{this.checks.verifyInstallation();return finish(false);});return {algorithm:'sha256' as const,value:requestDigest({original:proven.before,live:proven.live})};}catch{/* The sealed survey does not describe this read. The full proof below reads it again. */}}
+  const turned=withRuntimeBinaryProofTurn(()=>{childRequired=false;this.checks.verifyInstallation();const proven=finish(true);return {proven,identities:snapshotRuntimeBinaryProofIdentities(),childRequired};});
+  this.sealed={key,survey:structuredClone(turned.proven.before),identities:turned.identities,childRequired:turned.childRequired};
   return {algorithm:'sha256' as const,value:requestDigest({original:turned.proven.before,live:turned.proven.live})};
  });}
 }

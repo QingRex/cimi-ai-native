@@ -2,7 +2,7 @@ import{parseAgentParentCurrentInput,type AgentParentCurrentInput}from'@cimiloop/
 import { execFileSync } from "node:child_process";
 import {isDeepStrictEqual} from 'node:util';
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from "node:fs";
-import { resolve, relative, sep } from "node:path";
+import { join, resolve, relative, sep } from "node:path";
 import { requestDigest, type RunVerifierPort } from "@cimiloop/kernel";
 import { compileValidator, WorkspaceManifestSchema, type Project, type SourceSnapshot, type WorkspaceManifest, type WorkspaceSnapshot, type RunObservation } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier, type ContentReference } from "./evidence-local.js";
@@ -26,6 +26,7 @@ export interface OriginalParentCandidateMaterials {
 }
 export class LocalRunVerifier implements RunVerifierPort {
   readonly #admittedWorkspaces=new Map<string,WorkspaceManifest>();
+  #indexDiff?:{head:string;index:string;diff:Buffer};
   readonly content: LocalEvidenceVerifier;
   readonly agent: NonNullable<RunVerifierPort["agent"]>;
   readonly tools: NonNullable<RunVerifierPort["tools"]> = { facts: (project, record) => readWorkspaceToolRunFacts(this.dataDirectory, project, record) };
@@ -117,7 +118,12 @@ export class LocalRunVerifier implements RunVerifierPort {
     const expected=resolveOriginalWorkspaceFileChain(present.map(f=>({path:f.path,expected_digest:f.content_ref.digest.value})),editable,calls);
     const projection=()=>{
       const status=this.#git(['status','--porcelain=v2','--branch','--untracked-files=all','-z']).toString('utf8').split('\0').filter(Boolean);
-      if(!status.includes('# branch.oid '+old.head_commit_id)||!this.#git(['diff','--cached','--no-ext-diff','--no-textconv','--binary','--full-index','--no-renames','HEAD','--']).equals(this.content.readContent(old.index_diff_ref)))throw Error('Original commit or index changed');
+      const gitDir=join(this.repositoryPath,'.git'),indexFile=join(gitDir,'index'),headFile=join(gitDir,'HEAD');
+      const indexStamp=existsSync(gitDir)&&lstatSync(gitDir).isDirectory()&&existsSync(indexFile)&&existsSync(headFile)?byteDigest(readFileSync(headFile)).value+'\0'+byteDigest(readFileSync(indexFile)).value:undefined;
+      const cached=indexStamp&&this.#indexDiff?.head===old.head_commit_id&&this.#indexDiff.index===indexStamp?this.#indexDiff.diff:undefined;
+      const diff=cached??this.#git(['diff','--cached','--no-ext-diff','--no-textconv','--binary','--full-index','--no-renames','HEAD','--']);
+      if(indexStamp&&!cached)this.#indexDiff={head:old.head_commit_id,index:indexStamp,diff};
+      if(!status.includes('# branch.oid '+old.head_commit_id)||!diff.equals(this.content.readContent(old.index_diff_ref)))throw Error('Original commit or index changed');
       const dirty:string[]=[];
       for(const entry of status){if(entry.startsWith('# '))continue;if(entry.startsWith('? ')){dirty.push(entry.slice(2));continue;}const match=/^1 (\S+) (\S+) (\d+) (\d+) (\d+) (\S+) (\S+) (.+)$/.exec(entry);if(!match)throw Error('Workspace mode, rename or type changed');const originalDeletion=match[5]==='000000'&&old.files.some(file=>file.state==='deleted'&&file.path.toUpperCase()===match[8]!.toUpperCase());if(!originalDeletion&&(match[3]!==match[4]||match[4]!==match[5]))throw Error('Workspace mode, rename or type changed');dirty.push(match[8]!);}
       if(dirty.some(path=>!old.allowed_resources.some(r=>contains(r,path))))throw Error('Dirty files exceed original resources');

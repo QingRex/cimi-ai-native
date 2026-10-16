@@ -108,7 +108,7 @@ export{readAgentRuntimeNativePrefix,type AgentNativePrefixCut}from'./agent-runti
 
 export type { AgentStartOriginalTicketSeal } from "./agent-start-ledger.js";
 
-export { digestBoundedOriginalFile, digestRuntimeBinaryFile, proveRetainedBinaryProof, readRuntimeBinaryOriginal, rememberOriginalIdentity, rememberOriginalObservation, snapshotRuntimeBinaryProofIdentities, withRuntimeBinaryProofTurn } from "./runtime-binary-originals.js";
+export { digestBoundedOriginalFile, digestRuntimeBinaryFile, proveRetainedBinaryProof, readRuntimeBinaryOriginal, rememberOriginalIdentity, rememberOriginalObservation, snapshotRuntimeBinaryProofIdentities, withRetainedBinaryRecheck, withRuntimeBinaryProofTurn } from "./runtime-binary-originals.js";
 export type { RetainedBinaryProofIdentity } from "./runtime-binary-originals.js";
 export { withStartCustodyVerifyTurn } from "./agent-start-custody-native.js";
 
