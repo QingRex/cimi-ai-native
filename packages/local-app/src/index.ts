@@ -37,7 +37,7 @@ export {readOriginalHumanPlanClarification} from './clarification-local.js';
 export type {OriginalHumanPlanClarification} from './clarification-local.js';
 export {LocalPlanningClarificationAdmission} from './planning-clarification-local.js';
 export type {MattPlanClarificationVerification,LocalPlanningClarificationOptions} from './planning-clarification-local.js';
-export { productionAgentRuntime, PRODUCTION_ADMISSION_MISSING } from "./agent-production-admission-local.js";
+export { productionAgentRuntime, PRODUCTION_ADMISSION_MISSING, PRODUCTION_ADMISSION_PLAN } from "./agent-production-admission-local.js";
 export { LocalHumanAgentRuntimeStart } from "./agent-runtime-human-start-local.js";
 export type { HumanAgentRuntimeFactory, AgentRuntimeLease } from "./agent-runtime-human-start-local.js";
 export { LocalAgentRuntimeComposition } from "./agent-runtime-composition-local.js";

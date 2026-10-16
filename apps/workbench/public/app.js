@@ -240,7 +240,7 @@ const taskPanel = (task, data) => {
         button("记录原运行观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
         ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,costOutput,
         ...(state.context.agent_costs_available===true?[paragraph('原账单费用记录只更新核定现金用量；执行终态与剩余预算结清继续待核对。')]:[paragraph('原账户费用查询与记录尚未接入。')]),
-        paragraph(state.context.agent_start_available===true ? "正式启动入口已接入。模型、套餐或预算未批准时会标明缺项，并且不会发送付费请求。结果与费用未结清前继续保留预算。" : "正式 Agent 启动组合尚未安装。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
+        paragraph(state.context.agent_start_available===true ? "正式启动入口已接入。当前套餐记录为 Grok。该记录不是智谱模型连接；模型或预算未批准时会标明缺项，并且不会发送付费请求。结果与费用未结清前继续保留预算。" : "正式 Agent 启动组合尚未安装。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
     }
     result.append(form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision,
       agent ? "technical_owner" : "executor", agent), input("reason", "停止理由", { required: true }), submit(agent ? "请求停止原运行" : "请求停止运行")));
