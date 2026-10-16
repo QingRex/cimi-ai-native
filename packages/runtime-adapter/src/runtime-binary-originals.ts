@@ -10,8 +10,10 @@ const physical=(path:string,kind:"file"|"directory"="file"):Physical=>{const s=l
 const identity=(path:string)=>{const s=lstatSync(assertOrdinaryPath(path),{bigint:true});if(s.size<1n||s.size>BigInt(fileLimit))fail();return {...physical(path),bytes:Number(s.size)};};
 // One synchronous observation may hash the same retained binary many times.
 // Repeats inside that observation reuse the first byte digest. The outermost
-// observation hashes every path again before it returns, so a same-inode
-// rewrite cannot survive the turn. Calls outside a turn always read bytes.
+// observation replays every repeated read, then reads it again, then checks
+// the retained dev/ino/birthtime/size and a fresh digest. A later replay cannot
+// leave an earlier result accepted, and a same-byte new file cannot keep the
+// old proof. Calls outside a turn always read bytes.
 type BinaryHit={dev:string;ino:string;birthtime_ns:string;bytes:number;sha:string};
 type ObservationMemo={key:string;value:unknown;hits:number;rerun:()=>unknown;identity?:object};
 let binaryTurn:Map<string,BinaryHit>|undefined,binaryDepth=0,observationMemos:ObservationMemo[]|undefined,observationBypass=false,bypassCache:Map<string,unknown>|undefined;
@@ -19,13 +21,15 @@ function contentSha(path:string,fresh=false){const id=identity(path),key=resolve
 export function digestRuntimeBinaryFile(path:string){return contentSha(path);}
 // Repeated original observations inside one synchronous proof reuse the first
 // plain result. A single observation is not replayed. Reused observations are
-// read again before the outermost proof returns and must still be equal.
-export function rememberOriginalObservation<T>(key:string,produce:()=>T):T{
+// read again after every callback, and then read once more. The optional
+// reread is that final check: it must not close over a scoped reader or an
+// installed callback. Without it, the original producer is read again.
+export function rememberOriginalObservation<T>(key:string,produce:()=>T,reread?:()=>T):T{
  if(!observationMemos)return produce();
- if(observationBypass){const cached=bypassCache?.get(key);if(cached)return structuredClone(cached) as T;const value=produce();bypassCache?.set(key,value);return structuredClone(value) as T;}
+ if(observationBypass){const cached=bypassCache?.get(key);if(cached)return structuredClone(cached) as T;const value=(reread??produce)();bypassCache?.set(key,value);return structuredClone(value) as T;}
  const hit=observationMemos.find(entry=>entry.key===key);
  if(hit){hit.hits++;return structuredClone(hit.value) as T;}
- const value=produce();observationMemos.push({key,value:structuredClone(value),hits:1,rerun:produce});return value;
+ const value=produce();observationMemos.push({key,value:structuredClone(value),hits:1,rerun:reread??produce});return value;
 }
 // Branded originals keep the object that owns their private verifier. A repeated
 // observation returns that same object. The outermost proof reads it again.
@@ -36,15 +40,22 @@ export function rememberOriginalIdentity<T extends object>(key:string,produce:()
  const identity=produce();observationMemos.push({key,value:structuredClone(identity),identity,hits:1,rerun:produce});return identity;
 }
 export function digestBoundedOriginalFile(path:string,maximum:number,bytes?:Buffer){const stat=lstatSync(assertOrdinaryPath(path),{bigint:true});if(!stat.isFile()||stat.isSymbolicLink()||stat.size>BigInt(maximum))fail();const id={dev:String(stat.dev),ino:String(stat.ino),birthtime_ns:String(stat.birthtimeNs),bytes:Number(stat.size)},key=resolve(path);if(!bytes&&binaryTurn){const hit=binaryTurn.get(key);if(hit&&hit.dev===id.dev&&hit.ino===id.ino&&hit.birthtime_ns===id.birthtime_ns&&hit.bytes===id.bytes)return hit.sha;}const body=bytes??bytesAt(path,maximum);if(body.length!==Number(stat.size))fail();if(stat.nlink!==1n||stat.ino<=0n||stat.size<1n)return digest(body).value;const sha=digest(body).value;if(binaryTurn&&!observationBypass)binaryTurn.set(key,{...id,sha});return sha;}
+function replayOriginalObservations(){
+ observationBypass=true;bypassCache=new Map();
+ try{for(const entry of observationMemos!){if(entry.hits<=1)continue;const already=bypassCache.get(entry.key),fresh=already??entry.rerun();if(!already)bypassCache.set(entry.key,fresh);if(!isDeepStrictEqual(structuredClone(fresh),entry.value))fail();}}
+ finally{observationBypass=false;bypassCache=undefined;}
+}
 export function withRuntimeBinaryProofTurn<T>(run:()=>T):T{
  const outer=binaryDepth===0;if(outer){binaryTurn=new Map();observationMemos=[];}binaryDepth++;
  try{
   const value=run();
   if(outer){
-   observationBypass=true;bypassCache=new Map();
-   try{for(const entry of observationMemos!){if(entry.hits<=1)continue;const already=bypassCache.get(entry.key),fresh=already??entry.rerun();if(!already)bypassCache.set(entry.key,fresh);if(!isDeepStrictEqual(structuredClone(fresh),entry.value))fail();}}
-   finally{observationBypass=false;bypassCache=undefined;}
-   for(const [path,hit] of binaryTurn!)if(contentSha(path,true)!==hit.sha)fail();
+   // Callbacks may still run in the first replay. The second replay starts
+   // only after every one of those callbacks has returned, so a later replay
+   // cannot change an earlier result and still be accepted. Physical identity
+   // is closed after both replays, not by digest alone.
+   replayOriginalObservations();replayOriginalObservations();
+   for(const [path,hit] of binaryTurn!){const id=identity(path);if(id.dev!==hit.dev||id.ino!==hit.ino||id.birthtime_ns!==hit.birthtime_ns||id.bytes!==hit.bytes||contentSha(path,true)!==hit.sha)fail();}
   }
   return value;
  }

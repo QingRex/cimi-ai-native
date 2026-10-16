@@ -110,8 +110,10 @@ export function readWorkspaceToolRunFacts(dataDirectory: string, project: Projec
 }
 
 export function readWorkspaceFileRunOriginals(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
-  record: Pick<RunRecord, "run_id" | "operation_key" | "executor_ref" | "input_digest">) {
-  return rememberOriginalObservation("workspace-files\0"+dataDirectory+"\0"+project.id+"\0"+record.run_id+"\0"+record.operation_key,()=>readWorkspaceFileRunOriginalsNow(dataDirectory,project,record));
+  record: Pick<RunRecord, "run_id" | "operation_key" | "executor_ref" | "input_digest"> & Partial<Pick<RunRecord, "run_kind">> & Partial<{ runtime_binding: unknown; skill_bindings: unknown; host_admission_ref: unknown }>) {
+  const repository_path=realpathSync(assertOrdinaryPath(project.repository_path)).toLowerCase();
+  const verified=digest(JSON.stringify({repository_path,run_kind:record.run_kind??null,executor_ref:record.executor_ref,input_digest:record.input_digest,runtime_binding:record.runtime_binding??null,skill_bindings:record.skill_bindings??null,host_admission_ref:record.host_admission_ref??null})).value;
+  return rememberOriginalObservation("workspace-files\0"+dataDirectory+"\0"+project.id+"\0"+record.run_id+"\0"+record.operation_key+"\0"+verified,()=>readWorkspaceFileRunOriginalsNow(dataDirectory,project,record));
 }
 function readWorkspaceFileRunOriginalsNow(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
   record: Pick<RunRecord, "run_id" | "operation_key" | "executor_ref" | "input_digest">) {

@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { digest } from "../src/files.js";
 import {pinBinary} from "../src/native.js";
-import {readRuntimeBinaryOriginal} from "../src/runtime-binary-originals.js";
+import { readRuntimeBinaryOriginal, withRuntimeBinaryProofTurn } from "../src/runtime-binary-originals.js";
 import { AgentWorkspaceCheckHost, parseWorkspaceCheckRecipe } from "../src/workspace-checks.js";
 import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.js";
 
@@ -93,5 +93,26 @@ describe("fixed check completion independently revalidates original dispatch and
     if (mode === "changed_binary") writeFileSync(join(f.operation, "constructed.exe"), "changed binary");
     if (mode === "missing_binary") unlinkSync(join(f.operation, "constructed.exe"));
     expect(f.read).toThrow();
+  });
+  it("rejects the same run ids when repository, executor, or input identity differs, including inside one proof turn", () => {
+    const f = fixture(), project = { id: f.scope.project_id, repository_path: f.root };
+    const record = { run_id: f.scope.run_id, run_kind: "agent" as const, operation_key: f.scope.operation_key, executor_ref: { object_type: "actor" as const, id: f.scope.executor_actor_id },
+      input_digest: f.scope.context_digest, runtime_binding: f.scope.runtime_binding, skill_bindings: f.scope.skill_bindings, host_admission_ref: f.scope.host_admission_ref };
+    const foreign = join(f.root, "PUBLIC-foreign-repository"); mkdirSync(foreign);
+    const changed = [
+      { ...project, repository_path: foreign },
+    ];
+    const read = (nextProject: typeof project, nextRecord: typeof record) => AgentWorkspaceCheckHost.readRunOriginals(f.root, nextProject, nextRecord);
+    expect(() => read(changed[0]!, record)).toThrow(/workspace_check_policy_conflict/);
+    expect(() => withRuntimeBinaryProofTurn(() => { read(project, record); return read(changed[0]!, record); })).toThrow(/workspace_check_policy_conflict/);
+    const otherExecutor = { ...record, executor_ref: { object_type: "actor" as const, id: createInternalId() } };
+    const otherInput = { ...record, input_digest: digest("PUBLIC different context") };
+    const otherBinding = { ...record, runtime_binding: { ...record.runtime_binding, digest: digest("PUBLIC different binding") } };
+    for (const next of [otherExecutor, otherInput, otherBinding]) {
+      expect(() => read(project, next)).toThrow(/workspace_check_run_mismatch/);
+      expect(() => withRuntimeBinaryProofTurn(() => { read(project, record); return read(project, next); })).toThrow(/workspace_check_run_mismatch/);
+    }
+    const replay = withRuntimeBinaryProofTurn(() => { const first = read(project, record); expect(read(project, record)).toEqual(first); return first; });
+    expect(replay.facts.invocations).toBe(1);
   });
 });

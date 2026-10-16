@@ -1,9 +1,10 @@
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, linkSync, copyFileSync, existsSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, linkSync, copyFileSync, existsSync, renameSync, lstatSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, basename, join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { pinBinary } from "../src/native.js";
 import { digest } from "../src/files.js";
+import { readRuntimeBinaryOriginal, withRuntimeBinaryProofTurn } from "../src/runtime-binary-originals.js";
 import { DatabaseSync } from "node:sqlite";
 // Actual host files/SQLite only, never Native/model/account/Skill qualification.
 describe("retained original runtime binaries", () => {
@@ -23,6 +24,24 @@ describe("retained original runtime binaries", () => {
  it("rejects a same-byte replacement with a different physical file identity",()=>{
   const f=setup(), first=pinBinary(f.root,f.binary), bytes=readFileSync(first.path);removeOwn(f.root,first.path);writeFileSync(first.path,bytes);
   expect(()=>pinBinary(f.root,f.binary)).toThrow();
+ });
+ it("accepts one unchanged original read inside a proof turn",()=>{
+  const f=setup(), pinned=pinBinary(f.root,f.binary);
+  const proof=withRuntimeBinaryProofTurn(()=>readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value));
+  const now=lstatSync(pinned.path,{bigint:true});
+  expect(proof.sha).toBe(pinned.digest.value);expect(proof.physical.ino).toBe(String(now.ino));expect(proof.physical.birthtime_ns).toBe(String(now.birthtimeNs));
+ });
+ it("rejects a same-byte physical replacement before a proof turn returns the old proof",()=>{
+  const f=setup(), pinned=pinBinary(f.root,f.binary), retained=join(f.root,"PUBLIC-original-retained.exe");
+  const before=readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value);
+  expect(()=>withRuntimeBinaryProofTurn(()=>{
+   const proof=readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value);
+   renameSync(pinned.path,retained);copyFileSync(retained,pinned.path);return proof;
+  })).toThrow(/runtime_binary_original_unproven/);
+  const now=lstatSync(pinned.path,{bigint:true});
+  expect(before.physical.ino).not.toBe(String(now.ino));
+  expect(()=>readRuntimeBinaryOriginal(f.root,pinned.path,pinned.digest.value)).toThrow(/runtime_binary_original_unproven/);
+  renameSync(pinned.path,join(f.root,"PUBLIC-replacement-retained.exe"));renameSync(retained,pinned.path);
  });
  it("adopts available legacy bytes at their original path, without inventing prior custody",()=>{
   const f=setup(), hash=digest(readFileSync(f.binary)).value, path=join(f.root,"tools",hash,"runtime.exe");mkdirSync(dirname(path),{recursive:true});copyFileSync(f.binary,path);

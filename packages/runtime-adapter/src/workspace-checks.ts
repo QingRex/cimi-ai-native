@@ -389,7 +389,9 @@ export class AgentWorkspaceCheckHost {
   }
   static readRunOriginals(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
     record: Pick<RunRecord, "run_id" | "run_kind" | "operation_key" | "executor_ref" | "input_digest"> & Partial<Pick<AgentWorkspaceToolScope, "runtime_binding" | "skill_bindings" | "host_admission_ref">>) {
-    return rememberOriginalObservation("workspace-checks\0"+dataDirectory+"\0"+project.id+"\0"+record.run_id+"\0"+record.operation_key,()=>AgentWorkspaceCheckHost.readRunOriginalsNow(dataDirectory,project,record));
+    const repository_path=realpathSync(assertOrdinaryPath(project.repository_path)).toLowerCase();
+    const verified=digest(JSON.stringify({repository_path,run_kind:record.run_kind??null,executor_ref:record.executor_ref,input_digest:record.input_digest,runtime_binding:record.runtime_binding??null,skill_bindings:record.skill_bindings??null,host_admission_ref:record.host_admission_ref??null})).value;
+    return rememberOriginalObservation("workspace-checks\0"+dataDirectory+"\0"+project.id+"\0"+record.run_id+"\0"+record.operation_key+"\0"+verified,()=>AgentWorkspaceCheckHost.readRunOriginalsNow(dataDirectory,project,record));
   }
   private static readRunOriginalsNow(dataDirectory: string, project: Pick<Project, "id" | "repository_path">,
     record: Pick<RunRecord, "run_id" | "run_kind" | "operation_key" | "executor_ref" | "input_digest"> & Partial<Pick<AgentWorkspaceToolScope, "runtime_binding" | "skill_bindings" | "host_admission_ref">>) {

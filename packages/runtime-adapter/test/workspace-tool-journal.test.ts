@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createInternalId, type ToolAuthorityAssessment, type ToolAuthorityRequest } from "@cimiloop/protocol/v2";
 import { digest } from "../src/files.js";
+import { withRuntimeBinaryProofTurn } from "../src/runtime-binary-originals.js";
+import { readWorkspaceFileRunOriginals } from "../src/workspace-tool-host.js";
 import { parseWorkspaceToolInvocation, type WorkspaceNativePreparation } from "../src/workspace-files.js";
 import { WorkspaceToolJournal, WORKSPACE_TOOL_SLOT_BYTES, workspaceToolAuthorityRequest, type WorkspaceToolPolicy } from "../src/workspace-tool-journal.js";
 
@@ -72,6 +74,35 @@ describe("workspace journal original ownership and effect barriers", () => {
     expect(() => read({ ...record, executor_ref: { id: createInternalId() } })).toThrow("workspace_tool_run_binding_mismatch");
     expect(() => read({ ...record, input_digest: digest("foreign") })).toThrow("workspace_tool_run_binding_mismatch");
     expect(() => read(record, createInternalId())).toThrow("workspace_tool_scope_mismatch"); expect(() => read(record, f.input.project_id, digest("foreign root").value)).toThrow("workspace_tool_scope_mismatch");
+  });
+  it("does not reuse file originals for the same ids and a different verified repository", () => {
+    const repository = mkdtempSync(join(tmpdir(), "cimiloop-workspace-journal-")); roots.push(repository);
+    const foreign = join(repository, "PUBLIC-foreign-repository"); mkdirSync(foreign);
+    const data = mkdtempSync(join(tmpdir(), "cimiloop-workspace-journal-")); roots.push(data);
+    const projectId = createInternalId(), tools = join(data, "workspace-tools"); mkdirSync(tools);
+    const repositoryPathDigest = digest(realpathSync(repository).toLowerCase()).value;
+    const policy: WorkspaceToolPolicy = { format: "cimiloop/workspace-tool-journal/1.0.0", scope: "authorized_workspace", project_id: projectId, repository_path_digest: repositoryPathDigest,
+      root_identity: { volume_serial: "12345678", file_index: "0000000000000001" }, scope_digest: digest("PUBLIC file scope").value, maximum_entries: 8, maximum_bytes: 8 * WORKSPACE_TOOL_SLOT_BYTES };
+    const runId = createInternalId(), operationKey = createInternalId(), actorId = createInternalId(), inputDigest = digest("PUBLIC file context");
+    const input = parseWorkspaceToolInvocation({ format: "cimiloop/workspace-tool-invocation/1.0.0", project_id: projectId, run_id: runId, operation_key: operationKey, executor_actor_id: actorId, context_digest: inputDigest, call_id: "original", tool: "read_file", path: "src/public.ts", expected_digest: digest("original\n").value });
+    const authority = { change_id: createInternalId(), task_id: createInternalId(), work_item_id: createInternalId(), run_record_id: createInternalId(), context_id: createInternalId(), basis_digest: digest("PUBLIC authority") };
+    const assessed = (request: ToolAuthorityRequest): ToolAuthorityAssessment => ({ schema_version: "2.0.0", scope: "human_run_tool_assessment", request, assessed_at: "2026-10-07T00:00:00.000Z", as_of_event_sequence: 1, formal_agent_execution_enabled: false, decision: "ALLOW", reasons: [], authority });
+    const proof: WorkspaceNativePreparation = { format: "cimiloop/workspace-native/1.0.0", phase: "prepared", nonce: randomUUID(), input_digest: digest(JSON.stringify(input)).value, root_identity: { ...policy.root_identity }, file_identity: { volume_serial: "12345678", file_index: "0000000000000002" }, replacement_identity: null, before_digest: input.expected_digest, worker: { ...owner, creation_ticks: "2" } };
+    const journal = new WorkspaceToolJournal(join(tools, projectId + ".sqlite"), policy, { identity: owner }); journals.push(journal);
+    const permit = journal.claim(input, assessed(workspaceToolAuthorityRequest(input))); if (!permit.permit) throw Error("Expected permit");
+    journal.prepare(permit.permit, proof); journal.dispatch(permit.permit); journal.stop(permit.permit, true); journal.close();
+    writeFileSync(join(tools, projectId + ".json"), JSON.stringify({ format: "cimiloop/workspace-tool-anchor/1.0.0", project_id: projectId, repository_path_digest: repositoryPathDigest, journal_policy_digest: digest(JSON.stringify(policy)).value }));
+    const project = { id: projectId, repository_path: repository }, bad = { id: projectId, repository_path: foreign };
+    const record = { run_id: runId, operation_key: operationKey, executor_ref: { object_type: "actor" as const, id: actorId }, input_digest: inputDigest };
+    const read = (current = project, next = record) => readWorkspaceFileRunOriginals(data, current, next);
+    expect(read().facts).toEqual({ invocations: 1, unresolved: 1, has_effect: true });
+    expect(() => read(bad)).toThrow(/workspace_tool_anchor_unproven/);
+    expect(() => withRuntimeBinaryProofTurn(() => { read(); return read(bad); })).toThrow(/workspace_tool_anchor_unproven/);
+    const other = { ...record, executor_ref: { object_type: "actor" as const, id: createInternalId() } };
+    expect(() => read(project, other)).toThrow(/workspace_tool_run_binding_mismatch/);
+    expect(() => withRuntimeBinaryProofTurn(() => { read(); return read(project, other); })).toThrow(/workspace_tool_run_binding_mismatch/);
+    const replay = withRuntimeBinaryProofTurn(() => { const first = read(); expect(read()).toEqual(first); return first; });
+    expect(replay.facts.invocations).toBe(1);
   });
   it("independently reads the original input and Native receipt without issuing a permit", () => {
     const f = setup(), journal = f.open(), permit = f.claim(journal), proof = f.proof();

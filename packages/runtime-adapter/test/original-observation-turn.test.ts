@@ -1,4 +1,8 @@
+import {mkdtempSync, rmSync, writeFileSync, readFileSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
 import {describe, expect, it} from "vitest";
+import {digest} from "../src/files.js";
 import {rememberOriginalIdentity, rememberOriginalObservation, withRuntimeBinaryProofTurn} from "../src/runtime-binary-originals.js";
 
 describe("original observation turn", () => {
@@ -23,7 +27,7 @@ describe("original observation turn", () => {
    return second;
   });
   expect(value).toEqual({stable: true});
-  expect(reads).toBe(2);
+  expect(reads).toBe(3);
  });
  it("reuses the same branded original and reads it again before the turn returns", () => {
   let reads = 0;
@@ -36,7 +40,7 @@ describe("original observation turn", () => {
    return second;
   });
   expect(value).toEqual({stable: true});
-  expect(reads).toBe(2);
+  expect(reads).toBe(3);
  });
  it("closes when a repeated branded original changes before the turn returns", () => {
   let reads = 0;
@@ -53,7 +57,7 @@ describe("original observation turn", () => {
    return rememberOriginalObservation("bytes", produce);
   });
   expect(Buffer.from(value.bytes).toString()).toBe("same");
-  expect(reads).toBe(2);
+  expect(reads).toBe(3);
  });
  it("closes when a repeated Buffer observation changes before the turn returns", () => {
   let n = 0;
@@ -70,5 +74,45 @@ describe("original observation turn", () => {
    rememberOriginalObservation("changed", () => ({n: reads += 1}));
   })).toThrow(/runtime_binary_original_unproven/);
   expect(reads).toBe(2);
+ });
+ it("closes when a later replay changes an earlier observation after that observation was rechecked", () => {
+  const root = mkdtempSync(join(tmpdir(), "cimiloop-observation-window-"));
+  const source = join(root, "PUBLIC-current-source.txt");
+  writeFileSync(source, "PUBLIC original source");
+  let laterCalls = 0;
+  try {
+   expect(() => withRuntimeBinaryProofTurn(() => {
+    const read = () => ({sha: digest(readFileSync(source)).value});
+    rememberOriginalObservation("PUBLIC-first-source", read);
+    rememberOriginalObservation("PUBLIC-first-source", read);
+    const later = () => {
+     laterCalls += 1;
+     if (laterCalls === 2) writeFileSync(source, "PUBLIC changed after final source recheck");
+     return {unchanged: true};
+    };
+    rememberOriginalObservation("PUBLIC-last-callback", later);
+    rememberOriginalObservation("PUBLIC-last-callback", later);
+    return {allowed: true};
+   })).toThrow(/runtime_binary_original_unproven/);
+   expect(readFileSync(source, "utf8")).not.toBe("PUBLIC original source");
+  } finally { rmSync(root, {recursive: true, force: true}); }
+ });
+ it("keeps a pure reread off a reader that has already ended", () => {
+  let produceCalls = 0, rereadCalls = 0, readerOpen = true;
+  const value = withRuntimeBinaryProofTurn(() => {
+   const read = () => {
+    produceCalls += 1;
+    if (!readerOpen) throw Error("scoped reader escaped");
+    return {sha: "settled"};
+   };
+   const reread = () => { rereadCalls += 1; if (!readerOpen) return {sha: "settled"}; throw Error("reread ran while the reader was still open"); };
+   const first = rememberOriginalObservation("historical-reader", read, reread);
+   rememberOriginalObservation("historical-reader", () => { throw Error("reader reused"); }, reread);
+   readerOpen = false;
+   return first;
+  });
+  expect(value).toEqual({sha: "settled"});
+  expect(produceCalls).toBe(1);
+  expect(rereadCalls).toBeGreaterThan(0);
  });
 });
