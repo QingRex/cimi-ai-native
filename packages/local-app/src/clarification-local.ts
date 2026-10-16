@@ -286,7 +286,10 @@ export class LocalPrePlanClarification {
         this.prePlan(changeId, session.basis.change, session.basis.request.target);
         if (session.pending || session.submitted) fail("原会话已有待核对或已提交动作", "RECOVERY_CONDITIONS_UNMET", "conflict");
         if (request.expected_head !== session.head) fail("澄清依据已变化", "REVISION_CONFLICT", "conflict");
-        if (request.kind === "matt") fail("真实 Matt 方法宿主尚未安装", "CAPABILITY_UNAVAILABLE", "conflict");
+        if (request.kind === "matt") throw new LocalProjectError(
+          "真实 Matt 方法宿主尚未安装。仓库中的 matt-clarification 导入描述不是可执行方法。固定方法宿主、原会话保管和费用授权都缺失。未调用方法，未读取凭据，未发送模型请求。",
+          "CAPABILITY_UNAVAILABLE", "conflict",
+          { matt_host: "uninstalled", missing: ["固定 Matt 方法宿主", "原 Matt 会话保管", "费用授权"], import_candidate: "packages/skill-adapter/candidates/matt-clarification.json", real_method_invocations: 0 });
         if (request.kind === "answer" && !session.unanswered.includes(request.question_id)) fail("只能回答当前未解决问题");
         if (isCandidate(request) && request.kind !== (session.basis.request.target === "plan" ? "plan_candidate" : "candidate")) fail("候选与原澄清目标不匹配");
         if (request.kind === "plan_candidate" && !isDeepStrictEqual(request.body.contract_ref, session.basis.change.contract_ref)) fail("计划候选必须引用原正式约定");

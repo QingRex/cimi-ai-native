@@ -34,6 +34,13 @@ describe('installed strict Plan admission shares the original Human ledger',()=>
  function install(verifyOriginal:MattPlanClarificationVerification['verifyOriginal']){
   local.store.close();local=openLocalProject({projectDir:root,planningClarification:{matt:{verifyOriginal}}});
  }
+ it('refuses a Matt action before any method call and keeps the original session',()=>{
+  const x=prepared(),service=new LocalPrePlanClarification(local),session=service.begin(x.change.id,{request_id:createInternalId(),target:'plan',requirement:'Bounded implementation and verification',background:'Current real confirmed contract',constraints:['Keep original identity']}).session,seq=f.store.asOfEventSequence();
+  let caught:unknown;try{service.advance(x.change.id,session.id,{request_id:createInternalId(),expected_head:0,kind:'matt'});}catch(error){caught=error;}
+  expect(caught).toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{matt_host:'uninstalled',missing:['固定 Matt 方法宿主','原 Matt 会话保管','费用授权'],real_method_invocations:0}});
+  expect(String((caught as {message?:string}).message)).toContain('未发送模型请求');
+  expect(service.show(x.change.id,session.id).session.head).toBe(0);expect(f.store.asOfEventSequence()).toBe(seq);
+ });
  it('blocks direct shared commands without original Human clarification and creates no plan/task/event',()=>{
   const x=prepared(),seq=f.store.asOfEventSequence();expect(executeLocalCommand(local,command(x))).toHaveProperty('code','EVIDENCE_MISSING');
   expect(f.store.listIntentRecords('plan_proposal',x.change.id)).toHaveLength(0);expect(f.store.listExecutionObjects('task',x.change.id)).toHaveLength(0);expect(f.store.asOfEventSequence()).toBe(seq);
