@@ -1,9 +1,11 @@
 import {LocalProjectError} from '../src/errors.js';
-import { mkdtempSync, rmSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { digest, initializeWindowsAgentStartLedger, initializeWindowsDedicatedAgentAccountLedger } from '@cimiloop/runtime-adapter';
 import { openLocalProject, writeInstance, LocalHumanAgentRuntimeStart, LocalAgentRuntimeComposition, productionAgentRuntime } from '../src/index.js';
+import { inspectProductionRuntime, openInstalledProductionRuntime, productionRuntimeLayout, productionAccountAdmission, writeProductionCheckCatalog } from '../src/agent-production-admission-local.js';
 import { readHumanOriginalAgentRunInputs } from '../src/agent-runtime-control-local.js';
 import { claimAgentRuntimeOperation } from '../../runtime-adapter/src/agent-runtime-operation.js';
 import { createAgentRunProject } from '../../../tests/fixtures/agent-run-project.js';
@@ -21,7 +23,31 @@ describe('owned original Human startup', () => {
  it('releases a foreign staged composition before any start',async()=>{const r=runtime();r.originalScope=()=>({...readHumanOriginalAgentRunInputs(local,runId).scope,project_id:'foreign'});const release=vi.fn();await expect(new LocalHumanAgentRuntimeStart(local,()=>({runtime:r,release}) as any).start(runId)).rejects.toMatchObject({code:'CALLER_IDENTITY_MISMATCH'});expect(release).toHaveBeenCalledTimes(1);expect(r.start).not.toHaveBeenCalled();});
  it('releases an awaited lease after Human revocation',async()=>{const r=runtime(),release=vi.fn();let done!:(v:any)=>void;const waiting=new LocalHumanAgentRuntimeStart(local,()=>new Promise<any>(resolve=>{done=resolve;})).start(runId);revoke();done({runtime:r,release});await expect(waiting).rejects.toMatchObject({code:'ROLE_NOT_ASSIGNED'});expect(release).toHaveBeenCalledTimes(1);expect(r.start).not.toHaveBeenCalled();});
  it('sanitizes startup errors while releasing once',async()=>{const r=runtime(),release=vi.fn();r.start=vi.fn(async()=>{throw Error('private_runtime_secret');});const error=await new LocalHumanAgentRuntimeStart(local,()=>({runtime:r,release}) as any).start(runId).catch(e=>e);expect(error).toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(error.message).not.toContain('private_runtime_secret');expect(release).toHaveBeenCalledTimes(1);});
- it('names the unapproved production gaps and does not replace them with a generic factory error',async()=>{await expect(new LocalHumanAgentRuntimeStart(local,productionAgentRuntime).start(runId)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',message:expect.stringContaining('OpenAI chat completions'),details:{production_admission:'unapproved',plan:'Grok',missing:['OpenAI 兼容连接']}});});
+ it('names the unapproved production gaps and does not replace them with a generic factory error',async()=>{const missing=[...await inspectProductionRuntime(local),'费用授权'];await expect(new LocalHumanAgentRuntimeStart(local,productionAgentRuntime).start(runId)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',message:expect.stringContaining('OpenAI chat completions'),details:{production_admission:'unapproved',plan:'Grok',missing}});expect(missing).toEqual(expect.arrayContaining(['OpenAI 兼容连接','原账户','固定检查','费用授权']));expect(missing.some(item=>item.includes('现金'))).toBe(false);});
+ it('assembles the shared runtime from an installed connection and still refuses a paid call',async()=>{
+  const layout=productionRuntimeLayout(local),projectId=local.store.getProject()!.id,parent=join(process.env.LOCALAPPDATA!,'CimiLoop','accounts'),credential=join(parent,`${projectId}.credential.dpapi.json`);
+  mkdirSync(parent,{recursive:true});mkdirSync(join(layout.startRoot,'..'),{recursive:true});mkdirSync(join(root,'src'),{recursive:true});
+  const harness='export const query = () => 1;\n';writeFileSync(join(root,'src','check.mjs'),harness);
+  const connection={format:'cimiloop/dedicated-model/1.0.0' as const,provider:'openai-compatible' as const,model:'openai-compatible/grok-4',endpoint:'https://api.x.ai/v1/chat/completions',credential_file:credential,credential_digest:digest('public-fixture-not-a-key')};
+  writeFileSync(layout.connectionPath,JSON.stringify(connection),{flag:'wx'});writeFileSync(credential,Buffer.from('public fixture placeholder'));
+  writeProductionCheckCatalog(local,[{check_id:'query_test',profile:'node_test',entry:'src/check.mjs',inputs:[{path:'src/check.mjs',expected_digest:digest(harness).value}],max_elapsed_ms:1000,max_output_bytes:4096}]);
+  let ledger:Awaited<ReturnType<typeof initializeWindowsAgentStartLedger>>|undefined,account:Awaited<ReturnType<typeof initializeWindowsDedicatedAgentAccountLedger>>|undefined;
+  try{
+   ledger=await initializeWindowsAgentStartLedger(layout.startRoot,layout.toolsRoot);
+   account=await initializeWindowsDedicatedAgentAccountLedger({origin:ledger,repositoryPath:root,root:layout.accountRoot,toolsRoot:layout.toolsRoot,connection,admission:productionAccountAdmission(ledger),policy:{format:'cimiloop/dedicated-agent-account/1.0.0',host_identity_digest:ledger.identityDigest,account_digest:digest('public fixture account').value,approval_digest:digest('public fixture approval').value,package_digest:digest('public fixture package').value,tariff_digest:digest('public fixture tariff').value,admission_digest:digest('public fixture admission').value,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:'grok-4',thinking:'disabled'},cash_limit_micros:60,credit_limit_micro_units:0,cash_per_call_upper_micros:30,credit_per_call_upper_micro_units:0,input_token_limit:1000000,output_token_limit:512}});
+   account.close();account=undefined;ledger.close();ledger=undefined;
+   const gaps=await inspectProductionRuntime(local),error=await Promise.resolve(productionAgentRuntime(runId,local)).then(()=>{throw Error('paid path opened');},(caught:unknown)=>caught);
+   expect(error).toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{production_admission:'unapproved',plan:'Grok',missing:[...gaps,'费用授权']}});
+   expect((error as {message:string}).message).toContain('未读取凭据');expect((error as {message:string}).message).toContain('未发送模型请求');
+   expect(gaps.filter(item=>item!=='固定 Runtime 二进制')).toEqual([]);
+   if(gaps.length===0){const lease=await openInstalledProductionRuntime(runId,local);try{expect(lease.runtime).toBeInstanceOf(LocalAgentRuntimeComposition);expect(lease.runtime.originalScope(runId)).toEqual(readHumanOriginalAgentRunInputs(local,runId).scope);}finally{await lease.release();}}
+   else await expect(openInstalledProductionRuntime(runId,local)).rejects.toMatchObject({details:{missing:gaps}});
+  }finally{
+   try{account?.close();}catch{/* already closed */}
+   try{ledger?.close();}catch{/* already closed */}
+   for(const name of [projectId,`${projectId}.credential.dpapi.json`]){const target=join(parent,name);if(resolve(target).startsWith(resolve(parent)+sep)){try{rmSync(target,{recursive:true,force:true});}catch{/* Windows custody may retain this new fixture. */}}}
+  }
+ },180000);
  it('sanitizes factory and release errors without a second dispatch',async()=>{await expect(new LocalHumanAgentRuntimeStart(local,()=>{throw Error('private_factory_secret');}).start(runId)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});const r=runtime(),release=vi.fn(async()=>{throw Error('private_release_secret');});const error=await new LocalHumanAgentRuntimeStart(local,()=>({runtime:r,release}) as any).start(runId).catch(e=>e);expect(error).toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(error.message).not.toContain('private_release_secret');expect(r.start).toHaveBeenCalledTimes(1);expect(release).toHaveBeenCalledTimes(1);});
  it('checks the request after factory and release waits and before Native effects',async()=>{const r=runtime(),release=vi.fn(),guard=vi.fn();let blocked=false;guard.mockImplementation(()=>{if(blocked)throw {http:'expired'};});await expect((new LocalHumanAgentRuntimeStart(local,()=>{blocked=true;return {runtime:r,release} as any;}).start as any)(runId,guard)).rejects.toEqual({http:'expired'});expect(release).toHaveBeenCalledTimes(1);expect(r.start).not.toHaveBeenCalled();blocked=false;const r2=runtime(),release2=vi.fn(async()=>{blocked=true;});r2.start=vi.fn(async(_id,check)=>{expect(check).toBeTypeOf('function');check!();return result();});await expect((new LocalHumanAgentRuntimeStart(local,()=>({runtime:r2,release:release2}) as any).start as any)(runId,guard)).rejects.toEqual({http:'expired'});expect(release2).toHaveBeenCalledTimes(1);});
  it('rejects a lease without release before effects',async()=>{const r=runtime();await expect(new LocalHumanAgentRuntimeStart(local,()=>({runtime:r}) as any).start(runId)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(r.start).not.toHaveBeenCalled();});

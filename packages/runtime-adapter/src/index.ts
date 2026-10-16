@@ -61,7 +61,9 @@ export type { DedicatedAgentAccountPort, DedicatedAgentBudgetRequest, DedicatedA
 export { DedicatedAgentAccountLedger, initializeWindowsDedicatedAgentAccountLedger, openWindowsDedicatedAgentAccountLedger, attachWindowsDedicatedAgentAccountBilling } from "./agent-dedicated-account.js";
 export type { DedicatedAgentAccountPolicy, DedicatedAgentAccountAdmission, DedicatedAgentAccountCustody } from "./agent-dedicated-account.js";
 export type { DedicatedAgentProfile } from "./agent-dedicated-codec.js";
+export { loadModelConnection, validateModelConnection } from "./connection.js";
 export type { DedicatedModelConnection } from "./connection.js";
+export { PINNED_CONVERSATION_OPENCODE_SHA } from "./gateway-conversation-probe.js";
 
 export { readDedicatedAgentModelOriginals, verifyCollectedDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary, type DedicatedAgentOriginalCall } from "./agent-dedicated-model.js";
 

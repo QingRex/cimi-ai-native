@@ -22,6 +22,8 @@ export interface LocalProject {
   kernel: CimiLoopKernel;
 }
 
+const installedRunVerifiers = new WeakMap<SqliteProjectStore, LocalRunVerifier>();
+export const installedRunVerifier = (local: Pick<LocalProject, "store">) => installedRunVerifiers.get(local.store);
 // Only a trusted local launcher supplies the project directory and operator.
 // HTTP requests never select a database, filesystem path or caller identity.
 export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;legacyManualPlanning?:true;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'>;agentRunFamilySkills?:LocalAgentRunFamilyVerification;agentParentSkillResults?:LocalAgentParentSkillResultPort } = {}): LocalProject => {
@@ -48,6 +50,7 @@ export const openLocalProject = (options: { projectDir?: string; agentRunCostAcc
       runVerifier,
       providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory),
       ...(options.legacyManualPlanning===true?{legacyManualPlanning:true}:{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification??{})}) });
+    installedRunVerifiers.set(store, runVerifier);
     return { location, instance, store, kernel,...(options.agentParentSkillResults?{agentParentSkillResults:Object.freeze({forOriginal:options.agentParentSkillResults.forOriginal.bind(options.agentParentSkillResults)})}:{}) };
   } catch (error) { store.close(); throw error; }
 };
