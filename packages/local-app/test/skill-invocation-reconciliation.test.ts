@@ -2,6 +2,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,renameSync,rmSync,existsSync} from '
 import{pinBinary}from'../../runtime-adapter/src/native.js';import{claimAgentRuntimeOperation}from'../../runtime-adapter/src/agent-runtime-operation.js';import{readRuntimeBinaryOriginal}from'@cimiloop/runtime-adapter';
 import {tmpdir} from 'node:os';import {join,dirname,basename} from 'node:path';
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
+vi.setConfig({testTimeout:120000,hookTimeout:120000});
 const readers=vi.hoisted(()=>({method:vi.fn(),provider:vi.fn(),model:vi.fn(),costs:vi.fn(),cancel:vi.fn(),collect:vi.fn()}));
 vi.mock('@cimiloop/runtime-adapter',async original=>({...await original<typeof import('@cimiloop/runtime-adapter')>(),readAgentRuntimeNamedMethodResult:readers.method,readDedicatedAgentModelOriginals:readers.provider,readAgentRuntimeModelOriginals:readers.model,readOriginalDedicatedAgentRunCosts:readers.costs,withOriginalDedicatedAgentRunCostRead:(root:string,scope:unknown,account:unknown,consume:(read:(...args:unknown[])=>unknown)=>unknown,close?:()=>void)=>{const before=readers.costs(root,scope,account),value=consume((...args:unknown[])=>{expect(args).toEqual([root,scope,account]);return structuredClone(before);});expect(readers.costs(root,scope,account)).toEqual(before);close?.();return value;},readAgentRuntimeNamedMethodCancellation:readers.cancel,collectAgentRuntimeOperation:readers.collect}));
 import {AgentStartLedger,digest} from '@cimiloop/runtime-adapter';

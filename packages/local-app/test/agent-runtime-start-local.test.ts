@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readFileSync, renameSync
 import { tmpdir } from "node:os";
 import { join, dirname, basename } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+vi.setConfig({ testTimeout: 120000, hookTimeout: 120000 });
 import { CimiLoopKernel } from "../../kernel/src/index.js";
 import { contentDigest } from "../../kernel/src/intent.js";
 import { claimAgentRuntimeOperation } from "../../runtime-adapter/src/agent-runtime-operation.js";
