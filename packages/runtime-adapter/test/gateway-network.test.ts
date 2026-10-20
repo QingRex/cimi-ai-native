@@ -33,6 +33,12 @@ describe("public gateway DNS and exact TLS boundary", () => {
     expect(pin.host).toBe("api.x.ai"); expect(pin.path).toBe("/v1/chat/completions"); expect(pin.port).toBe(443);
     expect(() => new GatewayNetworkBoundary({}, "/v1/chat/completions", "127.0.0.1")).toThrow("gateway_path_denied");
   });
+  it("pins the documented OpenCode Go chat completions path only on opencode.ai", async () => {
+    const boundary = new GatewayNetworkBoundary({ resolve: async () => [record()], now: () => Date.now(), monotonic: () => 0 }, "/inference/go/openai/v1/chat/completions", "opencode.ai");
+    const pin = await boundary.resolve();
+    expect(pin.host).toBe("opencode.ai"); expect(pin.path).toBe("/inference/go/openai/v1/chat/completions");
+    expect(() => new GatewayNetworkBoundary({}, "/inference/go/openai/v1/chat/completions", "api.x.ai")).toThrow("gateway_path_denied");
+  });
   it("hands off only its original connection once and does not consume it on a copied claim", async () => {
     const f = fixture(), connection = await f.boundary.connect(await f.boundary.resolve());
     expect(Object.isFrozen(connection)).toBe(true); expect(Object.isFrozen(connection.observation)).toBe(true);

@@ -3,7 +3,7 @@ import type { parseAgentRuntimeModelRequest } from "./agent-runtime-model.js";
 import { Agent, request as httpsRequest } from "node:https";
 import type { ClientRequest, IncomingMessage } from "node:http";
 import { performance } from "node:perf_hooks";
-import { GatewayNetworkBoundary, DEDICATED_GATEWAY_HOST, DEDICATED_GATEWAY_PATH, type GatewayTlsConnection } from "./gateway-network.js";
+import { GatewayNetworkBoundary, type GatewayTlsConnection } from "./gateway-network.js";
 import { digest, RuntimeAdapterError } from "./files.js";
 import { prepareGatewayConversation, parseGatewayConversation, createGatewayConversationCacheContract, parseGatewayJson,
   type GatewayConversationCacheContract, type GatewayConversationResponse, type PreparedGatewayConversationRequest } from "./gateway-conversation.js";
@@ -165,9 +165,9 @@ export class GatewayHttpTransport {
       const cancel = () => finish("gateway_http_aborted"), timer = setTimeout(() => finish("gateway_http_deadline_exhausted"), deadlineMs);
       signal?.addEventListener("abort", cancel, { once: true });
       try {
-        upstream = httpsRequest({ hostname: DEDICATED_GATEWAY_HOST, port: 443, path: this.boundary.path, method: "POST", agent,
+        upstream = httpsRequest({ hostname: this.boundary.host, port: 443, path: this.boundary.path, method: "POST", agent,
           maxHeaderSize: GATEWAY_HTTP_HEADER_BYTES, insecureHTTPParser: false, joinDuplicateHeaders: false,
-          headers: { host: DEDICATED_GATEWAY_HOST, "content-type": "application/json", accept: mediaType, "accept-encoding": "identity",
+          headers: { host: this.boundary.host, "content-type": "application/json", accept: mediaType, "accept-encoding": "identity",
             "content-length": owned.body.length, connection: "close", authorization: `Bearer ${apiKey}` } }, incoming => {
           response = incoming; if (settled) { incoming.destroy(); return; }
           const distinct = incoming.headersDistinct, contentType = distinct["content-type"], length = distinct["content-length"], transfer = distinct["transfer-encoding"];

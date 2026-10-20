@@ -5,7 +5,7 @@ import {
   PINNED_CONVERSATION_OPENCODE_SHA, bytesAt, digest, digestRuntimeBinaryFile, loadModelConnection,
   openWindowsAgentStartLedger, openWindowsDedicatedAgentAccountLedger, parseGatewayJson, parseWorkspaceCheckTemplate, validateModelConnection,
 } from "@cimiloop/runtime-adapter";
-import type { AgentStartLedger, DedicatedAgentAccountAdmission, DedicatedAgentAccountLedger, DedicatedModelConnection, WorkspaceCheckTemplate } from "@cimiloop/runtime-adapter";
+import type { AgentStartLedger, DedicatedAgentAccountAdmission, DedicatedAgentAccountLedger, DedicatedAgentAccountPolicy, DedicatedModelConnection, WorkspaceCheckTemplate } from "@cimiloop/runtime-adapter";
 import type { LocalProject } from "./project.js";
 import { installedRunVerifier } from "./project.js";
 import { LocalProjectError } from "./errors.js";
@@ -19,9 +19,10 @@ import { LocalProviderVerifier } from "./providers-local.js";
 import { readOriginalAgentRunInputs } from "./agent-workspace-tools-local.js";
 
 // The installed connection names the model and the https chat-completions
-// endpoint. Cash and credit ceilings are not development gaps. Fee authorization
-// is a separate closed gate: a budget field, a plan name, or a connection file
-// does not permit a paid call. This module never reads credential bytes.
+// endpoint. Fee authorization is one OpenCode Go connection: deepseek-v4.1-flash
+// at https://opencode.ai/inference/go/openai/v1/chat/completions, with cash at or
+// below 5 USD and no credit budget. A plan name, another endpoint, or a higher
+// ceiling does not permit a paid call. This module never reads credential bytes.
 export const PRODUCTION_ADMISSION_PLAN = "Grok" as const;
 export const PRODUCTION_ADMISSION_GAPS = ["固定 Runtime 二进制", "OpenAI 兼容连接", "连接凭据", "原启动账本", "原账户", "固定检查", "费用授权"] as const;
 export const PRODUCTION_ADMISSION_MISSING = PRODUCTION_ADMISSION_GAPS;
@@ -30,7 +31,20 @@ const admissionDigest = (value: unknown) => ({ algorithm: "sha256" as const, val
 const installName = "production-runtime";
 const accountNamespace = "dedicated_agent_account";
 
-export function productionModelFeeAuthorized(): boolean { return false; }
+const AUTHORIZED_OPENCODE_GO_ENDPOINT = "https://opencode.ai/inference/go/openai/v1/chat/completions";
+const AUTHORIZED_OPENCODE_GO_MODEL = "openai-compatible/deepseek-v4.1-flash";
+const AUTHORIZED_OPENCODE_GO_CASH_MICROS = 5_000_000;
+export function productionModelFeeAuthorized(connection?: DedicatedModelConnection, policy?: Pick<DedicatedAgentAccountPolicy, "cash_limit_micros" | "cash_per_call_upper_micros" | "credit_limit_micro_units" | "credit_per_call_upper_micro_units" | "profile">): boolean {
+  if (!connection) return false;
+  let fixed: DedicatedModelConnection;
+  try { fixed = validateModelConnection(connection); } catch { return false; }
+  if (fixed.provider !== "openai-compatible" || fixed.model !== AUTHORIZED_OPENCODE_GO_MODEL || fixed.endpoint !== AUTHORIZED_OPENCODE_GO_ENDPOINT) return false;
+  if (!policy) return true;
+  return policy.profile.model === "deepseek-v4.1-flash" && policy.profile.thinking === "disabled"
+    && policy.cash_limit_micros >= 0 && policy.cash_limit_micros <= AUTHORIZED_OPENCODE_GO_CASH_MICROS
+    && policy.cash_per_call_upper_micros >= 0 && policy.cash_per_call_upper_micros <= AUTHORIZED_OPENCODE_GO_CASH_MICROS
+    && policy.credit_limit_micro_units === 0 && policy.credit_per_call_upper_micro_units === 0;
+}
 
 export function productionRuntimeBinaryPath(): string | undefined {
   const root = process.env.APPDATA;
@@ -92,7 +106,7 @@ export function productionAccountAdmission(origin: AgentStartLedger): DedicatedA
   return { check: async (_scope, connection, policy) => {
     const fixed = validateModelConnection(connection);
     if (digest(JSON.stringify(fixed)).value !== policy.connection_digest || policy.host_identity_digest !== origin.identityDigest || fixed.model !== `${fixed.provider}/${policy.profile.model}`) throw new Error("agent_account_admission_unproven");
-    if (!productionModelFeeAuthorized()) throw productionAdmissionError(["费用授权"]);
+    if (!productionModelFeeAuthorized(fixed, policy)) throw productionAdmissionError(["费用授权"]);
   } };
 }
 
@@ -159,7 +173,9 @@ export async function openInstalledProductionRuntime(runId: string, local: Local
 
 export const productionAgentRuntime: HumanAgentRuntimeFactory = async (runId, local) => {
   const missing = [...await inspectProductionRuntime(local)];
-  if (!productionModelFeeAuthorized()) missing.push("费用授权");
+  let feeConnection: DedicatedModelConnection | undefined;
+  try { feeConnection = loadModelConnection(productionRuntimeLayout(local).connectionPath); } catch { feeConnection = undefined; }
+  if (!productionModelFeeAuthorized(feeConnection)) missing.push("费用授权");
   if (missing.length) throw productionAdmissionError(missing);
   return openInstalledProductionRuntime(runId, local);
 };

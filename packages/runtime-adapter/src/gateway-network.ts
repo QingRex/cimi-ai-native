@@ -11,7 +11,8 @@ export const DEDICATED_GATEWAY_POLICY_DIGEST = digest(JSON.stringify({ format: "
   port: 443, path: DEDICATED_GATEWAY_PATH, model: "glm-5.3", all_dns_answers_public: true, maximum_addresses: 32,
   maximum_pin_age_ms: 30000, expiry_clock: "monotonic", ttl_origin: "dns_query_start", tls_hostname_verification: true, proxy: false, redirects: false, retries: 0 })).value;
 export interface GatewayDnsAddress { address: string; family: 4 | 6; ttl_seconds: number }
-export type DedicatedGatewayPath = typeof DEDICATED_GATEWAY_PATH | "/api/paas/v4/chat/completions" | "/v1/chat/completions";
+export const OPENCODE_GO_CHAT_COMPLETIONS_PATH = "/inference/go/openai/v1/chat/completions";
+export type DedicatedGatewayPath = typeof DEDICATED_GATEWAY_PATH | "/api/paas/v4/chat/completions" | "/v1/chat/completions" | typeof OPENCODE_GO_CHAT_COMPLETIONS_PATH;
 export interface GatewayAddressPin {
   readonly host: string; readonly port: 443; readonly path: DedicatedGatewayPath;
   readonly resolved_at: string; readonly expires_at: string; readonly addresses: readonly GatewayDnsAddress[];
@@ -53,7 +54,8 @@ export class GatewayNetworkBoundary {
   private readonly now: () => number;
   private readonly monotonic: () => number;
   constructor(dependencies: NetworkDependencies = {}, readonly path: DedicatedGatewayPath = DEDICATED_GATEWAY_PATH, host = DEDICATED_GATEWAY_HOST) {
-    if (![DEDICATED_GATEWAY_PATH,"/api/paas/v4/chat/completions","/v1/chat/completions"].includes(path)) throw new RuntimeAdapterError("gateway_path_denied");
+    const approved = path === OPENCODE_GO_CHAT_COMPLETIONS_PATH ? host === "opencode.ai" : [DEDICATED_GATEWAY_PATH, "/api/paas/v4/chat/completions", "/v1/chat/completions"].includes(path);
+    if (!approved) throw new RuntimeAdapterError("gateway_path_denied");
     if (host !== DEDICATED_GATEWAY_HOST && (isIP(host) !== 0 || !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(host))) throw new RuntimeAdapterError("gateway_path_denied");
     // TypeScript readonly does not survive at runtime. Keep the constructor's
     // endpoint fixed across account/credential awaits and TLS-to-HTTP takeover;

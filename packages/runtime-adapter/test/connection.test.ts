@@ -17,9 +17,12 @@ it("limits dedicated connections to fixed official endpoints and disallows plain
     { ...base(), model: "other/glm-5.3" }, { ...base(), model: "zhipuai-coding-plan/../../escape" }, { ...base(), credential_file: "relative.json" },
     { ...base(), credential_digest: { algorithm: "sha256", value: "wrong" } }, null]) expect(() => validateModelConnection(input)).toThrow("invalid_dedicated_model_connection");
   const openai = { ...base(), provider: "openai-compatible" as const, model: "openai-compatible/grok-4", endpoint: "https://api.x.ai/v1/chat/completions" };
+  const go = { ...base(), provider: "openai-compatible" as const, model: "openai-compatible/deepseek-v4.1-flash", endpoint: "https://opencode.ai/inference/go/openai/v1/chat/completions" };
+  expect(modelEndpoint(validateModelConnection(go))).toBe("https://opencode.ai/inference/go/openai/v1");
   expect(modelEndpoint(validateModelConnection(openai))).toBe("https://api.x.ai");
   for (const input of [openai, { ...openai, endpoint: "http://api.x.ai/v1/chat/completions" }, { ...openai, endpoint: "https://127.0.0.1/v1/chat/completions" },
-    { ...openai, endpoint: "https://api.x.ai/v1/chat/completions?k=1" }, { ...openai, model: "openai-compatible/../grok" }])
+    { ...openai, endpoint: "https://api.x.ai/v1/chat/completions?k=1" }, { ...openai, model: "openai-compatible/../grok" },
+    { ...go, endpoint: "https://evil.example/inference/go/openai/v1/chat/completions" }, { ...go, endpoint: "https://opencode.ai/zen/go/v1/chat/completions" }])
     if (input !== openai) expect(() => validateModelConnection(input)).toThrow("invalid_dedicated_model_connection");
 });
 it("blocks every split of a credential across pipe chunks and preserves unrelated UTF-8 bytes", () => {

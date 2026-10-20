@@ -6,7 +6,7 @@ import { join, resolve, relative, isAbsolute, sep, dirname, basename } from "nod
 import { isDeepStrictEqual } from "node:util";
 import { assertOrdinaryPath, bytesAt, directory, digest, RuntimeAdapterError } from "./files.js";
 import { validateModelConnection, readDedicatedApiKey, type DedicatedModelConnection } from "./connection.js";
-import { GatewayNetworkBoundary } from "./gateway-network.js";
+import { GatewayNetworkBoundary, OPENCODE_GO_CHAT_COMPLETIONS_PATH, type DedicatedGatewayPath } from "./gateway-network.js";
 import { GatewayHttpTransport } from "./gateway-http.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { parseDedicatedAgentProfile, parseDedicatedAgentResponse, prepareDedicatedAgentRequest, type DedicatedAgentProfile, type DedicatedAgentReply } from "./agent-dedicated-codec.js";
@@ -66,8 +66,9 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
  verifyCredentialLocation(repositoryPath,credentialBoundaryRoot,connection.credential_file);
  const fullHold=captureDedicatedLedgerModelFullHold(port,scope,connection);
  const account={admission_digest:port.admission_digest,check:port.check.bind(port),reserve:port.reserve.bind(port),verifyHold:port.verifyHold.bind(port)},scopeDigest=digest(JSON.stringify(scope)).value,connectionDigest=digest(JSON.stringify(connection)).value;
- const path=connection.provider==="openai-compatible"?"/v1/chat/completions":connection.provider==="zhipuai"?"/api/paas/v4/chat/completions":"/api/coding/paas/v4/chat/completions";
- const host=connection.provider==="openai-compatible"?new URL(String(connection.endpoint)).hostname:"open.bigmodel.cn";
+ const endpoint=connection.provider==="openai-compatible"?new URL(String(connection.endpoint)):undefined;
+ const path:DedicatedGatewayPath=endpoint?endpoint.pathname===OPENCODE_GO_CHAT_COMPLETIONS_PATH?OPENCODE_GO_CHAT_COMPLETIONS_PATH:endpoint.pathname==="/v1/chat/completions"?"/v1/chat/completions":fail("agent_dedicated_connection_mismatch"):connection.provider==="zhipuai"?"/api/paas/v4/chat/completions":"/api/coding/paas/v4/chat/completions";
+ const host=endpoint?endpoint.hostname:"open.bigmodel.cn";
  const boundary=dependencies.boundary??new GatewayNetworkBoundary({},path,host);if(!(boundary instanceof GatewayNetworkBoundary)||boundary.path!==path||boundary.host!==host)fail("agent_dedicated_connection_mismatch");
  const transport=new GatewayHttpTransport(boundary),credential=dependencies.readCredential??readDedicatedApiKey;
  const root=modelRoot,spine=join(root,"agent-dedicated-model-starts",scope.project_id,scope.run_id),originals=join(root,"agent-dedicated-model-originals",scope.project_id,scope.run_id);

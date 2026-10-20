@@ -27,7 +27,8 @@ export const validateModelConnection = (input: unknown): DedicatedModelConnectio
     if (keys !== "credential_digest,credential_file,endpoint,format,model,provider" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(modelSuffix(config.provider, config.model))) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
     let url: URL;
     try { url = new URL(String(config.endpoint)); } catch { throw new RuntimeAdapterError("invalid_dedicated_model_connection"); }
-    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || (url.port !== "" && url.port !== "443") || url.pathname !== "/v1/chat/completions" ||
+    const openCodeGo = url.hostname === "opencode.ai" && url.pathname === "/inference/go/openai/v1/chat/completions";
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || (url.port !== "" && url.port !== "443") || (url.pathname !== "/v1/chat/completions" && !openCodeGo) ||
       isIP(url.hostname) || !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(url.hostname)) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
     return config;
   }
@@ -41,7 +42,10 @@ export const loadModelConnection = (file: string): DedicatedModelConnection => {
 };
 export const modelEndpoint = (connection: DedicatedModelConnection): string => {
   const config = validateModelConnection(connection);
-  if (config.provider === "openai-compatible") return new URL(String(config.endpoint)).origin;
+  if (config.provider === "openai-compatible") {
+    const url = new URL(String(config.endpoint));
+    return url.hostname === "opencode.ai" && url.pathname === "/inference/go/openai/v1/chat/completions" ? "https://opencode.ai/inference/go/openai/v1" : url.origin;
+  }
   return config.provider === "zhipuai-coding-plan" ? "https://open.bigmodel.cn/api/coding/paas/v4" : "https://open.bigmodel.cn/api/paas/v4";
 };
 const decryptScript = `Add-Type -AssemblyName System.Security
