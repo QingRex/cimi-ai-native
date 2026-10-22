@@ -64,6 +64,7 @@ describe("durable pre-plan Matt application execution", () => {
     const x = setup("lost");
     await expect(x.service.advanceAsync(x.change.id, x.session.id, x.request)).rejects.toMatchObject({ code: "RECOVERY_CONDITIONS_UNMET" });
     expect(x.service.show(x.change.id, x.session.id).session).toMatchObject({ pending: true, head: 1 });
+    expect(x.service.show(x.change.id, x.session.id).session).toHaveProperty("pending_request", x.request);
     const recovered = await x.service.advanceAsync(x.change.id, x.session.id, x.request);
     expect(recovered.session).toMatchObject({ pending: false, head: 1 });
     expect(x.invokes()).toBe(1);

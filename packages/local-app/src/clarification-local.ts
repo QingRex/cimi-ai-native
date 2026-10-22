@@ -46,6 +46,7 @@ export interface ClarificationSession {
   id: string; change_id: string; project_id: string; actor_id: string; basis: Basis; head: number;
   steps: Step[]; questions: { id: string; text: string; answer?: string; source?: "matt" }[];
   unanswered: string[]; submitted: boolean; pending: boolean; real_method_invocations: number;
+  pending_request?: ClarificationAction;
 }
 const parseBegin = (raw: unknown): ClarificationBegin => {
   const input = copy(raw);
@@ -156,7 +157,7 @@ class ClarificationLedger {
         const request = item.request;
         if (isCandidate(request) && (request.kind !== (basis.request.target === "plan" ? "plan_candidate" : "candidate") ||
           request.kind === "plan_candidate" && !isDeepStrictEqual(request.body.contract_ref, basis.change.contract_ref))) corrupt();
-        if (!item.step) { session.pending = true; session.head++; continue; }
+        if (!item.step) { session.pending = true; session.pending_request = structuredClone(request); session.head++; continue; }
         if (request.kind === "question") session.questions.push({ id: request.request_id, text: request.text });
         else if (request.kind === "answer") {
           const question = session.questions.find(value => value.id === request.question_id);

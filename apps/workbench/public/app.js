@@ -28,7 +28,7 @@ const details = (title, value) => node("details", {}, node("summary", {}, title)
 const input = (name, title, options = {}) => node("label", {}, title, node("input", { name, ...options }));
 const textarea = (name, title, options = {}) => node("label", {}, title, node("textarea", { name, ...options }));
 const select = (name, title, options, selected = "") => node("label", {}, title, node("select", { name }, options.map(([value, title]) => node("option", { value, selected: value === selected }, title))));
-const button = (text, action, className = "") => node("button", { type: "button", class: className, onclick: () => { void Promise.resolve().then(action).catch(showError); }, disabled: state.busy }, text);
+const button = (text, action, className = "", allowWhileBusy = false) => node("button", { type: "button", class: className, onclick: () => { void Promise.resolve().then(action).catch(showError); }, disabled: state.busy && !allowWhileBusy }, text);
 const submit = text => node("button", { type: "submit", class: "primary", disabled: state.busy }, text);
 const fieldValues = form => Object.fromEntries(new FormData(form).entries());
 const form = (action, ...fields) => node("form", { onsubmit: event => {
@@ -92,6 +92,17 @@ const clarificationMutation = async (changeId, sessionId, values) => {
   catch { state.pending = null; throw new Error("浏览器无法保留待核对请求，澄清动作尚未发送。"); }
   await replay();
 };
+const recoverClarification = async (changeId, session) => {
+  if (!session.pending || !session.pending_request) throw new Error("原澄清请求尚不可读取，请刷新原记录。");
+  const original = { clarification_request: true, change_id: changeId, session_id: session.id, request: session.pending_request };
+  if (state.pending && JSON.stringify(state.pending) !== JSON.stringify(original)) {
+    showNotice("另一个动作尚未核对，请先核对已保留的原请求。", true, button("按原请求核对", replay)); return;
+  }
+  const prior = state.pending; state.pending = original;
+  try { sessionStorage.setItem("cimiloop.pending." + state.context.project_id, JSON.stringify(original)); }
+  catch { state.pending = prior; throw new Error("浏览器无法保留原请求，恢复请求尚未发送。"); }
+  await replay();
+};
 const replay = async () => {
   if (!state.pending || state.busy) return;
   state.busy = true; document.querySelectorAll("form button").forEach(item => { item.disabled = true; });
@@ -126,7 +137,8 @@ const replay = async () => {
   catch (error) {
     // An expired session only rejects this transport attempt. It cannot prove
     // that a previously dispatched native command did not commit.
-    if (error.nativeRejected && error.status < 500 && !state.pending?.skill_runtime_control) {
+    const mattPending = state.pending?.clarification_request === true && state.pending.request?.kind === "matt";
+    if (error.nativeRejected && error.status < 500 && !state.pending?.skill_runtime_control && !mattPending) {
       state.pending = null; try { sessionStorage.removeItem(`cimiloop.pending.${state.context.project_id}`); } catch {}
     }
     state.busy = false;
@@ -306,7 +318,8 @@ const clarificationPanel = (data, change) => {
   const beforePlan = change.operating_status === "Active" && ["Draft", "IntentReady"].includes(change.lifecycle_state) &&
     !change.plan_ref && !data.intent.plan_proposals.length && !data.execution.tasks.length;
   return panel("计划前 Human 澄清",
-    paragraph(change.contract_ref ? "核对当前约定、实施边界和任务验收，再提交计划候选。计划仍需人工确认；真实 Matt 方法尚未接入。" : "记录需求、问题与回答，再提交约定候选。候选仍需人工确认；真实 Matt 方法尚未接入。"),
+    paragraph(change.contract_ref ? "核对当前约定、实施边界和任务验收，再提交计划候选。计划仍需人工确认。" : "记录需求、问题与回答，再提交约定候选。候选仍需人工确认。"),
+    paragraph(state.context.matt_host_available ? "Matt 方法宿主已安装。方法只提出问题和建议；计划仍需独立核验。" : "Matt 方法宿主尚未安装。可以继续记录 Human 问答；方法执行暂不可用。"),
     beforePlan ? form(values => clarificationMutation(change.id, null, {
       requirement: values.requirement, background: values.background, constraints: lines(values.constraints), ...(change.contract_ref ? { target: "plan" } : {})
     }), textarea("requirement", "需要解决的问题", { required: true, maxlength: 4000 }),
@@ -320,6 +333,14 @@ const clarificationPanel = (data, change) => {
       const current = beforePlan && session.head < 64 && !session.pending && !session.submitted && session.basis.change.revision === change.revision;
       return node("div", { class: "card" }, paragraph(session.basis.request.requirement),
         paragraph(session.basis.request.background), paragraph("约束：" + (session.basis.request.constraints.join("；") || "暂无")),
+        button("查看原澄清记录", async () => {
+          const result = await api("/api/changes/" + encodeURIComponent(change.id) + "/clarifications/" + encodeURIComponent(session.id));
+          showNotice("原澄清记录", false, details("完整原记录", result.session));
+        }, "", true),
+        current && !session.unanswered.length && session.head < 62 && state.context.matt_host_available ?
+          button("请 Matt 澄清当前轮", () => clarificationMutation(change.id, session.id, { kind: "matt", expected_head: session.head })) : null,
+        session.steps.filter(step => step.method_result?.output.unresolved.length).map(step => node("div", { class: "method-limitations" },
+          node("h3", {}, "方法待核对项"), step.method_result.output.unresolved.map(text => paragraph(text)))),
         session.questions.map(question => node("div", {}, paragraph("问题：" + question.text),
           question.answer !== undefined ? paragraph("回答：" + question.answer) : current ? form(values =>
             clarificationMutation(change.id, session.id, { kind: "answer", expected_head: session.head, question_id: question.id, text: values.answer }),
@@ -331,7 +352,8 @@ const clarificationPanel = (data, change) => {
             body => clarificationMutation(change.id, session.id, { kind: "plan_candidate", expected_head: session.head, requested_at: new Date().toISOString(), body }))) :
           node("details", {}, node("summary", {}, "从澄清提交约定候选"), contractForm(change, payload => clarificationMutation(change.id, session.id, { kind: "candidate", expected_head: session.head,
             requested_at: new Date().toISOString(), body: payload.body })))) : null,
-        session.pending ? paragraph("原候选动作待核对，请使用原请求恢复。") : session.submitted ? paragraph("原候选已处理，请继续核对 Kernel 候选与决定。") : null,
+        session.pending ? node("div", {}, paragraph("原澄清操作待核对，请使用同一原请求采集结果。"),
+          session.pending_request ? button("核对原澄清请求", () => recoverClarification(change.id, session)) : null) : session.submitted ? paragraph("原候选已处理，请继续核对 Kernel 候选与决定。") : null,
         details("原澄清记录", session));
     }));
 };

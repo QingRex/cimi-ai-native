@@ -116,7 +116,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       }
       requireSession(request, request.method !== "GET");
       if (url.pathname === "/api/context" && request.method === "GET") {
-        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, agent_start_available: typeof options.agentRuntimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasInstalledProductionAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
+        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, matt_host_available: !!context.prePlanMatt, agent_start_available: typeof options.agentRuntimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasInstalledProductionAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
       }
       if (url.pathname === "/api/dashboard" && request.method === "GET") {
         send(response, 200, dashboard(context)); return;
