@@ -11,13 +11,14 @@ describe("original Codex method transport", () => {
   const root = mkdtempSync(join(tmpdir(), "cimiloop-codex-method-"));
   const script = join(root, "public-server.mjs"), effects = join(root, "effects.txt");
   writeFileSync(script, `import {createInterface} from 'node:readline';import{appendFileSync}from'node:fs';
-const mode=process.argv[2],effects=process.argv[3];let tid='public-thread',turn='public-turn',accountReads=0;
+const mode=process.argv[2],effects=process.argv[3];let tid='public-thread',turn='public-turn',accountReads=0,turnStarted=false;
 const send=v=>process.stdout.write(JSON.stringify(v)+'\\n');
 createInterface({input:process.stdin}).on('line',l=>{const r=JSON.parse(l);if(!r.method){if(r.id===901){send({method:'item/completed',params:{threadId:tid,turnId:turn,item:{type:'dynamicToolCall',id:'public-call',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'},status:'completed',contentItems:r.result.contentItems,success:r.result.success}}});finish();}return;}
 const reply=x=>send({id:r.id,result:x});if(r.method==='initialize')reply({userAgent:'PUBLIC fixture'});
-if(r.method==='account/read'){accountReads++;reply({account:{type:mode==='api-key'?'apiKey':'chatgpt',email:mode==='account-wrong-start'||mode==='account-changed'&&accountReads>1?'other@example.test':'public@example.test',planType:'public'},requiresOpenaiAuth:true});}
-if(r.method==='thread/start'){if(mode.startsWith('early'))send({method:'warning',params:{threadId:mode==='early-foreign'?'foreign':tid,message:'PUBLIC early startup warning'}});reply({thread:{id:tid},model:mode==='wrong-model'?'other-model':'gpt-6.1-sol',modelProvider:'openai',instructionSources:[],activePermissionProfile:{id:'cimiloop-method'},approvalPolicy:'never'});}
-if(r.method==='turn/start'){appendFileSync(effects,'turn\\n');reply({turn:{id:turn,status:'inProgress'}});if(mode==='lost')process.exit(0);else if(mode==='forbidden'){send({method:'item/started',params:{threadId:tid,turnId:turn,item:{type:'commandExecution',id:'public-command'}}});}else if(mode==='foreign'){send({id:901,method:'item/tool/call',params:{threadId:'foreign',turnId:turn,callId:'public-call',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'}}});}else{const call={id:901,method:'item/tool/call',params:{threadId:tid,turnId:turn,callId:'public-call',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'}}};send(call);if(mode==='duplicate')send(call);}}
+if(r.method==='account/read'){accountReads++;const result={account:{type:mode==='api-key'?'apiKey':'chatgpt',email:mode==='account-wrong-start'||mode==='account-changed'&&turnStarted?'other@example.test':'public@example.test',planType:'public'},requiresOpenaiAuth:true};if(mode==='auth-after-ready'&&accountReads===2)process.stdout.write(JSON.stringify({id:r.id,result})+'\\n'+JSON.stringify({method:'account/updated',params:{authMode:'chatgpt'}})+'\\n');else reply(result);}
+if(r.method==='thread/start'){if(mode==='auth-late')send({method:'account/updated',params:{authMode:'chatgpt'}});if(mode.startsWith('early'))send({method:'warning',params:{threadId:mode==='early-foreign'?'foreign':tid,message:'PUBLIC early startup warning'}});reply({thread:{id:tid},model:mode==='wrong-model'?'other-model':r.params.model,modelProvider:'openai',instructionSources:[],activePermissionProfile:{id:'cimiloop-method'},approvalPolicy:'never'});}
+if(r.method==='mcpServerStatus/list')reply({data:mode==='mcp-active'?[{name:'PUBLIC-external',runtimeStatus:'connected',tools:{PUBLIC_tool:{}},resources:[],resourceTemplates:[],toolsError:null}]:[],nextCursor:null});
+if(r.method==='turn/start'){turnStarted=true;appendFileSync(effects,'turn\\n');reply({turn:{id:turn,status:'inProgress'}});if(mode==='lost')process.exit(0);else if(mode==='forbidden'){send({method:'item/started',params:{threadId:tid,turnId:turn,item:{type:'commandExecution',id:'public-command'}}});}else if(mode==='foreign'){send({id:901,method:'item/tool/call',params:{threadId:'foreign',turnId:turn,callId:'public-call',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'}}});}else{const call={id:901,method:'item/tool/call',params:{threadId:tid,turnId:turn,callId:'public-call',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'}}};send(call);if(mode==='duplicate')send(call);}}
 });function finish(){if(mode!=='no-usage')send({method:'thread/tokenUsage/updated',params:{threadId:tid,turnId:turn,tokenUsage:{total:{inputTokens:10,cachedInputTokens:2,outputTokens:3,totalTokens:13,reasoningOutputTokens:0,cacheWriteInputTokens:0}}}});if(mode==='invalid-utf8')process.stdout.write(Buffer.concat([Buffer.from('{"method":"PUBLIC","params":{"text":"'),Buffer.from([255]),Buffer.from('"}}\\n')]));send({method:'item/completed',params:{threadId:tid,turnId:turn,item:{type:'agentMessage',id:'public-output',phase:'final_answer',text:JSON.stringify({purpose:'clarification',questions:['PUBLIC question'],unresolved:[]})}}});send({method:'turn/completed',params:{threadId:tid,turn:{id:turn,status:'completed',error:null}}});if(mode==='tail')process.stdout.write('{"PUBLIC":');if(mode==='after-completion')send({id:902,method:'item/tool/call',params:{threadId:tid,turnId:turn,callId:'public-after',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'}}});}
 `);
   const hash = (p: string) => createHash("sha256").update(readFileSync(p)).digest("hex");
@@ -51,6 +52,20 @@ if(r.method==='turn/start'){appendFileSync(effects,'turn\\n');reply({turn:{id:tu
     await expect(adapter.execute(input, () => "PUBLIC source", () => {})).rejects.toThrow();
     expect(count()).toBe(before);
   });
+  it("rechecks the same account after a delayed startup authentication notification", async () => {
+    const { adapter, input } = setup("auth-late"), before = count();
+    expect((await adapter.execute(input, () => "PUBLIC source", () => {})).account_digest).toMatch(/^[a-f0-9]{64}$/);
+    expect(count() - before).toBe(1);
+  });
+  it("refuses an active external MCP catalog before sending a model request", async () => {
+    const { adapter, input } = setup("mcp-active"), before = count();
+    await expect(adapter.execute(input, () => "PUBLIC", () => {})).rejects.toThrow(); expect(count()).toBe(before);
+  });
+  it("processes an already received account change before sending the first model request", async () => {
+    const { adapter, input } = setup("auth-after-ready"), before = count();
+    await expect(adapter.execute(input, () => "PUBLIC", () => {})).rejects.toThrow();
+    expect(count()).toBe(before);
+  });
   it("does not launch a replacement turn after losing the original response", async () => {
     const { adapter, input } = setup("lost"), before = count();
     await expect(adapter.execute(input, () => "PUBLIC", () => {})).rejects.toThrow();
@@ -81,6 +96,46 @@ if(r.method==='turn/start'){appendFileSync(effects,'turn\\n');reply({turn:{id:tu
     const { adapter, input } = setup("guard"), before = count();
     await expect(adapter.execute(input, () => "PUBLIC", () => { throw Error("PUBLIC expired Human"); })).rejects.toThrow();
     expect(count()).toBe(before);
+  });
+  it("gives a nested tool its exact original call identity and revokes its effect guard after closure", async () => {
+    const { adapter, input } = setup("tool-context"); let context: any;
+    const result = await adapter.execute(input, (_name: string, _args: unknown, original: any) => {
+      context = original;
+      expect(original).toMatchObject({ call_id: "public-call", thread_id: "public-thread", turn_id: "public-turn" });
+      expect(original.signal.aborted).toBe(false); original.beforeEffect(); return "PUBLIC source";
+    }, () => {});
+    expect(result.thread_id).toBe("public-thread");
+    expect(() => context.beforeEffect()).toThrow(); expect(context.signal.aborted).toBe(true);
+  });
+  it("cancels original execution and propagated tools without a replacement turn", async () => {
+    const { adapter, input } = setup("abort"), controller = new AbortController(), before = count();
+    await expect(adapter.execute(input, () => { controller.abort(); return "PUBLIC source"; }, () => {}, controller.signal)).rejects.toThrow();
+    expect(adapter.readOriginal(input)).toBeNull();
+    await expect(adapter.execute(input, () => "PUBLIC", () => {})).rejects.toThrow("codex_original_pending");
+    expect(count() - before).toBe(1);
+  });
+  it("propagates cancellation across two actual stdio children and retains both original identities", async () => {
+    const parent = setup("nested-parent"), child = setup("nested-child"), controller = new AbortController(), before = count();
+    child.input.operation_key = "PUBLIC_child_original";
+    await expect(parent.adapter.execute(parent.input, async (_name: string, _args: unknown, original: any) => {
+      await child.adapter.execute(child.input, () => { controller.abort(); return "PUBLIC child source"; }, original.beforeEffect, original.signal);
+      return "PUBLIC parent source";
+    }, () => {}, controller.signal)).rejects.toThrow();
+    expect(parent.adapter.readOriginal(parent.input)).toBeNull(); expect(child.adapter.readOriginal(child.input)).toBeNull();
+    await expect(parent.adapter.execute(parent.input, () => "PUBLIC", () => {})).rejects.toThrow("codex_original_pending");
+    await expect(child.adapter.execute(child.input, () => "PUBLIC", () => {})).rejects.toThrow("codex_original_pending");
+    expect(count() - before).toBe(2);
+  });
+  it.each(["account", "model"])("refuses a different child %s before the child sends a model turn", async mismatch => {
+    const parent = setup("admission-parent-" + mismatch), child = setup(mismatch === "account" ? "account-wrong-start" : "admission-child-model"), before = count();
+    child.input.operation_key = "PUBLIC_approved_child";
+    if (mismatch === "model") child.input.model = "gpt-6-luna";
+    await expect(parent.adapter.execute(parent.input, async (_name: string, _args: unknown, original: any) => {
+      await child.adapter.execute(child.input, () => "PUBLIC child source", original.beforeEffect, original.signal, { model: original.model, account_digest: original.account_digest });
+      return "PUBLIC parent source";
+    }, () => {})).rejects.toThrow();
+    expect(count() - before).toBe(1);
+    expect(child.adapter.readOriginal(child.input)).toBeNull();
   });
   it.each(["duplicate", "after-completion", "invalid-utf8", "tail"])("rejects %s raw protocol without a second tool effect", async mode => {
     const { adapter, input } = setup(mode); let effects = 0;

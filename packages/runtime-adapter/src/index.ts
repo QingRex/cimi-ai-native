@@ -117,6 +117,8 @@ export {parseAgentParentCurrentInput,type AgentParentCurrentInput} from './agent
 export{openDedicatedLedgerModelAccountPort}from'./agent-dedicated-account.js';
 
 export { CodexOriginalMethodRuntime, codexChatGptAccountDigest } from "./codex-original-method.js";
-export type { CodexOriginalMethodOptions, CodexMethodRequest, CodexMethodOriginal, CodexMethodTool, CodexMethodToolCall } from "./codex-original-method.js";
+export type { CodexOriginalMethodOptions, CodexMethodRequest, CodexMethodOriginal, CodexMethodTool, CodexMethodToolCall, CodexMethodToolContext, CodexMethodAdmission } from "./codex-original-method.js";
 export { CodexFixedClarificationMethod } from "./codex-fixed-method.js";
-export type { CodexFixedClarificationOriginal } from "./codex-fixed-method.js";
+export type { CodexFixedClarificationOriginal, CodexFixedClarificationOptions } from "./codex-fixed-method.js";
+export { CodexFactInvestigator } from "./codex-fact-investigation.js";
+export type { CodexFactParent, CodexFactSnapshot, CodexFactOutput, CodexFactOriginal } from "./codex-fact-investigation.js";
