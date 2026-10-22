@@ -111,6 +111,51 @@ function childEnvironment() {
   return Object.fromEntries(Object.entries(process.env).filter(([key]) => allowed.has(key.toUpperCase())));
 }
 
+// Local explicit installation reads public login metadata only. No thread,
+// model turn, auth.json, token conversion, tools or model context are involved.
+export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodOptions, "root" | "command" | "disabled_mcp_servers">, beforeEffect: () => void): Promise<{ account_digest: string }> {
+  const fixed = structuredClone(options), binary = resolve(assertOrdinaryPath(fixed.command.file));
+  if (!/^[a-f0-9]{64}$/.test(fixed.command.sha256) || digest(bytesAt(binary, 512 * 1024 * 1024)).value !== fixed.command.sha256) fail("codex_binary_changed");
+  guardNow(beforeEffect);
+  const cwd = directory(resolve(fixed.root)), disabled = fixed.disabled_mcp_servers ?? [];
+  if (disabled.length > 64 || disabled.some(name => !/^[A-Za-z0-9_-]{1,64}$/.test(name) || ["__proto__", "constructor", "prototype"].includes(name))) fail("codex_installation_denied");
+  const child = spawn(binary, [...fixed.command.args, "app-server", "--stdio", ...Object.entries(config(disabled)).flatMap(([key, value]) => ["-c", key + "=" + toml(value)])], { cwd, windowsHide: true, stdio: "pipe", env: childEnvironment() });
+  let next = 0, buffered = Buffer.alloc(0), total = 0, stopping = false, failed = false, childDidClose = false;
+  const pending = new Map<number, { resolve(value: any): void; reject(error: unknown): void }>();
+  let closed!: () => void; const childClosed = new Promise<void>(resolve => { closed = resolve; });
+  let rejectFailure!: (error: unknown) => void;
+  const failure = new Promise<never>((_resolve, reject) => { rejectFailure = reject; }); void failure.catch(() => {});
+  const rejectAll = () => { failed = true; const error = new RuntimeAdapterError("codex_login_inspection_failed"); for (const p of pending.values()) p.reject(error); pending.clear(); rejectFailure(error); child.kill(); };
+  const timer = setTimeout(rejectAll, 15000);
+  const send = (value: unknown) => { if (failed) fail("codex_login_inspection_failed"); guardNow(beforeEffect); child.stdin.write(Buffer.concat([encode(value), Buffer.from("\n")])); };
+  const rpc = (method: string, params: unknown) => new Promise<any>((resolve, reject) => { const id = ++next; pending.set(id, { resolve, reject }); try { send({ id, method, params }); } catch (e) { pending.delete(id); reject(e); } });
+  child.on("error", rejectAll); child.stdin.on("error", rejectAll);
+  child.stderr.on("data", (data: Buffer) => { total += data.length; if (total > MAX_LINE) rejectAll(); });
+  child.stdout.on("data", (data: Buffer) => {
+    try {
+      total += data.length; if (total > MAX_LINE) fail(); buffered = Buffer.concat([buffered, data]);
+      for (;;) { const end = buffered.indexOf(10); if (end < 0) break; const value = parse(buffered.subarray(0, end + 1)); buffered = buffered.subarray(end + 1);
+        if (value.id !== undefined) { const p = pending.get(value.id); if (!p || value.method || value.error) fail(); pending.delete(value.id); p!.resolve(value.result); }
+      }
+    } catch { rejectAll(); }
+  });
+  child.on("close", () => { childDidClose = true; closed(); if (!stopping) rejectAll(); });
+  try {
+    await rpc("initialize", { clientInfo: { name: "cimiloop_s1_install", version: "0.1.0" }, capabilities: { experimentalApi: true } });
+    send({ method: "initialized" });
+    const account_digest = codexChatGptAccountDigest(await rpc("account/read", { refreshToken: false }));
+    guardNow(beforeEffect); if (digest(bytesAt(binary, 512 * 1024 * 1024)).value !== fixed.command.sha256) fail("codex_binary_changed");
+    stopping = true; child.stdin.end(); child.kill(); await Promise.race([childClosed, failure]);
+    if (failed || buffered.length) fail("codex_login_inspection_failed"); guardNow(beforeEffect);
+    return { account_digest };
+  } finally {
+    clearTimeout(timer); stopping = true; child.stdin.destroy(); child.kill(); rejectAll();
+    if (!childDidClose) { let stopTimer: ReturnType<typeof setTimeout> | undefined;
+      await Promise.race([childClosed, new Promise<void>(resolve => { stopTimer = setTimeout(resolve, 3000); })]); if (stopTimer) clearTimeout(stopTimer);
+    }
+  }
+}
+
 // Interpret retained *actual app-server stdio*, independently of the final model
 // message. This does not assert HTTP wire bytes, Skill behavior qualification,
 // native isolation acceptance, provider bills, or Kernel business completion.

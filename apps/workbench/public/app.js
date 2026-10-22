@@ -319,7 +319,7 @@ const clarificationPanel = (data, change) => {
     !change.plan_ref && !data.intent.plan_proposals.length && !data.execution.tasks.length;
   return panel("计划前 Human 澄清",
     paragraph(change.contract_ref ? "核对当前约定、实施边界和任务验收，再提交计划候选。计划仍需人工确认。" : "记录需求、问题与回答，再提交约定候选。候选仍需人工确认。"),
-    paragraph(state.context.matt_host_available ? "Matt 方法宿主已安装。方法只提出问题和建议；计划仍需独立核验。" : "Matt 方法宿主尚未安装。可以继续记录 Human 问答；方法执行暂不可用。"),
+    paragraph(state.context.matt_host_available ? "Matt 方法宿主已安装。方法只提出问题和建议；计划仍需独立核验。" : state.context.matt_installation_state === "unavailable" ? "Matt 安装资料待核对。可以查看原记录，暂不启动方法。" : "Matt 方法宿主尚未安装。可以继续记录 Human 问答；方法执行暂不可用。"),
     beforePlan ? form(values => clarificationMutation(change.id, null, {
       requirement: values.requirement, background: values.background, constraints: lines(values.constraints), ...(change.contract_ref ? { target: "plan" } : {})
     }), textarea("requirement", "需要解决的问题", { required: true, maxlength: 4000 }),

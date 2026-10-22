@@ -15,7 +15,7 @@ import { VerificationShowResultSchema } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
-import { openLocalProject, LocalPrePlanClarification, LocalSkillPackageStore } from "@cimiloop/local-app";
+import { openLocalProject, LocalPrePlanClarification, LocalSkillPackageStore, openInstalledCodexMatt, type InstalledCodexMatt } from "@cimiloop/local-app";
 import { SkillPackageInspectionResultSchema, type SkillPackageInspectionResult, type ProviderRegistration } from "@cimiloop/protocol/v2";
 import { RunShowResultSchema, ProviderCatalogResultSchema } from "@cimiloop/protocol/v2";
 import { MigrationRunner, SqliteProjectRegistry, SqliteProjectStore } from "@cimiloop/store-sqlite";
@@ -701,11 +701,14 @@ export const migrateProject = async (options: GlobalOptions & { check?: boolean 
 export const clarificationOperation = async (kind: "list" | "show" | "begin" | "advance", change: string, session: string | undefined,
   options: GlobalOptions & { file?: string }): Promise<void> => {
   const local = openLocalProject(options.projectDir ? { projectDir: options.projectDir } : {});
+  let installed: InstalledCodexMatt | undefined;
   try {
-    const service = new LocalPrePlanClarification(local);
+    const body = kind === "advance" || kind === "begin" ? readJsonObject(options.file!) : undefined;
+    if (kind === "advance" && body?.kind === "matt") installed = await openInstalledCodexMatt(local);
+    const service = new LocalPrePlanClarification(local, installed?.host);
     const result = kind === "list" ? service.list(change) : kind === "show" ? service.show(change, session!) :
-      kind === "begin" ? service.begin(change, readJsonObject(options.file!)) : await service.advanceAsync(change, session!, readJsonObject(options.file!));
+      kind === "begin" ? service.begin(change, body) : await service.advanceAsync(change, session!, body);
     if ("command_result" in result && isDomainError(result.command_result)) process.exitCode = 1;
     process.stdout.write((options.json ? JSON.stringify(result, null, 2) : renderFields(result)) + "\n");
-  } finally { local.store.close(); }
+  } finally { installed?.release(); local.store.close(); }
 };

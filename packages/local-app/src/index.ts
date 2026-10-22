@@ -36,6 +36,8 @@ export type { ClarificationBegin, ClarificationAction, ClarificationSession } fr
 export type { MattClarificationHost, MattClarificationInput, MattClarificationOriginal } from "./clarification-matt-local.js";
 export { CodexMattClarificationHost } from "./clarification-codex-host-local.js";
 export type { CodexMattClarificationOptions } from "./clarification-codex-host-local.js";
+export { installCodexMatt, openInstalledCodexMatt } from "./clarification-codex-installation-local.js";
+export type { CodexMattInstallInput, InstalledCodexMatt } from "./clarification-codex-installation-local.js";
 export {readOriginalHumanPlanClarification} from './clarification-local.js';
 export type {OriginalHumanPlanClarification} from './clarification-local.js';
 export {LocalPlanningClarificationAdmission} from './planning-clarification-local.js';

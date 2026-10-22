@@ -11,6 +11,7 @@
     "@cimiloop/kernel": "workspace:*",
     "@cimiloop/protocol": "workspace:*",
     "@cimiloop/runtime-adapter": "workspace:*",
+    "@cimiloop/skill-adapter": "workspace:*",
     "@cimiloop/store-sqlite": "workspace:*",
     "commander": "15.0.0"
   }

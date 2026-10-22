@@ -24,6 +24,7 @@ import {createAgentCostsCommand} from './agent-account-costs.js';
 import {productionAgentRuntime,productionAgentAccount} from '@cimiloop/local-app';
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
+import { installCodexClarification } from "./clarification-codex.js";
 
 const program = new Command();
 const jsonRequested = process.argv.includes("--json");
@@ -61,7 +62,17 @@ for (const [name, kind] of [["record-evidence", "RecordProviderEvidence"], ["eva
     .option("--artifact-root <path>", "原始引用可读取的显式根目录；缺省当前项目目录");
   entry.action((options, command) => providerMutation(kind, { ...globals(command), ...options }));
 }
-const clarification = program.command("clarification").description("计划前 Human 问答与原请求核对；真实 Matt 方法尚未接入");
+const clarification = program.command("clarification").description("计划前 Human/Matt 问答、固定宿主安装与原请求核对");
+clarification.command("install-codex").description("显式绑定当前Codex登录及固定Matt来源；仅安装，不发送模型请求")
+  .requiredOption("--binary <path>", "当前Codex原生可执行文件；与同目录工具宿主一起保留固定副本")
+  .requiredOption("--repository <path>", "固定Skill来源的本地Git仓库")
+  .requiredOption("--file <json>", "固定SkillImportSpec；安装不授予完整行为资格")
+  .option("--model <id>", "正式gpt-6.1-sol，测试可用gpt-6-luna", "gpt-6.1-sol")
+  .option("--disable-mcp-server <names...>", "显式禁用本机已有外部MCP服务")
+  .option("--fact-path <paths...>", "当前项目固定commit中允许事实调查的源码路径")
+  .option("--fact-commit <sha>", "完整事实源码commit，需与fact-path同时指定")
+  .option("--yes", "确认本地安装及当前登录／模型选择")
+  .action((options, command) => installCodexClarification({ ...globals(command), ...options }));
 clarification.command("list <change>").description("读取有界会话摘要与最近原会话")
   .action((change, _options, command) => clarificationOperation("list", change, undefined, globals(command)));
 clarification.command("show <change> <session>").description("核对完整原会话，不补记历史前置澄清")

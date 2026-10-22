@@ -190,6 +190,9 @@ importers:
       '@cimiloop/runtime-adapter':
         specifier: workspace:*
         version: link:../../packages/runtime-adapter
+      '@cimiloop/skill-adapter':
+        specifier: workspace:*
+        version: link:../../packages/skill-adapter
       '@cimiloop/store-sqlite':
         specifier: workspace:*
         version: link:../../packages/store-sqlite
