@@ -5,7 +5,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { fileURLToPath } from "node:url";
 import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions,type LocalAgentParentSkillResultPort } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
-import { productionAgentAccount, hasInstalledProductionAccount } from "@cimiloop/local-app";
+import { productionAgentAccount, hasInstalledProductionAccount, type MattClarificationHost } from "@cimiloop/local-app";
 
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -45,12 +45,12 @@ const checked = <T>(value: T | DomainError): T => {
   return value as T;
 };
 
-export interface WorkbenchOptions { projectDir: string; port?: number; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions;skillReconciliationForInvocation?:HumanSkillReconciliationFactory;skillRuntimeForInvocation?:HumanSkillRuntimeFactory;agentParentSkillResults?:LocalAgentParentSkillResultPort }
+export interface WorkbenchOptions { projectDir: string; port?: number; prePlanMatt?:MattClarificationHost; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions;skillReconciliationForInvocation?:HumanSkillReconciliationFactory;skillRuntimeForInvocation?:HumanSkillRuntimeFactory;agentParentSkillResults?:LocalAgentParentSkillResultPort }
 export interface WorkbenchServer { origin: string; bootstrapUrl: string; close(): Promise<void> }
 
 export const startWorkbench = async (options: WorkbenchOptions): Promise<WorkbenchServer> => {
   if (options.port !== undefined && (!Number.isInteger(options.port) || options.port < 0 || options.port > 65535)) throw new Error("Invalid loopback port");
-  const context = openLocalProject({ projectDir: options.projectDir,...(options.planningClarification?{planningClarification:options.planningClarification}:{}),...(options.agentParentSkillResults?{agentParentSkillResults:options.agentParentSkillResults}:{}) });
+  const context = openLocalProject({ projectDir: options.projectDir,...(options.prePlanMatt?{prePlanMatt:options.prePlanMatt}:{}),...(options.planningClarification?{planningClarification:options.planningClarification}:{}),...(options.agentParentSkillResults?{agentParentSkillResults:options.agentParentSkillResults}:{}) });
   const clarification = new LocalPrePlanClarification(context);
   const skillReconciliation=new LocalHumanSkillInvocationReconciliation(context,options.skillReconciliationForInvocation);
   const skillRuntime=new LocalHumanSkillInvocationControl(context,options.skillRuntimeForInvocation);
@@ -157,7 +157,8 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         if (closing) throw new HttpFailure(503, "WORKBENCH_CLOSING");
         requireSession(request, true);
         const changeId = decodeURIComponent(clarificationMatch[1]!);
-        const result = clarificationMatch[2] ? clarification.advance(changeId, decodeURIComponent(clarificationMatch[2]), body) : clarification.begin(changeId, body);
+        const guard = () => { if (closing) throw new HttpFailure(503, "WORKBENCH_CLOSING"); requireSession(request, true); };
+        const result = await awaitCurrentSession(async () => clarificationMatch[2] ? clarification.advanceAsync(changeId, decodeURIComponent(clarificationMatch[2]), body, guard) : clarification.begin(changeId, body), guard);
         const commandResult = "command_result" in result ? result.command_result as ReturnType<typeof executeLocalCommand> | undefined : undefined;
         send(response, commandResult && "code" in commandResult ? statusFor(commandResult) : 200, result); return;
       }

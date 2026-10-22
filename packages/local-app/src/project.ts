@@ -14,7 +14,9 @@ import type{LocalAgentRunFamilyVerification}from'./agent-run-family-costs-local.
 import {LocalPlanningClarificationAdmission,type LocalPlanningClarificationOptions} from './planning-clarification-local.js';
 
 import type{LocalAgentParentSkillResultPort}from'./agent-parent-skill-results-local.js';
+import type { MattClarificationHost } from './clarification-matt-local.js';
 export interface LocalProject {
+  prePlanMatt?: MattClarificationHost;
   agentParentSkillResults?:LocalAgentParentSkillResultPort;
   location: ProjectLocation;
   instance: SoloInstance;
@@ -26,7 +28,7 @@ const installedRunVerifiers = new WeakMap<SqliteProjectStore, LocalRunVerifier>(
 export const installedRunVerifier = (local: Pick<LocalProject, "store">) => installedRunVerifiers.get(local.store);
 // Only a trusted local launcher supplies the project directory and operator.
 // HTTP requests never select a database, filesystem path or caller identity.
-export const openLocalProject = (options: { projectDir?: string; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;legacyManualPlanning?:true;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'>;agentRunFamilySkills?:LocalAgentRunFamilyVerification;agentParentSkillResults?:LocalAgentParentSkillResultPort } = {}): LocalProject => {
+export const openLocalProject = (options: { projectDir?: string; prePlanMatt?:MattClarificationHost; agentRunCostAccount?:(runId:string)=>DedicatedAgentAccountLedger;planningClarification?:LocalPlanningClarificationOptions;legacyManualPlanning?:true;skillInvocationResults?:Pick<SkillInvocationVerifierPort,'readResult'>;agentRunFamilySkills?:LocalAgentRunFamilyVerification;agentParentSkillResults?:LocalAgentParentSkillResultPort } = {}): LocalProject => {
   if(options.legacyManualPlanning===true&&options.planningClarification!==undefined)throw new LocalProjectError('旧人工兼容不能同时安装正式前置澄清端口','INVALID_COMMAND','conflict');
   const start = options.projectDir ? resolve(options.projectDir) : process.cwd();
   const location = locateProject(start, Boolean(options.projectDir) || existsSync(join(start, ".cimiloop", "instance.json")));
@@ -51,7 +53,7 @@ export const openLocalProject = (options: { projectDir?: string; agentRunCostAcc
       providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory),
       ...(options.legacyManualPlanning===true?{legacyManualPlanning:true}:{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification??{})}) });
     installedRunVerifiers.set(store, runVerifier);
-    return { location, instance, store, kernel,...(options.agentParentSkillResults?{agentParentSkillResults:Object.freeze({forOriginal:options.agentParentSkillResults.forOriginal.bind(options.agentParentSkillResults)})}:{}) };
+    return { location, instance, store, kernel,...(options.prePlanMatt?{prePlanMatt:options.prePlanMatt}:{}),...(options.agentParentSkillResults?{agentParentSkillResults:Object.freeze({forOriginal:options.agentParentSkillResults.forOriginal.bind(options.agentParentSkillResults)})}:{}) };
   } catch (error) { store.close(); throw error; }
 };
 

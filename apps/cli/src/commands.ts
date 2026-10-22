@@ -698,13 +698,13 @@ export const migrateProject = async (options: GlobalOptions & { check?: boolean 
   }
 };
 
-export const clarificationOperation = (kind: "list" | "show" | "begin" | "advance", change: string, session: string | undefined,
-  options: GlobalOptions & { file?: string }): void => {
+export const clarificationOperation = async (kind: "list" | "show" | "begin" | "advance", change: string, session: string | undefined,
+  options: GlobalOptions & { file?: string }): Promise<void> => {
   const local = openLocalProject(options.projectDir ? { projectDir: options.projectDir } : {});
   try {
     const service = new LocalPrePlanClarification(local);
     const result = kind === "list" ? service.list(change) : kind === "show" ? service.show(change, session!) :
-      kind === "begin" ? service.begin(change, readJsonObject(options.file!)) : service.advance(change, session!, readJsonObject(options.file!));
+      kind === "begin" ? service.begin(change, readJsonObject(options.file!)) : await service.advanceAsync(change, session!, readJsonObject(options.file!));
     if ("command_result" in result && isDomainError(result.command_result)) process.exitCode = 1;
     process.stdout.write((options.json ? JSON.stringify(result, null, 2) : renderFields(result)) + "\n");
   } finally { local.store.close(); }

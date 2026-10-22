@@ -8,6 +8,8 @@ import { assertOrdinaryPath, directory, parseGatewayJson } from "@cimiloop/runti
 import { executeLocalCommand, type LocalProject } from "./project.js";
 import { LocalProjectError } from "./errors.js";
 import {requestDigest,type PlanningClarificationBasis} from '@cimiloop/kernel';
+import { mattClarificationInput, mattClarificationQuestions, parseMattClarificationOriginal,
+  type MattClarificationHost, type MattClarificationOriginal } from './clarification-matt-local.js';
 
 const FORMAT = "cimiloop/pre-plan-clarification/1.0.0", APP_ID = 0x43494d43;
 const PLAN_FORMAT = "cimiloop/pre-plan-clarification/2.0.0";
@@ -39,11 +41,11 @@ export type ClarificationAction = { request_id: string; expected_head: number } 
   { kind: "matt" } | { kind: "candidate"; requested_at: string; body: ContractBody } | { kind: "plan_candidate"; requested_at: string; body: PlanBody });
 interface Basis { format: typeof FORMAT | typeof PLAN_FORMAT; id: string; change_id: string; project_id: string; actor_id: string; change: Change; request: ClarificationBegin }
 const isCandidate = (request: ClarificationAction): request is Extract<ClarificationAction, { kind: "candidate" | "plan_candidate" }> => request.kind === "candidate" || request.kind === "plan_candidate";
-interface Step { request: ClarificationAction; command_result?: ReturnType<typeof executeLocalCommand> }
+interface Step { request: ClarificationAction; command_result?: ReturnType<typeof executeLocalCommand>; method_result?: MattClarificationOriginal }
 export interface ClarificationSession {
   id: string; change_id: string; project_id: string; actor_id: string; basis: Basis; head: number;
-  steps: Step[]; questions: { id: string; text: string; answer?: string }[];
-  unanswered: string[]; submitted: boolean; pending: boolean; real_method_invocations: 0;
+  steps: Step[]; questions: { id: string; text: string; answer?: string; source?: "matt" }[];
+  unanswered: string[]; submitted: boolean; pending: boolean; real_method_invocations: number;
 }
 const parseBegin = (raw: unknown): ClarificationBegin => {
   const input = copy(raw);
@@ -126,8 +128,8 @@ class ClarificationLedger {
     if (request.request_id !== row.id || typeof row.session_id !== "string" || !Number.isSafeInteger(row.seq)) corrupt();
     const result = this.db.prepare("SELECT * FROM results WHERE request_id=?").get(requestId);
     const step = result ? this.decode(result, request.kind === "plan_candidate" ? PLAN_RESULT_BYTES : 131072) as Step : undefined;
-    if (step && (!isDeepStrictEqual(step.request, request) || Object.keys(step).some(key => !["request", "command_result"].includes(key)) ||
-      isCandidate(request) !== ("command_result" in step))) corrupt();
+    if (step && (!isDeepStrictEqual(step.request, request) || Object.keys(step).some(key => !["request", "command_result", "method_result"].includes(key)) ||
+      isCandidate(request) !== ("command_result" in step) || (request.kind === "matt") !== ("method_result" in step))) corrupt();
     return { sessionId: row.session_id as string, seq: Number(row.seq), request, ...(step ? { step } : {}) };
   }
   session(sessionId: string, through?: number): ClarificationSession {
@@ -159,6 +161,12 @@ class ClarificationLedger {
         else if (request.kind === "answer") {
           const question = session.questions.find(value => value.id === request.question_id);
           if (!question || question.answer !== undefined) corrupt(); question!.answer = request.text;
+        } else if (request.kind === "matt") {
+          const original = parseMattClarificationOriginal(mattClarificationInput(session, request), item.step.method_result);
+          const questions = mattClarificationQuestions(original);
+          if (questions.some(question => session.questions.some(prior => prior.id === question.id))) corrupt();
+          session.questions.push(...questions);
+          if (original.origin === "external_model") session.real_method_invocations++;
         } else if (isCandidate(request)) {
           session.submitted = true;
         }
@@ -206,7 +214,15 @@ class ClarificationLedger {
 
 export class LocalPrePlanClarification {
   private readonly path: string;
-  constructor(private readonly context: LocalProject) { this.path = join(context.location.dataDirectory, "pre-plan-clarifications", "originals.sqlite"); }
+  private readonly matt?: MattClarificationHost;
+  constructor(private readonly context: LocalProject, matt: MattClarificationHost | undefined = context.prePlanMatt) {
+    this.path = join(context.location.dataDirectory, "pre-plan-clarifications", "originals.sqlite");
+    if (matt) {
+      if (typeof matt.invoke !== "function" || typeof matt.readOriginal !== "function" || typeof matt.verifyOriginal !== "function")
+        throw new LocalProjectError("Matt 方法宿主必须由受信应用安装", "CAPABILITY_UNAVAILABLE", "conflict");
+      this.matt = Object.freeze({ invoke: matt.invoke.bind(matt), readOriginal: matt.readOriginal.bind(matt), verifyOriginal: matt.verifyOriginal.bind(matt) });
+    }
+  }
   private human(changeId: string): Change {
     id(changeId);
     const change = this.context.store.getChange(changeId), actor = this.context.store.getActor(this.context.instance.actor_id);
@@ -270,6 +286,98 @@ export class LocalPrePlanClarification {
         project_id: this.context.instance.project_id, actor_id: this.context.instance.actor_id, change, request }) };
     } finally { ledger.close(); }
   }
+  async advanceAsync(changeId: string, sessionId: string, raw: unknown, beforeEffect: () => void = () => {}) {
+    const request = parseAction(raw);
+    const requestGuard = () => {
+      const value: unknown = beforeEffect();
+      if (value !== undefined) {
+        try { void Promise.prototype.then.call(value, undefined, () => undefined); } catch { /* Not a genuine Promise. */ }
+        fail("需要同步原请求守卫", "CAPABILITY_UNAVAILABLE", "conflict");
+      }
+    };
+    requestGuard();
+    if (request.kind !== "matt" || !this.matt) {
+      const result = this.advance(changeId, sessionId, request); requestGuard(); return result;
+    }
+    const host = this.matt, identity = { instance: structuredClone(this.context.instance), location: structuredClone(this.context.location),
+      store: this.context.store, kernel: this.context.kernel };
+    this.human(changeId);
+    assertOrdinaryPath(this.path); if (!existsSync(this.path)) corrupt();
+    const ledger = new ClarificationLedger(this.path, true);
+    const pending = () => new LocalProjectError("原 Matt 操作尚待核对；重放同一请求采集，不能重新调用方法", "RECOVERY_CONDITIONS_UNMET", "conflict");
+    try {
+      const entryGuard = () => {
+        requestGuard();
+        if (this.context.store !== identity.store || this.context.kernel !== identity.kernel ||
+          !isDeepStrictEqual(this.context.instance, identity.instance) || !isDeepStrictEqual(this.context.location, identity.location))
+          fail("Matt 执行期间原 Human 入口发生变化", "CALLER_IDENTITY_MISMATCH", "forbidden");
+        this.human(changeId); this.bound(ledger, changeId, sessionId);
+      };
+      const reserved = ledger.transaction(() => {
+        const session = this.bound(ledger, changeId, sessionId), prior = ledger.request(request.request_id);
+        if (prior) {
+          if (prior.sessionId !== sessionId || !isDeepStrictEqual(prior.request, request)) fail("原请求身份已用于不同输入", "COMMAND_ID_REUSED", "conflict");
+          return { first: false, completed: !!prior.step, seq: prior.seq };
+        }
+        this.prePlan(changeId, session.basis.change, session.basis.request.target);
+        if (session.pending || session.submitted) fail("原会话已有待核对或已提交动作", "RECOVERY_CONDITIONS_UNMET", "conflict");
+        if (request.expected_head !== session.head) fail("澄清依据已变化", "REVISION_CONFLICT", "conflict");
+        if (62 - session.head - session.unanswered.length < 0)
+          fail("原会话剩余轮次不足以完成方法、Human 回答和候选；未调用方法", "RECOVERY_CONDITIONS_UNMET", "conflict");
+        // Reject an unexecutable packet before persisting any pending intent.
+        // Human originals remain intact and can be read or clarified separately.
+        encode(mattClarificationInput(session, request));
+        ledger.reserve(sessionId, request);
+        return { first: true, completed: false, seq: request.expected_head + 1 };
+      });
+      // Immutable result replay grants no new effect or Plan authority.
+      if (reserved.completed) { entryGuard(); return { ok: true as const, session: ledger.session(sessionId, reserved.seq) }; }
+      const input = mattClarificationInput(ledger.session(sessionId, request.expected_head), request);
+      encode(input);
+      const guard = () => {
+        entryGuard();
+        const session = this.bound(ledger, changeId, sessionId), prior = ledger.request(request.request_id);
+        this.prePlan(changeId, session.basis.change, session.basis.request.target);
+        if (!prior || prior.sessionId !== sessionId || !isDeepStrictEqual(prior.request, request) ||
+          !isDeepStrictEqual(input, mattClarificationInput(ledger.session(sessionId, request.expected_head), request))) corrupt();
+      };
+      guard();
+      if (reserved.first) {
+        try {
+          const result: unknown = await host.invoke(structuredClone(input), guard);
+          guard(); if (result !== undefined) throw pending();
+        } catch { guard(); throw pending(); }
+      }
+      let rawOriginal: unknown;
+      try { rawOriginal = await host.readOriginal(structuredClone(input)); }
+      catch { guard(); throw pending(); }
+      guard(); if (rawOriginal === null) throw pending();
+      const original = parseMattClarificationOriginal(input, rawOriginal);
+      let finalOriginal: unknown;
+      try { finalOriginal = await host.readOriginal(structuredClone(input)); }
+      catch { guard(); throw pending(); }
+      guard();
+      if (!isDeepStrictEqual(original, parseMattClarificationOriginal(input, finalOriginal))) corrupt();
+      // No further method callbacks or asynchronous reads after final original
+      // verification. The remaining checks touch only the local Human ledger.
+      try {
+        const result: unknown = host.verifyOriginal(structuredClone(input), structuredClone(original));
+        if (result !== undefined) {
+          try { void Promise.prototype.then.call(result, undefined, () => undefined); } catch { /* No arbitrary then callbacks. */ }
+          throw Error("Synchronous original verifier required");
+        }
+      } catch { guard(); fail("原 Matt 方法结果尚不可独立核验；保留原请求", "EVIDENCE_MISSING", "conflict"); }
+      guard();
+      ledger.transaction(() => {
+        guard();
+        const current = ledger.request(request.request_id);
+        if (current?.step) { if (!isDeepStrictEqual(current.step.method_result, original)) corrupt(); }
+        else ledger.complete({ request, method_result: original });
+      });
+      guard(); return { ok: true as const, session: ledger.session(sessionId, reserved.seq) };
+    } finally { ledger.close(); }
+  }
+
   advance(changeId: string, sessionId: string, raw: unknown): { ok: true; session: ClarificationSession; command_result?: ReturnType<typeof executeLocalCommand> } {
     const request = parseAction(raw); this.human(changeId);
     assertOrdinaryPath(this.path); if (!existsSync(this.path)) corrupt();

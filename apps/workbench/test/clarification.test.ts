@@ -175,5 +175,7 @@ describe("pre-Plan Human clarification uses original requests", () => {
   const before=readFileSync(path),sequence=f.store.asOfEventSequence();
   expect(await request('/api/changes/'+change.id+'/clarifications/'+start.body.session.id)).toMatchObject({status:503,body:{code:"EVIDENCE_MISSING"}});
   expect((await begin(change.id)).status).toBe(503);expect(await request("/api/changes/"+change.id)).toMatchObject({status:200,body:{intent:{change:{id:change.id}},clarification_error:{code:"EVIDENCE_MISSING"}}});expect(readFileSync(path)).toEqual(before);expect(f.store.asOfEventSequence()).toBe(sequence);
- });
+ // This file retains three 64-round maximum-size conversations before this
+ // check. Match the preceding Windows history case; no product deadline moves.
+ },120000);
 });
