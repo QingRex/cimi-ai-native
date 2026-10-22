@@ -5,6 +5,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { fileURLToPath } from "node:url";
 import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions,type LocalAgentParentSkillResultPort } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
+import { productionAgentAccount, hasInstalledProductionAccount } from "@cimiloop/local-app";
 
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -56,8 +57,9 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   const agentRuntime = new LocalAgentRuntimeControl(context);
   const agentObservation = new LocalAgentRuntimeObservation(context);
   const agentStart = new LocalHumanAgentRuntimeStart(context,options.agentRuntimeForRun);
-  const agentBilling = new LocalHumanAgentAccountBilling(context,options.agentAccountForRun);
-  const agentCostObservation = new LocalHumanAgentRunCostObservation(context,options.agentAccountForRun);
+  const accountForRun = options.agentAccountForRun ?? productionAgentAccount;
+  const agentBilling = new LocalHumanAgentAccountBilling(context,accountForRun);
+  const agentCostObservation = new LocalHumanAgentRunCostObservation(context,accountForRun);
   const assets = new Map<string, { type: string; body: Buffer }>();
   try {
     for (const [route, file, type] of [["/", "index.html", "text/html; charset=utf-8"], ["/app.js", "app.js", "text/javascript; charset=utf-8"],
@@ -114,7 +116,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       }
       requireSession(request, request.method !== "GET");
       if (url.pathname === "/api/context" && request.method === "GET") {
-        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, agent_start_available: typeof options.agentRuntimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function", csrf, expires_at: new Date(expires).toISOString() }); return;
+        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, agent_start_available: typeof options.agentRuntimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasInstalledProductionAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
       }
       if (url.pathname === "/api/dashboard" && request.method === "GET") {
         send(response, 200, dashboard(context)); return;

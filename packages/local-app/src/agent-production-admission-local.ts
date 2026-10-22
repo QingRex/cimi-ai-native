@@ -126,7 +126,7 @@ export async function inspectProductionRuntime(local: LocalProject): Promise<str
   return missing;
 }
 
-function accountDigest(origin: AgentStartLedger, accountRoot: string) {
+export function readProductionAccountDigest(origin: AgentStartLedger, accountRoot: string) {
   const root = resolve(accountRoot);
   const rows = origin.listExclusive(accountNamespace).filter(row => {
     const basis = row.basis;
@@ -145,7 +145,7 @@ export async function openInstalledProductionRuntime(runId: string, local: Local
   const origin = await openWindowsAgentStartLedger(layout.startRoot, layout.toolsRoot);
   let account: DedicatedAgentAccountLedger | undefined;
   try {
-    account = await openWindowsDedicatedAgentAccountLedger({ origin, accountDigest: accountDigest(origin, layout.accountRoot), connection, toolsRoot: layout.toolsRoot, admission: productionAccountAdmission(origin) });
+    account = await openWindowsDedicatedAgentAccountLedger({ origin, accountDigest: readProductionAccountDigest(origin, layout.accountRoot), connection, toolsRoot: layout.toolsRoot, admission: productionAccountAdmission(origin) });
     const templates = readCheckTemplates(layout.checksPath);
     const checks = await LocalAgentCheckAdmission.open({ repositoryPath: local.location.repositoryPath, dataDirectory: local.location.dataDirectory, nodeBinary: process.execPath, projectId: project.id, templates, custody: { admit: () => { throw new Error("Agent live admission unavailable"); }, verify: (_project, _input, original) => admissionDigest(original) } });
     const custody = new LocalAgentStartCustody(local.location.repositoryPath, local.location.dataDirectory, origin, {

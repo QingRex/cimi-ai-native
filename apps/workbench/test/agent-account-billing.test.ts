@@ -12,6 +12,14 @@ describe('Human original bill HTTP reads',()=>{
  },120000);
  afterAll(async()=>{await server?.close();x?.close();});
  it('reads an actual final bill twice without changing Kernel, holds or effects',async()=>{const before=x.f.store.asOfEventSequence(),snapshot=x.account.snapshot();const first=await request(),second=await request();expect(first).toMatchObject({status:200,body:{outcome:'observed',costs:{cash_charged_micros:12,credit_charged_micro_units:4,costs_reconciled:true},starts_run:false,kernel_costs_reconciled:false}});expect(second).toEqual(first);expect(releases).toBe(2);expect(x.account.snapshot()).toEqual(snapshot);expect(x.f.store.asOfEventSequence()).toBe(before);});
+ it('opens the shared default account reader without a code-injected factory and preserves missing originals',async()=>{
+  const ordinary=await startWorkbench({projectDir:x.root}),before=x.f.store.asOfEventSequence();
+  try{
+   const login=await fetch(ordinary.origin+'/api/session',{method:'POST',headers:{Origin:ordinary.origin,'Content-Type':'application/json',Connection:'close'},body:JSON.stringify({bootstrap:new URL(ordinary.bootstrapUrl).hash.slice(1)})});
+   const response=await fetch(ordinary.origin+'/api/agent-runs/'+x.runId+'/costs',{headers:{Cookie:login.headers.get('set-cookie')!.split(';')[0]!,Connection:'close'}});
+   expect(response.status).toBe(200);expect(await response.json()).toMatchObject({outcome:'unknown',reason:'agent_account_original_unavailable',starts_run:false,kernel_costs_reconciled:false});expect(x.f.store.asOfEventSequence()).toBe(before);
+  }finally{await ordinary.close();}
+ });
  it('rejects missing sessions, foreign Origin, query and POST path overrides before opening an account',async()=>{const before=releases;expect((await request(undefined,{Cookie:''})).status).toBe(401);expect((await request(undefined,{Origin:'https://foreign.example'})).status).toBe(403);expect((await request('/api/agent-runs/'+x.runId+'/costs?account_root=elsewhere')).status).toBe(400);expect((await request(undefined,{Origin:server.origin,'Content-Type':'application/json','X-CimiLoop-CSRF':csrf},'POST',{account_root:'elsewhere'})).status).toBe(404);expect(releases).toBe(before);});
  it('rejects another Run before opening the original account',async()=>{const before=releases;expect((await request('/api/agent-runs/'+createInternalId()+'/costs')).status).toBe(404);expect(releases).toBe(before);});
  it('never includes secret-shaped factory adapter reasons in the HTTP response',async()=>{failReason=true;try{const result=await request();expect(result).toMatchObject({status:200,body:{outcome:'unknown',reason:'agent_account_original_unavailable'}});expect(JSON.stringify(result)).not.toContain('private_account_secret');expect(result.body).not.toHaveProperty('costs');}finally{failReason=false;}});

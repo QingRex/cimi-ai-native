@@ -21,7 +21,7 @@ import { outputError } from "./output.js";
 import { CliInputError } from "./input.js";
 import { runtimeProbe, runtimeOperation, runtimeRecover, runtimeTransportProbe, runtimeGatewayProbe, runtimeGatewayBridgeProbe, runtimeGatewayNetworkProbe, runtimeGatewayCreditProbe } from "./runtime-probe.js";
 import {createAgentCostsCommand} from './agent-account-costs.js';
-import {productionAgentRuntime} from '@cimiloop/local-app';
+import {productionAgentRuntime,productionAgentAccount} from '@cimiloop/local-app';
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 
@@ -294,9 +294,9 @@ for (const [name, kind] of [["prepare-context", "PrepareRunContext"], ["reserve"
 }
 runs.command("show <change>").action((id, _options, command) => showRuns(id, globals(command)));
 runs.addCommand(createAgentStartOriginalCommand(productionAgentRuntime));
-runs.addCommand(createAgentCostsCommand());
-runs.addCommand(createAgentCostObservationCommand());
-runs.addCommand(createAgentReconcileOriginalCommand());
+runs.addCommand(createAgentCostsCommand(productionAgentAccount));
+runs.addCommand(createAgentCostObservationCommand(productionAgentAccount));
+runs.addCommand(createAgentReconcileOriginalCommand(productionAgentAccount));
 for (const [name, kind] of [["skill-observe", "RecordSkillInvocationObservation"], ["skill-reconcile", "ReconcileSkillInvocation"]] as const) {
   runs.command(`${name} <run-id>`).description("Human 技术责任核对原技能调用；须接通可信技能结果宿主")
     .requiredOption("--file <json>", "严格 payload，包含 invocation_ref 和原始结果引用")
