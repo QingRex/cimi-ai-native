@@ -218,9 +218,9 @@ export class LocalPrePlanClarification {
   constructor(private readonly context: LocalProject, matt: MattClarificationHost | undefined = context.prePlanMatt) {
     this.path = join(context.location.dataDirectory, "pre-plan-clarifications", "originals.sqlite");
     if (matt) {
-      if (typeof matt.invoke !== "function" || typeof matt.readOriginal !== "function" || typeof matt.verifyOriginal !== "function")
+      if (typeof matt.invoke !== "function" || typeof matt.readOriginal !== "function" || typeof matt.verifyOriginal !== "function" || matt.prepare !== undefined && typeof matt.prepare !== "function")
         throw new LocalProjectError("Matt 方法宿主必须由受信应用安装", "CAPABILITY_UNAVAILABLE", "conflict");
-      this.matt = Object.freeze({ invoke: matt.invoke.bind(matt), readOriginal: matt.readOriginal.bind(matt), verifyOriginal: matt.verifyOriginal.bind(matt) });
+      this.matt = Object.freeze({ invoke: matt.invoke.bind(matt), readOriginal: matt.readOriginal.bind(matt), verifyOriginal: matt.verifyOriginal.bind(matt), ...(matt.prepare ? { prepare: matt.prepare.bind(matt) } : {}) });
     }
   }
   private human(changeId: string): Change {
@@ -326,7 +326,13 @@ export class LocalPrePlanClarification {
           fail("原会话剩余轮次不足以完成方法、Human 回答和候选；未调用方法", "RECOVERY_CONDITIONS_UNMET", "conflict");
         // Reject an unexecutable packet before persisting any pending intent.
         // Human originals remain intact and can be read or clarified separately.
-        encode(mattClarificationInput(session, request));
+        const packet = mattClarificationInput(session, request); encode(packet);
+        if (host.prepare) {
+          const prepared: unknown = host.prepare(structuredClone(packet));
+          if (prepared !== undefined) { if (prepared instanceof Promise) void prepared.catch(() => {}); fail("方法输入检查必须同步且不产生效果", "CAPABILITY_UNAVAILABLE", "conflict"); }
+          entryGuard(); this.prePlan(changeId, session.basis.change, session.basis.request.target);
+          if (!isDeepStrictEqual(packet, mattClarificationInput(this.bound(ledger, changeId, sessionId), request))) corrupt();
+        }
         ledger.reserve(sessionId, request);
         return { first: true, completed: false, seq: request.expected_head + 1 };
       });

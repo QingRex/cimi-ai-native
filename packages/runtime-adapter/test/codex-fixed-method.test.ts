@@ -4,7 +4,7 @@ import { fixedMethodFixture } from "./fixed-method-fixture.js";
 
 // Public, constructed receipts only; no upstream Skill or real model evidence.
 describe("Codex fixed clarification method projection", () => {
-  function fixture(frontier = false, delegated = false, maximumQuestions = 16) {
+  function fixture(frontier = false, delegated = false, maximumQuestions = 16, applicationContext?: string) {
     const f = fixedMethodFixture(), loaded: any[] = [];
     const original: any = { operation_key: f.profile.invocation_key, input_digest: "PUBLIC transport", thread_id: "PUBLIC thread", turn_id: "PUBLIC turn", model: "gpt-6-luna",
       tool_calls: loaded, usage: { inputTokens: 1, outputTokens: 1 }, output_text: JSON.stringify({ purpose: "clarification", questions: ["PUBLIC next decision? 建议：验证可观察结果。", ...(frontier ? ["PUBLIC independent decision? 建议：保留固定边界。"] : [])], unresolved: [] }),
@@ -30,6 +30,7 @@ describe("Codex fixed clarification method projection", () => {
           const name = resource.kind === "definition" ? "invoke_skill" : "read_method_resource";
           loaded.push({ call_id: String(loaded.length), tool: name, arguments: args, output: await tool(name, args) });
         }
+        if (applicationContext) loaded.push({ call_id: "context", tool: "read_clarification_context", arguments: {}, output: await tool("read_clarification_context", {}) });
         if (delegated) {
           const args = { question: "Which rule controls business decisions?" };
           const output = await tool("delegate_facts", args, { call_id: "PUBLIC_child_call", thread_id: original.thread_id, turn_id: original.turn_id, model: original.model, account_digest: original.account_digest, signal: new AbortController().signal, beforeEffect: guard });
@@ -42,7 +43,7 @@ describe("Codex fixed clarification method projection", () => {
       readOriginal() { return loaded.length ? structuredClone(original) : null; }
     };
     const Constructor = Reflect.get(runtime, "CodexFixedClarificationMethod"); expect(Constructor).toBeTypeOf("function");
-    const host: any = new Constructor(transport, "gpt-6-luna", { ...(delegated ? { facts } : {}), maximum_questions: maximumQuestions });
+    const host: any = new Constructor(transport, "gpt-6-luna", { ...(delegated ? { facts } : {}), maximum_questions: maximumQuestions, ...(applicationContext ? { application_context: applicationContext } : {}) });
     return { ...f, host, original, loaded, children, invokes: () => invokes, delegatedInvokes: () => delegatedInvokes };
   }
   it("executes named entry and dependencies, reads all fixed resources, and returns one Human question", async () => {
@@ -55,6 +56,14 @@ describe("Codex fixed clarification method projection", () => {
     const f = fixture(true), result = await f.host.execute(f.profile, f.files, () => {});
     expect(result.output.questions).toHaveLength(2);
     expect(result.output.questions[1]).toBe("PUBLIC independent decision? 建议：保留固定边界。");
+  });
+  it("requires the complete bound application context and rejects changed context on original replay", async () => {
+    const context = JSON.stringify({ human_answers: ["PUBLIC actual Human answer"], original_change: "PUBLIC original Change" });
+    const f = fixture(false, false, 16, context); await f.host.execute(f.profile, f.files, () => {});
+    expect(f.loaded.find((call: any) => call.tool === "read_clarification_context")?.output).toBe(context);
+    expect(f.host.readOriginal(f.profile, f.files)).not.toBeNull();
+    f.loaded.find((call: any) => call.tool === "read_clarification_context").output = "PUBLIC missing actual answer";
+    expect(() => f.host.readOriginal(f.profile, f.files)).toThrow();
   });
   it("delegates a fixed fact question and rechecks the original child when rereading the parent", async () => {
     const f = fixture(false, true), result = await f.host.execute(f.profile, f.files, () => {});

@@ -137,6 +137,37 @@ describe("durable pre-plan Matt application execution", () => {
     expect(() => Reflect.construct(LocalPrePlanClarification, [local, JSON.parse('{"invoke":"installed","readOriginal":"verified","verifyOriginal":true}')]))
       .toThrow("Matt 方法宿主必须由受信应用安装");
   });
+  it("keeps method limitations out of Human questions for explicit result format2", async () => {
+    const x = setup();
+    const invoke = x.host.invoke.bind(x.host);
+    x.host.invoke = async (input, guard) => {
+      await invoke(input, guard);
+      const original = x.originals.get(input.request.request_id);
+      original.format = "cimiloop/pre-plan-matt-original/2.0.0";
+      original.qualification = "unqualified_method_execution";
+      original.output.unresolved = ["PUBLIC environment fact still unavailable"];
+    };
+    const service = new LocalPrePlanClarification(local, x.host);
+    const result = await service.advanceAsync(x.change.id, x.session.id, x.request);
+    expect(result.session.questions.map((q: any) => q.text)).toEqual(["Which observable result proves the requirement?"]);
+    expect(result.session.steps[0]?.method_result?.output.unresolved).toEqual(["PUBLIC environment fact still unavailable"]);
+    expect(await service.advanceAsync(x.change.id, x.session.id, x.request)).toEqual(result);
+  });
+  it("preserves legacy format1 unresolved items as their historical Human questions", async () => {
+    const x = setup(), invoke = x.host.invoke.bind(x.host);
+    x.host.invoke = async (input, guard) => { await invoke(input, guard); x.originals.get(input.request.request_id).output.unresolved = ["PUBLIC historical unresolved question"]; };
+    const service = new LocalPrePlanClarification(local, x.host);
+    expect((await service.advanceAsync(x.change.id, x.session.id, x.request)).session.questions.map(q => q.text))
+      .toEqual(["Which observable result proves the requirement?", "PUBLIC historical unresolved question"]);
+  });
+  it("rejects an unexecutable installed host input before reserving the original request", async () => {
+    const x = setup();
+    const host = { ...x.host, prepare() { throw Error("PUBLIC fixed method input unavailable"); } };
+    const service = new LocalPrePlanClarification(local, host);
+    await expect(service.advanceAsync(x.change.id, x.session.id, x.request)).rejects.toThrow();
+    expect(service.show(x.change.id, x.session.id).session).toMatchObject({ head: 0, pending: false });
+    expect(x.invokes()).toBe(0);
+  });
 
   it("shares the installed method host and immutable result with authenticated workbench requests", async () => {
     const x = setup(), server = await startWorkbench({ projectDir: local.location.repositoryPath, prePlanMatt: x.host });

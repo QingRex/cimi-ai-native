@@ -86,7 +86,7 @@ const legacyConfig = () => ({
   default_permissions: "cimiloop-method",
   permissions: { "cimiloop-method": { filesystem: { ":root": "deny", ":minimal": "read" }, network: { enabled: false } } }
 });
-const config = (disabled: string[]) => ({ ...legacyConfig(),
+const version2Config = (disabled: string[]) => ({ ...legacyConfig(),
   mcp_servers: Object.fromEntries(disabled.map(name => [name, { enabled: false }])),
   // The built-in host dispatches the explicitly supplied dynamic client tools;
   // disabling it also disables those tools. It is not an external MCP server.
@@ -94,6 +94,7 @@ const config = (disabled: string[]) => ({ ...legacyConfig(),
     browser_use_external: false, browser_use_full_cdp_access: false, browser_annotation_api: false, in_app_browser: false,
     plugins: false, plugin_sharing: false, skill_mcp_dependency_install: false, goals: false }
 });
+const config = (disabled: string[]) => ({ ...version2Config(disabled), features: { ...version2Config(disabled).features, sleep_tool: false } });
 const quietMcpCatalog = (value: any, disabled: string[]) => value && Array.isArray(value.data) && value.data.length <= 128 && value.nextCursor === null &&
   value.data.every((server: any) => disabled.includes(server.name) && server.runtimeStatus === "disabled" && server.tools && Object.keys(server.tools).length === 0 &&
     Array.isArray(server.resources) && server.resources.length === 0 && Array.isArray(server.resourceTemplates) && server.resourceTemplates.length === 0 && server.toolsError === null);
@@ -113,7 +114,7 @@ function childEnvironment() {
 // Interpret retained *actual app-server stdio*, independently of the final model
 // message. This does not assert HTTP wire bytes, Skill behavior qualification,
 // native isolation acceptance, provider bills, or Kernel business completion.
-function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Frame[], reference: ExternalReference, expectedAccount?: string, version: 1 | 2 = 1, disabled: string[] = []): CodexMethodOriginal {
+function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Frame[], reference: ExternalReference, expectedAccount?: string, version: 1 | 2 | 3 = 1, disabled: string[] = []): CodexMethodOriginal {
   const sent = new Map<number | string, any>(), incoming = new Map<number | string, any>();
   let thread = "", turn = "", account = false, complete = false, output = "", usage: any, accountDigest = "", finalAccountRead = false;
   const earlyThreadIds = new Set<string>();
@@ -169,7 +170,7 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
     if (value.method === "account/updated" && account) {
       if (turnSent || p?.authMode !== "chatgpt") fail("codex_account_changed"); accountDirty = true;
     }
-    if (version === 2 && value.method === "mcpServer/startupStatus/updated" && ["starting", "ready"].includes(p?.status)) fail("codex_external_tools_available");
+    if (version >= 2 && value.method === "mcpServer/startupStatus/updated" && ["starting", "ready"].includes(p?.status)) fail("codex_external_tools_available");
     if (p?.threadId !== undefined && !thread && !turn && ["warning", "thread/status/changed"].includes(value.method) && [...sent.values()].some(rpc => rpc.method === "thread/start")) {
       earlyThreadIds.add(p.threadId); continue;
     }
@@ -216,14 +217,14 @@ export class CodexOriginalMethodRuntime {
     const root = assertOrdinaryPath(join(this.options.root, request.operation_key));
     return { root, cwd: join(root, "workspace"), claim: join(root, "start.json"), transcript: join(root, "stdio.jsonl"), seal: join(root, "seal.json") };
   }
-  private claim(request: CodexMethodRequest, version: 1 | 2 = 2) { return { format: `cimiloop/codex-method-start/${version}.0.0`, request, command: this.options.command,
-    account_digest: this.options.account_digest ?? null, config: version === 1 ? legacyConfig() : config(this.options.disabled_mcp_servers!),
-    ...(version === 2 ? { disabled_mcp_servers: this.options.disabled_mcp_servers } : {}) }; }
+  private claim(request: CodexMethodRequest, version: 1 | 2 | 3 = 3) { return { format: `cimiloop/codex-method-start/${version}.0.0`, request, command: this.options.command,
+    account_digest: this.options.account_digest ?? null, config: version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
+    ...(version >= 2 ? { disabled_mcp_servers: this.options.disabled_mcp_servers } : {}) }; }
   readOriginal(raw: CodexMethodRequest): CodexMethodOriginal | null {
     const request = requestCopy(raw), paths = this.paths(request);
     if (!existsSync(paths.claim)) return null;
     const claimBytes = bytesAt(paths.claim);
-    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : 2;
+    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : fail();
     if (!same(claim, this.claim(request, version))) fail("codex_original_input_changed");
     if (!existsSync(paths.seal)) return null;
     const seal = parse(bytesAt(paths.seal)), transcript = bytesAt(paths.transcript, MAX_BYTES);
@@ -376,7 +377,7 @@ export class CodexOriginalMethodRuntime {
       const transcript = bytesAt(paths.transcript, MAX_BYTES);
       const ref = { provider: "codex_app_server", resource_type: "skill_invocation_proof", locator: paths.transcript, digest: digest(transcript) };
       const frames = transcript.toString("utf8").trimEnd().split("\n").map(line => parse(Buffer.from(line)) as Frame);
-      originalFromFrames(request, paths.cwd, frames, ref, this.options.account_digest, 2, this.options.disabled_mcp_servers);
+      originalFromFrames(request, paths.cwd, frames, ref, this.options.account_digest, 3, this.options.disabled_mcp_servers);
       save(paths.seal, { format: "cimiloop/codex-method-seal/1.0.0", claim_digest: digest(bytesAt(paths.claim)).value, transcript_digest: digest(transcript).value,
         claim_identity: fileIdentity(paths.claim), transcript_identity: fileIdentity(paths.transcript) });
       return this.readOriginal(request) ?? fail();
