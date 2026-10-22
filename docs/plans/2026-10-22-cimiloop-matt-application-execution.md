@@ -26,3 +26,11 @@ Node24.19.0／pnpm12.4.2，check通过。分阶段六文件72项通过、0最终
 独立工程复查发现并关闭三项：最后异步读取后的原件核验、超限前登记、负剩余轮次；最终只读确认无新增must-fix，未另跑测试，不是最终Matt／Superpowers验收。
 
 本机原报告在忽略目录 `.cimiloop/codex-2026-10-22/`：clarification-matt-red.json、clarification-matt-green.json、clarification-capacity-red.json、clarification-matt-recheck.json、clarification-rounds-red.json、clarification-ipc-final.json、clarification-matt-final.json。不覆盖中间失败。
+
+## 当前提交的实际 Native 补验
+
+绑定代码提交 `492c66800267d7c35decf2f3f0fb5d4cd7867d4e`，在没有代码修改的工作区执行 `tests/scenarios/agent-production-lifetime-runtime.test.ts` 的 `completes actual SDK model/read/check steps` 场景：1项通过，另2项因过滤未执行；场景262377ms，整次282.35秒。使用实际Windows/AppContainer、固定OpenCode、SDK和Node检查；模型及准入仍为构造材料，无付费调用，不是完整文件或S1验收。
+
+保留本次自有现场 `%LOCALAPPDATA%/CimiS1/cimiloop-production-lifetime-runtime-MhUZcb`，原操作 `fec334b7-c45e-4754-a7c8-be12e3bdba24`。清理原证明明确 `resources_disposed=true`，摘要 `19a337a11baa7add9a9c66d54cdd3185439ace81cc01a76a37cb40ec32767037`；这只证明本次操作，不能证明历史Unknown资源已清理。没有批量清理任何原件。本批变更TS文件补验后与所存摘要无漂移，已跟踪工作区无改动。
+
+原报告：`.cimiloop/codex-2026-10-22/native-production-current.json`；限定字段摘要及现场身份：同目录 `native-production-summary.json`。
