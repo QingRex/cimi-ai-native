@@ -6,6 +6,7 @@ import { bytesAt, digest, directory, assertOrdinaryPath, RuntimeAdapterError } f
 import { copyToolJson, TOOL_RECORD_BYTES } from "./tool-journal.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
+import { parseAgentModelOutputProfile, agentModelOutputLimit, agentModelRequestFormat, type AgentModelOutputProfile } from "./agent-model-output.js";
 
 export interface AgentRuntimeModelResponse {
  content: ({type:"text";text:string}|{type:"tool-call";tool_call_id:string;tool_name:string;arguments:string})[];
@@ -18,6 +19,7 @@ export interface AgentRuntimeModelResponse {
 export interface AgentModelOriginalEvidence {kind:"dedicated_zhipu/1.0.0"|"codex_login/1.0.0";header_digest:string}
 export interface AgentRuntimeModelPort {
  original_evidence?:AgentModelOriginalEvidence;
+ output_profile?:AgentModelOutputProfile;
  admission_digest:string;
  check(scope:AgentWorkspaceToolScope):Promise<void>;
  execute(input:ReturnType<typeof parseAgentRuntimeModelRequest>,signal?:AbortSignal):Promise<AgentRuntimeModelResponse>;
@@ -33,13 +35,17 @@ const bounded=(v:unknown)=>copyToolJson(parseGatewayJson(JSON.stringify(v),TOOL_
 const read=(path:string)=>bounded(parseGatewayJson(new TextDecoder("utf-8",{fatal:true}).decode(bytesAt(path,TOOL_RECORD_BYTES)),TOOL_RECORD_BYTES));
 const save=(path:string,value:unknown)=>{assertOrdinaryPath(path);const bytes=Buffer.from(JSON.stringify(bounded(value)));const fd=openSync(path,"wx");try{writeFileSync(fd,bytes);fsyncSync(fd);}finally{closeSync(fd);}};
 export function parseAgentModelOriginalEvidence(raw:unknown):AgentModelOriginalEvidence|undefined {if(raw===undefined)return undefined;if(!exact(raw,["kind","header_digest"])||!["dedicated_zhipu/1.0.0","codex_login/1.0.0"].includes(String(raw.kind))||!sha(raw.header_digest))fail("agent_model_original_evidence_unproven");return structuredClone(raw) as unknown as AgentModelOriginalEvidence;}
-const modelOriginalFormat=(parent:boolean,evidence:AgentModelOriginalEvidence|undefined)=>`cimiloop/agent-runtime-model-originals/${evidence?.kind==="codex_login/1.0.0"?(parent?6:5):parent?(evidence?4:3):(evidence?2:1)}.0.0`;
+const modelOriginalFormat=(parent:boolean,evidence:AgentModelOriginalEvidence|undefined,profile?:unknown)=>{
+ if(parseAgentModelOutputProfile(profile)&&evidence?.kind!=="codex_login/1.0.0")fail('agent_model_output_policy_unproven');
+ return `cimiloop/agent-runtime-model-originals/${profile?(parent?8:7):evidence?.kind==="codex_login/1.0.0"?(parent?6:5):parent?(evidence?4:3):(evidence?2:1)}.0.0`;
+};
 // Shared result/terminal consumers must use the same exact backend version as
 // the original Host. A new backend is never reinterpreted as a legacy header.
-export function assertAgentRuntimeModelOriginalMode(raw:unknown,parent:boolean):void {
+export function assertAgentRuntimeModelOriginalMode(raw:unknown,parent:boolean,providerOptions?:Record<string,unknown>):void {
  if(!raw||typeof raw!=='object'||Array.isArray(raw))fail('agent_model_original_mode_unproven');
  const header=raw as Record<string,unknown>,evidence=parseAgentModelOriginalEvidence(header.original_evidence);
- if(header.format!==modelOriginalFormat(parent,evidence)||!Array.isArray(header.permitted)||(parent?header.parent_skill_tools!=='fixed_parent_skill/1.0.0'||!isAgentParentSkillToolSet(header.permitted):header.parent_skill_tools!==undefined||isAgentParentSkillToolSet(header.permitted)))fail('agent_model_original_mode_unproven');
+ const profile=parseAgentModelOutputProfile(header.output_profile);
+ if(header.format!==modelOriginalFormat(parent,evidence,profile)||providerOptions!==undefined&&profile!==parseAgentModelOutputProfile(providerOptions.model_output_profile)||!Array.isArray(header.permitted)||(parent?header.parent_skill_tools!=='fixed_parent_skill/1.0.0'||!isAgentParentSkillToolSet(header.permitted):header.parent_skill_tools!==undefined||isAgentParentSkillToolSet(header.permitted)))fail('agent_model_original_mode_unproven');
 }
 function waitOriginal<T>(promise:Promise<T>,signal?:AbortSignal):Promise<T> {
  if(!signal)return promise;
@@ -51,11 +57,11 @@ function waitOriginal<T>(promise:Promise<T>,signal?:AbortSignal):Promise<T> {
   promise.then(value=>finish(null,value),error=>finish(error));
  });
 }
-export function parseAgentRuntimeModelRequest(rawScope:unknown,raw:unknown,permitted:string[]) {
+export function parseAgentRuntimeModelRequest(rawScope:unknown,raw:unknown,permitted:string[],outputProfile?:unknown) {
  const scope=parseAgentWorkspaceToolScope(rawScope),v=bounded(raw),parent=isAgentParentSkillToolSet(permitted);
- if(!permitted.length||new Set(permitted).size!==permitted.length||!permittedTools(permitted)||!exact(v,["format","scope_digest","admission_digest","call_id","tool","prompt","tools","max_output_tokens"])||v.format!==(parent?"cimiloop/agent-runtime-model-request/2.0.0":"cimiloop/agent-runtime-model-request/1.0.0")||
+ if(!permitted.length||new Set(permitted).size!==permitted.length||!permittedTools(permitted)||!exact(v,["format","scope_digest","admission_digest","call_id","tool","prompt","tools","max_output_tokens"])||v.format!==agentModelRequestFormat(parent,outputProfile)||
  v.scope_digest!==digest(JSON.stringify(scope)).value||!sha(v.admission_digest)||!id(v.call_id)||v.tool!=="model_step"||!Array.isArray(v.prompt)||!v.prompt.length||v.prompt.length>128||
- !Array.isArray(v.tools)||(parent?v.tools.length!==4:v.tools.length>3)||!Number.isSafeInteger(v.max_output_tokens)||(v.max_output_tokens as number)<1||(v.max_output_tokens as number)>512)fail("agent_model_request_denied");
+ !Array.isArray(v.tools)||(parent?v.tools.length!==4:v.tools.length>3)||!Number.isSafeInteger(v.max_output_tokens)||(v.max_output_tokens as number)<1||(v.max_output_tokens as number)>agentModelOutputLimit(outputProfile))fail("agent_model_request_denied");
  const names=new Set<string>();for(const tool of v.tools){if(!tool||typeof tool!=="object"||Array.isArray(tool)||!("name" in tool)||!id(tool.name)||!permitted.includes(tool.name)||names.has(tool.name))fail("agent_model_tools_denied");names.add(tool.name);}
  return {format:v.format,scope_digest:v.scope_digest,admission_digest:v.admission_digest,call_id:v.call_id,tool:v.tool,prompt:v.prompt,tools:v.tools,max_output_tokens:v.max_output_tokens as number};
 }
@@ -79,28 +85,32 @@ export class AgentRuntimeModelHost {
  static async open(root:string,rawScope:unknown,port:AgentRuntimeModelPort,permitted:string[],taskPacket:string|null=null,signal?:AbortSignal) {
   const scope=parseAgentWorkspaceToolScope(rawScope);
   const originalEvidence=parseAgentModelOriginalEvidence(port?.original_evidence);
-  port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{})}; permitted=[...permitted];
+  const outputProfile=parseAgentModelOutputProfile(port?.output_profile);
+  modelOriginalFormat(isAgentParentSkillToolSet(permitted),originalEvidence,outputProfile);
+  port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{}),...(outputProfile?{output_profile:outputProfile}:{})}; permitted=[...permitted];
   if(!port||!sha(port.admission_digest)||typeof port.check!=="function"||typeof port.execute!=="function"||!permitted.length||permitted.length>(isAgentParentSkillToolSet(permitted)?4:3)||new Set(permitted).size!==permitted.length||!permittedTools(permitted))fail("agent_model_admission_unavailable");
   if(isAgentParentSkillToolSet(permitted)&&taskPacket===null)fail("agent_model_task_packet_invalid");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
   signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
   const parent=directory(join(root,"agent-runtime-model-originals",scope.project_id)),path=assertOrdinaryPath(join(parent,scope.run_id));
-  const header={format:modelOriginalFormat(isAgentParentSkillToolSet(permitted),originalEvidence),...(isAgentParentSkillToolSet(permitted)?{parent_skill_tools:"fixed_parent_skill/1.0.0"}:{}),...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
+  const header={format:modelOriginalFormat(isAgentParentSkillToolSet(permitted),originalEvidence,outputProfile),...(outputProfile?{output_profile:outputProfile}:{}),...(isAgentParentSkillToolSet(permitted)?{parent_skill_tools:"fixed_parent_skill/1.0.0"}:{}),...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
   const spine=assertOrdinaryPath(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id));
   try{if(!isDeepStrictEqual(read(join(path,"header.json")),header)||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");}catch{fail("agent_model_original_unproven");}
-  return new AgentRuntimeModelHost(path,scope,{admission_digest:port.admission_digest,check:port.check.bind(port),execute:port.execute.bind(port)},[...permitted],header,spine,taskPacket);
+  return new AgentRuntimeModelHost(path,scope,{admission_digest:port.admission_digest,check:port.check.bind(port),execute:port.execute.bind(port),...(outputProfile?{output_profile:outputProfile}:{})},[...permitted],header,spine,taskPacket);
  }
  // Staging only, before the independent original Run custody is claimed. This
  // immutable separate start/spine refuses recreation of lost ledger/call files.
  static async initialize(root:string,rawScope:unknown,port:AgentRuntimeModelPort,permitted:string[],taskPacket:string|null=null,signal?:AbortSignal) {
   const scope=parseAgentWorkspaceToolScope(rawScope);
   const originalEvidence=parseAgentModelOriginalEvidence(port?.original_evidence);
-  port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{})}; permitted=[...permitted];
+  const outputProfile=parseAgentModelOutputProfile(port?.output_profile);
+  modelOriginalFormat(isAgentParentSkillToolSet(permitted),originalEvidence,outputProfile);
+  port={admission_digest:port?.admission_digest,check:port?.check?.bind(port),execute:port?.execute?.bind(port),...(originalEvidence?{original_evidence:originalEvidence}:{}),...(outputProfile?{output_profile:outputProfile}:{})}; permitted=[...permitted];
   if(!port||!sha(port.admission_digest)||!permitted.length||permitted.length>(isAgentParentSkillToolSet(permitted)?4:3)||new Set(permitted).size!==permitted.length||!permittedTools(permitted))fail("agent_model_admission_unavailable");
   if(isAgentParentSkillToolSet(permitted)&&taskPacket===null)fail("agent_model_task_packet_invalid");
   if(taskPacket!==null&&(typeof taskPacket!=="string"||!taskPacket.isWellFormed()||Buffer.byteLength(taskPacket)>32768||taskPacket.split(/\r?\n/).length>1000||taskPacket.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800)))fail("agent_model_task_packet_invalid");
   signal?.throwIfAborted();await waitOriginal(port.check(structuredClone(scope)),signal);signal?.throwIfAborted();
-  const header={format:modelOriginalFormat(isAgentParentSkillToolSet(permitted),originalEvidence),...(isAgentParentSkillToolSet(permitted)?{parent_skill_tools:"fixed_parent_skill/1.0.0"}:{}),...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
+  const header={format:modelOriginalFormat(isAgentParentSkillToolSet(permitted),originalEvidence,outputProfile),...(outputProfile?{output_profile:outputProfile}:{}),...(isAgentParentSkillToolSet(permitted)?{parent_skill_tools:"fixed_parent_skill/1.0.0"}:{}),...(originalEvidence?{original_evidence:originalEvidence}:{}),scope,admission_digest:port.admission_digest,permitted:[...permitted],maximum_calls:64,task_packet_digest:taskPacket===null?null:digest(taskPacket).value};
   const parent=directory(join(root,"agent-runtime-model-starts",scope.project_id)),spine=assertOrdinaryPath(join(parent,scope.run_id));
   let created=false;try{mkdirSync(spine);created=true;}catch(error){if(!(error&&typeof error==="object"&&"code" in error&&error.code==="EEXIST"))throw error;}
   if(created){
@@ -111,12 +121,13 @@ export class AgentRuntimeModelHost {
   return this.open(root,scope,port,permitted,taskPacket,signal);
  }
  get toolNames(){return [...this.permitted];}
+ get outputProfile(){return this.port.output_profile;}
  get taskPacketDigest(){return this.taskPacket===null?null:digest(this.taskPacket).value;}
  get originalBinding(){const header=this.header as {original_evidence?:AgentModelOriginalEvidence};return header.original_evidence?{format:"cimiloop/agent-model-original-binding/1.0.0" as const,header_digest:digest(JSON.stringify(this.header)).value,original_evidence:structuredClone(header.original_evidence)}:undefined;}
  get admissionDigest(){return this.port.admission_digest;}
  async check(rawScope:unknown,signal?:AbortSignal){if(!isDeepStrictEqual(parseAgentWorkspaceToolScope(rawScope),this.scope))fail("agent_model_scope_mismatch");signal?.throwIfAborted();await waitOriginal(this.port.check(structuredClone(this.scope)),signal);signal?.throwIfAborted();}
  async execute(raw:unknown,signal?:AbortSignal):Promise<{receipt:AgentRuntimeModelResponse;replay:boolean}> {
-  const input=parseAgentRuntimeModelRequest(this.scope,raw,this.permitted);if(input.admission_digest!==this.port.admission_digest)fail("agent_model_admission_mismatch");const prior=this.inflight.get(input.call_id);
+  const input=parseAgentRuntimeModelRequest(this.scope,raw,this.permitted,this.port.output_profile);if(input.admission_digest!==this.port.admission_digest)fail("agent_model_admission_mismatch");const prior=this.inflight.get(input.call_id);
   if(prior){if(!isDeepStrictEqual(prior.input,input))fail("agent_model_input_conflict");return prior.promise;}
   if(this.taskPacket!==null){
    const lines=this.taskPacket.split(/\r?\n/),projection=lines.map((line,i)=>String(i+1)+": "+line).join("\n");
@@ -143,7 +154,7 @@ export class AgentRuntimeModelHost {
    const original=read(join(this.spine,name,"request.json")),body=join(this.path,name,"request.json"),reply=join(this.path,name,"reply.json");
    if(!existsSync(body)||!existsSync(reply))fail("agent_model_original_unknown");
    if(!isDeepStrictEqual(read(body),original))fail("agent_model_original_unproven");
-   const request=parseAgentRuntimeModelRequest(this.scope,original,this.permitted),saved=read(reply);
+   const request=parseAgentRuntimeModelRequest(this.scope,original,this.permitted,this.port.output_profile),saved=read(reply);
    if(request.call_id!==name||request.admission_digest!==this.port.admission_digest)fail("agent_model_original_unproven");
    if(!exact(saved,["request_digest","response_digest","response"])||saved.request_digest!==digest(JSON.stringify(request)).value||saved.response_digest!==digest(JSON.stringify(saved.response)).value)fail("agent_model_original_unproven");
    parseAgentRuntimeModelResponse(saved.response,request);
@@ -170,9 +181,9 @@ export function readAgentRuntimeModelOriginals(root:string,rawScope:unknown) {
 function readAgentRuntimeModelOriginalsNow(root:string,rawScope:unknown) {
  const scope=parseAgentWorkspaceToolScope(rawScope),path=assertOrdinaryPath(join(root,"agent-runtime-model-originals",scope.project_id,scope.run_id)),spine=assertOrdinaryPath(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id));
  const header=read(join(path,"header.json"));
- if(!exact(header,["format","scope","admission_digest","permitted","maximum_calls","task_packet_digest",...(header&&typeof header==="object"&&"original_evidence" in header?["original_evidence"]:[]),...(header&&typeof header==="object"&&"parent_skill_tools" in header?["parent_skill_tools"]:[])])||!Array.isArray(header.permitted)||!header.permitted.length||new Set(header.permitted).size!==header.permitted.length||!header.permitted.every(n=>typeof n==="string")||!permittedTools(header.permitted as string[])||header.permitted.length>(isAgentParentSkillToolSet(header.permitted)?4:3)||!isDeepStrictEqual(header.scope,scope)||!sha(header.admission_digest)||header.maximum_calls!==64||(header.task_packet_digest!==null&&!sha(header.task_packet_digest))||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");
+ if(!exact(header,["format","scope","admission_digest","permitted","maximum_calls","task_packet_digest",...(header&&typeof header==="object"&&"original_evidence" in header?["original_evidence"]:[]),...(header&&typeof header==="object"&&"parent_skill_tools" in header?["parent_skill_tools"]:[]),...(header&&typeof header==="object"&&"output_profile" in header?["output_profile"]:[])])||!Array.isArray(header.permitted)||!header.permitted.length||new Set(header.permitted).size!==header.permitted.length||!header.permitted.every(n=>typeof n==="string")||!permittedTools(header.permitted as string[])||header.permitted.length>(isAgentParentSkillToolSet(header.permitted)?4:3)||!isDeepStrictEqual(header.scope,scope)||!sha(header.admission_digest)||header.maximum_calls!==64||(header.task_packet_digest!==null&&!sha(header.task_packet_digest))||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");
  const originalEvidence=parseAgentModelOriginalEvidence(header.original_evidence);
- const parent=isAgentParentSkillToolSet(header.permitted);if(header.format!==modelOriginalFormat(parent,originalEvidence)||(parent?header.parent_skill_tools!=="fixed_parent_skill/1.0.0"||!sha(header.task_packet_digest):header.parent_skill_tools!==undefined))fail("agent_model_original_unproven");
+ const outputProfile=parseAgentModelOutputProfile(header.output_profile),parent=isAgentParentSkillToolSet(header.permitted);if(header.format!==modelOriginalFormat(parent,originalEvidence,outputProfile)||(parent?header.parent_skill_tools!=="fixed_parent_skill/1.0.0"||!sha(header.task_packet_digest):header.parent_skill_tools!==undefined))fail("agent_model_original_unproven");
  const names=[...new Set([...readdirSync(path),...readdirSync(spine)].filter(n=>n!=="header.json"))].sort();
  if(names.length>64||names.some((name,i)=>name!=="model_"+String(i+1).padStart(4,"0")))fail("agent_model_original_unproven");
  const artifacts:{name:string;path:string;digest:string}[]=[];
@@ -180,7 +191,7 @@ function readAgentRuntimeModelOriginalsNow(root:string,rawScope:unknown) {
  capture("header.json",join(path,"header.json"));capture("start/header.json",join(spine,"header.json"));
  const calls:{call_id:string;state:"reply_recorded"|"unknown";request:ReturnType<typeof parseAgentRuntimeModelRequest>;response:AgentRuntimeModelResponse|null}[]=[];
  for(const name of names){
-  const original=parseAgentRuntimeModelRequest(scope,capture("start/"+name+"/request.json",join(spine,name,"request.json")),header.permitted as string[]);
+  const original=parseAgentRuntimeModelRequest(scope,capture("start/"+name+"/request.json",join(spine,name,"request.json")),header.permitted as string[],outputProfile);
   if(original.call_id!==name||original.admission_digest!==header.admission_digest)fail("agent_model_original_unproven");
   const bodyPath=join(path,name,"request.json"),replyPath=join(path,name,"reply.json");let response:AgentRuntimeModelResponse|null=null;
   if(existsSync(bodyPath)){
@@ -191,6 +202,6 @@ function readAgentRuntimeModelOriginalsNow(root:string,rawScope:unknown) {
  }
  for(const artifact of artifacts)if(digest(bytesAt(artifact.path,TOOL_RECORD_BYTES)).value!==artifact.digest)fail("agent_model_original_unproven");
  if(!isDeepStrictEqual([...new Set([...readdirSync(path),...readdirSync(spine)].filter(n=>n!=="header.json"))].sort(),names))fail("agent_model_original_unproven");
- return {...(originalEvidence?{original_evidence:originalEvidence}:{}),status:calls.length&&calls.every(c=>c.state==="reply_recorded")?"Observed":"Unknown",admission_digest:header.admission_digest,task_packet_digest:header.task_packet_digest,calls,artifacts,
+ return {...(originalEvidence?{original_evidence:originalEvidence}:{}),...(outputProfile?{output_profile:outputProfile}:{}),status:calls.length&&calls.every(c=>c.state==="reply_recorded")?"Observed":"Unknown",admission_digest:header.admission_digest,task_packet_digest:header.task_packet_digest,calls,artifacts,
   model_account_custody_proven:false as const,costs_reconciled:false as const,formal_agent_execution_enabled:false as const};
 }

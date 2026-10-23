@@ -22,6 +22,20 @@ describe("original host model dispatch", () => {
   let initialized=false;
   return {root,scope,frame,response,port,sends:()=>sends,revoke:()=>{allowed=false;},open:async()=>{if(!initialized){initialized=true;return AgentRuntimeModelHost.initialize(root,scope,port,["cimi_read"]);}return AgentRuntimeModelHost.open(root,scope,port,["cimi_read"]);}};
  }
+ it("freezes an explicit new output profile and replays full 688-token usage without upgrading a legacy Host",async()=>{
+  const f=fixture();Object.assign(f.port,{output_profile:'bounded_2048/1.0.0',original_evidence:{kind:'codex_login/1.0.0',header_digest:digest('PUBLIC Codex header').value}});f.response.usage.output_tokens=688;
+  const host=await f.open(),request={...f.frame,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048};
+  expect(JSON.parse(readFileSync(join(host.path,'header.json'),'utf8'))).toMatchObject({format:'cimiloop/agent-runtime-model-originals/7.0.0',output_profile:'bounded_2048/1.0.0'});
+  expect(await host.execute(request)).toMatchObject({replay:false,receipt:{usage:{output_tokens:688}}});expect(await (await f.open()).execute(request)).toMatchObject({replay:true});expect(f.sends()).toBe(1);
+  expect(readAgentRuntimeModelOriginals(f.root,f.scope)).toMatchObject({status:'Observed',output_profile:'bounded_2048/1.0.0'});
+  await expect(host.execute({...request,call_id:'model_0002',max_output_tokens:2049})).rejects.toThrow();await expect(host.execute({...f.frame,call_id:'model_0002'})).rejects.toThrow();expect(f.sends()).toBe(1);
+  const old=fixture();await old.open();Object.assign(old.port,{output_profile:'bounded_2048/1.0.0',original_evidence:{kind:'codex_login/1.0.0',header_digest:digest('PUBLIC Codex header').value}});await expect(old.open()).rejects.toThrow();expect(old.sends()).toBe(0);
+ });
+ it('refuses unknown output profiles and over-budget actual usage rather than trimming it',async()=>{
+  const invalid=fixture();Object.assign(invalid.port,{output_profile:'arbitrary/1.0.0'});await expect(invalid.open()).rejects.toThrow();expect(invalid.sends()).toBe(0);
+  const f=fixture();Object.assign(f.port,{output_profile:'bounded_2048/1.0.0',original_evidence:{kind:'codex_login/1.0.0',header_digest:digest('PUBLIC Codex header').value}});f.response.usage.output_tokens=2049;const host=await f.open();
+  const request={...f.frame,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048};await expect(host.execute(request)).rejects.toThrow('agent_model_response_denied');expect(f.sends()).toBe(1);await expect((await f.open()).execute(request)).rejects.toThrow('agent_model_original_unknown');expect(f.sends()).toBe(1);
+ });
  it("requires the entire original SDK attachment projection before any model send",async()=>{
   const f=fixture(),packet='{"format":"original","last":"complete end"}\nsecond line';
   const host=await AgentRuntimeModelHost.initialize(f.root,f.scope,f.port,["cimi_read"],packet);

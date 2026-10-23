@@ -11,10 +11,10 @@ public class ParentSkillConfigContract {
    var type=Assembly.LoadFrom(args[0]).GetType("AppContainer",true);
    string mode=(string)input["mode"];
    var config=(Dictionary<string,object>)input["config"];
-   var method=type.GetMethod(mode=="config"?"AgentConfigDeadline":mode=="catalog"?"AgentParentSkillCatalog":mode=="startup"?"AgentConfigureStartupEnvironment":"AgentWorkspacePermissions",BindingFlags.NonPublic|BindingFlags.Static);
+   var method=type.GetMethod(mode=="config"?"AgentConfigDeadline":mode=="output"?"AgentModelOutputLimit":mode=="catalog"?"AgentParentSkillCatalog":mode=="startup"?"AgentConfigureStartupEnvironment":"AgentWorkspacePermissions",BindingFlags.NonPublic|BindingFlags.Static);
    if(method==null){Console.Write(json.Serialize(new {accepted=false,reason="missing_original_method"}));return 0;}
    string before=Environment.GetEnvironmentVariable("BUN_JSC_useJIT");
-   object result=method.Invoke(null,mode=="config"||mode=="startup"?new object[]{config}:mode=="catalog"?new object[]{config,(string)input["modules"]}:new object[]{config,(bool)input["production"],(bool)input["checks_only"]});
+   object result=method.Invoke(null,mode=="config"||mode=="startup"||mode=="output"?new object[]{config}:mode=="catalog"?new object[]{config,(string)input["modules"]}:new object[]{config,(bool)input["production"],(bool)input["checks_only"]});
    if(mode=="startup")result=new {before=before,after=Environment.GetEnvironmentVariable("BUN_JSC_useJIT")};
    Console.Write(json.Serialize(new {accepted=true,result=result}));return 0;
   } catch(Exception error) {

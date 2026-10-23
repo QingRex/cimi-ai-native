@@ -50,7 +50,7 @@ function fail(reason: string): never { throw new RuntimeAdapterError(reason); }
 // matching shared service; this metadata factory grants no model qualification.
 export function agentRuntimeProviderOptions(model:AgentRuntimeModelHost,parentSkill=false){
  if(!(model instanceof AgentRuntimeModelHost)||typeof parentSkill!=="boolean"||isAgentParentSkillToolSet(model.toolNames)!==parentSkill)fail("agent_parent_skill_runtime_unproven");
- return{admission_digest:model.admissionDigest,...(parentSkill?{parent_skill_tools:"fixed_parent_skill/1.0.0"}:{})};
+ return{admission_digest:model.admissionDigest,...(model.outputProfile?{model_output_profile:model.outputProfile}:{}),...(parentSkill?{parent_skill_tools:"fixed_parent_skill/1.0.0"}:{})};
 }
 // No credential, URL, arbitrary provider/plugin, command or model input. This
 // entry point tests actual SDK custom tools against constructed model replies;
@@ -68,7 +68,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const installedParent:AgentParentSkillIpcPort|undefined=parent?Object.freeze({get sdkCatalog(){parent.assertScope(scope);return parent.catalog;},invoke:parent.invoke}):undefined;
   const connect=options.mode==="host_gateway"?options.connect.bind(options):undefined;
   const rehearsalConnect=options.mode==="host_gateway"?undefined:options.connect.bind(options);
-  if(method!==undefined&&(!(method instanceof AgentNamedMethodHost)||options.checkCatalog||JSON.stringify(model?.toolNames)!==JSON.stringify(["cimi_invoke_skill","cimi_read_method_resource"])))fail("agent_method_scope_denied");method?.assertScope(scope);
+  if(method!==undefined&&(!(method instanceof AgentNamedMethodHost)||model?.outputProfile!==undefined||options.checkCatalog||JSON.stringify(model?.toolNames)!==JSON.stringify(["cimi_invoke_skill","cimi_read_method_resource"])))fail("agent_method_scope_denied");method?.assertScope(scope);
   const beforeNativeEffect = production ? options.beforeNativeEffect : undefined;
   if(beforeNativeEffect !== undefined && typeof beforeNativeEffect !== "function") fail("agent_runtime_start_guard_unavailable");
   if (production && (!(model instanceof AgentRuntimeModelHost) || !options.runBudget || (!options.checkCatalog && !method) || typeof options.prompt !== "string" || !options.prompt.isWellFormed() || !options.prompt.trim() || Buffer.byteLength(options.prompt) > 32768 || Buffer.byteLength(JSON.stringify({prompt:options.prompt})) > 48000 || options.prompt.split(/\r?\n/).length > 1000 || options.prompt.split(/\r?\n/).some(line => Buffer.byteLength(line) > 1800))) fail("agent_runtime_production_admission_unavailable");
@@ -137,7 +137,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const globalConfig = directory(join(config, "global", "opencode")); writeFileSync(join(globalConfig, ".gitignore"), "node_modules\npackage.json\npackage-lock.json\nbun.lock\n.gitignore\n", { flag: "wx" });
   writeFileSync(join(operation, "workspace-private-canary.txt"), "Synthetic private workspace canary\n", { flag: "wx" });
   const nonce = randomUUID(), pipeNonce = randomUUID(), scopeDigest = agentWorkspaceIpcScopeDigest(scope);
-  const originalConfig = { format:parent?"cimiloop/agent-workspace-sandbox-config/10.0.0":method?"cimiloop/agent-workspace-sandbox-config/9.0.0":"cimiloop/agent-workspace-sandbox-config/8.0.0", startup_profile:AGENT_RUNTIME_STARTUP_PROFILE, ...(parentBinding?{parent_skill_tools:"fixed_parent_skill/1.0.0",parent_skill_original_binding:parentBinding}:{}), ...(method?{method_tools:"fixed_named_method/1.0.0",method_original_binding:method.originalBinding}:{}), binary_original:binaryOriginal, nonce, root: sandbox, binary: pinned.path, owner,
+  const originalConfig = { format:model?.outputProfile?(parent?"cimiloop/agent-workspace-sandbox-config/12.0.0":"cimiloop/agent-workspace-sandbox-config/11.0.0"):parent?"cimiloop/agent-workspace-sandbox-config/10.0.0":method?"cimiloop/agent-workspace-sandbox-config/9.0.0":"cimiloop/agent-workspace-sandbox-config/8.0.0", startup_profile:AGENT_RUNTIME_STARTUP_PROFILE, ...(parentBinding?{parent_skill_tools:"fixed_parent_skill/1.0.0",parent_skill_original_binding:parentBinding}:{}), ...(method?{method_tools:"fixed_named_method/1.0.0",method_original_binding:method.originalBinding}:{}), binary_original:binaryOriginal, nonce, root: sandbox, binary: pinned.path, owner,
     pipe_nonce: pipeNonce, scope_digest: scopeDigest, elapsed_ms: elapsed, provider_options: providerOptions, deadline_uptime_ms: budget?.nativeDeadlineUptimeMs ?? null, prompt:production?options.prompt:null, lifetime_policy:production?policy.policy:null };
   atomicJson(join(operation, "original-config.json"), originalConfig);
   if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");

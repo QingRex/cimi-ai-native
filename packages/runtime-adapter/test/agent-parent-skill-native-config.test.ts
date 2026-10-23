@@ -23,7 +23,10 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('parent Skill o
   const config={format:'cimiloop/agent-workspace-sandbox-config/7.0.0',nonce:'PUBLIC nonce',root:'PUBLIC root',binary:'PUBLIC binary',owner:{},pipe_nonce:'PUBLIC pipe nonce',scope_digest,elapsed_ms:600000,provider_options:{admission_digest:digest('PUBLIC model admission').value,parent_skill_tools:'fixed_parent_skill/1.0.0'},deadline_uptime_ms:123456789,prompt:'PUBLIC complete original Task packet',lifetime_policy:'agent_task/1.0.0',binary_original:{format:'cimiloop/runtime-binary-original-proof/1.0.0',path:'PUBLIC binary'},parent_skill_tools:'fixed_parent_skill/1.0.0',parent_skill_original_binding:{format:'cimiloop/agent-parent-skill-binding/1.0.0',scope_digest,catalog_digest,sdk_catalog_digest:digest(bytes).value}};
   const modules=mkdtempSync(join(fixture,'modules-'));writeFileSync(join(modules,'parent-skill-catalog.json'),bytes,{flag:'wx'});return{config,catalog,bytes,modules};
  }
- const read=(mode:string,config:unknown,modules?:string)=>JSON.parse(execFileSync(contract,[core],{input:JSON.stringify({mode,config,modules,production:true,checks_only:false})+'\n',windowsHide:true,timeout:15000,encoding:'utf8',env:{...isolatedEnvironment(),BUN_JSC_useJIT:'external-fixture-value'}}));
+ const read=(mode:string,config:unknown,modules?:string)=>{
+  try{return JSON.parse(execFileSync(contract,[core],{input:JSON.stringify({mode,config,modules,production:true,checks_only:false})+'\n',windowsHide:true,timeout:15000,encoding:'utf8',env:{...isolatedEnvironment(),BUN_JSC_useJIT:'external-fixture-value'}}));}
+  catch(error){const failure=error as {status?:unknown;signal?:unknown;code?:unknown;stdout?:unknown;stderr?:unknown};console.error('Owned Native reflection process failed: '+JSON.stringify({mode,fixture,status:failure.status,signal:failure.signal,code:failure.code,stdout:String(failure.stdout??''),stderr:String(failure.stderr??'')}));throw error;}
+ };
  it('accepts only explicit saved Native7 with original parent scope, catalog pin, Task policy and finite original deadline',()=>{const f=basis();expect(read('config',f.config)).toMatchObject({accepted:true,result:123456789});});
  it('reads the original fixed alias catalog bytes bound to the same scope and private catalog digest',()=>{const f=basis();expect(read('catalog',f.config,f.modules)).toMatchObject({accepted:true});});
  it('grants exactly the four fixed ordinary parent SDK tools under default deny',()=>{const f=basis();expect(read('permissions',f.config)).toEqual({accepted:true,result:{'*':'deny',cimi_read:'allow',cimi_replace:'allow',cimi_check:'allow',cimi_run_skill:'allow'}});});
@@ -48,6 +51,16 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('parent Skill o
   const named={...ordinary,format:'cimiloop/agent-workspace-sandbox-config/9.0.0',method_tools:'fixed_named_method/1.0.0',method_original_binding:{format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('header').value,anchor_digest:digest('anchor').value}};
   return {f,ordinary,named,parent};
  }
+ it('freezes explicit Native config11/12 output policy without changing legacy config8/10',()=>{
+  const modes=currentModes();for(const [original,version] of [[modes.ordinary,11],[modes.parent,12]] as const){
+   const config={...original,format:`cimiloop/agent-workspace-sandbox-config/${version}.0.0`,provider_options:{...(original.provider_options as object),model_output_profile:'bounded_2048/1.0.0'}};
+   expect(read('config',config)).toMatchObject({accepted:true,result:123456789});
+   expect(read('output',config)).toEqual({accepted:true,result:2048});expect(read('output',original)).toEqual({accepted:true,result:512});
+   expect(read('config',{...config,provider_options:original.provider_options})).toMatchObject({accepted:false});
+   expect(read('config',{...original,provider_options:config.provider_options})).toMatchObject({accepted:false});
+   expect(read('config',{...config,provider_options:{...config.provider_options,model_output_profile:'foreign'}})).toMatchObject({accepted:false});
+  }
+ });
  it('accepts explicit interpreter config8/9/10 with the same original Task deadline and exact tool authority',()=>{
   const {ordinary,named,parent,f}=currentModes();
   for(const config of [ordinary,named,parent])expect(read('config',config)).toMatchObject({accepted:true,result:123456789});

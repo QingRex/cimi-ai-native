@@ -171,7 +171,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     const header = object(json(artifact("model/header.json", 114688))), expectedAdmission = object(input.provider_options).admission_digest;
     if (!same(header.scope, scope) || header.task_packet_digest !== digest(String(input.prompt)).value || header.admission_digest !== expectedAdmission ||
       object(config.provider_options).admission_digest !== expectedAdmission || !Array.isArray(header.permitted)) return null;
-    assertAgentRuntimeModelOriginalMode(header,parent);
+    assertAgentRuntimeModelOriginalMode(header,parent,object(config.provider_options));
     const model = readAgentRuntimeModelOriginals(root, scope);
     if (model.status !== "Observed" || model.admission_digest !== expectedAdmission || model.task_packet_digest !== digest(String(input.prompt)).value ||
       model.calls.length !== steps.length || ipc.header?.endpoint.model_admission_digest !== expectedAdmission ||
@@ -196,7 +196,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     }
     for (let i = 0; i < steps.length; i++) {
       const callId = "model_" + String(i + 1).padStart(4, "0"), step = steps[i]!;
-      const request = parseAgentRuntimeModelRequest(scope, json(artifact("model/" + callId + "/request.json", 114688)), header.permitted as string[]);
+      const request = parseAgentRuntimeModelRequest(scope, json(artifact("model/" + callId + "/request.json", 114688)), header.permitted as string[],header.output_profile);
       const saved = object(json(artifact("model/" + callId + "/reply.json", 114688)));
       if (request.call_id !== callId || request.admission_digest !== expectedAdmission || saved.request_digest !== digest(JSON.stringify(request)).value ||
         saved.response_digest !== digest(JSON.stringify(saved.response)).value) return null;

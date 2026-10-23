@@ -6,16 +6,18 @@ export function createCimiHostGateway(options) {
  // OpenCode adds SDK bookkeeping options. Only this Native-pinned field is
  // consumed; SDK endpoint/auth options cannot select any network or credential.
  const parentMode=options.parent_skill_tools;if(parentMode!==undefined&&parentMode!=="fixed_parent_skill/1.0.0")throw Error("agent_model_binding_denied");
+ const outputProfile=options.model_output_profile;if(outputProfile!==undefined&&outputProfile!=='bounded_2048/1.0.0')throw Error('agent_model_binding_denied');
+ const outputLimit=outputProfile?2048:512;
  const exchange=parentMode?exchangeAgentParentSkillModelFrame:exchangeAgentWorkspaceModelFrame;
  const admissionDigest=options.admission_digest;let step=0;const originals=new Map();
  return { languageModel(modelId) {
   if(modelId!=="host-approved")throw Error("agent_model_binding_denied");
   return {specificationVersion:"v3",provider:"cimiloop-host-gateway",modelId,supportedUrls:{},async doStream(input){
-   const tools=(input.tools??[]).filter(tool=>tool.name!=="invalid"),maximum=Math.min(input.maxOutputTokens??512,512);
+   const tools=(input.tools??[]).filter(tool=>tool.name!=="invalid"),maximum=Math.min(input.maxOutputTokens??outputLimit,outputLimit);
    const key=JSON.stringify([input.prompt,tools,maximum]);let callId=originals.get(key);
    if(!callId){if(step>=64)throw Error("agent_model_call_limit");callId="model_"+String(++step).padStart(4,"0");originals.set(key,callId);}
-   const reply=await exchange(process.env.CIMILOOP_AGENT_WORKSPACE_PIPE,{format:parentMode?"cimiloop/agent-runtime-model-request/2.0.0":"cimiloop/agent-runtime-model-request/1.0.0",
-    scope_digest:process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE,admission_digest:admissionDigest,call_id:callId,tool:"model_step",prompt:input.prompt,tools,max_output_tokens:maximum},input.abortSignal);
+   const reply=await exchange(process.env.CIMILOOP_AGENT_WORKSPACE_PIPE,{format:`cimiloop/agent-runtime-model-request/${outputProfile?(parentMode?4:3):(parentMode?2:1)}.0.0`,
+    scope_digest:process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE,admission_digest:admissionDigest,call_id:callId,tool:"model_step",prompt:input.prompt,tools,max_output_tokens:maximum},input.abortSignal,outputProfile);
    if(reply.outcome!=="completed")throw Error(reply.reason);
    const response=reply.receipt,events=[{type:"stream-start",warnings:[]}];let textBytes=0,calls=0;const ids=new Set();
    for(const item of response.content){

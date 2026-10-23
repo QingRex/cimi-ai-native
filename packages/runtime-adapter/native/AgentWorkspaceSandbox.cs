@@ -63,12 +63,21 @@ partial class AppContainer {
   // original ambient semantics and cannot acquire this policy by an extra key.
   static string AgentStartupFormat(Dictionary<string,object> config) {
     string format=config["format"] as string;int version;
+    bool bounded=format=="cimiloop/agent-workspace-sandbox-config/11.0.0"||format=="cimiloop/agent-workspace-sandbox-config/12.0.0";
+    var options=config["provider_options"] as Dictionary<string,object>;
+    if(bounded?(options==null||!options.ContainsKey("model_output_profile")||options["model_output_profile"] as string!="bounded_2048/1.0.0"):(options!=null&&options.ContainsKey("model_output_profile")))throw new InvalidDataException();
     if(format=="cimiloop/agent-workspace-sandbox-config/8.0.0")version=5;
     else if(format=="cimiloop/agent-workspace-sandbox-config/9.0.0")version=6;
     else if(format=="cimiloop/agent-workspace-sandbox-config/10.0.0")version=7;
+    else if(format=="cimiloop/agent-workspace-sandbox-config/11.0.0")version=5;
+    else if(format=="cimiloop/agent-workspace-sandbox-config/12.0.0")version=7;
     else {if(config.ContainsKey("startup_profile"))throw new InvalidDataException();return format;}
     if(!config.ContainsKey("startup_profile")||config["startup_profile"] as string!="bun_interpreter/1.0.0")throw new InvalidDataException();
     return "cimiloop/agent-workspace-sandbox-config/"+version.ToString()+".0.0";
+  }
+  static int AgentModelOutputLimit(Dictionary<string,object> config) {
+    AgentConfigDeadline(config);
+    return config["format"] as string=="cimiloop/agent-workspace-sandbox-config/11.0.0"||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/12.0.0"?2048:512;
   }
   static void AgentConfigKeys(Dictionary<string,object> config,params string[] keys) {
     AgentStartupFormat(config);
@@ -311,9 +320,10 @@ partial class AppContainer {
       var options=(Dictionary<string,object>)config["provider_options"];
       bool production=taskPolicy||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/3.0.0",checksOnly=options.ContainsKey("check_only");
       if(production) {
+        bool boundedOutput=AgentModelOutputLimit(config)==2048;
         if(AgentStartupFormat(config)=="cimiloop/agent-workspace-sandbox-config/7.0.0"){
-          AgentKeys(options,"admission_digest","parent_skill_tools");if(options["parent_skill_tools"] as string!="fixed_parent_skill/1.0.0")throw new InvalidDataException();AgentParentSkillCatalog(config,modules);
-        }else AgentKeys(options,"admission_digest");
+          if(boundedOutput)AgentKeys(options,"admission_digest","parent_skill_tools","model_output_profile");else AgentKeys(options,"admission_digest","parent_skill_tools");if(options["parent_skill_tools"] as string!="fixed_parent_skill/1.0.0")throw new InvalidDataException();AgentParentSkillCatalog(config,modules);
+        }else if(boundedOutput)AgentKeys(options,"admission_digest","model_output_profile");else AgentKeys(options,"admission_digest");
         if(!(options["admission_digest"] is string)||!System.Text.RegularExpressions.Regex.IsMatch((string)options["admission_digest"],"^[a-f0-9]{64}$")||agentTaskDeadline==0) throw new InvalidDataException();
         string prompt=config["prompt"] as string;
         if(String.IsNullOrWhiteSpace(prompt)||new UTF8Encoding(false,true).GetByteCount(prompt)>32768||File.ReadAllText(Path.Combine(modules,"task-packet.txt"),new UTF8Encoding(false,true))!=prompt) throw new InvalidDataException();
@@ -363,7 +373,7 @@ partial class AppContainer {
       var permission=AgentWorkspacePermissions(config,production,checksOnly);
       string providerId=production?"cimiloop-host-gateway":"cimiloop-workspace-fixture",modelId=production?"host-approved":"workspace-fixture";
       string modelRoute=providerId+"/"+modelId,providerModule=production?"opencode-host-gateway-provider.mjs":"opencode-workspace-provider-fixture.mjs";
-      var model=new { name=production?"Original host-approved model":"Constructed workspace tool responses",tool_call=true,limit=new { context=65536,output=512 } };
+      var model=new { name=production?"Original host-approved model":"Constructed workspace tool responses",tool_call=true,limit=new { context=65536,output=AgentModelOutputLimit(config) } };
       var models=new Dictionary<string,object> { {modelId,model} };
       var providers=new Dictionary<string,object> { {providerId,new { npm="file:///"+mapping+"/config/"+providerModule,options=options,models=models }} };
       Environment.SetEnvironmentVariable("OPENCODE_CONFIG_CONTENT",serializer.Serialize(new { autoupdate=false,share="disabled",snapshot=false,plugin=new string[0],

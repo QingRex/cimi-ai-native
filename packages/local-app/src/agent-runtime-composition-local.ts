@@ -10,6 +10,7 @@ import {DedicatedAgentAccountLedger} from '@cimiloop/runtime-adapter';
 import {LocalAgentDedicatedAccount,type AgentDedicatedModelContext} from './agent-dedicated-account-local.js';
 
 import {LocalAgentParentSkillHost} from './agent-parent-skill-host-local.js';
+import {parseAgentModelOutputProfile} from '@cimiloop/runtime-adapter';
 import {isDeepStrictEqual as same} from 'node:util';
 const unavailable=()=>new LocalProjectError("原 Runtime 应用身份或父 Skill 目录不可证明","CAPABILITY_UNAVAILABLE","conflict");
 
@@ -31,7 +32,8 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
   if(!(options.custody instanceof LocalAgentStartCustody)||!(options.checks instanceof LocalAgentCheckAdmission)||typeof options.model?.check!=="function"||typeof options.model?.execute!=="function"||options.parentSkill!==undefined&&!(options.parentSkill instanceof LocalAgentParentSkillHost))
    throw new LocalProjectError("完整原 Runtime、检查及模型账户准入尚未安装","CAPABILITY_UNAVAILABLE","conflict");
   let originalEvidence;try{originalEvidence=parseAgentModelOriginalEvidence(options.model.original_evidence);}catch{throw new LocalProjectError("原模型证据固定身份无效","CAPABILITY_UNAVAILABLE","conflict");}
-  return new LocalAgentRuntimeComposition({...options,model:{...(originalEvidence?{original_evidence:originalEvidence}:{}),admission_digest:options.model.admission_digest,check:options.model.check.bind(options.model),execute:options.model.execute.bind(options.model)}});
+  const outputProfile=parseAgentModelOutputProfile(options.model.output_profile);
+  return new LocalAgentRuntimeComposition({...options,model:{...(originalEvidence?{original_evidence:originalEvidence}:{}),...(outputProfile?{output_profile:outputProfile}:{}),admission_digest:options.model.admission_digest,check:options.model.check.bind(options.model),execute:options.model.execute.bind(options.model)}});
  }
  static openDedicated(options:Omit<Options,"model"> & {runId:string;connection:DedicatedModelConnection;account:DedicatedAgentAccountPort}){
   if(options.parentSkill!==undefined&&!(options.parentSkill instanceof LocalAgentParentSkillHost))throw unavailable();

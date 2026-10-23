@@ -68,6 +68,7 @@ export { PINNED_CONVERSATION_OPENCODE_SHA } from "./gateway-conversation-probe.j
 export { readDedicatedAgentModelOriginals, verifyCollectedDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary, type DedicatedAgentOriginalCall } from "./agent-dedicated-model.js";
 
 export { parseAgentModelOriginalEvidence, assertAgentRuntimeModelOriginalMode, type AgentModelOriginalEvidence } from "./agent-runtime-model.js";
+export {AGENT_MODEL_OUTPUT_PROFILE,parseAgentModelOutputProfile,agentModelOutputLimit,type AgentModelOutputProfile} from './agent-model-output.js';
 export {resolveOriginalWorkspaceFileChain} from './workspace-check-source-basis.js';
 
 export type {DedicatedAgentBill, DedicatedAgentBillItem, DedicatedAgentBillVerification} from "./agent-account-bills.js";

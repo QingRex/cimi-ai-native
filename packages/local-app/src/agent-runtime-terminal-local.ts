@@ -61,7 +61,7 @@ export function readOriginalAgentTerminal(root:string,project:Project,record:Age
   const modelArtifact=original.model.artifacts.find(a=>a.name==='header.json');if(!modelArtifact)throw Error('Original parent model header missing');
   const headerBytes=bytesAt(modelArtifact.path,65536);if(digest(headerBytes).value!==modelArtifact.digest)throw Error('Original parent model header changed');
   const header=structuredClone(parseGatewayJson(headerBytes.toString('utf8'),65536)) as Record<string,unknown>;
-  assertAgentRuntimeModelOriginalMode(header,true);
+  assertAgentRuntimeModelOriginalMode(header,true,config.provider_options as Record<string,unknown>);
   if(header.task_packet_digest!==digest(String(input.prompt)).value)throw Error('Original parent model mode unproven');
   native_bytes.push({name,digest:digest(bytes)});
  }

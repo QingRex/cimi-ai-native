@@ -55,15 +55,16 @@ function receiptValid(value, frame) {
 const originalTaskWait=process.env.CIMILOOP_AGENT_TASK_WAIT_MS;
 if(originalTaskWait!==undefined&&(!/^[1-9][0-9]*$/.test(originalTaskWait)||!Number.isSafeInteger(Number(originalTaskWait))||Number(originalTaskWait)>3600000))throw Error("agent_ipc_task_deadline_invalid");
 const taskWaitDeadline=originalTaskWait===undefined?null:performance.now()+Number(originalTaskWait);
-const exchangeFrame = (pipe, request, signal, model) => new Promise((done, fail) => {
+const exchangeFrame = (pipe, request, signal, model, outputProfile) => new Promise((done, fail) => {
   const parentModel=model==='parent_model',parentSkill=model==='parent_skill',method=model==='method'; model=model===true||parentModel;
   let frame, payload;
   try {
+    if(outputProfile!==undefined&&(!model||outputProfile!=='bounded_2048/1.0.0'))throw Error('invalid');
     payload = Buffer.from(JSON.stringify(request)); frame = json(payload.toString("utf8"));
     if (!/^\\\\\.\\pipe\\CimiLoop\.AgentWorkspace\.[a-f0-9-]{36}$/.test(pipe) || payload.length < 1 || payload.length > maximum || signal?.aborted ||
       !exact(frame, ["format", "scope_digest", "call_id", "tool", ...(parentSkill ? ["catalog_digest","skill_alias","method_name","input_alias"] : method ? ["profile_digest","argument"] : model ? ["admission_digest", "prompt", "tools", "max_output_tokens"] : frame.tool === "run_check" ? ["check_id", "check_catalog_digest"] : ["path", "expected_digest", ...(frame.tool === "replace_file" ? ["replacement_utf8"] : [])])]) ||
-      frame.format !== (parentSkill ? "cimiloop/agent-parent-skill-request/1.0.0" : method ? "cimiloop/agent-runtime-method-request/1.0.0" : model ? (parentModel?"cimiloop/agent-runtime-model-request/2.0.0":"cimiloop/agent-runtime-model-request/1.0.0") : "cimiloop/agent-workspace-tool-request/1.0.0") || !sha(frame.scope_digest) || typeof frame.call_id !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(frame.call_id) ||
-      !(parentSkill ? sha(frame.catalog_digest)&&frame.tool==='run_skill'&&[frame.skill_alias,frame.method_name,frame.input_alias].every(v=>typeof v==='string'&&/^[a-zA-Z0-9_-]{1,64}$/.test(v)) : method ? sha(frame.profile_digest) && ["invoke_skill","read_method_resource"].includes(frame.tool) && typeof frame.argument==='string' && frame.argument.isWellFormed() && frame.argument.length>0 && frame.argument.length<=240 : model ? sha(frame.admission_digest) && frame.tool === "model_step" && Array.isArray(frame.prompt) && Array.isArray(frame.tools) && (parentModel?frame.tools.length===4&&new Set(frame.tools.map(t=>t?.name)).size===4&&["cimi_read","cimi_replace","cimi_check","cimi_run_skill"].every(n=>frame.tools.some(t=>t?.name===n)):frame.tools.length<=3&&!frame.tools.some(t=>t?.name==="cimi_run_skill")) && Number.isSafeInteger(frame.max_output_tokens) && frame.max_output_tokens > 0 && frame.max_output_tokens <= 512 : frame.tool === "run_check" ? typeof frame.check_id === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(frame.check_id) && sha(frame.check_catalog_digest) :
+      frame.format !== (parentSkill ? "cimiloop/agent-parent-skill-request/1.0.0" : method ? "cimiloop/agent-runtime-method-request/1.0.0" : model ? `cimiloop/agent-runtime-model-request/${outputProfile?(parentModel?4:3):(parentModel?2:1)}.0.0` : "cimiloop/agent-workspace-tool-request/1.0.0") || !sha(frame.scope_digest) || typeof frame.call_id !== "string" || !/^[a-zA-Z0-9_-]{1,128}$/.test(frame.call_id) ||
+      !(parentSkill ? sha(frame.catalog_digest)&&frame.tool==='run_skill'&&[frame.skill_alias,frame.method_name,frame.input_alias].every(v=>typeof v==='string'&&/^[a-zA-Z0-9_-]{1,64}$/.test(v)) : method ? sha(frame.profile_digest) && ["invoke_skill","read_method_resource"].includes(frame.tool) && typeof frame.argument==='string' && frame.argument.isWellFormed() && frame.argument.length>0 && frame.argument.length<=240 : model ? sha(frame.admission_digest) && frame.tool === "model_step" && Array.isArray(frame.prompt) && Array.isArray(frame.tools) && (parentModel?frame.tools.length===4&&new Set(frame.tools.map(t=>t?.name)).size===4&&["cimi_read","cimi_replace","cimi_check","cimi_run_skill"].every(n=>frame.tools.some(t=>t?.name===n)):frame.tools.length<=3&&!frame.tools.some(t=>t?.name==="cimi_run_skill")) && Number.isSafeInteger(frame.max_output_tokens) && frame.max_output_tokens > 0 && frame.max_output_tokens <= (outputProfile?2048:512) : frame.tool === "run_check" ? typeof frame.check_id === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(frame.check_id) && sha(frame.check_catalog_digest) :
         ["read_file", "replace_file"].includes(frame.tool) && typeof frame.path === "string" && sha(frame.expected_digest) && (frame.tool !== "replace_file" ||
           typeof frame.replacement_utf8 === "string" && Buffer.byteLength(frame.replacement_utf8) <= 16384))) throw Error("invalid");
   } catch { fail(Error("agent_ipc_request_denied")); return; }
@@ -106,8 +107,8 @@ export const createAgentWorkspaceToolClient = endpoint => {
 };
 
 export const exchangeAgentWorkspaceToolFrame = (pipe, request, signal) => exchangeFrame(pipe, request, signal, false);
-export const exchangeAgentWorkspaceModelFrame = (pipe, request, signal) => exchangeFrame(pipe, request, signal, true);
-export const exchangeAgentParentSkillModelFrame=(pipe,request,signal)=>exchangeFrame(pipe,request,signal,"parent_model");
+export const exchangeAgentWorkspaceModelFrame = (pipe, request, signal, outputProfile) => exchangeFrame(pipe, request, signal, true, outputProfile);
+export const exchangeAgentParentSkillModelFrame=(pipe,request,signal,outputProfile)=>exchangeFrame(pipe,request,signal,"parent_model",outputProfile);
 
 export const exchangeAgentNamedMethodFrame = (pipe,request,signal)=>exchangeFrame(pipe,request,signal,'method');
 
