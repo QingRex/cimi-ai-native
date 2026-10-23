@@ -17,6 +17,9 @@ import { LocalAgentModelAdmission } from "./agent-model-admission-local.js";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
 import { readOriginalAgentRunInputs } from "./agent-workspace-tools-local.js";
+import { LocalAgentRuntimeAdmission } from './agent-runtime-admission-local.js';
+import { hasInstalledCodexAgentRuntime } from './agent-codex-installation-local.js';
+import { openInstalledCodexUsageBudget } from './agent-codex-usage-budget-local.js';
 
 // The installed connection names the model and the https chat-completions
 // endpoint. Fee authorization is one OpenCode Go connection: deepseek-v4.1-flash
@@ -78,6 +81,9 @@ function productionAdmissionError(missing: readonly string[]) {
     "CAPABILITY_UNAVAILABLE", "conflict",
     { production_admission: "unapproved", plan: PRODUCTION_ADMISSION_PLAN, missing: [...missing] },
   );
+}
+function codexProductionAdmissionError(missing:readonly string[]){
+  return new LocalProjectError(`正式 Agent 已选择现有 Codex 登录。缺项：${missing.join('；')}。未读取登录凭据，未发送模型请求。`,'CAPABILITY_UNAVAILABLE','conflict',{production_admission:'unapproved',plan:'Codex login',missing:[...missing]});
 }
 
 function readCheckTemplates(path: string): WorkspaceCheckTemplate[] {
@@ -172,6 +178,16 @@ export async function openInstalledProductionRuntime(runId: string, local: Local
 }
 
 export const productionAgentRuntime: HumanAgentRuntimeFactory = async (runId, local) => {
+  const admission=LocalAgentRuntimeAdmission.current(local);
+  if(admission){
+    const account=await openInstalledCodexUsageBudget(local);
+    if(!account)throw codexProductionAdmissionError(['Codex 原账户容量政策']);
+    try{
+      admission.guard();account.guard();const runtime=admission.runtimeForRun(runId,account);admission.guard();
+      let released=false;return{runtime,release(){if(!released){released=true;account.release();}}};
+    }catch(error){account.release();throw error;}
+  }
+  if(hasInstalledCodexAgentRuntime(local))throw codexProductionAdmissionError(['Codex Context 前完整准入']);
   const missing = [...await inspectProductionRuntime(local)];
   let feeConnection: DedicatedModelConnection | undefined;
   try { feeConnection = loadModelConnection(productionRuntimeLayout(local).connectionPath); } catch { feeConnection = undefined; }

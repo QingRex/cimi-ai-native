@@ -70,6 +70,9 @@ export async function installCodexAgentRuntime(local:LocalProject,raw:CodexAgent
 }
 
 export interface InstalledCodexAgentRuntime{origin:AgentStartLedger;root:string;binary:string;native_binary:string;node_binary:string;model:string;account_digest:string;quota_account_digest:string;output_profile:'bounded_2048/1.0.0';usage_policy:'require_ordinary_permission/1.0.0';disabled_mcp_servers:string[];checks:WorkspaceCheckTemplate[];installation_digest:string;guard():void;release():void}
+// Presence chooses the already installed provider only. It never grants
+// execution, repairs missing bytes, or opens login credentials.
+export function hasInstalledCodexAgentRuntime(local:LocalProject){return !!process.env.LOCALAPPDATA&&existsSync(layout(local).root);}
 // Discovery reads only the existing protected origin and exact physical bundle.
 // Missing/corrupt originals are never recreated or reapproved by a query.
 export async function openInstalledCodexAgentRuntime(local:LocalProject):Promise<InstalledCodexAgentRuntime|undefined>{
