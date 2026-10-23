@@ -104,6 +104,17 @@ describe("original Agent Unknown observation joins the Kernel receipt",()=>{
  const verifier=new LocalRunVerifier(root,local.location.dataDirectory);expect(()=>verifier.agent!.admitContext(f.project,{} as never)).toThrow();
  expect(verifier.agent!.checkToolAuthority).toBeUndefined();
  });
+ it.each(["legacy-with-codex", "new-without-codex", "new-with-forged-codex"])("rejects incompatible or invented Codex collection evidence: %s",async kind=>{
+  seed();const sequence=f.store.asOfEventSequence();
+  collect.mockImplementation(async(...args)=>{
+   const original=await collectAgentRuntimeOperation(...args);
+   const codex={status:"Observed",scope_digest:original.scope_digest,calls:1,unresolved:0,real_model_turns:1,original_requirement_pinned:true,model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false};
+   // A new version cannot authorize an absent backend; legacy collections
+   // cannot smuggle a new backend into an unchanged compatibility contract.
+   return {...original,format:kind==="legacy-with-codex"?"cimiloop/agent-runtime-originals/1.0.0":"cimiloop/agent-runtime-originals/2.0.0",...(kind!=="new-without-codex"?{codex_model:codex}:{})} as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>;
+  });
+  await expect(service.record(command())).rejects.toThrow();expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(0);expect(f.task().usage.cost_reserved_micros).toBe(100);
+ });
  it("retains one prepared report and one Kernel effect for simultaneous identical requests",async()=>{
  seed();const input=command(),sequence=f.store.asOfEventSequence();let release!:()=>void,arrived!:()=>void;
  const gate=new Promise<void>(done=>{release=done;}),both=new Promise<void>(done=>{arrived=done;});let calls=0;

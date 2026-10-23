@@ -1,4 +1,5 @@
 import{captureDedicatedLedgerModelFullHold}from'./agent-dedicated-account.js';
+import { verifyCollectedCodexAgentModelOriginals } from "./agent-codex-model.js";
 import {agentRuntimeClaimFormat} from './agent-job-policy.js';
 import { rememberOriginalObservation } from "./runtime-binary-originals.js";
 import { existsSync, realpathSync, lstatSync, mkdirSync, openSync, writeFileSync, fsyncSync, closeSync, readdirSync } from "node:fs";
@@ -161,6 +162,12 @@ function readDedicatedAgentModelOriginalsNow(root:string,rawScope:unknown):{summ
   }
   const verifyFrozen=()=>{for(const a of frozenSnapshots)if(digest(bytesAt(a.path,65536)).value!==a.digest)fail();};
   let hostEvidence:unknown;if(present(join(hostSpine,"header.json")))hostEvidence=(read(join(hostSpine,"header.json")) as Record<string,unknown>).original_evidence;
+  if (hostEvidence && typeof hostEvidence === "object" && "kind" in hostEvidence && hostEvidence.kind === "codex_login/1.0.0") {
+    const host = readAgentRuntimeModelOriginals(root, scope);
+    if (present(spine) || present(body) || present(registrationPath) || hostNames.some(name => ["dedicated-send-intent.json", "dedicated-response.json", "dedicated-budget-hold.json"].some(file => present(join(hostSpine, name, file)))) ||
+      frozenBinding !== undefined && !isDeepStrictEqual(frozenBinding, { format: "cimiloop/agent-model-original-binding/1.0.0", header_digest: digest(bytesAt(join(hostSpine, "header.json"), 114688)).value, original_evidence: host.original_evidence })) fail();
+    verifyFrozen(); return { summary: originalSummary(scope, "NotRegistered", "agent_dedicated_not_registered"), calls: [], artifacts: [] };
+  }
   const hints=frozenBinding!==undefined||hostEvidence!==undefined||present(spine)||present(body)||present(registrationPath)||hostNames.some(n=>present(join(hostSpine,n,"dedicated-send-intent.json"))||present(join(hostSpine,n,"dedicated-response.json"))||present(join(hostSpine,n,"dedicated-budget-hold.json")));
   if(!hints){verifyFrozen();return {summary:originalSummary(scope,"NotRegistered","agent_dedicated_not_registered"),calls:[],artifacts:[]};}
   if(!present(spine)||!present(body)||!present(registrationPath))fail();
@@ -223,6 +230,7 @@ function readDedicatedAgentModelOriginalsNow(root:string,rawScope:unknown):{summ
 // Kernel re-reads the same originals. Collection summaries/content-addressed
 // copies cannot substitute for current original custody or grant settlement.
 export function verifyCollectedDedicatedAgentModelOriginals(root:string,rawScope:unknown,collection:{dedicated_model?:DedicatedAgentOriginalSummary;artifacts:{name:string;reference:{provider:string;resource_type:string;locator:string;digest?:{value:string};version?:string}}[]}){
+ verifyCollectedCodexAgentModelOriginals(root,rawScope,collection);
  const original=readDedicatedAgentModelOriginals(root,rawScope),collected=collection.artifacts.filter(a=>a.name.startsWith("dedicated-model/"));
  if(original.summary.status==="NotRegistered"){if(collection.dedicated_model!==undefined||collected.length)fail();return;}
  if(!isDeepStrictEqual(collection.dedicated_model,original.summary)||collected.length!==original.artifacts.length||new Set(collected.map(a=>a.name)).size!==collected.length)fail();

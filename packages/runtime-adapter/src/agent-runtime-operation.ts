@@ -3,6 +3,7 @@ import {agentRuntimeClaimFormat} from './agent-job-policy.js';
 import {readAgentRuntimeNamedMethodResult,type AgentNamedMethodResultInputs} from './agent-named-method-result.js';
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
 import { readDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary } from "./agent-dedicated-model.js";
+import { readCodexAgentModelOriginals, codexAgentModelSummary, type CodexAgentModelSummary } from "./agent-codex-model.js";
 import { verifyAgentRuntimeInterruption } from "./agent-runtime-interruption.js";
 import {verifyAgentRuntimeCancellation} from './agent-runtime-cancellation.js';
 import { readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
@@ -274,12 +275,28 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
     try{const dedicated=readDedicatedAgentModelOriginals(root,original.claim.scope);if(dedicated.summary.status!=="NotRegistered"){dedicated_model=dedicated.summary;for(const a of dedicated.artifacts){const bytes=bytesAt(a.path,262144);if(digest(bytes).value!==a.digest)fail("agent_dedicated_original_unproven");const name="dedicated-model/"+a.name;artifacts.push({name,reference:rawReference(root,bytes,"agent_runtime_original_bytes",name)});}}}
     catch{dedicated_model={status:"Unknown",reason:"agent_dedicated_original_unproven",original_requirement_pinned:false,budget_identity_pinned:false,scope_digest:digest(JSON.stringify(original.claim.scope)).value,calls:0,unresolved:1,budget:{cash_upper_micros:null,credit_upper_micro_units:null,settled:false},model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false};}
   }
+  let codex_model: CodexAgentModelSummary | undefined;
+  if (original.claim.synthetic_model_responses === null) {
+    try {
+      const codex = readCodexAgentModelOriginals(root, original.claim.scope);
+      if (codex.status !== "NotRegistered") {
+        codex_model = codexAgentModelSummary(codex);
+        for (const artifact of codex.artifacts) {
+          const bytes = bytesAt(artifact.path, 8 * 1024 * 1024); if (digest(bytes).value !== artifact.digest) fail("agent_codex_original_unproven");
+          const name = "codex-model/" + artifact.name; artifacts.push({ name, reference: rawReference(root, bytes, "agent_runtime_original_bytes", name) });
+        }
+      }
+    } catch {
+      codex_model = { status: "Unknown", scope_digest: digest(JSON.stringify(original.claim.scope)).value, calls: 0, unresolved: 1, real_model_turns: null, original_requirement_pinned: false,
+        model_account_custody_proven: false, costs_reconciled: false, formal_agent_execution_enabled: false };
+    }
+  }
   const fresh = load(root, rawScope);
   if (!isDeepStrictEqual(fresh.claim, original.claim)) fail("agent_runtime_claim_changed");
   if(cancellation&&cancelOriginal)artifacts.push({name:'agent-runtime-cancel.json',reference:rawReference(root,cancelOriginal.bytes,'agent_runtime_original_bytes','agent-runtime-cancel.json')});
   const namedConfig=existsSync(configPath)&&agentWorkspaceConfigBaseFormat(read(configPath) as Record<string,unknown>)==='cimiloop/agent-workspace-sandbox-config/6.0.0';
   const named_method=namedConfig?readAgentRuntimeNamedMethodResult(root,rawScope,namedMethodInputs):undefined;
   if(named_method?.method_result_reverified||named_method?.method_failure_reverified)for(const a of named_method.artifacts){const bytes=bytesAt(a.path,['stdout.raw','result.json'].includes(a.name)?4*1024*1024:114688);if(digest(bytes).value!==a.digest)fail('agent_method_original_unproven');const name='named-method/'+a.name;artifacts.push({name,reference:rawReference(root,bytes,'agent_runtime_original_bytes',name)});}
-  return { format: "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(named_method?{named_method}:{}), ...(model ? {model} : {}), ...(dedicated_model?{dedicated_model}:{}), ...(interruption?{interruption}:{}),...(cancellation?{cancellation}:{}),
+  return { format: codex_model ? "cimiloop/agent-runtime-originals/2.0.0" as const : "cimiloop/agent-runtime-originals/1.0.0" as const, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope), status, artifacts, missing, ipc, native, ...(named_method?{named_method}:{}), ...(model ? {model} : {}), ...(dedicated_model?{dedicated_model}:{}), ...(codex_model?{codex_model}:{}), ...(interruption?{interruption}:{}),...(cancellation?{cancellation}:{}),
     domain_observation_produced: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: original.claim.synthetic_model_responses };
 }

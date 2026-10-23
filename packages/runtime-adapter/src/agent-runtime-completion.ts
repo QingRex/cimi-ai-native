@@ -4,7 +4,6 @@ import{AgentWorkspaceCheckHost}from'./workspace-checks.js';
 import{parseAgentParentCurrentInput,type AgentParentCurrentInput}from'./agent-parent-current-input.js';
 import{copyToolJson}from'./tool-journal.js';
 import{join}from'node:path';
-import{isAgentParentSkillToolSet}from'./agent-runtime-model.js';
 import{parseAgentParentSkillSdkCatalog,parseAgentParentSkillIpcRequest,parseAgentParentSkillIpcReceipt,type AgentParentSkillIpcReceipt}from'./agent-parent-skill-ipc.js';
 import type{AgentParentSkillHistoricalResultReader}from'./agent-runtime-result.js';
 import {readOriginalAgentJobObservation} from './agent-job-policy.js';
@@ -16,7 +15,7 @@ import { compileValidator, TaskDefinitionRecordSchema, ContractVersionSchema, Pl
 import { bytesAt, digest, RuntimeAdapterError } from "./files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { agentWorkspaceIpcScopeDigest } from "./agent-workspace-ipc.js";
-import { parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
+import { assertAgentRuntimeModelOriginalMode, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
 import { readAgentRuntimeNativeResult } from "./agent-runtime-result.js";
 import { correlateAgentWorkspaceSdkOriginals, readAgentWorkspaceIpcOriginals } from "./agent-workspace-ipc-journal.js";
 import type { collectAgentRuntimeOperation, readAgentRuntimeOriginalIdentity } from "./agent-runtime-operation.js";
@@ -98,6 +97,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
       collection.ipc?.status !== "Observed" || collection.ipc.unresolved !== 0 || collection.ipc.correlation?.uncorrelated_exchanges !== 0 || collection.ipc.correlation.unmatched_sdk_calls !== 0) return null;
     verifyCollectedDedicatedAgentModelOriginals(root,scope,collection);
     if (collection.dedicated_model && collection.dedicated_model.status!=="Observed") return null;
+    if (collection.codex_model && (collection.codex_model.status!=="Observed" || !collection.codex_model.original_requirement_pinned)) return null;
     if (!domain) return null;
     const definition = compileValidator<TaskDefinitionRecord>(TaskDefinitionRecordSchema)(packet.definition),
       contractVersion = compileValidator<ContractVersion>(ContractVersionSchema)(packet.contract), plan = compileValidator<PlanVersion>(PlanVersionSchema)(packet.plan),
@@ -171,7 +171,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     const header = object(json(artifact("model/header.json", 114688))), expectedAdmission = object(input.provider_options).admission_digest;
     if (!same(header.scope, scope) || header.task_packet_digest !== digest(String(input.prompt)).value || header.admission_digest !== expectedAdmission ||
       object(config.provider_options).admission_digest !== expectedAdmission || !Array.isArray(header.permitted)) return null;
-    if(parent?(!['cimiloop/agent-runtime-model-originals/3.0.0','cimiloop/agent-runtime-model-originals/4.0.0'].includes(String(header.format))||header.parent_skill_tools!=='fixed_parent_skill/1.0.0'||!isAgentParentSkillToolSet(header.permitted as string[])):header.parent_skill_tools!==undefined||isAgentParentSkillToolSet(header.permitted as string[]))return null;
+    assertAgentRuntimeModelOriginalMode(header,parent);
     const model = readAgentRuntimeModelOriginals(root, scope);
     if (model.status !== "Observed" || model.admission_digest !== expectedAdmission || model.task_packet_digest !== digest(String(input.prompt)).value ||
       model.calls.length !== steps.length || ipc.header?.endpoint.model_admission_digest !== expectedAdmission ||

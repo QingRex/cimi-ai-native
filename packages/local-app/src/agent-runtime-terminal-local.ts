@@ -1,6 +1,6 @@
 import {agentWorkspaceConfigBaseFormat} from '@cimiloop/runtime-adapter';
 import {existsSync} from 'node:fs';
-import {assertAgentParentSkillConfig,parseAgentParentSkillSdkCatalog,isAgentParentSkillToolSet,type AgentParentSkillHistoricalResultReader} from '@cimiloop/runtime-adapter';
+import {assertAgentParentSkillConfig,parseAgentParentSkillSdkCatalog,assertAgentRuntimeModelOriginalMode,type AgentParentSkillHistoricalResultReader} from '@cimiloop/runtime-adapter';
 import {captureLocalAgentParentSkillResults} from './agent-parent-skill-results-local.js';
 import {join} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
@@ -61,7 +61,8 @@ export function readOriginalAgentTerminal(root:string,project:Project,record:Age
   const modelArtifact=original.model.artifacts.find(a=>a.name==='header.json');if(!modelArtifact)throw Error('Original parent model header missing');
   const headerBytes=bytesAt(modelArtifact.path,65536);if(digest(headerBytes).value!==modelArtifact.digest)throw Error('Original parent model header changed');
   const header=structuredClone(parseGatewayJson(headerBytes.toString('utf8'),65536)) as Record<string,unknown>;
-  if(!header||!['cimiloop/agent-runtime-model-originals/3.0.0','cimiloop/agent-runtime-model-originals/4.0.0'].includes(String(header.format))||header.parent_skill_tools!=='fixed_parent_skill/1.0.0'||!Array.isArray(header.permitted)||!isAgentParentSkillToolSet(header.permitted as string[])||header.task_packet_digest!==digest(String(input.prompt)).value)throw Error('Original parent model mode unproven');
+  assertAgentRuntimeModelOriginalMode(header,true);
+  if(header.task_packet_digest!==digest(String(input.prompt)).value)throw Error('Original parent model mode unproven');
   native_bytes.push({name,digest:digest(bytes)});
  }
  const native=readAgentRuntimeNativeResult(root,project,record,identity.scope,original.ipc,catalog,installedParent);

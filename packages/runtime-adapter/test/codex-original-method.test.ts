@@ -42,6 +42,23 @@ if(r.method==='turn/start'){turnStarted=true;appendFileSync(effects,'turn\\n');r
     expect(adapter.readOriginal(input)).toEqual(result);
     expect(count() - before).toBe(1); expect(calls).toBe(1);
   });
+  it("pins explicitly low reasoning in a new original request without changing legacy medium requests", async () => {
+    const { adapter, input } = setup("low-effort"), request = { ...input, reasoning_effort: "low" }, before = count();
+    const first = await adapter.execute(request, () => "PUBLIC fixed response", () => {});
+    expect(adapter.readOriginal(request)).toEqual(first); expect(await adapter.execute(request, () => { throw Error("No repeat"); }, () => {})).toEqual(first); expect(count() - before).toBe(1);
+    const start = JSON.parse(readFileSync(join(root, "low-effort", input.operation_key, "start.json"), "utf8"));
+    expect(start.format).toBe("cimiloop/codex-method-start/4.0.0"); expect(start.request.reasoning_effort).toBe("low");
+    const frames = readFileSync(join(root, "low-effort", input.operation_key, "stdio.jsonl"), "utf8").trim().split("\n").map(line => JSON.parse(Buffer.from(JSON.parse(line).bytes, "base64").toString("utf8")));
+    expect(frames.find(frame => frame.method === "turn/start").params.effort).toBe("low");
+    expect(() => adapter.readOriginal({ ...request, reasoning_effort: "medium" })).toThrow();
+    // PUBLIC mutation fixture: even self-consistent re-sealed bytes cannot
+    // change the actual wire effort while retaining the original request.
+    const transcriptPath = join(root, "low-effort", input.operation_key, "stdio.jsonl"), rawFrames = readFileSync(transcriptPath, "utf8").trim().split("\n").map(line => JSON.parse(line));
+    const index = frames.findIndex(frame => frame.method === "turn/start"); frames[index]!.params.effort = "medium";
+    rawFrames[index]!.bytes = Buffer.from(JSON.stringify(frames[index]) + "\n").toString("base64"); writeFileSync(transcriptPath, rawFrames.map(frame => JSON.stringify(frame)).join("\n") + "\n");
+    const sealPath = join(root, "low-effort", input.operation_key, "seal.json"), seal = JSON.parse(readFileSync(sealPath, "utf8")); seal.transcript_digest = hash(transcriptPath); writeFileSync(sealPath, JSON.stringify(seal));
+    expect(() => adapter.readOriginal(request)).toThrow(); expect(count() - before).toBe(1);
+  });
   it("binds startup notifications delivered before the thread/start response to that original thread", async () => {
     const { adapter, input } = setup("early-valid");
     expect((await adapter.execute(input, () => "PUBLIC source", () => {})).thread_id).toBe("public-thread");

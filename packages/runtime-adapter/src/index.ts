@@ -67,7 +67,7 @@ export { PINNED_CONVERSATION_OPENCODE_SHA } from "./gateway-conversation-probe.j
 
 export { readDedicatedAgentModelOriginals, verifyCollectedDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary, type DedicatedAgentOriginalCall } from "./agent-dedicated-model.js";
 
-export { parseAgentModelOriginalEvidence, type AgentModelOriginalEvidence } from "./agent-runtime-model.js";
+export { parseAgentModelOriginalEvidence, assertAgentRuntimeModelOriginalMode, type AgentModelOriginalEvidence } from "./agent-runtime-model.js";
 export {resolveOriginalWorkspaceFileChain} from './workspace-check-source-basis.js';
 
 export type {DedicatedAgentBill, DedicatedAgentBillItem, DedicatedAgentBillVerification} from "./agent-account-bills.js";
@@ -122,3 +122,5 @@ export { CodexFixedClarificationMethod } from "./codex-fixed-method.js";
 export type { CodexFixedClarificationOriginal, CodexFixedClarificationOptions } from "./codex-fixed-method.js";
 export { CodexFactInvestigator } from "./codex-fact-investigation.js";
 export type { CodexFactParent, CodexFactSnapshot, CodexFactOutput, CodexFactOriginal } from "./codex-fact-investigation.js";
+export { createCodexAgentRuntimeModel, readCodexAgentModelOriginals, codexAgentModelSummary, verifyCollectedCodexAgentModelOriginals } from "./agent-codex-model.js";
+export type { CodexAgentModelOptions, CodexAgentModelAuthority, CodexAgentModelOriginals, CodexAgentModelSummary } from "./agent-codex-model.js";
