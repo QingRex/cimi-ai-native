@@ -81,6 +81,9 @@ export interface KernelDependencies {
   // Trusted embedding compatibility only; never a command/HTTP/Agent option.
   // Historical manual setup is not verified Human/Matt planning admission.
   legacyManualPlanning?:true;
+  // Trusted host-only binding for the two Agent metadata commands. Never read
+  // from a command or model payload; full Agent/provider admission still applies.
+  agentPreparationInitiator?:{human_actor_id:InternalId};
 }
 
 const defaultClock = (): string => new Date().toISOString();
@@ -105,6 +108,7 @@ export class CimiLoopKernel {
   readonly #runVerifier: RunVerifierPort | undefined;
   readonly #providerVerifier: ProviderVerifierPort | undefined;
   readonly #planningClarification:PlanningClarificationPort|undefined;
+  readonly #agentPreparationInitiator:InternalId|undefined;
 
   constructor(dependencies: KernelDependencies) {
     this.#store = dependencies.store;
@@ -114,6 +118,8 @@ export class CimiLoopKernel {
     this.#evidenceVerifier = dependencies.evidenceVerifier;
     this.#runVerifier = dependencies.runVerifier;
     this.#providerVerifier = dependencies.providerVerifier;
+    this.#agentPreparationInitiator=dependencies.agentPreparationInitiator?.human_actor_id;
+    if(this.#agentPreparationInitiator!==undefined&&this.#caller?.kind!=='agent')throw Error('agent_preparation_agent_caller_required');
     if(dependencies.legacyManualPlanning===true&&dependencies.planningClarification!==undefined)throw Error('legacy_manual_planning_with_original_verifier_denied');
     this.#planningClarification=dependencies.planningClarification??(dependencies.legacyManualPlanning===true?undefined:Object.freeze({verifyOriginal(){throw new MattClarificationUnavailable();}}));
   }
@@ -376,6 +382,21 @@ export class CimiLoopKernel {
   // Human initiation permission only. The original Agent still needs the full
   // independent launch assessment; this does not change a Run or grant effects.
   authorizeAgentRunStart(runId: string) { return this.authorizeAgentRunHuman(runId, "启动"); }
+  authorizeAgentRunPreparation(workItemId:string){
+    try{return this.#store.readSnapshot(reader=>{
+      const caller=this.#caller,project=reader.getProject(),actor=caller&&caller.kind==='local_operator'?reader.getActor(caller.actor_id):undefined;
+      if(!project||!caller||caller.kind!=='local_operator'||!actor||!callerMatchesActor(caller,actor)||caller.project_id!==project.id)return domainError(this.#id(),'CALLER_IDENTITY_MISMATCH','需要当前项目的 Human 本地身份','forbidden');
+      return this.#humanAgentPreparationPermission(reader,project,workItemId,actor.id,this.#now());
+    }).value;}catch{return domainError(this.#id(),'STORE_FAILURE','无法核对 Agent 准备请求权限','storage',true);}
+  }
+  #humanAgentPreparationPermission(reader:Pick<StoreTransaction,'getActor'|'getExecutionObject'|'listAssignments'>,project:Project|undefined,workItemId:string,humanId:InternalId,at:string){
+    const human=reader.getActor(humanId),item=reader.getExecutionObject('work_item',workItemId),executor=item&&reader.getActor(item.executor_ref.id);
+    if(!project||human?.actor_type!=='human'||human.project_id!==project.id)return domainError(this.#id(),'CALLER_IDENTITY_MISMATCH','原 Human 发起人与项目不符','forbidden');
+    if(!item||item.project_id!==project.id||executor?.actor_type!=='agent'||executor.project_id!==project.id)return domainError(this.#id(),'WORK_ITEM_NOT_FOUND','未找到当前项目的 Agent WorkItem','not_found');
+    const assignment=resolveAssignment(reader.listAssignments(humanId),{projectId:project.id,actorId:humanId,role:'technical_owner',scope:{kind:'change',id:item.change_id},now:at})??resolveAssignment(reader.listAssignments(humanId),{projectId:project.id,actorId:humanId,role:'technical_owner',scope:{kind:'project',id:project.id},now:at});
+    if(!assignment)return domainError(this.#id(),'ROLE_NOT_ASSIGNED','准备原 Agent 运行需要当前 Human 技术负责人指派','forbidden');
+    return{ok:true as const,project_id:project.id,actor_id:humanId,work_item_id:item.id,executor_actor_id:executor.id,assignment_id:assignment.id,assignment_revision:assignment.revision};
+  }
   // Original physical control permission only. Does not grant Agent execution,
   // manufacture cancellation or settle domain/cost facts.
   authorizeAgentRunControl(runId: string) { return this.authorizeAgentRunHuman(runId, "控制"); }
@@ -443,6 +464,13 @@ export class CimiLoopKernel {
     }
     if (actor.actor_type !== "human" && ["human_cli", "human_ui"].includes(command.source.origin)) {
       return domainError(command.correlation_id, "CALLER_IDENTITY_MISMATCH", "Agent/System 不能自报 Human 来源", "forbidden");
+    }
+    if(this.#agentPreparationInitiator!==undefined){
+      if(!['PrepareRunContext','ReserveRun'].includes(command.command_type)||this.#caller?.kind!=='agent')return domainError(command.correlation_id,'CAPABILITY_UNAVAILABLE','Human 发起的宿主仅能准备或预约固定 Agent 运行','forbidden');
+      const workItemId=command.command_type==='PrepareRunContext'?command.target.id:command.command_type==='ReserveRun'?command.payload.work_item_ref.id:'';
+      const allowed=this.#humanAgentPreparationPermission(transaction,transaction.getProject(actor.project_id),workItemId,this.#agentPreparationInitiator,this.#now());
+      if('code' in allowed)return{...allowed,correlation_id:command.correlation_id};
+      if(allowed.executor_actor_id!==actor.id)return domainError(command.correlation_id,'CALLER_IDENTITY_MISMATCH','宿主与固定 Agent 执行者不符','forbidden');
     }
   }
 

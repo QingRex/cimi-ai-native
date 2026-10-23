@@ -6,6 +6,7 @@ import { SqliteProjectStore } from "@cimiloop/store-sqlite";
 import { readInstance, type SoloInstance } from "./instance.js";
 import { locateProject, type ProjectLocation } from "./location.js";
 import { LocalProjectError } from "./errors.js";
+import { executeHumanAgentRunCommand } from './agent-runtime-admission-local.js';
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
@@ -77,7 +78,7 @@ export interface LocalCommandInput {
   payload: unknown;
 }
 
-export const executeLocalCommand = (context: Pick<LocalProject, "location" | "instance"> & { kernel: Pick<LocalProject["kernel"], "execute"> }, input: unknown): KernelResult => {
+export const executeLocalCommand = (context: Pick<LocalProject, "location" | "instance"> & { kernel: Pick<LocalProject["kernel"], "execute">; store?:unknown }, input: unknown): KernelResult => {
   const keys = new Set(["command_id", "requested_at", "acting_role", "command_type", "target", "expected_revision", "expected_input_digest", "payload"]);
   if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some(key => !keys.has(key))) {
     throw new LocalProjectError("动作包含不支持的字段", "INVALID_COMMAND");
@@ -86,7 +87,8 @@ export const executeLocalCommand = (context: Pick<LocalProject, "location" | "in
   if (!(LOCAL_COMMAND_TYPES as readonly string[]).includes(command.command_type)) throw new LocalProjectError("该入口尚未支持此动作", "INVALID_COMMAND");
   // Preserve the complete request across retries. The receipt, not a browser
   // cache or a new timestamp, determines whether a command has already run.
-  return context.kernel.execute({ ...command, schema_version: SCHEMA_VERSION, correlation_id: command.command_id,
+  const request={ ...command, schema_version: SCHEMA_VERSION, correlation_id: command.command_id,
     project_id: context.instance.project_id, actor_id: context.instance.actor_id,
-    source: { origin: "human_ui", producer: "cimiloop-workbench", repository_path: context.location.repositoryPath } });
+    source: { origin: "human_ui", producer: "cimiloop-workbench", repository_path: context.location.repositoryPath } };
+  return context.store instanceof SqliteProjectStore&&context.kernel instanceof CimiLoopKernel?executeHumanAgentRunCommand({...context,store:context.store,kernel:context.kernel},request):context.kernel.execute(request);
 };

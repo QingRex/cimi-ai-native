@@ -1,7 +1,8 @@
 import { isDeepStrictEqual as same } from 'node:util';
-import { CimiLoopKernel, type AgentRunAdmissionInput, type AgentRunToolAuthorityInput } from '@cimiloop/kernel';
+import { CimiLoopKernel, type KernelResult, type AgentRunAdmissionInput, type AgentRunToolAuthorityInput } from '@cimiloop/kernel';
 import { AgentStartLedger, type WorkspaceCheckTemplate } from '@cimiloop/runtime-adapter';
 import type { Project, Digest, AgentContextManifest } from '@cimiloop/protocol/v2';
+import { parseVersionedCommand } from '@cimiloop/protocol';
 import { installedRunVerifier, type LocalProject } from './project.js';
 import { LocalAgentCheckAdmission } from './agent-check-admission-local.js';
 import { LocalAgentStartCustody, type AgentStartFullCustodyPort } from './agent-start-custody-local.js';
@@ -14,6 +15,7 @@ import type { InstalledCodexUsageBudget } from './agent-codex-usage-budget-local
 import type { LocalAgentParentSkillHost } from './agent-parent-skill-host-local.js';
 import { captureLocalAgentParentSkillResults } from './agent-parent-skill-results-local.js';
 import { LocalProjectError } from './errors.js';
+import { agentPreparationWorkItem, humanAgentPreparation } from './agent-human-preparation-local.js';
 
 type Reference=AgentContextManifest['host_admission_ref'];
 export interface AgentProductionCustodyPort extends AgentStartFullCustodyPort {
@@ -34,13 +36,26 @@ function synchronous<T>(value:T):T{
  return value;
 }
 
+// Ordinary Human CLI/UI metadata entry. All other commands retain the original
+// Kernel path, including an explicitly selected executor role.
+export function executeHumanAgentRunCommand(local:LocalProject,raw:unknown):KernelResult{
+ let command;try{command=parseVersionedCommand(raw);}catch{return local.kernel.execute(raw);}
+ if(command.schema_version!=='2.0.0'||(command.command_type!=='PrepareRunContext'&&command.command_type!=='ReserveRun')||command.acting_role!=='technical_owner'||command.actor_id!==local.instance.actor_id||command.project_id!==local.instance.project_id||!['human_cli','human_ui'].includes(command.source.origin))return local.kernel.execute(raw);
+ const item=agentPreparationWorkItem(local,command.command_type,'target' in command?command.target?.id:undefined,command.payload);
+ if(!item||local.store.getActor(item.executor_ref.id)?.actor_type!=='agent')return local.kernel.execute(raw);
+ const permission=local.kernel.authorizeAgentRunPreparation(item.id);if('code' in permission)return permission;
+ const lease=LocalAgentRuntimeAdmission.current(local);if(!lease)throw new LocalProjectError('准备 Agent 运行需要安装完整 Runtime 准入宿主','CAPABILITY_UNAVAILABLE','conflict');
+ return lease.executeHumanPreparation(command);
+}
+
 // Trusted host lifecycle only. The full independent port remains mandatory;
 // neither a Codex login, check recipe nor caller JSON can create qualification.
 // Borrowed Host/account objects and original Native operations survive release.
 export class LocalAgentRuntimeAdmission {
- private constructor(readonly custody:LocalAgentStartCustody,readonly checks:LocalAgentCheckAdmission,private readonly assertCurrent:()=>void,private readonly close:()=>void,private readonly runtime:(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost)=>LocalAgentRuntimeComposition){Object.freeze(this);}
+ private constructor(readonly custody:LocalAgentStartCustody,readonly checks:LocalAgentCheckAdmission,private readonly assertCurrent:()=>void,private readonly close:()=>void,private readonly runtime:(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost)=>LocalAgentRuntimeComposition,private readonly prepare:(raw:unknown)=>KernelResult){Object.freeze(this);}
  guard(){this.assertCurrent();}
  release(){this.close();}
+ executeHumanPreparation(raw:unknown){this.assertCurrent();return this.prepare(raw);}
  runtimeForRun(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost){this.assertCurrent();return this.runtime(runId,account,parent);}
  static current(local:LocalProject){const entry=active.get(local.store);if(!entry)return undefined;if(entry.local.kernel!==local.kernel||!same(entry.local.location,local.location)||!same(entry.local.instance,local.instance))throw unavailable();entry.lease.guard();return entry.lease;}
  static async open(local:LocalProject,raw:Options):Promise<LocalAgentRuntimeAdmission>{
@@ -95,7 +110,7 @@ export class LocalAgentRuntimeAdmission {
     const borrowed={...account,guard:()=>{guard();account.guard();guard();}};
     const result=LocalAgentRuntimeComposition.openCodex({local:{location:structuredClone(location),store,caller,kernel:agentKernel},runId,account:borrowed,custody,checks,...(parent?{parentSkill:parent}:{})});guard();return result;
    };
-   lease=new LocalAgentRuntimeAdmission(custody,checks,guard,release,runtime);active.set(store,{local,lease});return lease;
+   lease=new LocalAgentRuntimeAdmission(custody,checks,guard,release,runtime,humanAgentPreparation(local,verifier,origin,guard));active.set(store,{local,lease});return lease;
   }catch(error){release();throw error;}
  }
 }

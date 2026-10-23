@@ -216,6 +216,27 @@ const taskPanel = (task, data) => {
     facts([["累计尝试", task.usage.attempts_consumed], ["已记录费用", !task.usage.cost_known ? "未知，待核对" : task.usage.cost_consumed_micros === undefined ? "数额尚未记录" : `${(task.usage.cost_consumed_micros / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${task.usage.cost_currency ?? "（币种未记录）"}`],
       ["授权准入", readiness?.ready ? "满足" : (readiness?.reasons ?? []).join("、") || "尚未评估"], ["当前授权", active?.id ?? "暂无"]]), details("任务与授权事实", { task, definition, readiness, work_items: items }));
   const run = data.runs.runs.find(value => value.id === task.active_run_ref?.id);
+  const agentActor=active&&state.dashboard.governance.actors.find(actor=>actor.id===active.executor_ref.id&&actor.actor_type==='agent');
+  if(active&&agentActor&&!run){
+    const catalog=state.dashboard.providers,runtimeId=agentActor.provider_identity_ref?.locator;
+    const runtime=catalog.bindings.find(binding=>binding.id===runtimeId),runtimeCheck=catalog.binding_checks.find(check=>check.binding_ref.id===runtimeId);
+    if(runtime&&runtimeCheck){
+      const skills=catalog.bindings.filter(binding=>binding.runtime_binding_ref?.id===runtimeId&&binding.approval?.binding_scope==='task_execution');
+      const preparation=form(values=>{
+        const selected=skills.filter(skill=>values['skill_'+skill.id]==='on');if(selected.length>8)throw new Error('一次最多选择8项技能。');
+        return mutation('PrepareRunContext',{source_snapshot_ref:{object_type:'source_snapshot',id:values.source},runtime_binding:{binding_ref:runtimeCheck.binding_ref,digest:runtimeCheck.binding_digest},skill_bindings:selected.map(skill=>{const check=catalog.binding_checks.find(value=>value.binding_ref.id===skill.id);if(!check)throw new Error('技能固定摘要缺失，请刷新。');return{binding_ref:check.binding_ref,digest:check.binding_digest};})},{object_type:'work_item',id:active.id},active.revision,'technical_owner');
+      },select('source','运行基于的源码快照',[['','选择已记录的快照'],...data.verification.source_snapshots.map(source=>[source.id,source.commit_id.slice(0,12)])]),
+      ...skills.map(skill=>node('label',{class:'check'},node('input',{name:'skill_'+skill.id,type:'checkbox'}),catalog.descriptors.find(descriptor=>descriptor.id===skill.descriptor_ref.id)?.name??skill.id)),submit('准备 Agent 运行资料'));
+      preparation.querySelector('[name="source"]').required=true;
+      result.append(panel('准备 Agent 运行',paragraph(`执行者：${agentActor.display_name}。准备资料和预约均不启动模型；仍须完整宿主、技能及预算核验。`),preparation));
+    }else result.append(paragraph('Agent 的原 Runtime 绑定或固定摘要尚不可读取，暂不能准备运行。'));
+    const contexts=data.runs.contexts.filter(context=>context.work_item_ref.id===active.id&&context.executor_ref.id===agentActor.id&&context.runtime_binding);
+    if(contexts.length)result.append(form(values=>{
+      const context=contexts.find(value=>value.id===values.context);if(!context)throw new Error('请选择原运行资料。');
+      const reserved=Number(values.reserved_cost_micros);if(!Number.isSafeInteger(reserved)||reserved<0)throw new Error('费用预约必须是非负整数微单位。');
+      return mutation('ReserveRun',{work_item_ref:{object_type:'work_item',id:active.id},context_ref:{object_type:'context_manifest',id:context.id},input_digest:context.input_digest,reserved_cost_micros:reserved},{object_type:'task',id:task.id},task.revision,'technical_owner');
+    },select('context','原运行资料',contexts.map(context=>[context.id,context.id])),input('reserved_cost_micros','本次费用预约（微单位）',{type:'number',min:0,step:1,required:true}),submit('预约 Agent 运行')));
+  }
   if (run) {
     const agent = data.runs.records.find(record => record.id === run.record_ref.id)?.run_kind === "agent";
     result.append(node("div", { class: "row" }, paragraph("当前运行"), badge(run.status)), details("运行事实", run));

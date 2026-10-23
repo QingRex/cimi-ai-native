@@ -5,7 +5,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { fileURLToPath } from "node:url";
 import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions,type LocalAgentParentSkillResultPort } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
-import { productionAgentAccount, hasInstalledProductionAccount, openInstalledCodexMatt, inspectCodexAgentRuntimeInstallation, type InstalledCodexMatt, type MattClarificationHost } from "@cimiloop/local-app";
+import { productionAgentAccount, hasInstalledProductionAccount, openInstalledCodexMatt, inspectCodexAgentRuntimeInstallation, LocalAgentRuntimeAdmission, type InstalledCodexMatt, type MattClarificationHost } from "@cimiloop/local-app";
 
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -45,17 +45,22 @@ const checked = <T>(value: T | DomainError): T => {
   return value as T;
 };
 
-export interface WorkbenchOptions { projectDir: string; port?: number; prePlanMatt?:MattClarificationHost; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions;skillReconciliationForInvocation?:HumanSkillReconciliationFactory;skillRuntimeForInvocation?:HumanSkillRuntimeFactory;agentParentSkillResults?:LocalAgentParentSkillResultPort }
+export interface WorkbenchOptions { projectDir: string; port?: number; prePlanMatt?:MattClarificationHost; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions;skillReconciliationForInvocation?:HumanSkillReconciliationFactory;skillRuntimeForInvocation?:HumanSkillRuntimeFactory;agentParentSkillResults?:LocalAgentParentSkillResultPort;runtimeAdmission?:(local:LocalProject)=>Promise<LocalAgentRuntimeAdmission> }
 export interface WorkbenchServer { origin: string; bootstrapUrl: string; close(): Promise<void> }
 
 export const startWorkbench = async (options: WorkbenchOptions): Promise<WorkbenchServer> => {
   if (options.port !== undefined && (!Number.isInteger(options.port) || options.port < 0 || options.port > 65535)) throw new Error("Invalid loopback port");
   const context = openLocalProject({ projectDir: options.projectDir,...(options.prePlanMatt?{prePlanMatt:options.prePlanMatt}:{}),...(options.planningClarification?{planningClarification:options.planningClarification}:{}),...(options.agentParentSkillResults?{agentParentSkillResults:options.agentParentSkillResults}:{}) });
   let installedMatt: InstalledCodexMatt | undefined, matt = options.prePlanMatt;
+  let admission:LocalAgentRuntimeAdmission|undefined;
+  let cleaned=false;
+  const cleanup=()=>{if(cleaned)return;cleaned=true;try{installedMatt?.release();}finally{try{admission?.release();}finally{context.store.close();}}};
+  try {
+  try{if(options.runtimeAdmission){admission=await options.runtimeAdmission(context);if(!(admission instanceof LocalAgentRuntimeAdmission)||LocalAgentRuntimeAdmission.current(context)!==admission)throw new LocalProjectError('工作台未取得同一项目的完整准入租约','CAPABILITY_UNAVAILABLE','conflict');admission.guard();}}catch(error){cleanup();throw error;}
   let mattState: "installed" | "missing" | "unavailable" = matt ? "installed" : "missing";
   if (!matt) {
     try { installedMatt = await openInstalledCodexMatt(context); matt = installedMatt?.host; if (matt) mattState = "installed"; }
-    catch (error) { if (!(error instanceof LocalProjectError)) { context.store.close(); throw error; } mattState = "unavailable"; }
+    catch (error) { if (!(error instanceof LocalProjectError)) { cleanup(); throw error; } mattState = "unavailable"; }
   }
   const clarification = new LocalPrePlanClarification(context, matt);
   const skillReconciliation=new LocalHumanSkillInvocationReconciliation(context,options.skillReconciliationForInvocation);
@@ -72,7 +77,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       ["/style.css", "style.css", "text/css; charset=utf-8"]]) {
       assets.set(route!, { type: type!, body: readFileSync(fileURLToPath(new URL(`../public/${file}`, import.meta.url))) });
     }
-  } catch (error) { installedMatt?.release(); context.store.close(); throw error; }
+  } catch (error) { cleanup(); throw error; }
   let origin = "", bootstrap: string | undefined = token(), session: string | undefined, csrf: string | undefined, expires = 0;
   let closing = false, failedLogins = 0, cookieName = "";
   const pending = new Set<Promise<void>>();
@@ -253,17 +258,18 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   server.maxConnections = 64; server.maxHeadersCount = 50; server.on("clientError", (_error, socket) => socket.destroy());
   try {
     await new Promise<void>((done, reject) => { server.once("error", reject); server.listen(options.port ?? 0, "127.0.0.1", () => { server.off("error", reject); done(); }); });
-  } catch (error) { installedMatt?.release(); context.store.close(); throw error; }
-  const address = server.address(); if (!address || typeof address === "string") { server.close(); installedMatt?.release(); context.store.close(); throw new Error("Loopback address unavailable"); }
+  } catch (error) { cleanup(); throw error; }
+  const address = server.address(); if (!address || typeof address === "string") { server.close(); cleanup(); throw new Error("Loopback address unavailable"); }
   origin = `http://127.0.0.1:${address.port}`; cookieName = `cimiloop_workbench_${address.port}`;
   let closePromise: Promise<void> | undefined;
   return { origin, bootstrapUrl: `${origin}/#${bootstrap}`, close() {
     return closePromise ??= (async () => {
       closing = true; bootstrap = session = csrf = undefined;
       const closed = new Promise<void>((done, reject) => server.close(error => error ? reject(error) : done()));
-      server.closeAllConnections(); await closed; await Promise.allSettled([...pending]); installedMatt?.release(); context.store.close();
+      server.closeAllConnections(); await closed; await Promise.allSettled([...pending]); cleanup();
     })();
   } };
+  }catch(error){cleanup();throw error;}
 };
 
 const dashboard = (context: LocalProject) => ({ ok: true, project: checked(context.kernel.getProject()),

@@ -7,7 +7,7 @@ import { AgentStartLedger, CodexAgentUsageBudget, digest } from '@cimiloop/runti
 import type { InstalledCodexUsageBudget } from '../src/agent-codex-usage-budget-local.js';
 import type { AgentRuntimeLease } from '../src/agent-runtime-human-start-local.js';
 import * as Public from '../src/index.js';
-import { installedRunVerifier } from '../src/project.js';
+import { executeLocalCommand, installedRunVerifier } from '../src/project.js';
 import { createAgentRunProject } from '../../../tests/fixtures/agent-run-project.js';
 import { flowSuccess, flowTime } from '../../../tests/fixtures/flow-project.js';
 
@@ -34,6 +34,30 @@ function fixture(){
  return{f,local,verifier,origin,full,options,open,prepare,agent,setActive:(value:boolean)=>{active=value;},admissions:()=>admissions};
 }
 describe('shared original Runtime admission lease',()=>{
+ it('keeps the Human original in Host1, prepares as the fixed Agent and reserves only once across host reopening',async()=>{const f=fixture();let lease=await f.open();try{
+  const original={...f.f.prepareCommand(),actor_id:f.f.actor.id,acting_role:'technical_owner',source:{origin:'human_ui',producer:'cimiloop-workbench',repository_path:f.local.location.repositoryPath},payload:{...f.f.pins,source_snapshot_ref:{object_type:'source_snapshot',id:f.f.capture().id}}};
+  const input=(command:typeof original)=>({command_id:command.command_id,requested_at:command.requested_at,acting_role:command.acting_role,command_type:command.command_type,target:command.target,expected_revision:command.expected_revision,payload:command.payload});
+  const prepared=flowSuccess(executeLocalCommand(f.local,input(original)));if(prepared.command_type!=='PrepareRunContext'||!('runtime_binding' in prepared.data.context))throw Error('Agent expected');
+  expect(prepared.data.context).toMatchObject({producer_actor_id:f.f.agent.id,executor_ref:{id:f.f.agent.id}});
+  expect(f.origin.listExclusive('human_agent_preparation')).toMatchObject([{basis:{human_request:{...original,correlation_id:original.command_id},agent_command:{actor_id:f.f.agent.id,source:{origin:'agent'}}}}]);
+  lease.release();lease=await f.open();expect(executeLocalCommand(f.local,input(original))).toEqual(prepared);
+  expect(executeLocalCommand(f.local,{...input(original),requested_at:'2026-10-04T00:00:00.000Z'})).toEqual(prepared);expect(f.admissions()).toBe(1);
+  expect(Public.executeHumanAgentRunCommand(f.local,{...original,correlation_id:f.f.prepareCommand().correlation_id,requested_at:'2026-10-05T00:00:00.000Z'})).toEqual(prepared);expect(f.admissions()).toBe(1);
+  const reserve={...f.f.reserveCommand({...prepared.data,context:prepared.data.context}),actor_id:f.f.actor.id,acting_role:'technical_owner',source:original.source};
+  const reserveInput={command_id:reserve.command_id,requested_at:reserve.requested_at,acting_role:reserve.acting_role,command_type:reserve.command_type,target:reserve.target,expected_revision:reserve.expected_revision,payload:reserve.payload};
+  const reserved=flowSuccess(executeLocalCommand(f.local,reserveInput));expect(executeLocalCommand(f.local,reserveInput)).toEqual(reserved);expect(f.local.store.listRuns(f.f.change.id)).toHaveLength(1);expect(f.local.store.getExecutionObject('task',f.f.item.task_id)?.usage.attempts_consumed).toBe(1);
+  expect(()=>executeLocalCommand(f.local,{...input(original),payload:{...original.payload,skill_bindings:[]}})).toThrow(expect.objectContaining({code:'COMMAND_ID_REUSED'}));
+ }finally{lease.release();}});
+ it('refuses to manufacture the Human original for an existing Agent receipt',async()=>{const f=fixture(),lease=await f.open();try{
+  const command={...f.f.prepareCommand(),payload:{...f.f.pins,source_snapshot_ref:{object_type:'source_snapshot',id:f.f.capture().id}}};flowSuccess(f.agent.execute(command));
+  expect(()=>Public.executeHumanAgentRunCommand(f.local,{...command,actor_id:f.f.actor.id,acting_role:'technical_owner',source:{origin:'human_cli',producer:'cimiloop-cli',repository_path:f.local.location.repositoryPath}})).toThrow(expect.objectContaining({code:'CAPABILITY_UNAVAILABLE'}));
+  expect(f.origin.listExclusive('human_agent_preparation')).toEqual([]);expect(f.local.store.listRuntimeRecords('context_manifest',f.f.change.id)).toHaveLength(1);expect(f.admissions()).toBe(1);
+ }finally{lease.release();}});
+ it('refuses a replaced Human authorization callback without creating a Host claim',async()=>{const f=fixture(),lease=await f.open(),original=f.local.kernel.authorizeAgentRunPreparation;try{
+  vi.spyOn(f.local.kernel,'authorizeAgentRunPreparation').mockImplementation(original.bind(f.local.kernel));
+  const command={...f.f.prepareCommand(),actor_id:f.f.actor.id,acting_role:'technical_owner',source:{origin:'human_ui',producer:'cimiloop-workbench',repository_path:f.local.location.repositoryPath}};
+  expect(()=>Public.executeHumanAgentRunCommand(f.local,command)).toThrow(expect.objectContaining({code:'CAPABILITY_UNAVAILABLE'}));expect(f.origin.listExclusive('human_agent_preparation')).toEqual([]);expect(f.admissions()).toBe(0);
+ }finally{vi.restoreAllMocks();lease.release();}});
  it('installs admission before Context creation, replays one command, and restores the prior ports on release',async()=>{const f=fixture(),before=f.verifier.agent.admitContext;expect(f.prepare()).toMatchObject({code:'CAPABILITY_UNAVAILABLE'});const lease=await f.open();try{const command={...f.f.prepareCommand(),payload:{...f.f.pins,source_snapshot_ref:{object_type:'source_snapshot',id:f.f.capture().id}}};const kernel=new CimiLoopKernel({store:f.local.store,caller:f.f.caller,now:()=>flowTime,runVerifier:f.verifier});const result=flowSuccess(kernel.execute(command));expect(result.command_type).toBe('PrepareRunContext');expect(kernel.execute(command)).toEqual(result);expect(f.admissions()).toBe(1);expect(f.verifier.agent.checkRunAuthority).toBeTypeOf('function');expect(f.verifier.agent.checkToolAuthority).toBeTypeOf('function');expect(f.verifier.agent.checkModelAuthority).toBeTypeOf('function');lease.guard();}finally{lease.release();}expect(f.verifier.agent.admitContext).toBe(before);expect(()=>lease.guard()).toThrow();lease.release();});
  it('rejects overlapping leases and loses admission immediately when the full installation guard changes',async()=>{const f=fixture(),lease=await f.open();try{await expect(f.open()).rejects.toThrow();f.setActive(false);expect(f.prepare()).toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(f.admissions()).toBe(0);}finally{lease.release();}});
  it('does not overwrite another service on release and leaves the borrowed Host alive',async()=>{const f=fixture(),lease=await f.open(),foreign=()=>digest('PUBLIC foreign callback');f.verifier.agent.checkRunAuthority=foreign;expect(()=>lease.release()).toThrow();expect(f.verifier.agent.checkRunAuthority).toBe(foreign);expect(f.origin.listExclusive('untouched')).toEqual([]);const next=await f.open();next.release();});
