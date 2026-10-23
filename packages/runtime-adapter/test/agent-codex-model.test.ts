@@ -37,6 +37,31 @@ if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==
   return { root, scope, options, transport, originalRoot, control, log, request, create, open, read, revoke() { allowed = false; }, turns() { return existsSync(log) ? readFileSync(log, "utf8").trimEnd().split("\n").length : 0; } };
 }
 describe("Codex model behind the original Agent SDK host", () => {
+  it('rechecks the same physical budget inside the final dispatch guard after an awaited authority callback',async()=>{
+    const f=fixture(),path=join(f.root,'capacity'),origin=runtime.AgentStartLedger.initialize(path,{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
+    let closed=false;
+    try{const budget=runtime.CodexAgentUsageBudget.initialize(origin,{account_digest:f.options.account_digest,quota_account_digest:digest('PUBLIC-account').value,model_calls:2,output_tokens:4096});let moved=false;
+      f.options.authority.check=async()=>{if(!moved&&budget.snapshot().held.model_calls===1){origin.close();closed=true;renameSync(path,path+'.retained');moved=true;}};
+      const model=runtime.createBudgetedCodexAgentRuntimeModel({...f.options,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:digest('PUBLIC-account').value},budget),host=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']),request={...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',admission_digest:model.admission_digest,max_output_tokens:2048};
+      await expect(host.execute(request)).rejects.toThrow();expect(moved).toBe(true);expect(f.turns()).toBe(0);expect(existsSync(path)).toBe(false);
+    }finally{if(!closed)origin.close();}
+  },45000);
+  it('reserves account capacity before actual dispatch and replays the original Host without reserving again',async()=>{
+    const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'capacity'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
+    try{const budget=runtime.CodexAgentUsageBudget.initialize(origin,{account_digest:f.options.account_digest,quota_account_digest:digest('PUBLIC-account').value,model_calls:1,output_tokens:2048});
+      const model=runtime.createBudgetedCodexAgentRuntimeModel({...f.options,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:digest('PUBLIC-account').value},budget),host=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']),request={...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',admission_digest:model.admission_digest,max_output_tokens:2048};
+      const result=await host.execute(request);expect(result.receipt.finish).toBe('tool_calls');expect(budget.snapshot()).toMatchObject({held:{model_calls:1,output_tokens:2048},costs_reconciled:false});expect(await host.execute(request)).toMatchObject({replay:true});expect(f.turns()).toBe(1);
+      await expect(host.execute({...request,call_id:'model_0002'})).rejects.toThrow('agent_capacity_exhausted');expect(f.turns()).toBe(1);
+    }finally{origin.close();}
+  },45000);
+  it('retains capacity and never dispatches a request that was reserved before an interrupted model send',async()=>{
+    const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'capacity'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
+    try{const budget=runtime.CodexAgentUsageBudget.initialize(origin,{account_digest:f.options.account_digest,quota_account_digest:digest('PUBLIC-account').value,model_calls:2,output_tokens:4096});
+      const model=runtime.createBudgetedCodexAgentRuntimeModel({...f.options,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:digest('PUBLIC-account').value},budget),request={...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',admission_digest:model.admission_digest,max_output_tokens:2048};
+      budget.reserve({scope:f.scope,call_id:request.call_id,request_digest:digest(JSON.stringify(request)).value,model_header_digest:model.original_evidence!.header_digest},2048);
+      const host=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']);await expect(host.execute(request)).rejects.toThrow('codex_usage_request_already_reserved');expect(f.turns()).toBe(0);expect(budget.snapshot().held.model_calls).toBe(1);
+    }finally{origin.close();}
+  });
   function namedFixture() {
     const f = fixture({ content: [{ type: "tool-call", tool_call_id: "original_skill_1", tool_name: "cimi_invoke_skill", arguments: JSON.stringify({ name: "grill-me" }) }], finish: "tool_calls" });
     f.options.permitted_tools = ["cimi_invoke_skill", "cimi_read_method_resource"];

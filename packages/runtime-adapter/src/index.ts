@@ -126,3 +126,5 @@ export { CodexFactInvestigator } from "./codex-fact-investigation.js";
 export type { CodexFactParent, CodexFactSnapshot, CodexFactOutput, CodexFactOriginal } from "./codex-fact-investigation.js";
 export { createCodexAgentRuntimeModel, readCodexAgentModelOriginals, codexAgentModelSummary, verifyCollectedCodexAgentModelOriginals } from "./agent-codex-model.js";
 export type { CodexAgentModelOptions, CodexAgentModelAuthority, CodexAgentModelOriginals, CodexAgentModelSummary } from "./agent-codex-model.js";
+export {createBudgetedCodexAgentRuntimeModel} from './agent-codex-model.js';
+export {CodexAgentUsageBudget,type CodexUsageAccount,type CodexUsageBudgetPolicy,type CodexUsageReservation} from './codex-agent-usage-budget.js';

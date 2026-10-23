@@ -238,6 +238,45 @@ export class AgentStartLedger {
   // Same immutable format1 rows; the insertion result elects exactly one
   // dispatcher across connections/processes. A replay never grants an effect.
   claimExclusiveOnce(namespace: string, id: string, rawBasis: unknown): { created: boolean; ticket: AgentStartTicket } {return this.claimExclusiveBeforeSkillClosure(namespace,id,rawBasis);}
+  // Prospective immutable capacity tickets inside Host1. No user database or
+  // Host DDL migration. Sum and insert share ONE writer across all processes.
+  private capacityState(ticket:AgentStartTicket){
+    const envelope=this.ticketBody(ticket) as {format?:unknown;namespace?:unknown;basis?:any};
+    const policy=envelope?.basis;
+    if(envelope?.format!=='cimiloop/host-exclusive-ticket/1.0.0'||envelope.namespace!=='capacity_policy'||!policy||Object.keys(policy).sort().join(',')!=='binding,format,limits'||policy.format!=='cimiloop/host-capacity-policy/1.0.0')fail('agent_capacity_policy_invalid');
+    const limits=policy.limits as Record<string,number>,keys=Object.keys(limits??{}).sort();
+    if(!limits||Array.isArray(limits)||!keys.length||keys.length>8||keys.some(k=>!/^[a-z][a-z0-9_]{0,31}$/.test(k)||!Number.isSafeInteger(limits[k])||limits[k]!<1||limits[k]!>1000000000))fail('agent_capacity_policy_invalid');
+    const held=Object.fromEntries(keys.map(k=>[k,0])),reservations:{id:string;ticket:AgentStartTicket;units:Record<string,number>;basis:unknown}[]=[];
+    for(const row of this.db.prepare('SELECT id,basis_digest,body FROM tickets').all()){
+      const value=object(String(row.body)) as any;
+      if(value?.format!=='cimiloop/host-exclusive-ticket/1.0.0'||value.namespace!=='capacity_hold'||value.basis?.policy?.ticket_id!==ticket.ticket_id)continue;
+      const hold=value.basis;
+      if(Object.keys(hold).sort().join(',')!=='basis,format,policy,units'||hold.format!=='cimiloop/host-capacity-hold/1.0.0'||!isDeepStrictEqual(hold.policy,ticket))fail('agent_capacity_original_unproven');
+      this.capacityUnits(keys,hold.units);
+      for(const k of keys){held[k]!+=hold.units[k];if(held[k]!>limits[k]!)fail('agent_capacity_original_unproven');}
+      reservations.push({id:value.id,ticket:{format:'cimiloop/agent-start-ticket/1.0.0',identity_digest:this.identityDigest,ticket_id:String(row.id),basis_digest:String(row.basis_digest)},units:hold.units,basis:hold.basis});
+    }
+    return{binding:policy.binding,limits,held,remaining:Object.fromEntries(keys.map(k=>[k,limits[k]!-held[k]!])),reservations};
+  }
+  private capacityUnits(keys:string[],units:Record<string,number>){
+    if(!units||typeof units!=='object'||Array.isArray(units)||Object.keys(units).sort().join(',')!==keys.join(',')||keys.some(k=>!Number.isSafeInteger(units[k])||units[k]!<0||units[k]!>1000000000)||!keys.some(k=>units[k]!>0))fail('agent_capacity_units_invalid');
+  }
+  readCapacity(rawPolicy:AgentStartTicket){const policy=structuredClone(rawPolicy);return this.transaction(()=>structuredClone(this.capacityState(policy)),false);}
+  reserveCapacity(rawPolicy:AgentStartTicket,id:string,rawUnits:Record<string,number>,rawBasis:unknown):{created:boolean;ticket:AgentStartTicket}{
+    const policy=structuredClone(rawPolicy),units=copyToolJson(rawUnits) as Record<string,number>,basis=copyToolJson(rawBasis);
+    if(!sha.test(id))fail('agent_start_exclusive_identity_invalid');
+    const body=encoded({format:'cimiloop/host-exclusive-ticket/1.0.0',namespace:'capacity_hold',id,basis:{format:'cimiloop/host-capacity-hold/1.0.0',policy,units,basis}});
+    return this.transaction(()=>{
+      const state=this.capacityState(policy);this.capacityUnits(Object.keys(state.limits).sort(),units);
+      const rows=this.db.prepare('SELECT id,basis_digest,body FROM tickets').all(),matches=rows.filter(row=>{const value=object(String(row.body)) as any;return value?.format==='cimiloop/host-exclusive-ticket/1.0.0'&&value.namespace==='capacity_hold'&&value.id===id;});
+      if(matches.length>1||matches[0]&&matches[0].body!==body)fail('agent_start_exclusive_conflict');
+      if(matches[0])return{created:false,ticket:{format:'cimiloop/agent-start-ticket/1.0.0',identity_digest:this.identityDigest,ticket_id:String(matches[0].id),basis_digest:String(matches[0].basis_digest)}};
+      if(Object.keys(units).some(k=>units[k]!>state.remaining[k]!))fail('agent_capacity_exhausted');
+      if(rows.length>=1024)fail('agent_start_ticket_capacity');
+      const ticketId=randomUUID(),hash=digest(body).value;this.db.prepare('INSERT INTO tickets VALUES (?, ?, ?)').run(ticketId,hash,body);
+      return{created:true,ticket:{format:'cimiloop/agent-start-ticket/1.0.0',identity_digest:this.identityDigest,ticket_id:ticketId,basis_digest:hash}};
+    });
+  }
   // Account writer -> Host writer, never the reverse. The original hold and
   // closed-child check share this same immutable Host commit across processes.
   claimBudgetHoldBeforeSkillClosure(id:string,rawBasis:unknown,rawScope:AgentWorkspaceToolScope){

@@ -26,6 +26,12 @@ function fail(reason: string): never { throw Error(reason); }
 // of admission; the required original full custody port remains authoritative.
 export class LocalAgentCheckAdmission {
   verifyInstallation():void {this.installation.verify();}
+  assertInstalledConfiguration(nodeBinary:string,raw:readonly WorkspaceCheckTemplate[]):void {
+    this.installation.verify();
+    const templates=raw.map(parseWorkspaceCheckTemplate).sort((a,b)=>a.check_id<b.check_id?-1:a.check_id>b.check_id?1:0);
+    if(resolve(nodeBinary)!==resolve(this.options.nodeBinary)||!isDeepStrictEqual(templates,this.options.templates))fail('Agent installed check configuration mismatch');
+    this.installation.verify();
+  }
   private constructor(private readonly options: Options, private readonly installation: WorkspaceCheckInstallation, private readonly runs: LocalRunVerifier) {}
   static async open(raw: Options): Promise<LocalAgentCheckAdmission> {
     if (!Array.isArray(raw.templates) || !raw.templates.length || raw.templates.length > 16 || typeof raw.custody?.admit !== "function" || typeof raw.custody?.verify !== "function") fail("Agent check admission configuration invalid");

@@ -10,6 +10,7 @@ import { AGENT_PARENT_SKILL_TOOLS, isAgentParentSkillToolSet, isAgentNamedMethod
 import { CodexOriginalMethodRuntime, type CodexMethodRequest, type CodexMethodOriginal, type CodexOriginalMethodOptions } from "./codex-original-method.js";
 import { parseAgentModelOutputProfile, type AgentModelOutputProfile } from "./agent-model-output.js";
 import {parseCodexUsagePolicy,type CodexOrdinaryUsagePolicy} from './codex-ordinary-quota.js';
+import {CodexAgentUsageBudget} from './codex-agent-usage-budget.js';
 
 type Request = ReturnType<typeof parseAgentRuntimeModelRequest>;
 export interface CodexAgentModelAuthority {
@@ -24,6 +25,22 @@ export interface CodexAgentModelOptions {
   output_profile?: AgentModelOutputProfile;
   usage_policy?:CodexOrdinaryUsagePolicy;
   quota_account_digest?:string;
+}
+// Code-installed account assembly. The original Host owns completed replay;
+// a retained capacity hold never elects another sender after interruption.
+export function createBudgetedCodexAgentRuntimeModel(raw:CodexAgentModelOptions,budget:CodexAgentUsageBudget):AgentRuntimeModelPort{
+  if(!(budget instanceof CodexAgentUsageBudget)||raw.output_profile!=='bounded_2048/1.0.0'||raw.usage_policy!=='require_ordinary_permission/1.0.0'||!raw.quota_account_digest)fail('codex_usage_budget_unproven');
+  if(!sha(raw.admission_digest))fail();
+  const scope=parseAgentWorkspaceToolScope(raw.scope),account={account_digest:raw.account_digest,quota_account_digest:raw.quota_account_digest},permitted=[...(raw.permitted_tools??['cimi_read','cimi_replace','cimi_check'])];budget.assertAccount(account);
+  const originalCheck=raw.authority.check.bind(raw.authority),originalEffect=raw.authority.beforeEffect.bind(raw.authority);
+  const admission=digest(JSON.stringify({format:'cimiloop/codex-budget-model-admission/1.0.0',admission_digest:raw.admission_digest,policy_digest:budget.policy_digest})).value;
+  const port=createCodexAgentRuntimeModel({...raw,scope,permitted_tools:permitted,admission_digest:admission,authority:{async check(current){budget.assertAccount(account);await originalCheck(current);budget.assertAccount(account);},beforeEffect(current){budget.assertAccount(account);const result:unknown=originalEffect(current);if(result!==undefined){void Promise.resolve(result).catch(()=>{});fail('agent_codex_effect_denied');}budget.assertAccount(account);}}});
+  return{...port,async check(current){budget.assertAccount(account);await port.check(current);budget.assertAccount(account);},async execute(input,signal){
+    const request=parseAgentRuntimeModelRequest(scope,input,permitted,port.output_profile);
+    if(request.admission_digest!==port.admission_digest)fail();signal?.throwIfAborted();budget.assertAccount(account);await port.check(scope);signal?.throwIfAborted();budget.assertAccount(account);
+    if(!budget.reserve({scope,call_id:request.call_id,request_digest:digest(JSON.stringify(request)).value,model_header_digest:port.original_evidence!.header_digest},request.max_output_tokens).created)fail('codex_usage_request_already_reserved');
+    return port.execute(request,signal);
+  }};
 }
 interface Header {
   format: `cimiloop/codex-agent-model/${1|2|3|4|5|6|7|8|9|10|11|12|13}.0.0`; scope: AgentWorkspaceToolScope;

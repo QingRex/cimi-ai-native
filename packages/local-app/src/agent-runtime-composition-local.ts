@@ -12,6 +12,8 @@ import {LocalAgentDedicatedAccount,type AgentDedicatedModelContext} from './agen
 import {LocalAgentParentSkillHost} from './agent-parent-skill-host-local.js';
 import {parseAgentModelOutputProfile} from '@cimiloop/runtime-adapter';
 import {isDeepStrictEqual as same} from 'node:util';
+import {bytesAt,digest,CodexOriginalMethodRuntime,createBudgetedCodexAgentRuntimeModel,type CodexAgentModelAuthority} from '@cimiloop/runtime-adapter';
+import type{InstalledCodexUsageBudget}from './agent-codex-usage-budget-local.js';
 const unavailable=()=>new LocalProjectError("原 Runtime 应用身份或父 Skill 目录不可证明","CAPABILITY_UNAVAILABLE","conflict");
 
 interface Options {
@@ -19,6 +21,7 @@ interface Options {
  binary:string; custody:LocalAgentStartCustody; checks:LocalAgentCheckAdmission;
  model:AgentRuntimeModelPort;
  parentSkill?:LocalAgentParentSkillHost;
+ runtimeGuard?:()=>void;
 }
 // Shared trusted application composition. Human HTTP/CLI cannot choose callers,
 // model ports, custody, binaries or check recipes. Missing approvals must make
@@ -27,7 +30,7 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
  readonly custody:LocalAgentStartCustody;
  private readonly identity:{location:Options['local']['location'];caller:Options['local']['caller'];store:Options['local']['store'];kernel:Options['local']['kernel']};
  private constructor(private readonly options:Options){this.custody=options.custody;this.identity={location:structuredClone(options.local.location),caller:structuredClone(options.local.caller),store:options.local.store,kernel:options.local.kernel};}
- private assertIdentity(){const local=this.options.local;if(local.store!==this.identity.store||local.kernel!==this.identity.kernel||!same(local.location,this.identity.location)||!same(local.caller,this.identity.caller))throw unavailable();}
+ private assertIdentity(){const local=this.options.local,valid=()=>local.store===this.identity.store&&local.kernel===this.identity.kernel&&same(local.location,this.identity.location)&&same(local.caller,this.identity.caller);if(!valid())throw unavailable();const checked:unknown=this.options.runtimeGuard?.();if(checked!==undefined){void Promise.resolve(checked).catch(()=>{});throw unavailable();}if(!valid())throw unavailable();}
  static open(options:Options){
   if(!(options.custody instanceof LocalAgentStartCustody)||!(options.checks instanceof LocalAgentCheckAdmission)||typeof options.model?.check!=="function"||typeof options.model?.execute!=="function"||options.parentSkill!==undefined&&!(options.parentSkill instanceof LocalAgentParentSkillHost))
    throw new LocalProjectError("完整原 Runtime、检查及模型账户准入尚未安装","CAPABILITY_UNAVAILABLE","conflict");
@@ -44,6 +47,16 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
  }
  static openDedicatedPersistent(options:Omit<Options,"model"> & {local:AgentDedicatedModelContext;runId:string;connection:DedicatedModelConnection;account:DedicatedAgentAccountLedger}){
   return this.openDedicated({...options,account:LocalAgentDedicatedAccount.open(options.local,options.runId,options.account).modelAccountPort()});
+ }
+ // Trusted shared assembly, including ordinary and parent-Skill models. The
+ // caller must install independent CURRENT Kernel/model qualification checks;
+ // a capacity policy or installed login never supplies ALLOW by itself.
+ static openCodex(options:Omit<Options,'model'|'binary'|'runtimeGuard'>&{runId:string;account:InstalledCodexUsageBudget;authority:CodexAgentModelAuthority}){
+  const account=options.account,installed=account.installation,checks=options.checks,guard=()=>{account.guard();checks.assertInstalledConfiguration(installed.node_binary,installed.checks);account.guard();};guard();const scope=originalAgentWorkspaceScope(options.local,options.runId);
+  const check=options.authority.check.bind(options.authority),beforeEffect=options.authority.beforeEffect.bind(options.authority);
+  const transport=new CodexOriginalMethodRuntime({root:installed.root+'/originals',command:{file:installed.binary,args:[],sha256:digest(bytesAt(installed.binary,512*1024*1024)).value},account_digest:installed.account_digest,disabled_mcp_servers:[...installed.disabled_mcp_servers],timeout_ms:180000});
+  const model=createBudgetedCodexAgentRuntimeModel({root:options.local.location.dataDirectory,scope,runtime:transport,model:installed.model,account_digest:installed.account_digest,quota_account_digest:installed.quota_account_digest,output_profile:installed.output_profile,usage_policy:installed.usage_policy,origin:'external_model',admission_digest:digest(JSON.stringify({scope,installation:installed.installation_digest})).value,permitted_tools:options.parentSkill?[...AGENT_PARENT_SKILL_TOOLS]:['cimi_read','cimi_replace','cimi_check'],authority:{async check(current){guard();await check(current);guard();},beforeEffect(current){guard();const result:unknown=beforeEffect(current);if(result!==undefined){void Promise.resolve(result).catch(()=>{});throw unavailable();}guard();}}},account.budget);
+  guard();return this.open({local:options.local,binary:installed.native_binary,custody:options.custody,checks:options.checks,model,runtimeGuard:guard,...(options.parentSkill?{parentSkill:options.parentSkill}:{})});
  }
  originalScope(runId:string){this.assertIdentity();return structuredClone(originalAgentWorkspaceScope(this.options.local,runId));}
  start(runId:string,beforeLaunch?:()=>void){
