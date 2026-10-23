@@ -63,7 +63,7 @@ partial class AppContainer {
   // original ambient semantics and cannot acquire this policy by an extra key.
   static string AgentStartupFormat(Dictionary<string,object> config) {
     string format=config["format"] as string;int version;
-    bool bounded=format=="cimiloop/agent-workspace-sandbox-config/11.0.0"||format=="cimiloop/agent-workspace-sandbox-config/12.0.0";
+    bool bounded=format=="cimiloop/agent-workspace-sandbox-config/11.0.0"||format=="cimiloop/agent-workspace-sandbox-config/12.0.0"||format=="cimiloop/agent-workspace-sandbox-config/13.0.0";
     var options=config["provider_options"] as Dictionary<string,object>;
     if(bounded?(options==null||!options.ContainsKey("model_output_profile")||options["model_output_profile"] as string!="bounded_2048/1.0.0"):(options!=null&&options.ContainsKey("model_output_profile")))throw new InvalidDataException();
     if(format=="cimiloop/agent-workspace-sandbox-config/8.0.0")version=5;
@@ -71,13 +71,14 @@ partial class AppContainer {
     else if(format=="cimiloop/agent-workspace-sandbox-config/10.0.0")version=7;
     else if(format=="cimiloop/agent-workspace-sandbox-config/11.0.0")version=5;
     else if(format=="cimiloop/agent-workspace-sandbox-config/12.0.0")version=7;
+    else if(format=="cimiloop/agent-workspace-sandbox-config/13.0.0")version=6;
     else {if(config.ContainsKey("startup_profile"))throw new InvalidDataException();return format;}
     if(!config.ContainsKey("startup_profile")||config["startup_profile"] as string!="bun_interpreter/1.0.0")throw new InvalidDataException();
     return "cimiloop/agent-workspace-sandbox-config/"+version.ToString()+".0.0";
   }
   static int AgentModelOutputLimit(Dictionary<string,object> config) {
     AgentConfigDeadline(config);
-    return config["format"] as string=="cimiloop/agent-workspace-sandbox-config/11.0.0"||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/12.0.0"?2048:512;
+    return config["format"] as string=="cimiloop/agent-workspace-sandbox-config/11.0.0"||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/12.0.0"||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/13.0.0"?2048:512;
   }
   static void AgentConfigKeys(Dictionary<string,object> config,params string[] keys) {
     AgentStartupFormat(config);

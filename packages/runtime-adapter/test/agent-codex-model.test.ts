@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, writeFile
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
-import { createInternalId } from "@cimiloop/protocol/v2";
+import { createInternalId, compileValidator } from "@cimiloop/protocol/v2";
 import * as runtime from "../src/index.js";
 import { AgentRuntimeModelHost } from "../src/agent-runtime-model.js";
 import { claimAgentRuntimeOperation } from "../src/agent-runtime-operation.js";
@@ -15,15 +15,15 @@ import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.j
 function fixture(reply: unknown = { content: [{ type: "tool-call", tool_call_id: "original_read_1", tool_name: "cimi_read", arguments: JSON.stringify({ path: "src/query.ts" }) }], finish: "tool_calls" }) {
   const root = mkdtempSync(join(tmpdir(), "cimiloop-codex-agent-")), script = join(root, "server.mjs"), control = join(root, "reply.json"), log = join(root, "turns.jsonl");
   writeFileSync(control, JSON.stringify(reply));
-  writeFileSync(script, String.raw`import{createInterface}from'node:readline';import{readFileSync,appendFileSync}from'node:fs';let model='',bridge=false,output;
-let duplicate=false;const send=v=>process.stdout.write(JSON.stringify(v)+'\n'),event=item=>send({method:'item/completed',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',item}});
+  writeFileSync(script, String.raw`import{createInterface}from'node:readline';import{readFileSync,appendFileSync}from'node:fs';let model='',bridge=false,namedResult=false,output;
+let duplicate=false,submittedTool='cimiloop_sdk_reply',submittedArgs;const send=v=>process.stdout.write(JSON.stringify(v)+'\n'),event=item=>send({method:'item/completed',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',item}});
 let outputTokens=19;function finish(){event({type:'agentMessage',phase:'final_answer',text:JSON.stringify(bridge?{submitted:true}:output)});send({method:'thread/tokenUsage/updated',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',tokenUsage:{total:{inputTokens:57,cachedInputTokens:5,outputTokens,totalTokens:57+outputTokens,reasoningOutputTokens:7,cacheWriteInputTokens:0}}}});send({method:'turn/completed',params:{threadId:'PUBLIC_THREAD',turn:{id:'PUBLIC_TURN',status:'completed',error:null}}});}
 createInterface({input:process.stdin}).on('line',line=>{const r=JSON.parse(line),ok=result=>send({id:r.id,result});
-if(!r.method){if(r.id===901){event({type:'dynamicToolCall',id:'PUBLIC_SUBMISSION',namespace:null,tool:'cimiloop_sdk_reply',arguments:output,status:'completed',contentItems:r.result.contentItems,success:r.result.success});if(duplicate)send({id:902,method:'item/tool/call',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',callId:'PUBLIC_SUBMISSION_2',namespace:null,tool:'cimiloop_sdk_reply',arguments:output}});else finish();}return;}
+if(!r.method){if(r.id===901){event({type:'dynamicToolCall',id:'PUBLIC_SUBMISSION',namespace:null,tool:submittedTool,arguments:submittedArgs,status:'completed',contentItems:r.result.contentItems,success:r.result.success});if(duplicate)send({id:902,method:'item/tool/call',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',callId:'PUBLIC_SUBMISSION_2',namespace:null,tool:'cimiloop_sdk_reply',arguments:output}});else finish();}return;}
 if(r.method==='initialize')ok({userAgent:'PUBLIC'});if(r.method==='account/read')ok({account:{type:'chatgpt',email:'PUBLIC@example.test'},requiresOpenaiAuth:true});
 if(r.method==='account/rateLimits/read')ok({ordinaryUsageAllowed:JSON.parse(readFileSync(process.argv[2],'utf8')).PUBLIC_quota_allowed??true,accountId:'PUBLIC-account',rateLimits:{primary:null,secondary:null,credits:null}});
-if(r.method==='thread/start'){model=r.params.model;bridge=r.params.dynamicTools.some(tool=>tool.name==='cimiloop_sdk_reply');ok({model,modelProvider:'openai',approvalPolicy:'never',activePermissionProfile:{id:'cimiloop-method'},instructionSources:[],thread:{id:'PUBLIC_THREAD'}});}
-if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==='turn/start'){appendFileSync(process.argv[3],JSON.stringify(r.params)+'\n');ok({turn:{id:'PUBLIC_TURN'}});output=JSON.parse(readFileSync(process.argv[2],'utf8'));if(output.stall)return;outputTokens=output.PUBLIC_output_tokens??19;delete output.PUBLIC_output_tokens;duplicate=output.PUBLIC_duplicate_submission===true;delete output.PUBLIC_duplicate_submission;if(bridge&&!output.skip_submission)send({id:901,method:'item/tool/call',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',callId:'PUBLIC_SUBMISSION',namespace:null,tool:'cimiloop_sdk_reply',arguments:output}});else finish();}});`);
+if(r.method==='thread/start'){model=r.params.model;namedResult=r.params.dynamicTools.some(tool=>tool.name==='cimiloop_skill_result');bridge=namedResult||r.params.dynamicTools.some(tool=>tool.name==='cimiloop_sdk_reply');ok({model,modelProvider:'openai',approvalPolicy:'never',activePermissionProfile:{id:'cimiloop-method'},instructionSources:[],thread:{id:'PUBLIC_THREAD'}});}
+if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==='turn/start'){appendFileSync(process.argv[3],JSON.stringify(r.params)+'\n');ok({turn:{id:'PUBLIC_TURN'}});output=JSON.parse(readFileSync(process.argv[2],'utf8'));if(output.stall)return;outputTokens=output.PUBLIC_output_tokens??19;delete output.PUBLIC_output_tokens;duplicate=output.PUBLIC_duplicate_submission===true;delete output.PUBLIC_duplicate_submission;let proxy=output.PUBLIC_proxy;delete output.PUBLIC_proxy;if(!proxy&&namedResult){const call=output.content?.[0];proxy=call?.type==='tool-call'?{tool:call.tool_name,arguments:JSON.parse(call.arguments)}:{tool:'cimiloop_skill_result',arguments:{result:JSON.parse(call?.text??'{}')}};}submittedTool=proxy?.tool??'cimiloop_sdk_reply';submittedArgs=proxy?.arguments??output;if(bridge&&!output.skip_submission)send({id:901,method:'item/tool/call',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',callId:'PUBLIC_SUBMISSION',namespace:null,tool:submittedTool,arguments:submittedArgs}});else finish();}});`);
   const scope = parseAgentWorkspaceToolScope({ project_id: createInternalId(), run_id: createInternalId(), operation_key: createInternalId(), executor_actor_id: createInternalId(), context_digest: digest("PUBLIC context"), skill_bindings: [], runtime_binding: { binding_ref: { object_type: "provider_binding", id: createInternalId() }, digest: digest("PUBLIC binding") }, host_admission_ref: { provider: "local_content", resource_type: "agent_host_admission", locator: digest("PUBLIC admission").value, digest: digest("PUBLIC admission") } });
   const account = runtime.codexChatGptAccountDigest({ account: { type: "chatgpt", email: "PUBLIC@example.test" } }), admission = digest("PUBLIC budget/qualification only").value;
   const originalRoot = join(root, "originals"), transport = new runtime.CodexOriginalMethodRuntime({ root: originalRoot, command: { file: process.execPath, args: [script, control, log], sha256: createHash("sha256").update(readFileSync(process.execPath)).digest("hex") }, account_digest: account, timeout_ms: 10000 });
@@ -37,6 +37,85 @@ if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==
   return { root, scope, options, transport, originalRoot, control, log, request, create, open, read, revoke() { allowed = false; }, turns() { return existsSync(log) ? readFileSync(log, "utf8").trimEnd().split("\n").length : 0; } };
 }
 describe("Codex model behind the original Agent SDK host", () => {
+  function namedFixture() {
+    const f = fixture({ content: [{ type: "tool-call", tool_call_id: "original_skill_1", tool_name: "cimi_invoke_skill", arguments: JSON.stringify({ name: "grill-me" }) }], finish: "tool_calls" });
+    f.options.permitted_tools = ["cimi_invoke_skill", "cimi_read_method_resource"];
+    Reflect.set(f.options, "output_profile", "bounded_2048/1.0.0"); Reflect.set(f.options, "usage_policy", "require_ordinary_permission/1.0.0"); Reflect.set(f.options, "quota_account_digest", digest("PUBLIC-account").value);
+    const request = { ...f.request, format: "cimiloop/agent-runtime-model-request/3.0.0", max_output_tokens: 2048, tools: [
+      { type: "function", name: "cimi_invoke_skill", description: "Load the fixed Skill entry", inputSchema: { type: "object", properties: { name: { type: "string" } }, required: ["name"], additionalProperties: false } },
+      { type: "function", name: "cimi_read_method_resource", description: "Read a fixed method resource", inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"], additionalProperties: false } }
+    ] };
+    const open = () => AgentRuntimeModelHost.initialize(f.root, f.scope, f.create(), f.options.permitted_tools);
+    return { ...f, request, open };
+  }
+  it("executes and reopens the exact named Skill SDK pair under fixed account and original replay", async () => {
+    const f = namedFixture(), host = await f.open(), reply = await host.execute(f.request);
+    expect(reply.receipt).toMatchObject({ content: [{ tool_name: "cimi_invoke_skill" }], finish: "tool_calls" });
+    expect(f.read()).toMatchObject({ status: "Observed", quota_account_digest: digest("PUBLIC-account").value });
+    const path = join(f.root, "agent-codex-model-originals", f.scope.project_id, f.scope.run_id, "header.json");
+    expect(JSON.parse(readFileSync(path, "utf8"))).toMatchObject({ format: "cimiloop/codex-agent-model/13.0.0", permitted: f.options.permitted_tools });
+    const sent = JSON.parse(readFileSync(f.log, "utf8").trim()).input[0].text;
+    expect(sent).toContain("cimi_invoke_skill"); expect(sent).toContain("cimi_read_method_resource"); expect(sent).not.toContain("cimi_replace");
+    expect(await (await f.open()).execute(f.request)).toMatchObject({ receipt: reply.receipt, replay: true }); expect(f.turns()).toBe(1);
+  });
+  it("records fixed Skill proxy advice without executing its business effect inside Codex", async () => {
+    const f = namedFixture(); writeFileSync(f.control, JSON.stringify({ PUBLIC_proxy: { tool: "cimi_invoke_skill", arguments: { name: "grill-me" } } }));
+    const reply = await (await f.open()).execute(f.request), original = f.read().calls[0]!.original!;
+    expect(reply.receipt).toMatchObject({ content: [{ type: "tool-call", tool_name: "cimi_invoke_skill", arguments: '{"name":"grill-me"}', tool_call_id: expect.stringMatching(/^codex_[a-f0-9]{64}$/) }], finish: "tool_calls" });
+    expect(original.tool_calls[0]).toMatchObject({ tool: "cimi_invoke_skill", arguments: { name: "grill-me" } });
+    expect(JSON.parse(original.tool_calls[0]!.output)).toMatchObject({ sdk_effect_executed: false, response_submitted: true });
+    expect(await (await f.open()).execute(f.request)).toMatchObject({ receipt: reply.receipt, replay: true }); expect(f.turns()).toBe(1);
+  });
+  it("projects only a schema-valid structured Skill result into the original final SDK text", async () => {
+    const f = namedFixture(), result = { purpose: "clarification", questions: ["Which business scope?"], unresolved: ["No Human answer yet"] };
+    writeFileSync(f.control, JSON.stringify({ PUBLIC_proxy: { tool: "cimiloop_skill_result", arguments: { result } } }));
+    const reply = await (await f.open()).execute(f.request); expect(reply.receipt).toMatchObject({ content: [{ type: "text", text: JSON.stringify(result) }], finish: "stop" });
+    const originals=f.read();expect(originals.calls[0]!.original!.tool_calls[0]!.tool).toBe("cimiloop_skill_result");
+    const start=JSON.parse(readFileSync(originals.artifacts.find(a=>a.name.endsWith('/codex/start.json'))!.path,'utf8')),schema=start.request.tools.find((tool:{name:string})=>tool.name==='cimiloop_skill_result').inputSchema,validate=compileValidator(schema);
+    expect(schema.$defs).toBeDefined();expect(()=>validate({result})).not.toThrow();expect(()=>validate({result:{...result,candidate:{requirement:'incomplete'}}})).toThrow();expect(()=>validate({result:{...result,format:'extra'}})).toThrow();
+    expect(await (await f.open()).execute(f.request)).toMatchObject({ replay: true }); expect(f.turns()).toBe(1);
+  });
+  it.each(["incomplete_candidate", "extra_format", "unstructured_reply"])("retains %s as Unknown instead of repairing a model result", async kind => {
+    const f = namedFixture(), result = { purpose: "clarification", questions: ["Scope?"], unresolved: [], ...(kind === "incomplete_candidate" ? { candidate: { requirement: "PUBLIC model fragment" } } : kind === "extra_format" ? { format: "model-invented" } : {}) };
+    writeFileSync(f.control, JSON.stringify({ PUBLIC_proxy: kind === "unstructured_reply" ? { tool: "cimiloop_sdk_reply", arguments: { content: [{ type: "text", text: JSON.stringify(result) }], finish: "stop" } } : { tool: "cimiloop_skill_result", arguments: { result } } }));
+    const host = await f.open(); await expect(host.execute(f.request)).rejects.toThrow(); expect(f.read().status).toBe("Unknown"); await expect(host.execute(f.request)).rejects.toThrow(); expect(f.turns()).toBe(1);
+  });
+  it.each(["wrong_arguments", "foreign_tool"])("refuses %s at the named proxy before producing SDK advice", async kind => {
+    const f = namedFixture(); writeFileSync(f.control, JSON.stringify({ PUBLIC_proxy: kind === "foreign_tool" ? { tool: "bash", arguments: {} } : { tool: "cimi_invoke_skill", arguments: { path: "skill-source/grill-me/SKILL.md" } } }));
+    const host = await f.open(); await expect(host.execute(f.request)).rejects.toThrow(); expect(f.read().status).toBe("Unknown"); await expect(host.execute(f.request)).rejects.toThrow(); expect(f.turns()).toBe(1);
+  });
+  it("reopens named header9 with its original instructions rather than upgrading the recorded request", async () => {
+    const f = namedFixture(), header = { format: "cimiloop/codex-agent-model/9.0.0", scope: f.scope, model: f.options.model, account_digest: f.options.account_digest, admission_digest: f.options.admission_digest, origin: f.options.origin, runtime: f.transport.originalConfiguration,
+      permitted: f.options.permitted_tools, output_profile: Reflect.get(f.options, "output_profile"), usage_policy: Reflect.get(f.options, "usage_policy"), quota_account_digest: Reflect.get(f.options, "quota_account_digest") };
+    for (const kind of ["agent-codex-model-starts", "agent-codex-model-originals"]) { const path = join(f.root, kind, f.scope.project_id, f.scope.run_id); mkdirSync(path, { recursive: true }); writeFileSync(join(path, "header.json"), JSON.stringify(header)); }
+    await (await f.open()).execute(f.request); const original = f.read();
+    expect(JSON.parse(JSON.parse(readFileSync(f.log, "utf8").trim()).input[0].text).format).toBe("cimiloop/codex-agent-step/4.0.0");
+    expect(await (await f.open()).execute(f.request)).toMatchObject({ replay: true }); expect(f.read()).toEqual(original); expect(f.turns()).toBe(1);
+  });
+  it("cannot reinterpret a named original as an older Codex backend", async () => {
+    const f = namedFixture(); await (await f.open()).execute(f.request);
+    for (const version of [5, 6, 7, 8]) {
+      const paths = ["agent-codex-model-originals", "agent-codex-model-starts"].map(kind => join(f.root, kind, f.scope.project_id, f.scope.run_id, "header.json")), saved = paths.map(path => readFileSync(path));
+      try { for (const path of paths) { const header = JSON.parse(readFileSync(path, "utf8")); header.format = `cimiloop/codex-agent-model/${version}.0.0`; writeFileSync(path, JSON.stringify(header)); } expect(() => f.read()).toThrow(); expect(() => f.create()).toThrow(); }
+      finally { paths.forEach((path, i) => writeFileSync(path, saved[i]!)); }
+    }
+    expect(f.read().status).toBe("Observed"); expect(f.turns()).toBe(1);
+  });
+  it("refuses mixed Skill/workspace catalogs and missing installed account policy before a model turn", () => {
+    for (const changed of ["output_profile", "usage_policy", "quota_account_digest", "mixed"]) {
+      const f = namedFixture(); if (changed === "mixed") f.options.permitted_tools.push("cimi_read"); else Reflect.deleteProperty(f.options, changed);
+      expect(() => f.create()).toThrow(); expect(f.turns()).toBe(0);
+    }
+  });
+  it("retains Unknown named SDK originals and never resends a lost response", async () => {
+    const f = namedFixture(); writeFileSync(f.control, JSON.stringify({ skip_submission: true })); const host = await f.open();
+    await expect(host.execute(f.request)).rejects.toThrow(); expect(f.read().status).toBe("Unknown");
+    await expect((await f.open()).execute(f.request)).rejects.toThrow(); expect(f.turns()).toBe(1);
+  });
+  it("rejects workspace advice returned inside a named Skill original", async () => {
+    const f = namedFixture(); writeFileSync(f.control, JSON.stringify({ content: [{ type: "tool-call", tool_call_id: "foreign_read", tool_name: "cimi_read", arguments: '{"path":"src/query.ts"}' }], finish: "tool_calls" }));
+    await expect((await f.open()).execute(f.request)).rejects.toThrow(); expect(f.read().status).toBe("Unknown"); expect(f.turns()).toBe(1);
+  });
   it('pins the installed quota account through the SDK and refuses to remove that binding on reopen',async()=>{
     const f=fixture();Reflect.set(f.options,'output_profile','bounded_2048/1.0.0');Reflect.set(f.options,'usage_policy','require_ordinary_permission/1.0.0');Reflect.set(f.options,'quota_account_digest',digest('PUBLIC-account').value);
     const host=await f.open(),request={...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048};await host.execute(request);
@@ -102,7 +181,7 @@ describe("Codex model behind the original Agent SDK host", () => {
     expect(first.receipt.finish).toBe("tool_calls"); expect((await host.execute(next)).receipt.finish).toBe("stop");
     expect(f.turns()).toBe(2); expect(f.read()).toMatchObject({ status: "Observed", calls: [{ state: "reply_recorded" }, { state: "reply_recorded" }] });
     expect(JSON.parse(readFileSync(f.log, "utf8").trim().split("\n")[1]!).input[0].text).toContain("PUBLIC fixed file bytes");
-  });
+  }, 45000);
   it("joins the exact Codex parent header mode used by result and terminal consumers", async () => {
     const f = fixture(), permitted = [...runtime.AGENT_PARENT_SKILL_TOOLS], model = runtime.createCodexAgentRuntimeModel({ ...f.options, permitted_tools: permitted });
     const packet = '{"format":"PUBLIC-parent-task","note":"whole original packet"}', projection = '<content>\n1: ' + packet + '\n\n(End of file - total 1 lines)\n</content>';

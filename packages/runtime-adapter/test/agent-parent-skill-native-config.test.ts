@@ -4,6 +4,7 @@ import {execFile,execFileSync} from 'node:child_process';import {promisify} from
 import {beforeAll,describe,it,expect,vi} from 'vitest';
 import {buildWindowsAgentWorkspaceSandbox,isolatedEnvironment} from '../src/native.js';import {digest} from '../src/files.js';
 import {assertAgentParentSkillConfig} from '../src/agent-parent-skill-config.js';
+import {assertAgentNamedMethodConfig} from '../src/agent-named-method-config.js';
 vi.setConfig({testTimeout:30000,hookTimeout:120000});
 // Actual compiled production C# methods and exact saved config/catalog bytes.
 // No Native process/Job/AppContainer effects, provider call or qualification.
@@ -48,7 +49,7 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('parent Skill o
   const f=basis(),parent={...f.config,format:'cimiloop/agent-workspace-sandbox-config/10.0.0',startup_profile:'bun_interpreter/1.0.0'};
   const ordinary:Record<string,unknown>={...parent,format:'cimiloop/agent-workspace-sandbox-config/8.0.0',provider_options:{admission_digest:f.config.provider_options.admission_digest}};
   Reflect.deleteProperty(ordinary,'parent_skill_tools');Reflect.deleteProperty(ordinary,'parent_skill_original_binding');
-  const named={...ordinary,format:'cimiloop/agent-workspace-sandbox-config/9.0.0',method_tools:'fixed_named_method/1.0.0',method_original_binding:{format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('header').value,anchor_digest:digest('anchor').value}};
+  const named:Record<string,unknown>={...ordinary,format:'cimiloop/agent-workspace-sandbox-config/9.0.0',method_tools:'fixed_named_method/1.0.0',method_original_binding:{format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('header').value,anchor_digest:digest('anchor').value}};
   return {f,ordinary,named,parent};
  }
  it('freezes explicit Native config11/12 output policy without changing legacy config8/10',()=>{
@@ -68,6 +69,14 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('parent Skill o
   expect(read('permissions',named)).toEqual({accepted:true,result:{'*':'deny',cimi_invoke_skill:'allow',cimi_read_method_resource:'allow'}});
   expect(read('permissions',parent)).toEqual({accepted:true,result:{'*':'deny',cimi_read:'allow',cimi_replace:'allow',cimi_check:'allow',cimi_run_skill:'allow'}});
   expect(read('catalog',parent,f.modules)).toMatchObject({accepted:true});
+ });
+ it('admits only explicit bounded named config13 with exactly the original Skill permissions',()=>{
+  const {named,ordinary}=currentModes(),config={...named,format:'cimiloop/agent-workspace-sandbox-config/13.0.0',provider_options:{...(named.provider_options as object),model_output_profile:'bounded_2048/1.0.0'}};
+  expect(read('config',config)).toEqual({accepted:true,result:123456789});expect(read('output',config)).toEqual({accepted:true,result:2048});
+  expect(assertAgentNamedMethodConfig(config,config)).toBe(true);expect(()=>assertAgentNamedMethodConfig({...named,provider_options:config.provider_options})).toThrow();
+  expect(read('permissions',config)).toEqual({accepted:true,result:{'*':'deny',cimi_invoke_skill:'allow',cimi_read_method_resource:'allow'}});
+  expect(read('output',named)).toEqual({accepted:true,result:512});
+  for(const invalid of [{...config,provider_options:named.provider_options},{...named,provider_options:config.provider_options},{...ordinary,format:config.format,provider_options:config.provider_options},{...config,format:'cimiloop/agent-workspace-sandbox-config/11.0.0'}])expect(read('config',invalid)).toMatchObject({accepted:false});
  });
  it('the actual retained Native startup method fixes only new child interpreter policy and preserves historical ambient meaning',()=>{
   const {parent,f}=currentModes();

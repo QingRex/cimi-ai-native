@@ -9,7 +9,7 @@ import {parseGatewayJson} from './gateway-conversation.js';
 import {readAgentRuntimeOriginalIdentity} from './agent-runtime-operation.js';
 import {readOriginalAgentWorkspaceOperation} from './agent-workspace-sandbox-recovery.js';
 import {readAgentNamedMethodOriginals} from './agent-named-method-host.js';
-import {readAgentRuntimeModelOriginals} from './agent-runtime-model.js';
+import {readAgentRuntimeModelOriginals,assertAgentRuntimeModelOriginalMode} from './agent-runtime-model.js';
 import {readAgentWorkspaceIpcOriginals,correlateAgentWorkspaceSdkOriginals} from './agent-workspace-ipc-journal.js';
 import {validateFixedMethodOutput} from './fixed-method.js';
 export interface AgentNamedMethodResultInputs {profile:unknown;files:{path:string;content:string}[]}
@@ -48,6 +48,9 @@ export function readAgentRuntimeNamedMethodResult(root:string,rawScope:unknown,i
   const stdoutPath=join(identity.operation,'stdout.raw'),stdout=bytesAt(stdoutPath,4*1024*1024),correlation=correlateAgentWorkspaceSdkOriginals(ipc,stdout);
   if(correlation.uncorrelated_exchanges||correlation.unmatched_sdk_calls||correlation.links.some(l=>!l.correlated))fail();
   const modelHeader=model.artifacts.find(a=>a.name==='header.json');if(!modelHeader)fail();
+  const originalModelHeader=object(bytesAt(modelHeader.path,114688),114688);
+  assertAgentRuntimeModelOriginalMode(originalModelHeader,false,config.provider_options as Record<string,unknown>);
+  assertAgentRuntimeModelOriginalMode(originalModelHeader,false,input.provider_options as Record<string,unknown>);
   const modelBinding=model.original_evidence?{format:'cimiloop/agent-model-original-binding/1.0.0',header_digest:modelHeader.digest,original_evidence:model.original_evidence}:undefined;
   if(!same(input.model_original_binding,modelBinding))fail();
   const seen=new Set<string>(),modelSeen=new Set<string>();let firstMethod=true;
@@ -77,7 +80,10 @@ export function readAgentRuntimeNamedMethodResult(root:string,rawScope:unknown,i
   for(const [i,step] of steps.entries()){const modelExchange=modelExchanges[i]!,next=modelExchanges[i+1],effects=correlation.links.filter(l=>l.sdk?.message_id===step.id);
    if((modelExchange.request as Record<string,unknown>).call_id!==model.calls[i]!.call_id||step.finish!==(next?'tool-calls':'stop')||next&&Number(modelExchange.ordinal)>=Number(next.ordinal)||effects.length!==step.tools.length||effects.some(e=>Number(e.ordinal)<=Number(modelExchange.ordinal)||next&&Number(e.ordinal)>=Number(next.ordinal)))fail();
    const response=model.calls[i]!.response!,tools=response.content.filter(c=>c.type==='tool-call');if(step.finish!==(response.finish==='stop'?'stop':'tool-calls')||step.text!==response.content.filter(c=>c.type==='text').map(c=>c.text).join('')||step.tools.length!==tools.length||response.finish==='stop'&&i!==steps.length-1)fail();
-   for(const [n,tool] of tools.entries()){const part=step.tools[n]!,state=part.state as Record<string,unknown>;if(part.callID!==tool.tool_call_id||part.tool!==tool.tool_name||!state||state.status!=='completed'||!same(state.input,json(Buffer.from(tool.arguments))))fail();}
+   // SDK tools in one model step may complete concurrently. Original call IDs,
+   // matched IPC ordinals and step boundaries prove their identity; completion
+   // array position is not execution order or authority.
+   for(const tool of tools){const part=step.tools.find(part=>part.callID===tool.tool_call_id);if(!part)fail();const state=part.state as Record<string,unknown>;if(part.tool!==tool.tool_name||!state||state.status!=='completed'||!same(state.input,json(Buffer.from(tool.arguments))))fail();}
   }
   const last=steps.at(-1);if(!last||last.finish!=='stop'||last.tools.length)fail();
   let output:SkillMethodOutput|undefined,failure:AgentNamedMethodResult['failure'];

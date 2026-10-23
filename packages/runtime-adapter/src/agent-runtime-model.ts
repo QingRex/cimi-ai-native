@@ -29,7 +29,8 @@ const id=(v:unknown):v is string=>typeof v==="string"&&/^[a-zA-Z0-9_-]{1,128}$/.
 const sha=(v:unknown):v is string=>typeof v==="string"&&/^[a-f0-9]{64}$/.test(v);
 export const AGENT_PARENT_SKILL_TOOLS=Object.freeze(['cimi_read','cimi_replace','cimi_check','cimi_run_skill'] as const);
 export const isAgentParentSkillToolSet=(names:readonly unknown[])=>names.length===4&&new Set(names).size===4&&AGENT_PARENT_SKILL_TOOLS.every(name=>names.includes(name));
-const permittedTools=(names:string[])=>isAgentParentSkillToolSet(names)||names.every(name=>["cimi_read","cimi_replace","cimi_check"].includes(name))||names.length===2&&names.includes("cimi_invoke_skill")&&names.includes("cimi_read_method_resource");
+export const isAgentNamedMethodToolSet=(names:readonly unknown[])=>names.length===2&&names.includes("cimi_invoke_skill")&&names.includes("cimi_read_method_resource");
+const permittedTools=(names:string[])=>isAgentParentSkillToolSet(names)||names.every(name=>["cimi_read","cimi_replace","cimi_check"].includes(name))||isAgentNamedMethodToolSet(names);
 function fail(reason:string):never {throw new RuntimeAdapterError(reason);}
 const bounded=(v:unknown)=>copyToolJson(parseGatewayJson(JSON.stringify(v),TOOL_RECORD_BYTES));
 const read=(path:string)=>bounded(parseGatewayJson(new TextDecoder("utf-8",{fatal:true}).decode(bytesAt(path,TOOL_RECORD_BYTES)),TOOL_RECORD_BYTES));
