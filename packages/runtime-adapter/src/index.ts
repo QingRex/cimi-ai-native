@@ -128,3 +128,4 @@ export { createCodexAgentRuntimeModel, readCodexAgentModelOriginals, codexAgentM
 export type { CodexAgentModelOptions, CodexAgentModelAuthority, CodexAgentModelOriginals, CodexAgentModelSummary } from "./agent-codex-model.js";
 export {createBudgetedCodexAgentRuntimeModel} from './agent-codex-model.js';
 export {CodexAgentUsageBudget,type CodexUsageAccount,type CodexUsageBudgetPolicy,type CodexUsageReservation} from './codex-agent-usage-budget.js';
+export {openWindowsFixedVolumeReader,parseFixedVolumeObservation,FixedVolumeQuota,type FixedVolumeObservation} from './fixed-volume-quota.js';
