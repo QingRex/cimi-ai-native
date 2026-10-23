@@ -5,7 +5,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { fileURLToPath } from "node:url";
 import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions,type LocalAgentParentSkillResultPort } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
-import { productionAgentAccount, hasInstalledProductionAccount, openInstalledCodexMatt, type InstalledCodexMatt, type MattClarificationHost } from "@cimiloop/local-app";
+import { productionAgentAccount, hasInstalledProductionAccount, openInstalledCodexMatt, inspectCodexAgentRuntimeInstallation, type InstalledCodexMatt, type MattClarificationHost } from "@cimiloop/local-app";
 
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -122,7 +122,9 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       }
       requireSession(request, request.method !== "GET");
       if (url.pathname === "/api/context" && request.method === "GET") {
-        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, matt_host_available: !!matt, matt_installation_state: mattState, agent_start_available: typeof options.agentRuntimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasInstalledProductionAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
+        const codexInstallation=await inspectCodexAgentRuntimeInstallation(context);
+        if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,false);
+        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, matt_host_available: !!matt, matt_installation_state: mattState, codex_runtime_installation:codexInstallation, agent_start_available: typeof options.agentRuntimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasInstalledProductionAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
       }
       if (url.pathname === "/api/dashboard" && request.method === "GET") {
         send(response, 200, dashboard(context)); return;

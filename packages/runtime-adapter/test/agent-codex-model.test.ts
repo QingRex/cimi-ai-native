@@ -37,6 +37,12 @@ if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==
   return { root, scope, options, transport, originalRoot, control, log, request, create, open, read, revoke() { allowed = false; }, turns() { return existsSync(log) ? readFileSync(log, "utf8").trimEnd().split("\n").length : 0; } };
 }
 describe("Codex model behind the original Agent SDK host", () => {
+  it('pins the installed quota account through the SDK and refuses to remove that binding on reopen',async()=>{
+    const f=fixture();Reflect.set(f.options,'output_profile','bounded_2048/1.0.0');Reflect.set(f.options,'usage_policy','require_ordinary_permission/1.0.0');Reflect.set(f.options,'quota_account_digest',digest('PUBLIC-account').value);
+    const host=await f.open(),request={...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048};await host.execute(request);
+    const original=f.read();expect(original).toMatchObject({status:'Observed',quota_account_digest:digest('PUBLIC-account').value});
+    expect(await (await f.open()).execute(request)).toMatchObject({replay:true});expect(f.turns()).toBe(1);Reflect.deleteProperty(f.options,'quota_account_digest');expect(()=>f.create()).toThrow();
+  });
   it('pins quota policy through the actual SDK model original without passing account snapshots to the SDK',async()=>{
     const f=fixture();Reflect.set(f.options,'output_profile','bounded_2048/1.0.0');Reflect.set(f.options,'usage_policy','require_ordinary_permission/1.0.0');const host=await f.open(),request={...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048};
     const reply=(await host.execute(request)).receipt;expect(JSON.stringify(reply)).not.toContain('ordinary_quota');expect(f.read()).toMatchObject({status:'Observed',usage_policy:'require_ordinary_permission/1.0.0',calls:[{original:{ordinary_quota:{before:{ordinary_usage_allowed:true},costs_reconciled:false}}}]});

@@ -37,6 +37,7 @@ export type { MattClarificationHost, MattClarificationInput, MattClarificationOr
 export { CodexMattClarificationHost } from "./clarification-codex-host-local.js";
 export type { CodexMattClarificationOptions } from "./clarification-codex-host-local.js";
 export { installCodexMatt, openInstalledCodexMatt } from "./clarification-codex-installation-local.js";
+export {installCodexAgentRuntime,openInstalledCodexAgentRuntime,inspectCodexAgentRuntimeInstallation,type CodexAgentRuntimeInstallInput,type InstalledCodexAgentRuntime} from './agent-codex-installation-local.js';
 export type { CodexMattInstallInput, InstalledCodexMatt } from "./clarification-codex-installation-local.js";
 export {readOriginalHumanPlanClarification} from './clarification-local.js';
 export type {OriginalHumanPlanClarification} from './clarification-local.js';

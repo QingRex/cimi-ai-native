@@ -22,6 +22,17 @@ function fixture(mode='normal'){
  return {root,adapter,request,rpc,turns:()=>rpc().filter(r=>r.method==='turn/start').length};
 }
 describe('Codex ordinary quota at the actual original send boundary',()=>{
+ it('binds a fixed quota account to a new original request and retains it unchanged on replay',async()=>{
+  const f=fixture(),request={...f.request,quota_account_digest:createHash('sha256').update('PUBLIC-account').digest('hex')};
+  const original=await f.adapter.execute(request,()=>'',()=>{});expect(original.ordinary_quota!.before.account_id_digest).toBe(request.quota_account_digest);
+  expect(f.adapter.readOriginal(request)).toEqual(original);expect(await f.adapter.execute(request,()=>'',()=>{})).toEqual(original);expect(f.turns()).toBe(1);
+  expect(()=>f.adapter.readOriginal({...request,quota_account_digest:createHash('sha256').update('PUBLIC-other').digest('hex')})).toThrow('codex_original_input_changed');
+ });
+ it('refuses a different quota account from the pinned installation before sending a model turn',async()=>{
+  const f=fixture(),request={...f.request,quota_account_digest:createHash('sha256').update('PUBLIC-other').digest('hex')};
+  await expect(f.adapter.execute(request,()=>'',()=>{})).rejects.toThrow('codex_ordinary_permission_unavailable');expect(f.turns()).toBe(0);
+  await expect(f.adapter.execute(request,()=>'',()=>{})).rejects.toThrow('codex_original_pending');expect(f.turns()).toBe(0);
+ });
  it('inspects the same login and explicit quota permission without starting a thread or a model',async()=>{
   const f=fixture('blocked'),options={root:join(f.root,'inspection'),command:f.adapter.originalConfiguration.command,usage_policy:'require_ordinary_permission/1.0.0' as const};
   expect(await inspectCodexMethodLogin(options,()=>{})).toMatchObject({account_digest:expect.stringMatching(/^[a-f0-9]{64}$/),quota_snapshot:{ordinary_usage_allowed:false}});

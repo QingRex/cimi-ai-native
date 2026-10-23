@@ -252,7 +252,8 @@ const taskPanel = (task, data) => {
         button("记录原运行观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
         ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,costOutput,
         ...(state.context.agent_costs_available===true?[paragraph('原账单费用记录只更新核定现金用量；执行终态与剩余预算结清继续待核对。')]:[paragraph('原账户费用查询与记录尚未接入。')]),
-        paragraph(state.context.agent_start_available===true ? "正式启动入口已接入。模型请求使用 OpenAI chat completions，不限定智谱 glm。现金上限和积分上限本阶段不作为缺项。已安装的固定 Runtime、检查、连接、凭据和账户会打开共享组合；缺任何一项，或没有费用授权时，不会读取凭据，也不会发送付费请求。结果与费用未结清前继续保留预算。" : "正式 Agent 启动组合尚未安装。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
+        ...(state.context.codex_runtime_installation?.state==='installed'?[paragraph(`Codex 已安装，所选模型为 ${state.context.codex_runtime_installation.model}。正式 Agent 执行资格仍须核对；安装不代表费用结清。`)]:state.context.codex_runtime_installation?.state==='unavailable'?[paragraph('Codex 原安装资料待核对。可以继续查询原运行，暂不据此启用执行。')]:[]),
+        paragraph(state.context.agent_start_available===true ? "启动入口已接入。首次执行仍须核对已安装的 Runtime、固定检查、模型账户、授权和预算。缺项时拒绝执行；结果与费用未结清前继续保留预算。" : "正式 Agent 启动组合尚未安装。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
     }
     result.append(form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision,
       agent ? "technical_owner" : "executor", agent), input("reason", "停止理由", { required: true }), submit(agent ? "请求停止原运行" : "请求停止运行")));

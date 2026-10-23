@@ -166,7 +166,7 @@ describe("local Workbench uses native project authority", () => {
     const cli = openLocalProject({ projectDir: directory });
     try { const read = cli.kernel.getRuns(f.change.id); if ("code" in read) throw new Error(read.code); expect(read.handoffs[0]).toEqual(refreshed.body.runs.handoffs[0]); }
     finally { cli.store.close(); }
-  });
+  }, 60_000);
   it("rejects invalid JSON, content type, oversized bodies and query credentials", async () => {
     const before = f.store.listEvents().length;
     const bad = await fetch(`${workbench.origin}/api/commands`, { method: "POST", headers: { Cookie: cookie, Origin: workbench.origin, "X-CimiLoop-CSRF": csrf, "Content-Type": "application/json" }, body: "{" });

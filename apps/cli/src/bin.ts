@@ -25,6 +25,7 @@ import {productionAgentRuntime,productionAgentAccount} from '@cimiloop/local-app
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 import { installCodexClarification } from "./clarification-codex.js";
+import {installCodexRuntime,showCodexRuntimeInstallation} from './agent-codex-installation.js';
 
 const program = new Command();
 const jsonRequested = process.argv.includes("--json");
@@ -83,7 +84,18 @@ clarification.command("begin <change>").description("在 Plan / Task 创建前�
 clarification.command("advance <change> <session>").description("按原请求记录问题 / 回答 / 候选，重复请求复用原收据")
   .requiredOption("--file <json>", "固定 request_id、expected_head 与动作内容；候选须保留原 requested_at")
   .action((change, session, options, command) => clarificationOperation("advance", change, session, { ...globals(command), ...options }));
-const runtime = program.command("runtime").description("Runtime版本与操作系统隔离探针；尚未启用正式Agent任务");
+const runtime = program.command("runtime").description("Runtime安装、原操作核对与隔离验证");
+runtime.command('install-codex').description('显式绑定当前Codex账号、程序和固定检查；安装不调用模型或批准Provider')
+ .requiredOption('--binary <path>','当前Codex原生codex.exe；同目录须有工具宿主')
+ .requiredOption('--native-binary <path>','固定的原生OpenCode执行程序')
+ .option('--node-binary <path>','固定检查使用的Node程序；默认当前Node')
+ .requiredOption('--checks <json>','固定WorkspaceCheckTemplate的JSON数组文件')
+ .option('--model <model>','选择已授权模型','gpt-6.1-sol')
+ .option('--disable-mcp-server <name...>','本机已核对的外部MCP名称')
+ .option('--yes','明确确认该项目的本地安装')
+ .action((options,command)=>installCodexRuntime({...globals(command),...options}));
+runtime.command('codex-installation').description('只读核对原Codex账户与Runtime安装，不启动Run')
+ .action((_options,command)=>showCodexRuntimeInstallation(globals(command)));
 runtime.command("gateway-credit-probe").description("历史费率下的持久积分预算演练；不发送HTTP、读取凭据或批准计费")
   .option("--output-dir <path>", "结果及独立积分演练账本目录；默认.cimiloop/gateway-credit-probe")
   .action((options, command) => runtimeGatewayCreditProbe({ ...globals(command), ...options }));
