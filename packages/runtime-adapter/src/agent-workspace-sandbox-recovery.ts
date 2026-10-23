@@ -28,7 +28,7 @@ function readOriginal(raw: { root: string; operation: string; scope: unknown }, 
   if (!rawConfig || typeof rawConfig !== "object" || Array.isArray(rawConfig)) fail();
   const config = rawConfig as Record<string, unknown>;
   const configFormat=agentWorkspaceConfigBaseFormat(config);
-  const fields = ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options",...(Object.hasOwn(config,'startup_profile')?['startup_profile']:[])];
+  const fields = ["format", "nonce", "root", "binary", "owner", "pipe_nonce", "scope_digest", "elapsed_ms", "provider_options",...(Object.hasOwn(config,'startup_profile')?['startup_profile']:[]),...(Object.hasOwn(config,'writable_storage_profile')?['writable_storage_profile']:[])];
   const namedConfig=exact(config,[...fields,'deadline_uptime_ms','prompt','lifetime_policy','binary_original','method_tools','method_original_binding'])&&configFormat==='cimiloop/agent-workspace-sandbox-config/6.0.0';
   const parentConfig=exact(config,[...fields,'deadline_uptime_ms','prompt','lifetime_policy','binary_original','parent_skill_tools','parent_skill_original_binding'])&&configFormat==='cimiloop/agent-workspace-sandbox-config/7.0.0';
   try { assertAgentParentSkillConfig(config); } catch { fail(); }

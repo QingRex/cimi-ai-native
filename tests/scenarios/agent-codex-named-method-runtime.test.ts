@@ -39,7 +39,11 @@ async function reconcileRetainedOriginal(root: string) {
     const result = readAgentRuntimeNamedMethodResult(root, scope, { profile: plan.profile, files: plan.files });
     expect(result).toMatchObject({ status: "Observed", method_result_reverified: true, output: { purpose: "clarification" }, costs_reconciled: false });
     if (result.output?.purpose !== "clarification") throw Error("Original clarification unavailable"); expect(result.output.questions).toHaveLength(1); expect(result.output.unresolved.length).toBeGreaterThan(0);
-    const config = load(join(identity.operation, "original-config.json")); expect(config.format).toBe("cimiloop/agent-workspace-sandbox-config/13.0.0");
+    // Reconcile the saved policy; historical config13 must never acquire config16 authority.
+    const config = load(join(identity.operation, "original-config.json"));
+    expect(config).toMatchObject(identity.input!==null&&typeof identity.input==='object'&&Object.hasOwn(identity.input,'writable_storage_profile')
+      ? {format:"cimiloop/agent-workspace-sandbox-config/16.0.0",writable_storage_profile:'private_state_only/1.0.0'}
+      : {format:"cimiloop/agent-workspace-sandbox-config/13.0.0"});
     const methods = readAgentNamedMethodOriginals(root, scope, plan.profile, plan.files, config.method_original_binding);
     const collection = load(join(root, "original-collection.json"));
     expect(collection.named_method).toMatchObject({ status: "Observed", method_result_reverified: true }); expect(collection.ipc).toMatchObject({ status: "Observed", unresolved: 0, correlation: { uncorrelated_exchanges: 0, unmatched_sdk_calls: 0 } }); verifyCollectedCodexAgentModelOriginals(root, scope, collection);
@@ -99,7 +103,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64" && !!sourc
       expect(methods.calls.filter(call => call.receipt.function_name === "invoke_skill").map(call => call.receipt.argument)).toEqual(expect.arrayContaining(plan.profile.modules.map(module => module.name)));
       for (const resource of plan.profile.resources) expect(methods.calls.some(call => call.receipt.resource_path === resource.path)).toBe(true);
       const identity = readAgentRuntimeOriginalIdentity(root, scope), config = JSON.parse(bytesAt(join(identity.operation, "original-config.json"), 65536).toString("utf8"));
-      expect(config).toMatchObject({ format: "cimiloop/agent-workspace-sandbox-config/13.0.0", method_tools: "fixed_named_method/1.0.0", provider_options: { model_output_profile: fixed.output_profile } });
+      expect(config).toMatchObject({ format: "cimiloop/agent-workspace-sandbox-config/16.0.0",writable_storage_profile:'private_state_only/1.0.0', method_tools: "fixed_named_method/1.0.0", provider_options: { model_output_profile: fixed.output_profile } });
       const collection = await collectAgentRuntimeOperation(root, scope, undefined, { profile: plan.profile, files: plan.files });
       writeFileSync(join(root, "original-collection.json"), JSON.stringify(collection), { flag: "wx" });
       expect(collection.named_method).toMatchObject({ status: "Observed", method_result_reverified: true }); expect(collection.ipc).toMatchObject({ status: "Observed", unresolved: 0, correlation: { uncorrelated_exchanges: 0, unmatched_sdk_calls: 0 } });

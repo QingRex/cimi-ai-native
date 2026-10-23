@@ -62,18 +62,21 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("host model joi
   }};
   return {...f,root,dataDirectory,kernel,reserved,scope,local,binary,custody,checks,model,sends:()=>sends};
  }
- it("executes shared start through real SDK model/read/check steps and retains the one original Run",async()=>{
+ it.each([false,true])("executes shared start through real SDK model/read/check steps and retains one Run with private storage=%s",async bounded=>{
   const f=await setup(),sequence=f.store.asOfEventSequence(),usage=f.task().usage;
+  if(bounded)Object.assign(f.model,{output_profile:'bounded_2048/1.0.0',original_evidence:{kind:'codex_login/1.0.0',header_digest:digest('PUBLIC Codex header; no actual account or model').value}});
   const runtime=LocalAgentRuntimeComposition.open({local:f.local,binary:f.binary,custody:f.custody,checks:f.checks,model:f.model});
   expect(await runtime.start(f.reserved.run.id)).toMatchObject({outcome:"original",completion_proven:false});expect(f.sends()).toBe(3);
   expect(await runtime.start(f.reserved.run.id)).toMatchObject({outcome:"original"});expect(f.sends()).toBe(3);
   const collected=await collectAgentRuntimeOperation(f.dataDirectory,f.scope,{project:f.project,record:f.reserved.record});
   expect(collected.model).toMatchObject({status:"Observed",calls:3,unresolved:0,model_account_custody_proven:false,costs_reconciled:false});
+  if(bounded)expect(collected.codex_model).toMatchObject({status:'Unknown',real_model_turns:null,original_requirement_pinned:false,costs_reconciled:false});
   expect(collected.native).toMatchObject({status:"Verified",matched_calls:2,native_effect_reverified:true});expect(collected.ipc).toMatchObject({exchanges:5,correlation:{uncorrelated_exchanges:0,unmatched_sdk_calls:0}});
   const original=readAgentRuntimeModelOriginals(f.dataDirectory,f.scope);expect(original.calls[0]!.request.prompt).toBeDefined();expect(original.calls).toHaveLength(3);
   expect(collected.artifacts.filter(a=>a.name.startsWith("model/")).length).toBe(11);
-  expect(JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"))).toMatchObject({format:"cimiloop/agent-workspace-sandbox-config/8.0.0",startup_profile:'bun_interpreter/1.0.0',lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest}});
+  expect(JSON.parse(readFileSync(join(collected.status.operation,"original-config.json"),"utf8"))).toMatchObject({format:bounded?"cimiloop/agent-workspace-sandbox-config/14.0.0":"cimiloop/agent-workspace-sandbox-config/8.0.0",startup_profile:'bun_interpreter/1.0.0',...(bounded?{writable_storage_profile:'private_state_only/1.0.0'}:{}),lifetime_policy:"agent_task/1.0.0",provider_options:{admission_digest:f.model.admission_digest}});
   expect(readAgentRuntimeOriginalIdentity(f.dataDirectory,f.scope)).toMatchObject({claim:{format:'cimiloop/agent-runtime-operation-claim/3.0.0'},input:{startup_profile:'bun_interpreter/1.0.0'}});
+  if(bounded)expect(readAgentRuntimeOriginalIdentity(f.dataDirectory,f.scope)).toHaveProperty('input.writable_storage_profile','private_state_only/1.0.0');
   expect(JSON.parse(readFileSync(join(collected.status.operation,"result.json"),"utf8"))).toMatchObject({format:"cimiloop/opencode-workspace-runtime/1.0.0",synthetic_model_responses:null,external_model_requests:null,actual_credentials_read:null,formal_agent_execution_enabled:false});
   expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Reserved");
   writeInstance(join(f.dataDirectory,"instance.json"),{schema_version:"1.0.0",instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});
@@ -81,13 +84,20 @@ describe.runIf(process.platform==="win32"&&process.arch==="x64")("host model joi
   const login=await fetch(server.origin+"/api/session",{method:"POST",headers:{Origin:server.origin,"Content-Type":"application/json"},body:JSON.stringify({bootstrap:new URL(server.bootstrapUrl).hash.slice(1)})});expect(login.status).toBe(200);
   const cookie=login.headers.get("set-cookie")!.split(";")[0]!,csrf=(await login.json() as {csrf:string}).csrf;
   const observe={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:"technical_owner",command_type:"RecordRunObservation",target:{object_type:"run",id:f.reserved.run.id},expected_revision:f.store.getRun(f.reserved.run.id)!.revision,payload:{}};
-  const record=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/observe",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:JSON.stringify(observe)});const body=await response.json();expect({status:response.status,body}).toMatchObject({status:200});return body;};
+  const record=async()=>{const response=await fetch(server.origin+"/api/agent-runs/"+f.reserved.run.id+"/observe",{method:"POST",headers:{Origin:server.origin,Cookie:cookie,"Content-Type":"application/json","X-CimiLoop-CSRF":csrf,Connection:"close"},body:JSON.stringify(observe)});const body=await response.json();expect({status:response.status,body}).toMatchObject(bounded?{status:409,body:{code:'CAPABILITY_UNAVAILABLE'}}:{status:200});return body;};
+  if(bounded){
+   // A PUBLIC header declaration never supplies the missing real Codex originals.
+   // The actual HTTP consumer must refuse both attempts and preserve the hold.
+   await record();await record();expect(f.store.listRuntimeRecords('run_observation',f.change.id)).toHaveLength(0);
+   expect(f.store.getRun(f.reserved.run.id)!.status).toBe('Reserved');expect(f.task().usage).toEqual(usage);expect(f.store.asOfEventSequence()).toBe(sequence);return;
+  }
   const observation=await record();expect(observation).toMatchObject({command_type:"RecordRunObservation",data:{observation:{report:{status:"unknown",usage:{cost_known:false}}}}});expect(await record()).toEqual(observation);
   expect(f.store.listRuntimeRecords("run_observation",f.change.id)).toHaveLength(1);expect(f.store.getRun(f.reserved.run.id)!.status).toBe("Unknown");
   expect(f.task().usage).toMatchObject({pending_reconciliation:true,cost_reserved_micros:100});expect(f.store.asOfEventSequence()).toBe(sequence+1);
  });
  it("cancels the original host model wait without resend and freezes input before asynchronous admission",async()=>{
   const f=await setup();let waiting=false;
+  Object.assign(f.model,{output_profile:'bounded_2048/1.0.0',original_evidence:{kind:'codex_login/1.0.0',header_digest:digest('PUBLIC Codex cancellation header; no actual account or model').value}});
   f.model.execute=async()=>{waiting=true;requestAgentRuntimeCancellation(f.dataDirectory,f.scope);return new Promise(()=>{});};
   const model=await AgentRuntimeModelHost.initialize(f.dataDirectory,f.scope,f.model,["cimi_read","cimi_replace","cimi_check"],"Frozen original task packet"),budget=await openLocalAgentRunBudget(f.local,f.reserved.run.id),service=await LocalAgentWorkspaceToolService.open(f.local,f.reserved.run.id);closers.push(()=>budget.close(),()=>service.close());
   await service.installAdmittedChecks(f.checks,f.custody);const checkCatalog=await service.getCheckCatalog();

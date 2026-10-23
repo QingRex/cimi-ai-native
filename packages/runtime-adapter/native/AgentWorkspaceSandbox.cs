@@ -63,7 +63,9 @@ partial class AppContainer {
   // original ambient semantics and cannot acquire this policy by an extra key.
   static string AgentStartupFormat(Dictionary<string,object> config) {
     string format=config["format"] as string;int version;
-    bool bounded=format=="cimiloop/agent-workspace-sandbox-config/11.0.0"||format=="cimiloop/agent-workspace-sandbox-config/12.0.0"||format=="cimiloop/agent-workspace-sandbox-config/13.0.0";
+    bool privateWrites=format=="cimiloop/agent-workspace-sandbox-config/14.0.0"||format=="cimiloop/agent-workspace-sandbox-config/15.0.0"||format=="cimiloop/agent-workspace-sandbox-config/16.0.0";
+    if(privateWrites?(!config.ContainsKey("writable_storage_profile")||config["writable_storage_profile"] as string!="private_state_only/1.0.0"):config.ContainsKey("writable_storage_profile"))throw new InvalidDataException();
+    bool bounded=privateWrites||format=="cimiloop/agent-workspace-sandbox-config/11.0.0"||format=="cimiloop/agent-workspace-sandbox-config/12.0.0"||format=="cimiloop/agent-workspace-sandbox-config/13.0.0";
     var options=config["provider_options"] as Dictionary<string,object>;
     if(bounded?(options==null||!options.ContainsKey("model_output_profile")||options["model_output_profile"] as string!="bounded_2048/1.0.0"):(options!=null&&options.ContainsKey("model_output_profile")))throw new InvalidDataException();
     if(format=="cimiloop/agent-workspace-sandbox-config/8.0.0")version=5;
@@ -72,17 +74,22 @@ partial class AppContainer {
     else if(format=="cimiloop/agent-workspace-sandbox-config/11.0.0")version=5;
     else if(format=="cimiloop/agent-workspace-sandbox-config/12.0.0")version=7;
     else if(format=="cimiloop/agent-workspace-sandbox-config/13.0.0")version=6;
+    else if(format=="cimiloop/agent-workspace-sandbox-config/14.0.0")version=5;
+    else if(format=="cimiloop/agent-workspace-sandbox-config/15.0.0")version=7;
+    else if(format=="cimiloop/agent-workspace-sandbox-config/16.0.0")version=6;
     else {if(config.ContainsKey("startup_profile"))throw new InvalidDataException();return format;}
     if(!config.ContainsKey("startup_profile")||config["startup_profile"] as string!="bun_interpreter/1.0.0")throw new InvalidDataException();
     return "cimiloop/agent-workspace-sandbox-config/"+version.ToString()+".0.0";
   }
   static int AgentModelOutputLimit(Dictionary<string,object> config) {
     AgentConfigDeadline(config);
-    return config["format"] as string=="cimiloop/agent-workspace-sandbox-config/11.0.0"||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/12.0.0"||config["format"] as string=="cimiloop/agent-workspace-sandbox-config/13.0.0"?2048:512;
+    var options=config["provider_options"] as Dictionary<string,object>;
+    return options!=null&&options.ContainsKey("model_output_profile")?2048:512;
   }
   static void AgentConfigKeys(Dictionary<string,object> config,params string[] keys) {
     AgentStartupFormat(config);
     var expected=new List<string>(keys);if(config.ContainsKey("startup_profile"))expected.Add("startup_profile");
+    if(config.ContainsKey("writable_storage_profile"))expected.Add("writable_storage_profile");
     AgentKeys(config,expected.ToArray());
   }
   static void AgentConfigureStartupEnvironment(Dictionary<string,object> config) {
@@ -348,6 +355,7 @@ partial class AppContainer {
       if(!(bool)agentResources["profile_was_absent"]) throw new InvalidDataException();
       agentResources["profile_intent"]=true; AgentCheckpoint("profile_intent",owner);
       int hr=CreateAppContainerProfile(profile,profile,"CimiLoop fixed workspace tool rehearsal",IntPtr.Zero,0,out sid); if(hr!=0) Marshal.ThrowExceptionForHR(hr); profileCreated=true;
+      if(config.ContainsKey("writable_storage_profile"))AgentProfileStorage.Protect(sid);
       var principal=new SecurityIdentifier(sid);
       agentResources["grants_intent"]=true; AgentCheckpoint("grants_intent",owner);
       Grant(root,principal,FileSystemRights.ReadAttributes|FileSystemRights.Traverse,true,false);

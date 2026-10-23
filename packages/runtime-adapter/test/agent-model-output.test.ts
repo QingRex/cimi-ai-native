@@ -3,6 +3,14 @@ import { agentWorkspaceConfigBaseFormat, assertAgentRuntimeStartupOriginal } fro
 import { assertAgentRuntimeModelOriginalMode } from "../src/agent-runtime-model.js";
 
 describe("prospective bounded Agent model output policy",()=>{
+ it.each([[14,5],[15,7],[16,6]])('pins private-state-only writes for new Native config%s', (version,base)=>{
+  const config={format:`cimiloop/agent-workspace-sandbox-config/${version}.0.0`,startup_profile:'bun_interpreter/1.0.0',writable_storage_profile:'private_state_only/1.0.0',provider_options:{model_output_profile:'bounded_2048/1.0.0'}};
+  expect(agentWorkspaceConfigBaseFormat(config)).toBe(`cimiloop/agent-workspace-sandbox-config/${base}.0.0`);
+  expect(()=>agentWorkspaceConfigBaseFormat({...config,writable_storage_profile:undefined})).toThrow();
+  expect(()=>agentWorkspaceConfigBaseFormat({...config,format:'cimiloop/agent-workspace-sandbox-config/11.0.0'})).toThrow();
+  expect(()=>assertAgentRuntimeStartupOriginal(config,{startup_profile:config.startup_profile,provider_options:config.provider_options})).toThrow();
+  expect(()=>assertAgentRuntimeStartupOriginal(config,{startup_profile:config.startup_profile,writable_storage_profile:config.writable_storage_profile,provider_options:config.provider_options})).not.toThrow();
+ });
  it.each([[11,5],[12,7]])('recognizes explicit Native config%s and rejects missing, foreign or legacy policy markers', (version,base)=>{
   const config={format:`cimiloop/agent-workspace-sandbox-config/${version}.0.0`,startup_profile:'bun_interpreter/1.0.0',provider_options:{model_output_profile:'bounded_2048/1.0.0'}};
   expect(agentWorkspaceConfigBaseFormat(config)).toBe(`cimiloop/agent-workspace-sandbox-config/${base}.0.0`);

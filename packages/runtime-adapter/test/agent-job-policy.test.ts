@@ -13,6 +13,9 @@ describe('independent original Agent Job OS observation',()=>{
  it('versions new interpreter startup claims explicitly while preserving old claim1/2 meaning',()=>{
   const input={job_resource_policy:policy,job_observer_original:{format:'cimiloop/runtime-binary-original-proof/1.0.0',path:observer.image,sha:'a'.repeat(64),bytes:10}};
   expect(agentRuntimeClaimFormat({...input,startup_profile:'bun_interpreter/1.0.0'})).toBe('cimiloop/agent-runtime-operation-claim/3.0.0');
+  expect(agentRuntimeClaimFormat({...input,startup_profile:'bun_interpreter/1.0.0',writable_storage_profile:'private_state_only/1.0.0'})).toBe('cimiloop/agent-runtime-operation-claim/3.0.0');
+  expect(()=>agentRuntimeClaimFormat({...input,writable_storage_profile:'private_state_only/1.0.0'})).toThrow();
+  expect(()=>agentRuntimeClaimFormat({...input,startup_profile:'bun_interpreter/1.0.0',writable_storage_profile:'foreign'})).toThrow();
   expect(agentRuntimeClaimFormat(input)).toBe('cimiloop/agent-runtime-operation-claim/2.0.0');
   expect(agentRuntimeClaimFormat({})).toBe('cimiloop/agent-runtime-operation-claim/1.0.0');
   expect(()=>agentRuntimeClaimFormat({...input,startup_profile:'unrecorded ambient'})).toThrow();

@@ -163,7 +163,7 @@ export const buildWindowsAgentWorkspaceSandbox = async (root: string, signal?: A
   signal?.throwIfAborted();
   if (process.platform !== "win32" || process.arch !== "x64") throw new RuntimeAdapterError("windows_x64_agent_sandbox_required");
   assertAgentRuntimeNativeRoot(root);
-  const sources = ["AppContainer.cs", "IpcTransport.cs", "GatewayTransport.cs", "ConversationTransport.cs", "AgentWorkspaceSandbox.cs"].map(name => fileURLToPath(new URL(`../native/${name}`, import.meta.url)));
+  const sources = ["AppContainer.cs", "IpcTransport.cs", "GatewayTransport.cs", "ConversationTransport.cs", "AgentWorkspaceSandbox.cs", "AgentProfileStorage.cs"].map(name => fileURLToPath(new URL(`../native/${name}`, import.meta.url)));
   const frozen=sources.map(path=>bytesAt(path,1024*1024)),compiler=resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
   if(!existsSync(compiler))throw new RuntimeAdapterError("native_compiler_unavailable");
   const compilerDigest=digest(bytesAt(compiler)),options=["/nologo","/target:exe","/main:AgentWorkspaceSandbox","/reference:System.Web.Extensions.dll"];

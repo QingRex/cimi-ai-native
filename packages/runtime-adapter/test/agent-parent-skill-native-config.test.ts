@@ -78,6 +78,15 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('parent Skill o
   expect(read('output',named)).toEqual({accepted:true,result:512});
   for(const invalid of [{...config,provider_options:named.provider_options},{...named,provider_options:config.provider_options},{...ordinary,format:config.format,provider_options:config.provider_options},{...config,format:'cimiloop/agent-workspace-sandbox-config/11.0.0'}])expect(read('config',invalid)).toMatchObject({accepted:false});
  });
+ it.each([[14,'ordinary'],[15,'parent'],[16,'named']] as const)('compiled Native config%s enforces private Profile policy without changing tool authority', (version,mode)=>{
+  const original=currentModes()[mode],legacyVersion={ordinary:11,parent:12,named:13}[mode];
+  const config={...original,format:`cimiloop/agent-workspace-sandbox-config/${version}.0.0`,writable_storage_profile:'private_state_only/1.0.0',provider_options:{...(original.provider_options as object),model_output_profile:'bounded_2048/1.0.0'}};
+  expect(read('config',config)).toEqual({accepted:true,result:123456789});
+  expect(read('output',config)).toEqual({accepted:true,result:2048});
+  expect(read('permissions',config)).toEqual(read('permissions',original));
+  const missing={...config};Reflect.deleteProperty(missing,'writable_storage_profile');
+  for(const invalid of [missing,{...config,writable_storage_profile:'foreign'},{...config,format:`cimiloop/agent-workspace-sandbox-config/${legacyVersion}.0.0`},{...config,provider_options:original.provider_options}])expect(read('config',invalid)).toMatchObject({accepted:false});
+ });
  it('the actual retained Native startup method fixes only new child interpreter policy and preserves historical ambient meaning',()=>{
   const {parent,f}=currentModes();
   expect(read('startup',parent)).toEqual({accepted:true,result:{before:'external-fixture-value',after:'0'}});

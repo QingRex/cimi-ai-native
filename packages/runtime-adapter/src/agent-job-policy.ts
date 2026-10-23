@@ -5,7 +5,7 @@ import {validWorkspaceWorkerIdentity} from './workspace-files.js';
 import type {CreditProcessIdentity} from './gateway-credit.js';
 import {parseGatewayJson} from './gateway-conversation.js';
 import {readRuntimeBinaryOriginal} from './runtime-binary-originals.js';
-import {AGENT_RUNTIME_STARTUP_PROFILE} from './agent-runtime-startup.js';
+import {AGENT_RUNTIME_STARTUP_PROFILE,AGENT_RUNTIME_WRITABLE_STORAGE_PROFILE} from './agent-runtime-startup.js';
 // Prospective independent OS Job evidence. This does not prove disk quota,
 // provider approval or historical resource custody and never changes a Job.
 export const AGENT_JOB_RESOURCE_POLICY=Object.freeze({format:'cimiloop/agent-job-resource-policy/1.0.0' as const,limit_flags:0x2000|0x8|0x200,active_process_limit:1,job_memory_limit_bytes:2147483648,process_memory_limit_bytes:0});
@@ -18,6 +18,7 @@ export function agentRuntimeClaimFormat(input:unknown):'cimiloop/agent-runtime-o
  if(!input||typeof input!=='object'||Array.isArray(input))throw new RuntimeAdapterError('agent_runtime_job_policy_unproven');
  const value=input as Record<string,unknown>,policy=Object.hasOwn(value,'job_resource_policy'),observer=Object.hasOwn(value,'job_observer_original');
  const startup=Object.hasOwn(value,'startup_profile');
+ if(Object.hasOwn(value,'writable_storage_profile')&&(!startup||value.writable_storage_profile!==AGENT_RUNTIME_WRITABLE_STORAGE_PROFILE))throw new RuntimeAdapterError('agent_runtime_startup_original_unproven');
  if(startup&&(value.startup_profile!==AGENT_RUNTIME_STARTUP_PROFILE||!policy||!observer))throw new RuntimeAdapterError('agent_runtime_startup_original_unproven');
  if(!policy&&!observer)return 'cimiloop/agent-runtime-operation-claim/1.0.0';
  const proof=value.job_observer_original as ReturnType<typeof readRuntimeBinaryOriginal>;
