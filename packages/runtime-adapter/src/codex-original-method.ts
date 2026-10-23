@@ -5,6 +5,7 @@ import { isDeepStrictEqual } from "node:util";
 import type { ExternalReference } from "@cimiloop/protocol/v2";
 import { assertOrdinaryPath, bytesAt, digest, directory, RuntimeAdapterError } from "./files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
+import {parseCodexUsagePolicy,parseCodexOrdinaryQuota,CODEX_QUOTA_READ_PARAMS,type CodexOrdinaryUsagePolicy,type CodexOrdinaryQuotaSnapshot} from './codex-ordinary-quota.js';
 
 const MAX_BYTES = 8 * 1024 * 1024, MAX_LINE = 1024 * 1024, MAX_CALLS = 128;
 const fail = (reason = "codex_original_unproven"): never => { throw new RuntimeAdapterError(reason); };
@@ -33,6 +34,7 @@ export interface CodexMethodRequest {
   operation_key: string; model: string; prompt: string; instructions: string;
   tools: CodexMethodTool[]; output_schema: unknown;
   reasoning_effort?: "low" | "medium";
+  usage_policy?: CodexOrdinaryUsagePolicy;
 }
 export interface CodexMethodToolCall {
   call_id: string; tool: string; arguments: unknown; output: string;
@@ -50,6 +52,7 @@ export interface CodexMethodOriginal {
   model: string; account_digest: string; output_text: string; tool_calls: CodexMethodToolCall[];
   usage: { inputTokens: number; cachedInputTokens: number; outputTokens: number; totalTokens: number; reasoningOutputTokens: number; cacheWriteInputTokens: number };
   original_ref: ExternalReference;
+  ordinary_quota?:{before:CodexOrdinaryQuotaSnapshot;after:CodexOrdinaryQuotaSnapshot;costs_reconciled:false};
 }
 export interface CodexOriginalMethodOptions {
   root: string;
@@ -73,7 +76,8 @@ export function codexChatGptAccountDigest(raw: unknown): string {
 
 function requestCopy(raw: CodexMethodRequest): CodexMethodRequest {
   const value = structuredClone(raw);
-  if (!value || Object.keys(value).sort().join(",") !== (Object.hasOwn(value, "reasoning_effort") ? "instructions,model,operation_key,output_schema,prompt,reasoning_effort,tools" : "instructions,model,operation_key,output_schema,prompt,tools") ||
+  if (!value || Object.keys(value).sort().join(",") !== ["instructions","model","operation_key","output_schema","prompt","tools",...(Object.hasOwn(value,'reasoning_effort')?['reasoning_effort']:[]),...(Object.hasOwn(value,'usage_policy')?['usage_policy']:[])].sort().join(',') ||
+    Object.hasOwn(value,'usage_policy')&&!parseCodexUsagePolicy(value.usage_policy) ||
     Object.hasOwn(value, "reasoning_effort") && !["low", "medium"].includes(String(value.reasoning_effort)) ||
     !/^[A-Za-z0-9_-]{1,128}$/.test(value.operation_key) || !/^[a-zA-Z0-9._-]{1,128}$/.test(value.model) ||
     typeof value.prompt !== "string" || !value.prompt.trim() || typeof value.instructions !== "string" || !value.instructions.trim() ||
@@ -115,8 +119,9 @@ function childEnvironment() {
 
 // Local explicit installation reads public login metadata only. No thread,
 // model turn, auth.json, token conversion, tools or model context are involved.
-export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodOptions, "root" | "command" | "disabled_mcp_servers">, beforeEffect: () => void): Promise<{ account_digest: string }> {
+export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodOptions, "root" | "command" | "disabled_mcp_servers"> & {usage_policy?:CodexOrdinaryUsagePolicy}, beforeEffect: () => void): Promise<{ account_digest: string;quota_snapshot?:CodexOrdinaryQuotaSnapshot }> {
   const fixed = structuredClone(options), binary = resolve(assertOrdinaryPath(fixed.command.file));
+  const usagePolicy=parseCodexUsagePolicy(fixed.usage_policy);
   if (!/^[a-f0-9]{64}$/.test(fixed.command.sha256) || digest(bytesAt(binary, 512 * 1024 * 1024)).value !== fixed.command.sha256) fail("codex_binary_changed");
   guardNow(beforeEffect);
   const cwd = directory(resolve(fixed.root)), disabled = fixed.disabled_mcp_servers ?? [];
@@ -146,10 +151,12 @@ export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodO
     await rpc("initialize", { clientInfo: { name: "cimiloop_s1_install", version: "0.1.0" }, capabilities: { experimentalApi: true } });
     send({ method: "initialized" });
     const account_digest = codexChatGptAccountDigest(await rpc("account/read", { refreshToken: false }));
+    const quota_snapshot=usagePolicy?parseCodexOrdinaryQuota(await rpc('account/rateLimits/read',CODEX_QUOTA_READ_PARAMS)):undefined;
+    if(usagePolicy&&codexChatGptAccountDigest(await rpc('account/read',{refreshToken:false}))!==account_digest)fail('codex_account_changed');
     guardNow(beforeEffect); if (digest(bytesAt(binary, 512 * 1024 * 1024)).value !== fixed.command.sha256) fail("codex_binary_changed");
     stopping = true; child.stdin.end(); child.kill(); await Promise.race([childClosed, failure]);
     if (failed || buffered.length) fail("codex_login_inspection_failed"); guardNow(beforeEffect);
-    return { account_digest };
+    return { account_digest,...(quota_snapshot?{quota_snapshot}:{}) };
   } finally {
     clearTimeout(timer); stopping = true; child.stdin.destroy(); child.kill(); rejectAll();
     if (!childDidClose) { let stopTimer: ReturnType<typeof setTimeout> | undefined;
@@ -161,24 +168,31 @@ export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodO
 // Interpret retained *actual app-server stdio*, independently of the final model
 // message. This does not assert HTTP wire bytes, Skill behavior qualification,
 // native isolation acceptance, provider bills, or Kernel business completion.
-function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Frame[], reference: ExternalReference, expectedAccount?: string, version: 1 | 2 | 3 | 4 = 1, disabled: string[] = []): CodexMethodOriginal {
+function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Frame[], reference: ExternalReference, expectedAccount?: string, version: 1 | 2 | 3 | 4 | 5 = 1, disabled: string[] = []): CodexMethodOriginal {
   const sent = new Map<number | string, any>(), incoming = new Map<number | string, any>();
   let thread = "", turn = "", account = false, complete = false, output = "", usage: any, accountDigest = "", finalAccountRead = false;
   const earlyThreadIds = new Set<string>();
   let accountDirty = false, turnSent = false, mcpVerified = version === 1;
+  let quotaDirty=false,quotaAccountReady=false;const quotas:CodexOrdinaryQuotaSnapshot[]=[],answered=new Set<number|string>();
+  const accountReadStages=new Map<number|string,{ready:boolean;final:boolean}>();
   const calls = new Map<string, CodexMethodToolCall>(), completedCalls = new Set<string>();
   for (const frame of frames) {
     const bytes = Buffer.from(frame.bytes, "base64");
     if (bytes.toString("base64") !== frame.bytes || bytes.length > MAX_LINE || bytes.at(-1) !== 10) fail();
     const value = parse(bytes);
-    const accountRpc = frame.direction === "out" ? value.method === "account/read" : value.id !== undefined && !value.method && sent.get(value.id)?.method === "account/read";
-    if (complete && !accountRpc && (frame.direction === "out" || value.id !== undefined || !["thread/tokenUsage/updated", "thread/status/changed"].includes(value.method))) fail("codex_post_terminal_effect");
+    const accountRpc = frame.direction === "out" ? value.method === "account/read"||version===5&&value.method==='account/rateLimits/read' : value.id !== undefined && !value.method && (sent.get(value.id)?.method === "account/read"||version===5&&sent.get(value.id)?.method==='account/rateLimits/read');
+    if (complete && !accountRpc && (frame.direction === "out" || value.id !== undefined || !["thread/tokenUsage/updated", "thread/status/changed",...(version===5?['account/rateLimits/updated']:[])].includes(value.method))) fail("codex_post_terminal_effect");
     if (frame.direction === "out") {
       if (value.method) {
-        if (!["initialize", "initialized", "account/read", "thread/start", "turn/start", "mcpServerStatus/list"].includes(value.method)) fail();
+        if (!["initialize", "initialized", "account/read", "thread/start", "turn/start", "mcpServerStatus/list",...(version===5?['account/rateLimits/read']:[])].includes(value.method)) fail();
+        if(version===5&&value.method==='account/read'){
+          if(!same(value.params,{refreshToken:false}))fail('codex_ordinary_quota_unproven');
+          accountReadStages.set(value.id,{ready:!!thread&&mcpVerified&&!turnSent,final:complete});
+        }
+        if(value.method==='account/rateLimits/read'&&(!account||!thread||!mcpVerified||accountDirty||!(complete?finalAccountRead:quotaAccountReady)||!same(value.params,CODEX_QUOTA_READ_PARAMS)||turnSent&&!complete||quotas.length!==(complete?1:0)))fail('codex_ordinary_quota_unproven');
         if (value.id !== undefined) { if (sent.has(value.id)) fail(); sent.set(value.id, value); }
         if (value.method === "thread/start" && (!account || !same(value.params, startParams(request, cwd)))) fail();
-        if (value.method === "turn/start" && (!thread || turn || accountDirty || !mcpVerified || value.params.threadId !== thread || value.params.model !== request.model || value.params.effort !== (request.reasoning_effort ?? "medium") ||
+        if (value.method === "turn/start" && (!thread || turn || accountDirty || version===5&&(quotaDirty||quotas.length!==1||quotas[0]!.ordinary_usage_allowed!==true||quotas[0]!.account_id_digest===null) || !mcpVerified || value.params.threadId !== thread || value.params.model !== request.model || value.params.effort !== (request.reasoning_effort ?? "medium") ||
           !same(value.params.input, [{ type: "text", text: request.prompt, text_elements: [] }]) || !same(value.params.outputSchema, request.output_schema))) fail();
         if (value.method === "turn/start") turnSent = true;
         if (value.method === "mcpServerStatus/list" && (turnSent || !thread || !same(value.params, { threadId: thread, limit: 100, detail: "toolsAndAuthOnly" }))) fail();
@@ -198,11 +212,17 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
     }
     if (value.id !== undefined) {
       const rpc = sent.get(value.id); if (!rpc || value.error) fail();
+      if(version===5){if(answered.has(value.id))fail('codex_rpc_identity_denied');answered.add(value.id);}
       const result = value.result;
       if (rpc.method === "account/read") {
         const current = codexChatGptAccountDigest(result);
         if (expectedAccount && current !== expectedAccount || accountDigest && current !== accountDigest) fail("codex_account_changed");
-        accountDigest = current; account = true; accountDirty = false; if (complete) finalAccountRead = true;
+        accountDigest = current; account = true; accountDirty = false;
+        if(complete&&(version!==5||accountReadStages.get(value.id)?.final===true))finalAccountRead=true;
+        if(version===5&&thread&&mcpVerified&&!turnSent&&accountReadStages.get(value.id)?.ready===true)quotaAccountReady=true;
+      }
+      if(rpc.method==='account/rateLimits/read'){
+        const snapshot=parseCodexOrdinaryQuota(result);if(quotas.length>=2||snapshot.account_id_digest===null||quotas.length===0&&(turnSent||snapshot.ordinary_usage_allowed!==true)||quotas.length===1&&(!complete||snapshot.account_id_digest!==quotas[0]!.account_id_digest))fail('codex_ordinary_quota_unproven');quotas.push(snapshot);quotaDirty=false;
       }
       if (rpc.method === "mcpServerStatus/list") { if (!quietMcpCatalog(result, disabled)) fail("codex_external_tools_available"); mcpVerified = true; }
       if (rpc.method === "thread/start") {
@@ -217,6 +237,7 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
     if (value.method === "account/updated" && account) {
       if (turnSent || p?.authMode !== "chatgpt") fail("codex_account_changed"); accountDirty = true;
     }
+    if(version===5&&value.method==='account/rateLimits/updated'&&!turnSent)quotaDirty=true;
     if (version >= 2 && value.method === "mcpServer/startupStatus/updated" && ["starting", "ready"].includes(p?.status)) fail("codex_external_tools_available");
     if (p?.threadId !== undefined && !thread && !turn && ["warning", "thread/status/changed"].includes(value.method) && [...sent.values()].some(rpc => rpc.method === "thread/start")) {
       earlyThreadIds.add(p.threadId); continue;
@@ -242,7 +263,8 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
   if (!account || !finalAccountRead || !thread || !turn || !complete || !output || calls.size !== completedCalls.size || !usage ||
     !["inputTokens", "cachedInputTokens", "outputTokens", "totalTokens", "reasoningOutputTokens", "cacheWriteInputTokens"].every(key => Number.isSafeInteger(usage[key]) && usage[key] >= 0) ||
     usage.totalTokens !== usage.inputTokens + usage.outputTokens || usage.cachedInputTokens > usage.inputTokens || usage.reasoningOutputTokens > usage.outputTokens) fail();
-  return { format: "cimiloop/codex-method-original/1.0.0", operation_key: request.operation_key, input_digest: digest(encode(request)).value,
+  if(version===5&&quotas.length!==2)fail('codex_ordinary_quota_unproven');
+  return { format: "cimiloop/codex-method-original/1.0.0",...(version===5?{ordinary_quota:{before:quotas[0]!,after:quotas[1]!,costs_reconciled:false as const}}:{}), operation_key: request.operation_key, input_digest: digest(encode(request)).value,
     thread_id: thread, turn_id: turn, model: request.model, account_digest: accountDigest, output_text: output, tool_calls: [...calls.values()], usage, original_ref: reference };
 }
 
@@ -269,8 +291,8 @@ export class CodexOriginalMethodRuntime {
     const root = assertOrdinaryPath(join(this.options.root, request.operation_key));
     return { root, cwd: join(root, "workspace"), claim: join(root, "start.json"), transcript: join(root, "stdio.jsonl"), seal: join(root, "seal.json") };
   }
-  private claim(request: CodexMethodRequest, version: 1 | 2 | 3 | 4 = request.reasoning_effort === undefined ? 3 : 4) {
-    if ((version === 4) !== (request.reasoning_effort !== undefined)) fail("codex_original_input_changed");
+  private claim(request: CodexMethodRequest, version: 1 | 2 | 3 | 4 | 5 = request.usage_policy?5:request.reasoning_effort === undefined ? 3 : 4) {
+    if ((version === 5)!==!!parseCodexUsagePolicy(request.usage_policy)||version!==5&&(version === 4) !== (request.reasoning_effort !== undefined)) fail("codex_original_input_changed");
     return { format: `cimiloop/codex-method-start/${version}.0.0`, request, command: this.options.command,
     account_digest: this.options.account_digest ?? null, config: version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
     ...(version >= 2 ? { disabled_mcp_servers: this.options.disabled_mcp_servers } : {}) }; }
@@ -278,7 +300,7 @@ export class CodexOriginalMethodRuntime {
     const request = requestCopy(raw), paths = this.paths(request);
     if (!existsSync(paths.claim)) return null;
     const claimBytes = bytesAt(paths.claim);
-    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : fail();
+    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:fail();
     if (!same(claim, this.claim(request, version))) fail("codex_original_input_changed");
     if (!existsSync(paths.seal)) return null;
     const seal = parse(bytesAt(paths.seal)), transcript = bytesAt(paths.transcript, MAX_BYTES);
@@ -324,7 +346,7 @@ export class CodexOriginalMethodRuntime {
     let next = 0, thread = "", turn = "", buffered = Buffer.alloc(0), errors = 0, toolCalls = 0;
     const serverIds = new Set<string | number>(), callIds = new Set<string>();
     const earlyThreadIds = new Set<string>(); let startingThread = false;
-    let admittedAccount = "", turnSent = false, accountDirty = false;
+    let admittedAccount = "", turnSent = false, accountDirty = false,quotaDirty=false;
     const pending = new Map<number, { method: string; resolve(value: any): void; reject(error: unknown): void }>();
     let finish!: () => void, rejectFinished!: (error: unknown) => void;
     const finished = new Promise<void>((resolve, reject) => { finish = resolve; rejectFinished = reject; });
@@ -343,8 +365,8 @@ export class CodexOriginalMethodRuntime {
     const accept = async (line: Buffer) => {
       if (closed) fail("codex_effect_closed");
       append("in", line); const value = parse(line);
-      const accountRpc = value.id !== undefined && !value.method && pending.get(value.id)?.method === "account/read";
-      if (terminal && !accountRpc && (value.id !== undefined || !["thread/tokenUsage/updated", "thread/status/changed"].includes(value.method))) fail("codex_post_terminal_effect");
+      const accountRpc = value.id !== undefined && !value.method && (pending.get(value.id)?.method === "account/read"||request.usage_policy&&pending.get(value.id)?.method==='account/rateLimits/read');
+      if (terminal && !accountRpc && (value.id !== undefined || !["thread/tokenUsage/updated", "thread/status/changed",...(request.usage_policy?['account/rateLimits/updated']:[])].includes(value.method))) fail("codex_post_terminal_effect");
       if (value.method && value.id !== undefined) {
         const p = value.params;
         if (value.method !== "item/tool/call" || !thread || !turn || p?.threadId !== thread || p.turnId !== turn || p.namespace !== null ||
@@ -374,6 +396,7 @@ export class CodexOriginalMethodRuntime {
       if (value.method === "account/updated" && admittedAccount) {
         if (turnSent || p?.authMode !== "chatgpt") fail("codex_account_changed"); accountDirty = true;
       }
+      if(request.usage_policy&&value.method==='account/rateLimits/updated'&&!turnSent)quotaDirty=true;
       if (value.method === "mcpServer/startupStatus/updated" && ["starting", "ready"].includes(p?.status)) fail("codex_external_tools_available");
       if (p?.threadId !== undefined && !thread && !turn && startingThread && ["warning", "thread/status/changed"].includes(value.method)) {
         earlyThreadIds.add(p.threadId); return;
@@ -416,15 +439,18 @@ export class CodexOriginalMethodRuntime {
       if (!quietMcpCatalog(inventory, this.options.disabled_mcp_servers!)) fail("codex_external_tools_available");
       const readyAccount = await rpc("account/read", { refreshToken: false });
       if (codexChatGptAccountDigest(readyAccount) !== admittedAccount) fail("codex_account_changed");
+      let quotaBefore:CodexOrdinaryQuotaSnapshot|undefined;
+      if(request.usage_policy){quotaBefore=parseCodexOrdinaryQuota(await rpc('account/rateLimits/read',CODEX_QUOTA_READ_PARAMS));if(quotaBefore.ordinary_usage_allowed!==true||quotaBefore.account_id_digest===null)fail('codex_ordinary_permission_unavailable');quotaDirty=false;}
       // Drain notifications already received alongside the account response.
       // Resolving the RPC wakes this continuation before subsequent queue jobs.
       await queue;
-      if (accountDirty) fail("codex_account_changed"); turnSent = true;
+      if (accountDirty) fail("codex_account_changed");if(request.usage_policy&&quotaDirty)fail('codex_ordinary_quota_changed');turnSent = true;
       const started = await rpc("turn/start", { threadId: thread, model: request.model, effort: request.reasoning_effort ?? "medium", input: [{ type: "text", text: request.prompt, text_elements: [] }], outputSchema: request.output_schema });
       if (typeof started?.turn?.id !== "string") fail(); turn = started.turn.id;
       await finished; await queue;
       const finalAccount = await rpc("account/read", { refreshToken: false });
       if (codexChatGptAccountDigest(finalAccount) !== admittedAccount) fail("codex_account_changed");
+      if(request.usage_policy){const after=parseCodexOrdinaryQuota(await rpc('account/rateLimits/read',CODEX_QUOTA_READ_PARAMS));if(after.account_id_digest!==quotaBefore!.account_id_digest)fail('codex_ordinary_quota_account_changed');}
       stopping = true; child.stdin.end(); child.kill();
       await Promise.race([childClosed, failure]); await queue;
       if (buffered.length) { append("in", buffered); fail("codex_truncated_original"); }
@@ -432,7 +458,7 @@ export class CodexOriginalMethodRuntime {
       const transcript = bytesAt(paths.transcript, MAX_BYTES);
       const ref = { provider: "codex_app_server", resource_type: "skill_invocation_proof", locator: paths.transcript, digest: digest(transcript) };
       const frames = transcript.toString("utf8").trimEnd().split("\n").map(line => parse(Buffer.from(line)) as Frame);
-      originalFromFrames(request, paths.cwd, frames, ref, this.options.account_digest, request.reasoning_effort === undefined ? 3 : 4, this.options.disabled_mcp_servers);
+      originalFromFrames(request, paths.cwd, frames, ref, this.options.account_digest, request.usage_policy?5:request.reasoning_effort === undefined ? 3 : 4, this.options.disabled_mcp_servers);
       save(paths.seal, { format: "cimiloop/codex-method-seal/1.0.0", claim_digest: digest(bytesAt(paths.claim)).value, transcript_digest: digest(transcript).value,
         claim_identity: fileIdentity(paths.claim), transcript_identity: fileIdentity(paths.transcript) });
       return this.readOriginal(request) ?? fail();
