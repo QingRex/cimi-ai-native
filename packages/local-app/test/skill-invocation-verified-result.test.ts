@@ -3,8 +3,8 @@ import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,renameSync,rmSync,exist
 import {tmpdir} from 'node:os';import {join,dirname,basename} from 'node:path';
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
 vi.setConfig({testTimeout:120000,hookTimeout:120000});
-const readers=vi.hoisted(()=>({method:vi.fn(),provider:vi.fn(),model:vi.fn(),costs:vi.fn(),cancel:vi.fn(),collect:vi.fn()}));
-vi.mock('@cimiloop/runtime-adapter',async original=>({...await original<typeof import('@cimiloop/runtime-adapter')>(),readAgentRuntimeNamedMethodResult:readers.method,readDedicatedAgentModelOriginals:readers.provider,readAgentRuntimeModelOriginals:readers.model,readOriginalDedicatedAgentRunCosts:readers.costs,withOriginalDedicatedAgentRunCostRead:(root:string,scope:unknown,account:unknown,consume:(read:(...args:unknown[])=>unknown)=>unknown,close?:()=>void)=>{const before=readers.costs(root,scope,account),value=consume((...args:unknown[])=>{expect(args).toEqual([root,scope,account]);return structuredClone(before);});expect(readers.costs(root,scope,account)).toEqual(before);close?.();return value;},readAgentRuntimeNamedMethodCancellation:readers.cancel,collectAgentRuntimeOperation:readers.collect}));
+const readers=vi.hoisted(()=>({method:vi.fn(),provider:vi.fn(),model:vi.fn(),costs:vi.fn(),cancel:vi.fn(),collect:vi.fn(),codex:vi.fn()}));
+vi.mock('@cimiloop/runtime-adapter',async original=>({...await original<typeof import('@cimiloop/runtime-adapter')>(),readCodexAgentModelOriginals:readers.codex,readAgentRuntimeNamedMethodResult:readers.method,readDedicatedAgentModelOriginals:readers.provider,readAgentRuntimeModelOriginals:readers.model,readOriginalDedicatedAgentRunCosts:readers.costs,withOriginalDedicatedAgentRunCostRead:(root:string,scope:unknown,account:unknown,consume:(read:(...args:unknown[])=>unknown)=>unknown,close?:()=>void)=>{const before=readers.costs(root,scope,account),value=consume((...args:unknown[])=>{expect(args).toEqual([root,scope,account]);return structuredClone(before);});expect(readers.costs(root,scope,account)).toEqual(before);close?.();return value;},readAgentRuntimeNamedMethodCancellation:readers.cancel,collectAgentRuntimeOperation:readers.collect}));
 import {AgentStartLedger,digest} from '@cimiloop/runtime-adapter';
 import {LocalSkillInvocationResultCollection} from '../src/skill-invocation-result-local.js';
 import {LocalSkillInvocationStartCustody} from '../src/skill-invocation-start-custody-local.js';
@@ -86,4 +86,32 @@ it.each(['admission.json','dispatch.json'])('rejects direct original start %s mo
  readers.costs.mockImplementation(()=>{if(++checks===2){renameSync(path,retained);moved=true;}return costs;});
  try{expect(()=>collector.readResult(f.project,invocation,result.reference)).toThrow();expect(checks).toBe(2);expect(moved).toBe(true);expect(f.store.asOfEventSequence()).toBe(sequence);}
  finally{if(moved)renameSync(retained,path);}
+});
+
+function codexCandidate(){
+ const method=readers.method.getMockImplementation()!(),path=join(runtimeFixture.modelRoot,'PUBLIC-codex-stdio.jsonl'),bytes=Buffer.from('PUBLIC Codex original');writeFileSync(path,bytes);
+ readers.model.mockReturnValue({status:'Observed',original_evidence:{kind:'codex_login/1.0.0',header_digest:'1'.repeat(64)},calls:[{call_id:'model_0001',response:{PUBLIC:true}}]});
+ readers.codex.mockReturnValue({status:'Observed',origin:'public_fixture',header_digest:'1'.repeat(64),scope_digest:digest(JSON.stringify(custody.accountScope(f.project,invocation,readOriginalSkillInvocation(local,invocation.id).request.parent,readOriginalSkillInvocation(local,invocation.id).record_id).child)).value,original_requirement_pinned:true,calls:[{call_id:'model_0001',state:'reply_recorded',response:{PUBLIC:true},original:{PUBLIC:true}}],artifacts:[{name:'model_0001/codex/stdio.jsonl',path,digest:digest(bytes).value}],real_model_turns:0,model_account_custody_proven:false,costs_reconciled:false,formal_agent_execution_enabled:false});
+ return {method,path};
+}
+it('captures Codex original child bytes as Unknown without entering Dedicated account or billing readers',()=>{
+ codexCandidate();readers.provider.mockImplementation(()=>{throw Error('Wrong Dedicated backend');});readers.costs.mockImplementation(()=>{throw Error('No Codex bill');});
+ const sequence=f.store.asOfEventSequence(),result=collector.capture(invocation.id);expect(result.report).toMatchObject({status:'unknown',usage:{cost_known:false}});expect(result.report).not.toHaveProperty('output');
+ expect(collector.readResult(f.project,invocation,result.reference)).toEqual(result.report);expect(readers.provider).not.toHaveBeenCalled();expect(readers.costs).not.toHaveBeenCalled();expect(f.store.asOfEventSequence()).toBe(sequence);
+});
+it('does not use a valid Dedicated bill to promote a Codex child into verified success',()=>{
+ codexCandidate();expect(()=>verified()).toThrow();expect(readers.costs).not.toHaveBeenCalled();expect(f.store.listRuntimeRecords('skill_invocation_observation',f.change.id)).toHaveLength(0);
+});
+it('refuses changed or incomplete Codex child originals on candidate reread',()=>{
+ const {path}=codexCandidate(),result=collector.capture(invocation.id);writeFileSync(path,'PUBLIC changed original');expect(()=>collector.readResult(f.project,invocation,result.reference)).toThrow();
+ readers.codex.mockReturnValue({status:'Unknown',calls:[],artifacts:[]});expect(()=>collector.capture(invocation.id)).toThrow();
+});
+
+it('retains a complete Codex stdio original above4MiB inside its independent8MiB limit',()=>{
+ const {path}=codexCandidate(),bytes=Buffer.alloc(4*1024*1024+1,120);writeFileSync(path,bytes);const provider=readers.codex.getMockImplementation()!();provider.artifacts[0].digest=digest(bytes).value;readers.codex.mockReturnValue(provider);
+ const result=collector.capture(invocation.id);expect(collector.readResult(f.project,invocation,result.reference)).toEqual(result.report);expect(result.report.usage.cost_known).toBe(false);
+});
+it('refuses a different Codex response, header, scope or missing original claim before candidate capture',()=>{
+ codexCandidate();const original=readers.codex.getMockImplementation()!();for(const patch of[{header_digest:'2'.repeat(64)},{scope_digest:'2'.repeat(64)},{original_requirement_pinned:false},{calls:[{...original.calls[0],response:{PUBLIC:'changed'}}]}]){readers.codex.mockReturnValue({...original,...patch});expect(()=>collector.capture(invocation.id)).toThrow();}
+ expect(f.store.listRuntimeRecords('skill_invocation_observation',f.change.id)).toHaveLength(0);
 });

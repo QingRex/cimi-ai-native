@@ -120,6 +120,18 @@ describe("Codex model behind the original Agent SDK host", () => {
     const open = () => AgentRuntimeModelHost.initialize(f.root, f.scope, f.create(), f.options.permitted_tools);
     return { ...f, request, open };
   }
+  it('uses bounded-login header16 for named Skill tools and results without changing historical replay',async()=>{
+    const f=namedFixture(),path=join(f.root,'private-login');mkdirSync(path);
+    const stat=lstatSync(path,{bigint:true}),login_home={path,identity:{dev:String(stat.dev),ino:String(stat.ino),birth:String(stat.birthtimeNs)}};
+    f.options.runtime=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_login_home/2.0.0',login_home});
+    const result={purpose:'clarification',questions:['Which business scope?'],unresolved:['No Human answer yet']};
+    writeFileSync(f.control,JSON.stringify({PUBLIC_proxy:{tool:'cimiloop_skill_result',arguments:{result}}}));
+    const host=await f.open(),reply=await host.execute(f.request);expect(reply.receipt).toMatchObject({finish:'stop',content:[{type:'text',text:JSON.stringify(result)}]});
+    const paths=['agent-codex-model-originals','agent-codex-model-starts'].map(kind=>join(f.root,kind,f.scope.project_id,f.scope.run_id,'header.json')),saved=paths.map(p=>readFileSync(p));
+    expect(JSON.parse(saved[0]!.toString())).toMatchObject({format:'cimiloop/codex-agent-model/16.0.0',permitted:f.options.permitted_tools,runtime:{login_home}});
+    renameSync(path,path+'.retained');expect((await host.execute(f.request)).receipt).toEqual(reply.receipt);expect(f.read().status).toBe('Observed');expect(f.turns()).toBe(1);
+    for(const version of[13,15]){try{for(const p of paths){const header=JSON.parse(readFileSync(p,'utf8'));header.format=`cimiloop/codex-agent-model/${version}.0.0`;writeFileSync(p,JSON.stringify(header));}expect(()=>f.read()).toThrow();}finally{paths.forEach((p,i)=>writeFileSync(p,saved[i]!));}}
+  });
   it('authenticates the named consumer against real stdio originals and collection2 blobs without another model turn',async()=>{
     const f=namedFixture(),host=await f.open();claimAgentRuntimeOperation(f.root,f.scope,{purpose:'agent_runtime',model_original_binding:host.originalBinding,provider_options:{model_output_profile:'bounded_2048/1.0.0'}},{pid:process.pid,creation_ticks:'1',image:process.execPath});
     await host.execute(f.request);const input=runtime.readAgentRuntimeOriginalIdentity(f.root,f.scope).input as Record<string,unknown>,model=runtime.readAgentRuntimeModelOriginals(f.root,f.scope),codex=f.read(),config={provider_options:{model_output_profile:'bounded_2048/1.0.0'}};

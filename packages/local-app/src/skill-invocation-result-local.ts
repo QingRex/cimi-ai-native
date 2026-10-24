@@ -2,7 +2,7 @@ import {join,relative,isAbsolute,resolve} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
 import {requestDigest} from '@cimiloop/kernel';
 import {compileValidator,RawSkillInvocationObservationSchema,type RawSkillInvocationObservation,type SkillInvocation,type SkillInvocationObservation,type Project} from '@cimiloop/protocol/v2';
-import {bytesAt,digest,readAgentSkillPreparationZeroEffects,collectAgentRuntimeOperation,readAgentRuntimeNamedMethodCancellation,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,readAgentRuntimeModelOriginals,DedicatedAgentAccountLedger,readOriginalDedicatedAgentRunCosts,withOriginalDedicatedAgentRunCostRead,rememberOriginalIdentity,rememberOriginalObservation,withStartCustodyVerifyTurn,type OriginalDedicatedAgentRunCostReader} from '@cimiloop/runtime-adapter';
+import {bytesAt,digest,readAgentSkillPreparationZeroEffects,collectAgentRuntimeOperation,readAgentRuntimeNamedMethodCancellation,readAgentRuntimeNamedMethodResult,readDedicatedAgentModelOriginals,readCodexAgentModelOriginals,codexAgentModelSummary,readAgentRuntimeModelOriginals,DedicatedAgentAccountLedger,readOriginalDedicatedAgentRunCosts,withOriginalDedicatedAgentRunCostRead,rememberOriginalIdentity,rememberOriginalObservation,withStartCustodyVerifyTurn,type OriginalDedicatedAgentRunCostReader} from '@cimiloop/runtime-adapter';
 import {readOriginalSkillInvocation,readOriginalSkillInvocationFromReader,type SkillInvocationExecutionContext} from './skill-invocation-execution-local.js';
 import {LocalSkillInvocationStartCustody,assertSkillInvocationStartOriginalSeal} from './skill-invocation-start-custody-local.js';
 import {LocalSkillMethodInputs} from './skill-methods-local.js';
@@ -18,11 +18,17 @@ const fail=()=>new LocalProjectError('原 Skill 结果及不可变证据不能�
 export const SKILL_RESULT_CAPTURE_LIMITS=Object.freeze({artifacts:9+(2+32+128*2)+(2+64*3)+(1+128*4)+(3+64*10),proof_bytes:8*1024*1024,
  total_bytes:2*4*1024*1024+5*65536+(2+128*2)*114688+32*50*1024+(2+64*3)*114688+114688+128*(2*114688+2*1024)+(3+64*10)*262144});
 // Only an independently verified new Job artifact earns the additional capacity.
-export function skillResultCaptureLimits(originalJobPolicy:boolean,originalCancellation=false){
+export function skillResultCaptureLimits(originalJobPolicy:boolean,originalCancellation=false,originalCodex=false){
  const extra=Number(originalJobPolicy)+3*Number(originalCancellation);
- return extra?Object.freeze({...SKILL_RESULT_CAPTURE_LIMITS,artifacts:SKILL_RESULT_CAPTURE_LIMITS.artifacts+extra,total_bytes:SKILL_RESULT_CAPTURE_LIMITS.total_bytes+extra*65536}):SKILL_RESULT_CAPTURE_LIMITS;
+ // Codex has at most64 SDK steps: two headers, five bounded model records
+ // and three8MiB transport originals per step. The existing artifact count
+ // already covers its smaller count; historical Dedicated capacity stays fixed.
+ const codexBytes=originalCodex?2*262144+64*(5*262144+3*8*1024*1024):0;
+ return extra||originalCodex?Object.freeze({...SKILL_RESULT_CAPTURE_LIMITS,artifacts:SKILL_RESULT_CAPTURE_LIMITS.artifacts+extra,total_bytes:SKILL_RESULT_CAPTURE_LIMITS.total_bytes+extra*65536+codexBytes}):SKILL_RESULT_CAPTURE_LIMITS;
 }
-const limitsFor=(artifacts:Artifact[])=>skillResultCaptureLimits(artifacts.some(a=>a.name==='method/agent-job-observation.json'),artifacts.some(a=>a.name==='method/agent-sandbox-cancellation.json'));
+const isCodexTransport=(name:string)=>/^provider\/[a-zA-Z0-9_-]{1,128}\/codex\/(?:start\.json|stdio\.jsonl|seal\.json)$/.test(name);
+const artifactMaximum=(a:Artifact)=>isCodexTransport(a.name)?8*1024*1024:4*1024*1024;
+const limitsFor=(artifacts:Artifact[])=>skillResultCaptureLimits(artifacts.some(a=>a.name==='method/agent-job-observation.json'),artifacts.some(a=>a.name==='method/agent-sandbox-cancellation.json'),artifacts.some(a=>isCodexTransport(a.name)));
 export function parseSkillResultCaptureBytes(bytes:Buffer):unknown {
  if(!bytes.length||bytes.length>SKILL_RESULT_CAPTURE_LIMITS.proof_bytes)throw fail();
  const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes),value:unknown=JSON.parse(text);
@@ -67,19 +73,26 @@ export class LocalSkillInvocationResultCollection {
   // Repeated reads inside one synchronous proof share the first closed original.
   // Account costs stay outside that memory and still run on every facts call.
   const observed=rememberOriginalObservation(['skill-original-facts',resolve(root),id,String(existingReader),String(billed),String(reconciling),String(verified),collection?requestDigest(collection):''].join('\0'),()=>{
-   const result=collection?readAgentRuntimeNamedMethodCancellation(root,relation.child,plan,collection):readAgentRuntimeNamedMethodResult(root,relation.child,plan),provider=readDedicatedAgentModelOriginals(root,relation.child),model=readAgentRuntimeModelOriginals(root,relation.child);
+   const result=collection?readAgentRuntimeNamedMethodCancellation(root,relation.child,plan,collection):readAgentRuntimeNamedMethodResult(root,relation.child,plan),model=readAgentRuntimeModelOriginals(root,relation.child);
+   const codex=model.original_evidence?.kind==='codex_login/1.0.0';
+   const provider=codex?(()=>{
+    const original=readCodexAgentModelOriginals(root,relation.child);
+    if(original.status!=='Observed'||!original.original_requirement_pinned||original.header_digest!==model.original_evidence?.header_digest||original.scope_digest!==digest(JSON.stringify(relation.child)).value||!original.calls.length||original.calls.length!==model.calls.length||original.calls.some((call,i)=>call.state!=='reply_recorded'||!call.original||!same(call.response,model.calls[i]?.response)))throw fail();
+    return {summary:{...codexAgentModelSummary(original),provider_kind:'codex_login/1.0.0' as const},calls:original.calls,artifacts:original.artifacts};
+   })():readDedicatedAgentModelOriginals(root,relation.child);
    const succeeded=result.method_result_reverified===true&&!!result.output&&result.method_failure_reverified===undefined&&result.failure===undefined;
    const failed=result.method_result_reverified===false&&result.method_failure_reverified===true&&result.output===undefined&&result.output_digest===undefined&&result.failure?.code==='agent_named_method_output_invalid'&&
     Object.keys(result.failure).sort().join(',')==='code,returned_text_digest'&&result.failure.returned_text_digest?.algorithm==='sha256'&&/^[a-f0-9]{64}$/.test(result.failure.returned_text_digest.value);
    const cancelled=!!collection&&'cancellation_reverified' in result&&result.cancellation_reverified===true&&result.method_result_reverified===false&&result.output===undefined&&result.output_digest===undefined&&result.method_failure_reverified===undefined&&result.failure===undefined;
-   if(result.status!=='Observed'||!(collection?cancelled:succeeded||failed)||provider.summary.status!=='Observed'||!provider.summary.original_requirement_pinned||!provider.summary.budget_identity_pinned||provider.summary.unresolved||!provider.calls.length||model.status!=='Observed'||!same(provider.calls.map(c=>c.call_id),model.calls.map(c=>c.call_id)))throw fail();
+   if(result.status!=='Observed'||!(collection?cancelled:succeeded||failed)||provider.summary.status!=='Observed'||!provider.summary.original_requirement_pinned||!codex&&(!('budget_identity_pinned'in provider.summary)||!provider.summary.budget_identity_pinned)||provider.summary.unresolved||!provider.calls.length||model.status!=='Observed'||!same(provider.calls.map(c=>c.call_id),model.calls.map(c=>c.call_id)))throw fail();
    const artifacts:Artifact[]=[...result.artifacts.map(a=>({...a,name:'method/'+a.name})),...provider.artifacts.map(a=>({...a,name:'provider/'+a.name}))];
    if(artifacts.length>limitsFor(artifacts).artifacts||new Set(artifacts.map(a=>a.name)).size!==artifacts.length)throw fail();
-   for(const a of artifacts){const rel=relative(resolve(root),resolve(a.path));if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../')||digest(bytesAt(a.path,4*1024*1024)).value!==a.digest)throw fail();}
+   for(const a of artifacts){const rel=relative(resolve(root),resolve(a.path));if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../')||digest(bytesAt(a.path,artifactMaximum(a))).value!==a.digest)throw fail();}
    const {artifacts:_,...method}=result;return {method,provider:{summary:provider.summary,calls:provider.calls},artifacts};
   });
   let cost_evidence:ReturnType<typeof readOriginalDedicatedAgentRunCosts>|undefined;
   if(billed){
+   if('provider_kind'in observed.provider.summary)throw fail();
    if(!(this.options.account instanceof DedicatedAgentAccountLedger))throw fail();
    cost_evidence=readCosts(root,relation.child,this.options.account);
    const record=local.store.getRuntimeRecord('run_record',original.record_id);
@@ -174,7 +187,7 @@ export class LocalSkillInvocationResultCollection {
  private captureOriginal(invocationId:string,billed:boolean,producer?:string,collection?:CancellationCollection,verified=false):ReturnType<LocalSkillInvocationResultCollection['capture']>{
   try{
    const reconciling=producer!==undefined,facts=this.facts(invocationId,false,billed,reconciling,collection,verified),content=this.options.inputs.packages.content;let bytes=0;
-   const copies=facts.artifacts.map(a=>{const body=bytesAt(a.path,4*1024*1024);bytes+=body.length;if(bytes>limitsFor(facts.artifacts).total_bytes||digest(body).value!==a.digest)throw fail();return {...a,reference:content.storeContent(body,'provider_probe_artifact')};});
+   const copies=facts.artifacts.map(a=>{const body=bytesAt(a.path,artifactMaximum(a));bytes+=body.length;if(bytes>limitsFor(facts.artifacts).total_bytes||digest(body).value!==a.digest)throw fail();return {...a,reference:content.storeContent(body,'provider_probe_artifact')};});
    if(!same(this.facts(invocationId,false,billed,reconciling,collection,verified),facts))throw fail();
    // Final bills observed later cannot inherit an earlier unknown-fee time.
    const resolves=reconciling?this.unresolved(invocationId):[],timeKey=invocationId+':'+(reconciling?'reconcile:'+producer+':'+requestDigest(resolves):verified?'verified':billed?'billed':'unbilled')+(collection?':cancelled':''),observed_at=this.times.get(timeKey)??new Date().toISOString();this.times.set(timeKey,observed_at);
@@ -227,7 +240,7 @@ export class LocalSkillInvocationResultCollection {
    if(!same(invocation,facts.invocation)||project.id!==original.project.id||resolve(project.repository_path)!==resolve(original.project.repository_path))throw fail();
    if(!proof||typeof proof!=='object'||!Array.isArray(proof.artifacts)||proof.artifacts.length!==facts.artifacts.length)throw fail();
    let total=0;for(const [i,a] of proof.artifacts.entries()){
-    const expected=facts.artifacts[i]!,body=bytesAt(expected.path,4*1024*1024);total+=body.length;
+    const expected=facts.artifacts[i]!,body=bytesAt(expected.path,artifactMaximum(expected));total+=body.length;
     if(total>limitsFor(facts.artifacts).total_bytes||a.reference.resource_type!=='provider_probe_artifact'||!same(a,{...expected,reference:a.reference})||digest(body).value!==expected.digest||!content.readContent(a.reference).equals(body))throw fail();
    }
    const resolves=reconciling?this.unresolved(invocation.id):[];
@@ -240,7 +253,7 @@ export class LocalSkillInvocationResultCollection {
     if(this.options.local!==local||local.store!==identity.store||local.kernel!==identity.kernel||!same(local.caller,identity.caller)||!same(local.location,identity.location)||this.options.custody!==identity.custody||this.options.inputs!==identity.inputs||this.options.account!==identity.account||this.options.qualificationOriginals!==identity.qualification)throw fail();
     if(retained)assertSkillResultOriginalSeal(retained,raw,reference);
     if(!readOriginalContent.call(fixedContent,reference).equals(reportBytes)||!readOriginalContent.call(fixedContent,raw.result_proof_ref).equals(proofBytes))throw fail();
-    for(const a of captured){const path=resolve(a.path),rel=relative(root,path);if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../'))throw fail();const body=bytesAt(path,4*1024*1024);if(digest(body).value!==a.digest||!readOriginalContent.call(fixedContent,a.reference).equals(body))throw fail();}
+    for(const a of captured){const path=resolve(a.path),rel=relative(root,path);if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../'))throw fail();const body=bytesAt(path,artifactMaximum(a));if(digest(body).value!==a.digest||!readOriginalContent.call(fixedContent,a.reference).equals(body))throw fail();}
     if(startOriginal&&runtimeOptions)assertSkillInvocationStartOriginalSeal(startOriginal,project,invocation,runtimeOptions.parent,runtimeOptions.recordId);
     if(runtimeBoundary&&runtimeOptions)assertSkillResultRuntimeOriginalBoundary(runtimeBoundary,runtimeOptions);
    };

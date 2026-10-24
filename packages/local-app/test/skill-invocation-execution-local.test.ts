@@ -184,5 +184,11 @@ describe('original child Skill execution', () => {
    try{await expect((localApp as any).LocalSkillInvocationDedicatedAccount.open(local,invocation.id,a.account,new localApp.LocalSkillInvocationStartCustody(root,dirname(f.path),alternate))).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(a.account.snapshot().holds).toBe(0);}finally{alternate.close();}
   }finally{a.account.close();}
  },240000);
+ it('offers a Codex child composition that refuses missing fixed-volume or login capability without staging Native',()=>{
+  const Factory=localApp.LocalSkillInvocationNativeComposition,open=Reflect.get(Factory,'openCodex');expect(open).toBeTypeOf('function');
+  const fixedInputs=new localApp.LocalSkillMethodInputs(root,dirname(f.path));
+  for(const patch of[{},{storage:{}},{storage:{},loginHome:{}}])expect(()=>Reflect.apply(open,Factory,[{local,custody:port.custody,inputs:fixedInputs,account:{},...patch}])).toThrow();
+  expect(ledger.listExclusive('skill_invocation_dispatch')).toHaveLength(0);expect(launch).not.toHaveBeenCalled();
+ });
  it('installs the named Native composition only with actual immutable inputs and original custody/account',()=>{const a=accountFixture();try{const Factory=(localApp as any).LocalSkillInvocationNativeComposition;expect(typeof Factory?.open).toBe('function');expect(()=>Factory.open({local,custody:port.custody,inputs,account:a.account,connection:a.connection,binary:process.execPath})).toThrow();}finally{a.account.close();}});
  it('rejects a substituted fixed-method plan before account registration or Native staging',async()=>{const a=accountFixture();try{const Factory=(localApp as any).LocalSkillInvocationNativeComposition,installed=Factory.open({local,custody:port.custody,inputs:new localApp.LocalSkillMethodInputs(root,dirname(f.path)),account:a.account,connection:a.connection,binary:process.execPath});const original=local.store.getProviderDescriptor(local.store.getProviderBinding(invocation.skill_binding.binding_ref.id)!.descriptor_ref.id);await expect(installed.prepare({request,invocation,descriptor:original,plan:inputs.readInvocation(),authority:assess().authority},()=>{})).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(ledger.listExclusive('dedicated_account_skill_scope')).toHaveLength(0);expect(a.account.snapshot().holds).toBe(0);}finally{a.account.close();}});});
