@@ -37,7 +37,7 @@ export const productionAgentCosts:HumanAgentCostsFactory=async(runId,local)=>{
     if(backend===undefined&&!lease.budget.snapshot().reservations.some(row=>{const basis=row.basis as {scope?:{project_id?:string;run_id?:string}};return basis?.scope?.project_id===original.scope.project_id&&basis.scope.run_id===original.scope.run_id;})){
       lease.release();return productionAgentAccount(runId,local);
     }
-    return{codex_usage:{budget:lease.budget,guard},release:()=>lease.release()};
+    return{codex_usage:{budget:lease.budget,origin:lease.installation.origin,guard},release:()=>lease.release()};
   }catch(error){lease.release();throw error;}
 };
 

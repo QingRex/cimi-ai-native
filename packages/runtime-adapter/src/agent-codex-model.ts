@@ -268,6 +268,11 @@ export type CodexAgentModelSummary = Omit<CodexAgentModelOriginals, "calls" | "a
 // Read-only per-Run accounting facts. Capacity and provider token usage are
 // deliberately not invoices or authority to reconcile a Kernel/Skill family.
 export function readCodexAgentRunUsage(root:string,rawScope:unknown,budget:CodexAgentUsageBudget){
+  return readCodexAgentScopeUsage(root,rawScope,budget,[parseAgentWorkspaceToolScope(rawScope)]);
+}
+// Internal family reader only. The application must independently prove the
+// complete Kernel/start-custody relation; a scope list grants no effect rights.
+export function readCodexAgentScopeUsage(root:string,rawScope:unknown,budget:CodexAgentUsageBudget,family:AgentWorkspaceToolScope[],allowEmpty=false){
   if(!(budget instanceof CodexAgentUsageBudget))fail('codex_usage_budget_unproven');
   const scope=parseAgentWorkspaceToolScope(rawScope),state=budget.snapshot();
   const select=(snapshot:ReturnType<CodexAgentUsageBudget['snapshot']>)=>snapshot.reservations.flatMap(row=>{
@@ -275,11 +280,12 @@ export function readCodexAgentRunUsage(root:string,rawScope:unknown,budget:Codex
     if(!exact(raw,['scope','call_id','request_digest','model_header_digest']))fail('codex_usage_reservation_unproven');
     const saved=parseAgentWorkspaceToolScope(raw.scope);
     if(saved.project_id!==scope.project_id||saved.run_id!==scope.run_id)return[];
-    if(!same(saved,scope)||typeof raw.call_id!=='string'||!/^model_00(?:0[1-9]|[1-5][0-9]|6[0-4])$/.test(raw.call_id)||!sha(raw.request_digest)||!sha(raw.model_header_digest)||row.units.model_calls!==1||!Number.isSafeInteger(row.units.output_tokens)||row.units.output_tokens!<1||row.units.output_tokens!>2048)fail('codex_usage_reservation_unproven');
+    if(!same(saved,scope)){if(family.some(member=>same(member,saved)))return[];fail('codex_usage_reservation_unproven');}
+    if(typeof raw.call_id!=='string'||!/^model_00(?:0[1-9]|[1-5][0-9]|6[0-4])$/.test(raw.call_id)||!sha(raw.request_digest)||!sha(raw.model_header_digest)||row.units.model_calls!==1||!Number.isSafeInteger(row.units.output_tokens)||row.units.output_tokens!<1||row.units.output_tokens!>2048)fail('codex_usage_reservation_unproven');
     return[{call_id:raw.call_id,request_digest:raw.request_digest,model_header_digest:raw.model_header_digest,output_tokens:row.units.output_tokens!,ticket:row.ticket}];
   }).sort((a,b)=>a.call_id.localeCompare(b.call_id));
   const held=select(state),original=readCodexAgentModelOriginals(root,scope);
-  if(!held.length||new Set(held.map(row=>row.call_id)).size!==held.length)fail('codex_run_usage_missing');
+  if(!held.length&&!allowEmpty||new Set(held.map(row=>row.call_id)).size!==held.length)fail('codex_run_usage_missing');
   const header=original.status==='NotRegistered'?undefined:checkedHeader(read(join(headerPaths(root,scope).body,'header.json')));
   if(header){
     budget.assertAccount({account_digest:header.account_digest,quota_account_digest:header.quota_account_digest!});
@@ -303,10 +309,10 @@ export function readCodexAgentRunUsage(root:string,rawScope:unknown,budget:Codex
   },{inputTokens:0,cachedInputTokens:0,outputTokens:0,totalTokens:0,reasoningOutputTokens:0,cacheWriteInputTokens:0}):null;
   const unresolved=calls.filter(call=>call.state!=='reply_recorded').length;
   if(!same(held,select(budget.snapshot()))||!same(original,readCodexAgentModelOriginals(root,scope)))fail('codex_usage_original_changed');
-  return{format:'cimiloop/codex-run-usage/1.0.0' as const,coverage:'this_run_only' as const,state:unresolved?'unknown' as const:'observed' as const,
+  return{format:'cimiloop/codex-run-usage/1.0.0' as const,coverage:'this_run_only' as const,state:unresolved||!held.length?'unknown' as const:'observed' as const,
     scope_digest:original.scope_digest,origin:original.origin??null,model:header?.model??null,policy_digest:state.policy_digest,
     holds:held.length,held_output_tokens:held.reduce((sum,row)=>sum+row.output_tokens,0),unresolved,calls,observed_tokens:observedTokens,
-    usage_complete:unresolved===0&&observed.length===held.length,cost_known:false as const,cash_charged_micros:null,credit_charged_micro_units:null,
+    usage_complete:held.length>0&&unresolved===0&&observed.length===held.length,cost_known:false as const,cash_charged_micros:null,credit_charged_micro_units:null,
     costs_reconciled:false as const,run_family_costs_reconciled:false as const,provider_quota_reserved:false as const};
 }
 export function codexAgentModelSummary(original: CodexAgentModelOriginals): CodexAgentModelSummary {

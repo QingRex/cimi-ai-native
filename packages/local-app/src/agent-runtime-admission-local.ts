@@ -1,7 +1,7 @@
 import type {CodexRuntimeLoginHome} from './agent-codex-login-home-local.js';
 import { isDeepStrictEqual as same } from 'node:util';
 import { CimiLoopKernel, type KernelResult, type AgentRunAdmissionInput, type AgentRunToolAuthorityInput } from '@cimiloop/kernel';
-import { AgentStartLedger, type WorkspaceCheckTemplate,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
+import {readAgentRuntimeModelOriginals, AgentStartLedger, type WorkspaceCheckTemplate,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
 import type { Project, Digest, AgentContextManifest } from '@cimiloop/protocol/v2';
 import { parseVersionedCommand } from '@cimiloop/protocol';
 import { installedRunVerifier, type LocalProject } from './project.js';
@@ -13,6 +13,9 @@ import { LocalEvidenceVerifier } from './evidence-local.js';
 import { LocalProviderVerifier } from './providers-local.js';
 import { readOriginalAgentRunInputs } from './agent-workspace-tools-local.js';
 import type { InstalledCodexUsageBudget } from './agent-codex-usage-budget-local.js';
+import type {LocalAgentParentSkillResultPort} from './agent-parent-skill-results-local.js';
+import {LocalAgentRunResultVerifier} from './agent-runtime-observation-local.js';
+import {LocalAgentRuntimeSkills,type AgentRuntimeSkillInstallation} from './agent-runtime-skills-local.js';
 import type { LocalAgentParentSkillHost } from './agent-parent-skill-host-local.js';
 import { captureLocalAgentParentSkillResults } from './agent-parent-skill-results-local.js';
 import { LocalProjectError } from './errors.js';
@@ -23,10 +26,10 @@ export interface AgentProductionCustodyPort extends AgentStartFullCustodyPort {
  verifyModel:NonNullable<AgentStartFullCustodyPort['verifyModel']>;
  verifyTool(project:Project,input:AgentRunToolAuthorityInput,original:Reference):Digest;
 }
-interface Options {origin:AgentStartLedger;nodeBinary:string;templates:WorkspaceCheckTemplate[];full:AgentProductionCustodyPort;guard?:()=>void}
+interface Options {origin:AgentStartLedger;nodeBinary:string;templates:WorkspaceCheckTemplate[];full:AgentProductionCustodyPort;guard?:()=>void;skills?:AgentRuntimeSkillInstallation}
 const owners=new WeakMap<LocalProject['store'],object>();
 const active=new WeakMap<LocalProject['store'],{local:LocalProject;lease:LocalAgentRuntimeAdmission}>();
-const keys=['admitContext','checkRunAuthority','checkToolAuthority','checkModelAuthority'] as const;
+const baseKeys=['admitContext','checkRunAuthority','checkToolAuthority','checkModelAuthority'] as const;
 const unavailable=()=>new LocalProjectError('完整原 Runtime 准入租约未安装、已释放或正被其他服务使用','CAPABILITY_UNAVAILABLE','conflict');
 const inputs=(input:AgentRunAdmissionInput):AgentRunAdmissionInput=>({task:input.task,work_item:input.work_item,source:input.source,workspace:input.workspace,runtime_binding:input.runtime_binding,skill_bindings:input.skill_bindings});
 function synchronous<T>(value:T):T{
@@ -64,6 +67,9 @@ export class LocalAgentRuntimeAdmission {
   const owner={},store=local.store,kernel=local.kernel,location=structuredClone(local.location),instance=structuredClone(local.instance),agent=verifier.agent,full=raw.full,hostGuard=raw.guard,origin=raw.origin,nodeBinary=raw.nodeBinary,templates=structuredClone(raw.templates);
   const methods={admit:full?.admit,verifyLaunch:full?.verifyLaunch,verifyModel:full?.verifyModel,verifyTool:full?.verifyTool};
   if(Object.values(methods).some(method=>typeof method!=='function')||hostGuard!==undefined&&typeof hostGuard!=='function')throw unavailable();
+  const skillsInstallation=raw.skills,keys=[...baseKeys,...(skillsInstallation?['skills','readRunResult'] as const:[])];
+  const previousParent=Object.getOwnPropertyDescriptor(local,'agentParentSkillResults'),externalParents=local.agentParentSkillResults;let installedParent:PropertyDescriptor|undefined,parentInstalled=false,skills:LocalAgentRuntimeSkills|undefined;
+  if(skillsInstallation&&(previousParent?!('value'in previousParent)||!previousParent.writable:!Object.isExtensible(local)))throw unavailable();
   const prior=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(agent,key)]));let closed=false,installed=false,lease:LocalAgentRuntimeAdmission|undefined;
   const assigned:Partial<typeof agent>={};
   const installedSlots=new Map<typeof keys[number],PropertyDescriptor>();
@@ -71,6 +77,7 @@ export class LocalAgentRuntimeAdmission {
    if(closed||owners.get(store)!==owner||local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance)||installedRunVerifier(local)!==verifier||verifier.agent!==agent||Object.entries(methods).some(([key,method])=>Reflect.get(full,key)!==method))throw unavailable();
    if(hostGuard){const result:unknown=hostGuard();if(synchronous(result)!==undefined)throw unavailable();}
    if(local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance)||installedRunVerifier(local)!==verifier||verifier.agent!==agent||owners.get(store)!==owner||Object.entries(methods).some(([key,method])=>Reflect.get(full,key)!==method))throw unavailable();
+   skills?.assertInstallation();if(skillsInstallation&&!same(Object.getOwnPropertyDescriptor(local,'agentParentSkillResults'),parentInstalled?installedParent:previousParent))throw unavailable();
    for(const key of keys){const expected=installed?installedSlots.get(key):prior.get(key);if(!same(Object.getOwnPropertyDescriptor(agent,key),expected))throw unavailable();}
    origin.readExclusive('runtime_admission_guard','0'.repeat(64));
   };
@@ -79,6 +86,8 @@ export class LocalAgentRuntimeAdmission {
   };
   const release=()=>{if(closed)return;closed=true;let conflict=false;
    for(const [key,owned] of installedSlots){if(!same(Object.getOwnPropertyDescriptor(agent,key),owned)){conflict=true;continue;}const descriptor=prior.get(key);try{if(descriptor)Object.defineProperty(agent,key,descriptor);else if(!Reflect.deleteProperty(agent,key))conflict=true;}catch{conflict=true;}}
+   skills?.release();
+   if(parentInstalled){if(!same(Object.getOwnPropertyDescriptor(local,'agentParentSkillResults'),installedParent))conflict=true;else if(previousParent)Object.defineProperty(local,'agentParentSkillResults',previousParent);else if(!Reflect.deleteProperty(local,'agentParentSkillResults'))conflict=true;}
    if(owners.get(store)===owner)owners.delete(store);else conflict=true;
    const current=active.get(store);if(current?.lease===lease)active.delete(store);else if(current)conflict=true;
    if(conflict)throw unavailable();
@@ -89,27 +98,32 @@ export class LocalAgentRuntimeAdmission {
    const checks=await LocalAgentCheckAdmission.open({repositoryPath:location.repositoryPath,dataDirectory:location.dataDirectory,nodeBinary,projectId:project.id,templates,custody:{admit:(p,input)=>invoke('admit',p,input),verify:(p,input,ref)=>invoke('verifyTool',p,input,ref)}});guard();
    const original=(p:Project,input:AgentRunAdmissionInput,ref:Reference)=>checks.read(p,inputs(input),ref).original_host_admission_ref;
    const custody=new LocalAgentStartCustody(location.repositoryPath,location.dataDirectory,origin,{admit:checks.admit.bind(checks),verifyLaunch:(p,input,ref)=>invoke('verifyLaunch',p,input,original(p,input,ref)),verifyModel:(p,input,ref)=>invoke('verifyModel',p,input,original(p,input,ref))});
-   const modelAdmissions=new Map<string,LocalAgentModelAdmission>(),parentResults=captureLocalAgentParentSkillResults(local.agentParentSkillResults);
+   const modelAdmissions=new Map<string,LocalAgentModelAdmission>();
+   const parentPort:LocalAgentParentSkillResultPort=Object.freeze({forOriginal(...[scope,writer]:Parameters<LocalAgentParentSkillResultPort['forOriginal']>){guard();const result=skills?.forOriginal(scope,writer)??externalParents?.forOriginal(scope,writer);guard();return result;}});
+   const parentResults=captureLocalAgentParentSkillResults(skillsInstallation?parentPort:externalParents);
+   const modelFor=(scope:Parameters<NonNullable<typeof parentResults>>[0])=>{let model=modelAdmissions.get(scope.run_id);if(!model){model=new LocalAgentModelAdmission(location.repositoryPath,location.dataDirectory,custody,checks,parentResults?reader=>{const result=parentResults(scope,reader);if(!result)throw unavailable();return result;}:undefined);modelAdmissions.set(scope.run_id,model);}return model;};
+   const contextFor=(runId:string)=>{const identified=readOriginalAgentRunInputs(local,runId),caller={kind:'agent' as const,project_id:identified.project.id,actor_id:identified.actor.id,provider_identity_ref:structuredClone(identified.actor.provider_identity_ref)},agentKernel=new CimiLoopKernel({store,caller,runVerifier:verifier,evidenceVerifier:new LocalEvidenceVerifier(location.repositoryPath,location.dataDirectory),providerVerifier:new LocalProviderVerifier(location.repositoryPath,location.dataDirectory)});return {location:structuredClone(location),store,caller,kernel:agentKernel};};
+   if(skillsInstallation)skills=new LocalAgentRuntimeSkills({local,origin,installation:skillsInstallation,checks,custody,guard,context:contextFor,model:modelFor,verifyModel:custody.checkModelAuthority.bind(custody),parentResults:parentPort});
    Object.assign(assigned,{
     admitContext:(...args:Parameters<typeof custody.admit>)=>{guard();const result=custody.admit(...args);guard();return result;},
     checkRunAuthority:(...args:Parameters<typeof custody.checkRunAuthority>)=>{guard();const result=custody.checkRunAuthority(...args);guard();return result;},
     checkToolAuthority:(p:Project,input:AgentRunToolAuthorityInput)=>{guard();const result=checks.validateTool(p,input,custody);guard();return result;},
     checkModelAuthority:(...args:Parameters<LocalAgentModelAdmission['checkModelAuthority']>)=>{
-     guard();const scope=args[1].request;let model=modelAdmissions.get(scope.run_id);
-     if(!model){model=new LocalAgentModelAdmission(location.repositoryPath,location.dataDirectory,custody,checks,parentResults?reader=>{const result=parentResults(scope,reader);if(!result)throw unavailable();return result;}:undefined);modelAdmissions.set(scope.run_id,model);}
-     const result=model.checkModelAuthority(...args);guard();return result;
+     guard();const result=modelFor(args[1].request).checkModelAuthority(...args);guard();return result;
     }
    } satisfies Partial<typeof agent>);
+   if(skills){const results=new LocalAgentRunResultVerifier(location.repositoryPath,location.dataDirectory,undefined,store,undefined,parentPort),oldRead=agent.readRunResult.bind(agent);Object.assign(assigned,{skills:skills.port,readRunResult:(...args:Parameters<typeof agent.readRunResult>)=>{guard();const scope=readOriginalAgentRunInputs(local,args[1].run_id).scope,codex=readAgentRuntimeModelOriginals(location.dataDirectory,scope).original_evidence?.kind==='codex_login/1.0.0',result=codex?results.readRunResult(...args):oldRead(...args);guard();return result;}} satisfies Partial<typeof agent>);}
    guard();
    for(const key of keys){const descriptor=prior.get(key);if(descriptor? !('value' in descriptor)||!descriptor.writable:!Object.isExtensible(agent))throw unavailable();}
    for(const key of keys){const descriptor=prior.get(key);Object.defineProperty(agent,key,descriptor?{...descriptor,value:Reflect.get(assigned,key)}:{value:Reflect.get(assigned,key),writable:true,enumerable:true,configurable:true});installedSlots.set(key,Object.getOwnPropertyDescriptor(agent,key)!);}
+   if(skills){Object.defineProperty(local,'agentParentSkillResults',previousParent?{...previousParent,value:parentPort}:{value:parentPort,writable:true,configurable:true,enumerable:true});installedParent=Object.getOwnPropertyDescriptor(local,'agentParentSkillResults');parentInstalled=true;}
    installed=true;guard();
    const runtime=(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome)=>{
     guard();account.guard();if(account.installation.origin.identityDigest!==origin.identityDigest||parent&&!parentResults)throw unavailable();checks.assertInstalledConfiguration(account.installation.node_binary,account.installation.checks);
-    const identified=readOriginalAgentRunInputs(local,runId),caller={kind:'agent' as const,project_id:identified.project.id,actor_id:identified.actor.id,provider_identity_ref:structuredClone(identified.actor.provider_identity_ref)};
-    const agentKernel=new CimiLoopKernel({store,caller,runVerifier:verifier,evidenceVerifier:new LocalEvidenceVerifier(location.repositoryPath,location.dataDirectory),providerVerifier:new LocalProviderVerifier(location.repositoryPath,location.dataDirectory)});
+    const context=contextFor(runId);
     const borrowed={...account,guard:()=>{guard();account.guard();guard();}};
-    const result=LocalAgentRuntimeComposition.openCodex({local:{location:structuredClone(location),store,caller,kernel:agentKernel},runId,account:borrowed,custody,checks,...(storage?{storage}:{}),...(loginHome?{loginHome}:{}),...(parent?{parentSkill:parent}:{})});guard();return result;
+    if(skills){if(parent||!storage||!loginHome)throw unavailable();parent=skills.parentForRun(runId,{account:borrowed,storage,loginHome});}
+    const result=LocalAgentRuntimeComposition.openCodex({local:context,runId,account:borrowed,custody,checks,...(storage?{storage}:{}),...(loginHome?{loginHome}:{}),...(parent?{parentSkill:parent}:{})});guard();return result;
    };
    lease=new LocalAgentRuntimeAdmission(custody,checks,guard,release,runtime,humanAgentPreparation(local,verifier,origin,guard));active.set(store,{local,lease});return lease;
   }catch(error){release();throw error;}

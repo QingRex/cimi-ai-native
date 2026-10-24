@@ -35,4 +35,15 @@ describe('shared parent SDK Skill Host joins original Kernel children and result
 
  it('checks the original signal inside known-result guards before a synchronous cancellation can lead to fresh capture',async()=>{const f=prepared(),stop=new AbortController();let afterStartGuards=0;f.options.beforeEffect=()=>{if(f.count.starts&&!f.count.captures&&++afterStartGuards===2)stop.abort();};try{await expect(f.host().invoke(f.s.frame,stop.signal)).rejects.toThrow();await new Promise<void>(done=>setImmediate(done));expect(afterStartGuards).toBe(2);expect(f.s.calls()).toHaveLength(1);expect(f.observations()).toHaveLength(0);expect(f.count).toMatchObject({starts:1,captures:0});}finally{f.s.close();}});
 
+ it('records one independently verified Unknown candidate when terminal bills are unavailable and blocks every retry effect',async()=>{
+  const f=prepared();try{let candidates=0;f.options.results.captureVerified=()=>{throw Error('PUBLIC final bill unavailable');};Reflect.set(f.options.results,'capture',(id:string)=>{candidates++;const invocation=f.s.calls().find(i=>i.id===id)!;return f.s.f.skillRaw(invocation,'unknown',{usage:{cost_known:false}});});
+   const host=f.host();await expect(host.invoke(f.s.frame)).rejects.toThrow();expect(f.observations()).toHaveLength(1);expect(f.observations()[0]!.report).toMatchObject({status:'unknown',usage:{cost_known:false},basis:'direct_observation'});expect(f.s.f.currentRun()).toMatchObject({status:'Unknown',reservation_released:false,cost_known:false});
+   const sequence=f.s.f.store.asOfEventSequence();await expect(f.host().invoke(f.s.frame)).rejects.toThrow();expect(f.count.starts).toBe(1);expect(candidates).toBe(1);expect(f.s.f.store.asOfEventSequence()).toBe(sequence);expect(f.s.calls()).toHaveLength(1);expect(f.s.f.task().usage.pending_reconciliation).toBe(true);
+  }finally{f.s.close();}
+ });
+ it('requires independent Kernel verification for a fallback Unknown and never promotes an unbilled success candidate',async()=>{
+  const f=prepared();try{f.options.results.captureVerified=()=>{throw Error('PUBLIC terminal unavailable');};Reflect.set(f.options.results,'capture',(id:string)=>f.s.f.skillRaw(f.s.calls().find(i=>i.id===id)!,'succeeded',{usage:{cost_known:false}}));await expect(f.host().invoke(f.s.frame)).rejects.toThrow();expect(f.observations()).toHaveLength(0);expect(f.s.f.currentRun().status).not.toBe('Unknown');
+  }finally{f.s.close();}
+ });
+
 });

@@ -259,10 +259,11 @@ const taskPanel = (task, data) => {
           if(response.run_id!==run.id||response.starts_run!==false||response.domain_observation_produced!==false||response.kernel_costs_reconciled!==false){unknownCosts();return;}
           if(response.codex_usage){
             const usage=response.codex_usage;
-            if(response.outcome!=='unknown'||response.reason!=='codex_bill_original_unavailable'||usage.format!=='cimiloop/codex-run-usage/1.0.0'||usage.coverage!=='this_run_only'||usage.cost_known!==false||usage.costs_reconciled!==false||usage.run_family_costs_reconciled!==false||usage.cash_charged_micros!==null||usage.credit_charged_micro_units!==null||!Number.isSafeInteger(usage.holds)||usage.holds<1||!Number.isSafeInteger(usage.unresolved)||usage.unresolved<0||usage.unresolved>usage.holds){unknownCosts();return;}
-            costOutput.replaceChildren(paragraph(usage.state==='observed'?'原运行模型用量已读取，费用仍未知。':'原运行仍有待核对调用，费用未知。'),
+            const family=usage.format==='cimiloop/codex-run-family-usage/1.0.0'&&usage.coverage==='original_run_family';
+            if(response.outcome!=='unknown'||response.reason!=='codex_bill_original_unavailable'||(!family&&(usage.format!=='cimiloop/codex-run-usage/1.0.0'||usage.coverage!=='this_run_only'))||(family&&(!Array.isArray(usage.scopes)||usage.scopes.length<1||usage.scopes.length>65))||usage.cost_known!==false||usage.costs_reconciled!==false||usage.run_family_costs_reconciled!==false||usage.cash_charged_micros!==null||usage.credit_charged_micro_units!==null||!Number.isSafeInteger(usage.holds)||usage.holds<(family?0:1)||!Number.isSafeInteger(usage.unresolved)||usage.unresolved<0||usage.unresolved>usage.holds){unknownCosts();return;}
+            costOutput.replaceChildren(paragraph(family?(usage.state==='observed'?'原运行及子技能的模型用量已读取，费用仍未知。':'原运行及子技能仍有待核对用量，费用未知。'):(usage.state==='observed'?'原运行模型用量已读取，费用仍未知。':'原运行仍有待核对调用，费用未知。')),
               facts([['原请求占用',usage.holds],['未决请求',usage.unresolved],['已核对输入 Token',usage.observed_tokens?.inputTokens??'待核对'],['已核对输出 Token',usage.observed_tokens?.outputTokens??'待核对'],['核定现金','待核对'],['积分费用','待核对']]),
-              paragraph('此处仅覆盖当前运行，不代表子技能和整个任务的费用已结清；原预算继续保留。'),details('原用量查询记录',response));return;
+              paragraph(family?'已合并原运行及原子技能调用的模型用量；这不代表费用已结清，原预算继续保留。':'此处仅覆盖当前运行，不代表子技能和整个任务的费用已结清；原预算继续保留。'),details('原用量查询记录',response));return;
           }
           if(response.outcome!=='observed'||!costs||!Array.isArray(costs.bill_originals)){unknownCosts();return;}
           const hasBills=costs.bill_originals.length>0;

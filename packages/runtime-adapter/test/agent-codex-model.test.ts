@@ -57,6 +57,17 @@ describe("Codex model behind the original Agent SDK host", () => {
     const headerPath=join(f.root,'agent-codex-model-originals',f.scope.project_id,f.scope.run_id,'header.json'),header=JSON.parse(readFileSync(headerPath,'utf8'));expect(header.format).toBe('cimiloop/codex-agent-model/14.0.0');expect(header.runtime.state_policy).toBe('private_operation_state/1.0.0');
     writeFileSync(headerPath,JSON.stringify({...header,format:'cimiloop/codex-agent-model/8.0.0'}));expect(()=>f.read()).toThrow();expect(f.turns()).toBe(1);
   });
+  it('reads completed parent and child Codex transport originals in one unchanged capacity family without inventing an invoice',async()=>{
+    const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'family-capacity'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
+    try{
+      const budget=runtime.CodexAgentUsageBudget.initialize(origin,{account_digest:f.options.account_digest,quota_account_digest:digest('PUBLIC-account').value,model_calls:2,output_tokens:4096}),child={...f.scope,operation_key:createInternalId(),context_digest:digest('PUBLIC child input')};
+      for(const scope of [f.scope,child]){
+        const root=scope===f.scope?f.root:join(f.root,'skill-runtime-originals',scope.project_id,scope.operation_key),model=runtime.createBudgetedCodexAgentRuntimeModel({...f.options,root,scope,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:digest('PUBLIC-account').value},budget),host=await AgentRuntimeModelHost.initialize(root,scope,model,['cimi_read']);
+        await host.execute({...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',scope_digest:digest(JSON.stringify(scope)).value,admission_digest:model.admission_digest,max_output_tokens:2048});
+      }
+      const before=budget.snapshot(),result=runtime.readCodexAgentRunFamilyUsage(f.root,f.scope,budget,[child]);expect(result).toMatchObject({state:'observed',holds:2,unresolved:0,usage_complete:true,observed_tokens:{inputTokens:114,outputTokens:38,totalTokens:152},cost_known:false,costs_reconciled:false});expect(result.scopes).toHaveLength(2);expect(runtime.readCodexAgentRunFamilyUsage(f.root,f.scope,budget,[child])).toEqual(result);expect(budget.snapshot()).toEqual(before);expect(f.turns()).toBe(2);expect(()=>runtime.readCodexAgentRunUsage(f.root,f.scope,budget)).toThrow();
+    }finally{origin.close();}
+  },60000);
   it('joins original Codex usage to the same Run capacity without billing, replay or foreign-project disclosure',async()=>{
     const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'capacity'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
     try{
