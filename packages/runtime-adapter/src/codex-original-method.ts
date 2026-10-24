@@ -1,11 +1,12 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { closeSync, existsSync, fsyncSync, lstatSync, openSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, fsyncSync, lstatSync, openSync, realpathSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import type { ExternalReference } from "@cimiloop/protocol/v2";
 import { assertOrdinaryPath, bytesAt, digest, directory, RuntimeAdapterError } from "./files.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import {parseCodexUsagePolicy,parseCodexOrdinaryQuota,CODEX_QUOTA_READ_PARAMS,type CodexOrdinaryUsagePolicy,type CodexOrdinaryQuotaSnapshot} from './codex-ordinary-quota.js';
+import { AgentStartLedger } from './agent-start-ledger.js';
 
 const MAX_BYTES = 8 * 1024 * 1024, MAX_LINE = 1024 * 1024, MAX_CALLS = 128;
 const fail = (reason = "codex_original_unproven"): never => { throw new RuntimeAdapterError(reason); };
@@ -21,6 +22,12 @@ const fileIdentity = (path: string) => {
   if (!stat.isFile() || stat.nlink !== 1n || stat.ino <= 0n) fail();
   return { dev: String(stat.dev), ino: String(stat.ino), birth: String(stat.birthtimeNs) };
 };
+const directoryIdentity = (path: string) => {
+  const stat = lstatSync(assertOrdinaryPath(path), { bigint: true });
+  if (!stat.isDirectory() || stat.ino <= 0n) fail();
+  return { dev: String(stat.dev), ino: String(stat.ino), birth: String(stat.birthtimeNs) };
+};
+const policyNamespace = 'codex_method_transport';
 const save = (path: string, value: unknown) => {
   const bytes = encode(value); if (bytes.length > MAX_BYTES) fail("codex_capacity_exhausted");
   const fd = openSync(assertOrdinaryPath(path), "wx");
@@ -63,7 +70,11 @@ export interface CodexOriginalMethodOptions {
   account_digest?: string;
   timeout_ms?: number;
   disabled_mcp_servers?: string[];
+  // Every new delegated method uses this trusted transport policy. Legacy
+  // sealed originals keep their recorded policy during read-only replay.
+  usage_policy?: CodexOrdinaryUsagePolicy;
 }
+type StartVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 type Frame = { direction: "in" | "out"; bytes: string };
 
 // Non-secret account metadata supplied by the CLI itself. Never read auth.json,
@@ -170,7 +181,7 @@ export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodO
 // Interpret retained *actual app-server stdio*, independently of the final model
 // message. This does not assert HTTP wire bytes, Skill behavior qualification,
 // native isolation acceptance, provider bills, or Kernel business completion.
-function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Frame[], reference: ExternalReference, expectedAccount?: string, version: 1 | 2 | 3 | 4 | 5 | 6 = 1, disabled: string[] = []): CodexMethodOriginal {
+function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Frame[], reference: ExternalReference, expectedAccount?: string, version: StartVersion = 1, disabled: string[] = []): CodexMethodOriginal {
   const sent = new Map<number | string, any>(), incoming = new Map<number | string, any>();
   let thread = "", turn = "", account = false, complete = false, output = "", usage: any, accountDigest = "", finalAccountRead = false;
   const earlyThreadIds = new Set<string>();
@@ -272,8 +283,10 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
 
 export class CodexOriginalMethodRuntime {
   private readonly options: CodexOriginalMethodOptions;
-  constructor(raw: CodexOriginalMethodOptions, private readonly readOnly = false) {
+  constructor(raw: CodexOriginalMethodOptions, private readonly readOnly = false, private readonly policyOrigin?: AgentStartLedger) {
     this.options = structuredClone(raw);
+    if(Object.hasOwn(raw,'usage_policy')&&!parseCodexUsagePolicy(raw.usage_policy))fail('codex_installation_denied');
+    if (raw.usage_policy && !(policyOrigin instanceof AgentStartLedger)) fail('codex_transport_origin_required');
     const disabled = raw.disabled_mcp_servers ?? [];
     if (!Array.isArray(disabled) || disabled.length > 64 || new Set(disabled).size !== disabled.length || disabled.some(name =>
       typeof name !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(name) || ["__proto__", "constructor", "prototype"].includes(name))) fail("codex_installation_denied");
@@ -286,23 +299,38 @@ export class CodexOriginalMethodRuntime {
     this.options.command.file = resolve(assertOrdinaryPath(raw.command.file));
   }
   get originalConfiguration(): CodexOriginalMethodOptions { return structuredClone(this.options); }
-  static readRetained(options: CodexOriginalMethodOptions, request: CodexMethodRequest): CodexMethodOriginal | null {
-    return new CodexOriginalMethodRuntime(options, true).readOriginal(request);
+  static readRetained(options: CodexOriginalMethodOptions, request: CodexMethodRequest, policyOrigin?: AgentStartLedger): CodexMethodOriginal | null {
+    return new CodexOriginalMethodRuntime(options, true, policyOrigin).readOriginal(request);
   }
   private paths(request: CodexMethodRequest) {
     const root = assertOrdinaryPath(join(this.options.root, request.operation_key));
     return { root, cwd: join(root, "workspace"), claim: join(root, "start.json"), transcript: join(root, "stdio.jsonl"), seal: join(root, "seal.json") };
   }
-  private claim(request: CodexMethodRequest, version: 1 | 2 | 3 | 4 | 5 | 6 = request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort === undefined ? 3 : 4) {
-    if ((version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined)) fail("codex_original_input_changed");
-    return { format: `cimiloop/codex-method-start/${version}.0.0`, request, command: this.options.command,
+  private startVersion(request:CodexMethodRequest):StartVersion{return this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
+  private policyKey(request: CodexMethodRequest) {
+    // Real Windows long names collapse 8.3 aliases; case folding also keeps the
+    // logical slot stable after its original directory has gone missing.
+    const root = realpathSync.native(assertOrdinaryPath(this.options.root));
+    return digest(encode({ root: process.platform === 'win32' ? root.toUpperCase() : root,
+      operation_key: process.platform === 'win32' ? request.operation_key.toUpperCase() : request.operation_key })).value;
+  }
+  private policyBasis(request: CodexMethodRequest) {
+    return { format: 'cimiloop/codex-method-transport/1.0.0', root: this.options.root,
+      root_identity: directoryIdentity(this.options.root), operation_key: request.operation_key,
+      operation_identity: directoryIdentity(this.paths(request).root), claim_digest: digest(encode(this.claim(request, 7))).value };
+  }
+  private claim(request: CodexMethodRequest, version: StartVersion = this.startVersion(request)) {
+    if(version===7?this.options.usage_policy!=='require_ordinary_permission/1.0.0':(version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined)) fail("codex_original_input_changed");
+    return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
     account_digest: this.options.account_digest ?? null, config: version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
     ...(version >= 2 ? { disabled_mcp_servers: this.options.disabled_mcp_servers } : {}) }; }
   readOriginal(raw: CodexMethodRequest): CodexMethodOriginal | null {
     const request = requestCopy(raw), paths = this.paths(request);
     if (!existsSync(paths.claim)) return null;
     const claimBytes = bytesAt(paths.claim);
-    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:fail();
+    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:claim.format==='cimiloop/codex-method-start/7.0.0'?7:fail();
+    const policy = this.policyOrigin?.readExclusive(policyNamespace, this.policyKey(request));
+    if (policy ? version !== 7 || !same(policy.basis, this.policyBasis(request)) : version === 7) fail('codex_original_input_changed');
     if (!same(claim, this.claim(request, version))) fail("codex_original_input_changed");
     if (!existsSync(paths.seal)) return null;
     const seal = parse(bytesAt(paths.seal)), transcript = bytesAt(paths.transcript, MAX_BYTES);
@@ -316,6 +344,7 @@ export class CodexOriginalMethodRuntime {
   async execute(raw: CodexMethodRequest, tool: (name: string, args: unknown, original: CodexMethodToolContext) => string | Promise<string>, beforeEffect: () => void, signal?: AbortSignal, parentAdmission?: CodexMethodAdmission): Promise<CodexMethodOriginal> {
     if (this.readOnly) fail("codex_read_only_original");
     const request = requestCopy(raw), paths = this.paths(request), admission = parentAdmission ? structuredClone(parentAdmission) : undefined;
+    const usagePolicy=parseCodexUsagePolicy(this.options.usage_policy??request.usage_policy);
     if (admission && (Object.keys(admission).sort().join(",") !== "account_digest,model" || admission.model !== request.model ||
       !/^[0-9a-f]{64}$/.test(admission.account_digest) || this.options.account_digest && this.options.account_digest !== admission.account_digest)) fail("codex_parent_admission_denied");
     const previous = this.readOriginal(request);
@@ -324,12 +353,18 @@ export class CodexOriginalMethodRuntime {
       return previous;
     }
     if (existsSync(paths.claim)) fail("codex_original_pending");
+    if (this.policyOrigin?.readExclusive(policyNamespace, this.policyKey(request))) fail('codex_original_pending');
     if (signal?.aborted) fail("codex_original_cancelled");
     guardNow(beforeEffect);
     const binary = bytesAt(this.options.command.file, 512 * 1024 * 1024);
     if (digest(binary).value !== this.options.command.sha256) fail("codex_binary_changed");
     if (signal?.aborted) fail("codex_original_cancelled");
-    directory(paths.cwd); save(paths.claim, this.claim(request));
+    directory(paths.cwd);
+    // The independent Host1 writer elects one sender BEFORE creating a new
+    // start or spawning. A crash after this commit leaves an Unknown operation;
+    // later readers never fill missing originals or downgrade its policy.
+    if (this.options.usage_policy && !this.policyOrigin!.claimExclusiveOnce(policyNamespace, this.policyKey(request), this.policyBasis(request)).created) fail('codex_original_pending');
+    save(paths.claim, this.claim(request));
     // The exclusive durable start is deliberately never rolled back, including
     // a crash before spawn. A retry may inspect originals, never start again.
     const fd = openSync(assertOrdinaryPath(paths.transcript), "wx");
@@ -367,8 +402,8 @@ export class CodexOriginalMethodRuntime {
     const accept = async (line: Buffer) => {
       if (closed) fail("codex_effect_closed");
       append("in", line); const value = parse(line);
-      const accountRpc = value.id !== undefined && !value.method && (pending.get(value.id)?.method === "account/read"||request.usage_policy&&pending.get(value.id)?.method==='account/rateLimits/read');
-      if (terminal && !accountRpc && (value.id !== undefined || !["thread/tokenUsage/updated", "thread/status/changed",...(request.usage_policy?['account/rateLimits/updated']:[])].includes(value.method))) fail("codex_post_terminal_effect");
+      const accountRpc = value.id !== undefined && !value.method && (pending.get(value.id)?.method === "account/read"||usagePolicy&&pending.get(value.id)?.method==='account/rateLimits/read');
+      if (terminal && !accountRpc && (value.id !== undefined || !["thread/tokenUsage/updated", "thread/status/changed",...(usagePolicy?['account/rateLimits/updated']:[])].includes(value.method))) fail("codex_post_terminal_effect");
       if (value.method && value.id !== undefined) {
         const p = value.params;
         if (value.method !== "item/tool/call" || !thread || !turn || p?.threadId !== thread || p.turnId !== turn || p.namespace !== null ||
@@ -398,7 +433,7 @@ export class CodexOriginalMethodRuntime {
       if (value.method === "account/updated" && admittedAccount) {
         if (turnSent || p?.authMode !== "chatgpt") fail("codex_account_changed"); accountDirty = true;
       }
-      if(request.usage_policy&&value.method==='account/rateLimits/updated'&&!turnSent)quotaDirty=true;
+      if(usagePolicy&&value.method==='account/rateLimits/updated'&&!turnSent)quotaDirty=true;
       if (value.method === "mcpServer/startupStatus/updated" && ["starting", "ready"].includes(p?.status)) fail("codex_external_tools_available");
       if (p?.threadId !== undefined && !thread && !turn && startingThread && ["warning", "thread/status/changed"].includes(value.method)) {
         earlyThreadIds.add(p.threadId); return;
@@ -442,17 +477,17 @@ export class CodexOriginalMethodRuntime {
       const readyAccount = await rpc("account/read", { refreshToken: false });
       if (codexChatGptAccountDigest(readyAccount) !== admittedAccount) fail("codex_account_changed");
       let quotaBefore:CodexOrdinaryQuotaSnapshot|undefined;
-      if(request.usage_policy){quotaBefore=parseCodexOrdinaryQuota(await rpc('account/rateLimits/read',CODEX_QUOTA_READ_PARAMS));if(quotaBefore.ordinary_usage_allowed!==true||quotaBefore.account_id_digest===null||request.quota_account_digest&&quotaBefore.account_id_digest!==request.quota_account_digest)fail('codex_ordinary_permission_unavailable');quotaDirty=false;}
+      if(usagePolicy){quotaBefore=parseCodexOrdinaryQuota(await rpc('account/rateLimits/read',CODEX_QUOTA_READ_PARAMS));if(quotaBefore.ordinary_usage_allowed!==true||quotaBefore.account_id_digest===null||request.quota_account_digest&&quotaBefore.account_id_digest!==request.quota_account_digest)fail('codex_ordinary_permission_unavailable');quotaDirty=false;}
       // Drain notifications already received alongside the account response.
       // Resolving the RPC wakes this continuation before subsequent queue jobs.
       await queue;
-      if (accountDirty) fail("codex_account_changed");if(request.usage_policy&&quotaDirty)fail('codex_ordinary_quota_changed');turnSent = true;
+      if (accountDirty) fail("codex_account_changed");if(usagePolicy&&quotaDirty)fail('codex_ordinary_quota_changed');turnSent = true;
       const started = await rpc("turn/start", { threadId: thread, model: request.model, effort: request.reasoning_effort ?? "medium", input: [{ type: "text", text: request.prompt, text_elements: [] }], outputSchema: request.output_schema });
       if (typeof started?.turn?.id !== "string") fail(); turn = started.turn.id;
       await finished; await queue;
       const finalAccount = await rpc("account/read", { refreshToken: false });
       if (codexChatGptAccountDigest(finalAccount) !== admittedAccount) fail("codex_account_changed");
-      if(request.usage_policy){const after=parseCodexOrdinaryQuota(await rpc('account/rateLimits/read',CODEX_QUOTA_READ_PARAMS));if(after.account_id_digest!==quotaBefore!.account_id_digest)fail('codex_ordinary_quota_account_changed');}
+      if(usagePolicy){const after=parseCodexOrdinaryQuota(await rpc('account/rateLimits/read',CODEX_QUOTA_READ_PARAMS));if(after.account_id_digest!==quotaBefore!.account_id_digest)fail('codex_ordinary_quota_account_changed');}
       stopping = true; child.stdin.end(); child.kill();
       await Promise.race([childClosed, failure]); await queue;
       if (buffered.length) { append("in", buffered); fail("codex_truncated_original"); }
@@ -460,7 +495,7 @@ export class CodexOriginalMethodRuntime {
       const transcript = bytesAt(paths.transcript, MAX_BYTES);
       const ref = { provider: "codex_app_server", resource_type: "skill_invocation_proof", locator: paths.transcript, digest: digest(transcript) };
       const frames = transcript.toString("utf8").trimEnd().split("\n").map(line => parse(Buffer.from(line)) as Frame);
-      originalFromFrames(request, paths.cwd, frames, ref, this.options.account_digest, request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort === undefined ? 3 : 4, this.options.disabled_mcp_servers);
+      originalFromFrames(request, paths.cwd, frames, ref, this.options.account_digest, this.startVersion(request), this.options.disabled_mcp_servers);
       save(paths.seal, { format: "cimiloop/codex-method-seal/1.0.0", claim_digest: digest(bytesAt(paths.claim)).value, transcript_digest: digest(transcript).value,
         claim_identity: fileIdentity(paths.claim), transcript_identity: fileIdentity(paths.transcript) });
       return this.readOriginal(request) ?? fail();

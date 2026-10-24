@@ -3,7 +3,8 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameS
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { AgentStartLedger } from "@cimiloop/runtime-adapter";
+import { AgentStartLedger, CodexOriginalMethodRuntime, digest } from "@cimiloop/runtime-adapter";
+import {createInternalId} from '@cimiloop/protocol/v2';
 import { packageGitSkill, type VerifiedSkillPackage } from "@cimiloop/skill-adapter";
 import { startWorkbench } from "../../../apps/workbench/src/server.js";
 import * as app from "../src/index.js";
@@ -62,6 +63,32 @@ describe.runIf(process.platform === "win32")("protected Codex Matt installation"
     const lease = await open()(local); try { expect(lease?.model).toBe("gpt-6-luna"); expect(lease?.host.prepare).toBeTypeOf("function"); expect(inspections).toBe(1); } finally { lease?.release(); }
     expect(await workbenchState(local)).toMatchObject({ matt_host_available: true, matt_installation_state: "installed" }); expect(inspections).toBe(1);
   }, 120000);
+  it('requires ordinary permission in both default Matt and its actual delegated fact transport',async()=>{
+    const local=project(),fixture=fixtures.at(-1)!;
+    await install()(local,{...input(),facts:{source_identity:digest('PUBLIC frozen source snapshot').value,files:[{path:'src/source.ts',content:'export const value=1;'}]}},{async inspectLogin(){return{account_digest:'1'.repeat(64)};}});
+    const observed:{policy:string|undefined;key:string}[]=[];
+    const execute=vi.spyOn(CodexOriginalMethodRuntime.prototype,'execute').mockImplementation(async function(this:CodexOriginalMethodRuntime,request,tool,beforeEffect){
+      observed.push({policy:this.originalConfiguration.usage_policy,key:request.operation_key});beforeEffect();
+      if(observed.length>1)throw Error('PUBLIC stop before any real model');
+      const context=Object.freeze({call_id:'PUBLIC_delegate',thread_id:'PUBLIC_parent',turn_id:'PUBLIC_turn',model:request.model,account_digest:'1'.repeat(64),signal:new AbortController().signal,beforeEffect});
+      const names=JSON.parse(JSON.stringify(request.tools.find(t=>t.name==='invoke_skill')!.inputSchema)).properties.name.enum;
+      for(const name of names)await tool('invoke_skill',{name},context);
+      const paths=JSON.parse(JSON.stringify(request.tools.find(t=>t.name==='read_method_resource')!.inputSchema)).properties.path.enum;
+      for(const path of paths)await tool('read_method_resource',{path},context);
+      await tool('read_clarification_context',{},context);
+      await tool('delegate_facts',{question:'Which fixed source declares the value?'},context);
+      throw Error('PUBLIC expected a delegated child');
+    });
+    let lease:Awaited<ReturnType<typeof app.openInstalledCodexMatt>>;
+    try{
+      lease=await open()(local);if(!lease)throw Error('PUBLIC installed host required');
+      const service=new app.LocalPrePlanClarification(local,lease.host),change=fixture.create(),before=local.store.asOfEventSequence();
+      const session=service.begin(change.id,{request_id:createInternalId(),requirement:'PUBLIC review fixed source before Plan',background:'PUBLIC complete Human instruction',constraints:['Preserve original identity']}).session;
+      await expect(service.advanceAsync(change.id,session.id,{request_id:createInternalId(),expected_head:0,kind:'matt'})).rejects.toMatchObject({code:'RECOVERY_CONDITIONS_UNMET'});
+      expect(observed).toHaveLength(2);expect(observed.map(row=>row.policy)).toEqual(['require_ordinary_permission/1.0.0','require_ordinary_permission/1.0.0']);expect(new Set(observed.map(row=>row.key)).size).toBe(2);
+      expect(service.show(change.id,session.id).session.pending).toBe(true);expect(local.store.asOfEventSequence()).toBe(before);
+    }finally{lease?.release();execute.mockRestore();}
+  },120000);
   it("replays the same install and rejects a changed approved model", async () => {
     let inspections = 0;
     const local = project(), services = { async inspectLogin() { inspections++; return { account_digest: "2".repeat(64) }; } };

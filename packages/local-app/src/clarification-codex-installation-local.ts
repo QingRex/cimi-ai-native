@@ -144,7 +144,7 @@ export async function openInstalledCodexMatt(local: LocalProject): Promise<Insta
     const guard = () => { if (released || requestDigest(installedRead(origin!, local, where.root, originalBinding)) !== seal) fail(); };
     const source = verifySkillPackageBytes(bytesAt(join(where.root, "skill-package.json")), { algorithm: "sha256", value: fixed.request.source_digest });
     const runtime = new CodexOriginalMethodRuntime({ root: join(where.root, "originals"), command: { file: join(where.root, "codex.exe"), args: [], sha256: fixed.request.binary_digest },
-      account_digest: fixed.request.account_digest, disabled_mcp_servers: fixed.request.disabled_mcp_servers, timeout_ms: 180000 });
+      account_digest: fixed.request.account_digest, disabled_mcp_servers: fixed.request.disabled_mcp_servers, timeout_ms: 180000, usage_policy:'require_ordinary_permission/1.0.0' }, false, origin);
     const facts = fixed.request.facts_digest ? parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(bytesAt(join(where.root, "facts.json"))), 1024 * 1024) as Facts : undefined;
     const concrete = new CodexMattClarificationHost({ source, runtime, model: fixed.request.model, origin: "external_model", ...(facts ? { facts: new CodexFactInvestigator(runtime, fixed.request.model, facts.files, facts.source_identity) } : {}) });
     const host: MattClarificationHost = {
