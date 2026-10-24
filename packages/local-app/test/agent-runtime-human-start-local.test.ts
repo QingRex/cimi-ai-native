@@ -1,4 +1,5 @@
 import {LocalProjectError} from '../src/errors.js';
+import {CimiLoopKernel} from '@cimiloop/kernel';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve, sep } from 'node:path';
@@ -19,6 +20,34 @@ describe('owned original Human startup', () => {
  const result=()=>({ok:true as const,run_id:runId,outcome:'original' as const,completion_proven:false as const,operation_id:'controlled'});
  const runtime=()=>{const r=Object.create(LocalAgentRuntimeComposition.prototype) as LocalAgentRuntimeComposition;r.originalScope=()=>readHumanOriginalAgentRunInputs(local,runId).scope;r.start=vi.fn(async()=>result());return r;};
  const revoke=()=>{for(const a of f.store.listAssignments(f.actor.id).filter(a=>a.role_key==='technical_owner'&&!a.ended_at))flowSuccess(f.humanKernel.execute(f.projectCommand('EndAssignment',{assignment_id:a.id,expected_assignment_revision:a.revision,reason:'Revoke controlled startup'})));};
+ const replacementKernel=()=>new CimiLoopKernel({store:local.store,caller:{kind:'local_operator',project_id:local.instance.project_id,actor_id:local.instance.actor_id}});
+ it.each(['start','control'] as const)('cannot replace the private Human authorization helper for %s',async action=>{
+  const kernel=local.kernel,permission=action==='start'?kernel.authorizeAgentRunStart(runId):kernel.authorizeAgentRunControl(runId),factory=vi.fn(()=>runtime()),service=new LocalHumanAgentRuntimeStart(local,factory);revoke();Reflect.set(kernel,'authorizeAgentRunHuman',()=>structuredClone(permission));
+  if(action==='start')await expect(service.start(runId)).rejects.toMatchObject({code:'ROLE_NOT_ASSIGNED'});else expect(kernel.authorizeAgentRunControl(runId)).toMatchObject({code:'ROLE_NOT_ASSIGNED'});expect(factory).not.toHaveBeenCalled();
+ });
+ it.each(['method','kernel'] as const)('rejects %s replacement after Human revocation at every startup boundary',async kind=>{
+  // Use a new fixture per case: each row below is a separate startup attempt,
+  // not a retry after a dispatched Run or a manufactured current permission.
+  const permission=local.kernel.authorizeAgentRunStart(runId),originalKernel=local.kernel,r=runtime(),release=vi.fn();let dispatches=0;
+  const change=()=>{revoke();const replacement=kind==='method'?originalKernel:replacementKernel();Reflect.set(replacement,'authorizeAgentRunStart',()=>structuredClone(permission));if(kind==='kernel')local.kernel=replacement;};
+  const service=new LocalHumanAgentRuntimeStart(local,async()=>{await Promise.resolve();change();return{runtime:r,release};});
+  r.start=vi.fn(async(_id,guard)=>{guard?.();dispatches++;return result();});
+  await expect(service.start(runId)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(release).toHaveBeenCalledTimes(1);expect(dispatches).toBe(0);expect(r.start).not.toHaveBeenCalled();
+ });
+ it.each(['method','kernel'] as const)('rejects %s replacement between service construction and a request',async kind=>{
+  const permission=local.kernel.authorizeAgentRunStart(runId),originalKernel=local.kernel,factory=vi.fn(()=>runtime()),service=new LocalHumanAgentRuntimeStart(local,factory);revoke();
+  const replacement=kind==='method'?originalKernel:replacementKernel();Reflect.set(replacement,'authorizeAgentRunStart',()=>structuredClone(permission));if(kind==='kernel')local.kernel=replacement;
+  await expect(service.start(runId)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(factory).not.toHaveBeenCalled();
+ });
+ it.each(['method','kernel'] as const)('rejects %s replacement inside the final Native guard without a launch',async kind=>{
+  const permission=local.kernel.authorizeAgentRunStart(runId),originalKernel=local.kernel,r=runtime(),release=vi.fn();let launches=0;
+  r.start=vi.fn(async(_id,guard)=>{revoke();const replacement=kind==='method'?originalKernel:replacementKernel();Reflect.set(replacement,'authorizeAgentRunStart',()=>structuredClone(permission));if(kind==='kernel')local.kernel=replacement;guard?.();launches++;return result();});
+  await expect(new LocalHumanAgentRuntimeStart(local,()=>({runtime:r,release})).start(runId)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(launches).toBe(0);expect(release).toHaveBeenCalledTimes(1);
+ });
+ it.each(['method','kernel'] as const)('retains the original startup but refuses stale Human permission after release-time %s replacement',async kind=>{
+  const permission=local.kernel.authorizeAgentRunStart(runId),originalKernel=local.kernel,r=runtime(),release=vi.fn(async()=>{await Promise.resolve();revoke();const replacement=kind==='method'?originalKernel:replacementKernel();Reflect.set(replacement,'authorizeAgentRunStart',()=>structuredClone(permission));if(kind==='kernel')local.kernel=replacement;});
+  await expect(new LocalHumanAgentRuntimeStart(local,()=>({runtime:r,release})).start(runId)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(r.start).toHaveBeenCalledTimes(1);expect(release).toHaveBeenCalledTimes(1);expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+ });
  it('awaits a bound lease release once after startup',async()=>{const r=runtime(),seen:string[]=[],owner={runtime:r,release:vi.fn(async function(this:{runtime:LocalAgentRuntimeComposition}){expect(this.runtime).toBe(r);seen.push('release');await Promise.resolve();seen.push('released');})},sequence=f.store.asOfEventSequence();expect(await new LocalHumanAgentRuntimeStart(local,()=>owner as any).start(runId)).toEqual(result());expect(owner.release).toHaveBeenCalledTimes(1);expect(seen).toEqual(['release','released']);expect(r.start).toHaveBeenCalledTimes(1);expect(f.store.asOfEventSequence()).toBe(sequence);});
  it('releases a foreign staged composition before any start',async()=>{const r=runtime();r.originalScope=()=>({...readHumanOriginalAgentRunInputs(local,runId).scope,project_id:'foreign'});const release=vi.fn();await expect(new LocalHumanAgentRuntimeStart(local,()=>({runtime:r,release}) as any).start(runId)).rejects.toMatchObject({code:'CALLER_IDENTITY_MISMATCH'});expect(release).toHaveBeenCalledTimes(1);expect(r.start).not.toHaveBeenCalled();});
  it('releases an awaited lease after Human revocation',async()=>{const r=runtime(),release=vi.fn();let done!:(v:any)=>void;const waiting=new LocalHumanAgentRuntimeStart(local,()=>new Promise<any>(resolve=>{done=resolve;})).start(runId);revoke();done({runtime:r,release});await expect(waiting).rejects.toMatchObject({code:'ROLE_NOT_ASSIGNED'});expect(release).toHaveBeenCalledTimes(1);expect(r.start).not.toHaveBeenCalled();});

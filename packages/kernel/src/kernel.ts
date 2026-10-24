@@ -381,7 +381,7 @@ export class CimiLoopKernel {
 
   // Human initiation permission only. The original Agent still needs the full
   // independent launch assessment; this does not change a Run or grant effects.
-  authorizeAgentRunStart(runId: string) { return this.authorizeAgentRunHuman(runId, "启动"); }
+  authorizeAgentRunStart(runId: string) { return this.#authorizeAgentRunHuman(runId, "启动"); }
   authorizeAgentRunPreparation(workItemId:string){
     try{return this.#store.readSnapshot(reader=>{
       const caller=this.#caller,project=reader.getProject(),actor=caller&&caller.kind==='local_operator'?reader.getActor(caller.actor_id):undefined;
@@ -399,8 +399,8 @@ export class CimiLoopKernel {
   }
   // Original physical control permission only. Does not grant Agent execution,
   // manufacture cancellation or settle domain/cost facts.
-  authorizeAgentRunControl(runId: string) { return this.authorizeAgentRunHuman(runId, "控制"); }
-  private authorizeAgentRunHuman(runId: string, purpose: "启动" | "控制") {
+  authorizeAgentRunControl(runId: string) { return this.#authorizeAgentRunHuman(runId, "控制"); }
+  #authorizeAgentRunHuman(runId: string, purpose: "启动" | "控制") {
     try {
       return this.#store.readSnapshot(reader => {
         const caller=this.#caller, project=reader.getProject(), actor=caller && caller.kind!=="bootstrap" ? reader.getActor(caller.actor_id) : undefined;

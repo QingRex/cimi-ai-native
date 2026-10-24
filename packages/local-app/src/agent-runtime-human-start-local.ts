@@ -11,16 +11,32 @@ export interface AgentRuntimeLease {runtime:LocalAgentRuntimeComposition;release
 export type HumanAgentRuntimeFactory=(runId:string,local:LocalProject)=>LocalAgentRuntimeComposition|AgentRuntimeLease|Promise<LocalAgentRuntimeComposition|AgentRuntimeLease>;
 const unavailable=()=>new LocalProjectError('原 Agent 完整组合或资源释放尚待核对；保留原操作','CAPABILITY_UNAVAILABLE','conflict');
 export class LocalHumanAgentRuntimeStart {
- constructor(private readonly local:LocalProject,private readonly factory?:HumanAgentRuntimeFactory){}
+ readonly #identity:Pick<LocalProject,'location'|'instance'|'store'|'kernel'>;
+ readonly #startMethod:LocalProject['kernel']['authorizeAgentRunStart'];
+ readonly #authorizeStart:LocalProject['kernel']['authorizeAgentRunStart'];
+ constructor(private readonly local:LocalProject,private readonly factory?:HumanAgentRuntimeFactory){
+  this.#identity={location:structuredClone(local.location),instance:structuredClone(local.instance),store:local.store,kernel:local.kernel};
+  this.#startMethod=local.kernel.authorizeAgentRunStart;
+  this.#authorizeStart=this.#startMethod.bind(local.kernel);
+ }
+ #assertIdentity(){
+  const original=this.#identity;
+  if(this.local.store!==original.store||this.local.kernel!==original.kernel||original.kernel.authorizeAgentRunStart!==this.#startMethod||!isDeepStrictEqual(this.local.location,original.location)||!isDeepStrictEqual(this.local.instance,original.instance))
+   throw new LocalProjectError('原Human启动身份或Kernel授权入口发生变化','INPUT_CHANGED','conflict');
+ }
+ #authorize(runId:string){this.#assertIdentity();const result=this.#authorizeStart(runId);this.#assertIdentity();return result;}
  async start(runId:string,requestGuard?:()=>void){
+  this.#assertIdentity();
   const original=readHumanOriginalAgentRunInputs(this.local,runId);
-  const authorized=this.local.kernel.authorizeAgentRunStart(runId);if('code' in authorized)throw authorized;
+  const authorized=this.#authorize(runId);if('code' in authorized)throw authorized;
   let checkError:unknown;
   const check=()=>{try{
+   this.#assertIdentity();
    requestGuard?.();
-   const fresh=this.local.kernel.authorizeAgentRunStart(runId);if('code' in fresh)throw fresh;
+   const fresh=this.#authorize(runId);if('code' in fresh)throw fresh;
    if(!isDeepStrictEqual(fresh,authorized)||!isDeepStrictEqual(readHumanOriginalAgentRunInputs(this.local,runId).scope,original.scope))
     throw new LocalProjectError('原启动请求权限或固定范围已改变','INPUT_CHANGED','conflict');
+   this.#assertIdentity();
   }catch(error){checkError=error;throw error;}};
   check();
   // Read-only recovery does not need a new model/account/custody factory.
