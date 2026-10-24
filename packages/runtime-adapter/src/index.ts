@@ -118,8 +118,8 @@ export {parseAgentParentCurrentInput,type AgentParentCurrentInput} from './agent
 
 export{openDedicatedLedgerModelAccountPort}from'./agent-dedicated-account.js';
 
-export { CodexOriginalMethodRuntime, codexChatGptAccountDigest, inspectCodexMethodLogin } from "./codex-original-method.js";
-export type { CodexOriginalMethodOptions, CodexMethodRequest, CodexMethodOriginal, CodexMethodTool, CodexMethodToolCall, CodexMethodToolContext, CodexMethodAdmission } from "./codex-original-method.js";
+export { CodexOriginalMethodRuntime, captureCodexLoginHome, codexChatGptAccountDigest, inspectCodexMethodLogin } from "./codex-original-method.js";
+export type { CodexOriginalMethodOptions, CodexLoginHome, CodexMethodRequest, CodexMethodOriginal, CodexMethodTool, CodexMethodToolCall, CodexMethodToolContext, CodexMethodAdmission } from "./codex-original-method.js";
 export { CodexFixedClarificationMethod } from "./codex-fixed-method.js";
 export type { CodexFixedClarificationOriginal, CodexFixedClarificationOptions } from "./codex-fixed-method.js";
 export { CodexFactInvestigator } from "./codex-fact-investigation.js";
@@ -129,4 +129,4 @@ export type { CodexAgentModelOptions, CodexAgentModelAuthority, CodexAgentModelO
 export {createBudgetedCodexAgentRuntimeModel} from './agent-codex-model.js';
 export {readCodexAgentRunUsage} from './agent-codex-model.js';
 export {CodexAgentUsageBudget,type CodexUsageAccount,type CodexUsageBudgetPolicy,type CodexUsageReservation} from './codex-agent-usage-budget.js';
-export {openWindowsFixedVolumeReader,openHostFixedVolumeReader,parseFixedVolumeObservation,FixedVolumeQuota,FixedVolumeRuntimeStorage,assertFixedVolumeRuntimeStorage,type FixedVolumeRuntimeScope,type FixedVolumeObservation} from './fixed-volume-quota.js';
+export {openWindowsFixedVolumeReader,openHostFixedVolumeReader,parseFixedVolumeObservation,FixedVolumeQuota,FixedVolumeRuntimeStorage,assertFixedVolumeRuntimeStorage,assertFixedVolumeRuntimePath,type FixedVolumeRuntimeScope,type FixedVolumeObservation} from './fixed-volume-quota.js';

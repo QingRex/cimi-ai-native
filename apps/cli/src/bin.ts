@@ -25,7 +25,7 @@ import {productionAgentRuntime,productionAgentAccount,productionAgentCosts} from
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 import { installCodexClarification } from "./clarification-codex.js";
-import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage} from './agent-codex-installation.js';
+import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage,installCodexHome,showCodexHome} from './agent-codex-installation.js';
 
 const program = new Command();
 const jsonRequested = process.argv.includes("--json");
@@ -111,6 +111,12 @@ runtime.command('install-codex-storage').description('绑定已有专用固定�
  .action((options,command)=>installCodexStorage({...globals(command),...options}));
 runtime.command('codex-storage').description('只读核对原固定卷及Runtime范围；不创建或修复原件')
  .action((_options,command)=>showCodexStorage(globals(command)));
+runtime.command('install-codex-home').description('绑定已登录的仓库外固定卷私有目录；不登录、不复制凭据、不调用模型')
+ .requiredOption('--home <path>','已使用官方Codex CLI登录同一账号的固定卷私有目录')
+ .option('--yes','明确确认该目录及账号的不可变绑定')
+ .action((options,command)=>installCodexHome({...globals(command),...options}));
+runtime.command('codex-home').description('只读核对原登录目录绑定；不读取凭据、不创建或修复目录')
+ .action((_options,command)=>showCodexHome(globals(command)));
 runtime.command("gateway-credit-probe").description("历史费率下的持久积分预算演练；不发送HTTP、读取凭据或批准计费")
   .option("--output-dir <path>", "结果及独立积分演练账本目录；默认.cimiloop/gateway-credit-probe")
   .action((options, command) => runtimeGatewayCreditProbe({ ...globals(command), ...options }));

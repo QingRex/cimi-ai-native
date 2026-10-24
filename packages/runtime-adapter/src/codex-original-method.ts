@@ -1,6 +1,6 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { closeSync, existsSync, fsyncSync, lstatSync, openSync, realpathSync, writeFileSync } from "node:fs";
-import { dirname,join, resolve } from "node:path";
+import { dirname,isAbsolute,join, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import type { ExternalReference } from "@cimiloop/protocol/v2";
 import { assertOrdinaryPath, bytesAt, digest, directory, RuntimeAdapterError } from "./files.js";
@@ -71,12 +71,20 @@ export interface CodexOriginalMethodOptions {
   timeout_ms?: number;
   disabled_mcp_servers?: string[];
   // Prospective Agent policy; the existing login home remains untouched.
-  state_policy?: 'private_operation_state/1.0.0';
+  state_policy?: 'private_operation_state/1.0.0'|'private_login_home/2.0.0';
+  login_home?:CodexLoginHome;
   // Every new delegated method uses this trusted transport policy. Legacy
   // sealed originals keep their recorded policy during read-only replay.
   usage_policy?: CodexOrdinaryUsagePolicy;
 }
-type StartVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export interface CodexLoginHome {path:string;identity:{dev:string;ino:string;birth:string}}
+export function captureCodexLoginHome(path:string):CodexLoginHome{return{path:resolve(assertOrdinaryPath(path)),identity:directoryIdentity(path)};}
+function checkedLoginHome(raw:unknown):CodexLoginHome {
+ const value=raw as CodexLoginHome;
+ if(!value||Object.keys(value).sort().join(',')!=='identity,path'||typeof value.path!=='string'||!isAbsolute(value.path)||resolve(value.path)!==value.path||!value.identity||Object.keys(value.identity).sort().join(',')!=='birth,dev,ino'||Object.values(value.identity).some(v=>typeof v!=='string'||!/^\d+$/.test(v))||BigInt(value.identity.ino)<=0n)fail('codex_installation_denied');
+ return structuredClone(value);
+}
+type StartVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 type Frame = { direction: "in" | "out"; bytes: string };
 
 // Non-secret account metadata supplied by the CLI itself. Never read auth.json,
@@ -117,7 +125,7 @@ const version2Config = (disabled: string[]) => ({ ...legacyConfig(),
 });
 const config = (disabled: string[]) => ({ ...version2Config(disabled), features: { ...version2Config(disabled).features, sleep_tool: false } });
 const privateState=(cwd:string)=>{const root=join(dirname(cwd),'state');return{sqlite:join(root,'sqlite'),log:join(root,'log'),temp:join(root,'temp')};};
-const stateConfig=(disabled:string[],cwd:string)=>({...config(disabled),sqlite_home:privateState(cwd).sqlite,log_dir:privateState(cwd).log,history:{persistence:'none'}});
+const stateConfig=(disabled:string[],cwd:string,login=false)=>({...config(disabled),sqlite_home:privateState(cwd).sqlite,log_dir:privateState(cwd).log,history:{persistence:'none'},...(login?{cli_auth_credentials_store:'file'}:{})});
 const quietMcpCatalog = (value: any, disabled: string[]) => value && Array.isArray(value.data) && value.data.length <= 128 && value.nextCursor === null &&
   value.data.every((server: any) => disabled.includes(server.name) && server.runtimeStatus === "disabled" && server.tools && Object.keys(server.tools).length === 0 &&
     Array.isArray(server.resources) && server.resources.length === 0 && Array.isArray(server.resourceTemplates) && server.resourceTemplates.length === 0 && server.toolsError === null);
@@ -129,22 +137,26 @@ const startParams = (request: CodexMethodRequest, cwd: string,ephemeral=false) =
   cwd, runtimeWorkspaceRoots: [cwd], approvalPolicy: "never", permissions: "cimiloop-method", baseInstructions: request.instructions,
   developerInstructions: "Only client dynamic tools are available. Do not access credentials, commands, arbitrary files, plugins, or business commands. Never claim a Human decision or domain completion.",
   dynamicTools: request.tools, selectedCapabilityRoots: [], environments: [] });
-function childEnvironment(cwd?:string) {
+function childEnvironment(cwd?:string,home?:CodexLoginHome) {
   const allowed = new Set(["SYSTEMROOT", "WINDIR", "COMSPEC", "PATH", "PATHEXT", "HOME", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "PROGRAMDATA", "TEMP", "TMP", "CODEX_HOME", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "SSL_CERT_FILE", "SSL_CERT_DIR"]);
-  const env=Object.fromEntries(Object.entries(process.env).filter(([key]) => allowed.has(key.toUpperCase())&&(!cwd||!['TEMP','TMP'].includes(key.toUpperCase()))));
-  return cwd?{...env,TEMP:privateState(cwd).temp,TMP:privateState(cwd).temp}:env;
+  const env=Object.fromEntries(Object.entries(process.env).filter(([key]) => allowed.has(key.toUpperCase())&&(!cwd||!['TEMP','TMP'].includes(key.toUpperCase()))&&(!home||key.toUpperCase()!=='CODEX_HOME')));
+  return {...env,...(cwd?{TEMP:privateState(cwd).temp,TMP:privateState(cwd).temp}:{}),...(home?{CODEX_HOME:home.path}:{})};
 }
 
 // Local explicit installation reads public login metadata only. No thread,
 // model turn, auth.json, token conversion, tools or model context are involved.
-export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodOptions, "root" | "command" | "disabled_mcp_servers"> & {usage_policy?:CodexOrdinaryUsagePolicy}, beforeEffect: () => void): Promise<{ account_digest: string;quota_snapshot?:CodexOrdinaryQuotaSnapshot }> {
+export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodOptions, "root" | "command" | "disabled_mcp_servers" | "login_home"> & {usage_policy?:CodexOrdinaryUsagePolicy}, beforeEffect: () => void): Promise<{ account_digest: string;quota_snapshot?:CodexOrdinaryQuotaSnapshot }> {
   const fixed = structuredClone(options), binary = resolve(assertOrdinaryPath(fixed.command.file));
+  const home=fixed.login_home?checkedLoginHome(fixed.login_home):undefined;
+  let state:{path:string;identity:ReturnType<typeof directoryIdentity>}[]=[];
+  const guard=()=>{guardNow(beforeEffect);try{if(home&&!same(captureCodexLoginHome(home.path),home)||state.some(v=>!same(directoryIdentity(v.path),v.identity)))fail();}catch{fail('codex_login_home_changed');}};
   const usagePolicy=parseCodexUsagePolicy(fixed.usage_policy);
   if (!/^[a-f0-9]{64}$/.test(fixed.command.sha256) || digest(bytesAt(binary, 512 * 1024 * 1024)).value !== fixed.command.sha256) fail("codex_binary_changed");
-  guardNow(beforeEffect);
+  guard();
   const cwd = directory(resolve(fixed.root)), disabled = fixed.disabled_mcp_servers ?? [];
   if (disabled.length > 64 || disabled.some(name => !/^[A-Za-z0-9_-]{1,64}$/.test(name) || ["__proto__", "constructor", "prototype"].includes(name))) fail("codex_installation_denied");
-  const child = spawn(binary, [...fixed.command.args, "app-server", "--stdio", ...Object.entries(config(disabled)).flatMap(([key, value]) => ["-c", key + "=" + toml(value)])], { cwd, windowsHide: true, stdio: "pipe", env: childEnvironment() });
+  if(home){state=Object.values(privateState(cwd)).map(path=>({path:directory(path),identity:directoryIdentity(path)}));}guard();
+  const child = spawn(binary, [...fixed.command.args, "app-server", "--stdio", ...Object.entries(home?stateConfig(disabled,cwd,true):config(disabled)).flatMap(([key, value]) => ["-c", key + "=" + toml(value)])], { cwd, windowsHide: true, stdio: "pipe", env: childEnvironment(home?cwd:undefined,home) });
   let next = 0, buffered = Buffer.alloc(0), total = 0, stopping = false, failed = false, childDidClose = false;
   const pending = new Map<number, { resolve(value: any): void; reject(error: unknown): void }>();
   let closed!: () => void; const childClosed = new Promise<void>(resolve => { closed = resolve; });
@@ -152,7 +164,7 @@ export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodO
   const failure = new Promise<never>((_resolve, reject) => { rejectFailure = reject; }); void failure.catch(() => {});
   const rejectAll = () => { failed = true; const error = new RuntimeAdapterError("codex_login_inspection_failed"); for (const p of pending.values()) p.reject(error); pending.clear(); rejectFailure(error); child.kill(); };
   const timer = setTimeout(rejectAll, 15000);
-  const send = (value: unknown) => { if (failed) fail("codex_login_inspection_failed"); guardNow(beforeEffect); child.stdin.write(Buffer.concat([encode(value), Buffer.from("\n")])); };
+  const send = (value: unknown) => { if (failed) fail("codex_login_inspection_failed"); guard(); child.stdin.write(Buffer.concat([encode(value), Buffer.from("\n")])); };
   const rpc = (method: string, params: unknown) => new Promise<any>((resolve, reject) => { const id = ++next; pending.set(id, { resolve, reject }); try { send({ id, method, params }); } catch (e) { pending.delete(id); reject(e); } });
   child.on("error", rejectAll); child.stdin.on("error", rejectAll);
   child.stderr.on("data", (data: Buffer) => { total += data.length; if (total > MAX_LINE) rejectAll(); });
@@ -171,9 +183,9 @@ export async function inspectCodexMethodLogin(options: Pick<CodexOriginalMethodO
     const account_digest = codexChatGptAccountDigest(await rpc("account/read", { refreshToken: false }));
     const quota_snapshot=usagePolicy?parseCodexOrdinaryQuota(await rpc('account/rateLimits/read',CODEX_QUOTA_READ_PARAMS)):undefined;
     if(usagePolicy&&codexChatGptAccountDigest(await rpc('account/read',{refreshToken:false}))!==account_digest)fail('codex_account_changed');
-    guardNow(beforeEffect); if (digest(bytesAt(binary, 512 * 1024 * 1024)).value !== fixed.command.sha256) fail("codex_binary_changed");
+    guard(); if (digest(bytesAt(binary, 512 * 1024 * 1024)).value !== fixed.command.sha256) fail("codex_binary_changed");
     stopping = true; child.stdin.end(); child.kill(); await Promise.race([childClosed, failure]);
-    if (failed || buffered.length) fail("codex_login_inspection_failed"); guardNow(beforeEffect);
+    if (failed || buffered.length) fail("codex_login_inspection_failed"); guard();
     return { account_digest,...(quota_snapshot?{quota_snapshot}:{}) };
   } finally {
     clearTimeout(timer); stopping = true; child.stdin.destroy(); child.kill(); rejectAll();
@@ -209,7 +221,7 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
         }
         if(value.method==='account/rateLimits/read'&&(!account||!thread||!mcpVerified||accountDirty||!(complete?finalAccountRead:quotaAccountReady)||!same(value.params,CODEX_QUOTA_READ_PARAMS)||turnSent&&!complete||quotas.length!==(complete?1:0)))fail('codex_ordinary_quota_unproven');
         if (value.id !== undefined) { if (sent.has(value.id)) fail(); sent.set(value.id, value); }
-        if (value.method === "thread/start" && (!account || !same(value.params, startParams(request, cwd,version===8)))) fail();
+        if (value.method === "thread/start" && (!account || !same(value.params, startParams(request, cwd,version>=8)))) fail();
         if (value.method === "turn/start" && (!thread || turn || accountDirty || version>=5&&(quotaDirty||quotas.length!==1||quotas[0]!.ordinary_usage_allowed!==true||quotas[0]!.account_id_digest===null) || !mcpVerified || value.params.threadId !== thread || value.params.model !== request.model || value.params.effort !== (request.reasoning_effort ?? "medium") ||
           !same(value.params.input, [{ type: "text", text: request.prompt, text_elements: [] }]) || !same(value.params.outputSchema, request.output_schema))) fail();
         if (value.method === "turn/start") turnSent = true;
@@ -245,7 +257,7 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
       if (rpc.method === "mcpServerStatus/list") { if (!quietMcpCatalog(result, disabled)) fail("codex_external_tools_available"); mcpVerified = true; }
       if (rpc.method === "thread/start") {
         if (thread || result?.model !== request.model || result.modelProvider !== "openai" || result.approvalPolicy !== "never" ||
-          result.activePermissionProfile?.id !== "cimiloop-method" || result.instructionSources?.length !== 0 || typeof result.thread?.id !== "string" || version===8&&result.thread.ephemeral!==true) fail("codex_thread_binding_denied");
+          result.activePermissionProfile?.id !== "cimiloop-method" || result.instructionSources?.length !== 0 || typeof result.thread?.id !== "string" || version>=8&&result.thread.ephemeral!==true) fail("codex_thread_binding_denied");
         thread = result.thread.id; if ([...earlyThreadIds].some(id => id !== thread)) fail("codex_event_identity_denied");
       }
       if (rpc.method === "turn/start") { if (turn || typeof result?.turn?.id !== "string") fail(); turn = result.turn.id; }
@@ -290,7 +302,8 @@ export class CodexOriginalMethodRuntime {
   private readonly options: CodexOriginalMethodOptions;
   constructor(raw: CodexOriginalMethodOptions, private readonly readOnly = false, private readonly policyOrigin?: AgentStartLedger) {
     this.options = structuredClone(raw);
-    if(Object.hasOwn(raw,'state_policy')&&(raw.state_policy!=='private_operation_state/1.0.0'||raw.usage_policy!==undefined))fail('codex_installation_denied');
+    if(Object.hasOwn(raw,'state_policy')&&(!['private_operation_state/1.0.0','private_login_home/2.0.0'].includes(String(raw.state_policy))||raw.usage_policy!==undefined)||(raw.state_policy==='private_login_home/2.0.0')!==Object.hasOwn(raw,'login_home'))fail('codex_installation_denied');
+    if(raw.login_home)this.options.login_home=checkedLoginHome(raw.login_home);
     if(Object.hasOwn(raw,'usage_policy')&&!parseCodexUsagePolicy(raw.usage_policy))fail('codex_installation_denied');
     if (raw.usage_policy && !(policyOrigin instanceof AgentStartLedger)) fail('codex_transport_origin_required');
     const disabled = raw.disabled_mcp_servers ?? [];
@@ -312,7 +325,7 @@ export class CodexOriginalMethodRuntime {
     const root = assertOrdinaryPath(join(this.options.root, request.operation_key));
     return { root, cwd: join(root, "workspace"), claim: join(root, "start.json"), transcript: join(root, "stdio.jsonl"), seal: join(root, "seal.json") };
   }
-  private startVersion(request:CodexMethodRequest):StartVersion{return this.options.state_policy?8:this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
+  private startVersion(request:CodexMethodRequest):StartVersion{return this.options.state_policy==='private_login_home/2.0.0'?9:this.options.state_policy?8:this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
   private policyKey(request: CodexMethodRequest) {
     // Real Windows long names collapse 8.3 aliases; case folding also keeps the
     // logical slot stable after its original directory has gone missing.
@@ -326,15 +339,15 @@ export class CodexOriginalMethodRuntime {
       operation_identity: directoryIdentity(this.paths(request).root), claim_digest: digest(encode(this.claim(request, 7))).value };
   }
   private claim(request: CodexMethodRequest, version: StartVersion = this.startVersion(request)) {
-    if((version===8)!==Object.hasOwn(this.options,'state_policy')||(version===8?!parseCodexUsagePolicy(request.usage_policy):version===7?this.options.usage_policy!=='require_ordinary_permission/1.0.0':(version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined))) fail("codex_original_input_changed");
-    return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version===8?{state_policy:this.options.state_policy}:{}),...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
-    account_digest: this.options.account_digest ?? null, config: version === 8 ? stateConfig(this.options.disabled_mcp_servers!,this.paths(request).cwd) : version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
+    if((version>=8)!==Object.hasOwn(this.options,'state_policy')||(version===9)!==Object.hasOwn(this.options,'login_home')||version>=8&&this.options.state_policy!==(version===9?'private_login_home/2.0.0':'private_operation_state/1.0.0')||(version>=8?!parseCodexUsagePolicy(request.usage_policy):version===7?this.options.usage_policy!=='require_ordinary_permission/1.0.0':(version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined))) fail("codex_original_input_changed");
+    return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version>=8?{state_policy:this.options.state_policy}:{}),...(version===9?{login_home:this.options.login_home}:{}),...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
+    account_digest: this.options.account_digest ?? null, config: version >= 8 ? stateConfig(this.options.disabled_mcp_servers!,this.paths(request).cwd,version===9) : version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
     ...(version >= 2 ? { disabled_mcp_servers: this.options.disabled_mcp_servers } : {}) }; }
   readOriginal(raw: CodexMethodRequest): CodexMethodOriginal | null {
     const request = requestCopy(raw), paths = this.paths(request);
     if (!existsSync(paths.claim)) return null;
     const claimBytes = bytesAt(paths.claim);
-    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:claim.format==='cimiloop/codex-method-start/7.0.0'?7:claim.format==='cimiloop/codex-method-start/8.0.0'?8:fail();
+    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:claim.format==='cimiloop/codex-method-start/7.0.0'?7:claim.format==='cimiloop/codex-method-start/8.0.0'?8:claim.format==='cimiloop/codex-method-start/9.0.0'?9:fail();
     const policy = this.policyOrigin?.readExclusive(policyNamespace, this.policyKey(request));
     if (policy ? version !== 7 || !same(policy.basis, this.policyBasis(request)) : version === 7) fail('codex_original_input_changed');
     if (!same(claim, this.claim(request, version))) fail("codex_original_input_changed");
@@ -361,7 +374,8 @@ export class CodexOriginalMethodRuntime {
     if (existsSync(paths.claim)) fail("codex_original_pending");
     if (this.policyOrigin?.readExclusive(policyNamespace, this.policyKey(request))) fail('codex_original_pending');
     if (signal?.aborted) fail("codex_original_cancelled");
-    guardNow(beforeEffect);
+    const assertHome=()=>{if(this.options.login_home){try{if(!same(captureCodexLoginHome(this.options.login_home.path),this.options.login_home))fail();}catch{fail('codex_login_home_changed');}}};
+    guardNow(beforeEffect);assertHome();
     const binary = bytesAt(this.options.command.file, 512 * 1024 * 1024);
     if (digest(binary).value !== this.options.command.sha256) fail("codex_binary_changed");
     if (signal?.aborted) fail("codex_original_cancelled");
@@ -379,7 +393,7 @@ export class CodexOriginalMethodRuntime {
     let privateDirectories:{path:string;identity:ReturnType<typeof directoryIdentity>}[]|undefined;
     const effectGuard = () => {
       if (!active || controller.signal.aborted || performance.now() >= deadline) fail("codex_effect_closed");
-      guardNow(beforeEffect);
+      guardNow(beforeEffect);assertHome();
       if(privateDirectories)for(const item of privateDirectories){try{if(!same(directoryIdentity(item.path),item.identity))fail('codex_runtime_state_changed');}catch{fail('codex_runtime_state_changed');}}
       if (!active || controller.signal.aborted || performance.now() >= deadline) fail("codex_effect_closed");
     };
@@ -465,10 +479,10 @@ export class CodexOriginalMethodRuntime {
       effectGuard();
       const privateRuntime=this.options.state_policy!==undefined;
       if(privateRuntime){for(const path of Object.values(privateState(paths.cwd)))directory(path);privateDirectories=Object.values(privateState(paths.cwd)).map(path=>({path,identity:directoryIdentity(path)}));}
-      const launchConfig=privateRuntime?stateConfig(this.options.disabled_mcp_servers!,paths.cwd):config(this.options.disabled_mcp_servers!);
+      const launchConfig=privateRuntime?stateConfig(this.options.disabled_mcp_servers!,paths.cwd,!!this.options.login_home):config(this.options.disabled_mcp_servers!);
       effectGuard();
       child = spawn(this.options.command.file, [...this.options.command.args, "app-server", "--stdio", ...Object.entries(launchConfig).flatMap(([key, value]) => ["-c", key + "=" + toml(value)])],
-        { cwd: paths.cwd, windowsHide: true, stdio: "pipe", env: childEnvironment(privateRuntime?paths.cwd:undefined) });
+        { cwd: paths.cwd, windowsHide: true, stdio: "pipe", env: childEnvironment(privateRuntime?paths.cwd:undefined,this.options.login_home) });
       child.on("error", rejectAll); child.stdin.on("error", rejectAll);
       child.stdout.on("data", (chunk: Buffer) => {
         if (!active) return;

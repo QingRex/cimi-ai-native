@@ -48,6 +48,14 @@ describe.runIf(process.platform==='win32')('original fixed volume policy project
    seam.output.volume_serial='5';expect(()=>storage.assertRuntime(scope.project_id,scope.repository_path,scope.data_directory)).toThrow();
   }finally{origin.close();}
  });
+ it('checks extra Runtime paths through the genuine storage capability without another policy or a replaceable quota method',async()=>{
+  const origin=ledger(),reader=await openWindowsFixedVolumeReader('PUBLIC');try{
+   const quota=FixedVolumeQuota.initialize(origin,reader,{image,volume_root:root,maximum_bytes:maximum}),scope={project_id:'11111111-1111-7111-8111-111111111111',repository_path:root+'project',data_directory:root+'project\\.git\\cimiloop'},storage=quota.bindRuntime(scope),assertPath=Reflect.get(volumeModule,'assertFixedVolumeRuntimePath');expect(assertPath).toBeTypeOf('function');
+   const ticket=storage.read().runtime_ticket;expect(assertPath(storage,scope,root+'private-login')).toMatchObject({runtime_ticket:ticket});
+   expect(()=>assertPath(storage,scope,'D:/PUBLIC/outside')).toThrow();expect(()=>assertPath({...storage.read()},scope,root+'private-login')).toThrow();expect(()=>assertPath(storage,{...scope,project_id:'22222222-2222-7222-8222-222222222222'},root+'private-login')).toThrow();
+   expect(origin.listExclusive('fixed_volume_runtime')).toHaveLength(1);seam.output.volume_serial='5';expect(()=>assertPath(storage,scope,root+'private-login')).toThrow();
+  }finally{origin.close();}
+ });
  it('never creates a runtime scope during read and refuses changing a previously bound project root',async()=>{
   const origin=ledger(),reader=await openWindowsFixedVolumeReader('PUBLIC');try{
    const quota=FixedVolumeQuota.initialize(origin,reader,{image,volume_root:root,maximum_bytes:maximum}),scope={project_id:'11111111-1111-7111-8111-111111111111',repository_path:root+'project',data_directory:root+'project\\.git\\cimiloop'};

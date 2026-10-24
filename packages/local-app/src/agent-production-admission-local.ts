@@ -1,3 +1,4 @@
+import {openCodexRuntimeLoginHome} from './agent-codex-login-home-local.js';
 import { lstatSync, mkdirSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { CimiLoopKernel, requestDigest } from "@cimiloop/kernel";
@@ -186,7 +187,9 @@ export const productionAgentRuntime: HumanAgentRuntimeFactory = async (runId, lo
     try{
       admission.guard();account.guard();const storage=await openCodexRuntimeStorage(local,account.installation);
       if(!storage)throw codexProductionAdmissionError(['Codex 原固定卷运行范围']);
-      admission.guard();account.guard();const runtime=admission.runtimeForRun(runId,account,undefined,storage);admission.guard();
+      admission.guard();account.guard();const loginHome=await openCodexRuntimeLoginHome(local,account.installation,storage);
+      if(!loginHome)throw codexProductionAdmissionError(['Codex 原固定卷登录目录']);
+      admission.guard();account.guard();const runtime=admission.runtimeForRun(runId,account,undefined,storage,loginHome);admission.guard();
       let released=false;return{runtime,release(){if(!released){released=true;account.release();}}};
     }catch(error){account.release();throw error;}
   }

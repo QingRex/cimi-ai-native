@@ -1,5 +1,5 @@
 import{resolve}from'node:path';
-import{installCodexAgentRuntime,inspectCodexAgentRuntimeInstallation,installCodexUsageBudget,inspectCodexUsageBudget,installCodexRuntimeStorage,inspectCodexRuntimeStorage,openLocalProject}from'@cimiloop/local-app';
+import{installCodexAgentRuntime,inspectCodexAgentRuntimeInstallation,installCodexUsageBudget,inspectCodexUsageBudget,installCodexRuntimeStorage,inspectCodexRuntimeStorage,installCodexRuntimeLoginHome,inspectCodexRuntimeLoginHome,openLocalProject}from'@cimiloop/local-app';
 import{bytesAt,parseGatewayJson,parseWorkspaceCheckTemplate}from'@cimiloop/runtime-adapter';
 import{CliInputError}from'./input.js';import{renderFields}from'./output.js';import type{GlobalOptions}from'./commands.js';
 export async function installCodexRuntime(options:GlobalOptions&{binary:string;nativeBinary:string;nodeBinary?:string;checks:string;model?:string;yes?:boolean;disableMcpServer?:string[]}){
@@ -15,3 +15,9 @@ export async function installCodexStorage(options:GlobalOptions&{image:string;vo
  const local=openLocalProject(options);try{const result=await installCodexRuntimeStorage(local,{image:resolve(options.image),volume_root:options.volumeRoot,maximum_bytes:Number(options.maximumMib)*1024**2});process.stdout.write((options.json?JSON.stringify(result,null,2):renderFields(result))+'\n');}finally{local.store.close();}
 }
 export async function showCodexStorage(options:GlobalOptions){const local=openLocalProject(options);try{const result=await inspectCodexRuntimeStorage(local);process.stdout.write((options.json?JSON.stringify(result,null,2):renderFields(result))+'\n');if(result.state==='unavailable')process.exitCode=1;}finally{local.store.close();}}
+
+export async function installCodexHome(options:GlobalOptions&{home:string;yes?:boolean}){
+ if(!options.yes)throw new CliInputError('请先在仓库外固定卷私有目录用官方Codex CLI登录同一账号，再显式使用 --yes 绑定；不会复制令牌或发送模型请求。');
+ const local=openLocalProject(options);try{const result=await installCodexRuntimeLoginHome(local,{path:resolve(options.home)});process.stdout.write((options.json?JSON.stringify(result,null,2):renderFields(result))+'\n');}finally{local.store.close();}
+}
+export async function showCodexHome(options:GlobalOptions){const local=openLocalProject(options);try{const result=await inspectCodexRuntimeLoginHome(local);process.stdout.write((options.json?JSON.stringify(result,null,2):renderFields(result))+'\n');if(result.state==='unavailable'||result.state==='pending')process.exitCode=1;}finally{local.store.close();}}

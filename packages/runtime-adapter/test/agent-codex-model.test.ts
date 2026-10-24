@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createInternalId, compileValidator } from "@cimiloop/protocol/v2";
 import * as runtime from "../src/index.js";
 import { AgentRuntimeModelHost } from "../src/agent-runtime-model.js";
@@ -13,6 +13,10 @@ import {readNamedMethodCodexOriginals} from '../src/agent-named-method-model-ori
 
 // Real stdio processes and original Host files, PUBLIC account/model replies.
 // These tests never read a user login or qualify actual model/account behavior.
+// Two Windows whole-file runs exhausted the old 10s fixture transport at
+// different valid final-account/tool-response cuts. Allow filesystem/worker
+// latency for this PUBLIC child only; production Task/Run budgets are separate.
+if(process.platform==='win32')vi.setConfig({testTimeout:60000});
 function fixture(reply: unknown = { content: [{ type: "tool-call", tool_call_id: "original_read_1", tool_name: "cimi_read", arguments: JSON.stringify({ path: "src/query.ts" }) }], finish: "tool_calls" }) {
   const root = mkdtempSync(join(tmpdir(), "cimiloop-codex-agent-")), script = join(root, "server.mjs"), control = join(root, "reply.json"), log = join(root, "turns.jsonl");
   writeFileSync(control, JSON.stringify(reply));
@@ -27,7 +31,7 @@ if(r.method==='thread/start'){model=r.params.model;namedResult=r.params.dynamicT
 if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==='turn/start'){appendFileSync(process.argv[3],JSON.stringify(r.params)+'\n');ok({turn:{id:'PUBLIC_TURN'}});output=JSON.parse(readFileSync(process.argv[2],'utf8'));if(output.stall)return;outputTokens=output.PUBLIC_output_tokens??19;delete output.PUBLIC_output_tokens;duplicate=output.PUBLIC_duplicate_submission===true;delete output.PUBLIC_duplicate_submission;let proxy=output.PUBLIC_proxy;delete output.PUBLIC_proxy;if(!proxy&&namedResult){const call=output.content?.[0];proxy=call?.type==='tool-call'?{tool:call.tool_name,arguments:JSON.parse(call.arguments)}:{tool:'cimiloop_skill_result',arguments:{result:JSON.parse(call?.text??'{}')}};}submittedTool=proxy?.tool??'cimiloop_sdk_reply';submittedArgs=proxy?.arguments??output;if(bridge&&!output.skip_submission)send({id:901,method:'item/tool/call',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',callId:'PUBLIC_SUBMISSION',namespace:null,tool:submittedTool,arguments:submittedArgs}});else finish();}});`);
   const scope = parseAgentWorkspaceToolScope({ project_id: createInternalId(), run_id: createInternalId(), operation_key: createInternalId(), executor_actor_id: createInternalId(), context_digest: digest("PUBLIC context"), skill_bindings: [], runtime_binding: { binding_ref: { object_type: "provider_binding", id: createInternalId() }, digest: digest("PUBLIC binding") }, host_admission_ref: { provider: "local_content", resource_type: "agent_host_admission", locator: digest("PUBLIC admission").value, digest: digest("PUBLIC admission") } });
   const account = runtime.codexChatGptAccountDigest({ account: { type: "chatgpt", email: "PUBLIC@example.test" } }), admission = digest("PUBLIC budget/qualification only").value;
-  const originalRoot = join(root, "originals"), transport = new runtime.CodexOriginalMethodRuntime({ root: originalRoot, command: { file: process.execPath, args: [script, control, log], sha256: createHash("sha256").update(readFileSync(process.execPath)).digest("hex") }, account_digest: account, timeout_ms: 10000 });
+  const originalRoot = join(root, "originals"), transport = new runtime.CodexOriginalMethodRuntime({ root: originalRoot, command: { file: process.execPath, args: [script, control, log], sha256: createHash("sha256").update(readFileSync(process.execPath)).digest("hex") }, account_digest: account, timeout_ms: process.platform==='win32'?30000:10000 });
   let allowed = true;
   const authority = { async check() { if (!allowed) throw Error("PUBLIC authority revoked"); }, beforeEffect() { if (!allowed) throw Error("PUBLIC authority revoked"); } };
   const options = { root, scope, model: "gpt-6-luna", account_digest: account, admission_digest: admission, origin: "public_fixture" as const, runtime: transport, authority, permitted_tools: ["cimi_read"] };
@@ -38,6 +42,13 @@ if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==
   return { root, scope, options, transport, originalRoot, control, log, request, create, open, read, revoke() { allowed = false; }, turns() { return existsSync(log) ? readFileSync(log, "utf8").trimEnd().split("\n").length : 0; } };
 }
 describe("Codex model behind the original Agent SDK host", () => {
+  it('uses bounded-login header15 for the ordinary SDK bridge and replays without the live login directory',async()=>{
+    const f=fixture(),path=join(f.root,'private-login');mkdirSync(path);const stat=lstatSync(path,{bigint:true}),login_home={path,identity:{dev:String(stat.dev),ino:String(stat.ino),birth:String(stat.birthtimeNs)}},transport=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_login_home/2.0.0',login_home} as unknown as runtime.CodexOriginalMethodOptions);
+    const options={...f.options,runtime:transport,output_profile:'bounded_2048/1.0.0' as const,usage_policy:'require_ordinary_permission/1.0.0' as const,quota_account_digest:digest('PUBLIC-account').value},model=runtime.createCodexAgentRuntimeModel(options),host=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']),request={...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048};
+    const reply=await host.execute(request);expect(reply.receipt.content).toMatchObject([{type:'tool-call',tool_name:'cimi_read'}]);expect(f.read().status).toBe('Observed');
+    const headerPath=join(f.root,'agent-codex-model-originals',f.scope.project_id,f.scope.run_id,'header.json'),header=JSON.parse(readFileSync(headerPath,'utf8'));expect(header.format).toBe('cimiloop/codex-agent-model/15.0.0');expect(header.runtime.login_home).toEqual(login_home);
+    renameSync(path,path+'.retained');expect((await host.execute(request)).receipt).toEqual(reply.receipt);expect(f.read().status).toBe('Observed');expect(f.turns()).toBe(1);writeFileSync(headerPath,JSON.stringify({...header,format:'cimiloop/codex-agent-model/14.0.0'}));expect(()=>f.read()).toThrow();
+  });
   it('keeps private-state header14 on the ordinary SDK bridge with unchanged original replay',async()=>{
     const f=fixture(),transport=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_operation_state/1.0.0'});
     const options={...f.options,runtime:transport,output_profile:'bounded_2048/1.0.0' as const,usage_policy:'require_ordinary_permission/1.0.0' as const,quota_account_digest:digest('PUBLIC-account').value};

@@ -1,3 +1,4 @@
+import type {CodexRuntimeLoginHome} from './agent-codex-login-home-local.js';
 import { isDeepStrictEqual as same } from 'node:util';
 import { CimiLoopKernel, type KernelResult, type AgentRunAdmissionInput, type AgentRunToolAuthorityInput } from '@cimiloop/kernel';
 import { AgentStartLedger, type WorkspaceCheckTemplate,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
@@ -52,11 +53,11 @@ export function executeHumanAgentRunCommand(local:LocalProject,raw:unknown):Kern
 // neither a Codex login, check recipe nor caller JSON can create qualification.
 // Borrowed Host/account objects and original Native operations survive release.
 export class LocalAgentRuntimeAdmission {
- private constructor(readonly custody:LocalAgentStartCustody,readonly checks:LocalAgentCheckAdmission,private readonly assertCurrent:()=>void,private readonly close:()=>void,private readonly runtime:(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage)=>LocalAgentRuntimeComposition,private readonly prepare:(raw:unknown)=>KernelResult){Object.freeze(this);}
+ private constructor(readonly custody:LocalAgentStartCustody,readonly checks:LocalAgentCheckAdmission,private readonly assertCurrent:()=>void,private readonly close:()=>void,private readonly runtime:(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome)=>LocalAgentRuntimeComposition,private readonly prepare:(raw:unknown)=>KernelResult){Object.freeze(this);}
  guard(){this.assertCurrent();}
  release(){this.close();}
  executeHumanPreparation(raw:unknown){this.assertCurrent();return this.prepare(raw);}
- runtimeForRun(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage){this.assertCurrent();return this.runtime(runId,account,parent,storage);}
+ runtimeForRun(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome){this.assertCurrent();return this.runtime(runId,account,parent,storage,loginHome);}
  static current(local:LocalProject){const entry=active.get(local.store);if(!entry)return undefined;if(entry.local.kernel!==local.kernel||!same(entry.local.location,local.location)||!same(entry.local.instance,local.instance))throw unavailable();entry.lease.guard();return entry.lease;}
  static async open(local:LocalProject,raw:Options):Promise<LocalAgentRuntimeAdmission>{
   if(owners.has(local.store))throw unavailable();const verifier=installedRunVerifier(local);if(!verifier||!(raw.origin instanceof AgentStartLedger))throw unavailable();
@@ -103,12 +104,12 @@ export class LocalAgentRuntimeAdmission {
    for(const key of keys){const descriptor=prior.get(key);if(descriptor? !('value' in descriptor)||!descriptor.writable:!Object.isExtensible(agent))throw unavailable();}
    for(const key of keys){const descriptor=prior.get(key);Object.defineProperty(agent,key,descriptor?{...descriptor,value:Reflect.get(assigned,key)}:{value:Reflect.get(assigned,key),writable:true,enumerable:true,configurable:true});installedSlots.set(key,Object.getOwnPropertyDescriptor(agent,key)!);}
    installed=true;guard();
-   const runtime=(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage)=>{
+   const runtime=(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome)=>{
     guard();account.guard();if(account.installation.origin.identityDigest!==origin.identityDigest||parent&&!parentResults)throw unavailable();checks.assertInstalledConfiguration(account.installation.node_binary,account.installation.checks);
     const identified=readOriginalAgentRunInputs(local,runId),caller={kind:'agent' as const,project_id:identified.project.id,actor_id:identified.actor.id,provider_identity_ref:structuredClone(identified.actor.provider_identity_ref)};
     const agentKernel=new CimiLoopKernel({store,caller,runVerifier:verifier,evidenceVerifier:new LocalEvidenceVerifier(location.repositoryPath,location.dataDirectory),providerVerifier:new LocalProviderVerifier(location.repositoryPath,location.dataDirectory)});
     const borrowed={...account,guard:()=>{guard();account.guard();guard();}};
-    const result=LocalAgentRuntimeComposition.openCodex({local:{location:structuredClone(location),store,caller,kernel:agentKernel},runId,account:borrowed,custody,checks,...(storage?{storage}:{}),...(parent?{parentSkill:parent}:{})});guard();return result;
+    const result=LocalAgentRuntimeComposition.openCodex({local:{location:structuredClone(location),store,caller,kernel:agentKernel},runId,account:borrowed,custody,checks,...(storage?{storage}:{}),...(loginHome?{loginHome}:{}),...(parent?{parentSkill:parent}:{})});guard();return result;
    };
    lease=new LocalAgentRuntimeAdmission(custody,checks,guard,release,runtime,humanAgentPreparation(local,verifier,origin,guard));active.set(store,{local,lease});return lease;
   }catch(error){release();throw error;}

@@ -69,6 +69,10 @@ function readStorage(state:ReturnType<typeof storageState>){
 export function assertFixedVolumeRuntimeStorage(value:unknown,expected:FixedVolumeRuntimeScope){
  const state=storageState(value);if(!same(runtimeScope(expected),state.basis.scope))fail();return readStorage(state);
 }
+export function assertFixedVolumeRuntimePath(value:unknown,expected:FixedVolumeRuntimeScope,path:string){
+ const state=storageState(value),proof=assertFixedVolumeRuntimeStorage(value,expected),extra=assertOriginalQuotaPath.call(state.quota,path);
+ if(!same(proof.policy_ticket,extra.policy_ticket))fail();return assertFixedVolumeRuntimeStorage(value,expected);
+}
 // A capability created from the real quota and its independent original Host
 // ticket. A copied JSON proof or JavaScript constructor is never sufficient.
 export class FixedVolumeRuntimeStorage {
