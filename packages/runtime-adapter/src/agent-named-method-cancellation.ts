@@ -11,6 +11,7 @@ import {readAgentNamedMethodOriginals} from './agent-named-method-host.js';
 import {readAgentRuntimeModelOriginals} from './agent-runtime-model.js';
 import {readAgentWorkspaceIpcOriginals,correlateAgentWorkspaceSdkOriginals} from './agent-workspace-ipc-journal.js';
 import type {AgentNamedMethodResultInputs} from './agent-named-method-result.js';
+import {readNamedMethodCodexOriginals} from './agent-named-method-model-originals.js';
 type Collection=Awaited<ReturnType<typeof collectAgentRuntimeOperation>>;
 export interface OriginalNamedCancellation {
  format:'cimiloop/original-named-cancellation/1.0.0';status:'Observed'|'Unknown';reason:string;cancellation_reverified:boolean;
@@ -29,10 +30,10 @@ export function readAgentRuntimeNamedMethodCancellation(root:string,rawScope:unk
  const unknown:OriginalNamedCancellation={format:'cimiloop/original-named-cancellation/1.0.0',status:'Unknown',reason:'agent_named_cancellation_unproven',cancellation_reverified:false,matched_calls:0,method_result_reverified:false,costs_reconciled:false,domain_observation_produced:false,formal_agent_execution_enabled:false,artifacts:[]};
  try {
   const identity=readAgentRuntimeOriginalIdentity(root,rawScope),scope=identity.scope,scopeDigest=digest(JSON.stringify(scope)).value,input=identity.input as Record<string,unknown>;
-  if(!inputs||collection.format!=='cimiloop/agent-runtime-originals/1.0.0'||collection.scope_digest!==scopeDigest||collection.synthetic_model_responses!==null||identity.claim.synthetic_model_responses!==null||collection.status.status!=='Stopped'||collection.status.operation!==identity.operation||collection.status.resources_disposed!==true||collection.status.cancellation_requested!==true)fail();
+  if(!inputs||!['cimiloop/agent-runtime-originals/1.0.0','cimiloop/agent-runtime-originals/2.0.0'].includes(collection.format)||collection.scope_digest!==scopeDigest||collection.synthetic_model_responses!==null||identity.claim.synthetic_model_responses!==null||collection.status.status!=='Stopped'||collection.status.operation!==identity.operation||collection.status.resources_disposed!==true||collection.status.cancellation_requested!==true)fail();
   const names=new Set<string>();
   for(const a of collection.artifacts){
-   if(!a||typeof a.name!=='string'||names.has(a.name)||a.reference.provider!=='cimiloop-runtime-probe'||a.reference.resource_type!=='agent_runtime_original_bytes'||a.reference.version!==a.name||a.reference.digest?.algorithm!=='sha256'||a.reference.locator!==join(resolve(root),'blobs',a.reference.digest.value)||digest(bytesAt(a.reference.locator,4*1024*1024)).value!==a.reference.digest.value)fail();names.add(a.name);
+   if(!a||typeof a.name!=='string'||names.has(a.name)||a.reference.provider!=='cimiloop-runtime-probe'||a.reference.resource_type!=='agent_runtime_original_bytes'||a.reference.version!==a.name||a.reference.digest?.algorithm!=='sha256'||a.reference.locator!==join(resolve(root),'blobs',a.reference.digest.value)||digest(bytesAt(a.reference.locator,a.name.startsWith('codex-model/')?8*1024*1024:4*1024*1024)).value!==a.reference.digest.value)fail();names.add(a.name);
   }
   const original=readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}),config=original.config,launch=original.launch,resources=original.resources,marker=readAgentRuntimeCancellationOriginal(root,scope);
   if(agentWorkspaceConfigBaseFormat(config)!=='cimiloop/agent-workspace-sandbox-config/6.0.0'||!launch||!resources||!marker||config.prompt!==input.prompt||!same(config.owner,identity.claim.owner)||!same(config.binary_original,input.binary_original)||!same(launch.launcher_original,input.sandbox_original))fail();
@@ -52,6 +53,7 @@ export function readAgentRuntimeNamedMethodCancellation(root:string,rawScope:unk
   if(Object.keys(native).sort().join(',')!=='active_process_limit,appcontainer_sid,format,network_capability_sids,nonce,peer,phase,supervisor'||native.format!=='cimiloop/agent-workspace-sandbox/1.0.0'||native.phase!=='suspended'||native.nonce!==config.nonce||native.active_process_limit!==1||!same(native.network_capability_sids,[])||native.appcontainer_sid!==endpoint!.appcontainer_sid||!same(native.peer,endpoint!.peer)||!same(native.supervisor,endpoint!.supervisor)||!same(launch!.supervisor,endpoint!.supervisor)||!same(resources!.runtime,native.peer))fail();
   const header=model.artifacts.find(a=>a.name==='header.json');if(!header)fail();
   if(!same(input.model_original_binding,model.original_evidence?{format:'cimiloop/agent-model-original-binding/1.0.0',header_digest:header!.digest,original_evidence:model.original_evidence}:undefined))fail();
+  const codex=readNamedMethodCodexOriginals(root,scope,model,input,config,collection);
   const stdout=capture('stdout.raw',join(identity.operation,'stdout.raw'),4*1024*1024);capture('stderr.raw',join(identity.operation,'stderr.raw'),4*1024*1024);
   const correlation=correlateAgentWorkspaceSdkOriginals(ipc,stdout);
   if(correlation.uncorrelated_exchanges||correlation.unmatched_sdk_calls||correlation.links.some(l=>!l.correlated))fail();
@@ -95,13 +97,13 @@ export function readAgentRuntimeNamedMethodCancellation(root:string,rawScope:unk
    if(i!==model.calls.length-1&&(response.finish==='stop'||step.finish!=='tool-calls'))fail();
    if((exchanges[i]!.request as Record<string,unknown>).call_id!==model.calls[i]!.call_id||step.finish!==null&&(step.finish!==(response.finish==='stop'?'stop':'tool-calls')||step.text!==text||step.tools.length!==tools.length)||step.finish===null&&(i!==steps.length-1||!text.startsWith(step.text)||step.tools.length>tools.length))fail();
    const effects=correlation.links.filter(l=>l.sdk?.message_id===step.id);if(effects.length!==step.tools.length||effects.some(e=>e.sdk?.session_id!==session||Number(e.ordinal)<=Number(exchanges[i]!.ordinal)||next&&Number(e.ordinal)>=Number(next.ordinal)))fail();
-   for(const [n,part] of step.tools.entries()){const tool=tools[n]!,state=part.state as Record<string,unknown>;if(part.callID!==tool.tool_call_id||part.tool!==tool.tool_name||state?.status!=='completed'||!same(state.input,parse(Buffer.from(tool.arguments),16384)))fail();}
+   for(const part of step.tools){const tool=tools.find(tool=>tool.tool_call_id===part.callID),state=part.state as Record<string,unknown>;if(!tool||part.tool!==tool.tool_name||state?.status!=='completed'||!same(state.input,parse(Buffer.from(tool.arguments),16384)))fail();}
   }
   const markerArtifact=collection.artifacts.find(a=>a.name==='agent-runtime-cancel.json');if(!markerArtifact)fail();artifacts.push({name:'agent-runtime-cancel.json',path:markerArtifact!.reference.locator,digest:marker!.digest.value});
   artifacts.push(...method.artifacts.map(a=>({...a,name:'method/'+a.name})),...model.artifacts.map(a=>({...a,name:'model/'+a.name})),...ipc.artifacts.map(a=>({...a,name:'ipc/'+a.name})));
   if(new Set(artifacts.map(a=>a.name)).size!==artifacts.length)fail();
   for(const a of artifacts){const rel=relative(resolve(root),resolve(a.path));if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../')||digest(bytesAt(a.path,['stdout.raw','stderr.raw'].includes(a.name)?4*1024*1024:114688)).value!==a.digest)fail();}
-  if(!same(identity,readAgentRuntimeOriginalIdentity(root,scope))||!same(original,readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}))||!same(marker,readAgentRuntimeCancellationOriginal(root,scope))||!same(method,readAgentNamedMethodOriginals(root,scope,inputs.profile,inputs.files,config.method_original_binding))||!same(model,readAgentRuntimeModelOriginals(root,scope))||!same(ipc,readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce))))fail();
+  if(!same(identity,readAgentRuntimeOriginalIdentity(root,scope))||!same(original,readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}))||!same(marker,readAgentRuntimeCancellationOriginal(root,scope))||!same(method,readAgentNamedMethodOriginals(root,scope,inputs.profile,inputs.files,config.method_original_binding))||!same(model,readAgentRuntimeModelOriginals(root,scope))||!same(ipc,readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce)))||!same(readNamedMethodCodexOriginals(root,scope,model,input,config,collection),codex))fail();
   return {...unknown,status:'Observed',reason:'agent_named_cancellation_reverified',cancellation_reverified:true,matched_calls:seen.size,cancellation,artifacts};
  }catch{return unknown;}
 }

@@ -2,7 +2,8 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, expect, it, vi } from "vitest";
-const originals = vi.hoisted(() => ({ identity: vi.fn(), operation: vi.fn(), method: vi.fn(), model: vi.fn(), ipc: vi.fn(), correlation: vi.fn(), job: vi.fn() }));
+const originals = vi.hoisted(() => ({ identity: vi.fn(), operation: vi.fn(), method: vi.fn(), model: vi.fn(), ipc: vi.fn(), correlation: vi.fn(), job: vi.fn(), codex:vi.fn() }));
+vi.mock('../src/agent-codex-model.js',async load=>({...await load<typeof import('../src/agent-codex-model.js')>(),readCodexAgentModelOriginals:originals.codex}));
 vi.mock("../src/agent-runtime-operation.js", async load => ({ ...await load<typeof import("../src/agent-runtime-operation.js")>(), readAgentRuntimeOriginalIdentity: originals.identity }));
 vi.mock("../src/agent-workspace-sandbox-recovery.js", async load => ({ ...await load<typeof import("../src/agent-workspace-sandbox-recovery.js")>(), readOriginalAgentWorkspaceOperation: originals.operation }));
 vi.mock("../src/agent-named-method-host.js", async load => ({ ...await load<typeof import("../src/agent-named-method-host.js")>(), readAgentNamedMethodOriginals: originals.method }));
@@ -28,8 +29,8 @@ function fixture(nativeBounded: boolean, modelBounded: boolean, inputBounded = n
   const launch = { supervisor: native.supervisor }, resources = { phase: "ended", resources_disposed: true, runtime: native.peer };
   const request = { tool: "invoke_skill", call_id: "skill_1" }, receipt = { call_id: "skill_1", function_name: "invoke_skill", argument: "entry", resource_path: "skill-source/entry/SKILL.md" };
   const output = { purpose: "clarification", questions: ["Which business requirement?"], unresolved: [] }, text = JSON.stringify(output), args = { name: "entry" };
-  const first = { call_id: "model_0001", request: { call_id: "model_0001", tool: "model_step" }, response: { content: [{ type: "tool-call", tool_call_id: "sdk_1", tool_name: "cimi_invoke_skill", arguments: JSON.stringify(args) }], finish: "tool_calls" } };
-  const last = { call_id: "model_0002", request: { call_id: "model_0002", tool: "model_step" }, response: { content: [{ type: "text", text }], finish: "stop" } };
+  const first = { call_id: "model_0001", state:'reply_recorded', request: { call_id: "model_0001", tool: "model_step" }, response: { content: [{ type: "tool-call", tool_call_id: "sdk_1", tool_name: "cimi_invoke_skill", arguments: JSON.stringify(args) }], finish: "tool_calls" } };
+  const last = { call_id: "model_0002", state:'reply_recorded', request: { call_id: "model_0002", tool: "model_step" }, response: { content: [{ type: "text", text }], finish: "stop" } };
   const model = { status: "Observed", admission_digest: admission, task_packet_digest: digest(prompt).value, original_evidence: evidence, ...(modelBounded ? { output_profile: profile } : {}), calls: [first, last], artifacts: [modelHeader] };
   const cleanup = { format: native.format, phase: "ended", nonce: config.nonce, reason: "exited", exit_code: 0, resources_disposed: true, cleanup_errors: [], formal_agent_execution_enabled: false };
   const sdkEvent = (type: string, messageID: string, part: object) => ({ type, sessionID: "session_1", part: { sessionID: "session_1", messageID, ...part } });
@@ -45,11 +46,21 @@ function fixture(nativeBounded: boolean, modelBounded: boolean, inputBounded = n
     { ordinal: 2, state: "reply_recorded", request, reply: { outcome: "completed", receipt, replay: false } },
     { ordinal: 3, state: "reply_recorded", request: last.request, reply: { outcome: "completed", receipt: last.response, replay: false } }
   ] }); originals.correlation.mockReturnValue({ uncorrelated_exchanges: 0, unmatched_sdk_calls: 0, links: [{ correlated: true, ordinal: 2, sdk: { session_id: "session_1", message_id: "message_1" } }] });
+  originals.codex.mockImplementation(()=>({status:'Observed',scope_digest:digest(JSON.stringify(scope)).value,header_digest:evidence.header_digest,original_requirement_pinned:true,calls:model.calls.map(call=>({call_id:call.call_id,state:call.state,response:call.response,original:{PUBLIC:'independent Codex projection'}})),artifacts:[]}));
   return () => readAgentRuntimeNamedMethodResult(root, scope, { profile: {}, files: [] });
 }
 it.each([false, true])("accepts a fully matched named Native/Host/input policy bounded=%s", bounded => { expect(fixture(bounded, bounded)()).toMatchObject({ status: "Observed", method_result_reverified: true }); });
 it.each([[true, false, true], [false, true, false], [true, true, false], [false, false, true]])("keeps mismatched Native=%s/Host=%s/input=%s Unknown", (native, model, input) => {
   expect(fixture(native, model, input)()).toMatchObject({ status: "Unknown", method_result_reverified: false });
+});
+it.each(['missing','unsealed','not_pinned','foreign_scope','foreign_header','missing_call','foreign_response','drift'])('rejects a matching outer SDK result with %s Codex originals',kind=>{
+ const read=fixture(true,true),codex=structuredClone(originals.codex());originals.codex.mockReturnValue(codex);
+ if(kind==='missing')originals.codex.mockImplementation(()=>{throw Error('PUBLIC missing inner bytes');});
+ if(kind==='unsealed'){codex.calls[0].state='provider_recorded';codex.calls[0].original=null;}
+ if(kind==='not_pinned')codex.original_requirement_pinned=false;if(kind==='foreign_scope')codex.scope_digest=digest('foreign scope').value;if(kind==='foreign_header')codex.header_digest=digest('foreign header').value;
+ if(kind==='missing_call')codex.calls.pop();if(kind==='foreign_response')codex.calls[0].response={content:[],finish:'stop'};
+ if(kind==='drift')originals.codex.mockReturnValueOnce(structuredClone(codex)).mockImplementation(()=>{throw Error('PUBLIC changed original bytes');});
+ expect(read()).toMatchObject({status:'Unknown',method_result_reverified:false});
 });
 it("correlates parallel tool completions by original call identity rather than model array position", () => {
   const read = fixture(true, true), model = originals.model(), ipc = originals.ipc(), method = originals.method(), identity = originals.identity();

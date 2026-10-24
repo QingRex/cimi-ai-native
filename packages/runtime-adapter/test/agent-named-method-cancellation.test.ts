@@ -1,7 +1,8 @@
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';import {join,dirname,basename} from 'node:path';
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
-const original=vi.hoisted(()=>({identity:vi.fn(),marker:vi.fn(),operation:vi.fn(),method:vi.fn(),model:vi.fn(),ipc:vi.fn(),job:vi.fn()}));
+const original=vi.hoisted(()=>({identity:vi.fn(),marker:vi.fn(),operation:vi.fn(),method:vi.fn(),model:vi.fn(),ipc:vi.fn(),job:vi.fn(),codex:vi.fn(),collectedCodex:vi.fn()}));
+vi.mock('../src/agent-codex-model.js',async load=>({...await load<typeof import('../src/agent-codex-model.js')>(),readCodexAgentModelOriginals:original.codex,verifyCollectedCodexAgentModelOriginals:original.collectedCodex}));
 vi.mock('../src/agent-runtime-operation.js',async load=>({...await load<typeof import('../src/agent-runtime-operation.js')>(),readAgentRuntimeOriginalIdentity:original.identity,readAgentRuntimeCancellationOriginal:original.marker}));
 vi.mock('../src/agent-workspace-sandbox-recovery.js',async load=>({...await load<typeof import('../src/agent-workspace-sandbox-recovery.js')>(),readOriginalAgentWorkspaceOperation:original.operation}));
 vi.mock('../src/agent-named-method-host.js',async load=>({...await load<typeof import('../src/agent-named-method-host.js')>(),readAgentNamedMethodOriginals:original.method}));
@@ -47,6 +48,26 @@ afterEach(()=>{vi.restoreAllMocks();if(dirname(root)!==tmpdir()||!basename(root)
 const read=()=>{const reader=Reflect.get(runtime,'readAgentRuntimeNamedMethodCancellation');expect(reader).toBeTypeOf('function');return reader(root,f.scope,{profile:{PUBLIC:true},files:[]},f.collection as unknown as Parameters<typeof runtime.readAgentRuntimeNamedMethodCancellation>[3]);};
 it('reverifies original interrupted method and complete call prefix without inventing success or remaining material reads',()=>{
  expect(read()).toMatchObject({status:'Observed',cancellation_reverified:true,method_result_reverified:false,costs_reconciled:false,domain_observation_produced:false});expect(read()).not.toHaveProperty('output');
+});
+function codexFixture(){
+ const model=original.model(),identity=original.identity();model.original_evidence={kind:'codex_login/1.0.0',header_digest:digest('PUBLIC Codex original').value};identity.input.model_original_binding.original_evidence=model.original_evidence;
+ const header={format:'cimiloop/agent-runtime-model-originals/5.0.0',original_evidence:model.original_evidence,permitted:['cimi_invoke_skill','cimi_read_method_resource']},bytes=Buffer.from(JSON.stringify(header));writeFileSync(model.artifacts[0].path,bytes);model.artifacts[0].digest=digest(bytes).value;identity.input.model_original_binding.header_digest=model.artifacts[0].digest;
+ const codex={status:'Observed',scope_digest:digest(JSON.stringify(f.scope)).value,header_digest:model.original_evidence.header_digest,original_requirement_pinned:true,calls:model.calls.map((call:any)=>({call_id:call.call_id,state:'reply_recorded',response:call.response,original:{PUBLIC:'closed original'}})),artifacts:[]};original.codex.mockReturnValue(codex);Reflect.set(f.collection,'format','cimiloop/agent-runtime-originals/2.0.0');Reflect.set(f.collection,'codex_model',{PUBLIC:'independently checked projection'});return codex;
+}
+it('accepts a fully verified original Codex collection2 cancellation without claiming method success',()=>{
+ codexFixture();expect(read()).toMatchObject({status:'Observed',cancellation_reverified:true,method_result_reverified:false,costs_reconciled:false});expect(original.collectedCodex).toHaveBeenCalled();expect(read()).not.toHaveProperty('output');
+});
+it.each(['missing','unsealed','not_pinned','foreign_header','missing_call','foreign_response','collection_changed','format_downgrade'])('keeps %s Codex cancellation originals Unknown',kind=>{
+ const codex=codexFixture();if(kind==='missing')original.codex.mockImplementation(()=>{throw Error('PUBLIC missing original');});if(kind==='unsealed')codex.calls[0].state='unknown';if(kind==='not_pinned')codex.original_requirement_pinned=false;if(kind==='foreign_header')codex.header_digest=digest('foreign').value;if(kind==='missing_call')codex.calls.pop();if(kind==='foreign_response')codex.calls[0].response={content:[],finish:'stop'};
+ if(kind==='collection_changed')original.collectedCodex.mockImplementation(()=>{throw Error('PUBLIC raw snapshot mismatch');});if(kind==='format_downgrade')Reflect.set(f.collection,'format','cimiloop/agent-runtime-originals/1.0.0');expect(read()).toMatchObject({status:'Unknown',cancellation_reverified:false});
+});
+it.each([false,true])('reverifies Codex cancellation with reversed parallel tool completions and unfinished step=%s',unfinished=>{
+ const model=original.model(),method=original.method(),ipc=original.ipc(),sdk={sessionID:'session_1',messageID:'message_1',callID:'call_2'},call_id='sdk_'+digest(JSON.stringify([sdk.sessionID,sdk.messageID,sdk.callID])).value;
+ const request={...f.request,call_id,tool:'read_method_resource',argument:'not-yet-read.txt'},receipt={...f.receipt,call_id,function_name:'read_method_resource',argument:request.argument,resource_path:request.argument,resource_digest:digest('PUBLIC second material').value,text:'PUBLIC second material'};
+ model.calls[0].response.content.push({type:'tool-call',tool_call_id:sdk.callID,tool_name:'cimi_read_method_resource',arguments:JSON.stringify({path:request.argument})});method.calls.push({request,receipt});ipc.exchanges.push({ordinal:3,state:'reply_recorded',request,reply:{outcome:'completed',receipt,replay:false}});
+ const second={type:'tool_use',sessionID:sdk.sessionID,part:{type:'tool',...sdk,tool:'cimi_read_method_resource',state:{status:'completed',input:{path:request.argument},output:JSON.stringify({...receipt,replay:false})}}};
+ const events=[...f.events.slice(0,2),second,...f.events.slice(2)].filter(event=>!unfinished||!('type'in event)||event.type!=='step_finish');writeFileSync(join(f.operation,'stdout.raw'),events.map(event=>JSON.stringify(event)).join('\n')+'\n');codexFixture();
+ expect(read()).toMatchObject({status:'Observed',cancellation_reverified:true,matched_calls:2,method_result_reverified:false,costs_reconciled:false});
 });
 it.each(['os_live','foreign_scope','synthetic','marker_missing','marker_changed','cancel_removed','ordinary_exit','incomplete_exit','model_unresolved','missing_ipc','foreign_model','extra_method','sdk_input','sdk_output','binding','material_drift'])('keeps %s original Unknown',kind=>{
  if(kind==='os_live')f.collection.status.status='Running';if(kind==='foreign_scope')f.collection.scope_digest=digest('foreign').value;if(kind==='synthetic')Reflect.set(f.collection,'synthetic_model_responses',true);if(kind==='marker_missing')original.marker.mockReturnValue(undefined);if(kind==='marker_changed')original.marker.mockReturnValue({bytes:Buffer.from('{}'),digest:digest('{}')});if(kind==='cancel_removed')Reflect.deleteProperty(f.collection,'cancellation');

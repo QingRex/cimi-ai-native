@@ -9,6 +9,7 @@ import { AgentRuntimeModelHost } from "../src/agent-runtime-model.js";
 import { claimAgentRuntimeOperation } from "../src/agent-runtime-operation.js";
 import { digest } from "../src/files.js";
 import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.js";
+import {readNamedMethodCodexOriginals} from '../src/agent-named-method-model-originals.js';
 
 // Real stdio processes and original Host files, PUBLIC account/model replies.
 // These tests never read a user login or qualify actual model/account behavior.
@@ -100,6 +101,16 @@ describe("Codex model behind the original Agent SDK host", () => {
     const open = () => AgentRuntimeModelHost.initialize(f.root, f.scope, f.create(), f.options.permitted_tools);
     return { ...f, request, open };
   }
+  it('authenticates the named consumer against real stdio originals and collection2 blobs without another model turn',async()=>{
+    const f=namedFixture(),host=await f.open();claimAgentRuntimeOperation(f.root,f.scope,{purpose:'agent_runtime',model_original_binding:host.originalBinding,provider_options:{model_output_profile:'bounded_2048/1.0.0'}},{pid:process.pid,creation_ticks:'1',image:process.execPath});
+    await host.execute(f.request);const input=runtime.readAgentRuntimeOriginalIdentity(f.root,f.scope).input as Record<string,unknown>,model=runtime.readAgentRuntimeModelOriginals(f.root,f.scope),codex=f.read(),config={provider_options:{model_output_profile:'bounded_2048/1.0.0'}};
+    mkdirSync(join(f.root,'blobs'));const artifacts=codex.artifacts.map((a:{name:string;path:string;digest:string})=>{const name='codex-model/'+a.name,locator=join(f.root,'blobs',a.digest);if(!existsSync(locator))writeFileSync(locator,readFileSync(a.path),{flag:'wx'});return{name,reference:{provider:'cimiloop-runtime-probe',resource_type:'agent_runtime_original_bytes',version:name,locator,digest:digest(readFileSync(a.path))}};});
+    const collection={format:'cimiloop/agent-runtime-originals/2.0.0',codex_model:runtime.codexAgentModelSummary(codex),artifacts};
+    expect(readNamedMethodCodexOriginals(f.root,f.scope,model,input,config,collection)).toMatchObject({status:'Observed',original_requirement_pinned:true,calls:[{state:'reply_recorded'}]});
+    expect(()=>readNamedMethodCodexOriginals(f.root,f.scope,model,input,config,{...collection,artifacts:artifacts.slice(1)})).toThrow();
+    const blob=artifacts.find(a=>a.name.endsWith('/codex/stdio.jsonl'))!.reference.locator;renameSync(blob,blob+'.retained-original');try{expect(()=>readNamedMethodCodexOriginals(f.root,f.scope,model,input,config,collection)).toThrow();expect(existsSync(blob)).toBe(false);expect(f.turns()).toBe(1);}finally{renameSync(blob+'.retained-original',blob);}
+    expect(readNamedMethodCodexOriginals(f.root,f.scope,model,input,config,collection)).toEqual(codex);expect(f.turns()).toBe(1);
+  },45000);
   it("executes and reopens the exact named Skill SDK pair under fixed account and original replay", async () => {
     const f = namedFixture(), host = await f.open(), reply = await host.execute(f.request);
     expect(reply.receipt).toMatchObject({ content: [{ tool_name: "cimi_invoke_skill" }], finish: "tool_calls" });
