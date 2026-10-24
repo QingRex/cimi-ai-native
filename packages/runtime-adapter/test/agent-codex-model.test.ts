@@ -37,6 +37,33 @@ if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==
   return { root, scope, options, transport, originalRoot, control, log, request, create, open, read, revoke() { allowed = false; }, turns() { return existsSync(log) ? readFileSync(log, "utf8").trimEnd().split("\n").length : 0; } };
 }
 describe("Codex model behind the original Agent SDK host", () => {
+  it('joins original Codex usage to the same Run capacity without billing, replay or foreign-project disclosure',async()=>{
+    const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'capacity'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
+    try{
+      const budget=runtime.CodexAgentUsageBudget.initialize(origin,{account_digest:f.options.account_digest,quota_account_digest:digest('PUBLIC-account').value,model_calls:3,output_tokens:6144});
+      const model=runtime.createBudgetedCodexAgentRuntimeModel({...f.options,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:digest('PUBLIC-account').value},budget),host=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']);
+      await host.execute({...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',admission_digest:model.admission_digest,max_output_tokens:2048});
+      const foreign={...f.scope,project_id:createInternalId(),run_id:createInternalId()};budget.reserve({scope:foreign,call_id:'private_foreign_call',request_digest:'5'.repeat(64),model_header_digest:'6'.repeat(64)},2048);
+      const read=Reflect.get(runtime,'readCodexAgentRunUsage');expect(read).toBeTypeOf('function');const before=budget.snapshot(),first=read(f.root,f.scope,budget);
+      expect(first).toMatchObject({coverage:'this_run_only',origin:'public_fixture',state:'observed',holds:1,unresolved:0,held_output_tokens:2048,observed_tokens:{inputTokens:57,outputTokens:19,totalTokens:76},cost_known:false,cash_charged_micros:null,credit_charged_micro_units:null,costs_reconciled:false,run_family_costs_reconciled:false});
+      expect(JSON.stringify(first)).not.toContain(foreign.project_id);expect(JSON.stringify(first)).not.toContain('PUBLIC@example.test');expect(first).not.toHaveProperty('output_text');
+      expect(read(f.root,f.scope,budget)).toEqual(first);expect(budget.snapshot()).toEqual(before);expect(f.turns()).toBe(1);
+    }finally{origin.close();}
+  },45000);
+  it('keeps an orphaned pre-dispatch reservation unknown without claiming zero usage or repairing model originals',()=>{
+    const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'capacity'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
+    try{const budget=runtime.CodexAgentUsageBudget.initialize(origin,{account_digest:f.options.account_digest,quota_account_digest:digest('PUBLIC-account').value,model_calls:1,output_tokens:2048});budget.reserve({scope:f.scope,call_id:'model_0001',request_digest:'5'.repeat(64),model_header_digest:'6'.repeat(64)},2048);
+      const read=Reflect.get(runtime,'readCodexAgentRunUsage');expect(read).toBeTypeOf('function');expect(read(f.root,f.scope,budget)).toMatchObject({state:'unknown',holds:1,unresolved:1,observed_tokens:null,cost_known:false});expect(f.turns()).toBe(0);expect(existsSync(join(f.root,'agent-runtime-model-originals'))).toBe(false);expect(budget.snapshot().held.model_calls).toBe(1);
+    }finally{origin.close();}
+  });
+  it('refuses a completed unbudgeted call instead of presenting it as accounted usage',async()=>{
+    const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'capacity'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
+    try{const budget=runtime.CodexAgentUsageBudget.initialize(origin,{account_digest:f.options.account_digest,quota_account_digest:digest('PUBLIC-account').value,model_calls:1,output_tokens:2048});await(await f.open()).execute(f.request);const read=Reflect.get(runtime,'readCodexAgentRunUsage');expect(read).toBeTypeOf('function');expect(()=>read(f.root,f.scope,budget)).toThrow();expect(budget.snapshot().held.model_calls).toBe(0);expect(f.turns()).toBe(1);}finally{origin.close();}
+  },45000);
+  it('rejects a same-Run capacity ticket belonging to another original operation',()=>{
+    const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'capacity'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
+    try{const budget=runtime.CodexAgentUsageBudget.initialize(origin,{account_digest:f.options.account_digest,quota_account_digest:digest('PUBLIC-account').value,model_calls:1,output_tokens:2048});budget.reserve({scope:{...f.scope,operation_key:createInternalId()},call_id:'model_0001',request_digest:'5'.repeat(64),model_header_digest:'6'.repeat(64)},2048);const read=Reflect.get(runtime,'readCodexAgentRunUsage');expect(read).toBeTypeOf('function');expect(()=>read(f.root,f.scope,budget)).toThrow();expect(f.turns()).toBe(0);}finally{origin.close();}
+  });
   it('rechecks the same physical budget inside the final dispatch guard after an awaited authority callback',async()=>{
     const f=fixture(),path=join(f.root,'capacity'),origin=runtime.AgentStartLedger.initialize(path,{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC principal').value});
     let closed=false;

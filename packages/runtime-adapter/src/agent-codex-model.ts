@@ -261,6 +261,50 @@ export function readCodexAgentModelOriginals(root: string, rawScope: unknown): C
   return result;
 }
 export type CodexAgentModelSummary = Omit<CodexAgentModelOriginals, "calls" | "artifacts"> & { calls: number; unresolved: number };
+// Read-only per-Run accounting facts. Capacity and provider token usage are
+// deliberately not invoices or authority to reconcile a Kernel/Skill family.
+export function readCodexAgentRunUsage(root:string,rawScope:unknown,budget:CodexAgentUsageBudget){
+  if(!(budget instanceof CodexAgentUsageBudget))fail('codex_usage_budget_unproven');
+  const scope=parseAgentWorkspaceToolScope(rawScope),state=budget.snapshot();
+  const select=(snapshot:ReturnType<CodexAgentUsageBudget['snapshot']>)=>snapshot.reservations.flatMap(row=>{
+    const raw=row.basis;
+    if(!exact(raw,['scope','call_id','request_digest','model_header_digest']))fail('codex_usage_reservation_unproven');
+    const saved=parseAgentWorkspaceToolScope(raw.scope);
+    if(saved.project_id!==scope.project_id||saved.run_id!==scope.run_id)return[];
+    if(!same(saved,scope)||typeof raw.call_id!=='string'||!/^model_00(?:0[1-9]|[1-5][0-9]|6[0-4])$/.test(raw.call_id)||!sha(raw.request_digest)||!sha(raw.model_header_digest)||row.units.model_calls!==1||!Number.isSafeInteger(row.units.output_tokens)||row.units.output_tokens!<1||row.units.output_tokens!>2048)fail('codex_usage_reservation_unproven');
+    return[{call_id:raw.call_id,request_digest:raw.request_digest,model_header_digest:raw.model_header_digest,output_tokens:row.units.output_tokens!,ticket:row.ticket}];
+  }).sort((a,b)=>a.call_id.localeCompare(b.call_id));
+  const held=select(state),original=readCodexAgentModelOriginals(root,scope);
+  if(!held.length||new Set(held.map(row=>row.call_id)).size!==held.length)fail('codex_run_usage_missing');
+  const header=original.status==='NotRegistered'?undefined:checkedHeader(read(join(headerPaths(root,scope).body,'header.json')));
+  if(header){
+    budget.assertAccount({account_digest:header.account_digest,quota_account_digest:header.quota_account_digest!});
+    if(header.output_profile!=='bounded_2048/1.0.0'||header.usage_policy!=='require_ordinary_permission/1.0.0'||proof(header).header_digest!==original.header_digest)fail('codex_usage_reservation_unproven');
+  }
+  const sdk=header?readAgentRuntimeModelOriginals(root,scope):undefined;
+  for(const call of original.calls){
+    const reservation=held.find(row=>row.call_id===call.call_id),request=sdk?.calls.find(row=>row.call_id===call.call_id)?.request;
+    if(!reservation||!request||reservation.request_digest!==digest(JSON.stringify(request)).value||reservation.model_header_digest!==original.header_digest||reservation.output_tokens!==request.max_output_tokens)fail('codex_usage_reservation_unproven');
+    if(call.original&&(call.original.account_digest!==header!.account_digest||call.original.model!==header!.model||call.original.ordinary_quota?.before.account_id_digest!==header!.quota_account_digest||call.original.ordinary_quota?.after.account_id_digest!==header!.quota_account_digest))fail('codex_usage_account_mismatch');
+  }
+  const calls=held.map(row=>{
+    if(header&&row.model_header_digest!==original.header_digest)fail('codex_usage_reservation_unproven');
+    const call=original.calls.find(call=>call.call_id===row.call_id),retained=call?.original;
+    return{call_id:row.call_id,state:call?.state??'unknown' as const,held_output_tokens:row.output_tokens,request_digest:row.request_digest,
+      usage:retained?structuredClone(retained.usage):null,original_ref:retained?structuredClone(retained.original_ref):null,
+      ordinary_permission:retained?.ordinary_quota?{before:retained.ordinary_quota.before.ordinary_usage_allowed,after:retained.ordinary_quota.after.ordinary_usage_allowed}:null};
+  });
+  const observed=calls.flatMap(call=>call.usage?[call.usage]:[]),observedTokens=observed.length?observed.reduce((sum,usage)=>{
+    for(const name of Object.keys(sum) as (keyof typeof sum)[]){sum[name]+=usage[name];if(!Number.isSafeInteger(sum[name]))fail('codex_usage_total_unproven');}return sum;
+  },{inputTokens:0,cachedInputTokens:0,outputTokens:0,totalTokens:0,reasoningOutputTokens:0,cacheWriteInputTokens:0}):null;
+  const unresolved=calls.filter(call=>call.state!=='reply_recorded').length;
+  if(!same(held,select(budget.snapshot()))||!same(original,readCodexAgentModelOriginals(root,scope)))fail('codex_usage_original_changed');
+  return{format:'cimiloop/codex-run-usage/1.0.0' as const,coverage:'this_run_only' as const,state:unresolved?'unknown' as const:'observed' as const,
+    scope_digest:original.scope_digest,origin:original.origin??null,model:header?.model??null,policy_digest:state.policy_digest,
+    holds:held.length,held_output_tokens:held.reduce((sum,row)=>sum+row.output_tokens,0),unresolved,calls,observed_tokens:observedTokens,
+    usage_complete:unresolved===0&&observed.length===held.length,cost_known:false as const,cash_charged_micros:null,credit_charged_micro_units:null,
+    costs_reconciled:false as const,run_family_costs_reconciled:false as const,provider_quota_reserved:false as const};
+}
 export function codexAgentModelSummary(original: CodexAgentModelOriginals): CodexAgentModelSummary {
   const { calls, artifacts: _artifacts, ...summary } = original;
   return { ...summary, calls: calls.length, unresolved: calls.filter(call => call.state !== "reply_recorded").length };

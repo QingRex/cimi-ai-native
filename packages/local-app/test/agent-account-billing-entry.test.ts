@@ -3,7 +3,7 @@ import*as localApp from'../src/index.js';import{createInternalId}from'@cimiloop/
 import type{HumanAgentAccountFactory}from'../src/index.js';
 import{createAccountBillingEntry}from'../../../tests/fixtures/agent-account-billing-entry.js';
 import{executeLocalCommand}from'../src/project.js';
-import{RuntimeAdapterError}from'../../runtime-adapter/dist/index.js';
+import{RuntimeAdapterError,AgentRuntimeModelHost}from'../../runtime-adapter/dist/index.js';
 type Fixture=ReturnType<typeof createAccountBillingEntry>;
 type Factory=HumanAgentAccountFactory;
 type Query={query(id:string):Promise<any>};
@@ -19,4 +19,8 @@ describe('shared Human original account entry',()=>{
  it('releases an invalid serialized ledger without treating it as a real original account',async()=>{let releases=0;const result=await make(x,()=>({account:JSON.parse('{"root":"PUBLIC forbidden selector"}'),release(){releases++;}})).query(x.runId);expect(result).toMatchObject({outcome:'unknown'});expect(result).not.toHaveProperty('costs');expect(releases).toBe(1);});
  it('continues historical reads after one original Kernel cancellation without settling the Task',async()=>{const input={command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:'technical_owner',command_type:'CancelRun',target:{object_type:'run',id:x.runId},expected_revision:x.f.store.getRun(x.runId)!.revision,payload:{reason:'Original cancellation before fee read'}};expect(executeLocalCommand(x.local,input)).not.toHaveProperty('code');const before=x.f.store.asOfEventSequence();expect(await make(x,()=>({account:x.account,release(){}})).query(x.runId)).toMatchObject({outcome:'observed',costs:{costs_reconciled:true},kernel_costs_reconciled:false});expect(x.f.store.asOfEventSequence()).toBe(before);expect(x.f.task().usage.pending_reconciliation).toBe(true);});
  it('keeps a missing original bill unknown and never releases its original budget hold',async()=>{const path=join(x.accountRoot,'billing.sqlite');x.account.close();renameSync(path,path+'.RETAINED-ORIGINAL');let releases=0;const before=x.f.store.asOfEventSequence(),result=await make(x,()=>({account:x.openAccount(),release(){releases++;}})).query(x.runId);expect(result).toMatchObject({outcome:'unknown'});expect(result).not.toHaveProperty('costs');expect(releases).toBe(0);expect(x.origin.listExclusive('dedicated_account_hold')).toHaveLength(1);expect(x.origin.listExclusive('dedicated_account_bill')).toHaveLength(1);expect(x.f.store.asOfEventSequence()).toBe(before);expect(x.f.task().usage.pending_reconciliation).toBe(true);});
+ it.each(['factory','release'])('suppresses a previous account when the original backend appears during awaited %s',async phase=>{
+  const y=createAccountBillingEntry();let releases=0;const install=()=>AgentRuntimeModelHost.initialize(y.local.location.dataDirectory,y.scope,{admission_digest:'7'.repeat(64),original_evidence:{kind:'codex_login/1.0.0',header_digest:'8'.repeat(64)},output_profile:'bounded_2048/1.0.0',async check(){},async execute(){throw Error('PUBLIC no send');}},['cimi_read']);
+  try{const before=y.f.store.asOfEventSequence(),reader=make(y,async()=>{if(phase==='factory')await install();return{account:y.account,async release(){releases++;if(phase==='release')await install();}};});await expect(reader.query(y.runId)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(releases).toBe(1);expect(y.f.store.asOfEventSequence()).toBe(before);}finally{y.close();}
+ });
 });

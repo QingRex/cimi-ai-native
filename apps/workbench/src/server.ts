@@ -5,7 +5,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { fileURLToPath } from "node:url";
 import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions,type LocalAgentParentSkillResultPort } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
-import { productionAgentAccount, hasInstalledProductionAccount, openInstalledCodexMatt, inspectCodexAgentRuntimeInstallation, LocalAgentRuntimeAdmission, type InstalledCodexMatt, type MattClarificationHost } from "@cimiloop/local-app";
+import { productionAgentAccount, productionAgentCosts, hasReadableProductionAgentCosts, hasProductionAgentBillAccount, openInstalledCodexMatt, inspectCodexAgentRuntimeInstallation, LocalAgentRuntimeAdmission, type InstalledCodexMatt, type MattClarificationHost } from "@cimiloop/local-app";
 
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -69,7 +69,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   const agentObservation = new LocalAgentRuntimeObservation(context);
   const agentStart = new LocalHumanAgentRuntimeStart(context,options.agentRuntimeForRun);
   const accountForRun = options.agentAccountForRun ?? productionAgentAccount;
-  const agentBilling = new LocalHumanAgentAccountBilling(context,accountForRun);
+  const agentBilling = new LocalHumanAgentAccountBilling(context,options.agentAccountForRun??productionAgentCosts);
   const agentCostObservation = new LocalHumanAgentRunCostObservation(context,accountForRun);
   const assets = new Map<string, { type: string; body: Buffer }>();
   try {
@@ -129,7 +129,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       if (url.pathname === "/api/context" && request.method === "GET") {
         const codexInstallation=await inspectCodexAgentRuntimeInstallation(context);
         if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,false);
-        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, matt_host_available: !!matt, matt_installation_state: mattState, codex_runtime_installation:codexInstallation, agent_start_available: typeof options.agentRuntimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasInstalledProductionAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
+        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, matt_host_available: !!matt, matt_installation_state: mattState, codex_runtime_installation:codexInstallation, agent_start_available: typeof options.agentRuntimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasReadableProductionAgentCosts(context), agent_cost_settlement_available:typeof options.agentAccountForRun==='function'||hasProductionAgentBillAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
       }
       if (url.pathname === "/api/dashboard" && request.method === "GET") {
         send(response, 200, dashboard(context)); return;
@@ -151,9 +151,11 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
           if (!(error instanceof LocalProjectError)) throw error;
           clarification_error = { code: error.code, message: error.message };
         }
-        send(response, 200, { ok: true, intent, ...(clarification_error ? { clarification_error } : {}), clarification_history: conversations.sessions,
+        const runs=checked(context.kernel.getRuns(id));
+        const agent_cost_bill_runs=runs.runs.filter(run=>typeof options.agentAccountForRun==='function'||hasProductionAgentBillAccount(context,run.id)).map(run=>run.id);
+        send(response, 200, { ok: true, intent, ...(clarification_error ? { clarification_error } : {}), clarification_history: conversations.sessions, agent_cost_bill_runs,
           clarifications: "latest_session" in conversations && conversations.latest_session ? [conversations.latest_session] : [], execution: checked(context.kernel.getExecution(id)),
-          runs: checked(context.kernel.getRuns(id)), verification: checked(context.kernel.getVerification(id)) }); return;
+          runs, verification: checked(context.kernel.getVerification(id)) }); return;
       }
       const objectMatch = /^\/api\/objects\/([^/]{1,80})\/([^/]{1,200})$/.exec(url.pathname);
       if (objectMatch && request.method === "GET") {

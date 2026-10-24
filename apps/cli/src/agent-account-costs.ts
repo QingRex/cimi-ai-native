@@ -1,10 +1,10 @@
 import{Command}from'commander';import{createInternalId,SCHEMA_VERSION,type DomainError}from'@cimiloop/protocol/v2';
-import{LocalHumanAgentAccountBilling,LocalProjectError,openLocalProject,type HumanAgentAccountFactory}from'@cimiloop/local-app';
+import{LocalHumanAgentAccountBilling,LocalProjectError,openLocalProject,type HumanAgentCostsFactory}from'@cimiloop/local-app';
 import{isDomainError,outputError,renderFields}from'./output.js';import type{GlobalOptions}from'./commands.js';
 // Code-installed embedders reuse this SAME command. No argv/env/JSON module,
 // account root, connection or bill-verifier installation mechanism exists.
-export function createAgentCostsCommand(factory?:HumanAgentAccountFactory){
- return new Command('costs').exitOverride().configureOutput({writeErr:()=>undefined}).argument('<run-id>').description('读取原运行账户账单；结果与预算结算仍以 Kernel 为准')
+export function createAgentCostsCommand(factory?:HumanAgentCostsFactory){
+ return new Command('costs').exitOverride().configureOutput({writeErr:()=>undefined}).argument('<run-id>').description('读取原运行用量与账户账单；未知费用继续保留预算')
   .action(async(id:string,_options:unknown,command:Command)=>{
    const options=command.optsWithGlobals<GlobalOptions>();let local:ReturnType<typeof openLocalProject>|undefined;
    try{local=openLocalProject(options.projectDir?{projectDir:options.projectDir}:{});const result=await new LocalHumanAgentAccountBilling(local,factory).query(id);

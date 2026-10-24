@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { digest, initializeWindowsAgentStartLedger, initializeWindowsDedicatedAgentAccountLedger } from "@cimiloop/runtime-adapter";
@@ -131,4 +131,11 @@ describe("installed production historical account entry", () => {
     expect(fixture.store.asOfEventSequence()).toBe(before);
     expect(resolve(root)).toBe(local.location.repositoryPath);
   });
+  it('keeps a pre-existing Dedicated Run on its original account after a Codex installation in the same project',async()=>{
+    const binaries=join(root,'PUBLIC-codex-binaries');mkdirSync(binaries);for(const name of ['codex.exe','codex-code-mode-host.exe','opencode.exe','node.exe'])copyFileSync(join(process.env.SystemRoot??'C:/Windows','System32','whoami.exe'),join(binaries,name));
+    await localApp.installCodexAgentRuntime(local,{binary:join(binaries,'codex.exe'),native_binary:join(binaries,'opencode.exe'),node_binary:join(binaries,'node.exe'),model:'gpt-6-luna',checks:[{check_id:'query_test',profile:'node_test',entry:'src/check.mjs',inputs:[{path:'src/check.mjs',expected_digest:'4'.repeat(64)},{path:'src/query.ts'}],max_elapsed_ms:4000,max_output_bytes:32768}]},{async inspectLogin(){return{account_digest:digest(root+' PUBLIC Codex').value,quota_snapshot:{format:'cimiloop/codex-ordinary-quota/1.0.0',ordinary_usage_allowed:true,account_id_digest:digest(root+' PUBLIC quota').value,primary:null,secondary:null,credits:null}};}});
+    await localApp.installCodexUsageBudget(local,{model_calls:2,output_tokens:4096});const before=fixture.store.asOfEventSequence();
+    expect(await new LocalHumanAgentAccountBilling(local,localApp.productionAgentCosts).query(runId)).toMatchObject({outcome:'observed',costs:{holds:0,costs_reconciled:false}});expect(localApp.hasProductionAgentBillAccount(local,runId)).toBe(true);
+    const result=spawnSync(process.execPath,[resolve('apps/cli/dist/bin.js'),'run','costs',runId,'--json','--project-dir',root],{encoding:'utf8',windowsHide:true,timeout:120000});expect(result.status).toBe(0);expect(JSON.parse(result.stdout)).toMatchObject({outcome:'observed',costs:{holds:0,costs_reconciled:false}});expect(fixture.store.asOfEventSequence()).toBe(before);
+  },120000);
 });

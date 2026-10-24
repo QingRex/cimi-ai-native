@@ -21,7 +21,7 @@ import { outputError } from "./output.js";
 import { CliInputError } from "./input.js";
 import { runtimeProbe, runtimeOperation, runtimeRecover, runtimeTransportProbe, runtimeGatewayProbe, runtimeGatewayBridgeProbe, runtimeGatewayNetworkProbe, runtimeGatewayCreditProbe } from "./runtime-probe.js";
 import {createAgentCostsCommand} from './agent-account-costs.js';
-import {productionAgentRuntime,productionAgentAccount} from '@cimiloop/local-app';
+import {productionAgentRuntime,productionAgentAccount,productionAgentCosts} from '@cimiloop/local-app';
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 import { installCodexClarification } from "./clarification-codex.js";
@@ -332,7 +332,7 @@ for (const [name, kind] of [["prepare-context", "PrepareRunContext"], ["reserve"
 }
 runs.command("show <change>").action((id, _options, command) => showRuns(id, globals(command)));
 runs.addCommand(createAgentStartOriginalCommand(productionAgentRuntime));
-runs.addCommand(createAgentCostsCommand(productionAgentAccount));
+runs.addCommand(createAgentCostsCommand(productionAgentCosts));
 runs.addCommand(createAgentCostObservationCommand(productionAgentAccount));
 runs.addCommand(createAgentReconcileOriginalCommand(productionAgentAccount));
 for (const [name, kind] of [["skill-observe", "RecordSkillInvocationObservation"], ["skill-reconcile", "ReconcileSkillInvocation"]] as const) {
