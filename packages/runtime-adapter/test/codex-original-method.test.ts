@@ -10,7 +10,7 @@ import * as runtime from "../src/index.js";
 describe("original Codex method transport", () => {
   const root = mkdtempSync(join(tmpdir(), "cimiloop-codex-method-"));
   const script = join(root, "public-server.mjs"), effects = join(root, "effects.txt");
-  writeFileSync(script, `import {createInterface} from 'node:readline';import{appendFileSync}from'node:fs';
+  writeFileSync(script, `import {createInterface} from 'node:readline';import{appendFileSync,existsSync}from'node:fs';
 const mode=process.argv[2],effects=process.argv[3],sleepDisabled=process.argv.some(value=>value.includes('"sleep_tool"=false'));let tid='public-thread',turn='public-turn',accountReads=0,turnStarted=false;
 const send=v=>process.stdout.write(JSON.stringify(v)+'\\n');
 createInterface({input:process.stdin}).on('line',l=>{const r=JSON.parse(l);if(!r.method){if(r.id===901){send({method:'item/completed',params:{threadId:tid,turnId:turn,item:{type:'dynamicToolCall',id:'public-call',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'},status:'completed',contentItems:r.result.contentItems,success:r.result.success}}});finish();}return;}
@@ -19,7 +19,9 @@ if(r.method==='account/read'){accountReads++;const result={account:{type:mode===
 if(r.method==='thread/start'){if(mode==='auth-late')send({method:'account/updated',params:{authMode:'chatgpt'}});if(mode.startsWith('early'))send({method:'warning',params:{threadId:mode==='early-foreign'?'foreign':tid,message:'PUBLIC early startup warning'}});reply({thread:{id:tid},model:mode==='wrong-model'?'other-model':r.params.model,modelProvider:'openai',instructionSources:[],activePermissionProfile:{id:'cimiloop-method'},approvalPolicy:'never'});}
 if(r.method==='mcpServerStatus/list')reply({data:mode==='mcp-active'?[{name:'PUBLIC-external',runtimeStatus:'connected',tools:{PUBLIC_tool:{}},resources:[],resourceTemplates:[],toolsError:null}]:[],nextCursor:null});
 if(r.method==='turn/start'){turnStarted=true;appendFileSync(effects,'turn\\n');reply({turn:{id:turn,status:'inProgress'}});if(mode==='lost')process.exit(0);else if(mode==='forbidden'||mode==='sleep-leak'&&!sleepDisabled){send({method:'item/started',params:{threadId:tid,turnId:turn,item:{type:mode==='sleep-leak'?'sleep':'commandExecution',id:'public-command'}}});}else if(mode==='foreign'){send({id:901,method:'item/tool/call',params:{threadId:'foreign',turnId:turn,callId:'public-call',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'}}});}else{const call={id:901,method:'item/tool/call',params:{threadId:tid,turnId:turn,callId:'public-call',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'}}};send(call);if(mode==='duplicate')send(call);}}
-});function finish(){if(mode!=='no-usage')send({method:'thread/tokenUsage/updated',params:{threadId:tid,turnId:turn,tokenUsage:{total:{inputTokens:10,cachedInputTokens:2,outputTokens:3,totalTokens:13,reasoningOutputTokens:0,cacheWriteInputTokens:0}}}});if(mode==='invalid-utf8')process.stdout.write(Buffer.concat([Buffer.from('{"method":"PUBLIC","params":{"text":"'),Buffer.from([255]),Buffer.from('"}}\\n')]));send({method:'item/completed',params:{threadId:tid,turnId:turn,item:{type:'agentMessage',id:'public-output',phase:'final_answer',text:JSON.stringify({purpose:'clarification',questions:['PUBLIC question'],unresolved:[]})}}});send({method:'turn/completed',params:{threadId:tid,turn:{id:turn,status:'completed',error:null}}});if(mode==='tail')process.stdout.write('{"PUBLIC":');if(mode==='after-completion')send({id:902,method:'item/tool/call',params:{threadId:tid,turnId:turn,callId:'public-after',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'}}});}
+});
+if(mode.startsWith('flood-')){const waiting=setInterval(()=>{if(!existsSync(effects+'.'+mode+'.ready'))return;clearInterval(waiting);const notification=JSON.stringify({method:'PUBLIC',params:{text:mode==='flood-bytes'?'x'.repeat(32768):''}})+'\\n';process.stdout.write(notification.repeat(mode==='flood-bytes'?210:9000));},5);}
+function finish(){if(mode!=='no-usage')send({method:'thread/tokenUsage/updated',params:{threadId:tid,turnId:turn,tokenUsage:{total:{inputTokens:10,cachedInputTokens:2,outputTokens:3,totalTokens:13,reasoningOutputTokens:0,cacheWriteInputTokens:0}}}});if(mode==='invalid-utf8')process.stdout.write(Buffer.concat([Buffer.from('{"method":"PUBLIC","params":{"text":"'),Buffer.from([255]),Buffer.from('"}}\\n')]));send({method:'item/completed',params:{threadId:tid,turnId:turn,item:{type:'agentMessage',id:'public-output',phase:'final_answer',text:JSON.stringify({purpose:'clarification',questions:['PUBLIC question'],unresolved:[]})}}});send({method:'turn/completed',params:{threadId:tid,turn:{id:turn,status:'completed',error:null}}});if(mode==='tail')process.stdout.write('{"PUBLIC":');if(mode==='after-completion')send({id:902,method:'item/tool/call',params:{threadId:tid,turnId:turn,callId:'public-after',namespace:null,tool:'invoke_skill',arguments:{name:'grill-me'}}});}
 `);
   const hash = (p: string) => createHash("sha256").update(readFileSync(p)).digest("hex");
   const requests = { model: "gpt-6.1-sol", prompt: "PUBLIC fixed method", instructions: "Use only fixed tools", tools: [{ type: "function", name: "invoke_skill", description: "PUBLIC method", inputSchema: { type: "object", properties: { name: { type: "string" } }, required: ["name"], additionalProperties: false } }], output_schema: { type: "object" } };
@@ -134,6 +136,24 @@ if(r.method==='turn/start'){turnStarted=true;appendFileSync(effects,'turn\\n');r
     expect(adapter.readOriginal(input)).toBeNull();
     await expect(adapter.execute(input, () => "PUBLIC", () => {})).rejects.toThrow("codex_original_pending");
     expect(count() - before).toBe(1);
+  });
+  it.each(['flood-bytes', 'flood-frames'])("bounds %s while the original tool is still awaiting, without resending", async mode => {
+    const { adapter, input } = setup(mode), before = count(); let context: any, calls = 0;
+    await expect(adapter.execute(input, (_name: string, _args: unknown, original: any) => {
+      context = original; calls++;
+      return new Promise<string>(resolve => {
+        original.signal.addEventListener('abort', () => resolve('PUBLIC cancelled tool'), { once: true });
+        // The real child sends only after the callback has begun waiting.
+        writeFileSync(effects + '.' + mode + '.ready', 'PUBLIC ready', { flag: 'wx' });
+      });
+    }, () => {})).rejects.toThrow('codex_capacity_exhausted');
+    expect(calls).toBe(1); expect(context.signal.aborted).toBe(true); expect(() => context.beforeEffect()).toThrow();
+    expect(adapter.readOriginal(input)).toBeNull();
+    await expect(adapter.execute(input, () => { throw Error('must not retry a dispatched tool'); }, () => {})).rejects.toThrow('codex_original_pending');
+    expect(count() - before).toBe(1);
+    const frames = readFileSync(join(root, mode, input.operation_key, 'stdio.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line));
+    const outbound = frames.filter(frame => frame.direction === 'out').map(frame => JSON.parse(Buffer.from(frame.bytes, 'base64').toString('utf8')));
+    expect(outbound.some(frame => frame.id === 901 && frame.result)).toBe(false);
   });
   it("propagates cancellation across two actual stdio children and retains both original identities", async () => {
     const parent = setup("nested-parent"), child = setup("nested-child"), controller = new AbortController(), before = count();

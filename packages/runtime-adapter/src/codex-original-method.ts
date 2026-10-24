@@ -8,7 +8,7 @@ import { parseGatewayJson } from "./gateway-conversation.js";
 import {parseCodexUsagePolicy,parseCodexOrdinaryQuota,CODEX_QUOTA_READ_PARAMS,type CodexOrdinaryUsagePolicy,type CodexOrdinaryQuotaSnapshot} from './codex-ordinary-quota.js';
 import { AgentStartLedger } from './agent-start-ledger.js';
 
-const MAX_BYTES = 8 * 1024 * 1024, MAX_LINE = 1024 * 1024, MAX_CALLS = 128;
+const MAX_BYTES = 8 * 1024 * 1024, MAX_LINE = 1024 * 1024, MAX_CALLS = 128, MAX_FRAMES = 8192;
 const fail = (reason = "codex_original_unproven"): never => { throw new RuntimeAdapterError(reason); };
 const encode = (value: unknown) => Buffer.from(JSON.stringify(value));
 const same = (left: unknown, right: unknown) => isDeepStrictEqual(JSON.parse(JSON.stringify(left)), JSON.parse(JSON.stringify(right)));
@@ -342,7 +342,7 @@ export class CodexOriginalMethodRuntime {
     const seal = parse(bytesAt(paths.seal)), transcript = bytesAt(paths.transcript, MAX_BYTES);
     if (seal.format !== "cimiloop/codex-method-seal/1.0.0" || seal.claim_digest !== digest(claimBytes).value || seal.transcript_digest !== digest(transcript).value ||
       !same(seal.claim_identity, fileIdentity(paths.claim)) || !same(seal.transcript_identity, fileIdentity(paths.transcript))) fail();
-    const lines = transcript.toString("utf8").split("\n"); if (lines.pop() !== "" || lines.length > 8192) fail();
+    const lines = transcript.toString("utf8").split("\n"); if (lines.pop() !== "" || lines.length > MAX_FRAMES) fail();
     const frames = lines.map(line => parse(Buffer.from(line)) as Frame);
     const ref = { provider: "codex_app_server", resource_type: "skill_invocation_proof", locator: paths.transcript, digest: digest(transcript) };
     return originalFromFrames(request, paths.cwd, frames, ref, this.options.account_digest, version, this.options.disabled_mcp_servers);
@@ -374,7 +374,7 @@ export class CodexOriginalMethodRuntime {
     // The exclusive durable start is deliberately never rolled back, including
     // a crash before spawn. A retry may inspect originals, never start again.
     const fd = openSync(assertOrdinaryPath(paths.transcript), "wx");
-    let total = 0, closed = false, stopping = false, terminal = false, active = true, childDidClose = false, child: ChildProcessWithoutNullStreams | undefined;
+    let reservedBytes = 0, reservedFrames = 0, closed = false, stopping = false, terminal = false, active = true, childDidClose = false, child: ChildProcessWithoutNullStreams | undefined;
     const controller = new AbortController(), deadline = performance.now() + (this.options.timeout_ms ?? 180000);
     let privateDirectories:{path:string;identity:ReturnType<typeof directoryIdentity>}[]|undefined;
     const effectGuard = () => {
@@ -383,11 +383,17 @@ export class CodexOriginalMethodRuntime {
       if(privateDirectories)for(const item of privateDirectories){try{if(!same(directoryIdentity(item.path),item.identity))fail('codex_runtime_state_changed');}catch{fail('codex_runtime_state_changed');}}
       if (!active || controller.signal.aborted || performance.now() >= deadline) fail("codex_effect_closed");
     };
-    const append = (direction: Frame["direction"], bytes: Buffer) => {
+    const reserve = (direction: Frame["direction"], bytes: Buffer) => {
+      if (bytes.length > MAX_LINE) fail("codex_capacity_exhausted");
       const frame = Buffer.concat([encode({ direction, bytes: bytes.toString("base64") }), Buffer.from("\n")]);
-      if (bytes.length > MAX_LINE || total + frame.length > MAX_BYTES) fail("codex_capacity_exhausted");
-      writeFileSync(fd, frame); fsyncSync(fd); total += frame.length;
+      if (reservedBytes + frame.length > MAX_BYTES || reservedFrames >= MAX_FRAMES) fail("codex_capacity_exhausted");
+      // Reserve queued input before retaining another promise/line, including
+      // base64 envelope bytes and outbound frames. Dequeue never refunds the
+      // immutable transcript capacity while an asynchronous tool is waiting.
+      reservedBytes += frame.length; reservedFrames++;
+      return frame;
     };
+    const append = (direction: Frame["direction"], bytes: Buffer) => { writeFileSync(fd, reserve(direction, bytes)); fsyncSync(fd); };
     let next = 0, thread = "", turn = "", buffered = Buffer.alloc(0), errors = 0, toolCalls = 0;
     const serverIds = new Set<string | number>(), callIds = new Set<string>();
     const earlyThreadIds = new Set<string>(); let startingThread = false;
@@ -407,9 +413,9 @@ export class CodexOriginalMethodRuntime {
       try { send({ id, method, params }); } catch (error) { pending.delete(id); reject(error); }
     });
     let queue = Promise.resolve();
-    const accept = async (line: Buffer) => {
+    const accept = async (line: Buffer, frame: Buffer) => {
       if (closed) fail("codex_effect_closed");
-      append("in", line); const value = parse(line);
+      writeFileSync(fd, frame); fsyncSync(fd); const value = parse(line);
       const accountRpc = value.id !== undefined && !value.method && (pending.get(value.id)?.method === "account/read"||usagePolicy&&pending.get(value.id)?.method==='account/rateLimits/read');
       if (terminal && !accountRpc && (value.id !== undefined || !["thread/tokenUsage/updated", "thread/status/changed",...(usagePolicy?['account/rateLimits/updated']:[])].includes(value.method))) fail("codex_post_terminal_effect");
       if (value.method && value.id !== undefined) {
@@ -465,10 +471,15 @@ export class CodexOriginalMethodRuntime {
         { cwd: paths.cwd, windowsHide: true, stdio: "pipe", env: childEnvironment(privateRuntime?paths.cwd:undefined) });
       child.on("error", rejectAll); child.stdin.on("error", rejectAll);
       child.stdout.on("data", (chunk: Buffer) => {
-        buffered = Buffer.concat([buffered, chunk]);
-        for (;;) { const end = buffered.indexOf(10); if (end < 0) break; const line = Buffer.from(buffered.subarray(0, end + 1)); buffered = buffered.subarray(end + 1);
-          queue = queue.then(() => accept(line)); void queue.catch(rejectAll); }
-        if (buffered.length > MAX_LINE) rejectAll(new RuntimeAdapterError("codex_capacity_exhausted"));
+        if (!active) return;
+        try {
+          buffered = Buffer.concat([buffered, chunk]);
+          for (;;) { const end = buffered.indexOf(10); if (end < 0) break;
+            const line = Buffer.from(buffered.subarray(0, end + 1)), frame = reserve("in", line); buffered = buffered.subarray(end + 1);
+            queue = queue.then(() => accept(line, frame)); void queue.catch(rejectAll);
+          }
+          if (buffered.length > MAX_LINE) fail("codex_capacity_exhausted");
+        } catch (error) { rejectAll(error); }
       });
       // Never expose server diagnostics (which may include local configuration)
       // to method context or product error messages. Bound them in memory only.
