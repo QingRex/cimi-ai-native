@@ -1,5 +1,5 @@
 import { createInternalId } from "../../packages/protocol/src/v2/index.js";
-import { mkdtempSync, renameSync } from "node:fs";
+import { mkdtempSync, mkdirSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, basename, join, resolve } from "node:path";
 import { execFile } from "node:child_process";
@@ -21,6 +21,14 @@ async function allOriginalHosts<T>(originals:Promise<T>[]):Promise<T[]>{
 describe.runIf(process.platform === "win32" && process.arch === "x64")("Windows original start origin", () => {
   const roots: string[] = [];
   afterEach(() => { for (const root of roots.splice(0)) { if (dirname(root) !== tmpdir() || !basename(root).startsWith("cimiloop-start-origin-")) throw Error("Unsafe fixture root"); console.error('Retain original Windows start custody fixture: '+root); } });
+  it('protects a new already-owned origin under inherited Modify rights without requiring an ownership change',async()=>{
+    const root=mkdtempSync(join(tmpdir(),'cimiloop-start-origin-'));roots.push(root);const parent=join(root,'limited');mkdirSync(parent);
+    const script="$p=$env:CIMILOOP_TEST_START_LIMITED_PARENT;$sid=[Security.Principal.WindowsIdentity]::GetCurrent().User;$before=[IO.Directory]::GetAccessControl($p);if($before.GetOwner([Security.Principal.SecurityIdentifier]).Value-ne$sid.Value){throw 'Unexpected test owner'};$acl=[Security.AccessControl.DirectorySecurity]::new();$acl.SetAccessRuleProtection($true,$false);$rights=[Security.AccessControl.FileSystemRights]::Modify-bor[Security.AccessControl.FileSystemRights]::Synchronize;$inherit=[Security.AccessControl.InheritanceFlags]::ContainerInherit-bor[Security.AccessControl.InheritanceFlags]::ObjectInherit;$acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($sid,$rights,$inherit,[Security.AccessControl.PropagationFlags]::None,[Security.AccessControl.AccessControlType]::Allow));[IO.Directory]::SetAccessControl($p,$acl);$actual=[IO.Directory]::GetAccessControl($p);$rules=$actual.GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier]);if($rules.Count-ne 1-or($rules[0].FileSystemRights-band[Security.AccessControl.FileSystemRights]::TakeOwnership)-ne 0){throw 'Unexpected ownership permission'}";
+    await promisify(execFile)(join(process.env.SystemRoot!,'System32/WindowsPowerShell/v1.0/powershell.exe'),['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{windowsHide:true,timeout:15000,env:{...isolatedEnvironment(),CIMILOOP_TEST_START_LIMITED_PARENT:parent}});
+    const origin=join(parent,'origin'),tools=join(root,'tools'),ledger=await initializeWindowsAgentStartLedger(origin,tools);let ticket;
+    try{ticket=ledger.issue({purpose:'PUBLIC new already-owned origin'});expect(ledger.readTicket(ticket)).toEqual({purpose:'PUBLIC new already-owned origin'});}finally{ledger.close();}
+    const reopened=await openWindowsAgentStartLedger(origin,tools);try{expect(reopened.readTicket(ticket!)).toEqual({purpose:'PUBLIC new already-owned origin'});}finally{reopened.close();}
+  });
   it("pins the actual host identity across another process and rejects a missing old origin without initializing it", async () => {
     const root = mkdtempSync(join(tmpdir(), "cimiloop-start-origin-")); roots.push(root);
     const origin = join(root, "origin"), tools = join(root, "tools"), ledger = await initializeWindowsAgentStartLedger(origin, tools);

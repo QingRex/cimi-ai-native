@@ -20,7 +20,12 @@ public static class AgentStartCustody {
       using(var user=WindowsIdentity.GetCurrent()){
         var sid=user.User;if(sid==null)return 2;
         if(args[0]=="protect"){
-          var acl=new DirectorySecurity();acl.SetAccessRuleProtection(true,false);acl.SetOwner(sid);
+          var acl=new DirectorySecurity();acl.SetAccessRuleProtection(true,false);
+          // A creator already owns a fresh origin even when the parent grants
+          // only Modify. Its implicit WRITE_DAC permits the exact private DACL;
+          // needlessly setting the same owner also requests WRITE_OWNER.
+          if(Directory.GetAccessControl(root).GetOwner(typeof(SecurityIdentifier)).Value!=sid.Value)
+            acl.SetOwner(sid);
           acl.AddAccessRule(new FileSystemAccessRule(sid,FileSystemRights.FullControl,
             InheritanceFlags.ContainerInherit|InheritanceFlags.ObjectInherit,PropagationFlags.None,AccessControlType.Allow));
           Directory.SetAccessControl(root,acl);
