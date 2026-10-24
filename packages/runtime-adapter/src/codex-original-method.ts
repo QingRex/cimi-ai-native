@@ -1,6 +1,6 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { closeSync, existsSync, fsyncSync, lstatSync, openSync, realpathSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname,join, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import type { ExternalReference } from "@cimiloop/protocol/v2";
 import { assertOrdinaryPath, bytesAt, digest, directory, RuntimeAdapterError } from "./files.js";
@@ -70,11 +70,13 @@ export interface CodexOriginalMethodOptions {
   account_digest?: string;
   timeout_ms?: number;
   disabled_mcp_servers?: string[];
+  // Prospective Agent policy; the existing login home remains untouched.
+  state_policy?: 'private_operation_state/1.0.0';
   // Every new delegated method uses this trusted transport policy. Legacy
   // sealed originals keep their recorded policy during read-only replay.
   usage_policy?: CodexOrdinaryUsagePolicy;
 }
-type StartVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type StartVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 type Frame = { direction: "in" | "out"; bytes: string };
 
 // Non-secret account metadata supplied by the CLI itself. Never read auth.json,
@@ -114,6 +116,8 @@ const version2Config = (disabled: string[]) => ({ ...legacyConfig(),
     plugins: false, plugin_sharing: false, skill_mcp_dependency_install: false, goals: false }
 });
 const config = (disabled: string[]) => ({ ...version2Config(disabled), features: { ...version2Config(disabled).features, sleep_tool: false } });
+const privateState=(cwd:string)=>{const root=join(dirname(cwd),'state');return{sqlite:join(root,'sqlite'),log:join(root,'log'),temp:join(root,'temp')};};
+const stateConfig=(disabled:string[],cwd:string)=>({...config(disabled),sqlite_home:privateState(cwd).sqlite,log_dir:privateState(cwd).log,history:{persistence:'none'}});
 const quietMcpCatalog = (value: any, disabled: string[]) => value && Array.isArray(value.data) && value.data.length <= 128 && value.nextCursor === null &&
   value.data.every((server: any) => disabled.includes(server.name) && server.runtimeStatus === "disabled" && server.tools && Object.keys(server.tools).length === 0 &&
     Array.isArray(server.resources) && server.resources.length === 0 && Array.isArray(server.resourceTemplates) && server.resourceTemplates.length === 0 && server.toolsError === null);
@@ -121,13 +125,14 @@ function toml(value: unknown): string {
   if (value && typeof value === "object" && !Array.isArray(value)) return "{" + Object.entries(value).map(([key, item]) => JSON.stringify(key) + "=" + toml(item)).join(",") + "}";
   return JSON.stringify(value);
 }
-const startParams = (request: CodexMethodRequest, cwd: string) => ({ model: request.model, modelProvider: "openai", allowProviderModelFallback: false,
+const startParams = (request: CodexMethodRequest, cwd: string,ephemeral=false) => ({ model: request.model, modelProvider: "openai", allowProviderModelFallback: false,...(ephemeral?{ephemeral:true}:{}),
   cwd, runtimeWorkspaceRoots: [cwd], approvalPolicy: "never", permissions: "cimiloop-method", baseInstructions: request.instructions,
   developerInstructions: "Only client dynamic tools are available. Do not access credentials, commands, arbitrary files, plugins, or business commands. Never claim a Human decision or domain completion.",
   dynamicTools: request.tools, selectedCapabilityRoots: [], environments: [] });
-function childEnvironment() {
+function childEnvironment(cwd?:string) {
   const allowed = new Set(["SYSTEMROOT", "WINDIR", "COMSPEC", "PATH", "PATHEXT", "HOME", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "PROGRAMDATA", "TEMP", "TMP", "CODEX_HOME", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "SSL_CERT_FILE", "SSL_CERT_DIR"]);
-  return Object.fromEntries(Object.entries(process.env).filter(([key]) => allowed.has(key.toUpperCase())));
+  const env=Object.fromEntries(Object.entries(process.env).filter(([key]) => allowed.has(key.toUpperCase())&&(!cwd||!['TEMP','TMP'].includes(key.toUpperCase()))));
+  return cwd?{...env,TEMP:privateState(cwd).temp,TMP:privateState(cwd).temp}:env;
 }
 
 // Local explicit installation reads public login metadata only. No thread,
@@ -204,7 +209,7 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
         }
         if(value.method==='account/rateLimits/read'&&(!account||!thread||!mcpVerified||accountDirty||!(complete?finalAccountRead:quotaAccountReady)||!same(value.params,CODEX_QUOTA_READ_PARAMS)||turnSent&&!complete||quotas.length!==(complete?1:0)))fail('codex_ordinary_quota_unproven');
         if (value.id !== undefined) { if (sent.has(value.id)) fail(); sent.set(value.id, value); }
-        if (value.method === "thread/start" && (!account || !same(value.params, startParams(request, cwd)))) fail();
+        if (value.method === "thread/start" && (!account || !same(value.params, startParams(request, cwd,version===8)))) fail();
         if (value.method === "turn/start" && (!thread || turn || accountDirty || version>=5&&(quotaDirty||quotas.length!==1||quotas[0]!.ordinary_usage_allowed!==true||quotas[0]!.account_id_digest===null) || !mcpVerified || value.params.threadId !== thread || value.params.model !== request.model || value.params.effort !== (request.reasoning_effort ?? "medium") ||
           !same(value.params.input, [{ type: "text", text: request.prompt, text_elements: [] }]) || !same(value.params.outputSchema, request.output_schema))) fail();
         if (value.method === "turn/start") turnSent = true;
@@ -240,7 +245,7 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
       if (rpc.method === "mcpServerStatus/list") { if (!quietMcpCatalog(result, disabled)) fail("codex_external_tools_available"); mcpVerified = true; }
       if (rpc.method === "thread/start") {
         if (thread || result?.model !== request.model || result.modelProvider !== "openai" || result.approvalPolicy !== "never" ||
-          result.activePermissionProfile?.id !== "cimiloop-method" || result.instructionSources?.length !== 0 || typeof result.thread?.id !== "string") fail("codex_thread_binding_denied");
+          result.activePermissionProfile?.id !== "cimiloop-method" || result.instructionSources?.length !== 0 || typeof result.thread?.id !== "string" || version===8&&result.thread.ephemeral!==true) fail("codex_thread_binding_denied");
         thread = result.thread.id; if ([...earlyThreadIds].some(id => id !== thread)) fail("codex_event_identity_denied");
       }
       if (rpc.method === "turn/start") { if (turn || typeof result?.turn?.id !== "string") fail(); turn = result.turn.id; }
@@ -285,6 +290,7 @@ export class CodexOriginalMethodRuntime {
   private readonly options: CodexOriginalMethodOptions;
   constructor(raw: CodexOriginalMethodOptions, private readonly readOnly = false, private readonly policyOrigin?: AgentStartLedger) {
     this.options = structuredClone(raw);
+    if(Object.hasOwn(raw,'state_policy')&&(raw.state_policy!=='private_operation_state/1.0.0'||raw.usage_policy!==undefined))fail('codex_installation_denied');
     if(Object.hasOwn(raw,'usage_policy')&&!parseCodexUsagePolicy(raw.usage_policy))fail('codex_installation_denied');
     if (raw.usage_policy && !(policyOrigin instanceof AgentStartLedger)) fail('codex_transport_origin_required');
     const disabled = raw.disabled_mcp_servers ?? [];
@@ -306,7 +312,7 @@ export class CodexOriginalMethodRuntime {
     const root = assertOrdinaryPath(join(this.options.root, request.operation_key));
     return { root, cwd: join(root, "workspace"), claim: join(root, "start.json"), transcript: join(root, "stdio.jsonl"), seal: join(root, "seal.json") };
   }
-  private startVersion(request:CodexMethodRequest):StartVersion{return this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
+  private startVersion(request:CodexMethodRequest):StartVersion{return this.options.state_policy?8:this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
   private policyKey(request: CodexMethodRequest) {
     // Real Windows long names collapse 8.3 aliases; case folding also keeps the
     // logical slot stable after its original directory has gone missing.
@@ -320,15 +326,15 @@ export class CodexOriginalMethodRuntime {
       operation_identity: directoryIdentity(this.paths(request).root), claim_digest: digest(encode(this.claim(request, 7))).value };
   }
   private claim(request: CodexMethodRequest, version: StartVersion = this.startVersion(request)) {
-    if(version===7?this.options.usage_policy!=='require_ordinary_permission/1.0.0':(version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined)) fail("codex_original_input_changed");
-    return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
-    account_digest: this.options.account_digest ?? null, config: version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
+    if((version===8)!==Object.hasOwn(this.options,'state_policy')||(version===8?!parseCodexUsagePolicy(request.usage_policy):version===7?this.options.usage_policy!=='require_ordinary_permission/1.0.0':(version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined))) fail("codex_original_input_changed");
+    return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version===8?{state_policy:this.options.state_policy}:{}),...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
+    account_digest: this.options.account_digest ?? null, config: version === 8 ? stateConfig(this.options.disabled_mcp_servers!,this.paths(request).cwd) : version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
     ...(version >= 2 ? { disabled_mcp_servers: this.options.disabled_mcp_servers } : {}) }; }
   readOriginal(raw: CodexMethodRequest): CodexMethodOriginal | null {
     const request = requestCopy(raw), paths = this.paths(request);
     if (!existsSync(paths.claim)) return null;
     const claimBytes = bytesAt(paths.claim);
-    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:claim.format==='cimiloop/codex-method-start/7.0.0'?7:fail();
+    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:claim.format==='cimiloop/codex-method-start/7.0.0'?7:claim.format==='cimiloop/codex-method-start/8.0.0'?8:fail();
     const policy = this.policyOrigin?.readExclusive(policyNamespace, this.policyKey(request));
     if (policy ? version !== 7 || !same(policy.basis, this.policyBasis(request)) : version === 7) fail('codex_original_input_changed');
     if (!same(claim, this.claim(request, version))) fail("codex_original_input_changed");
@@ -370,9 +376,11 @@ export class CodexOriginalMethodRuntime {
     const fd = openSync(assertOrdinaryPath(paths.transcript), "wx");
     let total = 0, closed = false, stopping = false, terminal = false, active = true, childDidClose = false, child: ChildProcessWithoutNullStreams | undefined;
     const controller = new AbortController(), deadline = performance.now() + (this.options.timeout_ms ?? 180000);
+    let privateDirectories:{path:string;identity:ReturnType<typeof directoryIdentity>}[]|undefined;
     const effectGuard = () => {
       if (!active || controller.signal.aborted || performance.now() >= deadline) fail("codex_effect_closed");
       guardNow(beforeEffect);
+      if(privateDirectories)for(const item of privateDirectories){try{if(!same(directoryIdentity(item.path),item.identity))fail('codex_runtime_state_changed');}catch{fail('codex_runtime_state_changed');}}
       if (!active || controller.signal.aborted || performance.now() >= deadline) fail("codex_effect_closed");
     };
     const append = (direction: Frame["direction"], bytes: Buffer) => {
@@ -449,8 +457,12 @@ export class CodexOriginalMethodRuntime {
       signal?.addEventListener("abort", onAbort, { once: true });
       if (signal?.aborted) onAbort();
       effectGuard();
-      child = spawn(this.options.command.file, [...this.options.command.args, "app-server", "--stdio", ...Object.entries(config(this.options.disabled_mcp_servers!)).flatMap(([key, value]) => ["-c", key + "=" + toml(value)])],
-        { cwd: paths.cwd, windowsHide: true, stdio: "pipe", env: childEnvironment() });
+      const privateRuntime=this.options.state_policy!==undefined;
+      if(privateRuntime){for(const path of Object.values(privateState(paths.cwd)))directory(path);privateDirectories=Object.values(privateState(paths.cwd)).map(path=>({path,identity:directoryIdentity(path)}));}
+      const launchConfig=privateRuntime?stateConfig(this.options.disabled_mcp_servers!,paths.cwd):config(this.options.disabled_mcp_servers!);
+      effectGuard();
+      child = spawn(this.options.command.file, [...this.options.command.args, "app-server", "--stdio", ...Object.entries(launchConfig).flatMap(([key, value]) => ["-c", key + "=" + toml(value)])],
+        { cwd: paths.cwd, windowsHide: true, stdio: "pipe", env: childEnvironment(privateRuntime?paths.cwd:undefined) });
       child.on("error", rejectAll); child.stdin.on("error", rejectAll);
       child.stdout.on("data", (chunk: Buffer) => {
         buffered = Buffer.concat([buffered, chunk]);
@@ -468,8 +480,8 @@ export class CodexOriginalMethodRuntime {
       admittedAccount = codexChatGptAccountDigest(account);
       if (this.options.account_digest && admittedAccount !== this.options.account_digest || admission && admittedAccount !== admission.account_digest) fail("codex_account_changed");
       startingThread = true;
-      const start = await rpc("thread/start", startParams(request, paths.cwd));
-      if (start?.model !== request.model || start.modelProvider !== "openai" || start.instructionSources?.length !== 0 || start.approvalPolicy !== "never" || start.activePermissionProfile?.id !== "cimiloop-method" || typeof start.thread?.id !== "string") fail("codex_thread_binding_denied");
+      const start = await rpc("thread/start", startParams(request, paths.cwd,privateRuntime));
+      if (start?.model !== request.model || start.modelProvider !== "openai" || start.instructionSources?.length !== 0 || start.approvalPolicy !== "never" || start.activePermissionProfile?.id !== "cimiloop-method" || typeof start.thread?.id !== "string" || privateRuntime&&start.thread.ephemeral!==true) fail("codex_thread_binding_denied");
       thread = start.thread.id; startingThread = false;
       if ([...earlyThreadIds].some(id => id !== thread)) fail("codex_event_identity_denied");
       const inventory = await rpc("mcpServerStatus/list", { threadId: thread, limit: 100, detail: "toolsAndAuthOnly" });

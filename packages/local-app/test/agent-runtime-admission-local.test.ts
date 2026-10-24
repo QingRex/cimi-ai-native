@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync,mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -74,7 +74,7 @@ describe('shared original Runtime admission lease',()=>{
   seam.account={root:'PUBLIC shared account',budget,installation:{origin:f.origin,root:'PUBLIC copied bundle',binary:process.execPath,native_binary:process.execPath,node_binary:process.execPath,model:'gpt-6-luna',account_digest,quota_account_digest,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',disabled_mcp_servers:[],checks:f.options.templates,installation_digest:digest('PUBLIC copied bundle').value,guard(){if(released)throw Error('PUBLIC account released');},release(){}},guard(){if(released)throw Error('PUBLIC account released');},release(){released=true;}};
   await expect(Public.productionAgentRuntime(reserved.data.run.id,f.local)).rejects.toMatchObject({details:{missing:['Codex 原固定卷运行范围']}});expect(released).toBe(true);expect(budget.snapshot().held.model_calls).toBe(0);
   released=false;seam.storage={} as FixedVolumeRuntimeStorage;
-  const lease=await Public.productionAgentRuntime(reserved.data.run.id,f.local) as AgentRuntimeLease;try{expect(lease.runtime.originalScope(reserved.data.run.id).run_id).toBe(reserved.data.run.id);expect(budget.snapshot().held.model_calls).toBe(0);expect(seam.opens).toBe(2);}finally{await lease.release();}expect(released).toBe(true);admission.guard();expect(budget.snapshot().held.model_calls).toBe(0);
+  const lease=await Public.productionAgentRuntime(reserved.data.run.id,f.local) as AgentRuntimeLease;try{expect(lease.runtime.originalScope(reserved.data.run.id).run_id).toBe(reserved.data.run.id);expect(existsSync(join(f.local.location.dataDirectory,'codex-runtime-originals',f.local.instance.project_id,reserved.data.run.id))).toBe(true);expect(budget.snapshot().held.model_calls).toBe(0);expect(seam.opens).toBe(2);}finally{await lease.release();}expect(released).toBe(true);admission.guard();expect(budget.snapshot().held.model_calls).toBe(0);
  }finally{admission.release();}});
  it('refuses an installed Codex without a complete admission lease instead of choosing the old HTTP connection',async()=>{const f=fixture();seam.installed=true;await expect(Public.productionAgentRuntime('PUBLIC not launched',f.local)).rejects.toMatchObject({details:{production_admission:'unapproved',missing:['Codex Context 前完整准入']}});expect(seam.opens).toBe(0);});
  it('refuses a missing Codex account policy while keeping the shared admission owned by its caller',async()=>{const f=fixture(),admission=await f.open();try{await expect(Public.productionAgentRuntime('PUBLIC no effect',f.local)).rejects.toMatchObject({details:{production_admission:'unapproved',missing:['Codex 原账户容量政策']}});admission.guard();}finally{admission.release();}});
