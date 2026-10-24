@@ -14,16 +14,16 @@ const schema=[
  ["trigger","builds_no_delete","CREATE TRIGGER builds_no_delete BEFORE DELETE ON builds BEGIN SELECT RAISE(ABORT,'original_immutable'); END"],
  ["trigger","builds_once","CREATE TRIGGER builds_once BEFORE UPDATE ON builds WHEN OLD.state!='reserved' OR NEW.state!='retained' OR NEW.recipe IS NOT OLD.recipe OR NEW.proof IS NULL BEGIN SELECT RAISE(ABORT,'original_immutable'); END"]
 ].sort((a,b)=>a[1]!.localeCompare(b[1]!));
-function open(root:string){
- root=directory(root);const base=join(root,"agent-sandbox-build-originals"),claims=join(root,"agent-sandbox-build-claims"),dbPath=join(base,"index.sqlite"),marker=join(root,"agent-sandbox-build-registry.json");
+function open(root:string,create=true){
+ root=create?directory(root):assertOrdinaryPath(root);if(!create&&!lstatSync(root).isDirectory())fail();const base=join(root,"agent-sandbox-build-originals"),claims=join(root,"agent-sandbox-build-claims"),dbPath=join(base,"index.sqlite"),marker=join(root,"agent-sandbox-build-registry.json");
  const registered=existsSync(assertOrdinaryPath(marker));
- if(!registered){if(existsSync(assertOrdinaryPath(base))||existsSync(assertOrdinaryPath(claims)))fail();mkdirSync(base);mkdirSync(claims);}
+ if(!registered){if(!create||existsSync(assertOrdinaryPath(base))||existsSync(assertOrdinaryPath(claims)))fail();mkdirSync(base);mkdirSync(claims);}
  else if(!existsSync(assertOrdinaryPath(dbPath))||!existsSync(assertOrdinaryPath(claims)))fail();
  for(const p of [dbPath,dbPath+"-journal",dbPath+"-wal",dbPath+"-shm"])assertOrdinaryPath(p);
  // Validate canonical paths/sidecars above and persist only those names. The
  // Windows SQLite driver needs an extended filename for nested child roots;
  // this aliases the same physical file, without relocation or format changes.
- const db=new DatabaseSync(toNamespacedPath(dbPath),{timeout:5000});
+ const db=new DatabaseSync(toNamespacedPath(dbPath),{timeout:5000,readOnly:!create});
  try{
   if(!registered){db.exec("PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL;"+schema.map(x=>x[2]+";").join("")+`PRAGMA application_id=${app}; PRAGMA user_version=1;`);
    save(marker,{format:"cimiloop/agent-sandbox-build-registry/1.0.0",root,base:physical(base,true),claims:physical(claims,true),database:physical(dbPath),maximum_recipes:maximum,physical_quota_enforced:false});}
@@ -46,6 +46,17 @@ function audit(s:Store){
   else if(row.state!=="retained"||typeof row.proof!=="string"||!isDeepStrictEqual(read(receipt),JSON.parse(row.proof)))fail();
  }
  return rows;
+}
+// Exact recipe lookup only. No directory, registry, compilation or missing
+// retained binary can be created by an execution/query reader.
+export function readRetainedAgentSandboxBuild(root:string,recipe:unknown){
+ let s:Store|undefined;
+ try{s=open(root,false);s.db.exec('BEGIN');const key=digest(JSON.stringify(recipe)).value,row=audit(s).find(row=>row.recipe===key);
+  if(!row||row.state!=='retained'||typeof row.proof!=='string')fail();
+  const proof=JSON.parse(row.proof) as ReturnType<typeof readRuntimeBinaryOriginal>;
+  if(!isDeepStrictEqual(readRuntimeBinaryOriginal(s.root,proof.path,proof.sha),proof))fail();s.db.exec('COMMIT');
+  return{path:proof.path,digest:{algorithm:'sha256' as const,value:proof.sha},original:proof};
+ }catch{fail();}finally{s?.db.close();}
 }
 // A reservation is durable before csc starts. An interrupted build remains
 // Unknown and holds its recipe slot; no caller recompiles or resumes it.

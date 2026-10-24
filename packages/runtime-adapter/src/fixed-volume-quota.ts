@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync,mkdirSync,lstatSync } from 'node:fs';
 import { isDeepStrictEqual as same } from 'node:util';
 import { resolve, parse } from 'node:path';
 import { assertOrdinaryPath, digest, RuntimeAdapterError } from './files.js';
@@ -20,17 +20,69 @@ export function parseFixedVolumeObservation(raw:unknown,image:string,root:string
 }
 type Reader=(image:string,root:string,maximum:number)=>FixedVolumeObservation;
 const readers=new WeakSet<Reader>();
-export async function openWindowsFixedVolumeReader(toolsRoot:string):Promise<Reader>{
- const retained=await buildWindowsFixedVolumeReader(toolsRoot),original=structuredClone(retained.original);
+const readerOriginals=new WeakMap<Reader,unknown>();
+export async function openWindowsFixedVolumeReader(toolsRoot:string,options:{readOnly?:true}={}):Promise<Reader>{
+ const retained=await buildWindowsFixedVolumeReader(toolsRoot,options),original=structuredClone(retained.original);
  const verify=()=>{if(['.config','.local','.manifest'].some(suffix=>existsSync(retained.path+suffix))||!same(readRuntimeBinaryOriginal(toolsRoot,retained.path,retained.digest.value),original))fail();};
  const reader:Reader=(image,root,maximum)=>{try{const args=argumentsChecked(image,root,maximum);verify();const output=execFileSync(retained.path,[args.image,args.root,String(maximum)],{windowsHide:true,timeout:15000,maxBuffer:16384,encoding:'utf8',env:isolatedEnvironment(),stdio:['ignore','pipe','pipe']});verify();return parseFixedVolumeObservation(parseGatewayJson(output,16384),args.image,args.root,maximum);}catch{fail();}};
+ readers.add(reader);readerOriginals.set(reader,{root:assertOrdinaryPath(toolsRoot),original});return Object.freeze(reader);
+}
+function readerDirectory(path:string){const stat=lstatSync(assertOrdinaryPath(path),{bigint:true});if(!stat.isDirectory()||stat.ino<=0n)fail();return{dev:String(stat.dev),ino:String(stat.ino),birth:String(stat.birthtimeNs)};}
+// Original helper custody is registered BEFORE compiling. A partial install
+// gets only its retained reader on retry, never a replacement helper root.
+export async function openHostFixedVolumeReader(origin:AgentStartLedger,toolsRoot:string,id:string,rawBasis:unknown,options:{readOnly?:true}={}):Promise<Reader>{
+ if(!(origin instanceof AgentStartLedger)||!/^[a-f0-9]{64}$/.test(id))fail();
+ const root=assertOrdinaryPath(toolsRoot),basis=structuredClone(rawBasis),namespace='fixed_volume_reader';
+ let row=origin.readExclusive(namespace,id),created=false;
+ if(!row){
+  if(options.readOnly||origin.readExclusive('fixed_volume_reader_ready',id)||existsSync(root))fail();mkdirSync(root);
+  const claim=origin.claimExclusiveOnce(namespace,id,{format:'cimiloop/fixed-volume-reader-custody/1.0.0',root,identity:readerDirectory(root),basis});
+  if(!claim.created)fail();created=true;row=origin.readExclusive(namespace,id);
+ }
+ const original=structuredClone(row);let ready:ReturnType<AgentStartLedger['readExclusive']>|undefined;
+ const guard=()=>{if(!original||!same(origin.readExclusive(namespace,id),original)||!same(original.basis,{format:'cimiloop/fixed-volume-reader-custody/1.0.0',root,identity:readerDirectory(root),basis})||ready!==undefined&&!same(origin.readExclusive('fixed_volume_reader_ready',id),ready))fail();};
+ guard();const retained=await openWindowsFixedVolumeReader(root,created?{}:{readOnly:true});guard();
+ const completed={format:'cimiloop/fixed-volume-reader-ready/1.0.0',intent_ticket:original!.ticket,retained:readerOriginals.get(retained)};
+ if(created)origin.issueExclusive('fixed_volume_reader_ready',id,completed);
+ ready=origin.readExclusive('fixed_volume_reader_ready',id);if(!ready||!same(ready.basis,completed))fail();guard();
+ const reader:Reader=(image,volume,maximum)=>{guard();const result=retained(image,volume,maximum);guard();return result;};
  readers.add(reader);return Object.freeze(reader);
 }
 const core=({physical_device:_,...value}:FixedVolumeObservation)=>value;
 const policyKey=(root:string)=>digest(root.toUpperCase()).value;
+const quotas=new WeakSet<FixedVolumeQuota>(),storageToken=Symbol('fixed volume runtime storage');
+export interface FixedVolumeRuntimeScope {project_id:string;repository_path:string;data_directory:string}
+function runtimeScope(raw:FixedVolumeRuntimeScope):FixedVolumeRuntimeScope{
+ if(!exact(raw,['project_id','repository_path','data_directory'])||typeof raw.project_id!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(raw.project_id)||[raw.repository_path,raw.data_directory].some(path=>typeof path!=='string'||!/^([D-Z]):[\\/]/i.test(path)))fail();
+ return{project_id:raw.project_id,repository_path:assertOrdinaryPath(raw.repository_path as string),data_directory:assertOrdinaryPath(raw.data_directory as string)};
+}
+type StorageBasis={format:'cimiloop/fixed-volume-runtime/1.0.0';scope:FixedVolumeRuntimeScope;quota_ticket:AgentStartTicket};
+const storageStates=new WeakMap<FixedVolumeRuntimeStorage,{quota:FixedVolumeQuota;origin:AgentStartLedger;ticket:AgentStartTicket;basis:StorageBasis}>();
+function storageState(value:unknown){const state=value&&typeof value==='object'?storageStates.get(value as FixedVolumeRuntimeStorage):undefined;if(!state)fail();return state;}
+function readStorage(state:ReturnType<typeof storageState>){
+ const before=state.origin.readTicket(state.ticket);
+ if(!same(before,{format:'cimiloop/host-exclusive-ticket/1.0.0',namespace:'fixed_volume_runtime',id:digest(state.basis.scope.project_id).value,basis:state.basis}))fail();
+ const proof=assertOriginalQuotaPath.call(state.quota,state.basis.scope.repository_path);assertOriginalQuotaPath.call(state.quota,state.basis.scope.data_directory);
+ if(!same(proof.policy_ticket,state.basis.quota_ticket)||!same(state.origin.readTicket(state.ticket),before))fail();
+ return{...proof,scope:structuredClone(state.basis.scope),runtime_ticket:structuredClone(state.ticket)};
+}
+export function assertFixedVolumeRuntimeStorage(value:unknown,expected:FixedVolumeRuntimeScope){
+ const state=storageState(value);if(!same(runtimeScope(expected),state.basis.scope))fail();return readStorage(state);
+}
+// A capability created from the real quota and its independent original Host
+// ticket. A copied JSON proof or JavaScript constructor is never sufficient.
+export class FixedVolumeRuntimeStorage {
+ private constructor(token:symbol,quota:FixedVolumeQuota,origin:AgentStartLedger,ticket:AgentStartTicket,basis:StorageBasis){
+  if(token!==storageToken||!quotas.has(quota))fail();storageStates.set(this,{quota,origin,ticket:structuredClone(ticket),basis:structuredClone(basis)});Object.freeze(this);
+ }
+ read(){return readStorage(storageState(this));}
+ assertRuntime(projectId:string,repositoryPath:string,dataDirectory:string){
+  return assertFixedVolumeRuntimeStorage(this,{project_id:projectId,repository_path:repositoryPath,data_directory:dataDirectory});
+ }
+}
 // Volume evidence does not prove placement of every Runtime writable path.
 export class FixedVolumeQuota {
- private constructor(private readonly origin:AgentStartLedger,private readonly reader:Reader,private readonly ticket:AgentStartTicket,private readonly original:ReturnType<typeof core>){if(!(origin instanceof AgentStartLedger)||!readers.has(reader)||!same(origin.readExclusive('fixed_volume_quota',policyKey(original.volume_root)),{ticket,basis:{format:'cimiloop/fixed-volume-policy/1.0.0',original}}))fail();Object.freeze(ticket);Object.freeze(original.image_identity);Object.freeze(original);Object.freeze(this);}
+ private constructor(private readonly origin:AgentStartLedger,private readonly reader:Reader,private readonly ticket:AgentStartTicket,private readonly original:ReturnType<typeof core>){if(!(origin instanceof AgentStartLedger)||!readers.has(reader)||!same(origin.readExclusive('fixed_volume_quota',policyKey(original.volume_root)),{ticket,basis:{format:'cimiloop/fixed-volume-policy/1.0.0',original}}))fail();Object.freeze(ticket);Object.freeze(original.image_identity);Object.freeze(original);quotas.add(this);Object.freeze(this);}
  static initialize(origin:AgentStartLedger,reader:Reader,input:{image:string;volume_root:string;maximum_bytes:number}){
   if(!(origin instanceof AgentStartLedger)||!readers.has(reader))fail();const args=argumentsChecked(input.image,input.volume_root,input.maximum_bytes),observed=reader(args.image,args.root,args.maximum);
   origin.issueExclusive('fixed_volume_quota',policyKey(args.root),{format:'cimiloop/fixed-volume-policy/1.0.0',original:core(observed)});return this.open(origin,reader,args.root);
@@ -41,6 +93,19 @@ export class FixedVolumeQuota {
   const original=body.original as ReturnType<typeof core>;if(original.volume_root!==root.toUpperCase())fail();const current=reader(original.image_path,original.volume_root,original.virtual_bytes);if(!same(core(current),original)||!same(origin.readExclusive('fixed_volume_quota',policyKey(root)),row))fail();
   return new FixedVolumeQuota(origin,reader,row.ticket,structuredClone(original));
  }
- read(){const row=this.origin.readTicket(this.ticket),observed=this.reader(this.original.image_path,this.original.volume_root,this.original.virtual_bytes);if(!same(core(observed),this.original)||!same(this.origin.readTicket(this.ticket),row))fail();return{format:'cimiloop/fixed-volume-proof/1.0.0' as const,status:'Verified' as const,maximum_bytes:this.original.virtual_bytes,observation:observed,policy_ticket:structuredClone(this.ticket),runtime_scope_proven:false as const};}
- assertPath(path:string){const canonical=assertOrdinaryPath(path);if(parse(canonical).root.toUpperCase()!==this.original.volume_root)fail();const proof=this.read();if(assertOrdinaryPath(path)!==canonical)fail();return proof;}
+ #proof(){const row=this.origin.readTicket(this.ticket),observed=this.reader(this.original.image_path,this.original.volume_root,this.original.virtual_bytes);if(!same(core(observed),this.original)||!same(this.origin.readTicket(this.ticket),row))fail();return{format:'cimiloop/fixed-volume-proof/1.0.0' as const,status:'Verified' as const,maximum_bytes:this.original.virtual_bytes,observation:observed,policy_ticket:structuredClone(this.ticket),runtime_scope_proven:false as const};}
+ read(){return this.#proof();}
+ assertPath(path:string){const canonical=assertOrdinaryPath(path);if(parse(canonical).root.toUpperCase()!==this.original.volume_root)fail();const proof=this.#proof();if(assertOrdinaryPath(path)!==canonical)fail();return proof;}
+ bindRuntime(raw:FixedVolumeRuntimeScope){
+  if(!quotas.has(this))fail();const scope=runtimeScope(raw);this.assertPath(scope.repository_path);this.assertPath(scope.data_directory);
+  const basis:StorageBasis={format:'cimiloop/fixed-volume-runtime/1.0.0',scope,quota_ticket:structuredClone(this.ticket)};
+  this.origin.issueExclusive('fixed_volume_runtime',digest(scope.project_id).value,basis);return this.openRuntime(scope);
+ }
+ openRuntime(raw:FixedVolumeRuntimeScope){
+  if(!quotas.has(this))fail();const scope=runtimeScope(raw),row=this.origin.readExclusive('fixed_volume_runtime',digest(scope.project_id).value),basis:StorageBasis={format:'cimiloop/fixed-volume-runtime/1.0.0',scope,quota_ticket:structuredClone(this.ticket)};
+  if(!row||!same(row.basis,basis))fail();
+  const storage=Reflect.construct(FixedVolumeRuntimeStorage,[storageToken,this,this.origin,row.ticket,basis]) as FixedVolumeRuntimeStorage;
+  storage.read();return storage;
+ }
 }
+const assertOriginalQuotaPath=FixedVolumeQuota.prototype.assertPath;

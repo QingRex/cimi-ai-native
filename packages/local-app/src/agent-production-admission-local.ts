@@ -20,6 +20,7 @@ import { readOriginalAgentRunInputs } from "./agent-workspace-tools-local.js";
 import { LocalAgentRuntimeAdmission } from './agent-runtime-admission-local.js';
 import { hasInstalledCodexAgentRuntime } from './agent-codex-installation-local.js';
 import { openInstalledCodexUsageBudget } from './agent-codex-usage-budget-local.js';
+import {openCodexRuntimeStorage} from './agent-codex-storage-local.js';
 
 // The installed connection names the model and the https chat-completions
 // endpoint. Fee authorization is one OpenCode Go connection: deepseek-v4.1-flash
@@ -183,7 +184,9 @@ export const productionAgentRuntime: HumanAgentRuntimeFactory = async (runId, lo
     const account=await openInstalledCodexUsageBudget(local);
     if(!account)throw codexProductionAdmissionError(['Codex 原账户容量政策']);
     try{
-      admission.guard();account.guard();const runtime=admission.runtimeForRun(runId,account);admission.guard();
+      admission.guard();account.guard();const storage=await openCodexRuntimeStorage(local,account.installation);
+      if(!storage)throw codexProductionAdmissionError(['Codex 原固定卷运行范围']);
+      admission.guard();account.guard();const runtime=admission.runtimeForRun(runId,account,undefined,storage);admission.guard();
       let released=false;return{runtime,release(){if(!released){released=true;account.release();}}};
     }catch(error){account.release();throw error;}
   }

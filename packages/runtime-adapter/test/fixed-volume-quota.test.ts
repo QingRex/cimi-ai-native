@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, existsSync, readdirSync,renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -7,6 +7,16 @@ import * as runtime from '../src/index.js';
 // Actual compiler and read-only Windows APIs. No disk creation/attach/format,
 // model, quota approval or S1 acceptance; retain each new owned test root.
 describe.runIf(process.platform==='win32'&&process.arch==='x64')('fixed VHD volume physical reader',()=>{
+ it('does not compile or create custody while opening a missing reader in read-only mode',async()=>{
+  const root=mkdtempSync(join(tmpdir(),'cimiloop-fixed-quota-')),tools=join(root,'missing-reader');
+  await expect(Reflect.apply(runtime.openWindowsFixedVolumeReader,undefined,[tools,{readOnly:true}])).rejects.toThrow();expect(existsSync(tools)).toBe(false);
+ });
+ it('reopens an exact retained reader without writes and never repairs its lost executable',async()=>{
+  const root=mkdtempSync(join(tmpdir(),'cimiloop-fixed-quota-')),tools=join(root,'tools');await runtime.openWindowsFixedVolumeReader(tools);
+  const before=readdirSync(tools,{recursive:true}).sort();expect(await runtime.openWindowsFixedVolumeReader(tools,{readOnly:true})).toBeTypeOf('function');expect(readdirSync(tools,{recursive:true}).sort()).toEqual(before);
+  const binary=before.find(path=>String(path).startsWith('runtime-binary-originals')&&String(path).endsWith('runtime.exe'));expect(binary).toBeDefined();const path=join(tools,String(binary));renameSync(path,path+'.retained');
+  await expect(runtime.openWindowsFixedVolumeReader(tools,{readOnly:true})).rejects.toThrow();expect(existsSync(path)).toBe(false);expect(existsSync(path+'.retained')).toBe(true);
+ });
  it('refuses a normal file/volume and leaves the original file untouched',async()=>{
   const root=mkdtempSync(join(tmpdir(),'cimiloop-fixed-quota-')),image=join(root,'PUBLIC-not-a-vhd.vhdx');writeFileSync(image,'PUBLIC invalid image');
   const reader=await runtime.openWindowsFixedVolumeReader(join(root,'tools'));

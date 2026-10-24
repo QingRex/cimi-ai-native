@@ -1,5 +1,5 @@
 import { retainRuntimeBinary } from "./runtime-binary-originals.js";
-import { retainAgentSandboxBuild } from "./agent-sandbox-build-originals.js";
+import { retainAgentSandboxBuild,readRetainedAgentSandboxBuild } from "./agent-sandbox-build-originals.js";
 import { projectWindowsCompiler } from "./windows-compiler.js";
 import { execFile, type ExecFileOptions } from "node:child_process";
 import { promisify } from "node:util";
@@ -195,9 +195,10 @@ export async function buildWindowsAgentJobObserver(root:string,signal?:AbortSign
  return retainAgentSandboxBuild(root,recipe,async build=>{signal?.throwIfAborted();const copied=join(build,'AgentJobObserver.cs'),candidate=join(build,'observer.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+candidate,copied],signal);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return candidate;});
 }
 
-export async function buildWindowsFixedVolumeReader(root:string){
+export async function buildWindowsFixedVolumeReader(root:string,readOptions:{readOnly?:true}={}){
  if(process.platform!=='win32'||process.arch!=='x64')throw new RuntimeAdapterError('windows_x64_fixed_volume_required');
  const source=fileURLToPath(new URL('../native/FixedVolumeQuota.cs',import.meta.url)),frozen=bytesAt(source,1048576),compiler=resolve(process.env.SystemRoot??'C:\\Windows','Microsoft.NET','Framework64','v4.0.30319','csc.exe'),compilerDigest=digest(bytesAt(compiler)),options=['/nologo','/target:exe','/reference:System.Web.Extensions.dll'];
  const recipe={format:'cimiloop/fixed-volume-reader-build-recipe/1.0.0',platform:'windows_x64',compiler:{path:compiler,digest:compilerDigest},options,sources:[{name:'FixedVolumeQuota.cs',digest:digest(frozen)}]};
+ if(readOptions.readOnly===true)return readRetainedAgentSandboxBuild(root,recipe);
  return retainAgentSandboxBuild(root,recipe,async build=>{const copied=join(build,'FixedVolumeQuota.cs'),output=join(build,'quota.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+output,copied]);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return output;});
 }

@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CimiLoopKernel } from '@cimiloop/kernel';
-import { AgentStartLedger, CodexAgentUsageBudget, digest } from '@cimiloop/runtime-adapter';
+import { AgentStartLedger, CodexAgentUsageBudget, digest,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
 import type { InstalledCodexUsageBudget } from '../src/agent-codex-usage-budget-local.js';
 import type { AgentRuntimeLease } from '../src/agent-runtime-human-start-local.js';
 import * as Public from '../src/index.js';
@@ -12,12 +12,14 @@ import { createAgentRunProject } from '../../../tests/fixtures/agent-run-project
 import { flowSuccess, flowTime } from '../../../tests/fixtures/flow-project.js';
 
 vi.setConfig({testTimeout:120000});
-const seam=vi.hoisted(()=>({installed:false,account:undefined as InstalledCodexUsageBudget|undefined,onOpen:undefined as undefined|(()=>void),opens:0}));
+const seam=vi.hoisted(()=>({installed:false,account:undefined as InstalledCodexUsageBudget|undefined,onOpen:undefined as undefined|(()=>void),opens:0,storage:undefined as FixedVolumeRuntimeStorage|undefined,onStorage:undefined as undefined|(()=>void)}));
 vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),hasInstalledCodexAgentRuntime:()=>seam.installed}));
 vi.mock('../src/agent-codex-usage-budget-local.js',async load=>({...await load<typeof import('../src/agent-codex-usage-budget-local.js')>(),openInstalledCodexUsageBudget:async()=>{seam.opens++;seam.onOpen?.();return seam.account;}}));
+vi.mock('../src/agent-codex-storage-local.js',async load=>({...await load<typeof import('../src/agent-codex-storage-local.js')>(),openCodexRuntimeStorage:async()=>{seam.onStorage?.();return seam.storage;}}));
+vi.mock('@cimiloop/runtime-adapter',async load=>{const original=await load<typeof import('@cimiloop/runtime-adapter')>();return{...original,assertFixedVolumeRuntimeStorage(value:unknown,scope:Parameters<typeof original.assertFixedVolumeRuntimeStorage>[1]){if(value!==undefined&&value===seam.storage&&seam.account)return{runtime_ticket:{identity_digest:seam.account.installation.origin.identityDigest}};return original.assertFixedVolumeRuntimeStorage(value,scope);}};});
 // Actual Kernel/project SQLite/check installation/custody. Complete Provider and
-// full host proofs are PUBLIC seams; no model/Native or S1 admission is claimed.
-const close:(()=>void)[]=[];afterEach(()=>{while(close.length)close.pop()!();vi.useRealTimers();seam.account=undefined;seam.onOpen=undefined;seam.installed=false;seam.opens=0;});
+// full host/storage proofs are PUBLIC seams; no model/Native or S1 admission is claimed.
+const close:(()=>void)[]=[];afterEach(()=>{while(close.length)close.pop()!();vi.useRealTimers();seam.account=undefined;seam.onOpen=undefined;seam.installed=false;seam.opens=0;seam.storage=undefined;seam.onStorage=undefined;});
 function fixture(){
  vi.useFakeTimers({now:new Date(flowTime),toFake:['Date']});
  const root=mkdtempSync(join(tmpdir(),'cimiloop-runtime-admission-')),f=createAgentRunProject(root,'task_execution',100,[{provider:'cimiloop_workspace',resource_type:'repository_path',locator:'src/**',version:'1.0.0'}],['read_files','run_checks'],['src/**']);close.push(()=>f.store.close());
@@ -70,9 +72,12 @@ describe('shared original Runtime admission lease',()=>{
   const reserved=flowSuccess(f.agent.execute(f.f.reserveCommand({...prepared.data,context:prepared.data.context})));if(reserved.command_type!=='ReserveRun')throw Error('Expected original Run');
   const account_digest=digest('PUBLIC Codex login').value,quota_account_digest=digest('PUBLIC Codex quota').value,budget=CodexAgentUsageBudget.initialize(f.origin,{account_digest,quota_account_digest,model_calls:2,output_tokens:4096});let released=false;
   seam.account={root:'PUBLIC shared account',budget,installation:{origin:f.origin,root:'PUBLIC copied bundle',binary:process.execPath,native_binary:process.execPath,node_binary:process.execPath,model:'gpt-6-luna',account_digest,quota_account_digest,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',disabled_mcp_servers:[],checks:f.options.templates,installation_digest:digest('PUBLIC copied bundle').value,guard(){if(released)throw Error('PUBLIC account released');},release(){}},guard(){if(released)throw Error('PUBLIC account released');},release(){released=true;}};
-  const lease=await Public.productionAgentRuntime(reserved.data.run.id,f.local) as AgentRuntimeLease;try{expect(lease.runtime.originalScope(reserved.data.run.id).run_id).toBe(reserved.data.run.id);expect(budget.snapshot().held.model_calls).toBe(0);expect(seam.opens).toBe(1);}finally{await lease.release();}expect(released).toBe(true);admission.guard();expect(budget.snapshot().held.model_calls).toBe(0);
+  await expect(Public.productionAgentRuntime(reserved.data.run.id,f.local)).rejects.toMatchObject({details:{missing:['Codex 原固定卷运行范围']}});expect(released).toBe(true);expect(budget.snapshot().held.model_calls).toBe(0);
+  released=false;seam.storage={} as FixedVolumeRuntimeStorage;
+  const lease=await Public.productionAgentRuntime(reserved.data.run.id,f.local) as AgentRuntimeLease;try{expect(lease.runtime.originalScope(reserved.data.run.id).run_id).toBe(reserved.data.run.id);expect(budget.snapshot().held.model_calls).toBe(0);expect(seam.opens).toBe(2);}finally{await lease.release();}expect(released).toBe(true);admission.guard();expect(budget.snapshot().held.model_calls).toBe(0);
  }finally{admission.release();}});
  it('refuses an installed Codex without a complete admission lease instead of choosing the old HTTP connection',async()=>{const f=fixture();seam.installed=true;await expect(Public.productionAgentRuntime('PUBLIC not launched',f.local)).rejects.toMatchObject({details:{production_admission:'unapproved',missing:['Codex Context 前完整准入']}});expect(seam.opens).toBe(0);});
  it('refuses a missing Codex account policy while keeping the shared admission owned by its caller',async()=>{const f=fixture(),admission=await f.open();try{await expect(Public.productionAgentRuntime('PUBLIC no effect',f.local)).rejects.toMatchObject({details:{production_admission:'unapproved',missing:['Codex 原账户容量政策']}});admission.guard();}finally{admission.release();}});
  it('rechecks the admission after account-open await and releases only the returned account on failure',async()=>{const f=fixture(),admission=await f.open();let released=0;seam.account={release(){released++;}} as unknown as InstalledCodexUsageBudget;seam.onOpen=()=>admission.release();await expect(Public.productionAgentRuntime('PUBLIC no effect',f.local)).rejects.toThrow();expect(released).toBe(1);expect(()=>admission.guard()).toThrow();});
+ it('rechecks the shared admission after storage-open await and releases the account without a Runtime',async()=>{const f=fixture(),admission=await f.open();let released=0;seam.account={installation:{},guard(){},release(){released++;}} as unknown as InstalledCodexUsageBudget;seam.storage={} as FixedVolumeRuntimeStorage;seam.onStorage=()=>admission.release();await expect(Public.productionAgentRuntime('PUBLIC no effect',f.local)).rejects.toThrow();expect(released).toBe(1);expect(()=>admission.guard()).toThrow();});
 });

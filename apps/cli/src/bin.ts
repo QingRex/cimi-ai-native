@@ -25,7 +25,7 @@ import {productionAgentRuntime,productionAgentAccount} from '@cimiloop/local-app
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 import { installCodexClarification } from "./clarification-codex.js";
-import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,showCodexRuntimeBudget} from './agent-codex-installation.js';
+import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage} from './agent-codex-installation.js';
 
 const program = new Command();
 const jsonRequested = process.argv.includes("--json");
@@ -103,6 +103,14 @@ runtime.command('install-codex-budget').description('显式安装同一Codex账�
  .action((options,command)=>installCodexRuntimeBudget({...globals(command),...options}));
 runtime.command('codex-budget').description('只读核对原Codex账户政策、占用与剩余容量，不创建或修复账户')
  .action((_options,command)=>showCodexRuntimeBudget(globals(command)));
+runtime.command('install-codex-storage').description('绑定已有专用固定卷及项目运行范围；不创建、挂载、格式化卷或调用模型')
+ .requiredOption('--image <path>','原固定VHDX镜像绝对路径')
+ .requiredOption('--volume-root <root>','原专用卷盘根，例如R:\\')
+ .requiredOption('--maximum-mib <count>','固定虚拟容量，64至8192 MiB')
+ .option('--yes','明确确认同卷项目与运行目录，不迁移已有用户库')
+ .action((options,command)=>installCodexStorage({...globals(command),...options}));
+runtime.command('codex-storage').description('只读核对原固定卷及Runtime范围；不创建或修复原件')
+ .action((_options,command)=>showCodexStorage(globals(command)));
 runtime.command("gateway-credit-probe").description("历史费率下的持久积分预算演练；不发送HTTP、读取凭据或批准计费")
   .option("--output-dir <path>", "结果及独立积分演练账本目录；默认.cimiloop/gateway-credit-probe")
   .action((options, command) => runtimeGatewayCreditProbe({ ...globals(command), ...options }));

@@ -1,5 +1,5 @@
 import{resolve}from'node:path';
-import{installCodexAgentRuntime,inspectCodexAgentRuntimeInstallation,installCodexUsageBudget,inspectCodexUsageBudget,openLocalProject}from'@cimiloop/local-app';
+import{installCodexAgentRuntime,inspectCodexAgentRuntimeInstallation,installCodexUsageBudget,inspectCodexUsageBudget,installCodexRuntimeStorage,inspectCodexRuntimeStorage,openLocalProject}from'@cimiloop/local-app';
 import{bytesAt,parseGatewayJson,parseWorkspaceCheckTemplate}from'@cimiloop/runtime-adapter';
 import{CliInputError}from'./input.js';import{renderFields}from'./output.js';import type{GlobalOptions}from'./commands.js';
 export async function installCodexRuntime(options:GlobalOptions&{binary:string;nativeBinary:string;nodeBinary?:string;checks:string;model?:string;yes?:boolean;disableMcpServer?:string[]}){
@@ -9,3 +9,9 @@ export async function installCodexRuntime(options:GlobalOptions&{binary:string;n
 export async function showCodexRuntimeInstallation(options:GlobalOptions){const local=openLocalProject(options);try{const result=await inspectCodexAgentRuntimeInstallation(local);process.stdout.write((options.json?JSON.stringify(result,null,2):renderFields(result))+'\n');if(result.state==='unavailable')process.exitCode=1;}finally{local.store.close();}}
 export async function installCodexRuntimeBudget(options:GlobalOptions&{maxModelCalls:string;maxOutputTokens:string;yes?:boolean}){if(!options.yes)throw new CliInputError('容量政策对同一Codex账号跨项目共享，Unknown预约不释放；请显式使用 --yes。不会调用模型或确认账单。');if(!/^[1-9][0-9]*$/.test(options.maxModelCalls)||!/^[1-9][0-9]*$/.test(options.maxOutputTokens))throw new CliInputError('模型次数与最大输出token容量必须为正整数。');const local=openLocalProject(options);try{const result=await installCodexUsageBudget(local,{model_calls:Number(options.maxModelCalls),output_tokens:Number(options.maxOutputTokens)});process.stdout.write((options.json?JSON.stringify(result,null,2):renderFields(result))+'\n');}finally{local.store.close();}}
 export async function showCodexRuntimeBudget(options:GlobalOptions){const local=openLocalProject(options);try{const result=await inspectCodexUsageBudget(local);process.stdout.write((options.json?JSON.stringify(result,null,2):renderFields(result))+'\n');if(result.state==='unavailable')process.exitCode=1;}finally{local.store.close();}}
+export async function installCodexStorage(options:GlobalOptions&{image:string;volumeRoot:string;maximumMib:string;yes?:boolean}){
+ if(!options.yes)throw new CliInputError('固定卷安装会绑定原镜像、项目仓库及运行数据根；请显式使用 --yes。不会创建、挂载或格式化卷。');
+ if(!/^[1-9][0-9]*$/.test(options.maximumMib)||Number(options.maximumMib)<64||Number(options.maximumMib)>8192)throw new CliInputError('固定卷容量必须为64至8192 MiB整数。');
+ const local=openLocalProject(options);try{const result=await installCodexRuntimeStorage(local,{image:resolve(options.image),volume_root:options.volumeRoot,maximum_bytes:Number(options.maximumMib)*1024**2});process.stdout.write((options.json?JSON.stringify(result,null,2):renderFields(result))+'\n');}finally{local.store.close();}
+}
+export async function showCodexStorage(options:GlobalOptions){const local=openLocalProject(options);try{const result=await inspectCodexRuntimeStorage(local);process.stdout.write((options.json?JSON.stringify(result,null,2):renderFields(result))+'\n');if(result.state==='unavailable')process.exitCode=1;}finally{local.store.close();}}
