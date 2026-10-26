@@ -407,6 +407,7 @@ partial class AppContainer {
       Check(CreateProcess(binary,command,IntPtr.Zero,IntPtr.Zero,true,0x80000|0x08000000|0x4,IntPtr.Zero,mapping+"\\workspace",ref startup,out process)); started=true;
       agentResources["runtime"]=new Dictionary<string,object> { {"pid",process.pid},{"creation_ticks",Creation(process.process)},{"image",Image(process.process)} };
       AgentCheckpoint("runtime_created",owner);
+      if(config.ContainsKey("writable_storage_profile"))AgentProfileStorage.ProtectRegistry(process.process,sid);
       agentResources["phase"]="suspended"; AgentResourceSave();
       string originalProof=serializer.Serialize(new { format="cimiloop/agent-workspace-sandbox/1.0.0",phase="suspended",nonce=nonce,
         supervisor=Identity(Process.GetCurrentProcess().Id),peer=Identity(process.pid),appcontainer_sid=principal.Value,network_capability_sids=new string[0],active_process_limit=1 });
