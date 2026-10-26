@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdirSync, lstatSync, readFileSync, writeFileSync, renameSync, existsSync, openSync, fsyncSync, closeSync } from "node:fs";
+import { mkdirSync, lstatSync, readFileSync, writeFileSync, renameSync, openSync, fsyncSync, closeSync } from "node:fs";
 import { dirname, resolve, join } from "node:path";
 import type { Digest, ExternalReference } from "@cimiloop/protocol/v2";
 
@@ -10,7 +10,9 @@ export const digest = (bytes: string | Uint8Array): Digest => ({ algorithm: "sha
 export const assertOrdinaryPath = (input: string): string => {
   const path = resolve(input);
   for (let current = path;; current = dirname(current)) {
-    if (existsSync(current) && lstatSync(current).isSymbolicLink()) throw new RuntimeAdapterError("linked_path_denied");
+    // Inspect the entry itself: existsSync follows links and hides a dangling
+    // junction. One lstat also avoids two filesystem probes per ordinary parent.
+    if (lstatSync(current, { throwIfNoEntry: false })?.isSymbolicLink()) throw new RuntimeAdapterError("linked_path_denied");
     if (dirname(current) === current) break;
   }
   return path;
