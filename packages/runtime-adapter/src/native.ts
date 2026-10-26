@@ -1,7 +1,7 @@
 import { retainRuntimeBinary } from "./runtime-binary-originals.js";
 import { retainAgentSandboxBuild,readRetainedAgentSandboxBuild } from "./agent-sandbox-build-originals.js";
-import { projectWindowsCompiler } from "./windows-compiler.js";
-import { execFile, type ExecFileOptions } from "node:child_process";
+import { executeWindowsCompiler as executeCompiler } from "./windows-compiler.js";
+import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { join, resolve } from "node:path";
@@ -30,7 +30,6 @@ export function assertAgentRuntimeNativeRoot(root:string):void {
   const ipc=existsSync(legacy)?join(legacy,'AgentWorkspaceTransport.exe'):join(root,'tools','agent-workspace-ipc-v2-'+hash,'ipc.exe');
   for(const path of [join(root,'runtime-binary-originals',hash,'runtime.exe'),join(root,'tools',hash,'AppContainer.exe'),ipc])assertNativeExecutable(path);
 }
-const executeCompiler = (compiler:string,args:string[],options:ExecFileOptions) => projectWindowsCompiler(compiler,args,async projected=>{options.signal?.throwIfAborted();const result=await execute(compiler,projected,options);options.signal?.throwIfAborted();return result;});
 export const isolatedEnvironment = (systemRoot = process.env.SystemRoot ?? "C:\\Windows"): NodeJS.ProcessEnv => ({
   SystemRoot: systemRoot, WINDIR: systemRoot, PATH: join(systemRoot, "System32"),
   USERPROFILE: process.env.USERPROFILE, LOCALAPPDATA: process.env.LOCALAPPDATA, APPDATA: process.env.APPDATA,
@@ -90,7 +89,7 @@ export const buildWindowsLauncher = async (root: string, signal?: AbortSignal): 
     const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
     if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
     const candidate = join(build, `${randomUUID()}.exe`);
-    try { await executeCompiler(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source, transport, gateway, conversation], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment(), signal }); }
+    try { await executeCompiler(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source, transport, gateway, conversation], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, signal },root); }
     catch { throw new RuntimeAdapterError("native_launcher_build_failed"); }
     renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
   }
@@ -110,7 +109,7 @@ export const buildWindowsWorkspaceBroker = async (root: string): Promise<{ path:
   if (!existsSync(output) || !existsSync(metadata)) {
     const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe"), candidate = join(build, `${randomUUID()}.exe`);
     if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
-    try { await executeCompiler(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment() }); }
+    try { await executeCompiler(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024 },root); }
     catch { throw new RuntimeAdapterError("workspace_broker_build_failed"); }
     renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
   }
@@ -134,7 +133,7 @@ export const buildWindowsAgentWorkspaceTransport = async (root: string, signal?:
   if (!existsSync(output) || !existsSync(metadata)) {
     const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe"), candidate = join(build, `${randomUUID()}.exe`);
     if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
-    try { await executeCompiler(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, env: isolatedEnvironment(), signal }); }
+    try { await executeCompiler(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, signal },root); }
     catch { throw new RuntimeAdapterError("agent_ipc_build_failed"); }
     renameSync(candidate, output); atomicJson(metadata, {format:'cimiloop/agent-ipc-build/2.0.0',source_digest:sourceDigest,digest: digest(bytesAt(output)) });
   }
@@ -146,13 +145,13 @@ export const buildWindowsAgentWorkspaceTransport = async (root: string, signal?:
 
 // Distinct suspended-start rehearsal entry point; public Main and persisted
 // recovery formats remain separate from this private composition.
-export async function compileOriginalAgentSandbox(compiler:string,args:string[],signal?:AbortSignal):Promise<void>{
+export async function compileOriginalAgentSandbox(compiler:string,args:string[],signal?:AbortSignal,ownedRoot?:string):Promise<void>{
   const started=performance.now(),maximumMs=30000,controller=new AbortController();let stopped=false;
   const stop=()=>{stopped=true;controller.abort();},timer=setTimeout(stop,maximumMs);
   signal?.addEventListener("abort",stop,{once:true});if(signal?.aborted)stop();
   try{
     if(stopped)throw new RuntimeAdapterError("agent_sandbox_build_failed");
-    await executeCompiler(compiler,args,{windowsHide:true,maxBuffer:1024*1024,env:isolatedEnvironment(),signal:controller.signal});
+    await executeCompiler(compiler,args,{windowsHide:true,maxBuffer:1024*1024,signal:controller.signal},ownedRoot);
     // Windows can report code0 after termination. A candidate file and a
     // successful callback cannot override the first stop or elapsed deadline.
     if(stopped||signal?.aborted||performance.now()-started>=maximumMs)throw new RuntimeAdapterError("agent_sandbox_build_failed");
@@ -180,7 +179,7 @@ export const buildWindowsAgentWorkspaceSandbox = async (root: string, signal?: A
     }
     const copied=recipe.sources.map((source,i)=>{const path=join(build,source.name);writeFileSync(path,frozen[i]!,{flag:"wx"});return path;}),candidate=join(build,"AgentWorkspaceSandbox.exe");
     if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError("native_compiler_changed");
-    await compileOriginalAgentSandbox(compiler,[...options,`/out:${candidate}`,...copied],signal);
+    await compileOriginalAgentSandbox(compiler,[...options,`/out:${candidate}`,...copied],signal,root);
     if(digest(bytesAt(compiler)).value!==compilerDigest.value||copied.some((path,i)=>digest(bytesAt(path)).value!==recipe.sources[i]!.digest.value))throw new RuntimeAdapterError("agent_sandbox_build_recipe_changed");
     return candidate;
   });
@@ -192,7 +191,7 @@ export async function buildWindowsAgentJobObserver(root:string,signal?:AbortSign
  const source=fileURLToPath(new URL('../native/AgentJobObserver.cs',import.meta.url)),frozen=bytesAt(source,1024*1024),compiler=resolve(process.env.SystemRoot??'C:\\Windows','Microsoft.NET','Framework64','v4.0.30319','csc.exe');if(!existsSync(compiler))throw new RuntimeAdapterError('native_compiler_unavailable');
  const compilerDigest=digest(bytesAt(compiler)),options=['/nologo','/target:exe','/main:AgentJobObserver','/reference:System.Web.Extensions.dll'];
  const recipe={format:'cimiloop/agent-job-observer-build-recipe/1.0.0',platform:'windows_x64',compiler:{path:compiler,digest:compilerDigest},options,sources:[{name:'AgentJobObserver.cs',digest:digest(frozen)}]};
- return retainAgentSandboxBuild(root,recipe,async build=>{signal?.throwIfAborted();const copied=join(build,'AgentJobObserver.cs'),candidate=join(build,'observer.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+candidate,copied],signal);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return candidate;});
+ return retainAgentSandboxBuild(root,recipe,async build=>{signal?.throwIfAborted();const copied=join(build,'AgentJobObserver.cs'),candidate=join(build,'observer.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+candidate,copied],signal,root);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return candidate;});
 }
 
 export async function buildWindowsFixedVolumeReader(root:string,readOptions:{readOnly?:true}={}){
@@ -200,7 +199,7 @@ export async function buildWindowsFixedVolumeReader(root:string,readOptions:{rea
  const source=fileURLToPath(new URL('../native/FixedVolumeQuota.cs',import.meta.url)),frozen=bytesAt(source,1048576),compiler=resolve(process.env.SystemRoot??'C:\\Windows','Microsoft.NET','Framework64','v4.0.30319','csc.exe'),compilerDigest=digest(bytesAt(compiler)),options=['/nologo','/target:exe','/reference:System.Web.Extensions.dll'];
  const recipe={format:'cimiloop/fixed-volume-reader-build-recipe/1.0.0',platform:'windows_x64',compiler:{path:compiler,digest:compilerDigest},options,sources:[{name:'FixedVolumeQuota.cs',digest:digest(frozen)}]};
  if(readOptions.readOnly===true)return readRetainedAgentSandboxBuild(root,recipe);
- return retainAgentSandboxBuild(root,recipe,async build=>{const copied=join(build,'FixedVolumeQuota.cs'),output=join(build,'quota.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+output,copied]);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return output;});
+ return retainAgentSandboxBuild(root,recipe,async build=>{const copied=join(build,'FixedVolumeQuota.cs'),output=join(build,'quota.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+output,copied],undefined,root);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return output;});
 }
 
 export async function buildWindowsCodexProcessJob(root:string){
@@ -208,5 +207,5 @@ export async function buildWindowsCodexProcessJob(root:string){
  assertNativeExecutable(join(root,'runtime-binary-originals','a'.repeat(64),'runtime.exe'));
  const source=fileURLToPath(new URL('../native/CodexProcessJob.cs',import.meta.url)),frozen=bytesAt(source,1048576),compiler=resolve(process.env.SystemRoot??'C:\\Windows','Microsoft.NET','Framework64','v4.0.30319','csc.exe'),compilerDigest=digest(bytesAt(compiler)),options=['/nologo','/target:exe','/reference:System.Web.Extensions.dll'];
  const recipe={format:'cimiloop/codex-process-job-build-recipe/1.0.0',platform:'windows_x64',compiler:{path:compiler,digest:compilerDigest},options,sources:[{name:'CodexProcessJob.cs',digest:digest(frozen)}]};
- return retainAgentSandboxBuild(root,recipe,async build=>{const copied=join(build,'CodexProcessJob.cs'),output=join(build,'job.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+output,copied]);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return output;});
+ return retainAgentSandboxBuild(root,recipe,async build=>{const copied=join(build,'CodexProcessJob.cs'),output=join(build,'job.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+output,copied],undefined,root);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return output;});
 }

@@ -1,11 +1,9 @@
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { existsSync, renameSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { atomicJson, bytesAt, digest, directory, readJson, RuntimeAdapterError } from "./files.js";
-import { isolatedEnvironment } from "./native.js";
+import {executeWindowsCompiler} from './windows-compiler.js';
 
 import { WorkerAgentRunClockChannel } from "./agent-run-clock-worker-channel.js";
 export interface AgentRunClockReading { format: "cimiloop/agent-run-clock/1.0.0"; utc: string; boot_utc: string; uptime_ms: number; machine_digest: string }
@@ -25,8 +23,8 @@ export async function openWindowsAgentRunClock(root: string, signal?: AbortSigna
   if (!existsSync(output) || !existsSync(metadata)) {
     const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe"), candidate = join(build, `${randomUUID()}.exe`);
     if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
-    try { await promisify(execFile)(compiler, ["/nologo", "/target:exe", "/reference:System.Management.dll", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source],
-      { windowsHide: true, timeout: 30000, maxBuffer: 1048576, env: isolatedEnvironment(), signal }); }
+    try { await executeWindowsCompiler(compiler, ["/nologo", "/target:exe", "/reference:System.Management.dll", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source],
+      { windowsHide: true, timeout: 30000, maxBuffer: 1048576, signal },root); }
     catch { throw new RuntimeAdapterError("agent_run_clock_build_failed"); }
     renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
   }

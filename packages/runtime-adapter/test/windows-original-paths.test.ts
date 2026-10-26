@@ -26,7 +26,7 @@ describe.runIf(process.platform==='win32')('Windows long original database paths
  });
  it('compiles frozen public CSharp at a long original destination without shortening the stored identity',async()=>{
   const f=fixture(),source=join(f.root,'PublicMain.cs'),output=join(f.root,'PUBLIC-compiled.exe');writeFileSync(source,'class PublicMain { public static void Main() {} }');
-  await compileOriginalAgentSandbox(join(process.env.SystemRoot!,'Microsoft.NET/Framework64/v4.0.30319/csc.exe'),['/nologo','/target:exe','/out:'+output,source]);
+  await compileOriginalAgentSandbox(join(process.env.SystemRoot!,'Microsoft.NET/Framework64/v4.0.30319/csc.exe'),['/nologo','/target:exe','/out:'+output,source],undefined,f.outer);
   expect(readFileSync(output).subarray(0,2).toString()).toBe('MZ');
  });
  it('refuses an unsupported CLR executable root before creating a controller or replacing its identity',async()=>{

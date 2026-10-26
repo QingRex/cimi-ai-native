@@ -1,11 +1,11 @@
-import { execFile, execFileSync } from "node:child_process";
-import { promisify } from "node:util";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { join, resolve } from "node:path";
 import { existsSync, renameSync, lstatSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { assertOrdinaryPath, atomicJson, bytesAt, digest, directory, readJson, RuntimeAdapterError } from "./files.js";
 import { isolatedEnvironment } from "./native.js";
+import {executeWindowsCompiler} from './windows-compiler.js';
 
 type Action = "identity" | "protect" | "verify";
 type VerifyHit={dev:string;ino:string;birthtimeNs:string;result:string};
@@ -31,8 +31,8 @@ export async function openWindowsAgentStartCustody(toolsRoot: string, signal?: A
     const candidate = join(build, randomUUID() + ".exe"), started = performance.now();
     const stop = signal ? AbortSignal.any([signal, AbortSignal.timeout(30000)]) : AbortSignal.timeout(30000);
     try {
-      await promisify(execFile)(compiler, ["/nologo", "/target:exe", "/out:" + candidate, source],
-        { windowsHide: true, maxBuffer: 1048576, env: isolatedEnvironment(), signal: stop });
+      await executeWindowsCompiler(compiler, ["/nologo", "/target:exe", "/out:" + candidate, source],
+        { windowsHide: true, maxBuffer: 1048576, signal: stop },toolsRoot);
       if (stop.aborted || performance.now() - started >= 30000) throw Error();
     } catch { throw new RuntimeAdapterError("agent_start_custody_build_failed"); }
     renameSync(candidate, binary); atomicJson(metadata, { digest: digest(bytesAt(binary)) });
