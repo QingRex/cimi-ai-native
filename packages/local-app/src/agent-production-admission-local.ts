@@ -1,54 +1,30 @@
 import {openCodexRuntimeLoginHome} from './agent-codex-login-home-local.js';
 import { lstatSync, mkdirSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
-import { CimiLoopKernel, requestDigest } from "@cimiloop/kernel";
 import {
-  PINNED_CONVERSATION_OPENCODE_SHA, bytesAt, digest, digestRuntimeBinaryFile, loadModelConnection,
-  openWindowsAgentStartLedger, openWindowsDedicatedAgentAccountLedger, parseGatewayJson, parseWorkspaceCheckTemplate, validateModelConnection,
+  PINNED_CONVERSATION_OPENCODE_SHA, bytesAt, digestRuntimeBinaryFile, loadModelConnection,
+  parseGatewayJson, parseWorkspaceCheckTemplate,
 } from "@cimiloop/runtime-adapter";
-import type { AgentStartLedger, DedicatedAgentAccountAdmission, DedicatedAgentAccountLedger, DedicatedAgentAccountPolicy, DedicatedModelConnection, WorkspaceCheckTemplate } from "@cimiloop/runtime-adapter";
+import type { AgentStartLedger, DedicatedAgentAccountAdmission, DedicatedAgentAccountPolicy, DedicatedModelConnection, WorkspaceCheckTemplate } from "@cimiloop/runtime-adapter";
 import type { LocalProject } from "./project.js";
-import { installedRunVerifier } from "./project.js";
 import { LocalProjectError } from "./errors.js";
 import type { AgentRuntimeLease, HumanAgentRuntimeFactory } from "./agent-runtime-human-start-local.js";
-import { LocalAgentRuntimeComposition } from "./agent-runtime-composition-local.js";
-import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
-import { LocalAgentCheckAdmission } from "./agent-check-admission-local.js";
-import { LocalAgentModelAdmission } from "./agent-model-admission-local.js";
-import { LocalEvidenceVerifier } from "./evidence-local.js";
-import { LocalProviderVerifier } from "./providers-local.js";
-import { readOriginalAgentRunInputs } from "./agent-workspace-tools-local.js";
 import { LocalAgentRuntimeAdmission } from './agent-runtime-admission-local.js';
 import { hasInstalledCodexAgentRuntime } from './agent-codex-installation-local.js';
 import { openInstalledCodexUsageBudget } from './agent-codex-usage-budget-local.js';
 import {openCodexRuntimeStorage} from './agent-codex-storage-local.js';
 
-// The installed connection names the model and the https chat-completions
-// endpoint. Fee authorization is one OpenCode Go connection: deepseek-v4.1-flash
-// at https://opencode.ai/inference/go/openai/v1/chat/completions, with cash at or
-// below 5 USD and no credit budget. A plan name, another endpoint, or a higher
-// ceiling does not permit a paid call. This module never reads credential bytes.
-export const PRODUCTION_ADMISSION_PLAN = "Grok" as const;
-export const PRODUCTION_ADMISSION_GAPS = ["固定 Runtime 二进制", "OpenAI 兼容连接", "连接凭据", "原启动账本", "原账户", "固定检查", "费用授权"] as const;
+// New execution uses the chosen Codex login and a complete admission lease.
+// Historical HTTP metadata remains readable, but cannot authorize a new call.
+export const PRODUCTION_ADMISSION_PLAN = "Codex login" as const;
+export const PRODUCTION_ADMISSION_GAPS = ["Codex 原安装", "Codex Context 前完整准入"] as const;
 export const PRODUCTION_ADMISSION_MISSING = PRODUCTION_ADMISSION_GAPS;
 
-const admissionDigest = (value: unknown) => ({ algorithm: "sha256" as const, value: requestDigest(value) });
 const installName = "production-runtime";
 const accountNamespace = "dedicated_agent_account";
 
-const AUTHORIZED_OPENCODE_GO_ENDPOINT = "https://opencode.ai/inference/go/openai/v1/chat/completions";
-const AUTHORIZED_OPENCODE_GO_MODEL = "openai-compatible/deepseek-v4.1-flash";
-const AUTHORIZED_OPENCODE_GO_CASH_MICROS = 5_000_000;
-export function productionModelFeeAuthorized(connection?: DedicatedModelConnection, policy?: Pick<DedicatedAgentAccountPolicy, "cash_limit_micros" | "cash_per_call_upper_micros" | "credit_limit_micro_units" | "credit_per_call_upper_micro_units" | "profile">): boolean {
-  if (!connection) return false;
-  let fixed: DedicatedModelConnection;
-  try { fixed = validateModelConnection(connection); } catch { return false; }
-  if (fixed.provider !== "openai-compatible" || fixed.model !== AUTHORIZED_OPENCODE_GO_MODEL || fixed.endpoint !== AUTHORIZED_OPENCODE_GO_ENDPOINT) return false;
-  if (!policy) return true;
-  return policy.profile.model === "deepseek-v4.1-flash" && policy.profile.thinking === "disabled"
-    && policy.cash_limit_micros >= 0 && policy.cash_limit_micros <= AUTHORIZED_OPENCODE_GO_CASH_MICROS
-    && policy.cash_per_call_upper_micros >= 0 && policy.cash_per_call_upper_micros <= AUTHORIZED_OPENCODE_GO_CASH_MICROS
-    && policy.credit_limit_micro_units === 0 && policy.credit_per_call_upper_micro_units === 0;
+export function productionModelFeeAuthorized(_connection?: DedicatedModelConnection, _policy?: Pick<DedicatedAgentAccountPolicy, "cash_limit_micros" | "cash_per_call_upper_micros" | "credit_limit_micro_units" | "credit_per_call_upper_micro_units" | "profile">): boolean {
+  return false;
 }
 
 export function productionRuntimeBinaryPath(): string | undefined {
@@ -77,15 +53,8 @@ const filePresent = (path: string) => {
   try { return !!path && lstatSync(path).isFile(); } catch { return false; }
 };
 
-function productionAdmissionError(missing: readonly string[]) {
-  return new LocalProjectError(
-    `正式 Agent 不能启动。模型请求使用 OpenAI chat completions。模型标识和 https 端点来自已安装连接，不限定智谱 glm。现金上限和积分上限本阶段不作为缺项。缺项：${missing.join("；")}。未读取凭据，未发送模型请求。`,
-    "CAPABILITY_UNAVAILABLE", "conflict",
-    { production_admission: "unapproved", plan: PRODUCTION_ADMISSION_PLAN, missing: [...missing] },
-  );
-}
 function codexProductionAdmissionError(missing:readonly string[]){
-  return new LocalProjectError(`正式 Agent 已选择现有 Codex 登录。缺项：${missing.join('；')}。未读取登录凭据，未发送模型请求。`,'CAPABILITY_UNAVAILABLE','conflict',{production_admission:'unapproved',plan:'Codex login',missing:[...missing]});
+  return new LocalProjectError(`正式 Agent 已选择现有 Codex 登录。缺项：${missing.join('；')}。未读取登录凭据，未发送模型请求。`,'CAPABILITY_UNAVAILABLE','conflict',{production_admission:'unapproved',plan:PRODUCTION_ADMISSION_PLAN,missing:[...missing]});
 }
 
 function readCheckTemplates(path: string): WorkspaceCheckTemplate[] {
@@ -110,14 +79,11 @@ function readCheckTemplatesFromValue(value: readonly WorkspaceCheckTemplate[]) {
   return templates;
 }
 
-export function productionAccountAdmission(origin: AgentStartLedger): DedicatedAgentAccountAdmission {
-  return { check: async (_scope, connection, policy) => {
-    const fixed = validateModelConnection(connection);
-    if (digest(JSON.stringify(fixed)).value !== policy.connection_digest || policy.host_identity_digest !== origin.identityDigest || fixed.model !== `${fixed.provider}/${policy.profile.model}`) throw new Error("agent_account_admission_unproven");
-    if (!productionModelFeeAuthorized(fixed, policy)) throw productionAdmissionError(["费用授权"]);
-  } };
+export function productionAccountAdmission(_origin: AgentStartLedger): DedicatedAgentAccountAdmission {
+  return { check: async () => { throw codexProductionAdmissionError(["旧 HTTP 连接不再授权新模型请求"]); } };
 }
 
+// Historical layout inspection only. This is not the current execution admission.
 export async function inspectProductionRuntime(local: LocalProject): Promise<string[]> {
   const layout = productionRuntimeLayout(local), missing: string[] = [];
   try {
@@ -141,45 +107,11 @@ export function readProductionAccountDigest(origin: AgentStartLedger, accountRoo
     return !!basis && typeof basis === "object" && "root" in basis && "policy" in basis && resolve(String((basis as { root: unknown }).root)) === root &&
       typeof (basis as { policy?: { account_digest?: unknown } }).policy?.account_digest === "string";
   });
-  if (rows.length !== 1) throw productionAdmissionError(["原账户"]);
+  if (rows.length !== 1) throw new LocalProjectError("历史 HTTP 原账户资料缺失或不唯一", "CAPABILITY_UNAVAILABLE", "conflict");
   return (rows[0]!.basis as { policy: { account_digest: string } }).policy.account_digest;
 }
 
 export async function openInstalledProductionRuntime(runId: string, local: LocalProject): Promise<AgentRuntimeLease> {
-  const missing = await inspectProductionRuntime(local), verifier = installedRunVerifier(local);
-  if (missing.length || !verifier) throw productionAdmissionError(missing.length ? missing : ["固定启动核验"]);
-  const layout = productionRuntimeLayout(local), connection = loadModelConnection(layout.connectionPath), project = local.store.getProject();
-  if (!project || !layout.binary) throw productionAdmissionError(["原账户"]);
-  const origin = await openWindowsAgentStartLedger(layout.startRoot, layout.toolsRoot);
-  let account: DedicatedAgentAccountLedger | undefined;
-  try {
-    account = await openWindowsDedicatedAgentAccountLedger({ origin, accountDigest: readProductionAccountDigest(origin, layout.accountRoot), connection, toolsRoot: layout.toolsRoot, admission: productionAccountAdmission(origin) });
-    const templates = readCheckTemplates(layout.checksPath);
-    const checks = await LocalAgentCheckAdmission.open({ repositoryPath: local.location.repositoryPath, dataDirectory: local.location.dataDirectory, nodeBinary: process.execPath, projectId: project.id, templates, custody: { admit: () => { throw new Error("Agent live admission unavailable"); }, verify: (_project, _input, original) => admissionDigest(original) } });
-    const custody = new LocalAgentStartCustody(local.location.repositoryPath, local.location.dataDirectory, origin, {
-      admit: checks.admit.bind(checks),
-      verifyLaunch: (_project, _input, original) => admissionDigest(original),
-      verifyModel: (_project, _input, original) => admissionDigest(original),
-    });
-    const modelAdmission = new LocalAgentModelAdmission(local.location.repositoryPath, local.location.dataDirectory, custody, checks);
-    verifier.agent.checkRunAuthority = custody.checkRunAuthority.bind(custody);
-    verifier.agent.checkToolAuthority = (projectInput, input) => checks.validateTool(projectInput, input, custody);
-    verifier.agent.checkModelAuthority = (projectInput, input, reader) => reader ? modelAdmission.checkModelAuthority(projectInput, input, reader) : modelAdmission.checkModelAuthority(projectInput, input);
-    const identified = readOriginalAgentRunInputs({ location: local.location, store: local.store }, runId);
-    if (identified.actor.actor_type !== "agent") throw productionAdmissionError(["原 Agent 身份"]);
-    const caller = { kind: "agent" as const, project_id: identified.project.id, actor_id: identified.actor.id, provider_identity_ref: structuredClone(identified.actor.provider_identity_ref) };
-    const kernel = new CimiLoopKernel({ store: local.store, caller, evidenceVerifier: new LocalEvidenceVerifier(local.location.repositoryPath, local.location.dataDirectory), runVerifier: verifier, providerVerifier: new LocalProviderVerifier(local.location.repositoryPath, local.location.dataDirectory) });
-    const runtime = LocalAgentRuntimeComposition.openDedicatedPersistent({ local: { ...local, caller, kernel }, binary: layout.binary, custody, checks, runId, connection, account });
-    let released = false;
-    return { runtime, release() { if (released) return; released = true; account?.close(); origin.close(); } };
-  } catch (error) {
-    account?.close(); origin.close();
-    if (error instanceof LocalProjectError && error.details.production_admission === "unapproved") throw error;
-    throw error;
-  }
-}
-
-export const productionAgentRuntime: HumanAgentRuntimeFactory = async (runId, local) => {
   const admission=LocalAgentRuntimeAdmission.current(local);
   if(admission){
     const account=await openInstalledCodexUsageBudget(local);
@@ -193,11 +125,8 @@ export const productionAgentRuntime: HumanAgentRuntimeFactory = async (runId, lo
       let released=false;return{runtime,release(){if(!released){released=true;account.release();}}};
     }catch(error){account.release();throw error;}
   }
-  if(hasInstalledCodexAgentRuntime(local))throw codexProductionAdmissionError(['Codex Context 前完整准入']);
-  const missing = [...await inspectProductionRuntime(local)];
-  let feeConnection: DedicatedModelConnection | undefined;
-  try { feeConnection = loadModelConnection(productionRuntimeLayout(local).connectionPath); } catch { feeConnection = undefined; }
-  if (!productionModelFeeAuthorized(feeConnection)) missing.push("费用授权");
-  if (missing.length) throw productionAdmissionError(missing);
-  return openInstalledProductionRuntime(runId, local);
-};
+  throw codexProductionAdmissionError(hasInstalledCodexAgentRuntime(local)
+    ? ['Codex Context 前完整准入'] : [...PRODUCTION_ADMISSION_GAPS]);
+}
+
+export const productionAgentRuntime: HumanAgentRuntimeFactory = openInstalledProductionRuntime;
