@@ -4,3 +4,10 @@ export function codexPrivateUserEnvironment(cwd:string,loginHome:string){const s
  HOME:user,USERPROFILE:user,LOCALAPPDATA:join(user,'AppData','Local'),APPDATA:join(user,'AppData','Roaming'),PROGRAMDATA:join(state,'program-data'),TEMP:join(state,'temp'),TMP:join(state,'temp'),CODEX_HOME:loginHome
 };}
 export function codexPrivateUserDirectories(cwd:string){const environment=codexPrivateUserEnvironment(cwd,'unused-login-path');return [...new Set(Object.entries(environment).filter(([key])=>key!=='CODEX_HOME').map(([,path])=>path))];}
+// Windows redirects the lowbox TEMP under the inherited private LOCALAPPDATA.
+// The name belongs to this original launch, not an adopted OS Profile or a
+// caller path. Prepare it inside the existing state write root before resume.
+export function codexPrivateAppContainerTemp(cwd:string,nonce:string){
+ if(!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(nonce))throw Error('codex_process_custody_unproven');
+ return join(codexPrivateUserEnvironment(cwd,'unused-login-path').LOCALAPPDATA,'Packages','cimiloop.codexwrite.'+nonce.replaceAll('-',''),'AC','Temp');
+}

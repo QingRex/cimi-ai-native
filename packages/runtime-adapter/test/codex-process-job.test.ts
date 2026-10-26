@@ -34,6 +34,13 @@ send({method:'turn/completed',params:{threadId:'PUBLIC_THREAD',turn:{id:'PUBLIC_
 }
 const alive=(pid:number)=>{try{process.kill(pid,0);return true;}catch{return false;}};
 describe.runIf(process.platform==='win32'&&process.arch==='x64')('owner-bound Codex process Job',()=>{
+ it.each(['missing_storage','copied_storage','unknown_policy','missing_environment'])('refuses serialized write confinement without its live fixed-volume capability: %s',mode=>{
+  const f=fixture(),home=join(f.root,'PUBLIC-confinement-login');mkdirSync(home);
+  const options:CodexOriginalMethodOptions={...f.options,root:join(f.root,'must-not-create'),state_policy:'private_login_home/2.0.0',login_home:captureCodexLoginHome(home),environment_policy:'private_user_directories/1.0.0'};Reflect.set(options,'write_confinement','appcontainer_fixed_volume/1.0.0');
+  if(mode==='unknown_policy')Reflect.set(options,'write_confinement','PUBLIC fabricated confinement');if(mode==='missing_environment')Reflect.deleteProperty(options,'environment_policy');
+  const storage=mode==='copied_storage'?{read(){throw Error('PUBLIC untrusted reader must not run');}}:undefined;
+  try{expect(()=>Reflect.construct(CodexOriginalMethodRuntime,[options,false,f.origin,storage])).toThrow('codex_write_confinement_unproven');expect(existsSync(options.root)).toBe(false);expect(f.origin.listExclusive('codex_process_job_intent')).toEqual([]);expect(existsSync(f.state)).toBe(false);}finally{f.origin.close();}
+ });
  it.each(['missing_home','missing_job','unknown_policy'])('rejects private user-directory policy with %s before a process intent or model dispatch',mode=>{
   const f=fixture(),path=join(f.root,'private-environment-login');mkdirSync(path);const options:CodexOriginalMethodOptions={...f.options,state_policy:'private_login_home/2.0.0',login_home:captureCodexLoginHome(path),environment_policy:'private_user_directories/1.0.0'};
   if(mode==='missing_home')Reflect.deleteProperty(options,'login_home');if(mode==='missing_job')Reflect.deleteProperty(options,'process_custody');if(mode==='unknown_policy')Reflect.set(options,'environment_policy','PUBLIC fabricated policy');

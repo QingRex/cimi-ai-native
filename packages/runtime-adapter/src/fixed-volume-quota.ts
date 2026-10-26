@@ -84,6 +84,11 @@ export function assertFixedVolumeRuntimePaths(value:unknown,expected:FixedVolume
  const after=assertFixedVolumeRuntimeStorage(value,expected);
  if(!same(before,after)||!same(canonical,paths.map(path=>assertOrdinaryPath(path))))fail();return after;
 }
+// Derive the scope from the actual capability, never from a caller's JSON or
+// replaceable public read method. Used by the model-process OS boundary.
+export function assertOwnedFixedVolumeRuntimePaths(value:unknown,paths:readonly string[]){
+ const state=storageState(value);return assertFixedVolumeRuntimePaths(value,state.basis.scope,paths);
+}
 // A capability created from the real quota and its independent original Host
 // ticket. A copied JSON proof or JavaScript constructor is never sufficient.
 export class FixedVolumeRuntimeStorage {

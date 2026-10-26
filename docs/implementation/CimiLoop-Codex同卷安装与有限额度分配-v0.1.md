@@ -56,6 +56,8 @@ pnpm cimiloop runtime codex-budget --project-dir R:\projects\example --json
 
 固定 Skill 的隔离执行见[接入指南](CimiLoop-固定Skill隔离调用接入指南-v0.1.md)。同卷容量安装成功不会自动启用正式 Agent，不等于方法资格、真实权限/费用/恢复验证或 S1 通过。
 
+四处默认 Codex 执行组合现消费真实同卷能力并选择原 AppContainer Job，绑定原 state 与已批准登录目录；配置文件中的复制票据不能授权执行，旧 pending 不升级。Windows 重写的包 TEMP 也在原 state 内按原 nonce 准备，默认网络继续拒绝。完整共享写入覆盖、网络宿主限制、费用和异常恢复仍需实际验收，见[模型 OS 边界接入](../plans/2026-10-27-cimiloop-codex-appcontainer-wiring.md)。
+
 ## 验证边界
 
 本指南是新接入入口和恢复步骤，不是已经在当前电脑完整执行成功的 S1 指南。应用测试使用真实 Windows 受保护 Host1 与 SQLite，但程序、登录及卷观测是明确 PUBLIC 夹具；独立物理卷、真实模型/技能、真实账单和全部异常恢复仍须在最终配置上实际验证。

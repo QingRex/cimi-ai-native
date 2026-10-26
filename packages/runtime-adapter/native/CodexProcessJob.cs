@@ -66,25 +66,27 @@ public static class CodexProcessJob {
   }
   static int Run(string[] args) {
     Need(args.Length==4);byte[] config=File.ReadAllBytes(args[0]);Need(config.Length<=65536&&Hash(config)==args[1]);
-    var input=Json.DeserializeObject(new UTF8Encoding(false,true).GetString(config)) as Dictionary<string,object>;Need(input!=null);string format=Convert.ToString(input["format"]);bool cancellable=format=="cimiloop/codex-process-launch/2.0.0";Need(cancellable?input.Count==8:input.Count==7&&format=="cimiloop/codex-process-launch/1.0.0");
+    var input=Json.DeserializeObject(new UTF8Encoding(false,true).GetString(config)) as Dictionary<string,object>;Need(input!=null);string format=Convert.ToString(input["format"]);bool scoped=format=="cimiloop/codex-process-launch/4.0.0",cancellable=scoped||format=="cimiloop/codex-process-launch/2.0.0";Need(scoped?input.Count==9:cancellable?input.Count==8:input.Count==7&&format=="cimiloop/codex-process-launch/1.0.0");
+    string[] writeRoots=null;string network=null;if(scoped){var scope=input["write_scope"] as Dictionary<string,object>;Need(scope!=null&&scope.Count==3&&Convert.ToString(scope["format"])=="cimiloop/codex-write-roots/2.0.0");var values=scope["roots"] as object[];Need(values!=null&&values.Length>0&&values.Length<=2);writeRoots=Array.ConvertAll(values,item=>{Need(item is string);return Path.GetFullPath((string)item);});network=Convert.ToString(scope["network_mode"]);}
     uint ownerPid=Convert.ToUInt32(input["owner_pid"]);string binary=Path.GetFullPath(Convert.ToString(input["binary"])),cwd=Path.GetFullPath(Convert.ToString(input["cwd"])),expected=Convert.ToString(input["binary_digest"]),nonce=Convert.ToString(input["nonce"]);
     string cancel=cancellable?Path.GetFullPath(Convert.ToString(input["cancel_path"])):null;Need(!cancellable||String.Equals(cancel,Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[0])),"cancel.json"),StringComparison.OrdinalIgnoreCase));
     object[] argv=input["args"] as object[];Need(argv!=null&&argv.Length<=512&&expected.Length==64&&Guid.Parse(nonce)!=Guid.Empty);
     var command=new StringBuilder(Quote(binary));foreach(object item in argv){Need(item is string&&((string)item).IndexOf('\0')<0);command.Append(' ').Append(Quote((string)item));}Need(command.Length<32760);
     BasicProcess basic;int returned;Need(NtQueryInformationProcess(GetCurrentProcess(),0,out basic,Marshal.SizeOf(typeof(BasicProcess)),out returned)==0&&basic.ParentPid.ToInt64()==ownerPid);
-    IntPtr owner=IntPtr.Zero,job=IntPtr.Zero,attributes=IntPtr.Zero,jobList=IntPtr.Zero,handles=IntPtr.Zero;var std=new IntPtr[3];var process=new ProcessInfo();bool attrsReady=false;
+    IntPtr owner=IntPtr.Zero,job=IntPtr.Zero,attributes=IntPtr.Zero,jobList=IntPtr.Zero,handles=IntPtr.Zero;var std=new IntPtr[3];var process=new ProcessInfo();bool attrsReady=false;CodexWriteScope writeScope=null;
     try {
       owner=OpenProcess(0x100000|0x1000,false,ownerPid);Need(owner!=IntPtr.Zero&&Created(owner)<Created(GetCurrentProcess())&&WaitForSingleObject(owner,0)==258);
       Need(Hash(File.ReadAllBytes(binary))==expected);
       job=CreateJobObject(IntPtr.Zero,null);Need(job!=IntPtr.Zero);var limits=new ExtendedLimit();limits.Basic.Flags=0x2000;Need(SetInformationJobObject(job,9,ref limits,Marshal.SizeOf(typeof(ExtendedLimit))));
-      IntPtr size=IntPtr.Zero;InitializeProcThreadAttributeList(IntPtr.Zero,2,0,ref size);Need(size.ToInt64()>0);attributes=Marshal.AllocHGlobal(size);Need(InitializeProcThreadAttributeList(attributes,2,0,ref size));attrsReady=true;
+      IntPtr size=IntPtr.Zero;InitializeProcThreadAttributeList(IntPtr.Zero,scoped?3:2,0,ref size);Need(size.ToInt64()>0);attributes=Marshal.AllocHGlobal(size);Need(InitializeProcThreadAttributeList(attributes,scoped?3:2,0,ref size));attrsReady=true;
       jobList=Marshal.AllocHGlobal(IntPtr.Size);Marshal.WriteIntPtr(jobList,job);Need(UpdateProcThreadAttribute(attributes,0,new IntPtr(0x2000d),jobList,new IntPtr(IntPtr.Size),IntPtr.Zero,IntPtr.Zero));
       handles=Marshal.AllocHGlobal(IntPtr.Size*3);for(int i=0;i<3;i++){Need(DuplicateHandle(GetCurrentProcess(),GetStdHandle(-10-i),GetCurrentProcess(),out std[i],0,true,2));Marshal.WriteIntPtr(handles,i*IntPtr.Size,std[i]);}
       Need(UpdateProcThreadAttribute(attributes,0,new IntPtr(0x20002),handles,new IntPtr(IntPtr.Size*3),IntPtr.Zero,IntPtr.Zero));
       var startup=new StartupEx();startup.Startup.Size=Marshal.SizeOf(typeof(StartupEx));startup.Startup.Flags=0x100;startup.Startup.Input=std[0];startup.Startup.Output=std[1];startup.Startup.Error=std[2];startup.Attributes=attributes;
-      Need(CreateProcess(binary,command,IntPtr.Zero,IntPtr.Zero,true,0x80000|0x4|0x08000000,IntPtr.Zero,cwd,ref startup,out process));
+      if(scoped){writeScope=new CodexWriteScope(writeRoots,binary,cwd,nonce,network);Need(UpdateProcThreadAttribute(attributes,0,new IntPtr(0x20009),writeScope.CapabilitiesPointer,new IntPtr(24),IntPtr.Zero,IntPtr.Zero));}
+      Need(CreateProcess(binary,command,IntPtr.Zero,IntPtr.Zero,true,0x80000|0x4|0x08000000,IntPtr.Zero,cwd,ref startup,out process));if(scoped)writeScope.VerifyProcess(process.Process);
       Need(String.Equals(Image(process.Process),binary,StringComparison.OrdinalIgnoreCase)&&Hash(File.ReadAllBytes(binary))==expected);
-      byte[] started=Save(args[2],new {format="cimiloop/codex-process-start/1.0.0",nonce=nonce,config_digest=args[1],owner=Identity(owner,ownerPid),supervisor=Identity(GetCurrentProcess(),(uint)Process.GetCurrentProcess().Id),worker=Identity(process.Process,process.Pid),job_assignment="atomic_on_create",kill_on_close=true});
+      var start=new Dictionary<string,object>{{"format",scoped?"cimiloop/codex-process-start/3.0.0":"cimiloop/codex-process-start/1.0.0"},{"nonce",nonce},{"config_digest",args[1]},{"owner",Identity(owner,ownerPid)},{"supervisor",Identity(GetCurrentProcess(),(uint)Process.GetCurrentProcess().Id)},{"worker",Identity(process.Process,process.Pid)},{"job_assignment","atomic_on_create"},{"kill_on_close",true}};if(scoped)start.Add("write_scope",writeScope.Proof());byte[] started=Save(args[2],start);
       // The child already belongs to the Job while suspended. If the owner
       // disappeared, kill it without allowing a single worker instruction.
       bool ownerGone=WaitForSingleObject(owner,0)==0;
@@ -96,10 +98,10 @@ public static class CodexProcessJob {
       var clock=Stopwatch.StartNew();Accounting accounting;
       do {Need(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));if(accounting.Active==0)break;Need(clock.ElapsedMilliseconds<5000);Thread.Sleep(10);}while(true);
       Need(CloseHandle(job));job=IntPtr.Zero;
-      Save(args[3],new {format="cimiloop/codex-process-end/1.0.0",nonce=nonce,config_digest=args[1],started_digest=Hash(started),reason=reason,worker_exit_code=exit,active_processes=0,job_closed=true});
+      var end=new Dictionary<string,object>{{"format",scoped?"cimiloop/codex-process-end/3.0.0":"cimiloop/codex-process-end/1.0.0"},{"nonce",nonce},{"config_digest",args[1]},{"started_digest",Hash(started)},{"reason",reason},{"worker_exit_code",exit},{"active_processes",0},{"job_closed",true}};if(scoped){var proof=writeScope.Proof();writeScope.CompleteAfterEmptyJob();end.Add("write_scope",proof);end.Add("root_grants_removed",writeScope.GrantsRemoved);end.Add("profile_deleted",writeScope.ProfileDeleted);}Save(args[3],end);
       return outcome==1?(int)Math.Min(exit,120):125;
-    } finally {
-      if(job!=IntPtr.Zero){TerminateJobObject(job,125);CloseHandle(job);}if(process.Thread!=IntPtr.Zero)CloseHandle(process.Thread);if(process.Process!=IntPtr.Zero)CloseHandle(process.Process);
+    } catch(Exception error){if(scoped)try{var native=error as System.ComponentModel.Win32Exception;Save(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[0])),"write-failure.json"),new{format="cimiloop/codex-write-failure/1.0.0",nonce=nonce,config_digest=args[1],stage=CodexWriteScope.Stage,win32_error=native==null?0:native.NativeErrorCode});}catch{}throw;} finally {
+      if(job!=IntPtr.Zero){TerminateJobObject(job,125);CloseHandle(job);}if(writeScope!=null)writeScope.Dispose();if(process.Thread!=IntPtr.Zero)CloseHandle(process.Thread);if(process.Process!=IntPtr.Zero)CloseHandle(process.Process);
       foreach(IntPtr handle in std)if(handle!=IntPtr.Zero)CloseHandle(handle);if(attrsReady)DeleteProcThreadAttributeList(attributes);if(attributes!=IntPtr.Zero)Marshal.FreeHGlobal(attributes);if(handles!=IntPtr.Zero)Marshal.FreeHGlobal(handles);if(jobList!=IntPtr.Zero)Marshal.FreeHGlobal(jobList);if(owner!=IntPtr.Zero)CloseHandle(owner);
     }
   }

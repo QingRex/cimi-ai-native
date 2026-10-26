@@ -20,9 +20,15 @@ import type {InstalledCodexAgentRuntime} from '../src/agent-codex-installation-l
 import {type SkillInvocationExecutionContext,readOriginalSkillInvocation} from '../src/skill-invocation-execution-local.js';
 import {createSkillInvocationProject} from '../../../tests/fixtures/skill-invocation-project.js';
 import {flowSuccess,flowTime} from '../../../tests/fixtures/flow-project.js';
-const seam=vi.hoisted(()=>({storage:undefined as unknown,home:undefined as unknown,homePath:'',identity:'',launches:[] as any[],onClock:undefined as undefined|(()=>void)}));
+const seam=vi.hoisted(()=>({storage:undefined as unknown,home:undefined as unknown,homePath:'',identity:'',launches:[] as any[],transports:[] as unknown[],onClock:undefined as undefined|(()=>void)}));
 vi.mock('../src/agent-codex-login-home-local.js',async load=>({...await load<typeof import('../src/agent-codex-login-home-local.js')>(),assertCodexRuntimeLoginHome(value:unknown){if(value!==seam.home)throw Error('PUBLIC home unavailable');return captureCodexLoginHome(seam.homePath);}}));
 vi.mock('@cimiloop/runtime-adapter',async load=>{const original=await load<typeof import('@cimiloop/runtime-adapter')>();return{...original,
+ // PUBLIC staging projection only. Assert capability forwarding, preserve
+ // legacy header checks, and prohibit any model dispatch from this fixture.
+ CodexOriginalMethodRuntime:class extends original.CodexOriginalMethodRuntime{
+  constructor(...args:ConstructorParameters<typeof original.CodexOriginalMethodRuntime>){if(args[3]!==seam.storage||!args[3])throw Error('PUBLIC missing forwarded storage');super(args[0],args[1],args[2]);seam.transports.push(args[3]);}
+  override async execute(..._args:Parameters<InstanceType<typeof original.CodexOriginalMethodRuntime>['execute']>):Promise<never>{throw Error('PUBLIC staging cannot dispatch a model');}
+ },
  assertFixedVolumeRuntimeStorage(value:unknown){if(value!==seam.storage)throw Error('PUBLIC storage unavailable');return{runtime_ticket:{identity_digest:seam.identity}};},
  async openWindowsAgentRunClock(){seam.onClock?.();return{read:async()=>({format:'cimiloop/agent-run-clock/1.0.0',utc:flowTime,boot_utc:'2026-10-01T00:00:00.000Z',uptime_ms:100000000,machine_digest:digest('PUBLIC clock').value}),close:async()=>{}};},
  validateFixedMethodContext(){},AgentNamedMethodHost:{initialize(){return{PUBLIC:'fixed method staging seam'};}},
@@ -33,7 +39,7 @@ vi.setConfig({testTimeout:120000,hookTimeout:120000});
 // fixed method, OS clock/storage and Native launch seams. No model request,
 // login credential read, actual Skill/Native/physical quota or S1 acceptance.
 const close:(()=>void)[]=[];
-afterEach(()=>{vi.restoreAllMocks();while(close.length)close.pop()!();seam.launches=[];seam.onClock=undefined;});
+afterEach(()=>{vi.restoreAllMocks();while(close.length)close.pop()!();seam.launches=[];seam.transports=[];seam.onClock=undefined;});
 function fixture(){
  const root=mkdtempSync('D:/CimiS1/_'),f=createSkillInvocationProject(root);close.push(()=>f.store.close());
  const data=dirname(f.path),origin=AgentStartLedger.initialize(join(data,'host'),{machine_digest:'1'.repeat(64),principal_digest:'2'.repeat(64)});close.push(()=>origin.close());
@@ -54,6 +60,7 @@ function fixture(){
 describe('Codex child application composition',()=>{
  it('stages the Codex SDK host on the same original child, dispatches Native once and retains one parent Run',async()=>{
   const f=fixture(),sequence=f.f.store.asOfEventSequence();expect(await f.service().start(f.invocation.id)).toMatchObject({outcome:'original',run_id:f.scope.run_id,invocation_key:f.invocation.invocation_key});
+  expect(seam.transports).toEqual([f.options.storage]);
   const original=seam.launches[0];expect(original.scope).toEqual(f.scope);expect(original.root).toBe(f.root);expect(original.binary).toBe(process.execPath);expect(original.method).toEqual({PUBLIC:'fixed method staging seam'});
   const header=JSON.parse(readFileSync(join(f.root,'agent-runtime-model-originals',f.scope.project_id,f.scope.run_id,'header.json'),'utf8'));
   expect(header).toMatchObject({format:'cimiloop/agent-runtime-model-originals/7.0.0',scope:f.scope,permitted:['cimi_invoke_skill','cimi_read_method_resource'],output_profile:'bounded_2048/1.0.0',original_evidence:{kind:'codex_login/1.0.0'}});
