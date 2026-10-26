@@ -156,8 +156,9 @@ async function queryAgentRuntimeNativeOperation(root: string, rawScope: unknown)
     ledger.resources_disposed !== false && ledger.resources_disposed !== true) fail("agent_runtime_original_unproven");
   // OS observation uses the independent pinned identity reader. Persisted phase,
   // heartbeat or a cancellation marker cannot establish that a process is alive.
-  const observer = await buildWindowsLauncher(root), inspect = async (identity: CreditProcessIdentity) => {
-    const value = (await nativeControl(observer, ["--inspect-identity", JSON.stringify(identity)])).value;
+  let observer:string;try{observer=await buildWindowsLauncher(root,undefined,{readOnly:true});}catch{return{...summary,status:'Unknown' as const,reason:'agent_original_observer_unavailable',resources_disposed:false};}
+  const inspect = async (identity: CreditProcessIdentity) => {
+    const value = (await nativeControl(observer, ["--inspect-identity", JSON.stringify(identity)],undefined,root)).value;
     if (!exact(value, ["state"]) || !["active", "absent", "unknown"].includes(String(value.state))) fail("agent_runtime_identity_unproven"); return (value as Record<string, unknown>).state;
   };
   const supervisorState = await inspect(launcher.supervisor as CreditProcessIdentity), peer = ledger.runtime;

@@ -91,7 +91,7 @@ export async function recoverOpenCodeWorkspaceToolRehearsal(raw: { root: string;
   // disposal of the original OS resources by the original pinned controller.
   const { launch, resources, operation } = readOriginal(raw,false);
   if (!launch || !resources) return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };
-  const result = (await nativeControl(launch.launcher_path as string, ["--recover", operation])).value;
+  const result = (await nativeControl(launch.launcher_path as string, ["--recover", operation],undefined,raw.root)).value;
   if (!exact(result, ["outcome", "reason", "resources_disposed", "completion_proven"]) || !["recovered", "active", "unknown"].includes(String(result.outcome)) ||
     typeof result.reason !== "string" || !/^agent_[a-z_]{1,96}$/.test(result.reason) || typeof result.resources_disposed !== "boolean" ||
     (result.outcome === "recovered") !== result.resources_disposed || result.completion_proven !== false) fail();

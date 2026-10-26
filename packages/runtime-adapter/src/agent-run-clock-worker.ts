@@ -1,4 +1,5 @@
 import { parentPort, workerData } from "node:worker_threads";
+import {bindNativeProcessEnvironment} from './native-process-environment.js';
 import { NativeAgentRunClockChannel } from "./agent-run-clock-channel.js";
 import { parseAgentRunClock } from "./agent-run-clock.js";
 import { RuntimeAdapterError } from "./files.js";
@@ -7,9 +8,10 @@ import { clockWorkerFailure, exactClockFrame } from "./agent-run-clock-worker-wi
 // Fixed host transport only. Native protocol, fresh binary checks, original owner
 // process PID, queue and deadlines remain entirely in the existing channel.
 const port = parentPort;
-if (!port || !exactClockFrame(workerData, "binary,expected,state") || typeof workerData.binary !== "string" ||
+if (!port || !exactClockFrame(workerData, Object.hasOwn(workerData,'environmentRoot')?'binary,environmentRoot,expected,state':"binary,expected,state") || typeof workerData.binary !== "string" ||
   typeof workerData.expected !== "string" || !/^[a-f0-9]{64}$/.test(workerData.expected) ||
   !(workerData.state instanceof SharedArrayBuffer) || workerData.state.byteLength !== 24) throw new RuntimeAdapterError("agent_run_clock_channel_unproven");
+if(Object.hasOwn(workerData,'environmentRoot')){if(typeof workerData.environmentRoot!=='string')throw new RuntimeAdapterError('agent_run_clock_channel_unproven');bindNativeProcessEnvironment(workerData.environmentRoot,workerData.binary,{readOnly:true});}
 const state = new Int32Array(workerData.state), boot = new AbortController(), pending = new Map<number, AbortController>();
 let clock: NativeAgentRunClockChannel | undefined, closed = false, lastId = 0;
 const snapshot = () => {

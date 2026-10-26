@@ -4,6 +4,7 @@ import type {AgentWorkspaceIpcCurrentRequest} from './agent-ipc-causal-window.js
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { buildWindowsAgentWorkspaceTransport, isolatedEnvironment } from "./native.js";
+import {nativeHelperProcessOptions,verifyNativeProcessEnvironment} from './native-process-environment.js';
 import { bytesAt, digest, RuntimeAdapterError } from "./files.js";
 import { copyToolJson, TOOL_RECORD_BYTES } from "./tool-journal.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
@@ -88,10 +89,10 @@ export class AgentWorkspaceToolIpc {
   private failure: string | null = null;
   private readonly peerEnded = () => { void this.close(); };
   private readonly aborted = () => { this.failure ??= "agent_ipc_aborted"; void this.close(); };
-  private constructor(private readonly options: Options, binary: string, binaryDigest: string, taskDeadline?: number) {
+  private constructor(private readonly options: Options,private readonly binary: string, binaryDigest: string, taskDeadline?: number) {
     this.nonce = options.nonce ?? randomUUID();
     this.scope = parseAgentWorkspaceToolScope(options.scope);
-    this.child = spawn(binary, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
+    this.child = spawn(binary, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], ...nativeHelperProcessOptions(binary,isolatedEnvironment(),true) });
     let readyResolve!: (value: AgentWorkspaceIpcEndpoint) => void, readyReject!: (error: unknown) => void;
     this.ready = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject; }); void this.ready.catch(() => {});
     const stop = (reason: string) => { this.failure ??= reason; readyReject(new RuntimeAdapterError(reason)); void this.close(); };
@@ -102,6 +103,7 @@ export class AgentWorkspaceToolIpc {
       while (buffer.includes(10)) {
         const at = buffer.indexOf(10), line = buffer.subarray(0, at); buffer = buffer.subarray(at + 1);
         try {
+          verifyNativeProcessEnvironment(binary,true);
           if (++lines > 130) fail("agent_ipc_attempt_limit");
           const event = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(line).trim(), 163840) as Record<string, unknown>;
           if (!event || typeof event !== "object" || Array.isArray(event) || event.format !== "cimiloop/agent-workspace-ipc-native/1.0.0") fail("agent_ipc_native_unproven");
@@ -173,6 +175,7 @@ export class AgentWorkspaceToolIpc {
     try { await host.ready; return host; } catch (error) { await host.close(); throw error; }
   }
   private async respond(bytes: Buffer, requestDigest: string) {
+    verifyNativeProcessEnvironment(this.binary,true);
     if (!this.originals) fail("agent_ipc_originals_unproven");
     const originals=this.originals,ticket = originals.request(bytes, requestDigest);
     const current:OriginalRequestContext={scope:structuredClone(this.scope),nonce:this.nonce,ticket,journal:originals,active:true,available:()=>!this.stopped&&!this.stopping.signal.aborted};
@@ -214,6 +217,7 @@ export class AgentWorkspaceToolIpc {
     const reply = Buffer.from(JSON.stringify({ format: "cimiloop/agent-workspace-tool-reply/1.0.0", scope_digest: agentWorkspaceIpcScopeDigest(this.scope), request_digest: requestDigest,
       call_id: callId, outcome: reason ? "denied" : "completed", receipt, replay, reason, formal_agent_execution_enabled: false }));
     if (reply.length > TOOL_RECORD_BYTES) fail("agent_ipc_reply_limit");
+    verifyNativeProcessEnvironment(this.binary,true);
     originals.reply(ticket, reply);
     if (!this.stopped) this.child.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-ipc-host/1.0.0", request_digest: requestDigest, reply_base64: reply.toString("base64") }) + "\n");
     }finally{current.active=false;}});

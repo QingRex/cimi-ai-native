@@ -2,6 +2,7 @@ import { Worker } from "node:worker_threads";
 import { parseAgentRunClock, type AgentRunClockReading } from "./agent-run-clock.js";
 import { RuntimeAdapterError } from "./files.js";
 import { NativeControlError } from "./native.js";
+import {nativeProcessEnvironmentOwner} from './native-process-environment.js';
 import { exactClockFrame, parseClockWorkerFailure } from "./agent-run-clock-worker-wire.js";
 
 const unproven = () => new RuntimeAdapterError("agent_run_clock_channel_unproven");
@@ -25,7 +26,8 @@ export class WorkerAgentRunClockChannel {
   private workerExited = false;
   private closing: Promise<void> | undefined;
   private constructor(binary: string, expected: string) {
-    this.worker = new Worker(new URL("../dist/agent-run-clock-worker.js", import.meta.url), { execArgv: [], workerData: { binary, expected, state: this.state.buffer } });
+    const environmentRoot=nativeProcessEnvironmentOwner(binary);
+    this.worker = new Worker(new URL("../dist/agent-run-clock-worker.js", import.meta.url), { execArgv: [], workerData: { binary, expected,...(environmentRoot?{environmentRoot}:{}),state: this.state.buffer } });
     void this.ready.promise.catch(() => {}); void this.finished.promise.catch(() => {});
     this.worker.on("message", (raw: unknown) => this.receive(raw));
     this.worker.on("error", () => this.fail(unproven()));

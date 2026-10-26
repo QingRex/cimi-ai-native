@@ -4,6 +4,7 @@ import { existsSync, renameSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { atomicJson, bytesAt, digest, directory, readJson, RuntimeAdapterError } from "./files.js";
 import {executeWindowsCompiler} from './windows-compiler.js';
+import {bindNativeProcessEnvironment} from './native-process-environment.js';
 
 import { WorkerAgentRunClockChannel } from "./agent-run-clock-worker-channel.js";
 export interface AgentRunClockReading { format: "cimiloop/agent-run-clock/1.0.0"; utc: string; boot_utc: string; uptime_ms: number; machine_digest: string }
@@ -30,6 +31,7 @@ export async function openWindowsAgentRunClock(root: string, signal?: AbortSigna
   }
   const expected = (readJson(metadata) as { digest?: { value?: string } }).digest?.value;
   if (!expected || expected !== digest(bytesAt(output)).value) throw new RuntimeAdapterError("agent_run_clock_binary_changed");
+  bindNativeProcessEnvironment(root,output);
   const channel = await WorkerAgentRunClockChannel.open(output, expected, signal);
   return { read: (stop?: AbortSignal) => channel.read(stop), close: () => channel.close(), snapshot: () => channel.snapshot() };
 }

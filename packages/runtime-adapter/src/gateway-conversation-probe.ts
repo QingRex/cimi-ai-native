@@ -8,6 +8,7 @@ import { connect as tlsConnect } from "node:tls";
 import type { Duplex } from "node:stream";
 import { bytesAt, digest, directory, atomicJson, readJson, RuntimeAdapterError } from "./files.js";
 import { buildWindowsLauncher, isolatedEnvironment, pinBinary } from "./native.js";
+import {nativeHelperProcessOptions} from './native-process-environment.js';
 import { defaultExecutionPolicy } from "./execution-policy.js";
 import { GatewayNetworkBoundary, DEDICATED_GATEWAY_PATH } from "./gateway-network.js";
 import { GatewayCreditLedger, GATEWAY_CONVERSATION_CACHE_SLOT_BYTES, GATEWAY_CONVERSATION_ORIGINAL_SLOT_BYTES, type GatewayCreditPolicy } from "./gateway-credit.js";
@@ -156,7 +157,7 @@ const runConversationProbe = async (options: { root: string; binary: string; max
     atomicJson(join(path, "probe-owner.json"), { format: "cimiloop/public-conversation-owner/1.0.0", nonce, operation_key: operationKey, launcher, binary: pinned.path, binary_digest: pinned.digest, module_digest: module.digest, policy_digest: policyDigest });
     child = spawn(launcher, [sandbox, "read", String(elapsed), pinned.path, join(path, "native-proof.json"), join(path, "cancel"), "--managed", nonce, JSON.stringify(limits), "--policy", JSON.stringify(defaultExecutionPolicy()),
       ...(namedContext ? ["--ipc-conversation-method", operationKey, policyDigest, digest(JSON.stringify(namedContext.profile)).value] : ["--ipc-conversation", operationKey, policyDigest]), "run", "--pure", "--format", "json", "--model", "cimiloop-conversation/cimiloop-public-tools", "--agent", "cimi", method?.prompt ?? "Read public.txt with the read tool, then return the fixture's final response."],
-      { windowsHide: true, stdio: ["ignore", "pipe", "pipe"], env: { ...isolatedEnvironment(), OPENCODE_CONFIG_CONTENT: JSON.stringify(config) } });
+      { windowsHide: true, stdio: ["ignore", "pipe", "pipe"], ...nativeHelperProcessOptions(launcher,{ ...isolatedEnvironment(), OPENCODE_CONFIG_CONTENT: JSON.stringify(config) }) });
     const append = (bytes: Buffer, error = false) => {
       if (Buffer.byteLength(output) + Buffer.byteLength(errorOutput) + bytes.length > limits.max_output_bytes) {
         overflow = true; if (!existsSync(join(path, "cancel"))) writeFileSync(join(path, "cancel"), "output budget exhausted", { flag: "wx" }); return;

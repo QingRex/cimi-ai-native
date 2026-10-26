@@ -2,6 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { bytesAt, digest, RuntimeAdapterError } from "./files.js";
 import { isolatedEnvironment, NativeControlError, type NativeControlFailure } from "./native.js";
+import {nativeHelperProcessOptions,verifyNativeProcessEnvironment} from './native-process-environment.js';
 import { parseGatewayJson } from "./gateway-conversation.js";
 import type { AgentRunClockReading } from "./agent-run-clock.js";
 
@@ -49,7 +50,7 @@ export class NativeAgentRunClockChannel {
     void this.ready.promise.catch(() => {});
     try {
       if (digest(bytesAt(binary)).value !== expected) throw unproven();
-      this.child = spawn(binary, ["--stream"], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
+      this.child = spawn(binary, ["--stream"], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], ...nativeHelperProcessOptions(binary,isolatedEnvironment()) });
     } catch {
       clearTimeout(timer); throw this.control("spawn", "clock_anchor", started);
     }
@@ -101,6 +102,7 @@ export class NativeAgentRunClockChannel {
       if (end > 4096) { this.fail(unproven()); return; }
       const bytes = this.buffer.subarray(0, end); this.buffer = this.buffer.subarray(end + 1);
       try {
+        verifyNativeProcessEnvironment(this.binary);
         const wait = this.startup ?? this.pending;
         if (!wait) throw unproven();
         if (performance.now() - wait.started >= deadlineMs) {
@@ -144,7 +146,7 @@ export class NativeAgentRunClockChannel {
       if (this.closed) throw this.failure ?? unproven();
       if (expired || performance.now() - started >= deadlineMs) throw expired ?? this.control("deadline", "clock_continuous", started);
       if (signal?.aborted) throw new RuntimeAdapterError("agent_run_clock_channel_aborted");
-      try { if (this.sequence >= 8192 || digest(bytesAt(this.binary)).value !== this.expected) throw unproven(); } catch { this.fail(unproven()); throw this.failure; }
+      try { verifyNativeProcessEnvironment(this.binary);if (this.sequence >= 8192 || digest(bytesAt(this.binary)).value !== this.expected) throw unproven(); } catch { this.fail(unproven()); throw this.failure; }
       if (performance.now() - started >= deadlineMs) throw this.control("deadline", "clock_continuous", started);
       const waiting = deferred<AgentRunClockReading>();
       this.pending = { ...waiting, started, timer }; this.sequence++; sent = true;

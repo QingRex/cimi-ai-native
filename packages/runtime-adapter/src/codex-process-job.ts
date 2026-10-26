@@ -6,6 +6,7 @@ import {isDeepStrictEqual as same} from 'node:util';
 import {assertOrdinaryPath,bytesAt,digest,directory,RuntimeAdapterError} from './files.js';
 import {parseGatewayJson} from './gateway-conversation.js';
 import {buildWindowsCodexProcessJob,isolatedEnvironment} from './native.js';
+import {restoreNativeProcessEnvironment,nativeHelperProcessOptions,verifyNativeProcessEnvironment} from './native-process-environment.js';
 import {readRuntimeBinaryOriginal} from './runtime-binary-originals.js';
 
 type Command={file:string;sha256:string;args:string[]};
@@ -34,7 +35,7 @@ export function readCodexProcessLaunch(root:string,helperRoot:string,command:Com
  if(!exact(header,['format','launcher_original','config'])||header.format!=='cimiloop/codex-process-custody/1.0.0'||!same(header.config,artifact(p.config))||!exact(config,['format','owner_pid','binary','binary_digest','args','cwd','nonce',...(cancellable?['cancel_path']:[])])||!cancellable&&config.format!=='cimiloop/codex-process-launch/1.0.0'||cancellable&&config.cancel_path!==join(root,'cancel.json')||!Number.isSafeInteger(config.owner_pid)||Number(config.owner_pid)<1||config.binary!==resolve(command.file)||config.binary_digest!==command.sha256||!same(config.args,args)||config.cwd!==resolve(cwd)||typeof config.nonce!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(config.nonce))fail();
  const original=header.launcher_original as ReturnType<typeof readRuntimeBinaryOriginal>;
  if(!original||typeof original.path!=='string'||!same(original,readRuntimeBinaryOriginal(helperRoot,original.path,original.sha))||['.config','.local','.manifest'].some(suffix=>existsSync(original.path+suffix)))fail();
- return{header:structuredClone(header),config:structuredClone(config),header_original:artifact(p.header),config_original:artifact(p.config),launcher:original.path,paths:p};
+ return{header:structuredClone(header),config:structuredClone(config),header_original:artifact(p.header),config_original:artifact(p.config),launcher:original.path,helperRoot,paths:p};
 }
 export function spawnCodexProcessJob(launch:ReturnType<typeof readCodexProcessLaunch>,options:SpawnOptionsWithoutStdio){
  // libuv's per-owner Job kills non-detached direct children immediately when
@@ -68,7 +69,8 @@ export function requestCodexProcessJobCancellation(launch:ReturnType<typeof read
 export function readCodexProcessJobResources(start:ReturnType<typeof readStartedCodexProcessJob>){
  const {launch,started,identities}=start;if(launch.config.format!=='cimiloop/codex-process-launch/2.0.0')fail();
  const original=launch.header.launcher_original as ReturnType<typeof readRuntimeBinaryOriginal>;if(digest(bytesAt(launch.launcher,512*1024*1024)).value!==original.sha)fail();
- const selected=[identities.supervisor,identities.worker],bytes=execFileSync(launch.launcher,['--inspect-identities',JSON.stringify(selected)],{windowsHide:true,timeout:10000,maxBuffer:16384,env:isolatedEnvironment()}),snapshot=structuredClone(parseGatewayJson(bytes.toString('utf8'),16384));
+ restoreNativeProcessEnvironment(launch.helperRoot,launch.launcher);
+ const selected=[identities.supervisor,identities.worker],bytes=execFileSync(launch.launcher,['--inspect-identities',JSON.stringify(selected)],{windowsHide:true,timeout:10000,maxBuffer:16384,...nativeHelperProcessOptions(launch.launcher,isolatedEnvironment())}),snapshot=structuredClone(parseGatewayJson(bytes.toString('utf8'),16384));verifyNativeProcessEnvironment(launch.launcher);
  if(!exact(snapshot,['format','states'])||snapshot.format!=='cimiloop/codex-process-identities/1.0.0'||!Array.isArray(snapshot.states)||snapshot.states.length!==2||snapshot.states.some((value,index)=>!exact(value,['identity','state'])||!same(value.identity,selected[index])||!['active','absent','unknown'].includes(String(value.state))))fail();
  let ended:unknown;if(existsSync(launch.paths.ended)){ended=json(launch.paths.ended);if(!exact(ended,['format','nonce','config_digest','started_digest','reason','worker_exit_code','active_processes','job_closed'])||ended.format!=='cimiloop/codex-process-end/1.0.0'||ended.nonce!==launch.config.nonce||ended.config_digest!==launch.config_original.digest||ended.started_digest!==start.original.started.digest||!['worker_exited','owner_exited','cancel_requested'].includes(String(ended.reason))||!Number.isSafeInteger(ended.worker_exit_code)||Number(ended.worker_exit_code)<0||Number(ended.worker_exit_code)>4294967295||ended.active_processes!==0||ended.job_closed!==true)fail();}
  const states=snapshot.states as {identity:unknown;state:string}[],status=states.some(value=>value.state==='active')?'active' as const:ended&&states.every(value=>value.state==='absent')?'disposed' as const:'unknown' as const;

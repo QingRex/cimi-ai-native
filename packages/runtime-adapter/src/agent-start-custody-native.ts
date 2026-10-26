@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import { assertOrdinaryPath, atomicJson, bytesAt, digest, directory, readJson, RuntimeAdapterError } from "./files.js";
 import { isolatedEnvironment } from "./native.js";
 import {executeWindowsCompiler} from './windows-compiler.js';
+import {bindNativeProcessEnvironment,nativeHelperProcessOptions,verifyNativeProcessEnvironment} from './native-process-environment.js';
 
 type Action = "identity" | "protect" | "verify";
 type VerifyHit={dev:string;ino:string;birthtimeNs:string;result:string};
@@ -39,6 +40,7 @@ export async function openWindowsAgentStartCustody(toolsRoot: string, signal?: A
   }
   const expected = (readJson(metadata) as { digest?: { value?: string } }).digest?.value;
   if (!expected || digest(bytesAt(binary)).value !== expected) throw new RuntimeAdapterError("agent_start_custody_binary_changed");
+  bindNativeProcessEnvironment(toolsRoot,binary);
   // Freeze helper identity; later metadata edits cannot change this live port.
   const seen=new Map<string,VerifyHit>();
   const execute=(action:Action,root:string)=>{
@@ -46,8 +48,9 @@ export async function openWindowsAgentStartCustody(toolsRoot: string, signal?: A
     const started = performance.now();
     const result = execFileSync(binary, [action, assertOrdinaryPath(root)], {
       windowsHide: true, timeout: 15000, maxBuffer: 16384, encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"], env: isolatedEnvironment()
+      stdio: ["ignore", "pipe", "pipe"], ...nativeHelperProcessOptions(binary,isolatedEnvironment(),true)
     });
+    verifyNativeProcessEnvironment(binary,true);
     if (performance.now() - started >= 15000 || !/^[a-f0-9]{64}$/.test(result)) throw Error();
     return result;
   };

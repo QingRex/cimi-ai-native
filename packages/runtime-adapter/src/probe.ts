@@ -6,6 +6,7 @@ import { writeFileSync, existsSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { compileValidator, RuntimeProbeResultSchema, type RuntimeProbeResult, type RuntimeBoundaryProbe, type ExternalReference, type RuntimeDiskLimits, type RuntimeExecutionPolicy } from "@cimiloop/protocol/v2";
 import { buildWindowsLauncher, pinBinary, isolatedEnvironment } from "./native.js";
+import {nativeHelperProcessOptions} from './native-process-environment.js';
 import { directory, bytesAt, rawReference, atomicJson, readJson, RuntimeAdapterError } from "./files.js";
 import { IsolatedProbeAdapter, type NativeProof } from "./operations.js";
 import { loadModelConnection } from "./connection.js";
@@ -21,7 +22,7 @@ export const nativeProbe = async (root: string, launcher: string, binary: string
   const proofPath = join(operation, "proof.json");
   probeAuthority(beforeNativeEffect);
   const native = spawn(launcher, [sandbox, mode, String(elapsed), binary, proofPath, join(operation, "cancel"), "--policy", JSON.stringify(defaultExecutionPolicy()), ...args], {
-    env: isolatedEnvironment(), windowsHide: true, stdio: ["ignore", "pipe", "pipe"]
+    ...nativeHelperProcessOptions(launcher,isolatedEnvironment()), windowsHide: true, stdio: ["ignore", "pipe", "pipe"]
   });
   const output: Buffer[] = [], errors: Buffer[] = []; let count = 0;
   native.stdout.on("data", (bytes: Buffer) => { count += bytes.length; if (count <= 1024 * 1024) output.push(bytes); else writeFileSync(join(operation, "cancel"), "bounded probe output exceeded"); });

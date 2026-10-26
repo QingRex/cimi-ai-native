@@ -5,6 +5,7 @@ import { isAbsolute, join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { assertOrdinaryPath, bytesAt, digest, RuntimeAdapterError } from "./files.js";
 import { buildWindowsWorkspaceBroker, isolatedEnvironment } from "./native.js";
+import {nativeHelperProcessOptions,verifyNativeProcessEnvironment} from './native-process-environment.js';
 import { copyToolJson, parseToolInvocation, TOOL_FILE_BYTES, TOOL_RECORD_BYTES, type ToolInvocation } from "./tool-journal.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
@@ -63,8 +64,8 @@ class NativeWorkspaceSession {
   private lastReject!: (error: unknown) => void;
   private stopped = false;
   private commitSent = false;
-  constructor(binary: string, config: unknown, readonly nonce: string, signal?: AbortSignal) {
-    this.child = spawn(binary, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
+  constructor(private readonly binary: string, config: unknown, readonly nonce: string, signal?: AbortSignal) {
+    this.child = spawn(binary, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], ...nativeHelperProcessOptions(binary,isolatedEnvironment(),true) });
     let firstResolve!: (value: unknown) => void, firstReject!: (error: unknown) => void, seen = 0, buffer = Buffer.alloc(0), bytes = 0, unproven = false;
     this.first = new Promise((resolve, reject) => { firstResolve = resolve; firstReject = reject; });
     this.last = new Promise((resolve, reject) => { this.lastResolve = resolve; this.lastReject = reject; });
@@ -76,6 +77,7 @@ class NativeWorkspaceSession {
       while (buffer.includes(10)) {
         const at = buffer.indexOf(10), line = buffer.subarray(0, at); buffer = buffer.subarray(at + 1);
         try {
+          verifyNativeProcessEnvironment(binary,true);
           const value = parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(line).trim(), TOOL_RECORD_BYTES) as Record<string, unknown>;
           if (value.format !== "cimiloop/workspace-native/1.0.0" || value.nonce !== nonce) { reject("workspace_native_identity_unproven"); return; }
           if (value.phase === "denied") { reject(typeof value.reason === "string" && /^workspace_[a-z_]{1,80}$/.test(value.reason) ? value.reason : "workspace_native_unproven"); return; }
@@ -101,6 +103,7 @@ class NativeWorkspaceSession {
   async prepared(): Promise<unknown> { return this.first; }
   async root(): Promise<unknown> { const first = await this.first, exit = await this.done; if (exit.code !== 0 || exit.signal || !exit.outputProven) fail("workspace_native_exit_unproven"); return first; }
   async commit(): Promise<unknown> {
+    verifyNativeProcessEnvironment(this.binary,true);
     if (this.commitSent || this.stopped) fail("workspace_effect_unowned"); this.commitSent = true;
     this.child.stdin.end("commit:" + this.nonce + "\n"); const result = await this.last, exit = await this.done;
     if (exit.code !== 0 || exit.signal || !exit.outputProven) fail("workspace_native_exit_unproven"); return result;

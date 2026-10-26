@@ -22,6 +22,7 @@ import { parseWorkspaceCheckCatalog, type WorkspaceCheckCatalog } from "./worksp
 import { ExecutionLifetime } from "./execution-lifetime.js";
 import type { AgentRunBudget } from "./agent-run-budget.js";
 import { claimAgentRuntimeOperation, agentRuntimeCancellationRequested,readAgentRuntimeCancellationOriginal } from "./agent-runtime-operation.js";
+import {nativeHelperProcessOptions,verifyNativeProcessEnvironment} from './native-process-environment.js';
 
 export interface SharedOptions {
   root: string; binary: string; scope: AgentWorkspaceToolScope;
@@ -110,7 +111,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   const originalModules = ["agent-workspace-ipc-client.mjs", method?"opencode-named-method-tools.mjs":"opencode-workspace-tools.js",...(parent?["opencode-parent-skill-tools.mjs"]:[]), production ? "opencode-host-gateway-provider.mjs" : "opencode-workspace-provider-fixture.mjs"].map(name => {
     const bytes = bytesAt(fileURLToPath(new URL(`../transport/${name}`, import.meta.url))); return { name, bytes, digest: digest(bytes) };
   });
-  const owner = (await nativeControl(identityBinary, ["--identity", String(process.pid)], lifetime.signal)).value;
+  const owner = (await nativeControl(identityBinary, ["--identity", String(process.pid)], lifetime.signal,root)).value;
   lifetime.check(); if (!validWorkspaceWorkerIdentity(owner)) fail("workspace_rehearsal_owner_unproven");
   budget?.assertScope(scope);
   const claim = claimAgentRuntimeOperation(root, scope, { purpose: production ? "agent_runtime" : "workspace_rehearsal", mode: production ? "host_gateway" : checksOnly ? "checks" : "files", binary_digest: pinned.digest,binary_original:binaryOriginal,
@@ -147,7 +148,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   atomicJson(join(operation, "original-config.json"), originalConfig);
   if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
   if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,sandboxBinary.path,sandboxBinary.digest.value),sandboxBinary.original))fail("agent_runtime_controller_original_changed");
-  const native = spawn(sandboxBinary.path, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], env: isolatedEnvironment() });
+  const native = spawn(sandboxBinary.path, [], { windowsHide: true, stdio: ["pipe", "pipe", "pipe"], ...nativeHelperProcessOptions(sandboxBinary.path,isolatedEnvironment(),production) });
   let channel: Pick<AgentWorkspaceToolIpc, "getEndpoint" | "snapshot" | "close"> | undefined, buffer = Buffer.alloc(0), total = 0, outputFailure = false, suspended: Record<string, unknown> | undefined;
   const output: Buffer[] = [], errors: Buffer[] = [];
   const phases = ["registered", "profile_intent", "grants_intent", "granted", "mapped", "process_create_intent", "runtime_created"];
@@ -217,7 +218,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     });
   });
   try {
-    const identity = (await nativeControl(identityBinary, ["--identity", String(native.pid)], lifetime.signal)).value;
+    const identity = (await nativeControl(identityBinary, ["--identity", String(native.pid)], lifetime.signal,root)).value;
     lifetime.check();
     if (!validWorkspaceWorkerIdentity(identity) || identity.pid !== native.pid || identity.image.toLowerCase() !== sandboxBinary.path.toLowerCase()) fail("workspace_rehearsal_supervisor_unproven");
     originalSupervisor = { ...identity };
@@ -228,6 +229,7 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,pinned.path,pinned.digest.value),binaryOriginal))fail("agent_runtime_binary_original_changed");
     if(!isDeepStrictEqual(readRuntimeBinaryOriginal(root,sandboxBinary.path,sandboxBinary.digest.value),sandboxBinary.original))fail("agent_runtime_controller_original_changed");
     beforeNativeEffect?.();parent?.assertScope(scope);
+    verifyNativeProcessEnvironment(sandboxBinary.path,production);
     native.stdin.write(JSON.stringify(originalConfig) + "\n");
     const original = await lifetime.wait(ready);
     if (!isDeepStrictEqual(parseGatewayJson(bytesAt(join(operation, "agent-sandbox-original.json")).toString("utf8"), 32768), original)) fail("workspace_rehearsal_original_unproven");
@@ -249,8 +251,9 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
     const jobReceiptFile=openSync(join(operation,'agent-job-observation.json'),'r+');try{fsyncSync(jobReceiptFile);}finally{closeSync(jobReceiptFile);}
     parent?.assertScope(scope);if (model) await lifetime.wait(model.check(scope,lifetime.signal));parent?.assertScope(scope);
     beforeNativeEffect?.();parent?.assertScope(scope);
+    verifyNativeProcessEnvironment(sandboxBinary.path,production);
     resumed = true; native.stdin.write(JSON.stringify({ format: "cimiloop/agent-workspace-resume/1.0.0", nonce }) + "\n");
-    const exit = await lifetime.wait(ended); await channel.close(); lifetime.check();
+    const exit = await lifetime.wait(ended); await channel.close(); lifetime.check();verifyNativeProcessEnvironment(sandboxBinary.path,production);
     const stdout = Buffer.concat(output), stderr = Buffer.concat(errors);
     writeFileSync(join(operation, "stdout.raw"), stdout, { flag: "wx" }); writeFileSync(join(operation, "stderr.raw"), stderr, { flag: "wx" });
     const events = stdout.toString("utf8").split(/\r?\n/).filter(line => line.trim().startsWith("{")).map(line => parseGatewayJson(line, 2 * 1024 * 1024) as Record<string, unknown>);

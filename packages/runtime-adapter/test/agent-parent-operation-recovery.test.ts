@@ -4,7 +4,7 @@ import { basename, dirname, join, resolve, sep } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { digest } from "../src/files.js";
-import { pinBinary } from "../src/native.js";
+import { pinBinary,buildWindowsLauncher } from "../src/native.js";
 import { readRuntimeBinaryOriginal } from "../src/runtime-binary-originals.js";
 import { claimAgentRuntimeOperation, recoverAgentRuntimeOperation, queryAgentRuntimeOperation, collectAgentRuntimeOperation } from "../src/agent-runtime-operation.js";
 import { agentWorkspaceIpcScopeDigest } from "../src/agent-workspace-ipc.js";
@@ -134,6 +134,8 @@ describe("parent config7 original operation reader and resource-only recovery", 
     const f = setup(), supervisor = { ...f.owner, pid: 2345, image: f.proof.path }, nonce = String(f.config.nonce), profile = "CimiLoop.AgentWorkspace." + nonce.replaceAll("-", "");
     // These retained controller bytes are never executed. Query uses the actual,
     // independently built Windows identity observer, not this constructed owner.
+    // Actual Runtime setup installs it before registration; query now only opens
+    // that original helper and never compiles or installs an environment.
     const launch = { format: "cimiloop/agent-workspace-launcher/2.0.0", nonce, owner: f.owner, supervisor, launcher_path: f.proof.path, launcher_digest: f.proof.sha, launcher_original: f.proof };
     const resources = { format: "cimiloop/agent-workspace-resources/1.0.0", nonce, root: f.config.root, binary: f.proof.path, profile,
       scope_digest: f.config.scope_digest, config_digest: digest(readFileSync(f.path)).value, owner: f.owner, supervisor, runtime: null, mapping: null,
@@ -143,6 +145,8 @@ describe("parent config7 original operation reader and resource-only recovery", 
     save("original-launcher.json", launch); save("agent-sandbox-resources.json", resources);
     expect(f.read()).toMatchObject({ launch, resources });
     const before = readFileSync(join(f.claim.claimDirectory, "claim.json"));
+    expect(await queryAgentRuntimeOperation(f.root,f.scope)).toMatchObject({status:'Unknown',reason:'agent_original_observer_unavailable',resources_disposed:false});expect(existsSync(join(f.root,'native-process-environment'))).toBe(false);
+    await buildWindowsLauncher(f.root);
     expect(await queryAgentRuntimeOperation(f.root, f.scope)).toMatchObject({ status: "Unknown", reason: "agent_original_state_unproven", resources_disposed: false, completion_proven: false });
     const collected = await collectAgentRuntimeOperation(f.root, f.scope);
     expect(collected).toMatchObject({ status: { status: "Unknown", reason: "agent_original_state_unproven" }, domain_observation_produced: false, formal_agent_execution_enabled: false });

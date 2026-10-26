@@ -5,6 +5,7 @@ import { resolve, parse } from 'node:path';
 import { assertOrdinaryPath, digest, RuntimeAdapterError } from './files.js';
 import { parseGatewayJson } from './gateway-conversation.js';
 import { isolatedEnvironment, buildWindowsFixedVolumeReader } from './native.js';
+import {nativeHelperProcessOptions,verifyNativeProcessEnvironment} from './native-process-environment.js';
 import { readRuntimeBinaryOriginal } from './runtime-binary-originals.js';
 import { AgentStartLedger, type AgentStartTicket } from './agent-start-ledger.js';
 
@@ -23,8 +24,8 @@ const readers=new WeakSet<Reader>();
 const readerOriginals=new WeakMap<Reader,unknown>();
 export async function openWindowsFixedVolumeReader(toolsRoot:string,options:{readOnly?:true}={}):Promise<Reader>{
  const retained=await buildWindowsFixedVolumeReader(toolsRoot,options),original=structuredClone(retained.original);
- const verify=()=>{if(['.config','.local','.manifest'].some(suffix=>existsSync(retained.path+suffix))||!same(readRuntimeBinaryOriginal(toolsRoot,retained.path,retained.digest.value),original))fail();};
- const reader:Reader=(image,root,maximum)=>{try{const args=argumentsChecked(image,root,maximum);verify();const output=execFileSync(retained.path,[args.image,args.root,String(maximum)],{windowsHide:true,timeout:15000,maxBuffer:16384,encoding:'utf8',env:isolatedEnvironment(),stdio:['ignore','pipe','pipe']});verify();return parseFixedVolumeObservation(parseGatewayJson(output,16384),args.image,args.root,maximum);}catch{fail();}};
+ const verify=()=>{verifyNativeProcessEnvironment(retained.path);if(['.config','.local','.manifest'].some(suffix=>existsSync(retained.path+suffix))||!same(readRuntimeBinaryOriginal(toolsRoot,retained.path,retained.digest.value),original))fail();};
+ const reader:Reader=(image,root,maximum)=>{try{const args=argumentsChecked(image,root,maximum);verify();const output=execFileSync(retained.path,[args.image,args.root,String(maximum)],{windowsHide:true,timeout:15000,maxBuffer:16384,encoding:'utf8',...nativeHelperProcessOptions(retained.path,isolatedEnvironment()),stdio:['ignore','pipe','pipe']});verify();return parseFixedVolumeObservation(parseGatewayJson(output,16384),args.image,args.root,maximum);}catch{fail();}};
  readers.add(reader);readerOriginals.set(reader,{root:assertOrdinaryPath(toolsRoot),original});return Object.freeze(reader);
 }
 function readerDirectory(path:string){const stat=lstatSync(assertOrdinaryPath(path),{bigint:true});if(!stat.isDirectory()||stat.ino<=0n)fail();return{dev:String(stat.dev),ino:String(stat.ino),birth:String(stat.birthtimeNs)};}

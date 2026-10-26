@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { compileValidator, RuntimeOperationResultSchema, RuntimeDiskLimitsSchema, SkillRuntimeProfileSchema, type SkillRuntimeProfile, type RuntimeDiskLimits, type RuntimeExecutionPolicy, type RuntimeOperationResult, type ExternalReference, type Digest } from "@cimiloop/protocol/v2";
 import { digest, directory, atomicJson, readJson, bytesAt, rawReference, RuntimeAdapterError, assertOrdinaryPath } from "./files.js";
 import { isolatedEnvironment } from "./native.js";
+import {nativeHelperProcessOptions} from './native-process-environment.js';
 import { validateFixedMethodContext } from "./fixed-method.js";
 import type { FixedMethodProfile } from "@cimiloop/protocol/v2";
 import { validateModelConnection, type DedicatedModelConnection } from "./connection.js";
@@ -174,7 +175,7 @@ export class IsolatedProbeAdapter {
       ...control, control_digest: digest(JSON.stringify(control)) };
     atomicJson(join(path, "request.json"), request);
     const worker = spawn(process.execPath, [fileURLToPath(new URL("../dist/supervise.js", import.meta.url)), path], {
-      detached: true, windowsHide: true, stdio: "ignore", env: isolatedEnvironment()
+      detached: true, windowsHide: true, stdio: "ignore", ...nativeHelperProcessOptions(this.driver.launcher,isolatedEnvironment())
     });
     await new Promise<void>((done) => { worker.once("spawn", done); worker.once("error", () => done()); });
     worker.unref();

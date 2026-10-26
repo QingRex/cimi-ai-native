@@ -11,6 +11,7 @@ import type { AgentToolAuthorityRequest, Project, RunRecord } from "@cimiloop/pr
 import { parseAgentWorkspaceToolScope, parseAgentToolAssessment, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 import { WindowsWorkspaceFileBroker, parseWorkspaceToolInvocation, validWorkspaceWorkerIdentity, validWorkspaceFileIdentity } from "./workspace-files.js";
 import { buildWindowsLauncher, pinBinary, isolatedEnvironment, nativeControl } from "./native.js";
+import {nativeHelperProcessOptions,verifyNativeProcessEnvironment} from './native-process-environment.js';
 import { creditHostDependencies } from "./gateway-credit-owner.js";
 import { copyToolJson } from "./tool-journal.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
@@ -261,7 +262,7 @@ export class AgentWorkspaceCheckHost {
         ["--test", "--test-isolation=none", "--test-reporter=tap", "--test-timeout=" + recipe.max_elapsed_ms, "{workspace}/" + recipe.entry];
       const worker = spawn(this.launcher, [root, "read", String(recipe.max_elapsed_ms), this.node.path, proof, cancel,
         "--managed", nonce, JSON.stringify(limits), "--policy", JSON.stringify({ network: { mode: "deny_all" }, cost: { mode: "unmetered_probe_only" } }), ...argv],
-        { windowsHide: true, stdio: ["ignore", "pipe", "pipe"], env: isolatedEnvironment() });
+        { windowsHide: true, stdio: ["ignore", "pipe", "pipe"], ...nativeHelperProcessOptions(this.launcher,isolatedEnvironment(),true) });
       const stdout: Buffer[] = [], stderr: Buffer[] = []; let total = 0, exceeded = false, started = false;
       const stop = () => { try { writeFileSync(cancel, exceeded ? "output budget exhausted" : "cancelled", { flag: "wx" }); } catch { /* Preserve the first cancellation. */ } };
       const capture = (into: Buffer[], chunk: Buffer) => { total += chunk.length; if (total > recipe.max_output_bytes) { exceeded = true; stop(); } else into.push(chunk); };
@@ -273,6 +274,7 @@ export class AgentWorkspaceCheckHost {
       this.abort.signal.addEventListener("abort", stop, { once: true }); if (this.abort.signal.aborted) stop();
       const timer = setTimeout(stop, recipe.max_elapsed_ms + 5000), hardStop = setTimeout(() => worker.kill(), recipe.max_elapsed_ms + 15000);
       const exit = await ended; clearTimeout(timer); clearTimeout(hardStop); this.abort.signal.removeEventListener("abort", stop);
+      verifyNativeProcessEnvironment(this.launcher,true);
       const out = Buffer.concat(stdout), err = Buffer.concat(stderr); writeFileSync(join(operation, "stdout.raw"), out, { flag: "wx" }); writeFileSync(join(operation, "stderr.raw"), err, { flag: "wx" });
       atomicJson(join(operation, "capture.json"), { format: "cimiloop/workspace-check-capture/1.0.0", input_digest: inputDigest,
         total_bytes: total, captured_bytes: out.length + err.length, maximum_bytes: recipe.max_output_bytes, exceeded });
