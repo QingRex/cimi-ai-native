@@ -1,9 +1,19 @@
 import {isDeepStrictEqual} from 'node:util';
+import {createHash} from 'node:crypto';
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
-import { afterEach, beforeEach, expect, it } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import * as application from '../../packages/local-app/src/index.js';
+const nativeSamples=vi.hoisted(()=>({entries:new Map<string,any>()}));
+vi.mock('../../packages/runtime-adapter/dist/index.js',async load=>{
+ const actual=await load<typeof import('../../packages/runtime-adapter/dist/index.js')>();
+ const entry=(scope:any)=>{const value=nativeSamples.entries.get(scope.operation_key);if(!value)throw Error('PUBLIC Native original missing');return value;};
+ return {...actual,readAgentRuntimeOriginalIdentity:(_root:string,scope:any)=>structuredClone(entry(scope).identity),
+  readAgentRuntimeNamedMethodResult:(_root:string,scope:any,plan:any)=>{const value=entry(scope);if(JSON.stringify(plan)!==JSON.stringify({profile:value.plan.profile,files:value.plan.files}))throw Error('PUBLIC original fixed plan changed');return structuredClone(value.result);},
+  readCodexAgentModelOriginals:(_root:string,scope:any)=>structuredClone(entry(scope).codex)};
+});
 import { createInternalId, compileValidator, NamedSkillMethodAssessmentSchema, type SkillImportSpec, type NamedSkillMethodEvidence,
   type NamedSkillMethodSample, type ProviderDescriptor, type AgentRunRecord, type AgentContextManifest, type ProviderBinding } from "../../packages/protocol/src/v2/index.js";
 import { LocalNamedSkillMethodAssessment, LocalPublicNamedMethodOriginals, type NamedSkillMethodOriginalsPort, type ContentReference } from "../../packages/local-app/src/index.js";
@@ -17,10 +27,29 @@ import { constructedNamedTranscript } from "../fixtures/named-method-transcript.
 // model-origin/billing/harness callbacks only. No production qualification claim.
 let root: string, f: ReturnType<typeof createFlowProject>, assessor: LocalNamedSkillMethodAssessment, descriptor: ProviderDescriptor, evidence: NamedSkillMethodEvidence;
 const digest = (value: unknown) => ({ algorithm: "sha256" as const, value: requestDigest(value) });
+const applicationDigest=(bytes:Buffer)=>createHash('sha256').update(bytes).digest('hex');
 const store = <T extends ContentReference["resource_type"]>(value: unknown, type: T) => assessor.inputs.packages.content.storeContent(
   Buffer.isBuffer(value) ? value : Buffer.from(JSON.stringify(value)), type);
 const artifact = (value: unknown, version: string) => ({ ...store(value, "provider_probe_artifact"), version });
 const evidenceRef = () => store(evidence, "named_skill_method_evidence");
+// PUBLIC projections isolate the new bridge. Imported bytes/real Git/assessment
+// are exercised; Native/model custody is mocked and is never S1 evidence.
+const nativeSample=()=>{
+ const input_ref=store({purpose:'clarification',requirement:'Fixed',background:'PUBLIC Native sample',constraints:[]},'skill_method_input'),invocation_key=createInternalId();
+ const plan=assessor.inputs.read(f.project,descriptor,{invocation_key,method_name:'entry',input_ref});
+ const scope={project_id:f.project.id,run_id:createInternalId(),operation_key:invocation_key,executor_actor_id:createInternalId(),context_digest:digest('PUBLIC context'),runtime_binding:evidence.runtime_binding,skill_bindings:[],host_admission_ref:{...store({PUBLIC:true},'agent_host_admission')}};
+ const path=join(root,'native-'+invocation_key);mkdirSync(path);
+ const profile='CimiLoop.AgentWorkspace.'+invocation_key.replaceAll('-','');
+ const stdout=Buffer.from(JSON.stringify({type:'step_start',sessionID:'PUBLIC-'+invocation_key})+'\n'+JSON.stringify({type:'step_finish',sessionID:'PUBLIC-'+invocation_key,part:{reason:'stop'}})+'\n');
+ const values:any={'stdout.raw':stdout,'agent-sandbox-cleanup.json':{phase:'ended',reason:'exited',exit_code:0,resources_disposed:true,cleanup_errors:[]},'agent-sandbox-resources.json':{profile,runtime:{pid:123}},'agent-sandbox-original.json':{peer:{pid:123}}};
+ const artifacts=Object.entries(values).map(([name,value])=>{const bytes=Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value));const file=join(path,name);writeFileSync(file,bytes);return{name,path:file,digest:requestDigest('unused')};});
+ for(const item of artifacts){const bytes=readFileSync(item.path);item.digest=applicationDigest(bytes);}
+ const output={purpose:'clarification',questions:['Which business requirement?'],unresolved:['PUBLIC harness']};
+ const value:any={plan,identity:{scope,operation:path,identity_digest:digest('PUBLIC original '+invocation_key),input:{prompt:JSON.stringify({format:'cimiloop/agent-runtime-named-method-packet/1.0.0',method_profile:plan.profile,instructions:plan.prompt},null,1)}},result:{status:'Observed',method_result_reverified:true,output,output_digest:{algorithm:'sha256',value:applicationDigest(Buffer.from(JSON.stringify(output)))},artifacts},codex:{status:'NotRegistered',calls:[],artifacts:[]}};
+ nativeSamples.entries.set(invocation_key,value);
+ const Class=Reflect.get(application,'LocalNativeNamedMethodSamples');expect(Class).toBeTypeOf('function');const reader=new Class(root,root);
+ return{reader,value,scope,plan,input_ref,invocation_key,capture:()=>reader.capture(f.project,descriptor,{invocation_key,method_name:'entry',input_ref},scope)};
+};
 const sample = (purpose: "clarification" | "review" = "clarification"): NamedSkillMethodSample => {
   const input = purpose === "clarification" ? { purpose, requirement: "Fixed", background: "Constructed review", constraints: [] } :
     { purpose, goal: "Review", spec: "Fixed", standards: "Fixed", artifact_refs: [store(Buffer.from("Fixed diff\n"), "workspace_diff")] };
@@ -36,6 +65,7 @@ const constructedOriginals = (change?: (result: ReturnType<NamedSkillMethodOrigi
     independent_context: "passed", provider_dependencies: "passed", permission_intersection: "passed", invocation_recovery: "passed", behavior: "passed", harness: { invoke_skills: "passed", human_interview: "passed" } } }; change?.(result); return result;
 } });
 beforeEach(() => {
+  nativeSamples.entries.clear();
   root = mkdtempSync(join(tmpdir(), "cimiloop-named-assessment-")); f = createFlowProject(root, { repositoryKind: "git" }); assessor = new LocalNamedSkillMethodAssessment(root, root);
   const source = join(root, "source"); mkdirSync(join(source, "skills", "entry"), { recursive: true });
   writeFileSync(join(source, "LICENSE"), "Constructed source license\n");
@@ -62,6 +92,56 @@ it("separates named read-contract qualification from builtin Skill and formal ex
   expect(controlled.outcome).toBe("NEED_MORE_EVIDENCE"); expect(controlled.assessments).toContainEqual({ key: "sample_0_real_model", result: "inconclusive" });
   expect(controlled.assessments).toContainEqual({ key: "sample_0_harness_human_interview", result: "inconclusive" });
   expect(f.store.listEvents()).toEqual(events); expect(assessor.evaluate(f.project, descriptor, ref)).toEqual(contract);
+});
+it('captures an original Native method into immutable evidence and evaluates its actual read contract without model or billing approval',()=>{
+ const native=nativeSample(),before=f.store.asOfEventSequence(),captured=native.capture();evidence.samples=[captured];
+ expect(captured.invocation_key).toBe(native.invocation_key);expect(captured.input_ref).toEqual(native.input_ref);expect(native.capture()).toEqual(captured);
+ const marker=JSON.parse(assessor.inputs.packages.content.readContent(captured.transcript_ref).toString());expect(marker).toMatchObject({format:'cimiloop/native-named-method-sample/1.0.0',scope:native.scope,original_identity_digest:native.value.identity.identity_digest});
+ const contract=assessor.evaluate(f.project,descriptor,evidenceRef());expect(contract).toMatchObject({outcome:'ALLOW',formal_execution_enabled:false});
+ const controlled=assessor.evaluate(f.project,descriptor,evidenceRef(),'controlled_execution');expect(controlled.outcome).toBe('NEED_MORE_EVIDENCE');expect(controlled.assessments).toContainEqual({key:'sample_0_real_model',result:'inconclusive'});expect(f.store.asOfEventSequence()).toBe(before);
+});
+it.each(['runtime','project','stdout','cleanup','identity','output','packet'] as const)('rejects mismatched original Native %s without accepting imported success',kind=>{
+ const native=nativeSample(),captured=native.capture();evidence.samples=[captured];
+ if(kind==='runtime')evidence.runtime_binding={...evidence.runtime_binding,digest:digest('foreign runtime')};
+ else if(kind==='project')evidence.samples[0]={...captured,transcript_ref:artifact({...JSON.parse(assessor.inputs.packages.content.readContent(captured.transcript_ref).toString()),scope:{...native.scope,project_id:createInternalId()}},'native-method.json')};
+ else if(kind==='stdout')evidence.samples[0]={...captured,stdout_ref:artifact(Buffer.from('PUBLIC substituted stdout'),'stdout.raw')};
+ else if(kind==='cleanup')evidence.samples[0]={...captured,native_proof_ref:artifact({phase:'ended',exit_code:0},'agent-sandbox-cleanup.json')};
+ else if(kind==='identity')native.value.identity.identity_digest=digest('replaced original');
+ else if(kind==='output')native.value.result.output_digest=digest('different method result');
+ else native.value.identity.input.prompt=JSON.stringify({format:'cimiloop/agent-runtime-named-method-packet/1.0.0',method_profile:native.plan.profile,instructions:'substituted instructions'});
+ expect(()=>assessor.evaluate(f.project,descriptor,evidenceRef())).toThrow();
+});
+it('refuses an incomplete Native method before capturing any sample',()=>{const native=nativeSample();native.value.result.status='Unknown';native.value.result.method_result_reverified=false;expect(native.capture).toThrow();});
+it('rejects refreshed original artifact bytes even when the imported output and stdout keep the same meaning',()=>{
+ const native=nativeSample();evidence.samples=[native.capture()];const artifact=native.value.result.artifacts.find((item:any)=>item.name==='agent-sandbox-resources.json');
+ writeFileSync(artifact.path,JSON.stringify(JSON.parse(readFileSync(artifact.path,'utf8')),null,2));artifact.digest=applicationDigest(readFileSync(artifact.path));
+ expect(()=>assessor.evaluate(f.project,descriptor,evidenceRef())).toThrow();
+});
+const codexNativeOriginals=()=>{
+ const first=nativeSample(),second=nativeSample(),binary=join(root,'PUBLIC-codex.exe');writeFileSync(binary,'PUBLIC executable, never launched');
+ const installed:any={binary,model:'gpt-6-luna',account_digest:'1'.repeat(64),quota_account_digest:'2'.repeat(64),disabled_mcp_servers:[],installation_digest:'3'.repeat(64),guard:()=>{}};
+ for(const item of [first,second]){
+  const header={model:installed.model,account_digest:installed.account_digest,quota_account_digest:installed.quota_account_digest,runtime:{account_digest:installed.account_digest,command:{file:binary,args:[],sha256:applicationDigest(readFileSync(binary))},disabled_mcp_servers:[]}};
+  const headerPath=join(item.value.identity.operation,'codex-header.json');writeFileSync(headerPath,JSON.stringify(header));
+  item.value.codex={status:'Observed',origin:'external_model',scope_digest:applicationDigest(Buffer.from(JSON.stringify(item.scope))),original_requirement_pinned:true,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:installed.quota_account_digest,real_model_turns:1,calls:[{state:'reply_recorded',original:{account_digest:installed.account_digest,model:installed.model,thread_id:'PUBLIC-thread-'+item.invocation_key,ordinary_quota:{before:{ordinary_usage_allowed:true,account_id_digest:installed.quota_account_digest},after:{account_id_digest:installed.quota_account_digest}}}}],artifacts:[{name:'header.json',path:headerPath,digest:applicationDigest(readFileSync(headerPath))}]};
+ }
+ evidence.samples=[first.capture(),second.capture()];
+ const Class=Reflect.get(application,'LocalCodexNamedMethodOriginals');expect(Class).toBeTypeOf('function');return{first,second,installed,port:new Class(root,root,installed)};
+};
+it('reads pinned Codex/Native method originals while keeping bills, current permissions and behavior unqualified',()=>{
+ const {port}=codexNativeOriginals(),before=f.store.asOfEventSequence(),result=assessor.evaluate(f.project,descriptor,evidenceRef(),'controlled_execution',port);
+ expect(result.outcome).toBe('NEED_MORE_EVIDENCE');expect(result.assessments).toContainEqual({key:'sample_0_real_model',result:'passed'});expect(result.assessments).toContainEqual({key:'sample_1_independent_context',result:'passed'});
+ for(const key of ['cost_accounting_and_cap','permission_intersection','behavior','invocation_recovery'])expect(result.assessments).toContainEqual({key:'sample_0_'+key,result:'inconclusive'});
+ expect(f.store.asOfEventSequence()).toBe(before);
+});
+it.each(['account','binary','context','quota','guard'] as const)('rejects original Codex %s mismatch before issuing method qualification',kind=>{
+ const {first,second,installed,port}=codexNativeOriginals();
+ if(kind==='account')first.value.codex.calls[0].original.account_digest='4'.repeat(64);
+ else if(kind==='binary')writeFileSync(installed.binary,'changed PUBLIC executable');
+ else if(kind==='context')second.value.codex.calls[0].original.thread_id=first.value.codex.calls[0].original.thread_id;
+ else if(kind==='quota')first.value.codex.calls[0].original.ordinary_quota.before.ordinary_usage_allowed=false;
+ else installed.guard=()=>Promise.resolve();
+ expect(()=>assessor.evaluate(f.project,descriptor,evidenceRef(),'controlled_execution',port)).toThrow();
 });
 it("retains positive public fixture reads as negative real-model evidence", () => {
   evidence.samples.push(sample()); const ref = evidenceRef();

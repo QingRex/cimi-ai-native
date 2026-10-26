@@ -7,6 +7,7 @@ import { requestDigest } from "@cimiloop/kernel";
 import { replayFixedMethodTranscript, verifyFixedMethodSdkEffects, parseGatewayJson, openPublicNamedMethodOriginals,
   type GatewayCreditPolicy, type GatewayCreditConversationOriginalOptions } from "@cimiloop/runtime-adapter";
 import { LocalSkillMethodInputs, type LocalSkillMethodPlan, type LocalSkillMethodQualificationPort } from "./skill-methods-local.js";
+import {LocalNativeNamedMethodSamples} from './native-named-method-samples-local.js';
 
 const same = (a: unknown, b: unknown) => isDeepStrictEqual(JSON.parse(JSON.stringify(a)), JSON.parse(JSON.stringify(b)));
 const digest = (value: unknown) => ({ algorithm: "sha256" as const, value: requestDigest(value) });
@@ -69,7 +70,8 @@ export class LocalPublicNamedMethodOriginals implements NamedSkillMethodOriginal
 
 export class LocalNamedSkillMethodAssessment {
   readonly inputs: LocalSkillMethodInputs;
-  constructor(readonly repositoryPath: string, readonly dataDirectory: string) { this.inputs = new LocalSkillMethodInputs(repositoryPath, dataDirectory); }
+  private readonly native:LocalNativeNamedMethodSamples;
+  constructor(readonly repositoryPath: string, readonly dataDirectory: string,nativeOriginalsRoot=dataDirectory) { this.inputs = new LocalSkillMethodInputs(repositoryPath, dataDirectory);this.native=new LocalNativeNamedMethodSamples(repositoryPath,dataDirectory,nativeOriginalsRoot); }
   private bytes(ref: NamedSkillMethodSample["transcript_ref"], limit: number) {
     ref = compileValidator<NamedSkillMethodSample["transcript_ref"]>(ProviderArtifactReferenceSchema)(structuredClone(ref));
     const bytes = this.inputs.packages.content.readContent(ref); if (bytes.length > limit) throw new Error("Named method artifact byte limit"); return bytes;
@@ -89,8 +91,15 @@ export class LocalNamedSkillMethodAssessment {
       if (operations.has(sample.invocation_key)) throw new Error("Named method original invocation repeated"); operations.add(sample.invocation_key);
       const plan = this.inputs.read(project, descriptor, { ...sample, method_name: evidence.method_name });
       if (plan.request.input.purpose !== evidence.purpose) throw new Error("Named method purpose mismatch");
-      const replay = replayFixedMethodTranscript(plan.profile, plan.files, this.json(this.bytes(sample.transcript_ref, 4 * 1024 * 1024), 4 * 1024 * 1024), plan.prompt);
-      const effects = verifyFixedMethodSdkEffects(replay, this.bytes(sample.stdout_ref, 2 * 1024 * 1024), this.json(this.bytes(sample.native_proof_ref, 16384), 16384));
+      const read=()=>{
+        const body=this.json(this.bytes(sample.transcript_ref,4*1024*1024),4*1024*1024);
+        if(body&&typeof body==='object'&&'format'in body&&body.format==='cimiloop/native-named-method-sample/1.0.0'){
+          const native=this.native.read(project,descriptor,evidence,sample,plan);return{replay:native,effects:native.effects};
+        }
+        const replay=replayFixedMethodTranscript(plan.profile,plan.files,body,plan.prompt);
+        return{replay,effects:verifyFixedMethodSdkEffects(replay,this.bytes(sample.stdout_ref,2*1024*1024),this.json(this.bytes(sample.native_proof_ref,16384),16384))};
+      };
+      const {replay,effects}=read();
       if (sessions.has(effects.session_id)) throw new Error("Named method original session repeated"); sessions.add(effects.session_id);
       if (nativeContexts.has(effects.native_profile)) throw new Error("Named method original context repeated"); nativeContexts.add(effects.native_profile);
       add(`sample_${index}_named_read_contract`, "passed");
@@ -110,9 +119,7 @@ export class LocalNamedSkillMethodAssessment {
       }
       // Re-read all imported bytes after trusted verification, guarding callbacks
       // and changing content. The snapshot is never the qualification authority.
-      if (!same(plan, this.inputs.read(project, descriptor, { ...sample, method_name: evidence.method_name })) ||
-        !same(replay, replayFixedMethodTranscript(plan.profile, plan.files, this.json(this.bytes(sample.transcript_ref, 4 * 1024 * 1024), 4 * 1024 * 1024), plan.prompt)) ||
-        !same(effects, verifyFixedMethodSdkEffects(replay, this.bytes(sample.stdout_ref, 2 * 1024 * 1024), this.json(this.bytes(sample.native_proof_ref, 16384), 16384)))) throw new Error("Named method evidence changed during assessment");
+      if (!same(plan, this.inputs.read(project, descriptor, { ...sample, method_name: evidence.method_name })) ||!same({replay,effects},read())) throw new Error("Named method evidence changed during assessment");
     }
     if (!same(bytes, this.inputs.packages.content.readContent(evidence_ref))) throw new Error("Named method evidence changed during assessment");
     if (profile === "controlled_execution") add("independent_samples", sessions.size >= 2 ? "passed" : "inconclusive");

@@ -14,6 +14,8 @@ export { LocalProviderVerifier } from "./providers-local.js";
 export { LocalSkillPackageStore } from "./skills-local.js";
 export { LocalSkillMethodInputs } from "./skill-methods-local.js";
 export { LocalNamedSkillMethodAssessment, LocalPublicNamedMethodOriginals } from "./skill-method-assessment-local.js";
+export {LocalNativeNamedMethodSamples} from './native-named-method-samples-local.js';
+export {LocalCodexNamedMethodOriginals} from './codex-named-method-originals-local.js';
 export { LocalWorkspaceToolService } from "./workspace-tools-local.js";
 export type { WorkspaceToolLocalContext } from "./workspace-tools-local.js";
 export { LocalAgentWorkspaceToolService } from "./agent-workspace-tools-local.js";
