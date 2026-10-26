@@ -1,6 +1,6 @@
 import { assessSkillInvocationExecution, parseSkillInvocationExecutionRequest, type SkillInvocationExecutionAssessment } from './skill-invocation-execution.js';
 import { MattClarificationUnavailable } from './planning-clarification.js';
-import {providerProbeHuman,namedSkillProbeAuthority} from './provider-probe-authority.js';
+import {providerProbeHuman,namedSkillProbeAuthority,runtimeContractProbeAuthority} from './provider-probe-authority.js';
 import {
   ProtocolValidationError,
   SCHEMA_VERSION,
@@ -390,6 +390,10 @@ export class CimiLoopKernel {
   authorizeNamedSkillProbe(descriptorId:string,runtimeBindingId:string,purpose:string){
     try{const result=this.#store.readSnapshot(reader=>namedSkillProbeAuthority(reader,this.#caller,this.#now(),descriptorId,runtimeBindingId,purpose)).value;return 'code'in result?domainError(this.#id(),result.code,result.message,result.category):result;}
     catch{return domainError(this.#id(),'STORE_FAILURE','无法核对固定候选方法隔离请求','storage',true);}
+  }
+  authorizeRuntimeContractProbe(descriptorId:string){
+    try{const result=this.#store.readSnapshot(reader=>runtimeContractProbeAuthority(reader,this.#caller,this.#now(),descriptorId)).value;return 'code'in result?domainError(this.#id(),result.code,result.message,result.category):result;}
+    catch{return domainError(this.#id(),'STORE_FAILURE','无法核对固定 Runtime 契约隔离请求','storage',true);}
   }
   authorizeAgentRunPreparation(workItemId:string){
     try{return this.#store.readSnapshot(reader=>{

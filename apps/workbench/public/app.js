@@ -170,6 +170,24 @@ const dashboard = () => {
     panel("执行能力", paragraph("人工任务、运行控制和交接已接通。正式 Agent 执行仍需完成 Runtime 验收；候选探针通过不代表任务执行已启用。"),
       paragraph(`已登记 Provider：${providers.descriptors?.length ?? 0}。`), details("Provider 的实际准入与缺口", providers)))];
 };
+const runtimeContracts = data => {
+  const valid=/^[a-f0-9]{8}-[a-f0-9]{4}-7[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
+  const descriptors=(state.dashboard.providers.descriptors??[]).filter(value=>value.provider_kind==='runtime'),key=`cimiloop.runtime-contracts.${state.context.project_id}.${state.context.actor_id}`;let saved=[],storageError;
+  try{saved=JSON.parse(sessionStorage.getItem(key)??'[]');if(!Array.isArray(saved)||saved.length>64||saved.some(id=>!valid.test(id)))throw Error('invalid');}catch{saved=[];storageError='浏览器无法保留原请求；暂停新验证，仍可按已有 ID 查询。';}
+  const ids=new Set([...saved,...(data.requests??[]).map(value=>value.request_id)]),remember=id=>{if(!valid.test(id))throw Error('请使用有效的原请求 ID。');ids.add(id);if(ids.size>64)throw Error('已有原请求达到64项，请先核对历史容量。');sessionStorage.setItem(key,JSON.stringify([...ids]));};
+  const output=node('div',{'data-runtime-contract-output':''});let generation=0;
+  const inspect=async(id,action)=>{if(!valid.test(id))throw Error('请使用有效的原请求 ID。');const selected=++generation,response=await api('/api/runtime-contracts/'+encodeURIComponent(id)+(action?'/'+action:''),action?{}:undefined);if(response.request_id!==id||response.run_created!==false)throw Error('原请求回执身份需要核对。');if(selected!==generation||!output.isConnected)return;output.replaceChildren(paragraph(response.outcome==='unknown'?'原请求仍待核对；已登记的 Unknown 阶段不会重新执行。':'原件已读取；生产资格和费用仍须分别核验。'),details('原 Runtime 契约结果',response));};
+  const start=form(async values=>{
+    if(storageError)throw Error(storageError);if(state.pending)throw Error('先核对尚未完成的业务请求。');const body={request_id:values.request_id,descriptor_id:values.descriptor,max_elapsed_ms:Number(values.elapsed)};remember(body.request_id);state.busy=true;
+    showNotice('已保留原请求 ID：'+body.request_id,false,button('查询这个原请求',()=>inspect(body.request_id),undefined,true),button('停止这个原请求',()=>inspect(body.request_id,'cancel'),undefined,true));
+    try{const response=await api('/api/runtime-contracts/'+encodeURIComponent(body.request_id)+'/start',body);if(response.request_id!==body.request_id||response.run_created!==false)throw Error('原请求回执身份需要核对。');if(output.isConnected)output.replaceChildren(details('原验证结果',response));}
+    catch(error){showNotice('结果尚未核对：'+error.message,true,button('查询这个原请求',()=>inspect(body.request_id),undefined,true));}finally{state.busy=false;}
+  },select('descriptor','固定 Runtime 候选',descriptors.map(value=>[value.id,value.name+' '+value.version])),input('request_id','原请求 ID（响应丢失后仍使用此 ID）',{required:true,value:uuid()}),input('elapsed','累计期限（毫秒）',{required:true,type:'number',min:1000,max:600000,value:600000}),submit('启动一次固定契约验证'));
+  start.querySelector('button[type="submit"]').disabled=state.busy||!!storageError||!descriptors.length;
+  return[...heading('Runtime 契约验证','由项目负责人发起，使用已安装账户额度。只在固定材料中编辑和独立评审；不创建业务 Run，不批准正式执行。'),...(data.error?[paragraph(data.error,'error')]:[]),...(storageError?[paragraph(storageError,'error')]:[]),panel('发起验证',start),panel('原请求与接续',
+    ...[...ids].map(id=>node('div',{'data-runtime-contract-id':id},paragraph(id),button('查询',()=>inspect(id),undefined,true),button('接续未启动阶段',()=>inspect(id,'continue'),undefined,true),button('停止',()=>inspect(id,'cancel'),undefined,true),button('恢复原资源',()=>inspect(id,'recover'),undefined,true),button('采集证据',()=>inspect(id,'capture'),undefined,true))),
+    form(values=>inspect(values.id),input('id','已有原请求 ID',{required:true}),submit('查询原请求')),output)];
+};
 const skillProbes = data => {
   const internalId=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
   const catalog=state.dashboard.providers,descriptors=(catalog.descriptors??[]).filter(value=>value.provider_kind==='skill'),runtimes=(catalog.bindings??[]).filter(binding=>binding.approval&&catalog.descriptors.some(value=>value.id===binding.descriptor_ref.id&&value.provider_kind==='runtime'));
@@ -455,13 +473,13 @@ const load = async () => {
   const generation = ++state.loading;
   const dashboardData = await api("/api/dashboard");
   const route = location.hash.slice(1) || "dashboard", change = /^change\/(.+)$/.exec(route);
-  const data = change ? await api(`/api/changes/${encodeURIComponent(decodeURIComponent(change[1]))}`) : route === "decisions" ? await api("/api/decisions") : route === 'skills' ? await api('/api/skill-probes').catch(error=>({requests:[],error:error.message})) : null;
+  const data = change ? await api(`/api/changes/${encodeURIComponent(decodeURIComponent(change[1]))}`) : route === "decisions" ? await api("/api/decisions") : route === 'skills' ? await api('/api/skill-probes').catch(error=>({requests:[],error:error.message})) : route==='runtime'?await api('/api/runtime-contracts').catch(error=>({requests:[],error:error.message})):null;
   if (generation !== state.loading) return;
   state.dashboard = dashboardData; state.view = change ? "change" : route; state.changeId = change ? decodeURIComponent(change[1]) : null; state.detail = data;
   document.querySelector("#project-name").textContent = dashboardData.project.name;
   document.querySelector("#operator").textContent = `${actorName(state.context.actor_id)} · 本地 Human`;
   document.querySelectorAll("nav a").forEach(link => link.classList.toggle("active", link.dataset.view === state.view || (state.view === "change" && link.dataset.view === "pool")));
-  const page = state.view === "pool" ? pool() : state.view === 'skills' ? skillProbes(data) : state.view === "decisions" ? inbox(data) : state.view === "change" ? changePage(data) :
+  const page = state.view === "pool" ? pool() : state.view === 'skills' ? skillProbes(data) : state.view==='runtime'?runtimeContracts(data):state.view === "decisions" ? inbox(data) : state.view === "change" ? changePage(data) :
     ["releases", "environments"].includes(state.view) ? [...heading(state.view === "releases" ? "发布批次" : "环境概览", "此入口将在发布与生产交付阶段接通。"), panel("尚未实施", paragraph("当前工作台覆盖需求、任务、决定与交接。这里尚无可执行的发布或环境操作。"))] : dashboard();
   content.replaceChildren(...page);
 };

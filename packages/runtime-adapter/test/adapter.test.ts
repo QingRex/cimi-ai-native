@@ -127,8 +127,12 @@ describe.runIf(process.platform === "win32" && process.arch === "x64")("actual W
     const adapter = adapterFor("cancel"), key = "cancel_" + randomUUID(), request = input(key, 20_000);
     await adapter.start(request);
     const deadline = Date.now() + 15_000;
-    while (adapter.query(key).status !== "Running" && Date.now() < deadline) await new Promise(done => setTimeout(done, 100));
+    // Running proves the Native process exists, not that its child has echoed
+    // the quoted prompt. Observe that effect before cancelling and asserting it.
+    const hasOriginalPrompt=()=>{try{return readFileSync(join(adapter.operationPath(key),'stdout.raw'),'utf8').split(/\r?\n/).some(line=>{try{return JSON.parse(line)===request.prompt;}catch{return false;}});}catch{return false;}};
+    while ((adapter.query(key).status !== "Running" || !hasOriginalPrompt()) && Date.now() < deadline) await new Promise(done => setTimeout(done, 100));
     expect(adapter.query(key).status).toBe("Running");
+    expect(hasOriginalPrompt()).toBe(true);
     expect(adapter.cancel(key).cancel_requested).toBe(true);
     const result = await waitForOperation(adapter, key, 20_000);
     expect(result.status).toBe("Cancelled");

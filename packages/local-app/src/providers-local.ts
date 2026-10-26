@@ -12,6 +12,7 @@ import { LocalEvidenceVerifier } from "./evidence-local.js";
 import{LocalNamedSkillMethodAssessment,type NamedSkillMethodOriginalsPort}from'./skill-method-assessment-local.js';
 import{NamedSkillMethodEvidenceSchema,type NamedSkillMethodEvidenceReference,type NamedSkillMethodAssessment}from'@cimiloop/protocol/v2';
 import{LocalCodexNamedMethodOriginals}from'./codex-named-method-originals-local.js';
+import{LocalCodexRuntimeSdkOriginals}from'./codex-runtime-sdk-originals-local.js';import type{RuntimeSdkContractEvidencePort}from'@cimiloop/kernel';
 
 const parseProbe = compileValidator<RuntimeProbeResult>(RuntimeProbeResultSchema);
 const parseArtifact = compileValidator<ProviderArtifactReference>(ProviderArtifactReferenceSchema);
@@ -29,6 +30,7 @@ const ordinaryFile = (path: string, maximum: number): Buffer => {
 export class LocalProviderVerifier implements ProviderVerifierPort {
   readonly content: LocalEvidenceVerifier;
   #namedScope:{originals:LocalCodexNamedMethodOriginals;guard:()=>void}|undefined;
+  #sdkScope:{originals:LocalCodexRuntimeSdkOriginals;guard:()=>void}|undefined;
   constructor(readonly repositoryPath: string, readonly dataDirectory: string,private readonly namedOriginals?:NamedSkillMethodOriginalsPort) { this.content = new LocalEvidenceVerifier(repositoryPath, dataDirectory); }
   #project(project: Project) { if (resolve(project.repository_path) !== resolve(this.repositoryPath)) throw new Error("Provider project mismatch"); }
   sourceDigest(project: Project, descriptor: ProviderDescriptor) {
@@ -55,6 +57,8 @@ export class LocalProviderVerifier implements ProviderVerifierPort {
   }
   validateSkillRequest(project: Project, request: unknown) { this.#project(project); validateOperationRequest(request as OperationRequest); }
   withNamedOriginals<T>(originals:LocalCodexNamedMethodOriginals,guard:()=>void,run:()=>T):T{if(this.#namedScope||!(originals instanceof LocalCodexNamedMethodOriginals))throw Error('Named method source scope unavailable');const scope={originals,guard};this.#namedScope=scope;try{guard();return run();}finally{if(this.#namedScope!==scope)throw Error('Named method source scope changed');this.#namedScope=undefined;}}
+  withRuntimeSdkOriginals<T>(originals:LocalCodexRuntimeSdkOriginals,guard:()=>void,run:()=>T):T{if(this.#sdkScope||!(originals instanceof LocalCodexRuntimeSdkOriginals))throw Error('Runtime SDK source scope unavailable');const scope={originals,guard};this.#sdkScope=scope;try{guard();return run();}finally{if(this.#sdkScope!==scope)throw Error('Runtime SDK source scope changed');this.#sdkScope=undefined;}}
+  readRuntimeSdkContractEvidence(...args:Parameters<RuntimeSdkContractEvidencePort['readRuntimeSdkContractEvidence']>){const scope=this.#sdkScope;if(!scope)throw Error('Original installed Runtime SDK reader unavailable');scope.guard();const result=scope.originals.readRuntimeSdkContractEvidence(...args);scope.guard();if(this.#sdkScope!==scope)throw Error('Runtime SDK source scope changed');return result;}
   assessNamedSkillMethod(project:Project,descriptor:ProviderDescriptor,reference:NamedSkillMethodEvidenceReference,profile:NamedSkillMethodAssessment['profile']){this.#project(project);const scope=this.#namedScope;scope?.guard();const result=new LocalNamedSkillMethodAssessment(this.repositoryPath,this.dataDirectory).evaluate(project,descriptor,reference,profile,scope?.originals??this.namedOriginals);scope?.guard();if(this.#namedScope!==scope)throw Error('Named method source scope changed');return result;}
   readProbe(project: Project, ref: ProviderProbeReference) {
     this.#project(project); const raw: unknown = JSON.parse(this.content.readContent(ref).toString("utf8"));

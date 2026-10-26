@@ -72,7 +72,11 @@ export async function runOpenCodeWorkspaceEngine(rawOptions: RehearsalOptions | 
   if(method!==undefined&&(!(method instanceof AgentNamedMethodHost)||options.checkCatalog||JSON.stringify(model?.toolNames)!==JSON.stringify(["cimi_invoke_skill","cimi_read_method_resource"])))fail("agent_method_scope_denied");method?.assertScope(scope);
   const beforeNativeEffect = production ? options.beforeNativeEffect : undefined;
   if(beforeNativeEffect !== undefined && typeof beforeNativeEffect !== "function") fail("agent_runtime_start_guard_unavailable");
-  if (production && (!(model instanceof AgentRuntimeModelHost) || !options.runBudget || (!options.checkCatalog && !method) || typeof options.prompt !== "string" || !options.prompt.isWellFormed() || !options.prompt.trim() || Buffer.byteLength(options.prompt) > 32768 || Buffer.byteLength(JSON.stringify({prompt:options.prompt})) > 48000 || options.prompt.split(/\r?\n/).length > 1000 || options.prompt.split(/\r?\n/).some(line => Buffer.byteLength(line) > 1800))) fail("agent_runtime_production_admission_unavailable");
+  // Bounded config17 already pins the exact SDK tool subset. A file-only
+  // technical contract needs no synthetic check recipe or named method host.
+  // A selected check or method still requires its actual installed host.
+  const filesOnly = model instanceof AgentRuntimeModelHost && !!model.outputProfile && model.toolNames.length > 0 && model.toolNames.every(name => ["cimi_read", "cimi_replace"].includes(name));
+  if (production && (!(model instanceof AgentRuntimeModelHost) || !options.runBudget || (!options.checkCatalog && !method && !filesOnly) || model.toolNames.includes("cimi_check") && !options.checkCatalog || typeof options.prompt !== "string" || !options.prompt.isWellFormed() || !options.prompt.trim() || Buffer.byteLength(options.prompt) > 32768 || Buffer.byteLength(JSON.stringify({prompt:options.prompt})) > 48000 || options.prompt.split(/\r?\n/).length > 1000 || options.prompt.split(/\r?\n/).some(line => Buffer.byteLength(line) > 1800))) fail("agent_runtime_production_admission_unavailable");
   if (model && production && model.taskPacketDigest !== digest(options.prompt).value) fail("agent_model_task_packet_mismatch");
   if (options.mode !== undefined && !["files", "checks", "host_gateway"].includes(options.mode)) fail("workspace_rehearsal_input_invalid");
 

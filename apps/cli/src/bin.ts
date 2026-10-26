@@ -25,6 +25,7 @@ import {productionAgentRuntime,productionAgentAccount,productionAgentCosts} from
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
 import {createSkillOriginalCommand} from './skill-original.js';
 import {createSkillMethodProbeCommand} from './skill-method-probe.js';
+import {createRuntimeContractCommand} from './runtime-contract.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 import { installCodexClarification } from "./clarification-codex.js";
 import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,allocateCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage,installCodexHome,showCodexHome} from './agent-codex-installation.js';
@@ -89,6 +90,7 @@ clarification.command("advance <change> <session>").description("按原请求记
   .requiredOption("--file <json>", "固定 request_id、expected_head 与动作内容；候选须保留原 requested_at")
   .action((change, session, options, command) => clarificationOperation("advance", change, session, { ...globals(command), ...options }));
 const runtime = program.command("runtime").description("Runtime安装、原操作核对与隔离验证");
+runtime.addCommand(createRuntimeContractCommand());
 runtime.command('install-codex').description('显式绑定当前Codex账号、程序和固定检查；安装不调用模型或批准Provider')
  .requiredOption('--binary <path>','当前Codex原生codex.exe；同目录须有工具宿主')
  .requiredOption('--native-binary <path>','固定的原生OpenCode执行程序')

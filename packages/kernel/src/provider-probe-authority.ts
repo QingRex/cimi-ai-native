@@ -13,6 +13,16 @@ export function providerProbeHuman(reader:ProjectReader,caller:CallerContext|und
  if(!assignment)return{code:'ROLE_NOT_ASSIGNED',message:'隔离 Provider 操作需要当前 Human 项目负责人指派',category:'forbidden'} satisfies Failure;
  return{ok:true as const,project_id:project.id,actor_id:actor.id,assignment_id:assignment.id,assignment_revision:assignment.revision};
 }
+// Bootstrap contract execution is confined to host-created input.txt materials.
+// It needs no approved Runtime/Skill, and cannot authorize business workspace
+// tools, a Plan/Task/Run, model billing or a production Provider binding.
+export function runtimeContractProbeAuthority(reader:ProjectReader,caller:CallerContext|undefined,now:string,descriptorId:string):Failure|(HumanPermission&{boundary:'fixed_runtime_contract';descriptor:ProviderDescriptor}){
+ const human=providerProbeHuman(reader,caller,now);if('code'in human)return human;
+ const descriptor=reader.getProviderDescriptor(descriptorId);
+ if(!descriptor||descriptor.project_id!==human.project_id||descriptor.provider_kind!=='runtime'||descriptor.name.toLowerCase()!=='opencode'||descriptor.source_ref.provider!=='local_file'||descriptor.source_ref.resource_type!=='executable'||!descriptor.source_ref.digest||descriptor.source_ref.version!==descriptor.version||descriptor.dependencies.length||
+  !descriptor.capabilities.some(value=>['runtime.execute','runtime.probe'].includes(value.capability_id))||!['read_files','edit_files'].every(action=>descriptor.required_permissions.actions.includes(action))||descriptor.input_schema_ref.schema_id!=='RuntimeOperationResult'||descriptor.output_schema_ref.schema_id!=='RuntimeProbeResult')return{code:'CAPABILITY_UNAVAILABLE',message:'固定 Runtime 契约需要当前项目独立候选来源、原 Schema 及读写声明',category:'conflict'};
+ return{...human,boundary:'fixed_runtime_contract',descriptor};
+}
 // A fixed-material isolation request is not a Task/Run or production grant.
 // Business execution still needs controlled qualification and its own Context.
 export function namedSkillProbeAuthority(reader:ProjectReader,caller:CallerContext|undefined,now:string,descriptorId:string,runtimeId:string,purpose:string):Failure|(HumanPermission&{descriptor:ProviderDescriptor;runtime_binding:ProviderBinding;runtime_descriptor:ProviderDescriptor}){

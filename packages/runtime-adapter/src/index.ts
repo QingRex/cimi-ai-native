@@ -21,6 +21,8 @@ export { openPublicNamedMethodOriginals } from "./named-method-originals.js";
 export type { GatewayCreditPolicy, GatewayCreditConversationOriginalOptions, CreditReceipt } from "./gateway-credit.js";
 export { parseGatewayJson } from "./gateway-conversation.js";
 export { WindowsWorkspaceFileBroker, parseWorkspaceToolInvocation, validWorkspaceWorkerIdentity } from "./workspace-files.js";
+export {RuntimeContractFileHost,readRuntimeContractFileOriginals} from './runtime-contract-files.js';
+export {runtimeContractPrompt,readRuntimeContractPhase,type RuntimeContractMode,type RuntimeContractPhaseResult} from './runtime-contract-result.js';
 export type { WorkspaceToolInvocation, WorkspaceFileIdentity, WorkspaceNativePreparation, WorkspaceNativeCompletion, PreparedWorkspaceEffect, WorkspaceStagingOutcome } from "./workspace-files.js";
 export { WorkspaceToolHost, openWorkspaceToolHost, readWorkspaceToolRunFacts, readWorkspaceFileRunOriginals } from "./workspace-tool-host.js";
 export type { WorkspaceToolPhase } from "./workspace-tool-host.js";

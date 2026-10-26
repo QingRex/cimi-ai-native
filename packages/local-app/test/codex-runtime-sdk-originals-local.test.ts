@@ -1,0 +1,18 @@
+import {existsSync,mkdtempSync} from 'node:fs';import {tmpdir} from 'node:os';import {join,dirname} from 'node:path';import {expect,it} from 'vitest';
+import {CimiLoopKernel,requestDigest} from '@cimiloop/kernel';import {AgentStartLedger,digest} from '@cimiloop/runtime-adapter';import {createInternalId} from '@cimiloop/protocol/v2';
+import {createFlowProject,flowSuccess} from '../../../tests/fixtures/flow-project.js';import {createProviderProbe} from '../../../tests/fixtures/provider-probe.js';
+import {LocalCodexRuntimeSdkOriginals} from '../src/codex-runtime-sdk-originals-local.js';import type {InstalledCodexAgentRuntime} from '../src/agent-codex-installation-local.js';
+// An imported supports/complete marker has no authority without this machine's
+// exact original request and Native/SDK/model records. No dispatch or login.
+it('rejects imported completion flags without original installed Host1 requests and does not recreate them',()=>{
+ const root=mkdtempSync(join(tmpdir(),'rc-import-')),f=createFlowProject(root),data=dirname(f.path),p=createProviderProbe(root,data),kernel=new CimiLoopKernel({store:f.store,caller:f.caller,providerVerifier:p.port});
+ const origin=AgentStartLedger.initialize(join(root,'origin'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC owner').value});
+ try{const registered=flowSuccess(kernel.execute(f.projectCommand('RegisterProvider',p.registration)));if(registered.command_type!=='RegisterProvider')throw Error('Descriptor expected');const descriptor=registered.data.descriptor;
+  const recorded=flowSuccess(kernel.execute(f.projectCommand('RecordProviderEvidence',{descriptor_ref:{object_type:'provider_descriptor',id:descriptor.id},descriptor_digest:{algorithm:'sha256',value:requestDigest(descriptor)},raw_result_ref:p.save()})));if(recorded.command_type!=='RecordProviderEvidence')throw Error('Evidence expected');
+  const installation_digest=digest('PUBLIC installation').value,marker=p.artifact(JSON.stringify({format:'cimiloop/runtime-sdk-contract-marker/1.0.0',project_id:f.project.id,request_id:createInternalId(),descriptor_digest:{algorithm:'sha256',value:requestDigest(descriptor)},installation_digest,original_digest:digest('PUBLIC invented original').value,boundary_digest:digest('PUBLIC invented boundary').value,phases:[]}),'provider_probe_artifact','runtime-sdk-contract/1.0.0');
+  p.snapshot.evidence_refs.push(marker);p.snapshot.model_operations=[];p.snapshot.provider.model='codex/gpt-6-luna';p.snapshot.contract_probe_passed=true;
+  const installed:InstalledCodexAgentRuntime={origin,root,binary:process.execPath,native_binary:process.execPath,node_binary:process.execPath,model:'gpt-6-luna',account_digest:digest('PUBLIC account').value,quota_account_digest:digest('PUBLIC quota').value,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',disabled_mcp_servers:[],checks:[],installation_digest,guard(){},release(){}};
+  const local={location:{repositoryKind:'directory' as const,repositoryPath:root,dataDirectory:data,databasePath:f.path,instancePath:join(data,'instance.json'),suggestedName:'PUBLIC original reader'},instance:{schema_version:'1.0.0' as const,instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at}},reader=new LocalCodexRuntimeSdkOriginals(local,installed);
+  expect(()=>reader.readRuntimeSdkContractEvidence(f.project,descriptor,{...recorded.data.evidence,raw_result_ref:p.save()})).toThrow();expect(origin.listExclusive('runtime_contract_request')).toEqual([]);expect(origin.listExclusive('runtime_contract_phase')).toEqual([]);expect(existsSync(join(data,'rt-contract'))).toBe(false);
+ }finally{origin.close();f.store.close();}
+});

@@ -8,11 +8,12 @@ import { contentDigest, IntentFailure } from "./intent.js";
 import { assessSkillProvider, readSkillSample, skillRuntimeBinding, skillAssessmentRule } from "./skill-assessment.js";
 import {readRuntimeControlEvidence,runtimeControlKeys,type RuntimeControlEvidencePort} from './runtime-control-evidence.js';
 import{isNamedSkillProviderEvidence,readNamedSkillProviderSample,assessNamedSkillProvider,namedSkillProviderRule,namedSkillRuntimeBinding}from'./named-skill-provider-assessment.js';
+import{runtimeSdkContractRule,hasRuntimeSdkContract,readRuntimeSdkContractEvidence,type RuntimeSdkContractEvidencePort}from'./runtime-sdk-contract.js';
 import type{NamedSkillMethodAssessment,NamedSkillMethodEvidenceReference,NamedSkillMethodEvidence}from'@cimiloop/protocol/v2';
 export type {RuntimeControlEvidencePort,RuntimeControlEvidence,RuntimeControlKey} from './runtime-control-evidence.js';
 
 // Trusted host IO only. Commands cannot supply verified flags or install a port.
-export interface ProviderVerifierPort extends Partial<RuntimeControlEvidencePort> {
+export interface ProviderVerifierPort extends Partial<RuntimeControlEvidencePort>,Partial<RuntimeSdkContractEvidencePort> {
   readProbe(project: Project, ref: ProviderProbeReference): unknown;
   readArtifact(project: Project, ref: ExternalReference): Uint8Array;
   sourceDigest(project: Project, descriptor: ProviderDescriptor): Digest;
@@ -29,8 +30,9 @@ const text = (bytes: Uint8Array): string => Buffer.from(bytes).toString("utf8");
 const rule = "provider-assessment/1.0.0" as const;
 const controlRule = "runtime-control-evidence/1.0.0" as const;
 const usesControlEvidence=(evaluation:ProviderEvaluation)=>evaluation.assessments.some(check=>check.key===controlRule);
+const usesSdkContract=(evaluation:ProviderEvaluation)=>evaluation.assessments.some(check=>check.key===runtimeSdkContractRule);
 const allRefs = (probe: RuntimeProbeResult) => [...probe.evidence_refs, ...probe.boundaries.flatMap(b => b.raw_refs), ...probe.model_operations.flatMap(o => [...o.raw_refs, ...o.outputs])];
-const readSample = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence) => {
+const readSample = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence,sdk=false) => {
   const probe = parseProbe(port.readProbe(project, evidence.raw_result_ref));
   if (evidence.purpose !== "provider_probe" || !same(probe.provider.binary_digest, descriptor.source_ref.digest) || probe.provider.version !== descriptor.version ||
     probe.provider.version !== descriptor.source_ref.version || descriptor.provider_kind !== "runtime" || descriptor.name.toLowerCase() !== probe.provider.name) throw new Error("Probe source mismatch");
@@ -67,6 +69,7 @@ const readSample = (port: ProviderVerifierPort, project: Project, descriptor: Pr
     }
     values[`boundary_${mode}`] = valid;
   }
+  if(sdk){const contract=readRuntimeSdkContractEvidence(port,project,descriptor,evidence,probe);Object.assign(values,contract.values);return{probe,values,sdk:contract.basis};}
   const [edit, review] = probe.model_operations;
   const unproven = (op: typeof edit) => !op || ["Unknown", "NotStarted", "Running", "Reserved"].includes(op.status);
   const completed = (op: NonNullable<typeof edit>) => {
@@ -86,10 +89,10 @@ const verifySkillRuntime = (port: ProviderVerifierPort, reader: ProviderReader, 
   const descriptor = reader.getProviderDescriptor(binding.descriptor_ref.id)!, evaluation = reader.getProviderEvaluation(binding.approval!.evaluation_ref.id)!;
   const evidence = evaluation.evidence_refs.map(ref => reader.getProviderEvidence(ref.id));
   if (evidence.some(value => !value)) throw new Error("Runtime probe evidence missing");
-  const computed = assessProvider(port, project, descriptor, evidence as ProviderEvidence[], evaluation.profile, reader, usesControlEvidence(evaluation)?controlRule:rule);
+  const computed = assessProvider(port, project, descriptor, evidence as ProviderEvidence[], evaluation.profile, reader, usesControlEvidence(evaluation)?controlRule:rule,usesSdkContract(evaluation));
   if (!same(computed, { input_digest: evaluation.input_digest, outcome: evaluation.outcome, reasons: evaluation.reasons, assessments: evaluation.assessments })) throw new Error("Runtime qualification changed");
 };
-export const assessProvider = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence[], profile: ProviderEvaluation["profile"], reader?: ProviderReader, ruleVersion:typeof rule|typeof controlRule=rule): Pick<ProviderEvaluation, "input_digest" | "outcome" | "reasons" | "assessments"> => {
+export const assessProvider = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence[], profile: ProviderEvaluation["profile"], reader?: ProviderReader, ruleVersion:typeof rule|typeof controlRule=rule,sdk=false): Pick<ProviderEvaluation, "input_digest" | "outcome" | "reasons" | "assessments"> => {
   if (descriptor.provider_kind === "skill") {
     if (!reader) throw new Error("Native Skill binding reader required");
     const named=evidence.map(value=>isNamedSkillProviderEvidence(port.readProbe(project,value.raw_result_ref)));
@@ -97,10 +100,11 @@ export const assessProvider = (port: ProviderVerifierPort, project: Project, des
     return assessSkillProvider(port, reader, project, descriptor, evidence, profile, binding => verifySkillRuntime(port, reader, project, binding));
   }
   const checks: ProviderEvaluation["assessments"] = [];
-  const samples = evidence.map(e => readSample(port, project, descriptor, e));
-  for (const key of ["version", "boundary_write", "boundary_read", "real_edit", "independent_review"]) checks.push({ key,
+  const samples = evidence.map(e => readSample(port, project, descriptor, e,sdk));
+  for (const key of ["version", "boundary_write", "boundary_read", "real_edit", "independent_review",...(sdk?['model_account_identity']:[])]) checks.push({ key,
     result: samples.some(s => s.values[key] === false) ? "refutes" : samples.some(s => s.values[key] === undefined) ? "inconclusive" : "supports",
     evidence_refs: evidence.map(e => ({ object_type: "evidence", id: e.id })) });
+  if(sdk)checks.push({key:runtimeSdkContractRule,result:'supports',evidence_refs:evidence.map(e=>({object_type:'evidence',id:e.id}))});
   let control:ReturnType<typeof readRuntimeControlEvidence>|undefined;
   if(ruleVersion===controlRule&&profile!=='controlled_execution')throw Error('Controlled Runtime rule requires controlled_execution');
   if (profile === "controlled_execution") {
@@ -110,7 +114,7 @@ export const assessProvider = (port: ProviderVerifierPort, project: Project, des
   const outcome = checks.some(c => c.result === "refutes") ? "DENY" : checks.some(c => c.result === "inconclusive") ? "NEED_MORE_EVIDENCE" : "ALLOW";
   const reasons = checks.filter(c => c.result !== "supports").map(c => c.key);
   const input_digest = contentDigest({ rule_version: rule, profile, descriptor_digest: contentDigest(descriptor),
-    evidence: evidence.map(e => ({ id: e.id, digest: contentDigest(e) })), assessments: checks,...(control?{control_rule:controlRule,control_evidence:control.basis}:{}) });
+    evidence: evidence.map(e => ({ id: e.id, digest: contentDigest(e) })), assessments: checks,...(sdk?{sdk_contract_rule:runtimeSdkContractRule,sdk_contract_evidence:samples.map(sample=>sample.sdk)}:{}),...(control?{control_rule:controlRule,control_evidence:control.basis}:{}) });
   return { input_digest, outcome, reasons, assessments: checks } as Pick<ProviderEvaluation, "input_digest" | "outcome" | "reasons" | "assessments">;
 };
 export const providerEvaluationStatus = (reader: ProviderReader, descriptor: ProviderDescriptor, evaluation: ProviderEvaluation | undefined): string[] => {
@@ -118,6 +122,7 @@ export const providerEvaluationStatus = (reader: ProviderReader, descriptor: Pro
     evaluation.descriptor_ref.id !== descriptor.id || !same(evaluation.descriptor_digest, contentDigest(descriptor))) return ["PROVIDER_EVALUATION_NOT_FOUND_OR_STALE"];
   if (evaluation.rule_version !== (descriptor.provider_kind === "skill" ? skillAssessmentRule : rule)) return ["PROVIDER_ASSESSMENT_RULE_UNSUPPORTED"];
   if(usesControlEvidence(evaluation)&&(descriptor.provider_kind!=='runtime'||evaluation.profile!=='controlled_execution'))return ['PROVIDER_ASSESSMENT_PROFILE_MISMATCH'];
+  if(usesSdkContract(evaluation)&&descriptor.provider_kind!=='runtime')return ['PROVIDER_ASSESSMENT_PROFILE_MISMATCH'];
   if (evaluation.evidence_refs.some(ref => { const e = reader.getProviderEvidence(ref.id); return !e || e.project_id !== descriptor.project_id || e.descriptor_ref.id !== descriptor.id || !same(e.descriptor_digest, contentDigest(descriptor)); })) return ["PROVIDER_PROBE_EVIDENCE_NOT_FOUND_OR_STALE"];
   return evaluation.outcome === "ALLOW" ? [] : ["PROVIDER_NOT_EVALUATED", ...evaluation.reasons];
 };
@@ -128,7 +133,7 @@ export function readCurrentAgentProviderQualification(reader:ProviderReader,port
  if(!current||!same(current,binding)||!descriptor||descriptor.project_id!==project.id||binding.project_id!==project.id||!same(binding.descriptor_digest,contentDigest(descriptor))||!evaluation||binding.approval?.binding_scope!=='task_execution'||evaluation.profile!=='controlled_execution'||providerEvaluationStatus(reader,descriptor,evaluation).length||!same(binding.approval.input_digest,evaluation.input_digest)||!same(binding.probe_evidence_refs,evaluation.evidence_refs))throw Error('Current Agent Provider qualification unavailable');
  if(descriptor.provider_kind==='runtime'&&!usesControlEvidence(evaluation))throw Error('Complete original Runtime control evidence required');
  const evidence=evaluation.evidence_refs.map(ref=>reader.getProviderEvidence(ref.id));if(evidence.some(value=>!value))throw Error('Original Provider evidence missing');
- const computed=assessProvider(port,project,descriptor,evidence as ProviderEvidence[],evaluation.profile,reader,usesControlEvidence(evaluation)?controlRule:rule);
+ const computed=assessProvider(port,project,descriptor,evidence as ProviderEvidence[],evaluation.profile,reader,usesControlEvidence(evaluation)?controlRule:rule,usesSdkContract(evaluation));
  if(!same(computed,{input_digest:evaluation.input_digest,outcome:evaluation.outcome,reasons:evaluation.reasons,assessments:evaluation.assessments})||computed.outcome!=='ALLOW')throw Error('Current original Provider qualification changed');
  return{binding_digest:contentDigest(binding),descriptor_digest:contentDigest(descriptor),evaluation_digest:contentDigest(evaluation),evidence_digest:contentDigest(evidence),qualification_digest:computed.input_digest};
 }
@@ -154,7 +159,7 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
     try {
       if(descriptor.provider_kind==='skill'&&isNamedSkillProviderEvidence(port.readProbe(context.project,evidence.raw_result_ref)))readNamedSkillProviderSample(port,tx,context.project,descriptor,evidence,'technical_contract',binding=>verifySkillRuntime(port,tx,context.project,binding));
       else if (descriptor.provider_kind === "skill") readSkillSample(port, tx, context.project, descriptor, evidence, binding => verifySkillRuntime(port, tx, context.project, binding));
-      else readSample(port, context.project, descriptor, evidence);
+      else readSample(port, context.project, descriptor, evidence,hasRuntimeSdkContract(parseProbe(port.readProbe(context.project,evidence.raw_result_ref))));
     }
     catch { return fail("PROVIDER_OUTPUT_INVALID", "Provider 来源、Schema 或原始字节不匹配"); }
     tx.insertProviderEvidence(evidence); event_type = "ProviderEvidenceRecorded"; record = { evidence };
@@ -169,11 +174,13 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
     const runtimeRule=descriptor.provider_kind==='runtime'&&(command.command_type==='EvaluateProvider'
       ? profile==='controlled_execution'&&typeof port.readRuntimeControlEvidence==='function'
       : evaluation&&usesControlEvidence(evaluation))?controlRule:rule;
+    let sdk=descriptor.provider_kind==='runtime'&&!!evaluation&&usesSdkContract(evaluation);
     let computed: ReturnType<typeof assessProvider>;
     try {
-      computed = assessProvider(port, context.project, descriptor, records, profile, tx,runtimeRule);
-      if(runtimeRule===controlRule&&!same(computed,assessProvider(port,context.project,descriptor,records,profile,tx,runtimeRule)))throw Error('Runtime control evidence changed during evaluation');
-      if(computed.assessments.some(check=>check.key===namedSkillProviderRule)&&!same(computed,assessProvider(port,context.project,descriptor,records,profile,tx,runtimeRule)))throw Error('Named method evidence changed during evaluation');
+      if(descriptor.provider_kind==='runtime'&&command.command_type==='EvaluateProvider')sdk=records.some(e=>hasRuntimeSdkContract(parseProbe(port.readProbe(context.project,e.raw_result_ref))));
+      computed = assessProvider(port, context.project, descriptor, records, profile, tx,runtimeRule,sdk);
+      if((runtimeRule===controlRule||sdk)&&!same(computed,assessProvider(port,context.project,descriptor,records,profile,tx,runtimeRule,sdk)))throw Error('Runtime original evidence changed during evaluation');
+      if(computed.assessments.some(check=>check.key===namedSkillProviderRule)&&!same(computed,assessProvider(port,context.project,descriptor,records,profile,tx,runtimeRule,sdk)))throw Error('Named method evidence changed during evaluation');
     }
     catch { return fail("PROVIDER_OUTPUT_INVALID", "Provider 原始来源或证据已失效"); }
     if (command.command_type === "EvaluateProvider") {
