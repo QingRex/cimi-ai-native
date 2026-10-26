@@ -9,6 +9,9 @@ import type { ProviderVerifierPort } from "@cimiloop/kernel";
 import { compileValidator, RuntimeProbeResultSchema, SkillProbeResultSchema, ProviderArtifactReferenceSchema, type ExternalReference,
   type ProviderDescriptor, type ProviderProbeReference, type ProviderArtifactReference, type RuntimeProbeResult, type Project, SkillPackageReferenceSchema, type SkillPackageReference, type SkillProbeResult } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
+import{LocalNamedSkillMethodAssessment,type NamedSkillMethodOriginalsPort}from'./skill-method-assessment-local.js';
+import{NamedSkillMethodEvidenceSchema,type NamedSkillMethodEvidenceReference,type NamedSkillMethodAssessment}from'@cimiloop/protocol/v2';
+import{LocalCodexNamedMethodOriginals}from'./codex-named-method-originals-local.js';
 
 const parseProbe = compileValidator<RuntimeProbeResult>(RuntimeProbeResultSchema);
 const parseArtifact = compileValidator<ProviderArtifactReference>(ProviderArtifactReferenceSchema);
@@ -25,7 +28,8 @@ const ordinaryFile = (path: string, maximum: number): Buffer => {
 };
 export class LocalProviderVerifier implements ProviderVerifierPort {
   readonly content: LocalEvidenceVerifier;
-  constructor(readonly repositoryPath: string, readonly dataDirectory: string) { this.content = new LocalEvidenceVerifier(repositoryPath, dataDirectory); }
+  #namedScope:{originals:LocalCodexNamedMethodOriginals;guard:()=>void}|undefined;
+  constructor(readonly repositoryPath: string, readonly dataDirectory: string,private readonly namedOriginals?:NamedSkillMethodOriginalsPort) { this.content = new LocalEvidenceVerifier(repositoryPath, dataDirectory); }
   #project(project: Project) { if (resolve(project.repository_path) !== resolve(this.repositoryPath)) throw new Error("Provider project mismatch"); }
   sourceDigest(project: Project, descriptor: ProviderDescriptor) {
     this.#project(project);
@@ -50,13 +54,17 @@ export class LocalProviderVerifier implements ProviderVerifierPort {
     return this.content.readContent(compileValidator<SkillPackageReference>(SkillPackageReferenceSchema)(raw));
   }
   validateSkillRequest(project: Project, request: unknown) { this.#project(project); validateOperationRequest(request as OperationRequest); }
+  withNamedOriginals<T>(originals:LocalCodexNamedMethodOriginals,guard:()=>void,run:()=>T):T{if(this.#namedScope||!(originals instanceof LocalCodexNamedMethodOriginals))throw Error('Named method source scope unavailable');const scope={originals,guard};this.#namedScope=scope;try{guard();return run();}finally{if(this.#namedScope!==scope)throw Error('Named method source scope changed');this.#namedScope=undefined;}}
+  assessNamedSkillMethod(project:Project,descriptor:ProviderDescriptor,reference:NamedSkillMethodEvidenceReference,profile:NamedSkillMethodAssessment['profile']){this.#project(project);const scope=this.#namedScope;scope?.guard();const result=new LocalNamedSkillMethodAssessment(this.repositoryPath,this.dataDirectory).evaluate(project,descriptor,reference,profile,scope?.originals??this.namedOriginals);scope?.guard();if(this.#namedScope!==scope)throw Error('Named method source scope changed');return result;}
   readProbe(project: Project, ref: ProviderProbeReference) {
     this.#project(project); const raw: unknown = JSON.parse(this.content.readContent(ref).toString("utf8"));
+    if(raw&&typeof raw==='object'&&'format'in raw&&raw.format==='cimiloop/named-skill-method-evidence/1.0.0')return compileValidator(NamedSkillMethodEvidenceSchema)(raw);
     return raw && typeof raw === "object" && "kind" in raw && raw.kind === "skill_invocation_probe" ? compileValidator(SkillProbeResultSchema)(raw) : parseProbe(raw);
   }
   readArtifact(project: Project, ref: ExternalReference) { this.#project(project); return this.content.readContent(parseArtifact(ref)); }
   importProbe(snapshotFile: string, artifactRoot: string): ProviderProbeReference {
     const raw: unknown = JSON.parse(ordinaryFile(snapshotFile, 1024 * 1024).toString("utf8"));
+    if(raw&&typeof raw==='object'&&'format'in raw&&raw.format==='cimiloop/named-skill-method-evidence/1.0.0')return this.importNamedSkillProbe(raw,artifactRoot);
     if (raw && typeof raw === "object" && "kind" in raw && raw.kind === "skill_invocation_probe") return this.importSkillProbe(raw, artifactRoot);
     const probe = parseProbe(raw);
     const root = resolve(artifactRoot); if (!lstatSync(root).isDirectory() || lstatSync(root).isSymbolicLink()) throw new Error("Unsafe probe artifact root");
@@ -73,6 +81,13 @@ export class LocalProviderVerifier implements ProviderVerifierPort {
     for (const boundary of probe.boundaries) boundary.raw_refs = boundary.raw_refs.map(copy);
     for (const operation of probe.model_operations) { operation.raw_refs = operation.raw_refs.map(copy); operation.outputs = operation.outputs.map(copy); }
     return this.content.storeContent(Buffer.from(JSON.stringify(probe)), "provider_probe_snapshot");
+  }
+  importNamedSkillProbe(raw:unknown,artifactRoot:string):ProviderProbeReference{
+    const evidence=compileValidator(NamedSkillMethodEvidenceSchema)(raw) as import('@cimiloop/protocol/v2').NamedSkillMethodEvidence,root=resolve(artifactRoot);
+    if(!lstatSync(root).isDirectory()||lstatSync(root).isSymbolicLink())throw Error('Unsafe named Skill artifact root');let count=0;
+    const copy=(ref:{provider:string;resource_type:string;locator:string;digest:{algorithm:string;value:string}},maximum:number)=>{if(++count>128||ref.provider!=='local_content'||ref.digest.algorithm!=='sha256'||ref.locator!==ref.digest.value||!/^[a-f0-9]{64}$/.test(ref.locator))throw Error('Fixed named method artifact required');const bytes=ordinaryFile(join(root,ref.locator),maximum);if(digest(bytes).value!==ref.digest.value)throw Error('Named method artifact changed');this.content.storeContent(bytes,ref.resource_type as import('./evidence-local.js').ContentReference['resource_type']);return bytes;};
+    for(const sample of evidence.samples){const input=parseSkillMethodInput(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(copy(sample.input_ref,384*1024))));if(input.purpose==='review')for(const ref of input.artifact_refs)copy(parseArtifact(ref),256*1024);copy(sample.transcript_ref,4*1024*1024);copy(sample.stdout_ref,4*1024*1024);copy(sample.native_proof_ref,65536);}
+    return this.content.storeContent(Buffer.from(JSON.stringify(evidence)),'provider_probe_snapshot');
   }
   importSkillProbe(raw: unknown, artifactRoot: string): ProviderProbeReference {
     const probe = compileValidator<SkillProbeResult>(SkillProbeResultSchema)(raw), root = resolve(artifactRoot);

@@ -12,16 +12,17 @@ import { createProviderProbe } from "./provider-probe.js";
 
 // Synthetic governance fixtures: no executable, skill, model or OS sandbox is
 // actually run. Positive cases exercise the verifier rules, not live admission.
-export const createSkillProbeFixture = (root: string, purpose: "clarification" | "review" = "clarification") => {
+export const createSkillProbeFixture = (root: string, purpose: "clarification" | "review" = "clarification",controlledRuntime=false) => {
   const f = createFlowProject(root), p = createProviderProbe(root, root), port = p.port;
+  if(controlledRuntime){p.registration.capabilities.push({capability_id:'runtime.execute',version:'1.0.0'});Reflect.set(port,'readRuntimeControlEvidence',(project:v2.Project,descriptor:v2.ProviderDescriptor,evidence:v2.ProviderEvidence[])=>({format:'cimiloop/runtime-control-evidence/1.0.0',project_id:project.id,descriptor_digest:contentDigest(descriptor),evidence_digest:contentDigest(evidence.map(value=>({id:value.id,digest:contentDigest(value)}))),checks:Object.fromEntries(['network_host_limits','cost_accounting_and_cap','disk_limit','crash_recovery'].map(key=>[key,{result:'supports',basis_digest:contentDigest({PUBLIC:true,key})}]))}));}
   const kernel = new CimiLoopKernel({ store: f.store, caller: f.caller, providerVerifier: port, now: () => flowTime });
   const execute = (type: string, payload: unknown) => flowSuccess(kernel.execute(f.projectCommand(type, payload)));
   const runtimeRegistration = execute("RegisterProvider", p.registration); if (runtimeRegistration.command_type !== "RegisterProvider") throw new Error("Runtime expected");
   const runtime = runtimeRegistration.data.descriptor, runtimeScope = { descriptor_ref: { object_type: "provider_descriptor" as const, id: runtime.id }, descriptor_digest: contentDigest(runtime) };
   const runtimeObservation = execute("RecordProviderEvidence", { ...runtimeScope, raw_result_ref: p.save() }); if (runtimeObservation.command_type !== "RecordProviderEvidence") throw new Error("Runtime evidence expected");
-  const runtimeEvaluation = execute("EvaluateProvider", { ...runtimeScope, profile: "technical_contract", evidence_refs: [{ object_type: "evidence", id: runtimeObservation.data.evidence.id }] }); if (runtimeEvaluation.command_type !== "EvaluateProvider") throw new Error("Runtime evaluation expected");
+  const runtimeEvaluation = execute("EvaluateProvider", { ...runtimeScope, profile: controlledRuntime?'controlled_execution':"technical_contract", evidence_refs: [{ object_type: "evidence", id: runtimeObservation.data.evidence.id }] }); if (runtimeEvaluation.command_type !== "EvaluateProvider") throw new Error("Runtime evaluation expected");
   const approved = execute("RegisterProviderBinding", { ...runtimeScope, evaluation_ref: { object_type: "evaluation", id: runtimeEvaluation.data.evaluation.id }, input_digest: runtimeEvaluation.data.evaluation.input_digest,
-    binding_scope: "isolated_provider_probe", capability: runtime.capabilities[0], effective_permissions: runtime.required_permissions }); if (approved.command_type !== "RegisterProviderBinding") throw new Error("Runtime binding expected");
+    binding_scope: controlledRuntime?'task_execution':"isolated_provider_probe", capability: controlledRuntime?runtime.capabilities.find(value=>value.capability_id==='runtime.execute'):runtime.capabilities[0], effective_permissions: runtime.required_permissions }); if (approved.command_type !== "RegisterProviderBinding") throw new Error("Runtime binding expected");
   const runtimeBinding = approved.data.binding;
   const source = join(root, "skill-source-repository"), entry = purpose === "review" ? "review" : "clarify";
   mkdirSync(join(source, "skills", entry), { recursive: true }); mkdirSync(join(source, "skills", "dependent"), { recursive: true });

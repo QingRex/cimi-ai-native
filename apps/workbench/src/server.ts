@@ -244,7 +244,8 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         if (closing) throw new HttpFailure(503, "WORKBENCH_CLOSING");
         // A slow upload cannot carry an expired session into a later write.
         requireSession(request, true);
-        const result = executeLocalCommand(context, body);
+        const result = await executeLocalCommandAsync(context,body,()=>{if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,true);});
+        if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,true);
         send(response, "code" in result ? statusFor(result) : 200, result); return;
       }
       throw new HttpFailure(404, "ROUTE_NOT_FOUND");
@@ -278,3 +279,4 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
 const dashboard = (context: LocalProject) => ({ ok: true, project: checked(context.kernel.getProject()),
   flow: checked(context.kernel.getFlowStatus()), governance: checked(context.kernel.getGovernance()),
   execution: checked(context.kernel.getExecution()), providers: checked(context.kernel.getProviderCatalog()) });
+import{executeLocalCommandAsync}from'@cimiloop/local-app';

@@ -15,7 +15,7 @@ import { VerificationShowResultSchema } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
-import { openLocalProject, executeHumanAgentRunCommand, agentPreparationWorkItem, LocalPrePlanClarification, LocalSkillPackageStore, openInstalledCodexMatt, type InstalledCodexMatt } from "@cimiloop/local-app";
+import { openLocalProject, executeHumanAgentRunCommand, agentPreparationWorkItem, LocalPrePlanClarification, LocalSkillPackageStore, openInstalledCodexMatt,executeProviderCommandWithSources,installedProviderVerifier, type InstalledCodexMatt } from "@cimiloop/local-app";
 import { SkillPackageInspectionResultSchema, type SkillPackageInspectionResult, type ProviderRegistration } from "@cimiloop/protocol/v2";
 import { RunShowResultSchema, ProviderCatalogResultSchema } from "@cimiloop/protocol/v2";
 import { MigrationRunner, SqliteProjectRegistry, SqliteProjectStore } from "@cimiloop/store-sqlite";
@@ -400,16 +400,17 @@ export const inspectSkillProvider = (id: string, options: GlobalOptions): void =
     throw new CliInputError("技能包、Descriptor 或输入输出Schema已经失配", "PROVIDER_OUTPUT_INVALID");
   } finally { context.store.close(); }
 };
-export const providerMutation = (kind: "RecordProviderEvidence" | "EvaluateProvider" | "RegisterProviderBinding",
-  options: GovernanceOptions & { file: string; probeFile?: string; artifactRoot?: string }): void => {
+export const providerMutation = async(kind: "RecordProviderEvidence" | "EvaluateProvider" | "RegisterProviderBinding",
+  options: GovernanceOptions & { file: string; probeFile?: string; artifactRoot?: string }): Promise<void> => {
   const payload = readJsonObject(options.file);
-  if (kind === "RecordProviderEvidence" && options.probeFile) {
-    const context = openProject(options);
-    try { payload.raw_result_ref = importInputFile(options.probeFile, () => new LocalProviderVerifier(context.location.repositoryPath, context.location.dataDirectory)
-      .importProbe(resolve(options.probeFile!), resolve(options.artifactRoot ?? context.location.repositoryPath))); }
-    finally { context.store.close(); }
-  }
-  runGovernance(kind, options, payload);
+  const context=openProject(options);try{
+    const project=context.store.getProject();if(!project)throw Error('Project 缺失');
+    if(kind==='RecordProviderEvidence'&&options.probeFile)payload.raw_result_ref=importInputFile(options.probeFile,()=>new LocalProviderVerifier(context.location.repositoryPath,context.location.dataDirectory).importProbe(resolve(options.probeFile!),resolve(options.artifactRoot??context.location.repositoryPath)));
+    const previous=options.commandId?context.store.transaction(tx=>tx.getCommandReceipt(options.commandId!)):undefined,revision=options.expectedRevision?Number(options.expectedRevision):previous&&'revision'in previous.result?previous.result.revision-1:project.revision,ids=commandIdentity(options);
+    const request={schema_version:SCHEMA_VERSION,command_type:kind,command_id:ids.commandId,correlation_id:ids.correlationId,requested_at:now(),project_id:project.id,actor_id:context.instance.actor_id,acting_role:options.actingRole??'project_owner',source:source(context.location.repositoryPath),target:{object_type:'project',id:project.id},expected_revision:revision,payload};
+    const verifier=installedProviderVerifier(context),result=verifier?await executeProviderCommandWithSources(context,verifier,request):context.kernel.execute(request);
+    if(isDomainError(result))return outputError(result,Boolean(options.json));if(options.json)return outputJson(result,parseVersionedCommandResult);stdout.write(`${kind} 已完成（Revision ${result.revision}）\n`);
+  }finally{context.store.close();}
 };
 export const showProviders = (options: GlobalOptions): void => {
   const context = openProject(options);

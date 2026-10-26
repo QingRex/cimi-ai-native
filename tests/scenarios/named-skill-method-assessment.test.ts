@@ -64,6 +64,10 @@ const constructedOriginals = (change?: (result: ReturnType<NamedSkillMethodOrigi
   const result: ReturnType<NamedSkillMethodOriginalsPort["verify"]> = { origin: "external_model", checks: { runtime_custody: "passed", cost_accounting_and_cap: "passed",
     independent_context: "passed", provider_dependencies: "passed", permission_intersection: "passed", invocation_recovery: "passed", behavior: "passed", harness: { invoke_skills: "passed", human_interview: "passed" } } }; change?.(result); return result;
 } });
+it('uses the default Provider host to import the same original named-method contract without granting controlled qualification',()=>{
+ const verifier=new application.LocalProviderVerifier(root,root),file=join(root,'named-provider-evidence.json');writeFileSync(file,JSON.stringify(evidence));const imported=verifier.importProbe(file,join(root,'objects'));
+ expect(verifier.readProbe(f.project,imported)).toEqual(evidence);const reference={...imported,resource_type:'named_skill_method_evidence' as const};expect(verifier.assessNamedSkillMethod(f.project,descriptor,reference,'method_contract')).toMatchObject({outcome:'ALLOW',formal_execution_enabled:false});expect(verifier.assessNamedSkillMethod(f.project,descriptor,reference,'controlled_execution')).toMatchObject({outcome:'NEED_MORE_EVIDENCE',formal_execution_enabled:false});
+});
 beforeEach(() => {
   nativeSamples.entries.clear();
   root = mkdtempSync(join(tmpdir(), "cimiloop-named-assessment-")); f = createFlowProject(root, { repositoryKind: "git" }); assessor = new LocalNamedSkillMethodAssessment(root, root);

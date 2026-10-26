@@ -10,6 +10,7 @@ import { executeHumanAgentRunCommand } from './agent-runtime-admission-local.js'
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
+import{executeProviderCommandWithSources}from'./provider-command-sources-local.js';
 import type{DedicatedAgentAccountLedger}from'@cimiloop/runtime-adapter';
 import type{LocalAgentRunFamilyVerification}from'./agent-run-family-costs-local.js';
 import {LocalPlanningClarificationAdmission,type LocalPlanningClarificationOptions} from './planning-clarification-local.js';
@@ -26,6 +27,8 @@ export interface LocalProject {
 }
 
 const installedRunVerifiers = new WeakMap<SqliteProjectStore, LocalRunVerifier>();
+const installedProviderVerifiers=new WeakMap<SqliteProjectStore,LocalProviderVerifier>();
+export const installedProviderVerifier=(local:Pick<LocalProject,'store'>)=>installedProviderVerifiers.get(local.store);
 export const installedRunVerifier = (local: Pick<LocalProject, "store">) => installedRunVerifiers.get(local.store);
 // Only a trusted local launcher supplies the project directory and operator.
 // HTTP requests never select a database, filesystem path or caller identity.
@@ -48,12 +51,14 @@ export const openLocalProject = (options: { projectDir?: string; prePlanMatt?:Ma
     const runVerifier=new LocalRunVerifier(location.repositoryPath,location.dataDirectory,options.agentRunCostAccount,store,options.agentRunFamilySkills,options.agentParentSkillResults);
     const skillResults=options.skillInvocationResults??options.agentRunFamilySkills;
     if(skillResults){const readResult=skillResults.readResult;if(typeof readResult!=='function')throw Error('Skill historical reader unavailable');runVerifier.agent.skills={prepare:()=>{throw Error('Skill execution unavailable');},readResult:readResult.bind(skillResults)};}
+    const providerVerifier=new LocalProviderVerifier(location.repositoryPath,location.dataDirectory);
     const kernel = new CimiLoopKernel({ store, caller: { kind: "local_operator", project_id: project.id, actor_id: actor.id },
       evidenceVerifier: new LocalEvidenceVerifier(location.repositoryPath, location.dataDirectory),
       runVerifier,
-      providerVerifier: new LocalProviderVerifier(location.repositoryPath, location.dataDirectory),
+      providerVerifier,
       ...(options.legacyManualPlanning===true?{legacyManualPlanning:true}:{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification??{})}) });
     installedRunVerifiers.set(store, runVerifier);
+    installedProviderVerifiers.set(store,providerVerifier);
     return { location, instance, store, kernel,...(options.prePlanMatt?{prePlanMatt:options.prePlanMatt}:{}),...(options.agentParentSkillResults?{agentParentSkillResults:Object.freeze({forOriginal:options.agentParentSkillResults.forOriginal.bind(options.agentParentSkillResults)})}:{}) };
   } catch (error) { store.close(); throw error; }
 };
@@ -78,7 +83,7 @@ export interface LocalCommandInput {
   payload: unknown;
 }
 
-export const executeLocalCommand = (context: Pick<LocalProject, "location" | "instance"> & { kernel: Pick<LocalProject["kernel"], "execute">; store?:unknown }, input: unknown): KernelResult => {
+const localCommandRequest=(context:Pick<LocalProject,'location'|'instance'>,input:unknown)=>{
   const keys = new Set(["command_id", "requested_at", "acting_role", "command_type", "target", "expected_revision", "expected_input_digest", "payload"]);
   if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some(key => !keys.has(key))) {
     throw new LocalProjectError("动作包含不支持的字段", "INVALID_COMMAND");
@@ -90,5 +95,7 @@ export const executeLocalCommand = (context: Pick<LocalProject, "location" | "in
   const request={ ...command, schema_version: SCHEMA_VERSION, correlation_id: command.command_id,
     project_id: context.instance.project_id, actor_id: context.instance.actor_id,
     source: { origin: "human_ui", producer: "cimiloop-workbench", repository_path: context.location.repositoryPath } };
-  return context.store instanceof SqliteProjectStore&&context.kernel instanceof CimiLoopKernel?executeHumanAgentRunCommand({...context,store:context.store,kernel:context.kernel},request):context.kernel.execute(request);
+  return request;
 };
+export const executeLocalCommand = (context: Pick<LocalProject, "location" | "instance"> & { kernel: Pick<LocalProject["kernel"], "execute">; store?:unknown }, input: unknown): KernelResult => {const request=localCommandRequest(context,input);return context.store instanceof SqliteProjectStore&&context.kernel instanceof CimiLoopKernel?executeHumanAgentRunCommand({...context,store:context.store,kernel:context.kernel},request):context.kernel.execute(request);};
+export async function executeLocalCommandAsync(context:LocalProject,input:unknown,beforeCommit?:()=>void):Promise<KernelResult>{const request=localCommandRequest(context,input),verifier=installedProviderVerifier(context);return verifier&&['RecordProviderEvidence','EvaluateProvider','RegisterProviderBinding'].includes(request.command_type)?executeProviderCommandWithSources(context,verifier,request,beforeCommit):executeLocalCommand(context,input);}

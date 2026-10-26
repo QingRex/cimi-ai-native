@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { compileValidator, RuntimeProbeResultSchema, SkillProbeResultSchema, ProviderEvidenceSchema, SCHEMA_VERSION, type AnyCommand, type ProviderDescriptor,
+import { compileValidator, RuntimeProbeResultSchema, SkillProbeResultSchema, NamedSkillMethodEvidenceSchema, ProviderEvidenceSchema, SCHEMA_VERSION, type AnyCommand, type ProviderDescriptor,
   type ProviderEvidence, type ProviderEvaluation, type ProviderProbeReference, type RuntimeProbeResult, type ExternalReference,
   type Digest, type Project, type InternalId, type DomainError, type CommandSuccess, type ProviderBinding, type SkillProbeResult } from "@cimiloop/protocol/v2";
 import type { ProviderReader, StoreTransaction } from "@cimiloop/store";
@@ -7,6 +7,8 @@ import { resolveAssignment } from "./authorization.js";
 import { contentDigest, IntentFailure } from "./intent.js";
 import { assessSkillProvider, readSkillSample, skillRuntimeBinding, skillAssessmentRule } from "./skill-assessment.js";
 import {readRuntimeControlEvidence,runtimeControlKeys,type RuntimeControlEvidencePort} from './runtime-control-evidence.js';
+import{isNamedSkillProviderEvidence,readNamedSkillProviderSample,assessNamedSkillProvider,namedSkillProviderRule,namedSkillRuntimeBinding}from'./named-skill-provider-assessment.js';
+import type{NamedSkillMethodAssessment,NamedSkillMethodEvidenceReference,NamedSkillMethodEvidence}from'@cimiloop/protocol/v2';
 export type {RuntimeControlEvidencePort,RuntimeControlEvidence,RuntimeControlKey} from './runtime-control-evidence.js';
 
 // Trusted host IO only. Commands cannot supply verified flags or install a port.
@@ -17,6 +19,7 @@ export interface ProviderVerifierPort extends Partial<RuntimeControlEvidencePort
   schemaDigest(schemaId: string): Digest;
   readSkillPackage?(project: Project, descriptor: ProviderDescriptor): Uint8Array;
   validateSkillRequest?(project: Project, request: unknown): void;
+  assessNamedSkillMethod?(project:Project,descriptor:ProviderDescriptor,reference:NamedSkillMethodEvidenceReference,profile:NamedSkillMethodAssessment['profile']):NamedSkillMethodAssessment;
 }
 type Command = Extract<AnyCommand, { command_type: "RecordProviderEvidence" | "EvaluateProvider" | "RegisterProviderBinding" }>;
 type Context = { project: Project; actorId: InternalId; now: string; id: () => InternalId };
@@ -89,6 +92,8 @@ const verifySkillRuntime = (port: ProviderVerifierPort, reader: ProviderReader, 
 export const assessProvider = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence[], profile: ProviderEvaluation["profile"], reader?: ProviderReader, ruleVersion:typeof rule|typeof controlRule=rule): Pick<ProviderEvaluation, "input_digest" | "outcome" | "reasons" | "assessments"> => {
   if (descriptor.provider_kind === "skill") {
     if (!reader) throw new Error("Native Skill binding reader required");
+    const named=evidence.map(value=>isNamedSkillProviderEvidence(port.readProbe(project,value.raw_result_ref)));
+    if(named.some(Boolean)){if(!named.every(Boolean))throw Error('Mixed legacy and named Skill evidence');return assessNamedSkillProvider(port,reader,project,descriptor,evidence,profile,binding=>verifySkillRuntime(port,reader,project,binding));}
     return assessSkillProvider(port, reader, project, descriptor, evidence, profile, binding => verifySkillRuntime(port, reader, project, binding));
   }
   const checks: ProviderEvaluation["assessments"] = [];
@@ -130,13 +135,14 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
   let event_type: string, record: { evidence: ProviderEvidence } | { evaluation: ProviderEvaluation } | { binding: ProviderBinding };
   if (command.command_type === "RecordProviderEvidence") {
     let probe: { observed_at: string };
-    try { probe = compileValidator(descriptor.provider_kind === "skill" ? SkillProbeResultSchema : RuntimeProbeResultSchema)(port.readProbe(context.project, command.payload.raw_result_ref)) as { observed_at: string }; }
+    try { const raw=port.readProbe(context.project,command.payload.raw_result_ref);probe=compileValidator(descriptor.provider_kind==='skill'?(isNamedSkillProviderEvidence(raw)?NamedSkillMethodEvidenceSchema:SkillProbeResultSchema):RuntimeProbeResultSchema)(raw) as {observed_at:string}; }
     catch { return fail("PROVIDER_OUTPUT_INVALID", "Provider 原始探针不可核对"); }
     if (!Number.isFinite(Date.parse(probe.observed_at)) || Date.parse(probe.observed_at) > Date.parse(context.now)) fail("PROVIDER_OUTPUT_INVALID", "探针观测必须是有效的既有时间");
     const evidence = compileValidator<ProviderEvidence>(ProviderEvidenceSchema)({ ...metadata, purpose: descriptor.provider_kind === "skill" ? "skill_probe" : "provider_probe", descriptor_ref: command.payload.descriptor_ref,
       descriptor_digest: command.payload.descriptor_digest, origin: descriptor.provider_kind === "skill" ? "local_skill_observation" : "local_probe_observation", raw_result_ref: command.payload.raw_result_ref, observed_at: probe.observed_at });
     try {
-      if (descriptor.provider_kind === "skill") readSkillSample(port, tx, context.project, descriptor, evidence, binding => verifySkillRuntime(port, tx, context.project, binding));
+      if(descriptor.provider_kind==='skill'&&isNamedSkillProviderEvidence(port.readProbe(context.project,evidence.raw_result_ref)))readNamedSkillProviderSample(port,tx,context.project,descriptor,evidence,'technical_contract',binding=>verifySkillRuntime(port,tx,context.project,binding));
+      else if (descriptor.provider_kind === "skill") readSkillSample(port, tx, context.project, descriptor, evidence, binding => verifySkillRuntime(port, tx, context.project, binding));
       else readSample(port, context.project, descriptor, evidence);
     }
     catch { return fail("PROVIDER_OUTPUT_INVALID", "Provider 来源、Schema 或原始字节不匹配"); }
@@ -156,6 +162,7 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
     try {
       computed = assessProvider(port, context.project, descriptor, records, profile, tx,runtimeRule);
       if(runtimeRule===controlRule&&!same(computed,assessProvider(port,context.project,descriptor,records,profile,tx,runtimeRule)))throw Error('Runtime control evidence changed during evaluation');
+      if(computed.assessments.some(check=>check.key===namedSkillProviderRule)&&!same(computed,assessProvider(port,context.project,descriptor,records,profile,tx,runtimeRule)))throw Error('Named method evidence changed during evaluation');
     }
     catch { return fail("PROVIDER_OUTPUT_INVALID", "Provider 原始来源或证据已失效"); }
     if (command.command_type === "EvaluateProvider") {
@@ -166,16 +173,18 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
       if (!evaluation || providerEvaluationStatus(tx, descriptor, evaluation).length || !same(computed, { input_digest: evaluation.input_digest,
         outcome: evaluation.outcome, reasons: evaluation.reasons, assessments: evaluation.assessments }) || !same(command.payload.input_digest, computed.input_digest)) return fail("PROVIDER_NOT_EVALUATED", "须使用当前、完整且允许的 Provider 评测", { blockers: computed.reasons });
       const taskExecution=command.payload.binding_scope==='task_execution';
-      if(taskExecution?(descriptor.provider_kind!=='runtime'||profile!=='controlled_execution'||runtimeRule!==controlRule||command.payload.capability.capability_id!=='runtime.execute'):profile!=='technical_contract')return fail('CAPABILITY_UNAVAILABLE','Task 执行绑定需要完整 Runtime 受控评估与执行能力；Skill 正式绑定尚未装载');
+      const namedSkill=descriptor.provider_kind==='skill'&&computed.assessments.some(check=>check.key===namedSkillProviderRule);
+      if(taskExecution?(profile!=='controlled_execution'||(descriptor.provider_kind==='runtime'?(runtimeRule!==controlRule||command.payload.capability.capability_id!=='runtime.execute'):!namedSkill)):profile!=='technical_contract')return fail('CAPABILITY_UNAVAILABLE','Task 绑定需要完整原 Runtime 或命名Skill受控评估及对应能力');
       if (!descriptor.capabilities.some(c => same(c, command.payload.capability))) fail("CAPABILITY_UNAVAILABLE", "Provider 未声明该能力");
       if (!same(descriptor.required_permissions, command.payload.effective_permissions)) fail("CAPABILITY_PERMISSION_DENIED", "Provider 绑定须精确保持声明权限；Task 当前授权交集仍须逐次核验");
       if (descriptor.dependencies.length) fail("DEPENDENCY_UNSATISFIED", "本批 Runtime 探针不支持依赖装配");
       let runtimeBinding: ProviderBinding | undefined;
       if (descriptor.provider_kind === "skill") {
         if (!("runtime_binding_ref" in command.payload)) return fail("CAPABILITY_UNAVAILABLE", "技能批准须固定实际 Runtime Binding");
-        try { runtimeBinding = skillRuntimeBinding(tx, context.project, command.payload); }
+        try { runtimeBinding = namedSkill?namedSkillRuntimeBinding(tx,context.project,{binding_ref:command.payload.runtime_binding_ref,digest:command.payload.runtime_binding_digest},taskExecution):skillRuntimeBinding(tx, context.project, command.payload); }
         catch { return fail("PROVIDER_BINDING_STALE", "技能 Runtime Binding 不可核对"); }
         for (const value of records) {
+          if(namedSkill){const native=compileValidator<NamedSkillMethodEvidence>(NamedSkillMethodEvidenceSchema)(port.readProbe(context.project,value.raw_result_ref));if(native.runtime_binding.binding_ref.id!==runtimeBinding.id||!same(native.runtime_binding.digest,contentDigest(runtimeBinding))||command.payload.capability.capability_id!==(native.purpose==='clarification'?'intent.clarify':'verification.review')||command.payload.capability.version!=='1.0.0')return fail('PROVIDER_BINDING_STALE','命名Skill原件与请求Runtime或能力不一致');continue;}
           const observed = compileValidator<SkillProbeResult>(SkillProbeResultSchema)(port.readProbe(context.project, value.raw_result_ref));
           if (observed.runtime_binding_ref.id !== runtimeBinding.id || !same(observed.runtime_binding_digest, contentDigest(runtimeBinding)) || !same(observed.capability, command.payload.capability)) return fail("PROVIDER_BINDING_STALE", "技能评测与请求 Binding 或能力不一致");
         }
