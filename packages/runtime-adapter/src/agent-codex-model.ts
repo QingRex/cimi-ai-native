@@ -287,6 +287,25 @@ export function readCodexAgentModelOriginals(root: string, rawScope: unknown): C
   return result;
 }
 export type CodexAgentModelSummary = Omit<CodexAgentModelOriginals, "calls" | "artifacts"> & { calls: number; unresolved: number };
+export interface CodexAgentModelProcessResources {
+ status:'NotRegistered'|'Unknown'|'Observed';resource_scope:'current_codex_run';resources_disposed:boolean;
+ calls:{call_id:string;status:'active'|'unknown'|'disposed';resources_disposed:boolean;reason:string;basis_digest?:string}[];
+ completion_proven:false;costs_reconciled:false;family_resources_disposed:false;
+}
+// Resource-only reads deliberately do not require successful model output.
+// A completed Native sandbox says nothing about a pending Codex owner Job.
+export function readCodexAgentModelProcessResources(root:string,rawScope:unknown):CodexAgentModelProcessResources{
+ const scope=parseAgentWorkspaceToolScope(rawScope),original=readCodexAgentModelOriginals(root,scope),result:CodexAgentModelProcessResources={status:'NotRegistered',resource_scope:'current_codex_run',resources_disposed:false,calls:[],completion_proven:false,costs_reconciled:false,family_resources_disposed:false};
+ if(original.status==='NotRegistered')return result;
+ const paths=headerPaths(root,scope),header=checkedHeader(read(join(paths.body,'header.json')));result.status='Unknown';
+ for(const call of original.calls){
+  const record=original.artifacts.find(file=>file.name===call.call_id+'/request.json');
+  if(!record){result.calls.push({call_id:call.call_id,status:'unknown',resources_disposed:false,reason:'codex_original_dispatch_unavailable'});continue;}
+  const body=read(record.path),resource=CodexOriginalMethodRuntime.readProcessResourcesRetained(header.runtime,body.codex_request);result.calls.push({call_id:call.call_id,...resource});
+ }
+ if(!same(header,checkedHeader(read(join(paths.body,'header.json'))))||!same(original,readCodexAgentModelOriginals(root,scope)))fail('agent_codex_original_changed');
+ result.resources_disposed=result.calls.every(call=>call.resources_disposed);if(result.resources_disposed)result.status='Observed';return result;
+}
 // Read-only per-Run accounting facts. Capacity and provider token usage are
 // deliberately not invoices or authority to reconcile a Kernel/Skill family.
 export function readCodexAgentRunUsage(root:string,rawScope:unknown,budget:CodexAgentUsageBudget){

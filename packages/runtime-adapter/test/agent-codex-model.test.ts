@@ -43,6 +43,14 @@ if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==
   return { root, scope, options, transport, originalRoot, control, log, request, create, open, read, revoke() { allowed = false; }, turns() { return existsSync(log) ? readFileSync(log, "utf8").trimEnd().split("\n").length : 0; } };
 }
 describe("Codex model behind the original Agent SDK host", () => {
+  it.runIf(process.platform==='win32'&&process.arch==='x64')('keeps model output Unknown after SDK response loss while independently proving its original Job ended',async()=>{
+    const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'process-origin'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC owner').value});
+    try{const transport=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_operation_state/1.0.0',process_custody:'owner_job/1.0.0',process_root:join(f.root,'processes')},false,origin),port=runtime.createCodexAgentRuntimeModel({...f.options,runtime:transport,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:digest('PUBLIC-account').value});
+      const host=await AgentRuntimeModelHost.initialize(f.root,f.scope,{...port,async execute(...args){await port.execute(...args);throw Error('PUBLIC SDK response lost');}},['cimi_read']);await expect(host.execute({...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048})).rejects.toThrow('PUBLIC SDK response lost');
+      expect(f.read()).toMatchObject({status:'Unknown',calls:[{state:'provider_recorded'}]});const before=origin.listExclusive('codex_process_job_intent').length;
+      expect(runtime.readCodexAgentModelProcessResources(f.root,f.scope)).toMatchObject({status:'Observed',resources_disposed:true,completion_proven:false,costs_reconciled:false,family_resources_disposed:false,calls:[{status:'disposed'}]});expect(f.turns()).toBe(1);expect(origin.listExclusive('codex_process_job_intent')).toHaveLength(before);
+    }finally{origin.close();}
+  },90000);
   it.each(['cimi_read','cimi_replace','cimi_check','cimi_run_skill','cimiloop_task_result'])('accepts one typed workspace proxy %s and replays its original advice without another turn',async tool=>{
     const args=tool==='cimiloop_task_result'?{text:'{"status":"candidate_only"}'}:{path:'src/query.ts'};
     const f=fixture({PUBLIC_proxy:{tool,arguments:args}}),path=join(f.root,'typed-login');mkdirSync(path);

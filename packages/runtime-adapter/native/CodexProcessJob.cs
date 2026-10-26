@@ -48,10 +48,27 @@ public static class CodexProcessJob {
   static object Identity(IntPtr p,uint pid) { return new {pid=pid,creation_ticks=Created(p).ToString(),image=Image(p)}; }
   static string Quote(string value) { var result=new StringBuilder("\"");int slashes=0;foreach(char c in value){if(c=='\\'){slashes++;continue;}if(c=='\"'){result.Append('\\',slashes*2+1).Append(c);slashes=0;continue;}result.Append('\\',slashes).Append(c);slashes=0;}return result.Append('\\',slashes*2).Append('"').ToString(); }
   static byte[] Save(string path,object value) { byte[] bytes=new UTF8Encoding(false,true).GetBytes(Json.Serialize(value));using(var file=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.Read)){file.Write(bytes,0,bytes.Length);file.Flush(true);}return bytes; }
+  static bool Cancelled(string path,string nonce,string digest) {
+    if(path==null||!File.Exists(path))return false;
+    try {byte[] bytes=File.ReadAllBytes(path);if(bytes.Length>4096)return false;var value=Json.DeserializeObject(new UTF8Encoding(false,true).GetString(bytes)) as Dictionary<string,object>;
+      return value!=null&&value.Count==3&&Convert.ToString(value["format"])=="cimiloop/codex-process-cancel/1.0.0"&&Convert.ToString(value["nonce"])==nonce&&Convert.ToString(value["config_digest"])==digest;
+    }catch{return false;}
+  }
+  static int Inspect(string text) {
+    Need(text.Length<=4096);var values=Json.DeserializeObject(text) as object[];Need(values!=null&&values.Length==2);var states=new List<object>();
+    foreach(object raw in values){var value=raw as Dictionary<string,object>;Need(value!=null&&value.Count==3);uint pid=Convert.ToUInt32(value["pid"]);ulong created=UInt64.Parse(Convert.ToString(value["creation_ticks"]));string image=Path.GetFullPath(Convert.ToString(value["image"]));Need(pid>0&&created>0);
+      string state="unknown";IntPtr handle=OpenProcess(0x100000|0x1000,false,pid);
+      if(handle==IntPtr.Zero){if(Marshal.GetLastWin32Error()==87)state="absent";}
+      else try{state=WaitForSingleObject(handle,0)==0||Created(handle)!=created||!String.Equals(Image(handle),image,StringComparison.OrdinalIgnoreCase)?"absent":"active";}finally{CloseHandle(handle);}
+      states.Add(new {identity=raw,state=state});
+    }
+    Console.WriteLine(Json.Serialize(new {format="cimiloop/codex-process-identities/1.0.0",states=states}));return 0;
+  }
   static int Run(string[] args) {
     Need(args.Length==4);byte[] config=File.ReadAllBytes(args[0]);Need(config.Length<=65536&&Hash(config)==args[1]);
-    var input=Json.DeserializeObject(new UTF8Encoding(false,true).GetString(config)) as Dictionary<string,object>;Need(input!=null&&input.Count==7&&Convert.ToString(input["format"])=="cimiloop/codex-process-launch/1.0.0");
+    var input=Json.DeserializeObject(new UTF8Encoding(false,true).GetString(config)) as Dictionary<string,object>;Need(input!=null);string format=Convert.ToString(input["format"]);bool cancellable=format=="cimiloop/codex-process-launch/2.0.0";Need(cancellable?input.Count==8:input.Count==7&&format=="cimiloop/codex-process-launch/1.0.0");
     uint ownerPid=Convert.ToUInt32(input["owner_pid"]);string binary=Path.GetFullPath(Convert.ToString(input["binary"])),cwd=Path.GetFullPath(Convert.ToString(input["cwd"])),expected=Convert.ToString(input["binary_digest"]),nonce=Convert.ToString(input["nonce"]);
+    string cancel=cancellable?Path.GetFullPath(Convert.ToString(input["cancel_path"])):null;Need(!cancellable||String.Equals(cancel,Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[0])),"cancel.json"),StringComparison.OrdinalIgnoreCase));
     object[] argv=input["args"] as object[];Need(argv!=null&&argv.Length<=512&&expected.Length==64&&Guid.Parse(nonce)!=Guid.Empty);
     var command=new StringBuilder(Quote(binary));foreach(object item in argv){Need(item is string&&((string)item).IndexOf('\0')<0);command.Append(' ').Append(Quote((string)item));}Need(command.Length<32760);
     BasicProcess basic;int returned;Need(NtQueryInformationProcess(GetCurrentProcess(),0,out basic,Marshal.SizeOf(typeof(BasicProcess)),out returned)==0&&basic.ParentPid.ToInt64()==ownerPid);
@@ -72,18 +89,19 @@ public static class CodexProcessJob {
       // disappeared, kill it without allowing a single worker instruction.
       bool ownerGone=WaitForSingleObject(owner,0)==0;
       if(!ownerGone)Need(ResumeThread(process.Thread)!=0xffffffff);
-      uint outcome=ownerGone?0:WaitForMultipleObjects(2,new IntPtr[]{owner,process.Process},false,0xffffffff);Need(outcome<=1);
-      string reason=outcome==0?"owner_exited":"worker_exited";uint exit=125;if(outcome==1)Need(GetExitCodeProcess(process.Process,out exit));
-      Need(TerminateJobObject(job,outcome==0?125:exit));
+      uint outcome=ownerGone?0u:258u;
+      while(outcome==258){if(Cancelled(cancel,nonce,args[1])){outcome=2;break;}outcome=WaitForMultipleObjects(2,new IntPtr[]{owner,process.Process},false,50);}
+      Need(outcome<=2);string reason=outcome==0?"owner_exited":outcome==2?"cancel_requested":"worker_exited";uint exit=125;if(outcome==1)Need(GetExitCodeProcess(process.Process,out exit));
+      Need(TerminateJobObject(job,outcome==1?exit:125));
       var clock=Stopwatch.StartNew();Accounting accounting;
       do {Need(QueryInformationJobObject(job,1,out accounting,Marshal.SizeOf(typeof(Accounting)),IntPtr.Zero));if(accounting.Active==0)break;Need(clock.ElapsedMilliseconds<5000);Thread.Sleep(10);}while(true);
       Need(CloseHandle(job));job=IntPtr.Zero;
       Save(args[3],new {format="cimiloop/codex-process-end/1.0.0",nonce=nonce,config_digest=args[1],started_digest=Hash(started),reason=reason,worker_exit_code=exit,active_processes=0,job_closed=true});
-      return outcome==0?125:(int)Math.Min(exit,120);
+      return outcome==1?(int)Math.Min(exit,120):125;
     } finally {
       if(job!=IntPtr.Zero){TerminateJobObject(job,125);CloseHandle(job);}if(process.Thread!=IntPtr.Zero)CloseHandle(process.Thread);if(process.Process!=IntPtr.Zero)CloseHandle(process.Process);
       foreach(IntPtr handle in std)if(handle!=IntPtr.Zero)CloseHandle(handle);if(attrsReady)DeleteProcThreadAttributeList(attributes);if(attributes!=IntPtr.Zero)Marshal.FreeHGlobal(attributes);if(handles!=IntPtr.Zero)Marshal.FreeHGlobal(handles);if(jobList!=IntPtr.Zero)Marshal.FreeHGlobal(jobList);if(owner!=IntPtr.Zero)CloseHandle(owner);
     }
   }
-  public static int Main(string[] args) { try {return Run(args);}catch{return 121;} }
+  public static int Main(string[] args) { try {return args.Length==2&&args[0]=="--inspect-identities"?Inspect(args[1]):Run(args);}catch{return 121;} }
 }

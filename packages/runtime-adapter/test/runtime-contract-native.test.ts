@@ -1,7 +1,7 @@
 import {existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,writeFileSync,renameSync} from 'node:fs';
 import {join} from 'node:path';import {tmpdir} from 'node:os';import {expect,it} from 'vitest';
 import {createInternalId} from '@cimiloop/protocol/v2';
-import {AgentStartLedger,AgentRunBudget,AgentRuntimeModelHost,AgentWorkspaceToolIpc,CodexOriginalMethodRuntime,CodexAgentUsageBudget,RuntimeContractFileHost,createBudgetedCodexAgentRuntimeModel,codexChatGptAccountDigest,openWindowsAgentRunClock,parseAgentWorkspaceToolScope,runOpenCodeWorkspaceRuntime,runtimeContractPrompt,readRuntimeContractPhase} from '../src/index.js';
+import {AgentStartLedger,AgentRunBudget,AgentRuntimeModelHost,AgentWorkspaceToolIpc,CodexOriginalMethodRuntime,CodexAgentUsageBudget,RuntimeContractFileHost,createBudgetedCodexAgentRuntimeModel,codexChatGptAccountDigest,openWindowsAgentRunClock,parseAgentWorkspaceToolScope,runOpenCodeWorkspaceRuntime,runtimeContractPrompt,readRuntimeContractPhase,queryAgentRuntimeOperation} from '../src/index.js';
 import {digest} from '../src/files.js';
 
 // Actual Windows/AppContainer, original OpenCode SDK/IPC, file broker and stdio.
@@ -37,6 +37,7 @@ it('joins an actual SDK edit and independent read-only review, then rechecks ori
    await runOpenCodeWorkspaceRuntime({root:phaseRoot,binary,scope,prompt,model,runBudget:budget,connect:(supervisor,originalSupervisor,peer,nonce,signal,originalModel)=>AgentWorkspaceToolIpc.open({toolsDirectory:phaseRoot,scope,supervisor,originalSupervisor,originalPeer:peer,nonce,signal,model:originalModel,runBudget:budget,execute:input=>files.execute(input),cancel:()=>files.close()})});
   }finally{await files.close();await budget.close();}
   phases.push([phaseRoot,scope,origin,mode]);expect(readRuntimeContractPhase(phaseRoot,scope,origin,mode)).toMatchObject({status:'Observed',origin:'public_fixture',mode,effect_reverified:true,real_model_turns:0,costs_reconciled:false,business_execution_approved:false,final_text:mode==='edit'?'CIMILOOP_EDIT_COMPLETE':'CIMILOOP_REVIEW_ACCEPT'});
+  expect(await queryAgentRuntimeOperation(phaseRoot,scope)).toMatchObject({status:'Stopped',resource_scope:'native_and_current_codex_run',native_resources_disposed:true,resources_disposed:true,completion_proven:false,model_resources:{status:'Observed',resources_disposed:true,completion_proven:false,costs_reconciled:false,family_resources_disposed:false}});
  }
  const results=phases.map(args=>readRuntimeContractPhase(...args));expect(results[0]!.session_id).not.toBe(results[1]!.session_id);expect(results[0]!.native_profile).not.toBe(results[1]!.native_profile);expect(results[0]!.model_threads!.some(id=>results[1]!.model_threads!.includes(id))).toBe(false);
  expect(JSON.parse(readFileSync(counter,'utf8'))).toEqual({edit:3,review:2});expect(usage.snapshot().held.model_calls).toBe(5);for(const args of phases)expect(readRuntimeContractPhase(...args).status).toBe('Observed');expect(JSON.parse(readFileSync(counter,'utf8'))).toEqual({edit:3,review:2});

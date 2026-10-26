@@ -7,7 +7,7 @@ import { assertOrdinaryPath, bytesAt, digest, directory, RuntimeAdapterError } f
 import { parseGatewayJson } from "./gateway-conversation.js";
 import {parseCodexUsagePolicy,parseCodexOrdinaryQuota,CODEX_QUOTA_READ_PARAMS,type CodexOrdinaryUsagePolicy,type CodexOrdinaryQuotaSnapshot} from './codex-ordinary-quota.js';
 import { AgentStartLedger,captureAgentStartOriginReference,readAgentStartOriginalReference,type AgentStartOriginReference } from './agent-start-ledger.js';
-import {prepareCodexProcessJob,readCodexProcessLaunch,spawnCodexProcessJob,readCompletedCodexProcessJob,codexProcessLayout} from './codex-process-job.js';
+import {prepareCodexProcessJob,readCodexProcessLaunch,spawnCodexProcessJob,readCompletedCodexProcessJob,readStartedCodexProcessJob,readCodexProcessJobResources,requestCodexProcessJobCancellation,codexProcessLayout} from './codex-process-job.js';
 
 const MAX_BYTES = 8 * 1024 * 1024, MAX_LINE = 1024 * 1024, MAX_CALLS = 128, MAX_FRAMES = 8192;
 const fail: (reason?:string)=>never = (reason = "codex_original_unproven") => { throw new RuntimeAdapterError(reason); };
@@ -332,6 +332,7 @@ export class CodexOriginalMethodRuntime {
   static readRetained(options: CodexOriginalMethodOptions, request: CodexMethodRequest, policyOrigin?: AgentStartLedger): CodexMethodOriginal | null {
     return new CodexOriginalMethodRuntime(options, true, policyOrigin).readOriginal(request);
   }
+  static readProcessResourcesRetained(options:CodexOriginalMethodOptions,raw:CodexMethodRequest){return new CodexOriginalMethodRuntime(options,true).readProcessResources(raw);}
   private paths(request: CodexMethodRequest) {
     const root = assertOrdinaryPath(join(this.options.root, request.operation_key));
     return { root, cwd: join(root, "workspace"), claim: join(root, "start.json"), transcript: join(root, "stdio.jsonl"), seal: join(root, "seal.json") };
@@ -339,7 +340,7 @@ export class CodexOriginalMethodRuntime {
   private startVersion(request:CodexMethodRequest):StartVersion{return this.options.process_custody?10:this.options.state_policy==='private_login_home/2.0.0'?9:this.options.state_policy?8:this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
   private processArgs(request:CodexMethodRequest){const cwd=this.paths(request).cwd,configValue=stateConfig(this.options.disabled_mcp_servers!,cwd,!!this.options.login_home);return[...this.options.command.args,'app-server','--stdio',...Object.entries(configValue).flatMap(([key,value])=>['-c',key+'='+toml(value)])];}
   private processLayout(request:CodexMethodRequest){return codexProcessLayout(this.options.root,request.operation_key,this.options.process_root);}
-  private processRows(request:CodexMethodRequest){return readAgentStartOriginalReference(this.options.process_origin!,['codex_process_job_intent','codex_process_job_complete']).filter(row=>row.id===this.policyKey(request));}
+  private processRows(request:CodexMethodRequest){return readAgentStartOriginalReference(this.options.process_origin!,['codex_process_job_intent','codex_process_job_complete','codex_process_job_prepared','codex_process_job_started']).filter(row=>row.id===this.policyKey(request));}
   private processBasis(request:CodexMethodRequest){return{format:'cimiloop/codex-process-job-intent/1.0.0',request_digest:digest(encode(request)).value,claim_digest:digest(encode(this.claim(request,10))).value,root_identity:directoryIdentity(this.options.root),operation_identity:directoryIdentity(this.paths(request).root),...(this.options.process_root?{process_root_identity:directoryIdentity(this.processLayout(request).helperRoot)}:{})};}
   private policyKey(request: CodexMethodRequest) {
     // Real Windows long names collapse 8.3 aliases; case folding also keeps the
@@ -359,6 +360,22 @@ export class CodexOriginalMethodRuntime {
     return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version>=8?{state_policy:this.options.state_policy}:{}),...(login?{login_home:this.options.login_home}:{}),...(version===10?{process_custody:this.options.process_custody,process_origin:this.options.process_origin,...(this.options.process_root?{process_root:this.options.process_root}:{})}:{}),...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
     account_digest: this.options.account_digest ?? null, config: version >= 8 ? stateConfig(this.options.disabled_mcp_servers!,this.paths(request).cwd,login) : version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
     ...(version >= 2 ? { disabled_mcp_servers: this.options.disabled_mcp_servers } : {}) }; }
+  private readProcessResources(raw:CodexMethodRequest){
+    const request=requestCopy(raw),paths=this.paths(request),unknown={status:'unknown' as const,resources_disposed:false,completion_proven:false as const,costs_reconciled:false as const};
+    if(!this.options.process_custody)return{...unknown,reason:'codex_original_process_policy_unavailable'};
+    const rows=this.processRows(request),intent=rows.find(row=>row.namespace==='codex_process_job_intent');
+    if(!intent||!existsSync(paths.claim))return{...unknown,reason:'codex_original_process_registration_unavailable'};
+    if(!same(intent.basis,this.processBasis(request))||!same(parse(bytesAt(paths.claim)),this.claim(request,10)))fail('codex_process_custody_unproven');
+    const layout=this.processLayout(request),completed=rows.find(row=>row.namespace==='codex_process_job_complete');
+    if(completed){const original=readCompletedCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd);if(!same(completed.basis,{format:'cimiloop/codex-process-job-complete/1.0.0',intent_ticket:intent.ticket,original})||!same(rows,this.processRows(request)))fail('codex_process_custody_unproven');
+      return{status:'disposed' as const,resources_disposed:true,completion_proven:false as const,costs_reconciled:false as const,reason:'codex_original_process_end_pinned',basis_digest:digest(encode(completed)).value};}
+    const prepared=rows.find(row=>row.namespace==='codex_process_job_prepared'),started=rows.find(row=>row.namespace==='codex_process_job_started');
+    if(!prepared||!started)return{...unknown,reason:'codex_original_process_observation_unavailable'};
+    const start=readStartedCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd),launch=start.launch;
+    if(!same(prepared.basis,{format:'cimiloop/codex-process-job-prepared/1.0.0',intent_ticket:intent.ticket,original:{header_original:launch.header_original,config_original:launch.config_original}})||!same(started.basis,{format:'cimiloop/codex-process-job-started/1.0.0',prepared_ticket:prepared.ticket,original:start.original}))fail('codex_process_custody_unproven');
+    const result=readCodexProcessJobResources(start);if(!same(rows,this.processRows(request)))fail('codex_process_custody_unproven');
+    return{status:result.status,resources_disposed:result.resources_disposed,completion_proven:false as const,costs_reconciled:false as const,reason:result.status==='disposed'?'codex_original_process_resources_disposed':'codex_original_process_state_unproven',basis_digest:digest(encode({intent,prepared,started,basis:result.basis})).value};
+  }
   readOriginal(raw: CodexMethodRequest): CodexMethodOriginal | null {
     const request = requestCopy(raw), paths = this.paths(request);
     if (!existsSync(paths.claim)) return null;
@@ -406,6 +423,8 @@ export class CodexOriginalMethodRuntime {
       const layout=this.processLayout(request);if(this.options.process_root)directory(layout.helperRoot);
       if(!this.policyOrigin!.claimExclusiveOnce('codex_process_job_intent',this.policyKey(request),this.processBasis(request)).created)fail('codex_original_pending');
       processLaunch=await prepareCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd);guardNow(beforeEffect);assertHome();signal?.throwIfAborted();
+      const intent=this.processRows(request).find(row=>row.namespace==='codex_process_job_intent');if(!intent||!same(intent.basis,this.processBasis(request)))fail('codex_process_custody_unproven');
+      this.policyOrigin!.issueExclusive('codex_process_job_prepared',this.policyKey(request),{format:'cimiloop/codex-process-job-prepared/1.0.0',intent_ticket:intent.ticket,original:{header_original:processLaunch.header_original,config_original:processLaunch.config_original}});
     }
     // The independent Host1 writer elects one sender BEFORE creating a new
     // start or spawning. A crash after this commit leaves an Unknown operation;
@@ -446,7 +465,7 @@ export class CodexOriginalMethodRuntime {
     let rejectFailure!: (error: unknown) => void, childClose!: () => void;
     const failure = new Promise<never>((_resolve, reject) => { rejectFailure = reject; }); void failure.catch(() => {});
     const childClosed = new Promise<void>(resolve => { childClose = resolve; });
-    const rejectAll = (error: unknown) => { active = false; controller.abort(); for (const p of pending.values()) p.reject(error); pending.clear(); rejectFinished(error); rejectFailure(error); child?.kill(); };
+    const rejectAll = (error: unknown) => { active = false; controller.abort(); for (const p of pending.values()) p.reject(error); pending.clear(); rejectFinished(error); rejectFailure(error);if(child&&!childDidClose&&processLaunch){try{requestCodexProcessJobCancellation(processLaunch);}catch{child.kill();}}else child?.kill(); };
     const onAbort = () => rejectAll(new RuntimeAdapterError("codex_original_cancelled"));
     const send = (value: unknown) => { effectGuard(); const bytes = Buffer.concat([encode(value), Buffer.from("\n")]); append("out", bytes); child!.stdin.write(bytes); };
     const rpc = (method: string, params: unknown) => new Promise<any>((resolve, reject) => {
@@ -527,6 +546,12 @@ export class CodexOriginalMethodRuntime {
       // to method context or product error messages. Bound them in memory only.
       child.stderr.on("data", (bytes: Buffer) => { errors += bytes.length; if (errors > MAX_LINE) rejectAll(new RuntimeAdapterError("codex_capacity_exhausted")); });
       child.on("close", () => { childDidClose = true; childClose(); if (!closed && !stopping) void queue.then(() => { if (!terminal) rejectAll(new RuntimeAdapterError("codex_original_response_lost")); }).catch(rejectAll); });
+      if(processLaunch){
+        await Promise.race([failure,(async()=>{while(!existsSync(processLaunch!.paths.started)){controller.signal.throwIfAborted();await new Promise<void>(done=>setTimeout(done,25));}})()]);effectGuard();
+        const layout=this.processLayout(request),started=readStartedCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd),prepared=this.processRows(request).find(row=>row.namespace==='codex_process_job_prepared');
+        if(!prepared||started.identities.supervisor.pid!==child.pid||!same(started.launch,processLaunch))fail('codex_process_custody_unproven');
+        this.policyOrigin!.issueExclusive('codex_process_job_started',this.policyKey(request),{format:'cimiloop/codex-process-job-started/1.0.0',prepared_ticket:prepared.ticket,original:started.original});effectGuard();
+      }
       await rpc("initialize", { clientInfo: { name: "cimiloop_s1", title: "CimiLoop", version: "0.1.0" }, capabilities: { experimentalApi: true } });
       send({ method: "initialized" });
       const account = await rpc("account/read", { refreshToken: false });
@@ -568,7 +593,11 @@ export class CodexOriginalMethodRuntime {
       return this.readOriginal(request) ?? fail();
     } finally {
       signal?.removeEventListener("abort", onAbort);
-      closed = true; active = false; controller.abort(); clearTimeout(timer); child?.stdin.destroy(); child?.kill();
+      closed = true; active = false; stopping=true;controller.abort(); clearTimeout(timer);
+      // Let the original supervisor end and seal its entire Job on abort. A
+      // force-kill fallback never becomes a resource-disposal or model proof.
+      if(child&&!childDidClose&&processLaunch){try{requestCodexProcessJobCancellation(processLaunch);}catch{/* Preserve Unknown; fallback stops only this owned child. */}}
+      else{child?.stdin.destroy();child?.kill();}
       for (const p of pending.values()) p.reject(new RuntimeAdapterError("codex_connection_closed")); pending.clear();
       if (child && !childDidClose) {
         // A failed/aborted tool may still be awaiting its own cancellation.
@@ -578,6 +607,7 @@ export class CodexOriginalMethodRuntime {
         await Promise.race([childClosed, new Promise<void>(resolve => { stopTimer = setTimeout(resolve, 3000); })]);
         if (stopTimer) clearTimeout(stopTimer);
       }
+      child?.stdin.destroy();if(child&&!childDidClose)child.kill();
       closeSync(fd);
     }
   }

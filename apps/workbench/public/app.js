@@ -290,7 +290,8 @@ const taskPanel = (task, data) => {
       const output = node("div"), observe = async action => {
         const response = await api(`/api/agent-runs/${encodeURIComponent(run.id)}${action ? `/${action}` : ""}`, action ? {} : undefined);
         const interruption=response.operation.result?.interruption;
-        output.replaceChildren(paragraph(interruption?.status === "Observed" ? (interruption.runtime_resumed ? "原输入关闭时 SDK 已恢复运行；原中断资料已核对，任务结果和费用仍待核对。" : "原输入在 SDK 恢复前关闭；原中断资料已核对，任务结果和费用仍待核对。") : response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
+        const resources=response.operation.result?.status?.resource_scope?response.operation.result.status:response.operation.result,modelPending=resources?.native_resources_disposed===true&&resources?.model_resources?.resources_disposed===false;
+        output.replaceChildren(paragraph(modelPending?"沙箱资源已停止，模型进程仍待核对；继续保留原运行与预算。":interruption?.status === "Observed" ? (interruption.runtime_resumed ? "原输入关闭时 SDK 已恢复运行；原中断资料已核对，任务结果和费用仍待核对。" : "原输入在 SDK 恢复前关闭；原中断资料已核对，任务结果和费用仍待核对。") : response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
       };
       const pendingStart=originalStartPending(run.id);
       const costOutput=node('div',{'data-agent-costs':run.id},paragraph('尚未读取原运行费用。'));

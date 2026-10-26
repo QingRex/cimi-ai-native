@@ -23,6 +23,7 @@ import { runtimeProbe, runtimeOperation, runtimeRecover, runtimeTransportProbe, 
 import {createAgentCostsCommand} from './agent-account-costs.js';
 import {productionAgentRuntime,productionAgentAccount,productionAgentCosts} from '@cimiloop/local-app';
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
+import {createAgentOriginalControlCommand} from './agent-original-control.js';
 import {createSkillOriginalCommand} from './skill-original.js';
 import {createSkillMethodProbeCommand} from './skill-method-probe.js';
 import {createRuntimeContractCommand} from './runtime-contract.js';
@@ -352,6 +353,7 @@ for (const [name, kind] of [["prepare-context", "PrepareRunContext"], ["reserve"
 }
 runs.command("show <change>").action((id, _options, command) => showRuns(id, globals(command)));
 runs.addCommand(createAgentStartOriginalCommand(productionAgentRuntime));
+for(const action of ['query','collect','cancel','recover'] as const)runs.addCommand(createAgentOriginalControlCommand(action));
 runs.addCommand(createAgentCostsCommand(productionAgentCosts));
 runs.addCommand(createAgentCostObservationCommand(productionAgentAccount));
 runs.addCommand(createAgentReconcileOriginalCommand(productionAgentAccount));

@@ -4,7 +4,7 @@ import {agentRuntimeClaimFormat} from './agent-job-policy.js';
 import {readAgentRuntimeNamedMethodResult,type AgentNamedMethodResultInputs} from './agent-named-method-result.js';
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
 import { readDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary } from "./agent-dedicated-model.js";
-import { readCodexAgentModelOriginals, codexAgentModelSummary, type CodexAgentModelSummary } from "./agent-codex-model.js";
+import { readCodexAgentModelOriginals,readCodexAgentModelProcessResources, codexAgentModelSummary, type CodexAgentModelSummary } from "./agent-codex-model.js";
 import { verifyAgentRuntimeInterruption } from "./agent-runtime-interruption.js";
 import {verifyAgentRuntimeCancellation} from './agent-runtime-cancellation.js';
 import { readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
@@ -137,7 +137,7 @@ export function requestAgentRuntimeCancellation(root: string, rawScope: unknown)
   if (!agentRuntimeCancellationRequested(root, rawScope)) fail("agent_runtime_cancellation_unproven");
   return { requested: true as const, operation: original.operation, stopped_proven: false as const, formal_agent_execution_enabled: false as const };
 }
-export async function queryAgentRuntimeOperation(root: string, rawScope: unknown) {
+async function queryAgentRuntimeNativeOperation(root: string, rawScope: unknown) {
   const original = load(root, rawScope), scopeDigest = agentWorkspaceIpcScopeDigest(original.claim.scope), launcherPath = join(original.operation, "original-launcher.json"), resourcesPath = join(original.operation, "agent-sandbox-resources.json");
   const summary = { operation: original.operation, input_digest: original.claim.input_digest, cancellation_requested: agentRuntimeCancellationRequested(root, rawScope),
     completion_proven: false as const, formal_agent_execution_enabled: false as const, synthetic_model_responses: original.claim.synthetic_model_responses };
@@ -174,10 +174,25 @@ export async function queryAgentRuntimeOperation(root: string, rawScope: unknown
   }
   return { ...summary, status: "Unknown" as const, reason: "agent_original_state_unproven", resources_disposed: false };
 }
+function originalModelResources(root:string,rawScope:unknown){
+ const original=load(root,rawScope),input=read(join(original.location.run,'input.json')) as {model_original_binding?:{original_evidence?:{kind?:string}}};
+ if(input.model_original_binding?.original_evidence?.kind!=='codex_login/1.0.0')return undefined;
+ try{const result=readCodexAgentModelProcessResources(root,original.claim.scope);return result.status==='NotRegistered'?{...result,status:'Unknown' as const}:result;}
+ catch{return{status:'Unknown' as const,resource_scope:'current_codex_run' as const,resources_disposed:false,completion_proven:false as const,costs_reconciled:false as const,family_resources_disposed:false as const,reason:'codex_original_resources_unproven'};}
+}
+export async function queryAgentRuntimeOperation(root:string,rawScope:unknown){
+ const native=await queryAgentRuntimeNativeOperation(root,rawScope),model_resources=originalModelResources(root,rawScope);
+ if(!model_resources)return{...native,resource_scope:'native_only' as const};
+ const resources_disposed=native.resources_disposed&&model_resources.resources_disposed;
+ return{...native,resource_scope:'native_and_current_codex_run' as const,native_resources_disposed:native.resources_disposed,model_resources,resources_disposed,...(native.status==='Stopped'&&!resources_disposed?{status:'Unknown' as const,reason:'agent_original_model_resources_unproven'}:{})};
+}
 export async function recoverAgentRuntimeOperation(root: string, rawScope: unknown) {
   const original = load(root, rawScope);
   if (!existsSync(join(original.operation, "original-config.json"))) return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };
-  return recoverOpenCodeWorkspaceToolRehearsal({ root, operation: original.operation, scope: original.claim.scope });
+  const native=await recoverOpenCodeWorkspaceToolRehearsal({ root, operation: original.operation, scope: original.claim.scope }),model_resources=originalModelResources(root,rawScope);
+  if(!model_resources)return{...native,resource_scope:'native_only' as const};
+  const resources_disposed=native.resources_disposed&&model_resources.resources_disposed;
+  return{...native,resource_scope:'native_and_current_codex_run' as const,native_resources_disposed:native.resources_disposed,model_resources,resources_disposed,...(native.outcome==='recovered'&&!resources_disposed?{outcome:'unknown' as const,reason:'agent_original_model_resources_unproven'}:{})};
 }
 export async function collectAgentRuntimeOperation(root: string, rawScope: unknown, nativeInputs?: { project: Project; record: AgentRunRecord },namedMethodInputs?:AgentNamedMethodResultInputs,parentReader?:AgentParentSkillHistoricalResultReader) {
   const original=load(root,rawScope),parentClaim=Object.hasOwn(read(join(original.location.run,'input.json')) as object,'parent_skill_original_binding');

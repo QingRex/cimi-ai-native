@@ -1,6 +1,6 @@
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {existsSync,mkdtempSync,readFileSync,readdirSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdtempSync,readFileSync,readdirSync,writeFileSync,renameSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -25,7 +25,7 @@ if(r.method==='account/rateLimits/read')ok({ordinaryUsageAllowed:true,accountId:
 if(r.method==='thread/start')ok({model:r.params.model,modelProvider:'openai',approvalPolicy:'never',activePermissionProfile:{id:'cimiloop-method'},instructionSources:[],thread:{id:'PUBLIC_THREAD',ephemeral:r.params.ephemeral===true}});
 if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==='turn/start'){ok({turn:{id:'PUBLIC_TURN'}});
 if(existsSync(started)){const child=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore',windowsHide:true});child.unref();writeFileSync(descendant,JSON.stringify({pid:child.pid}));}writeFileSync(state,JSON.stringify({pid:process.pid,turns:1}));
-if(mode==='stall')return;send({method:'item/completed',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',item:{type:'agentMessage',phase:'final_answer',text:'PUBLIC response'}}});
+if(mode==='stall'){setInterval(()=>{},1000);return;}send({method:'item/completed',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',item:{type:'agentMessage',phase:'final_answer',text:'PUBLIC response'}}});
 send({method:'thread/tokenUsage/updated',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',tokenUsage:{total:{inputTokens:5,cachedInputTokens:0,outputTokens:3,totalTokens:8,reasoningOutputTokens:0,cacheWriteInputTokens:0}}}});
 send({method:'turn/completed',params:{threadId:'PUBLIC_THREAD',turn:{id:'PUBLIC_TURN',status:'completed',error:null}}});}});`);
  const options={root:originals,command:{file:process.execPath,args:[script,mode,state,join(job,'started.json'),descendant],sha256:hash(readFileSync(process.execPath))},state_policy:'private_operation_state/1.0.0',process_custody:'owner_job/1.0.0',timeout_ms:20000} as CodexOriginalMethodOptions;
@@ -34,6 +34,19 @@ send({method:'turn/completed',params:{threadId:'PUBLIC_THREAD',turn:{id:'PUBLIC_
 }
 const alive=(pid:number)=>{try{process.kill(pid,0);return true;}catch{return false;}};
 describe.runIf(process.platform==='win32'&&process.arch==='x64')('owner-bound Codex process Job',()=>{
+ it('observes the original model Job through cancellation without sealing model output or dispatching again',async()=>{
+  const read=Reflect.get(CodexOriginalMethodRuntime,'readProcessResourcesRetained');expect(read).toBeTypeOf('function');
+  const f=fixture('stall'),abort=new AbortController();const pending=f.adapter.execute(request,()=>'',()=>{},abort.signal);void pending.catch(()=>{});
+  try{await until(()=>existsSync(f.state));const options=f.adapter.originalConfiguration;
+   expect(read(options,request)).toMatchObject({status:'active',resources_disposed:false,completion_proven:false,costs_reconciled:false});
+   abort.abort();await expect(pending).rejects.toThrow();await until(()=>existsSync(join(f.job,'ended.json')));
+   expect(JSON.parse(readFileSync(join(f.job,'ended.json'),'utf8'))).toMatchObject({reason:'cancel_requested',active_processes:0,job_closed:true});
+   const path=join(f.root,'origin','starts.sqlite'),before=hash(readFileSync(path));expect(read(options,request)).toMatchObject({status:'disposed',resources_disposed:true,completion_proven:false,costs_reconciled:false});expect(hash(readFileSync(path))).toBe(before);
+   expect(f.adapter.readOriginal(request)).toBe(null);await expect(f.adapter.execute(request,()=>'',()=>{})).rejects.toThrow('codex_original_pending');expect(f.origin.listExclusive('codex_process_job_intent')).toHaveLength(1);expect(f.origin.listExclusive('codex_process_job_complete')).toEqual([]);
+   const ended=join(f.job,'ended.json');renameSync(ended,ended+'.retained');try{expect(read(options,request)).toMatchObject({status:'unknown',resources_disposed:false});expect(existsSync(ended)).toBe(false);}finally{renameSync(ended+'.retained',ended);}
+   const started=join(f.job,'started.json');writeFileSync(started,readFileSync(started,'utf8')+'\n');expect(()=>read(options,request)).toThrow('codex_process_custody_unproven');
+  }finally{abort.abort();await pending.catch(()=>{});f.origin.close();}
+ },120000);
  it('records an atomic Job launch and empty Job before sealing one ordinary original, then replays without a new child',async()=>{
   const f=fixture();try{
    const result=await f.adapter.execute(request,()=>'',()=>{});
@@ -42,6 +55,7 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('owner-bound Co
    expect(started).toMatchObject({job_assignment:'atomic_on_create',kill_on_close:true,owner:{pid:process.pid},worker:{pid:JSON.parse(readFileSync(f.state,'utf8')).pid}});
    expect(ended).toMatchObject({reason:'worker_exited',active_processes:0,job_closed:true});expect(alive(JSON.parse(readFileSync(f.descendant,'utf8')).pid)).toBe(false);
    const starts=f.origin.listExclusive('codex_process_job_intent').length;expect(await f.adapter.execute(request,()=>{throw Error('PUBLIC replay must not call tool');},()=>{throw Error('PUBLIC replay must not dispatch');})).toEqual(result);expect(f.origin.listExclusive('codex_process_job_intent')).toHaveLength(starts);
+   const seal=join(f.options.root,request.operation_key,'seal.json');renameSync(seal,seal+'.retained');expect(CodexOriginalMethodRuntime.readProcessResourcesRetained(f.adapter.originalConfiguration,request)).toMatchObject({status:'disposed',resources_disposed:true,completion_proven:false,costs_reconciled:false});expect(f.adapter.readOriginal(request)).toBe(null);await expect(f.adapter.execute(request,()=>'',()=>{})).rejects.toThrow('codex_original_pending');
   }finally{f.origin.close();}
  },120000);
  it('requires the independent original Host before accepting a prospective process policy',()=>{
@@ -78,7 +92,7 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('owner-bound Co
    const worker=JSON.parse(readFileSync(f.state,'utf8')).pid,descendant=JSON.parse(readFileSync(f.descendant,'utf8')).pid;
    owner.kill();terminated=true;await until(()=>existsSync(join(f.job,'ended.json')));
    expect(JSON.parse(readFileSync(join(f.job,'ended.json'),'utf8'))).toMatchObject({reason:'owner_exited',active_processes:0,job_closed:true});expect(alive(worker)).toBe(false);expect(alive(descendant)).toBe(false);
-   const origin=AgentStartLedger.open(join(f.root,'origin'),f.host);try{const reopened=new CodexOriginalMethodRuntime(f.options,false,origin);expect(reopened.readOriginal(request)).toBe(null);await expect(reopened.execute(request,()=>'',()=>{})).rejects.toThrow('codex_original_pending');expect(origin.listExclusive('codex_process_job_intent')).toHaveLength(1);}finally{origin.close();}
+   const origin=AgentStartLedger.open(join(f.root,'origin'),f.host);try{const reopened=new CodexOriginalMethodRuntime(f.options,false,origin);expect(reopened.readOriginal(request)).toBe(null);expect(CodexOriginalMethodRuntime.readProcessResourcesRetained(reopened.originalConfiguration,request)).toMatchObject({status:'disposed',resources_disposed:true,completion_proven:false,costs_reconciled:false});await expect(reopened.execute(request,()=>'',()=>{})).rejects.toThrow('codex_original_pending');expect(origin.listExclusive('codex_process_job_intent')).toHaveLength(1);}finally{origin.close();}
   }finally{if(!terminated&&owner.connected)owner.send('abort');if(!terminated)await until(()=>owner.exitCode!==null||owner.signalCode!==null);}
  },120000);
 });
