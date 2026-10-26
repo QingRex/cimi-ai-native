@@ -35,3 +35,5 @@
 完整 Runtime 控制来源及默认宿主装载、首次隔离资格执行、真实 Skill/Human/Matt、安装及共享账户的兼容同卷放置/迁移、完整 Native/恢复/历史容量、真实账单、普通 Change 到 ReadyForDelivery、接入指南实际执行及最终 Matt/Superpowers 仍属于同一个未完成 S1 目标。原 Human 问题继续等真实回答，不代答。
 
 Schema242、项目库10、Host1未变。原六个未跟踪文件保留，未读、未散列、未暂存或删除；不 push。
+
+后续已补首次固定 Skill 的隔离启动、原请求控制、原件采集及 CLI/工作台入口，见[固定Skill隔离调用接入指南](../implementation/CimiLoop-固定Skill隔离调用接入指南-v0.1.md)。它补调用原件来源，不代替完整生产宿主、受控方法资格或真实S1验收。

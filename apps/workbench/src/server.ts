@@ -1,4 +1,4 @@
-import {LocalHumanNamedSkillCapture,LocalHumanSkillInvocationControl,type HumanSkillRuntimeFactory,LocalHumanSkillInvocationReconciliation,type HumanSkillReconciliationFactory} from '@cimiloop/local-app';
+import {LocalHumanSkillMethodProbe,LocalHumanNamedSkillCapture,LocalHumanSkillInvocationControl,type HumanSkillRuntimeFactory,LocalHumanSkillInvocationReconciliation,type HumanSkillReconciliationFactory} from '@cimiloop/local-app';
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -45,7 +45,7 @@ const checked = <T>(value: T | DomainError): T => {
   return value as T;
 };
 
-export interface WorkbenchOptions { projectDir: string; port?: number; prePlanMatt?:MattClarificationHost; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions;skillReconciliationForInvocation?:HumanSkillReconciliationFactory;skillRuntimeForInvocation?:HumanSkillRuntimeFactory;agentParentSkillResults?:LocalAgentParentSkillResultPort;runtimeAdmission?:(local:LocalProject)=>Promise<LocalAgentRuntimeAdmission> }
+export interface WorkbenchOptions { projectDir: string; port?: number; prePlanMatt?:MattClarificationHost; agentRuntimeForRun?: HumanAgentRuntimeFactory; agentAccountForRun?: HumanAgentAccountFactory;planningClarification?:LocalPlanningClarificationOptions;skillReconciliationForInvocation?:HumanSkillReconciliationFactory;skillRuntimeForInvocation?:HumanSkillRuntimeFactory;agentParentSkillResults?:LocalAgentParentSkillResultPort;runtimeAdmission?:(local:LocalProject)=>Promise<LocalAgentRuntimeAdmission>;skillProbeServices?:ConstructorParameters<typeof LocalHumanSkillMethodProbe>[1] }
 export interface WorkbenchServer { origin: string; bootstrapUrl: string; close(): Promise<void> }
 
 export const startWorkbench = async (options: WorkbenchOptions): Promise<WorkbenchServer> => {
@@ -178,6 +178,22 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         const result = await awaitCurrentSession(async () => clarificationMatch[2] ? clarification.advanceAsync(changeId, decodeURIComponent(clarificationMatch[2]), body, guard) : clarification.begin(changeId, body), guard);
         const commandResult = "command_result" in result ? result.command_result as ReturnType<typeof executeLocalCommand> | undefined : undefined;
         send(response, commandResult && "code" in commandResult ? statusFor(commandResult) : 200, result); return;
+      }
+      const skillProbeMatch=/^\/api\/skill-probes(?:\/([^/]{1,200})(?:\/(start|collect|cancel|recover))?)?$/.exec(url.pathname);
+      if(skillProbeMatch){
+        const write=request.method!=='GET',guard=()=>{if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,write);},service=new LocalHumanSkillMethodProbe(context,{...options.skillProbeServices,beforeEffect:guard}),id=skillProbeMatch[1]&&decodeURIComponent(skillProbeMatch[1]),action=skillProbeMatch[2];guard();
+        if(request.method==='GET'&&!action){
+          if(header(request,'transfer-encoding')||header(request,'content-length')&&header(request,'content-length')!=='0')throw new HttpFailure(400,'BODY_NOT_ALLOWED');
+          send(response,200,await awaitCurrentSession(()=>id?service.query(id):service.list(),guard));return;
+        }
+        if(request.method==='POST'){
+          const body=await readBody(request);guard();if(!body||typeof body!=='object'||Array.isArray(body))throw new HttpFailure(400,'INVALID_COMMAND');
+          let result:unknown;
+          if(id==='capture'&&!action){if(Object.keys(body).join(',')!=='request_ids'||!('request_ids'in body)||!Array.isArray(body.request_ids)||body.request_ids.some(value=>typeof value!=='string'))throw new HttpFailure(400,'INVALID_COMMAND');result=await awaitCurrentSession(()=>service.capture(body.request_ids as string[]),guard);}
+          else if(id&&action==='start'){if(!('request_id'in body)||body.request_id!==id)throw new HttpFailure(400,'INVALID_COMMAND');result=await awaitCurrentSession(()=>service.startFromInput(body as Parameters<typeof service.startFromInput>[0]),guard);}
+          else if(id&&action&&['collect','cancel','recover'].includes(action)){if(Object.keys(body).length)throw new HttpFailure(400,'INVALID_COMMAND');const selected=action as 'collect'|'cancel'|'recover';result=await awaitCurrentSession(()=>service[selected](id),guard);}
+          else throw new HttpFailure(400,'INVALID_COMMAND');guard();send(response,200,result);return;
+        }
       }
       const skillCaptureMatch=/^\/api\/skill-invocations\/([^/]{1,200})\/capture-original$/.exec(url.pathname);
       if(skillCaptureMatch&&request.method==='POST'){

@@ -24,6 +24,7 @@ import {createAgentCostsCommand} from './agent-account-costs.js';
 import {productionAgentRuntime,productionAgentAccount,productionAgentCosts} from '@cimiloop/local-app';
 import {createAgentStartOriginalCommand} from './agent-runtime-start.js';
 import {createSkillOriginalCommand} from './skill-original.js';
+import {createSkillMethodProbeCommand} from './skill-method-probe.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 import { installCodexClarification } from "./clarification-codex.js";
 import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage,installCodexHome,showCodexHome} from './agent-codex-installation.js';
@@ -47,6 +48,7 @@ const globals = (command: Command): GlobalOptions => command.optsWithGlobals<Glo
 const provider = program.command("provider").description("登记候选Provider、查看固定描述与正式接入缺口");
 const skill = program.command("skill").description("固定Git来源与完整依赖包；候选登记不授权技能执行");
 for(const action of ['capture','query','collect','cancel','recover'] as const)skill.addCommand(createSkillOriginalCommand(action));
+skill.addCommand(createSkillMethodProbeCommand());
 skill.command("import").requiredOption("--file <json>", "严格SkillImportSpec，含实际commit、模块依赖与权限需求")
   .requiredOption("--repository <path>", "已获取固定commit的本地Git仓库；不自动下载或执行技能")
   .option("--expected-revision <revision>", "期望Project Revision")

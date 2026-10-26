@@ -6,11 +6,13 @@ import {LocalSkillMethodInputs,type LocalSkillMethodPlan} from './skill-methods-
 
 const format='cimiloop/native-named-method-sample/1.0.0';
 const childFormat='cimiloop/native-named-method-sample/2.0.0';
+const probeFormat='cimiloop/native-named-method-sample/3.0.0';
+type Layout='original'|'skill_invocation'|'skill_method_probe';
 const same=(a:unknown,b:unknown)=>isDeepStrictEqual(JSON.parse(JSON.stringify(a)),JSON.parse(JSON.stringify(b)));
 const fail=():never=>{throw Error('Native named method original sample unavailable or changed');};
 const exact=(v:unknown,keys:string[]):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join(',')===[...keys].sort().join(',');
 const json=(bytes:Buffer,max=65536)=>structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(bytes),max));
-interface Marker {format:typeof format|typeof childFormat;layout?:'skill_invocation';scope:AgentWorkspaceToolScope;profile_digest:Digest;original_identity_digest:Digest;result_digest:Digest;artifacts_digest:Digest}
+interface Marker {format:typeof format|typeof childFormat|typeof probeFormat;layout?:'skill_invocation'|'skill_method_probe';scope:AgentWorkspaceToolScope;profile_digest:Digest;original_identity_digest:Digest;result_digest:Digest;artifacts_digest:Digest}
 type Input=Pick<NamedSkillMethodSample,'input_ref'|'invocation_key'>&{method_name:string};
 
 // Concrete same-host Native/SDK evidence reader. Markers select an original
@@ -19,12 +21,12 @@ type Input=Pick<NamedSkillMethodSample,'input_ref'|'invocation_key'>&{method_nam
 export class LocalNativeNamedMethodSamples {
  private readonly inputs:LocalSkillMethodInputs;
  constructor(repositoryPath:string,dataDirectory:string,private readonly originalsRoot=dataDirectory){this.inputs=new LocalSkillMethodInputs(repositoryPath,dataDirectory);}
- private observe(project:Project,plan:LocalSkillMethodPlan,rawScope:unknown,child=false){return withRuntimeBinaryProofTurn(()=>{
+ private observe(project:Project,plan:LocalSkillMethodPlan,rawScope:unknown,layout:Layout='original'){return withRuntimeBinaryProofTurn(()=>{
   const scope=parseAgentWorkspaceToolScope(rawScope);
   if(scope.project_id!==project.id||scope.operation_key!==plan.profile.invocation_key)fail();
-  // The new layout selects exactly one canonical child, never a supplied path
+  // Each layout selects exactly one canonical child/probe, never a supplied path
   // or a fallback after an unreadable/missing legacy original.
-  const root=child?join(this.originalsRoot,'skill-runtime-originals',scope.project_id,scope.operation_key):this.originalsRoot;
+  const root=layout==='original'?this.originalsRoot:join(this.originalsRoot,layout==='skill_invocation'?'skill-runtime-originals':'skill-method-probe-originals',scope.project_id,scope.operation_key);
   const before=readAgentRuntimeOriginalIdentity(root,scope),input=before.input as Record<string,unknown>;
   if(typeof input.prompt!=='string')fail();
   const packet=json(Buffer.from(input.prompt as string));
@@ -39,29 +41,30 @@ export class LocalNativeNamedMethodSamples {
   const sessions=[...new Set(events.filter(event=>event.type).map(event=>event.sessionID))];
   if(sessions.length!==1||typeof sessions[0]!=='string'||!sessions[0])fail();
   const effects={session_id:sessions[0]!,native_pid:native.peer!.pid!,native_profile:resources.profile as string};
-  const marker:Marker={format:child?childFormat:format,...(child?{layout:'skill_invocation' as const}:{}),scope,profile_digest:digest(JSON.stringify(plan.profile)),original_identity_digest:before.identity_digest,result_digest:result.output_digest!,artifacts_digest:digest(JSON.stringify({native:result.artifacts,codex:codex.artifacts}))};
+  const marker:Marker={format:layout==='original'?format:layout==='skill_invocation'?childFormat:probeFormat,...(layout==='original'?{}:{layout}),scope,profile_digest:digest(JSON.stringify(plan.profile)),original_identity_digest:before.identity_digest,result_digest:result.output_digest!,artifacts_digest:digest(JSON.stringify({native:result.artifacts,codex:codex.artifacts}))};
   if(!same(readAgentRuntimeOriginalIdentity(root,scope),before)||!same(result,readAgentRuntimeNamedMethodResult(root,scope,{profile:plan.profile,files:plan.files}))||!same(codex,readCodexAgentModelOriginals(root,scope)))fail();
   return{marker,effects,stdout,cleanup,originalsRoot:root,native_job_observed:result.artifacts.some(a=>a.name==='agent-job-observation.json')};
  });}
  capture(project:Project,descriptor:ProviderDescriptor,input:Input,scope:unknown):NamedSkillMethodSample{
-  return this.captureAt(project,descriptor,input,scope,false);
+  return this.captureAt(project,descriptor,input,scope,'original');
  }
  captureChild(project:Project,descriptor:ProviderDescriptor,input:Input,scope:unknown):NamedSkillMethodSample{
-  return this.captureAt(project,descriptor,input,scope,true);
+  return this.captureAt(project,descriptor,input,scope,'skill_invocation');
  }
- private captureAt(project:Project,descriptor:ProviderDescriptor,input:Input,scope:unknown,child:boolean):NamedSkillMethodSample{
-  const plan=this.inputs.read(project,descriptor,input),observed=this.observe(project,plan,scope,child),content=this.inputs.packages.content;
+ captureProbe(project:Project,descriptor:ProviderDescriptor,input:Input,scope:unknown):NamedSkillMethodSample{return this.captureAt(project,descriptor,input,scope,'skill_method_probe');}
+ private captureAt(project:Project,descriptor:ProviderDescriptor,input:Input,scope:unknown,layout:Layout):NamedSkillMethodSample{
+  const plan=this.inputs.read(project,descriptor,input),observed=this.observe(project,plan,scope,layout),content=this.inputs.packages.content;
   const artifact=(bytes:Buffer,version:string)=>({...content.storeContent(bytes,'provider_probe_artifact'),version});
   const sample:NamedSkillMethodSample={invocation_key:input.invocation_key,input_ref:structuredClone(input.input_ref),transcript_ref:artifact(Buffer.from(JSON.stringify(observed.marker)),'native-method-sample.json'),stdout_ref:artifact(observed.stdout,'stdout.raw'),native_proof_ref:artifact(observed.cleanup,'agent-sandbox-cleanup.json')};
-  if(!same(plan,this.inputs.read(project,descriptor,input))||!same(observed,this.observe(project,plan,scope,child)))fail();return sample;
+  if(!same(plan,this.inputs.read(project,descriptor,input))||!same(observed,this.observe(project,plan,scope,layout)))fail();return sample;
  }
  read(project:Project,descriptor:ProviderDescriptor,evidence:NamedSkillMethodEvidence,sample:NamedSkillMethodSample,plan:LocalSkillMethodPlan){
   const content=this.inputs.packages.content,body=content.readContent(sample.transcript_ref),marker=json(body) as unknown as Marker;
-  const child=marker?.format===childFormat;
-  if(!exact(marker,['format',...(child?['layout']:[]),'scope','profile_digest','original_identity_digest','result_digest','artifacts_digest']))fail();
-  if(child?marker.layout!=='skill_invocation':marker.format!==format)fail();
+  const layout:Layout=marker?.format===childFormat?'skill_invocation':marker?.format===probeFormat?'skill_method_probe':'original';
+  if(!exact(marker,['format',...(layout==='original'?[]:['layout']),'scope','profile_digest','original_identity_digest','result_digest','artifacts_digest']))fail();
+  if(layout==='original'?marker.format!==format:marker.layout!==layout)fail();
   if(!same(marker.scope.runtime_binding,evidence.runtime_binding)||!same(plan,this.inputs.read(project,descriptor,{...sample,method_name:evidence.method_name})))fail();
-  const observed=this.observe(project,plan,marker.scope,child);
+  const observed=this.observe(project,plan,marker.scope,layout);
   if(!same(marker,observed.marker)||!observed.stdout.equals(content.readContent(sample.stdout_ref))||!observed.cleanup.equals(content.readContent(sample.native_proof_ref))||!body.equals(content.readContent(sample.transcript_ref)))fail();
   return{marker:observed.marker,effects:observed.effects,originalsRoot:observed.originalsRoot,native_job_observed:observed.native_job_observed};
  }

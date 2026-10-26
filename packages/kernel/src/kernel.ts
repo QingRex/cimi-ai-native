@@ -1,5 +1,6 @@
 import { assessSkillInvocationExecution, parseSkillInvocationExecutionRequest, type SkillInvocationExecutionAssessment } from './skill-invocation-execution.js';
 import { MattClarificationUnavailable } from './planning-clarification.js';
+import {providerProbeHuman,namedSkillProbeAuthority} from './provider-probe-authority.js';
 import {
   ProtocolValidationError,
   SCHEMA_VERSION,
@@ -382,6 +383,14 @@ export class CimiLoopKernel {
   // Human initiation permission only. The original Agent still needs the full
   // independent launch assessment; this does not change a Run or grant effects.
   authorizeAgentRunStart(runId: string) { return this.#authorizeAgentRunHuman(runId, "启动"); }
+  authorizeProviderProbeControl(){
+    try{const result=this.#store.readSnapshot(reader=>providerProbeHuman(reader,this.#caller,this.#now())).value;return 'code'in result?domainError(this.#id(),result.code,result.message,result.category):result;}
+    catch{return domainError(this.#id(),'STORE_FAILURE','无法核对原隔离操作的 Human 权限','storage',true);}
+  }
+  authorizeNamedSkillProbe(descriptorId:string,runtimeBindingId:string,purpose:string){
+    try{const result=this.#store.readSnapshot(reader=>namedSkillProbeAuthority(reader,this.#caller,this.#now(),descriptorId,runtimeBindingId,purpose)).value;return 'code'in result?domainError(this.#id(),result.code,result.message,result.category):result;}
+    catch{return domainError(this.#id(),'STORE_FAILURE','无法核对固定候选方法隔离请求','storage',true);}
+  }
   authorizeAgentRunPreparation(workItemId:string){
     try{return this.#store.readSnapshot(reader=>{
       const caller=this.#caller,project=reader.getProject(),actor=caller&&caller.kind==='local_operator'?reader.getActor(caller.actor_id):undefined;

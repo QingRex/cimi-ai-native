@@ -170,6 +170,34 @@ const dashboard = () => {
     panel("执行能力", paragraph("人工任务、运行控制和交接已接通。正式 Agent 执行仍需完成 Runtime 验收；候选探针通过不代表任务执行已启用。"),
       paragraph(`已登记 Provider：${providers.descriptors?.length ?? 0}。`), details("Provider 的实际准入与缺口", providers)))];
 };
+const skillProbes = data => {
+  const internalId=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+  const catalog=state.dashboard.providers,descriptors=(catalog.descriptors??[]).filter(value=>value.provider_kind==='skill'),runtimes=(catalog.bindings??[]).filter(binding=>binding.approval&&catalog.descriptors.some(value=>value.id===binding.descriptor_ref.id&&value.provider_kind==='runtime'));
+  const key=`cimiloop.skill-probes.${state.context.project_id}.${state.context.actor_id}`;let saved=[],storageError;
+  try{saved=JSON.parse(sessionStorage.getItem(key)??'[]');if(!Array.isArray(saved)||saved.length>64||saved.some(value=>!internalId.test(value))||new Set(saved).size!==saved.length)throw new Error('保留的请求列表需要核对。');}
+  catch(error){saved=[];storageError='浏览器无法核对原请求列表；暂停新调用，仍可按原 ID 查询、停止和恢复。';}
+  const ids=[...new Set([...saved,...(data.requests??[]).map(value=>value.request_id)])],remember=id=>{if(!internalId.test(id))throw new Error('请使用有效的原请求 ID。');const next=[...new Set([...ids,id])];if(next.length>64)throw new Error('保留的请求已达64项，请先核对历史容量。');sessionStorage.setItem(key,JSON.stringify(next));};
+  const output=node('div',{'data-skill-probe-output':''});let generation=0;
+  const inspect=async(id,action)=>{if(!internalId.test(id))throw new Error('请使用有效的原请求 ID。');const selected=++generation,response=await api('/api/skill-probes/'+encodeURIComponent(id)+(action?'/'+action:''),action?{}:undefined);if(response.request_id!==id||response.run_created!==false)throw new Error('原请求回执身份需要核对。');if(selected!==generation||!output.isConnected)return;output.replaceChildren(paragraph(response.outcome==='unknown'?'原操作仍待核对；不要换请求 ID 重开。':'已读取原操作，未据此批准资格或结清费用。'),details('原操作结果',response));};
+  const start=form(async values=>{
+    if(storageError)throw new Error(storageError);
+    if(state.pending)throw new Error('先核对尚未完成的业务请求，再开始隔离调用。');
+    const body={request_id:values.request_id,descriptor_id:values.descriptor,runtime_binding_id:values.runtime,method_name:values.method,max_elapsed_ms:Number(values.elapsed),input:JSON.parse(values.input)};
+    remember(body.request_id);state.busy=true;
+    // Save the original id before sending. On response loss the visible action
+    // is read-only query; never generate another id or resubmit automatically.
+    showNotice('已保留原请求 ID：'+body.request_id,false,button('查询这个原请求',()=>inspect(body.request_id),undefined,true),button('停止这个原请求',()=>inspect(body.request_id,'cancel'),undefined,true));
+    try{const response=await api('/api/skill-probes/'+encodeURIComponent(body.request_id)+'/start',body);if(response.request_id!==body.request_id||response.run_created!==false)throw new Error('原请求回执身份需要核对。');if(output.isConnected)output.replaceChildren(details('原调用结果',response));}
+    catch(error){showNotice('调用结果尚未核对：'+error.message,true,button('查询这个原请求',()=>inspect(body.request_id),undefined,true));}
+    finally{state.busy=false;}
+  },select('descriptor','固定候选 Skill',descriptors.map(value=>[value.id,value.name])),select('runtime','已批准的 Runtime',runtimes.map(value=>[value.id,(catalog.descriptors.find(descriptor=>descriptor.id===value.descriptor_ref.id)?.name??value.id)+' · '+value.approval.binding_scope])),input('method','包入口方法名',{required:true,maxLength:64}),input('request_id','原请求 ID（请保留，重复点击仍使用同一个 ID）',{required:true,value:uuid()}),input('elapsed','累计时限（毫秒）',{required:true,type:'number',min:1000,max:600000,value:180000}),textarea('input','固定方法输入 JSON；评审资料必须使用已固定的引用',{required:true,placeholder:'填写真实 requirement、background、constraints；不要填写登录凭据。'}),submit('启动一次隔离调用'));
+  start.querySelector('button[type="submit"]').disabled=state.busy||!!storageError||!descriptors.length||!runtimes.length;
+  return[...heading('技能隔离调用','由当前项目负责人发起。使用已安装账户额度，只读取固定材料；本操作不创建业务 Run，也不批准生产资格。'),
+    ...(data.error?[paragraph(data.error,'error')]:[]),...(storageError?[paragraph(storageError,'error')]:[]),panel('发起固定方法',start),panel('原请求与恢复',
+      ...(ids.length?ids.map(id=>node('div',{'data-skill-probe-id':id},paragraph(id),button('查询',()=>inspect(id),undefined,true),button('采集',()=>inspect(id,'collect'),undefined,true),button('停止',()=>inspect(id,'cancel'),undefined,true),button('恢复原资源',()=>inspect(id,'recover'),undefined,true))):[paragraph('暂无原请求。可直接在下方输入已有请求 ID 查询。')]),
+      form(values=>{if(!storageError)remember(values.id);return inspect(values.id);},input('id','已有原请求 ID',{required:true}),submit('查询原请求')),
+      form(async values=>{const request_ids=lines(values.ids);const response=await api('/api/skill-probes/capture',{request_ids});if(output.isConnected)output.replaceChildren(details('原件证据引用；仍须单独评估和批准',response));},textarea('ids','采集1–4个已完成原请求（每行一个 ID）',{required:true}),submit('保存原件证据')),output)];
+};
 const pool = () => {
   const { flow, project } = state.dashboard;
   return [...heading("需求池与版本", "目标版本用于规划；约定、实施与交付仍由每条需求自身推进。"), panel("全部需求与缺陷", changeTable(flow.changes)),
@@ -427,13 +455,13 @@ const load = async () => {
   const generation = ++state.loading;
   const dashboardData = await api("/api/dashboard");
   const route = location.hash.slice(1) || "dashboard", change = /^change\/(.+)$/.exec(route);
-  const data = change ? await api(`/api/changes/${encodeURIComponent(decodeURIComponent(change[1]))}`) : route === "decisions" ? await api("/api/decisions") : null;
+  const data = change ? await api(`/api/changes/${encodeURIComponent(decodeURIComponent(change[1]))}`) : route === "decisions" ? await api("/api/decisions") : route === 'skills' ? await api('/api/skill-probes').catch(error=>({requests:[],error:error.message})) : null;
   if (generation !== state.loading) return;
   state.dashboard = dashboardData; state.view = change ? "change" : route; state.changeId = change ? decodeURIComponent(change[1]) : null; state.detail = data;
   document.querySelector("#project-name").textContent = dashboardData.project.name;
   document.querySelector("#operator").textContent = `${actorName(state.context.actor_id)} · 本地 Human`;
   document.querySelectorAll("nav a").forEach(link => link.classList.toggle("active", link.dataset.view === state.view || (state.view === "change" && link.dataset.view === "pool")));
-  const page = state.view === "pool" ? pool() : state.view === "decisions" ? inbox(data) : state.view === "change" ? changePage(data) :
+  const page = state.view === "pool" ? pool() : state.view === 'skills' ? skillProbes(data) : state.view === "decisions" ? inbox(data) : state.view === "change" ? changePage(data) :
     ["releases", "environments"].includes(state.view) ? [...heading(state.view === "releases" ? "发布批次" : "环境概览", "此入口将在发布与生产交付阶段接通。"), panel("尚未实施", paragraph("当前工作台覆盖需求、任务、决定与交接。这里尚无可执行的发布或环境操作。"))] : dashboard();
   content.replaceChildren(...page);
 };
