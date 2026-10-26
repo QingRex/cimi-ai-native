@@ -52,6 +52,12 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('parent Skill o
   const named:Record<string,unknown>={...ordinary,format:'cimiloop/agent-workspace-sandbox-config/9.0.0',method_tools:'fixed_named_method/1.0.0',method_original_binding:{format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('header').value,anchor_digest:digest('anchor').value}};
   return {f,ordinary,named,parent};
  }
+ it('compiled Native18 grants only the saved parent subset and refuses a legacy or expanded catalog',()=>{
+  const {parent}=currentModes(),config={...parent,format:'cimiloop/agent-workspace-sandbox-config/18.0.0',writable_storage_profile:'private_state_only/1.0.0',parent_skill_tools:'fixed_parent_skill/2.0.0',provider_options:{...(parent.provider_options as object),parent_skill_tools:'fixed_parent_skill/2.0.0',model_output_profile:'bounded_2048/1.0.0',workspace_tool_names:['cimi_read','cimi_check','cimi_run_skill']}};
+  expect(read('config',config)).toMatchObject({accepted:true,result:123456789});expect(read('permissions',config)).toEqual({accepted:true,result:{'*':'deny',cimi_read:'allow',cimi_check:'allow',cimi_run_skill:'allow'}});expect(assertAgentParentSkillConfig(config,config)).toBe(true);
+  for(const tools of [[],['cimi_read'],['cimi_run_skill','cimi_run_skill'],['bash','cimi_run_skill'],['cimi_read','cimi_replace','cimi_check','cimi_run_skill']])expect(read('config',{...config,provider_options:{...config.provider_options,workspace_tool_names:tools}})).toMatchObject({accepted:false});
+  expect(read('config',{...config,format:'cimiloop/agent-workspace-sandbox-config/15.0.0'})).toMatchObject({accepted:false});
+ });
  it('freezes explicit Native config11/12 output policy without changing legacy config8/10',()=>{
   const modes=currentModes();for(const [original,version] of [[modes.ordinary,11],[modes.parent,12]] as const){
    const config={...original,format:`cimiloop/agent-workspace-sandbox-config/${version}.0.0`,provider_options:{...(original.provider_options as object),model_output_profile:'bounded_2048/1.0.0'}};

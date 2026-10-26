@@ -10,6 +10,7 @@ import { claimAgentRuntimeOperation } from "../src/agent-runtime-operation.js";
 import { digest } from "../src/files.js";
 import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.js";
 import {readNamedMethodCodexOriginals} from '../src/agent-named-method-model-originals.js';
+import {agentRuntimeProviderOptions} from '../src/opencode-workspace-runtime.js';
 
 // Real stdio processes and original Host files, PUBLIC account/model replies.
 // These tests never read a user login or qualify actual model/account behavior.
@@ -42,6 +43,16 @@ if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==
   return { root, scope, options, transport, originalRoot, control, log, request, create, open, read, revoke() { allowed = false; }, turns() { return existsSync(log) ? readFileSync(log, "utf8").trimEnd().split("\n").length : 0; } };
 }
 describe("Codex model behind the original Agent SDK host", () => {
+  it('preserves the reduced parent catalog through private-login Codex header17 and original replay',async()=>{
+    const f=fixture(),path=join(f.root,'private-parent-login');mkdirSync(path);const stat=lstatSync(path,{bigint:true}),login_home={path,identity:{dev:String(stat.dev),ino:String(stat.ino),birth:String(stat.birthtimeNs)}},selected=['cimi_read','cimi_check','cimi_run_skill'];
+    const transport=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_login_home/2.0.0',login_home});
+    const options={...f.options,runtime:transport,permitted_tools:selected,output_profile:'bounded_2048/1.0.0' as const,usage_policy:'require_ordinary_permission/1.0.0' as const,quota_account_digest:digest('PUBLIC-account').value};
+    const packet='PUBLIC fixed parent packet',model=runtime.createCodexAgentRuntimeModel(options),host=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,selected,packet),request={...f.request,format:'cimiloop/agent-runtime-model-request/5.0.0',prompt:[{role:'user',content:[{type:'text',text:'<content>\n1: '+packet+'\n\n(End of file - total 1 lines)\n</content>'}]}],tools:selected.map(name=>({...f.request.tools[0]!,name})),max_output_tokens:1600};
+    expect(await host.execute(request)).toMatchObject({replay:false});expect(await host.execute(request)).toMatchObject({replay:true});expect(f.turns()).toBe(1);expect(f.read().status).toBe('Observed');
+    const headerPath=join(f.root,'agent-codex-model-originals',f.scope.project_id,f.scope.run_id,'header.json'),header=JSON.parse(readFileSync(headerPath,'utf8'));expect(header).toMatchObject({format:'cimiloop/codex-agent-model/17.0.0',permitted:selected,runtime:{login_home}});
+    expect(agentRuntimeProviderOptions(host,true)).toMatchObject({parent_skill_tools:'fixed_parent_skill/2.0.0',workspace_tool_names:selected});
+    writeFileSync(headerPath,JSON.stringify({...header,format:'cimiloop/codex-agent-model/15.0.0'}));expect(()=>f.read()).toThrow();expect(f.turns()).toBe(1);
+  });
   it.each(process.platform==='win32'&&process.arch==='x64'?[false,true]:[false])('uses bounded-login header15 for the ordinary SDK bridge and historical replay (owner Job=%s)',async job=>{
     const f=fixture(),path=join(f.root,'private-login');mkdirSync(path);const stat=lstatSync(path,{bigint:true}),login_home={path,identity:{dev:String(stat.dev),ino:String(stat.ino),birth:String(stat.birthtimeNs)}},origin=job?runtime.AgentStartLedger.initialize(join(f.root,'process-origin'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC user').value}):undefined;
     try{const transport=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_login_home/2.0.0',login_home,...(job?{process_custody:'owner_job/1.0.0' as const,process_root:join(f.root,'processes')}:{})},false,origin);

@@ -5,11 +5,13 @@ export function createCimiHostGateway(options) {
  if (!options || !Object.hasOwn(options,"admission_digest") || !/^[a-f0-9]{64}$/.test(options.admission_digest)) throw Error("agent_model_admission_unavailable");
  // OpenCode adds SDK bookkeeping options. Only this Native-pinned field is
  // consumed; SDK endpoint/auth options cannot select any network or credential.
- const parentMode=options.parent_skill_tools;if(parentMode!==undefined&&parentMode!=="fixed_parent_skill/1.0.0")throw Error("agent_model_binding_denied");
+ const parentMode=options.parent_skill_tools;if(parentMode!==undefined&&!['fixed_parent_skill/1.0.0','fixed_parent_skill/2.0.0'].includes(parentMode))throw Error("agent_model_binding_denied");
  const outputProfile=options.model_output_profile;if(outputProfile!==undefined&&outputProfile!=='bounded_2048/1.0.0')throw Error('agent_model_binding_denied');
  const outputLimit=outputProfile?2048:512;
  const rawNames=options.workspace_tool_names;
- if(rawNames!==undefined&&(!outputProfile||parentMode||!Array.isArray(rawNames)||rawNames.length<1||rawNames.length>3||new Set(rawNames).size!==rawNames.length||rawNames.some(name=>!['cimi_read','cimi_replace','cimi_check'].includes(name))))throw Error('agent_model_binding_denied');
+ const parentSubset=parentMode==='fixed_parent_skill/2.0.0';
+ if(parentSubset&&(!outputProfile||!Array.isArray(rawNames)||!rawNames.includes('cimi_run_skill')))throw Error('agent_model_binding_denied');
+ if(rawNames!==undefined&&(!outputProfile||parentMode&&!parentSubset||!Array.isArray(rawNames)||rawNames.length<1||rawNames.length>3||new Set(rawNames).size!==rawNames.length||rawNames.some(name=>!(parentSubset?['cimi_read','cimi_replace','cimi_check','cimi_run_skill']:['cimi_read','cimi_replace','cimi_check']).includes(name))))throw Error('agent_model_binding_denied');
  const workspaceNames=rawNames===undefined?undefined:Object.freeze([...rawNames]);
  const exchange=parentMode?exchangeAgentParentSkillModelFrame:exchangeAgentWorkspaceModelFrame;
  const admissionDigest=options.admission_digest;let step=0;const originals=new Map();
@@ -20,7 +22,7 @@ export function createCimiHostGateway(options) {
    if(workspaceNames&&(tools.length!==workspaceNames.length||new Set(tools.map(tool=>tool.name)).size!==tools.length||workspaceNames.some(name=>!tools.some(tool=>tool.name===name))))throw Error('agent_model_binding_denied');
    const key=JSON.stringify([input.prompt,tools,maximum]);let callId=originals.get(key);
    if(!callId){if(step>=64)throw Error("agent_model_call_limit");callId="model_"+String(++step).padStart(4,"0");originals.set(key,callId);}
-   const reply=await exchange(process.env.CIMILOOP_AGENT_WORKSPACE_PIPE,{format:`cimiloop/agent-runtime-model-request/${outputProfile?(parentMode?4:3):(parentMode?2:1)}.0.0`,
+   const reply=await exchange(process.env.CIMILOOP_AGENT_WORKSPACE_PIPE,{format:`cimiloop/agent-runtime-model-request/${parentSubset?5:outputProfile?(parentMode?4:3):(parentMode?2:1)}.0.0`,
     scope_digest:process.env.CIMILOOP_AGENT_WORKSPACE_SCOPE,admission_digest:admissionDigest,call_id:callId,tool:"model_step",prompt:input.prompt,tools,max_output_tokens:maximum},input.abortSignal,outputProfile);
    if(reply.outcome!=="completed")throw Error(reply.reason);
    const response=reply.receipt,events=[{type:"stream-start",warnings:[]}];let textBytes=0,calls=0;const ids=new Set();

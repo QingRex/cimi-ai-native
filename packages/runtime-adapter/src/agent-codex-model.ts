@@ -6,7 +6,7 @@ import { assertOrdinaryPath, bytesAt, digest, directory, RuntimeAdapterError } f
 import { parseGatewayFunctionCalls, parseGatewayJson } from "./gateway-conversation.js";
 import { prepareDedicatedAgentRequest, type DedicatedAgentReply } from "./agent-dedicated-codec.js";
 import { parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
-import { AGENT_PARENT_SKILL_TOOLS, isAgentParentSkillToolSet, isAgentNamedMethodToolSet, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals, type AgentRuntimeModelPort, type AgentRuntimeModelResponse } from "./agent-runtime-model.js";
+import { AGENT_PARENT_SKILL_TOOLS, isAgentParentSkillToolSet, isAgentParentSkillModelTools, isAgentNamedMethodToolSet, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals, type AgentRuntimeModelPort, type AgentRuntimeModelResponse } from "./agent-runtime-model.js";
 import { CodexOriginalMethodRuntime, type CodexMethodRequest, type CodexMethodOriginal, type CodexOriginalMethodOptions } from "./codex-original-method.js";
 import {codexProcessLayout} from './codex-process-job.js';
 import { parseAgentModelOutputProfile, type AgentModelOutputProfile } from "./agent-model-output.js";
@@ -44,7 +44,7 @@ export function createBudgetedCodexAgentRuntimeModel(raw:CodexAgentModelOptions,
   }};
 }
 interface Header {
-  format: `cimiloop/codex-agent-model/${1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16}.0.0`; scope: AgentWorkspaceToolScope;
+  format: `cimiloop/codex-agent-model/${1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17}.0.0`; scope: AgentWorkspaceToolScope;
   output_profile?: AgentModelOutputProfile;
   usage_policy?:CodexOrdinaryUsagePolicy;
   quota_account_digest?:string;
@@ -64,7 +64,7 @@ const proof = (header: Header) => ({ kind: "codex_login/1.0.0" as const, header_
 // Header14 adds private state to the ordinary/parent header8 protocol. It must
 // not inherit the named-Skill-only wire changes introduced by headers9—13.
 // Header16 binds the same named header13 protocol to the bounded login home.
-const backendVersion=(header:Header)=>header.format==='cimiloop/codex-agent-model/16.0.0'?13:['cimiloop/codex-agent-model/14.0.0','cimiloop/codex-agent-model/15.0.0'].includes(header.format)?8:Number.parseInt(header.format.split('/')[2]!,10);
+const backendVersion=(header:Header)=>header.format==="cimiloop/codex-agent-model/17.0.0"?8:header.format==='cimiloop/codex-agent-model/16.0.0'?13:['cimiloop/codex-agent-model/14.0.0','cimiloop/codex-agent-model/15.0.0'].includes(header.format)?8:Number.parseInt(header.format.split('/')[2]!,10);
 const namedSkillResultSchema=JSON.parse(JSON.stringify(SkillMethodOutputSchema));
 const parseNamedSkillResult=compileValidator(SkillMethodOutputSchema);
 // Full Protocol schema expressed as local references so original JSON records
@@ -87,12 +87,12 @@ function referencedSkillResultParameters(){
 }
 const referencedNamedSkillResultSchema=referencedSkillResultParameters();
 function checkedHeader(raw: unknown): Header {
-  if (!exact(raw, ["format", "scope", "model", "account_digest", "admission_digest", "origin", "runtime", "permitted",...(raw&&typeof raw==='object'&&Object.hasOwn(raw,'output_profile')?['output_profile']:[]),...(raw&&typeof raw==='object'&&Object.hasOwn(raw,'usage_policy')?['usage_policy']:[]),...(raw&&typeof raw==='object'&&Object.hasOwn(raw,'quota_account_digest')?['quota_account_digest']:[])]) || !/^cimiloop\/codex-agent-model\/(?:[1-9]|1[0-6])\.0\.0$/.test(String(raw.format)) ||
+  if (!exact(raw, ["format", "scope", "model", "account_digest", "admission_digest", "origin", "runtime", "permitted",...(raw&&typeof raw==='object'&&Object.hasOwn(raw,'output_profile')?['output_profile']:[]),...(raw&&typeof raw==='object'&&Object.hasOwn(raw,'usage_policy')?['usage_policy']:[]),...(raw&&typeof raw==='object'&&Object.hasOwn(raw,'quota_account_digest')?['quota_account_digest']:[])]) || !/^cimiloop\/codex-agent-model\/(?:[1-9]|1[0-7])\.0\.0$/.test(String(raw.format)) ||
     !["gpt-6-luna", "gpt-6.1-sol"].includes(String(raw.model)) || !sha(raw.account_digest) || !sha(raw.admission_digest) || !["external_model", "public_fixture"].includes(String(raw.origin)) ||
-    !Array.isArray(raw.permitted) || !raw.permitted.length || new Set(raw.permitted).size !== raw.permitted.length || !(/^cimiloop\/codex-agent-model\/(?:9|1[0-3]|16)\.0\.0$/.test(String(raw.format)) ? isAgentNamedMethodToolSet(raw.permitted) : isAgentParentSkillToolSet(raw.permitted) || raw.permitted.length <= 3 && raw.permitted.every(name => ["cimi_read", "cimi_replace", "cimi_check"].includes(String(name)))) ||
+    !Array.isArray(raw.permitted) || !raw.permitted.length || new Set(raw.permitted).size !== raw.permitted.length || !(/^cimiloop\/codex-agent-model\/(?:9|1[0-3]|16)\.0\.0$/.test(String(raw.format)) ? isAgentNamedMethodToolSet(raw.permitted) : raw.format==="cimiloop/codex-agent-model/17.0.0"? isAgentParentSkillModelTools(raw.permitted)&&!isAgentParentSkillToolSet(raw.permitted) : isAgentParentSkillToolSet(raw.permitted) || raw.permitted.length <= 3 && raw.permitted.every(name => ["cimi_read", "cimi_replace", "cimi_check"].includes(String(name)))) ||
     !raw.runtime || typeof raw.runtime !== "object" || !same((raw.runtime as CodexOriginalMethodOptions).account_digest, raw.account_digest)) fail("agent_codex_admission_unavailable");
   const version=Number.parseInt(String(raw.format).split('/')[2]!,10);
-  if((version>=14)!==Object.hasOwn(raw.runtime,'state_policy')||(version===15||version===16)!==Object.hasOwn(raw.runtime,'login_home')||version>=14&&(raw.runtime as CodexOriginalMethodOptions).state_policy!==(version===15||version===16?'private_login_home/2.0.0':'private_operation_state/1.0.0'))fail();
+  if((version>=14)!==Object.hasOwn(raw.runtime,'state_policy')||(version===15||version===16||version===17)!==Object.hasOwn(raw.runtime,'login_home')||version>=14&&(raw.runtime as CodexOriginalMethodOptions).state_policy!==(version===15||version===16||version===17?'private_login_home/2.0.0':'private_operation_state/1.0.0'))fail();
   if ((version>=6)!==!!parseAgentModelOutputProfile(raw.output_profile)||(version>=7)!==!!parseCodexUsagePolicy(raw.usage_policy)||(version>=8)!==Object.hasOwn(raw,'quota_account_digest')||version>=8&&!sha(raw.quota_account_digest)) fail();
   parseAgentWorkspaceToolScope(raw.scope); return structuredClone(raw) as unknown as Header;
 }
@@ -335,7 +335,7 @@ export function createCodexAgentRuntimeModel(options: CodexAgentModelOptions): A
   if (!(options.runtime instanceof CodexOriginalMethodRuntime) || typeof options.authority?.check !== "function" || typeof options.authority.beforeEffect !== "function") fail("agent_codex_admission_unavailable");
   const outputProfile=parseAgentModelOutputProfile(options.output_profile);
   const usagePolicy=parseCodexUsagePolicy(options.usage_policy);
-  const root = resolve(assertOrdinaryPath(options.root)), runtime = options.runtime, scope = parseAgentWorkspaceToolScope(options.scope), candidate = checkedHeader({ format: isAgentNamedMethodToolSet(options.permitted_tools??[])?(runtime.originalConfiguration.login_home?"cimiloop/codex-agent-model/16.0.0":"cimiloop/codex-agent-model/13.0.0"):runtime.originalConfiguration.login_home?"cimiloop/codex-agent-model/15.0.0":runtime.originalConfiguration.state_policy?"cimiloop/codex-agent-model/14.0.0":Object.hasOwn(options,'quota_account_digest')?"cimiloop/codex-agent-model/8.0.0":usagePolicy?"cimiloop/codex-agent-model/7.0.0":outputProfile?"cimiloop/codex-agent-model/6.0.0":"cimiloop/codex-agent-model/5.0.0", scope,...(outputProfile?{output_profile:outputProfile}:{}),...(usagePolicy?{usage_policy:usagePolicy}:{}),...(Object.hasOwn(options,'quota_account_digest')?{quota_account_digest:options.quota_account_digest}:{}),
+  const root = resolve(assertOrdinaryPath(options.root)), runtime = options.runtime, scope = parseAgentWorkspaceToolScope(options.scope), candidate = checkedHeader({ format: isAgentParentSkillModelTools(options.permitted_tools??[])&&!isAgentParentSkillToolSet(options.permitted_tools??[])?"cimiloop/codex-agent-model/17.0.0":isAgentNamedMethodToolSet(options.permitted_tools??[])?(runtime.originalConfiguration.login_home?"cimiloop/codex-agent-model/16.0.0":"cimiloop/codex-agent-model/13.0.0"):runtime.originalConfiguration.login_home?"cimiloop/codex-agent-model/15.0.0":runtime.originalConfiguration.state_policy?"cimiloop/codex-agent-model/14.0.0":Object.hasOwn(options,'quota_account_digest')?"cimiloop/codex-agent-model/8.0.0":usagePolicy?"cimiloop/codex-agent-model/7.0.0":outputProfile?"cimiloop/codex-agent-model/6.0.0":"cimiloop/codex-agent-model/5.0.0", scope,...(outputProfile?{output_profile:outputProfile}:{}),...(usagePolicy?{usage_policy:usagePolicy}:{}),...(Object.hasOwn(options,'quota_account_digest')?{quota_account_digest:options.quota_account_digest}:{}),
     model: options.model, account_digest: options.account_digest, admission_digest: options.admission_digest, origin: options.origin, runtime: runtime.originalConfiguration, permitted: options.permitted_tools ? [...options.permitted_tools] : ["cimi_read", "cimi_replace", "cimi_check"] });
   const paths = headerPaths(root, scope), existing = [join(paths.spine, "header.json"), join(paths.body, "header.json")].find(path => existsSync(path)), header = existing ? checkedHeader(read(existing)) : candidate;
   // Reopening preserves the original request policy, including older bridge

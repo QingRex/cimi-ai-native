@@ -1,3 +1,4 @@
+import {assertAgentParentSkillConfig} from './agent-parent-skill-config.js';
 import {agentWorkspaceConfigBaseFormat,assertAgentRuntimeStartupOriginal} from './agent-runtime-startup.js';
 import{readWorkspaceFileRunOriginals}from'./workspace-tool-host.js';
 import{AgentWorkspaceCheckHost}from'./workspace-checks.js';
@@ -126,7 +127,7 @@ export function verifyOriginalTaskExecutionResult(root: string, project: Project
     assertAgentRuntimeStartupOriginal(config,input);
     if(parent){for(const name of['original-config.json','original-launcher.json','agent-sandbox-resources.json','agent-sandbox-original.json','agent-sandbox-cleanup.json','result.json','stdout.raw']){const bytes=artifact(name),current=bytesAt(join(operationPath,name),2*1024*1024);if(!current.equals(bytes))return null;operationBytes.set(name,Buffer.from(current));}}
     let parentBytes:Buffer|undefined;const parentPath=join(operationPath,'sandbox','config','parent-skill-catalog.json');
-    if(parent){parentBytes=artifact('parent-skill-catalog.json',16384);if(agentWorkspaceConfigBaseFormat(config)!=='cimiloop/agent-workspace-sandbox-config/7.0.0'||config.parent_skill_tools!=='fixed_parent_skill/1.0.0'||config.method_tools!==undefined||config.method_original_binding!==undefined||object(input.provider_options).parent_skill_tools!=='fixed_parent_skill/1.0.0'||object(config.provider_options).parent_skill_tools!=='fixed_parent_skill/1.0.0'||!same(input.parent_skill_original_binding,parentBinding)||!same(config.parent_skill_original_binding,parentBinding)||!same(result.parent_skill_original_binding,parentBinding)||digest(parentBytes).value!==parentBinding!.sdk_catalog_digest||!same(json(parentBytes,16384),parentCatalog)||!bytesAt(parentPath,16384).equals(parentBytes))return null;}
+    if(parent){parentBytes=artifact('parent-skill-catalog.json',16384);if(!assertAgentParentSkillConfig(config,input)||!same(input.parent_skill_original_binding,parentBinding)||!same(config.parent_skill_original_binding,parentBinding)||!same(result.parent_skill_original_binding,parentBinding)||digest(parentBytes).value!==parentBinding!.sdk_catalog_digest||!same(json(parentBytes,16384),parentCatalog)||!bytesAt(parentPath,16384).equals(parentBytes))return null;}
     else if(config.parent_skill_tools!==undefined||config.parent_skill_original_binding!==undefined||agentWorkspaceConfigBaseFormat(config)==='cimiloop/agent-workspace-sandbox-config/7.0.0'||result.parent_skill_original_binding!==undefined)return null;
     if (config.prompt !== input.prompt || config.scope_digest !== collection.scope_digest || !same(config.owner, original.claim.owner) ||
       result.operation !== original.operation || !same(result.sandbox,suspended) ||

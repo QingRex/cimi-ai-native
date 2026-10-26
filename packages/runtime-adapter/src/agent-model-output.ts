@@ -10,5 +10,7 @@ export function parseAgentModelOutputProfile(raw: unknown): AgentModelOutputProf
   return raw;
 }
 export const agentModelOutputLimit = (raw: unknown): number => parseAgentModelOutputProfile(raw) ? 2048 : 512;
-export const agentModelRequestFormat = (parent: boolean, profile: unknown): string =>
-  `cimiloop/agent-runtime-model-request/${parseAgentModelOutputProfile(profile) ? parent ? 4 : 3 : parent ? 2 : 1}.0.0`;
+export const agentModelRequestFormat = (parent: boolean, profile: unknown,subset=false): string => {
+ const bounded=parseAgentModelOutputProfile(profile);if(subset&&(!parent||!bounded))throw new RuntimeAdapterError('agent_model_output_policy_unproven');
+ return `cimiloop/agent-runtime-model-request/${subset?5:bounded?parent?4:3:parent?2:1}.0.0`;
+};

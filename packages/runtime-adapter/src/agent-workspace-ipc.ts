@@ -13,7 +13,7 @@ import type { WorkspaceToolReceipt } from "./workspace-tool-journal.js";
 import type { CreditProcessIdentity } from "./gateway-credit.js";
 import { parseWorkspaceCheckCatalog, parseWorkspaceCheckCall, type WorkspaceCheckCatalog, type WorkspaceCheckCall, type WorkspaceCheckReceipt } from "./workspace-checks.js";
 import {captureAgentParentSkillIpcPort,type AgentParentSkillIpcPort,type AgentParentSkillIpcReceipt} from "./agent-parent-skill-ipc.js";
-import {isAgentParentSkillToolSet, AgentRuntimeModelHost } from "./agent-runtime-model.js";
+import {isAgentParentSkillModelTools as isAgentParentSkillToolSet, AgentRuntimeModelHost } from "./agent-runtime-model.js";
 import { AgentWorkspaceIpcJournal } from "./agent-workspace-ipc-journal.js";
 import { AgentRunBudget } from "./agent-run-budget.js";
 import {AgentNamedMethodHost,type AgentNamedMethodReceipt} from "./agent-named-method-host.js";

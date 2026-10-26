@@ -1,3 +1,4 @@
+import {assertAgentParentSkillConfig} from './agent-parent-skill-config.js';
 import {agentWorkspaceConfigBaseFormat} from './agent-runtime-startup.js';
 import {agentRuntimeClaimFormat} from './agent-job-policy.js';
 import {readAgentRuntimeNamedMethodResult,type AgentNamedMethodResultInputs} from './agent-named-method-result.js';
@@ -237,7 +238,7 @@ export async function collectAgentRuntimeOperation(root: string, rawScope: unkno
         }
         const parentMode=Object.hasOwn(input,'parent_skill_original_binding');
         if(parentMode){
-          if(namedMethodInputs||agentWorkspaceConfigBaseFormat(config)!=='cimiloop/agent-workspace-sandbox-config/7.0.0'||config.parent_skill_tools!=='fixed_parent_skill/1.0.0'||(input.provider_options as Record<string,unknown>)?.parent_skill_tools!=='fixed_parent_skill/1.0.0'||(config.provider_options as Record<string,unknown>)?.parent_skill_tools!=='fixed_parent_skill/1.0.0')throw Error('Original parent mode mismatch');
+          if(namedMethodInputs||!assertAgentParentSkillConfig(config,input))throw Error('Original parent mode mismatch');
           const path=join(original.operation,'sandbox','config','parent-skill-catalog.json');parentBytes=bytesAt(path,16384);const sdkCatalog=parseAgentParentSkillSdkCatalog(copyToolJson(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(parentBytes),16384)),original.claim.scope),binding={format:'cimiloop/agent-parent-skill-binding/1.0.0',scope_digest:agentWorkspaceIpcScopeDigest(original.claim.scope),catalog_digest:sdkCatalog.catalog_digest,sdk_catalog_digest:digest(parentBytes).value};
           if(parentBytes.toString('utf8')!==JSON.stringify(sdkCatalog)||!isDeepStrictEqual(input.parent_skill_original_binding,binding)||!isDeepStrictEqual(config.parent_skill_original_binding,binding)||originals.header?.endpoint.parent_skill_catalog_digest!==sdkCatalog.catalog_digest||originals.header.format!=='cimiloop/agent-workspace-ipc-originals/2.0.0'||installedParent&&!isDeepStrictEqual(installedParent.sdkCatalog,sdkCatalog))throw Error('Original parent catalog mismatch');
           if(existsSync(join(original.operation,'result.json'))&&!isDeepStrictEqual((read(join(original.operation,'result.json')) as Record<string,unknown>).parent_skill_original_binding,binding))throw Error('Original parent result binding mismatch');

@@ -97,7 +97,7 @@ export {skillDispatchAnchorIdentity,readOriginalSkillDispatchClosure,type Origin
 
 export {readAgentSkillPreparationZeroEffects} from './agent-skill-zero-effects.js';
 
-export{AGENT_PARENT_SKILL_TOOLS,isAgentParentSkillToolSet}from'./agent-runtime-model.js';
+export{AGENT_PARENT_SKILL_TOOLS,isAgentParentSkillToolSet,isAgentParentSkillModelTools}from'./agent-runtime-model.js';
 
 export{captureAgentParentSkillIpcPort,parseAgentParentSkillSdkCatalog,parseAgentParentSkillIpcRequest,parseAgentParentSkillIpcReceipt,type AgentParentSkillIpcPort,type AgentParentSkillSdkCatalog,type AgentParentSkillIpcReceipt}from'./agent-parent-skill-ipc.js';
 
