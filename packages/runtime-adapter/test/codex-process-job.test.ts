@@ -1,12 +1,12 @@
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {existsSync,mkdtempSync,readFileSync,readdirSync,writeFileSync,renameSync} from 'node:fs';
+import {existsSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,writeFileSync,renameSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {describe,expect,it} from 'vitest';
 import {AgentStartLedger} from '../src/agent-start-ledger.js';
-import {CodexOriginalMethodRuntime,type CodexOriginalMethodOptions} from '../src/codex-original-method.js';
+import {CodexOriginalMethodRuntime,captureCodexLoginHome,type CodexOriginalMethodOptions} from '../src/codex-original-method.js';
 
 // Actual Windows Job/process tree and immutable Host1. The app-server is PUBLIC
 // Node stdio, with no login, model, bill, Provider qualification or S1 claim.
@@ -17,14 +17,14 @@ const request={operation_key:'PUBLIC_job',model:'gpt-6-luna',prompt:'PUBLIC inpu
 function fixture(mode='normal'){
  const root=mkdtempSync(join(tmpdir(),'cimiloop-codex-job-')),script=join(root,'server.mjs'),originals=join(root,'originals'),operation=join(originals,request.operation_key),job=join(operation,'process-job');
  const state=join(root,'state.json'),descendant=join(root,'descendant.json');
- writeFileSync(script,String.raw`import{createInterface}from'node:readline';import{existsSync,writeFileSync}from'node:fs';import{spawn}from'node:child_process';
+ writeFileSync(script,String.raw`import{createInterface}from'node:readline';import{existsSync,writeFileSync,mkdirSync}from'node:fs';import{dirname,join,sep}from'node:path';import{spawn}from'node:child_process';
 const[mode,state,started,descendant]=process.argv.slice(2),send=v=>process.stdout.write(JSON.stringify(v)+'\n');
 createInterface({input:process.stdin}).on('line',line=>{const r=JSON.parse(line),ok=result=>send({id:r.id,result});
 if(r.method==='initialize')ok({});if(r.method==='account/read')ok({account:{type:'chatgpt',email:'PUBLIC@example.test'},requiresOpenaiAuth:true});
 if(r.method==='account/rateLimits/read')ok({ordinaryUsageAllowed:true,accountId:'PUBLIC-account',rateLimits:{primary:null,secondary:null,credits:null}});
 if(r.method==='thread/start')ok({model:r.params.model,modelProvider:'openai',approvalPolicy:'never',activePermissionProfile:{id:'cimiloop-method'},instructionSources:[],thread:{id:'PUBLIC_THREAD',ephemeral:r.params.ephemeral===true}});
 if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==='turn/start'){ok({turn:{id:'PUBLIC_TURN'}});
-if(existsSync(started)){const child=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore',windowsHide:true});child.unref();writeFileSync(descendant,JSON.stringify({pid:child.pid}));}writeFileSync(state,JSON.stringify({pid:process.pid,turns:1}));
+if(existsSync(started)){const child=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore',windowsHide:true});child.unref();writeFileSync(descendant,JSON.stringify({pid:child.pid}));}let environment;if(mode==='environment'){const names=['HOME','USERPROFILE','LOCALAPPDATA','APPDATA','PROGRAMDATA','TEMP','TMP','CODEX_HOME'],paths=Object.fromEntries(names.map(name=>[name,process.env[name]??null])),contained=Object.values(paths).every(path=>typeof path==='string'&&path.toLowerCase().startsWith((dirname(state)+sep).toLowerCase()));environment={paths,contained};if(contained)for(const name of names.filter(name=>name!=='CODEX_HOME')){mkdirSync(paths[name],{recursive:true});writeFileSync(join(paths[name],'PUBLIC-write.txt'),'PUBLIC environment effect');}}writeFileSync(state,JSON.stringify({pid:process.pid,turns:1,...(environment?{environment}:{})}));
 if(mode==='stall'){setInterval(()=>{},1000);return;}send({method:'item/completed',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',item:{type:'agentMessage',phase:'final_answer',text:'PUBLIC response'}}});
 send({method:'thread/tokenUsage/updated',params:{threadId:'PUBLIC_THREAD',turnId:'PUBLIC_TURN',tokenUsage:{total:{inputTokens:5,cachedInputTokens:0,outputTokens:3,totalTokens:8,reasoningOutputTokens:0,cacheWriteInputTokens:0}}}});
 send({method:'turn/completed',params:{threadId:'PUBLIC_THREAD',turn:{id:'PUBLIC_TURN',status:'completed',error:null}}});}});`);
@@ -34,6 +34,21 @@ send({method:'turn/completed',params:{threadId:'PUBLIC_THREAD',turn:{id:'PUBLIC_
 }
 const alive=(pid:number)=>{try{process.kill(pid,0);return true;}catch{return false;}};
 describe.runIf(process.platform==='win32'&&process.arch==='x64')('owner-bound Codex process Job',()=>{
+ it.each(['missing_home','missing_job','unknown_policy'])('rejects private user-directory policy with %s before a process intent or model dispatch',mode=>{
+  const f=fixture(),path=join(f.root,'private-environment-login');mkdirSync(path);const options:CodexOriginalMethodOptions={...f.options,state_policy:'private_login_home/2.0.0',login_home:captureCodexLoginHome(path),environment_policy:'private_user_directories/1.0.0'};
+  if(mode==='missing_home')Reflect.deleteProperty(options,'login_home');if(mode==='missing_job')Reflect.deleteProperty(options,'process_custody');if(mode==='unknown_policy')Reflect.set(options,'environment_policy','PUBLIC fabricated policy');
+  try{expect(()=>new CodexOriginalMethodRuntime(options,false,f.origin)).toThrow();expect(f.origin.listExclusive('codex_process_job_intent')).toEqual([]);expect(existsSync(f.state)).toBe(false);}finally{f.origin.close();}
+ });
+ it('contains the actual user-directory environment and writes while replay keeps the original explicit policy',async()=>{
+  const f=fixture('environment'),home=join(f.root,'private-login');mkdirSync(home);const options={...f.options,state_policy:'private_login_home/2.0.0' as const,login_home:captureCodexLoginHome(home)};Reflect.set(options,'environment_policy','private_user_directories/1.0.0');
+  try{const runtime=new CodexOriginalMethodRuntime(options,false,f.origin),result=await runtime.execute(request,()=>'',()=>{}),state=JSON.parse(readFileSync(f.state,'utf8'));expect(state.environment.contained).toBe(true);
+   const claim=JSON.parse(readFileSync(join(options.root,request.operation_key,'start.json'),'utf8'));expect(claim).toMatchObject({format:'cimiloop/codex-method-start/11.0.0',environment_policy:'private_user_directories/1.0.0',environment:state.environment.paths});
+   expect(state.environment.paths.CODEX_HOME).toBe(home);for(const [name,path] of Object.entries(state.environment.paths)){if(name==='CODEX_HOME')continue;expect(existsSync(join(String(path),'PUBLIC-write.txt'))).toBe(true);expect(String(path).toLowerCase().startsWith((join(options.root,request.operation_key,'state')+'\\').toLowerCase())).toBe(true);}
+   expect(CodexOriginalMethodRuntime.readRetained(runtime.originalConfiguration,request)).toEqual(result);expect(JSON.parse(readFileSync(f.state,'utf8')).turns).toBe(1);
+   const originalClaim=readFileSync(join(options.root,request.operation_key,'start.json')),raw=JSON.parse(originalClaim.toString());raw.environment.LOCALAPPDATA=join(f.root,'foreign-user-root');writeFileSync(join(options.root,request.operation_key,'start.json'),JSON.stringify(raw));expect(()=>CodexOriginalMethodRuntime.readRetained(runtime.originalConfiguration,request)).toThrow('codex_original_input_changed');writeFileSync(join(options.root,request.operation_key,'start.json'),originalClaim);
+   expect(CodexOriginalMethodRuntime.readRetained(runtime.originalConfiguration,request)).toEqual(result);expect(JSON.parse(readFileSync(f.state,'utf8')).turns).toBe(1);
+  }finally{f.origin.close();}
+ },120000);
  it('observes the original model Job through cancellation without sealing model output or dispatching again',async()=>{
   const read=Reflect.get(CodexOriginalMethodRuntime,'readProcessResourcesRetained');expect(read).toBeTypeOf('function');
   const f=fixture('stall'),abort=new AbortController();const pending=f.adapter.execute(request,()=>'',()=>{},abort.signal);void pending.catch(()=>{});

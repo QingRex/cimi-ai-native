@@ -48,6 +48,8 @@ pnpm cimiloop runtime codex-budget --project-dir R:\projects\example --json
 
 使用现有 `runtime install-codex-home`，绑定同卷仓库外的官方 Codex 登录目录。不复制旧登录状态。账户容量租约通过原私有来源品牌列出本地真实写根；完整 Runtime 继续交叉核对安装、工具、容量、项目数据和登录目录的同一原物理配额。
 
+普通Run、Skill子调用、Skill隔离调用、Runtime技术契约四个默认Codex执行组合已固定用户目录环境：HOME／USERPROFILE、AppData、PROGRAMDATA及TEMP／TMP指向原操作私有状态，CODEX_HOME保持原绑定的官方登录目录；不用修改父进程或复制登录文件。新原件固定该策略，旧pending不自动升级。该环境约束及PUBLIC程序的实际写入验证，不等于官方程序全部OS写入、编译辅助写根或完整物理配额已验收，详见[实施及验证边界](../plans/2026-10-27-cimiloop-private-codex-environment.md)。
+
 固定 Skill 的隔离执行见[接入指南](CimiLoop-固定Skill隔离调用接入指南-v0.1.md)。同卷容量安装成功不会自动启用正式 Agent，不等于方法资格、真实权限/费用/恢复验证或 S1 通过。
 
 ## 验证边界

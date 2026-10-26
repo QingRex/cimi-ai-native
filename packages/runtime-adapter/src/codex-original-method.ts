@@ -8,6 +8,7 @@ import { parseGatewayJson } from "./gateway-conversation.js";
 import {parseCodexUsagePolicy,parseCodexOrdinaryQuota,CODEX_QUOTA_READ_PARAMS,type CodexOrdinaryUsagePolicy,type CodexOrdinaryQuotaSnapshot} from './codex-ordinary-quota.js';
 import { AgentStartLedger,captureAgentStartOriginReference,readAgentStartOriginalReference,type AgentStartOriginReference } from './agent-start-ledger.js';
 import {prepareCodexProcessJob,readCodexProcessLaunch,spawnCodexProcessJob,readCompletedCodexProcessJob,readStartedCodexProcessJob,readCodexProcessJobResources,requestCodexProcessJobCancellation,codexProcessLayout} from './codex-process-job.js';
+import {CODEX_PRIVATE_USER_ENVIRONMENT_POLICY,codexPrivateUserEnvironment,codexPrivateUserDirectories} from './codex-private-environment.js';
 
 const MAX_BYTES = 8 * 1024 * 1024, MAX_LINE = 1024 * 1024, MAX_CALLS = 128, MAX_FRAMES = 8192;
 const fail: (reason?:string)=>never = (reason = "codex_original_unproven") => { throw new RuntimeAdapterError(reason); };
@@ -73,6 +74,7 @@ export interface CodexOriginalMethodOptions {
   disabled_mcp_servers?: string[];
   // Prospective Agent policy; the existing login home remains untouched.
   state_policy?: 'private_operation_state/1.0.0'|'private_login_home/2.0.0';
+  environment_policy?:typeof CODEX_PRIVATE_USER_ENVIRONMENT_POLICY;
   login_home?:CodexLoginHome;
   process_custody?:'owner_job/1.0.0';
   process_origin?:AgentStartOriginReference;
@@ -88,7 +90,7 @@ function checkedLoginHome(raw:unknown):CodexLoginHome {
  if(!value||Object.keys(value).sort().join(',')!=='identity,path'||typeof value.path!=='string'||!isAbsolute(value.path)||resolve(value.path)!==value.path||!value.identity||Object.keys(value.identity).sort().join(',')!=='birth,dev,ino'||Object.values(value.identity).some(v=>typeof v!=='string'||!/^\d+$/.test(v))||BigInt(value.identity.ino)<=0n)fail('codex_installation_denied');
  return structuredClone(value);
 }
-type StartVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+type StartVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
 type Frame = { direction: "in" | "out"; bytes: string };
 
 // Non-secret account metadata supplied by the CLI itself. Never read auth.json,
@@ -141,10 +143,11 @@ const startParams = (request: CodexMethodRequest, cwd: string,ephemeral=false) =
   cwd, runtimeWorkspaceRoots: [cwd], approvalPolicy: "never", permissions: "cimiloop-method", baseInstructions: request.instructions,
   developerInstructions: "Only client dynamic tools are available. Do not access credentials, commands, arbitrary files, plugins, or business commands. Never claim a Human decision or domain completion.",
   dynamicTools: request.tools, selectedCapabilityRoots: [], environments: [] });
-function childEnvironment(cwd?:string,home?:CodexLoginHome) {
+function childEnvironment(cwd?:string,home?:CodexLoginHome,policy?:typeof CODEX_PRIVATE_USER_ENVIRONMENT_POLICY) {
   const allowed = new Set(["SYSTEMROOT", "WINDIR", "COMSPEC", "PATH", "PATHEXT", "HOME", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "PROGRAMDATA", "TEMP", "TMP", "CODEX_HOME", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "SSL_CERT_FILE", "SSL_CERT_DIR"]);
-  const env=Object.fromEntries(Object.entries(process.env).filter(([key]) => allowed.has(key.toUpperCase())&&(!cwd||!['TEMP','TMP'].includes(key.toUpperCase()))&&(!home||key.toUpperCase()!=='CODEX_HOME')));
-  return {...env,...(cwd?{TEMP:privateState(cwd).temp,TMP:privateState(cwd).temp}:{}),...(home?{CODEX_HOME:home.path}:{})};
+  const privateNames=policy&&cwd&&home?new Set(Object.keys(codexPrivateUserEnvironment(cwd,home.path))):undefined;
+  const env=Object.fromEntries(Object.entries(process.env).filter(([key]) => allowed.has(key.toUpperCase())&&(!cwd||!['TEMP','TMP'].includes(key.toUpperCase()))&&(!home||key.toUpperCase()!=='CODEX_HOME')&&!privateNames?.has(key.toUpperCase())));
+  return {...env,...(cwd?{TEMP:privateState(cwd).temp,TMP:privateState(cwd).temp}:{}),...(home?{CODEX_HOME:home.path}:{}),...(policy&&cwd&&home?codexPrivateUserEnvironment(cwd,home.path):{})};
 }
 
 // Local explicit installation reads public login metadata only. No thread,
@@ -315,6 +318,7 @@ export class CodexOriginalMethodRuntime {
     }else if(Object.hasOwn(raw,'process_origin')||Object.hasOwn(raw,'process_root'))fail('codex_process_custody_unproven');
     if(Object.hasOwn(raw,'state_policy')&&(!['private_operation_state/1.0.0','private_login_home/2.0.0'].includes(String(raw.state_policy))||raw.usage_policy!==undefined)||(raw.state_policy==='private_login_home/2.0.0')!==Object.hasOwn(raw,'login_home'))fail('codex_installation_denied');
     if(raw.login_home)this.options.login_home=checkedLoginHome(raw.login_home);
+    if(Object.hasOwn(raw,'environment_policy')&&(raw.environment_policy!==CODEX_PRIVATE_USER_ENVIRONMENT_POLICY||raw.state_policy!=='private_login_home/2.0.0'||!raw.login_home||raw.process_custody!=='owner_job/1.0.0'))fail('codex_installation_denied');
     if(Object.hasOwn(raw,'usage_policy')&&!parseCodexUsagePolicy(raw.usage_policy))fail('codex_installation_denied');
     if (raw.usage_policy && !(policyOrigin instanceof AgentStartLedger)) fail('codex_transport_origin_required');
     const disabled = raw.disabled_mcp_servers ?? [];
@@ -337,11 +341,11 @@ export class CodexOriginalMethodRuntime {
     const root = assertOrdinaryPath(join(this.options.root, request.operation_key));
     return { root, cwd: join(root, "workspace"), claim: join(root, "start.json"), transcript: join(root, "stdio.jsonl"), seal: join(root, "seal.json") };
   }
-  private startVersion(request:CodexMethodRequest):StartVersion{return this.options.process_custody?10:this.options.state_policy==='private_login_home/2.0.0'?9:this.options.state_policy?8:this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
+  private startVersion(request:CodexMethodRequest):StartVersion{return this.options.environment_policy?11:this.options.process_custody?10:this.options.state_policy==='private_login_home/2.0.0'?9:this.options.state_policy?8:this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
   private processArgs(request:CodexMethodRequest){const cwd=this.paths(request).cwd,configValue=stateConfig(this.options.disabled_mcp_servers!,cwd,!!this.options.login_home);return[...this.options.command.args,'app-server','--stdio',...Object.entries(configValue).flatMap(([key,value])=>['-c',key+'='+toml(value)])];}
   private processLayout(request:CodexMethodRequest){return codexProcessLayout(this.options.root,request.operation_key,this.options.process_root);}
   private processRows(request:CodexMethodRequest){return readAgentStartOriginalReference(this.options.process_origin!,['codex_process_job_intent','codex_process_job_complete','codex_process_job_prepared','codex_process_job_started']).filter(row=>row.id===this.policyKey(request));}
-  private processBasis(request:CodexMethodRequest){return{format:'cimiloop/codex-process-job-intent/1.0.0',request_digest:digest(encode(request)).value,claim_digest:digest(encode(this.claim(request,10))).value,root_identity:directoryIdentity(this.options.root),operation_identity:directoryIdentity(this.paths(request).root),...(this.options.process_root?{process_root_identity:directoryIdentity(this.processLayout(request).helperRoot)}:{})};}
+  private processBasis(request:CodexMethodRequest){return{format:'cimiloop/codex-process-job-intent/1.0.0',request_digest:digest(encode(request)).value,claim_digest:digest(encode(this.claim(request,this.options.environment_policy?11:10))).value,root_identity:directoryIdentity(this.options.root),operation_identity:directoryIdentity(this.paths(request).root),...(this.options.process_root?{process_root_identity:directoryIdentity(this.processLayout(request).helperRoot)}:{})};}
   private policyKey(request: CodexMethodRequest) {
     // Real Windows long names collapse 8.3 aliases; case folding also keeps the
     // logical slot stable after its original directory has gone missing.
@@ -355,9 +359,9 @@ export class CodexOriginalMethodRuntime {
       operation_identity: directoryIdentity(this.paths(request).root), claim_digest: digest(encode(this.claim(request, 7))).value };
   }
   private claim(request: CodexMethodRequest, version: StartVersion = this.startVersion(request)) {
-    const login=version===9||version===10&&this.options.state_policy==='private_login_home/2.0.0';
-    if((version===10)!==!!this.options.process_custody||(version===10)!==!!this.options.process_origin||(version>=8)!==Object.hasOwn(this.options,'state_policy')||login!==Object.hasOwn(this.options,'login_home')||version>=8&&this.options.state_policy!==(login?'private_login_home/2.0.0':'private_operation_state/1.0.0')||(version>=8?!parseCodexUsagePolicy(request.usage_policy):version===7?this.options.usage_policy!=='require_ordinary_permission/1.0.0':(version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined))) fail("codex_original_input_changed");
-    return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version>=8?{state_policy:this.options.state_policy}:{}),...(login?{login_home:this.options.login_home}:{}),...(version===10?{process_custody:this.options.process_custody,process_origin:this.options.process_origin,...(this.options.process_root?{process_root:this.options.process_root}:{})}:{}),...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
+    const login=version===9||version>=10&&this.options.state_policy==='private_login_home/2.0.0';
+    if((version>=10)!==!!this.options.process_custody||(version>=10)!==!!this.options.process_origin||(version===11)!==Object.hasOwn(this.options,'environment_policy')||(version>=8)!==Object.hasOwn(this.options,'state_policy')||login!==Object.hasOwn(this.options,'login_home')||version>=8&&this.options.state_policy!==(login?'private_login_home/2.0.0':'private_operation_state/1.0.0')||(version>=8?!parseCodexUsagePolicy(request.usage_policy):version===7?this.options.usage_policy!=='require_ordinary_permission/1.0.0':(version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined))) fail("codex_original_input_changed");
+    return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version===11?{environment_policy:this.options.environment_policy,environment:codexPrivateUserEnvironment(this.paths(request).cwd,this.options.login_home!.path)}:{}),...(version>=8?{state_policy:this.options.state_policy}:{}),...(login?{login_home:this.options.login_home}:{}),...(version>=10?{process_custody:this.options.process_custody,process_origin:this.options.process_origin,...(this.options.process_root?{process_root:this.options.process_root}:{})}:{}),...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
     account_digest: this.options.account_digest ?? null, config: version >= 8 ? stateConfig(this.options.disabled_mcp_servers!,this.paths(request).cwd,login) : version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
     ...(version >= 2 ? { disabled_mcp_servers: this.options.disabled_mcp_servers } : {}) }; }
   private readProcessResources(raw:CodexMethodRequest){
@@ -365,7 +369,7 @@ export class CodexOriginalMethodRuntime {
     if(!this.options.process_custody)return{...unknown,reason:'codex_original_process_policy_unavailable'};
     const rows=this.processRows(request),intent=rows.find(row=>row.namespace==='codex_process_job_intent');
     if(!intent||!existsSync(paths.claim))return{...unknown,reason:'codex_original_process_registration_unavailable'};
-    if(!same(intent.basis,this.processBasis(request))||!same(parse(bytesAt(paths.claim)),this.claim(request,10)))fail('codex_process_custody_unproven');
+    if(!same(intent.basis,this.processBasis(request))||!same(parse(bytesAt(paths.claim)),this.claim(request,this.options.environment_policy?11:10)))fail('codex_process_custody_unproven');
     const layout=this.processLayout(request),completed=rows.find(row=>row.namespace==='codex_process_job_complete');
     if(completed){const original=readCompletedCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd);if(!same(completed.basis,{format:'cimiloop/codex-process-job-complete/1.0.0',intent_ticket:intent.ticket,original})||!same(rows,this.processRows(request)))fail('codex_process_custody_unproven');
       return{status:'disposed' as const,resources_disposed:true,completion_proven:false as const,costs_reconciled:false as const,reason:'codex_original_process_end_pinned',basis_digest:digest(encode(completed)).value};}
@@ -380,17 +384,17 @@ export class CodexOriginalMethodRuntime {
     const request = requestCopy(raw), paths = this.paths(request);
     if (!existsSync(paths.claim)) return null;
     const claimBytes = bytesAt(paths.claim);
-    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:claim.format==='cimiloop/codex-method-start/7.0.0'?7:claim.format==='cimiloop/codex-method-start/8.0.0'?8:claim.format==='cimiloop/codex-method-start/9.0.0'?9:claim.format==='cimiloop/codex-method-start/10.0.0'?10:fail();
+    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:claim.format==='cimiloop/codex-method-start/7.0.0'?7:claim.format==='cimiloop/codex-method-start/8.0.0'?8:claim.format==='cimiloop/codex-method-start/9.0.0'?9:claim.format==='cimiloop/codex-method-start/10.0.0'?10:claim.format==='cimiloop/codex-method-start/11.0.0'?11:fail();
     const policy = this.policyOrigin?.readExclusive(policyNamespace, this.policyKey(request));
     if (policy ? version !== 7 || !same(policy.basis, this.policyBasis(request)) : version === 7) fail('codex_original_input_changed');
     if (!same(claim, this.claim(request, version))) fail("codex_original_input_changed");
     let processIntent:ReturnType<CodexOriginalMethodRuntime['processRows']>[number]|undefined;
-    if(version===10){processIntent=this.processRows(request).find(row=>row.namespace==='codex_process_job_intent');if(!processIntent||!same(processIntent.basis,this.processBasis(request)))fail('codex_process_custody_unproven');}
+    if(version>=10){processIntent=this.processRows(request).find(row=>row.namespace==='codex_process_job_intent');if(!processIntent||!same(processIntent.basis,this.processBasis(request)))fail('codex_process_custody_unproven');}
     if (!existsSync(paths.seal)) return null;
     const seal = parse(bytesAt(paths.seal)), transcript = bytesAt(paths.transcript, MAX_BYTES);
     if (seal.format !== "cimiloop/codex-method-seal/1.0.0" || seal.claim_digest !== digest(claimBytes).value || seal.transcript_digest !== digest(transcript).value ||
       !same(seal.claim_identity, fileIdentity(paths.claim)) || !same(seal.transcript_identity, fileIdentity(paths.transcript))) fail();
-    if(version===10){const layout=this.processLayout(request),original=readCompletedCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd),completed=this.processRows(request).find(row=>row.namespace==='codex_process_job_complete');if(!completed||!same(completed.basis,{format:'cimiloop/codex-process-job-complete/1.0.0',intent_ticket:processIntent!.ticket,original})||!same(seal.process_job,original))fail('codex_process_custody_unproven');}
+    if(version>=10){const layout=this.processLayout(request),original=readCompletedCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd),completed=this.processRows(request).find(row=>row.namespace==='codex_process_job_complete');if(!completed||!same(completed.basis,{format:'cimiloop/codex-process-job-complete/1.0.0',intent_ticket:processIntent!.ticket,original})||!same(seal.process_job,original))fail('codex_process_custody_unproven');}
     const lines = transcript.toString("utf8").split("\n"); if (lines.pop() !== "" || lines.length > MAX_FRAMES) fail();
     const frames = lines.map(line => parse(Buffer.from(line)) as Frame);
     const ref = { provider: "codex_app_server", resource_type: "skill_invocation_proof", locator: paths.transcript, digest: digest(transcript) };
@@ -524,10 +528,10 @@ export class CodexOriginalMethodRuntime {
       if (signal?.aborted) onAbort();
       effectGuard();
       const privateRuntime=this.options.state_policy!==undefined;
-      if(privateRuntime){for(const path of Object.values(privateState(paths.cwd)))directory(path);privateDirectories=Object.values(privateState(paths.cwd)).map(path=>({path,identity:directoryIdentity(path)}));}
+      if(privateRuntime){const directories=[...Object.values(privateState(paths.cwd)),...(this.options.environment_policy?codexPrivateUserDirectories(paths.cwd):[])];for(const path of directories)directory(path);privateDirectories=[...new Set(directories)].map(path=>({path,identity:directoryIdentity(path)}));}
       const launchConfig=privateRuntime?stateConfig(this.options.disabled_mcp_servers!,paths.cwd,!!this.options.login_home):config(this.options.disabled_mcp_servers!);
       effectGuard();
-      const childOptions={cwd:paths.cwd,windowsHide:true,env:childEnvironment(privateRuntime?paths.cwd:undefined,this.options.login_home)};
+      const childOptions={cwd:paths.cwd,windowsHide:true,env:childEnvironment(privateRuntime?paths.cwd:undefined,this.options.login_home,this.options.environment_policy)};
       if(processLaunch){const layout=this.processLayout(request),fresh=readCodexProcessLaunch(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd);if(!same(fresh,processLaunch))fail('codex_process_custody_unproven');child=spawnCodexProcessJob(fresh,childOptions);}
       else child = spawn(this.options.command.file, [...this.options.command.args, "app-server", "--stdio", ...Object.entries(launchConfig).flatMap(([key, value]) => ["-c", key + "=" + toml(value)])],{...childOptions,stdio:'pipe'});
       child.on("error", rejectAll); child.stdin.on("error", rejectAll);
