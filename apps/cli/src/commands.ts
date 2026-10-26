@@ -15,7 +15,7 @@ import { VerificationShowResultSchema } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
-import { openLocalProject, executeHumanAgentRunCommand, agentPreparationWorkItem, LocalPrePlanClarification, LocalSkillPackageStore, openInstalledCodexMatt,executeProviderCommandWithSources,installedProviderVerifier, type InstalledCodexMatt } from "@cimiloop/local-app";
+import { openLocalProject, executeHumanAgentRunCommandAsync, agentPreparationWorkItem, LocalPrePlanClarification, LocalSkillPackageStore, openInstalledCodexMatt,executeProviderCommandWithSources,installedProviderVerifier, type InstalledCodexMatt } from "@cimiloop/local-app";
 import { SkillPackageInspectionResultSchema, type SkillPackageInspectionResult, type ProviderRegistration } from "@cimiloop/protocol/v2";
 import { RunShowResultSchema, ProviderCatalogResultSchema } from "@cimiloop/protocol/v2";
 import { MigrationRunner, SqliteProjectRegistry, SqliteProjectStore } from "@cimiloop/store-sqlite";
@@ -556,7 +556,7 @@ export const showExecution = (mode: "task" | "work_item" | "authorization", chan
 };
 export type VerificationCommandType = "CaptureSourceSnapshot" | "RecordEvidence" | "PrepareTaskEvaluation" | "EvaluateTask" | "SatisfyTask" | "EvaluateIntegration" | "MarkReadyForIntegration";
 export type RunCommandType = "PrepareRunContext" | "ReserveRun" | "RecordRunObservation" | "ReconcileRun" | "CancelRun" | "SaveHandoff" | "CheckResumption" | "RecordSkillInvocationObservation" | "ReconcileSkillInvocation";
-export const runMutation = (kind: RunCommandType, id: string, options: GovernanceOptions & { file: string; rawFile?: string }): void => {
+export const runMutation = async (kind: RunCommandType, id: string, options: GovernanceOptions & { file: string; rawFile?: string }): Promise<void> => {
   const context = openProject(options);
   try {
     const project = context.store.getProject()!, objectType = kind === "ReserveRun" ? "task" : ["RecordRunObservation", "ReconcileRun", "CancelRun", "RecordSkillInvocationObservation", "ReconcileSkillInvocation"].includes(kind) ? "run" : "work_item";
@@ -571,7 +571,7 @@ export const runMutation = (kind: RunCommandType, id: string, options: Governanc
     const revision = options.expectedRevision ? Number(options.expectedRevision) : old ? old.revision - increment : object.revision;
     const ids = commandIdentity(options);
     const preparationItem=agentPreparationWorkItem(context,kind,id,payload),agentPreparation=preparationItem&&context.store.getActor(preparationItem.executor_ref.id)?.actor_type==='agent';
-    const result = executeHumanAgentRunCommand(context,{ schema_version: SCHEMA_VERSION, command_id: ids.commandId, correlation_id: ids.correlationId, requested_at: now(), source: source(context.location.repositoryPath),
+    const result = await executeHumanAgentRunCommandAsync(context,{ schema_version: SCHEMA_VERSION, command_id: ids.commandId, correlation_id: ids.correlationId, requested_at: now(), source: source(context.location.repositoryPath),
       command_type: kind, project_id: project.id, actor_id: context.instance.actor_id, acting_role: options.actingRole ?? (agentPreparation||["ReconcileRun", "RecordSkillInvocationObservation", "ReconcileSkillInvocation"].includes(kind) ? "technical_owner" : "executor"),
       target: { object_type: objectType, id: object.id }, expected_revision: revision, payload });
     if (isDomainError(result)) return outputError(result, Boolean(options.json));

@@ -18,7 +18,7 @@ function fixture(){
  return{local,connection};
 }
 it.each([false,true])('uses only the chosen Codex route with installed=%s and never reads an HTTP connection',async installed=>{
- const {local}=fixture();state.installed=installed;await expect(productionAgentRuntime('PUBLIC unstarted Run',local)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{plan:'Codex login',production_admission:'unapproved',missing:installed?['Codex Context 前完整准入']:['Codex 原安装','Codex Context 前完整准入']}});expect(state.connectionReads).toBe(0);
+ const {local}=fixture();state.installed=installed;await expect(productionAgentRuntime('PUBLIC unstarted Run',local)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{plan:'Codex login',production_admission:'unapproved',missing:installed?['Codex 原账户容量政策']:['Codex 原安装','Codex Context 前完整准入']}});expect(state.connectionReads).toBe(0);
 });
 it('keeps the exported installed-runtime entry on the same Codex admission path',async()=>{const {local}=fixture();await expect(openInstalledProductionRuntime('PUBLIC unstarted Run',local)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{plan:'Codex login',missing:['Codex 原安装','Codex Context 前完整准入']}});expect(state.connectionReads).toBe(0);});
 it('does not turn the old Go model and five-dollar metadata into a new fee authorization',async()=>{

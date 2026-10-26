@@ -6,7 +6,7 @@ import { SqliteProjectStore } from "@cimiloop/store-sqlite";
 import { readInstance, type SoloInstance } from "./instance.js";
 import { locateProject, type ProjectLocation } from "./location.js";
 import { LocalProjectError } from "./errors.js";
-import { executeHumanAgentRunCommand } from './agent-runtime-admission-local.js';
+import { executeHumanAgentRunCommand,executeHumanAgentRunCommandAsync } from './agent-runtime-admission-local.js';
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
@@ -98,4 +98,4 @@ const localCommandRequest=(context:Pick<LocalProject,'location'|'instance'>,inpu
   return request;
 };
 export const executeLocalCommand = (context: Pick<LocalProject, "location" | "instance"> & { kernel: Pick<LocalProject["kernel"], "execute">; store?:unknown }, input: unknown): KernelResult => {const request=localCommandRequest(context,input);return context.store instanceof SqliteProjectStore&&context.kernel instanceof CimiLoopKernel?executeHumanAgentRunCommand({...context,store:context.store,kernel:context.kernel},request):context.kernel.execute(request);};
-export async function executeLocalCommandAsync(context:LocalProject,input:unknown,beforeCommit?:()=>void):Promise<KernelResult>{const request=localCommandRequest(context,input),verifier=installedProviderVerifier(context);return verifier&&['RecordProviderEvidence','EvaluateProvider','RegisterProviderBinding'].includes(request.command_type)?executeProviderCommandWithSources(context,verifier,request,beforeCommit):executeLocalCommand(context,input);}
+export async function executeLocalCommandAsync(context:LocalProject,input:unknown,beforeCommit?:()=>void):Promise<KernelResult>{const request=localCommandRequest(context,input),verifier=installedProviderVerifier(context);return verifier&&['RecordProviderEvidence','EvaluateProvider','RegisterProviderBinding'].includes(request.command_type)?executeProviderCommandWithSources(context,verifier,request,beforeCommit):executeHumanAgentRunCommandAsync(context,request,beforeCommit);}

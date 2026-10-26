@@ -11,6 +11,7 @@ export type {AgentRunModelAssessment} from './agent-run-model.js';
 export { runContextDigest } from "./runs.js";
 export {skillInvocationState} from './skill-invocation-facts.js';
 export type { ProviderVerifierPort } from "./provider-assessment.js";
+export {readCurrentAgentProviderQualification} from './provider-assessment.js';
 export type {RuntimeControlEvidencePort,RuntimeControlEvidence,RuntimeControlKey} from './runtime-control-evidence.js';
 export {MattClarificationUnavailable} from './planning-clarification.js';
 export type {PlanningCommand,PlanningClarificationBasis,PlanningClarificationPort} from './planning-clarification.js';

@@ -1,5 +1,6 @@
 export { openLocalProject, executeLocalCommand, LOCAL_COMMAND_TYPES } from "./project.js";
-export { executeHumanAgentRunCommand } from './agent-runtime-admission-local.js';
+export { executeHumanAgentRunCommand,executeHumanAgentRunCommandAsync } from './agent-runtime-admission-local.js';
+export {openInstalledCodexProductionHost} from './agent-production-host-local.js';
 export { agentPreparationWorkItem } from './agent-human-preparation-local.js';
 export type { LocalProject, LocalCommandInput } from "./project.js";
 export { LocalProjectError } from "./errors.js";

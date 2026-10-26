@@ -13,6 +13,7 @@ import { LocalAgentRuntimeAdmission } from './agent-runtime-admission-local.js';
 import { hasInstalledCodexAgentRuntime } from './agent-codex-installation-local.js';
 import { openInstalledCodexUsageBudget } from './agent-codex-usage-budget-local.js';
 import {openCodexRuntimeStorage} from './agent-codex-storage-local.js';
+import {openInstalledCodexProductionHost} from './agent-production-host-local.js';
 
 // New execution uses the chosen Codex login and a complete admission lease.
 // Historical HTTP metadata remains readable, but cannot authorize a new call.
@@ -112,6 +113,9 @@ export function readProductionAccountDigest(origin: AgentStartLedger, accountRoo
 }
 
 export async function openInstalledProductionRuntime(runId: string, local: LocalProject): Promise<AgentRuntimeLease> {
+  if(!LocalAgentRuntimeAdmission.current(local)&&!hasInstalledCodexAgentRuntime(local))throw codexProductionAdmissionError([...PRODUCTION_ADMISSION_GAPS]);
+  const host=await openInstalledCodexProductionHost(local);
+  if(host){try{host.guard();const runtime=host.admission.runtimeForRun(runId,host.account,undefined,host.storage,host.home);host.guard();return{runtime,release:()=>host.release()};}catch(error){host.release();throw error;}}
   const admission=LocalAgentRuntimeAdmission.current(local);
   if(admission){
     const account=await openInstalledCodexUsageBudget(local);

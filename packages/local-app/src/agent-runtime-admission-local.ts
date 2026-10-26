@@ -21,6 +21,8 @@ import { captureLocalAgentParentSkillResults } from './agent-parent-skill-result
 import { LocalProjectError } from './errors.js';
 import { agentPreparationWorkItem, humanAgentPreparation } from './agent-human-preparation-local.js';
 import {createCodexAgentRuntimeSkillInstallation} from './agent-codex-runtime-skills-local.js';
+import {openInstalledCodexProductionHost} from './agent-production-host-local.js';
+import {readHumanAgentPreparationReceipt} from './agent-human-preparation-original-local.js';
 
 type Reference=AgentContextManifest['host_admission_ref'];
 export interface AgentProductionCustodyPort extends AgentStartFullCustodyPort {
@@ -53,16 +55,37 @@ export function executeHumanAgentRunCommand(local:LocalProject,raw:unknown):Kern
  return lease.executeHumanPreparation(command);
 }
 
+export async function executeHumanAgentRunCommandAsync(local:LocalProject,raw:unknown,beforeCommit:()=>void=()=>{}):Promise<KernelResult>{
+ const original={store:local.store,kernel:local.kernel,execute:local.kernel.execute,authorize:local.kernel.authorizeAgentRunPreparation,location:structuredClone(local.location),instance:structuredClone(local.instance)};
+ const unchanged=()=>{if(local.store!==original.store||local.kernel!==original.kernel||local.kernel.execute!==original.execute||local.kernel.authorizeAgentRunPreparation!==original.authorize||!same(local.location,original.location)||!same(local.instance,original.instance))throw unavailable();};
+ const guard=()=>{unchanged();const result:unknown=beforeCommit();if(result!==undefined){if(result instanceof Promise)void Promise.prototype.then.call(result,undefined,()=>{});throw unavailable();}unchanged();};
+ guard();let command;try{command=structuredClone(parseVersionedCommand(raw));}catch{return executeHumanAgentRunCommand(local,raw);}
+ if(command.schema_version!=='2.0.0'||(command.command_type!=='PrepareRunContext'&&command.command_type!=='ReserveRun')||command.acting_role!=='technical_owner'||command.actor_id!==local.instance.actor_id||command.project_id!==local.instance.project_id||!['human_cli','human_ui'].includes(command.source.origin))return executeHumanAgentRunCommand(local,command);
+ const item=agentPreparationWorkItem(local,command.command_type,'target'in command?command.target?.id:undefined,command.payload);
+ if(!item||local.store.getActor(item.executor_ref.id)?.actor_type!=='agent')return executeHumanAgentRunCommand(local,command);
+ let host:Awaited<ReturnType<typeof openInstalledCodexProductionHost>>;
+ try{
+  const borrowed=LocalAgentRuntimeAdmission.originalHumanReceipt(local,command,guard),receipt=await(borrowed??readHumanAgentPreparationReceipt(local,command,guard));guard();if(receipt)return receipt;
+  const permission=original.authorize.call(original.kernel,item.id);if('code'in permission)return permission;
+  host=await openInstalledCodexProductionHost(local);guard();host?.guard();
+  const current=original.authorize.call(original.kernel,item.id);if('code'in current)return current;if(!same(current,permission))throw unavailable();
+  return executeHumanAgentRunCommand(local,command);
+ }catch(error){guard();throw error;}finally{host?.release();guard();}
+}
+
 // Trusted host lifecycle only. The full independent port remains mandatory;
 // neither a Codex login, check recipe nor caller JSON can create qualification.
 // Borrowed Host/account objects and original Native operations survive release.
 export class LocalAgentRuntimeAdmission {
- private constructor(readonly custody:LocalAgentStartCustody,readonly checks:LocalAgentCheckAdmission,private readonly assertCurrent:()=>void,private readonly close:()=>void,private readonly runtime:(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome)=>LocalAgentRuntimeComposition,private readonly prepare:(raw:unknown)=>KernelResult){Object.freeze(this);}
+ private constructor(readonly custody:LocalAgentStartCustody,readonly checks:LocalAgentCheckAdmission,private readonly assertCurrent:()=>void,private readonly close:()=>void,private readonly runtime:(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome)=>LocalAgentRuntimeComposition,private readonly prepare:(raw:unknown)=>KernelResult,private readonly readReceipt:(raw:unknown,beforeRead:()=>void)=>Promise<KernelResult|undefined>){Object.freeze(this);}
  guard(){this.assertCurrent();}
  release(){this.close();}
  executeHumanPreparation(raw:unknown){this.assertCurrent();return this.prepare(raw);}
  runtimeForRun(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome){this.assertCurrent();return this.runtime(runId,account,parent,storage,loginHome);}
  static current(local:LocalProject){const entry=active.get(local.store);if(!entry)return undefined;if(entry.local.kernel!==local.kernel||!same(entry.local.location,local.location)||!same(entry.local.instance,local.instance))throw unavailable();entry.lease.guard();return entry.lease;}
+ // The retained origin can prove a historical receipt independently of current
+ // full execution qualification. This read grants no new Context or effect.
+ static originalHumanReceipt(local:LocalProject,raw:unknown,beforeRead:()=>void){const entry=active.get(local.store);if(!entry)return undefined;if(entry.local!==local)throw unavailable();return entry.lease.readReceipt(raw,beforeRead);}
  static async open(local:LocalProject,raw:Options):Promise<LocalAgentRuntimeAdmission>{
   if(owners.has(local.store))throw unavailable();const verifier=installedRunVerifier(local);if(!verifier||!(raw.origin instanceof AgentStartLedger))throw unavailable();
   const owner={},store=local.store,kernel=local.kernel,location=structuredClone(local.location),instance=structuredClone(local.instance),agent=verifier.agent,full=raw.full,hostGuard=raw.guard,origin=raw.origin,nodeBinary=raw.nodeBinary,templates=structuredClone(raw.templates);
@@ -129,7 +152,8 @@ export class LocalAgentRuntimeAdmission {
     if(skills&&readOriginalAgentRunInputs(local,runId).scope.skill_bindings.length){if(parent||!storage||!loginHome)throw unavailable();parent=skills.parentForRun(runId,{account:borrowed,storage,loginHome});}
     const result=LocalAgentRuntimeComposition.openCodex({local:context,runId,account:borrowed,custody,checks,...(storage?{storage}:{}),...(loginHome?{loginHome}:{}),...(parent?{parentSkill:parent}:{})});guard();return result;
    };
-   lease=new LocalAgentRuntimeAdmission(custody,checks,guard,release,runtime,humanAgentPreparation(local,verifier,origin,guard));active.set(store,{local,lease});return lease;
+   const readReceipt=(raw:unknown,beforeRead:()=>void)=>readHumanAgentPreparationReceipt(local,raw,beforeRead,{origin,guard(){if(closed||owners.get(store)!==owner||active.get(store)?.lease!==lease||local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance))throw unavailable();origin.readExclusive('human_preparation_reader_guard','0'.repeat(64));}});
+   lease=new LocalAgentRuntimeAdmission(custody,checks,guard,release,runtime,humanAgentPreparation(local,verifier,origin,guard),readReceipt);active.set(store,{local,lease});return lease;
   }catch(error){release();throw error;}
  }
 }

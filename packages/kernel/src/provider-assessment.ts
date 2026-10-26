@@ -121,6 +121,17 @@ export const providerEvaluationStatus = (reader: ProviderReader, descriptor: Pro
   if (evaluation.evidence_refs.some(ref => { const e = reader.getProviderEvidence(ref.id); return !e || e.project_id !== descriptor.project_id || e.descriptor_ref.id !== descriptor.id || !same(e.descriptor_digest, contentDigest(descriptor)); })) return ["PROVIDER_PROBE_EVIDENCE_NOT_FOUND_OR_STALE"];
   return evaluation.outcome === "ALLOW" ? [] : ["PROVIDER_NOT_EVALUATED", ...evaluation.reasons];
 };
+// Trusted host read, never a business authorization. Recompute the complete
+// qualification from current original bytes; a saved ALLOW alone is unusable.
+export function readCurrentAgentProviderQualification(reader:ProviderReader,port:ProviderVerifierPort,project:Project,binding:ProviderBinding){
+ const current=reader.getProviderBinding(binding.id),descriptor=reader.getProviderDescriptor(binding.descriptor_ref.id),evaluation=binding.approval&&reader.getProviderEvaluation(binding.approval.evaluation_ref.id);
+ if(!current||!same(current,binding)||!descriptor||descriptor.project_id!==project.id||binding.project_id!==project.id||!same(binding.descriptor_digest,contentDigest(descriptor))||!evaluation||binding.approval?.binding_scope!=='task_execution'||evaluation.profile!=='controlled_execution'||providerEvaluationStatus(reader,descriptor,evaluation).length||!same(binding.approval.input_digest,evaluation.input_digest)||!same(binding.probe_evidence_refs,evaluation.evidence_refs))throw Error('Current Agent Provider qualification unavailable');
+ if(descriptor.provider_kind==='runtime'&&!usesControlEvidence(evaluation))throw Error('Complete original Runtime control evidence required');
+ const evidence=evaluation.evidence_refs.map(ref=>reader.getProviderEvidence(ref.id));if(evidence.some(value=>!value))throw Error('Original Provider evidence missing');
+ const computed=assessProvider(port,project,descriptor,evidence as ProviderEvidence[],evaluation.profile,reader,usesControlEvidence(evaluation)?controlRule:rule);
+ if(!same(computed,{input_digest:evaluation.input_digest,outcome:evaluation.outcome,reasons:evaluation.reasons,assessments:evaluation.assessments})||computed.outcome!=='ALLOW')throw Error('Current original Provider qualification changed');
+ return{binding_digest:contentDigest(binding),descriptor_digest:contentDigest(descriptor),evaluation_digest:contentDigest(evaluation),evidence_digest:contentDigest(evidence),qualification_digest:computed.input_digest};
+}
 export const executeProviderAssessment = (tx: StoreTransaction, command: Command, context: Context, port: ProviderVerifierPort | undefined) => {
   const fail = (code: DomainError["code"], message: string, details: Record<string, unknown> = {}): never => {
     throw new IntentFailure({ schema_version: SCHEMA_VERSION, code, message, category: "conflict", retryable: false, details, correlation_id: command.correlation_id });

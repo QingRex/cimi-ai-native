@@ -21,7 +21,7 @@ const exact = (value: unknown, keys: string[]): value is Record<string, unknown>
 const contains = (bound: string, path: string) => bound === path || bound.endsWith("/**") && path.startsWith(bound.slice(0, -2));
 function fail(reason: string): never { throw Error(reason); }
 
-// Explicit trusted composition; never installed by Human CLI/workbench. Pins
+// Code-owned composition; Human CLI/workbench requests cannot supply this port. Pins
 // actual Context inputs before Run IDs exist. This is only the checks portion
 // of admission; the required original full custody port remains authoritative.
 export class LocalAgentCheckAdmission {

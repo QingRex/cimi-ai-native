@@ -1,8 +1,8 @@
-import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {dirname,join,resolve,sep} from 'node:path';
 import {afterEach,expect,it} from 'vitest';
-import {CimiLoopKernel} from '../../packages/kernel/src/index.js';
+import {CimiLoopKernel,readCurrentAgentProviderQualification} from '../../packages/kernel/src/index.js';
 import {contentDigest} from '../../packages/kernel/src/intent.js';
 import type {ProviderEvaluation,ProviderEvidence} from '../../packages/protocol/src/v2/index.js';
 import {createFlowProject,flowSuccess,flowTime} from '../fixtures/flow-project.js';
@@ -32,6 +32,15 @@ it('evaluates independently supplied controls and atomically registers one exact
  const f=fixture(),evaluation=f.evaluation();expect(evaluation).toMatchObject({rule_version:'provider-assessment/1.0.0',profile:'controlled_execution',outcome:'ALLOW',reasons:[]});expect(evaluation.assessments).toContainEqual({key:'runtime-control-evidence/1.0.0',result:'supports',evidence_refs:[{object_type:'evidence',id:f.evidence.id}]});
  const before=f.store.listEvents().length,command=f.binding(evaluation),result=flowSuccess(f.kernel.execute(command));if(result.command_type!=='RegisterProviderBinding')throw Error('Binding expected');
  expect(result.data.binding.approval).toMatchObject({binding_scope:'task_execution',assignment_ref:{id:f.assignment.id},input_digest:evaluation.input_digest});expect(f.kernel.execute(command)).toEqual(result);expect(f.store.listEvents()).toHaveLength(before+1);expect(f.store.listProviderBindings()).toHaveLength(1);
+});
+it('recomputes an approved Agent binding from original control material instead of trusting its saved ALLOW',()=>{
+ const f=fixture(),evaluation=f.evaluation(),result=flowSuccess(f.kernel.execute(f.binding(evaluation)));if(result.command_type!=='RegisterProviderBinding')throw Error('Binding expected');const binding=result.data.binding,before=f.store.listEvents().length;
+ expect(readCurrentAgentProviderQualification(f.store,f.port,f.store.getProject()!,binding)).toMatchObject({binding_digest:contentDigest(binding),qualification_digest:evaluation.input_digest});expect(f.store.listEvents()).toHaveLength(before);
+ f.setBasis('PUBLIC different original basis, same supports labels');expect(()=>readCurrentAgentProviderQualification(f.store,f.port,f.store.getProject()!,binding)).toThrow();expect(f.store.getProviderEvaluation(evaluation.id)).toEqual(evaluation);expect(f.store.listEvents()).toHaveLength(before);
+});
+it('refuses a currently changed executable even when the approved binding and saved qualification are intact',()=>{
+ const f=fixture(),evaluation=f.evaluation(),result=flowSuccess(f.kernel.execute(f.binding(evaluation)));if(result.command_type!=='RegisterProviderBinding')throw Error('Binding expected');const binding=result.data.binding,before=f.store.listEvents().length;
+ writeFileSync(f.binary,'PUBLIC changed executable bytes');expect(()=>readCurrentAgentProviderQualification(f.store,f.port,f.store.getProject()!,binding)).toThrow();expect(f.store.getProviderBinding(binding.id)).toEqual(binding);expect(f.store.listEvents()).toHaveLength(before);
 });
 it('retains legacy evaluation semantics without a trusted control reader',()=>{
  const f=fixture(false),evaluation=f.evaluation();expect(evaluation).toMatchObject({rule_version:'provider-assessment/1.0.0',outcome:'NEED_MORE_EVIDENCE',reasons:[...keys]});
