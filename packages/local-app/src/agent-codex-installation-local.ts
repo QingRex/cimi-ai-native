@@ -4,6 +4,7 @@ import{isDeepStrictEqual as same}from'node:util';
 import{requestDigest}from'@cimiloop/kernel';
 import{AgentStartLedger,assertOrdinaryPath,bytesAt,digest,directory,initializeWindowsAgentStartLedger,openWindowsAgentStartLedger,inspectCodexMethodLogin,parseGatewayJson,parseWorkspaceCheckTemplate,type WorkspaceCheckTemplate}from'@cimiloop/runtime-adapter';
 import type{LocalProject}from'./project.js';import{readInstance}from'./instance.js';import{LocalProjectError}from'./errors.js';
+import {codexRuntimePlacement} from './agent-codex-placement-local.js';
 
 const namespace='codex_runtime_installation',requestNamespace='codex_runtime_install_request';
 const writableScopes=new WeakMap<object,readonly string[]>();
@@ -18,12 +19,8 @@ function binding(local:LocalProject){
  if(!project||project.id!==local.instance.project_id||project.instance_id!==local.instance.instance_id||!actor||actor.actor_type!=='human'||actor.project_id!==project.id||!same(readInstance(local.location.instancePath),local.instance))fail();
  return{instance:structuredClone(local.instance),repository:local.location.repositoryPath,data_directory:local.location.dataDirectory,repository_identity:identity(local.location.repositoryPath,true),data_identity:identity(local.location.dataDirectory,true)};
 }
-function layout(local:LocalProject){
- const appData=process.env.LOCALAPPDATA;if(!appData||!isAbsolute(appData))fail();
- const root=assertOrdinaryPath(join(appData!,'CimiLoop','runtime-codex',local.instance.project_id,local.instance.actor_id)),tools=join(appData!,'CimiLoop','runtime-codex-tools');
- for(const path of[root,tools]){const rel=relative(resolve(local.location.repositoryPath),resolve(path));if(!(isAbsolute(rel)||rel==='..'||rel.startsWith('..'+sep)))fail();}return{root,tools};
-}
-export interface CodexAgentRuntimeInstallInput{binary:string;native_binary:string;node_binary:string;model:string;disabled_mcp_servers?:string[];checks:WorkspaceCheckTemplate[]}
+function layout(local:LocalProject){const {root,tools}=codexRuntimePlacement(local);return{root,tools};}
+export interface CodexAgentRuntimeInstallInput{binary:string;native_binary:string;node_binary:string;model:string;disabled_mcp_servers?:string[];checks:WorkspaceCheckTemplate[];placement_root?:string}
 type Name='codex.exe'|'codex-code-mode-host.exe'|'opencode.exe'|'node.exe'|'checks.json';
 interface Material{name:Name;digest:string;identity:ReturnType<typeof identity>}
 interface Request{format:'cimiloop/codex-runtime-install-request/1.0.0';binding:ReturnType<typeof binding>;model:string;account_digest:string;quota_account_digest:string;output_profile:'bounded_2048/1.0.0';usage_policy:'require_ordinary_permission/1.0.0';disabled_mcp_servers:string[];materials:Material[];originals_identity:ReturnType<typeof identity>}
@@ -51,13 +48,14 @@ function readInstalled(origin:AgentStartLedger,local:LocalProject,root:string,fi
 // Explicit local Human installation. Pinning bytes does not qualify a provider,
 // create a Run/Context, settle a bill, or bypass complete Runtime admission.
 export async function installCodexAgentRuntime(local:LocalProject,raw:CodexAgentRuntimeInstallInput,services:{inspectLogin?:typeof inspectCodexMethodLogin}={}){
- const fixedBinding=binding(local),where=layout(local),input=structuredClone(raw);if(!['gpt-6.1-sol','gpt-6-luna'].includes(input.model))fail();
+ const fixedBinding=binding(local),placement=codexRuntimePlacement(local,raw.placement_root),where={root:placement.root,tools:placement.tools},input=structuredClone(raw);if(!['gpt-6.1-sol','gpt-6-luna'].includes(input.model))fail();
  const disabled=[...(input.disabled_mcp_servers??[])].sort();if(disabled.length>64||new Set(disabled).size!==disabled.length||disabled.some(s=>typeof s!=='string'||!/^[A-Za-z0-9_-]{1,64}$/.test(s)||['__proto__','constructor','prototype'].includes(s)))fail();
  const bytes:Record<Name,Buffer>={'codex.exe':bytesAt(input.binary,512*1024*1024),'codex-code-mode-host.exe':bytesAt(join(dirname(input.binary),'codex-code-mode-host.exe'),512*1024*1024),'opencode.exe':bytesAt(input.native_binary,512*1024*1024),'node.exe':bytesAt(input.node_binary,512*1024*1024),'checks.json':Buffer.from(JSON.stringify(catalog(input.checks)))};
+ if(placement.registered&&!existsSync(where.root))fail();placement.commit();
  directory(join(where.root,'..'));const origin=existsSync(where.root)?await openWindowsAgentStartLedger(where.root,where.tools):await initializeWindowsAgentStartLedger(where.root,where.tools);
  try{
   const key=requestDigest(fixedBinding),assertInput=(request:Request)=>{if(!same(request.binding,fixedBinding)||request.model!==input.model||!same(request.disabled_mcp_servers,disabled)||names.some(name=>request.materials.find(m=>m.name===name)?.digest!==digest(bytes[name]).value))fail();};
-  const result=(fixed:Installed,created:boolean)=>({ok:true as const,created,model:fixed.request.model,installation_digest:requestDigest(fixed),provider_qualification_proven:false as const,costs_reconciled:false as const});
+  const result=(fixed:Installed,created:boolean)=>{placement.commit();return{ok:true as const,created,model:fixed.request.model,installation_digest:requestDigest(fixed),provider_qualification_proven:false as const,costs_reconciled:false as const};};
   if(origin.readExclusive(namespace,key)){const fixed=readInstalled(origin,local,where.root,fixedBinding);assertInput(fixed.request);return result(fixed,false);}
   const pending=origin.readExclusive(requestNamespace,key);
   if(pending){const request=decode(pending.basis);assertInput(request);if(!same(binding(local),fixedBinding)||!same(request.materials,request.materials.map(m=>material(where.root,m.name)))||!same(request.originals_identity,identity(join(where.root,'originals'),true)))fail();const fixed:Installed={format:'cimiloop/codex-runtime-installation/1.0.0',request},claim=origin.claimExclusiveOnce(namespace,key,fixed);return result(readInstalled(origin,local,where.root,fixedBinding),claim.created);}
@@ -78,9 +76,9 @@ export function hasInstalledCodexAgentRuntime(local:LocalProject){return !!proce
 // Discovery reads only the existing protected origin and exact physical bundle.
 // Missing/corrupt originals are never recreated or reapproved by a query.
 export async function openInstalledCodexAgentRuntime(local:LocalProject):Promise<InstalledCodexAgentRuntime|undefined>{
- if(!process.env.LOCALAPPDATA)return undefined;const where=layout(local);if(!existsSync(where.root))return undefined;let origin:AgentStartLedger|undefined;
+ if(!process.env.LOCALAPPDATA)return undefined;const placement=codexRuntimePlacement(local),where={root:placement.root,tools:placement.tools};if(!existsSync(where.root)){if(placement.registered)fail();return undefined;}let origin:AgentStartLedger|undefined;
  try{const fixedBinding=binding(local);origin=await openWindowsAgentStartLedger(where.root,where.tools);const fixed=readInstalled(origin,local,where.root,fixedBinding),seal=requestDigest(fixed);let released=false;
-  const guard=()=>{if(released||requestDigest(readInstalled(origin!,local,where.root,fixedBinding))!==seal)fail();};
+  const guard=()=>{if(released||!same(layout(local),where)||requestDigest(readInstalled(origin!,local,where.root,fixedBinding))!==seal)fail();};
   const lease=Object.freeze({origin,root:where.root,binary:join(where.root,'codex.exe'),native_binary:join(where.root,'opencode.exe'),node_binary:join(where.root,'node.exe'),model:fixed.request.model,account_digest:fixed.request.account_digest,quota_account_digest:fixed.request.quota_account_digest,output_profile:fixed.request.output_profile,usage_policy:fixed.request.usage_policy,disabled_mcp_servers:freezeJson([...fixed.request.disabled_mcp_servers]),checks:freezeJson(catalog(copy(parseGatewayJson(bytesAt(join(where.root,'checks.json'),65536).toString('utf8'),65536)) as WorkspaceCheckTemplate[])),installation_digest:seal,guard,release(){if(!released){released=true;origin!.close();}}});
   writableScopes.set(lease,Object.freeze([where.root,where.tools]));return lease;
  }catch{origin?.close();return fail();}

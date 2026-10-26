@@ -27,7 +27,7 @@ import {createSkillOriginalCommand} from './skill-original.js';
 import {createSkillMethodProbeCommand} from './skill-method-probe.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 import { installCodexClarification } from "./clarification-codex.js";
-import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage,installCodexHome,showCodexHome} from './agent-codex-installation.js';
+import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,allocateCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage,installCodexHome,showCodexHome} from './agent-codex-installation.js';
 
 const program = new Command();
 const jsonRequested = process.argv.includes("--json");
@@ -95,6 +95,7 @@ runtime.command('install-codex').description('显式绑定当前Codex账号、�
  .option('--node-binary <path>','固定检查使用的Node程序；默认当前Node')
  .requiredOption('--checks <json>','固定WorkspaceCheckTemplate的JSON数组文件')
  .option('--model <model>','选择已授权模型','gpt-6.1-sol')
+ .option('--placement-root <path>','新项目首次安装的同卷仓库外根；已有安装不自动迁移')
  .option('--disable-mcp-server <name...>','本机已核对的外部MCP名称')
  .option('--yes','明确确认该项目的本地安装')
  .action((options,command)=>installCodexRuntime({...globals(command),...options}));
@@ -107,6 +108,13 @@ runtime.command('install-codex-budget').description('显式安装同一Codex账�
  .action((options,command)=>installCodexRuntimeBudget({...globals(command),...options}));
 runtime.command('codex-budget').description('只读核对原Codex账户政策、占用与剩余容量，不创建或修复账户')
  .action((_options,command)=>showCodexRuntimeBudget(globals(command)));
+runtime.command('allocate-codex-budget').description('从已有原账户永久预留有限额度到当前同卷项目；不新增总额或调用模型')
+ .requiredOption('--source-project <path>','拥有已有账户政策及当前Human项目负责人权限的原项目')
+ .requiredOption('--request-id <uuid>','固定UUIDv7；响应丢失后使用相同请求重放')
+ .requiredOption('--max-model-calls <count>','从原账户占用的模型次数，1—512')
+ .requiredOption('--max-output-tokens <count>','从原账户占用的最大输出token总量')
+ .option('--yes','明确确认永久分配，Unknown和父账户占用不自动释放')
+ .action((options,command)=>allocateCodexRuntimeBudget({...globals(command),...options}));
 runtime.command('install-codex-storage').description('绑定已有专用固定卷及项目运行范围；不创建、挂载、格式化卷或调用模型')
  .requiredOption('--image <path>','原固定VHDX镜像绝对路径')
  .requiredOption('--volume-root <root>','原专用卷盘根，例如R:\\')
