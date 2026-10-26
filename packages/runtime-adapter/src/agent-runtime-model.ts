@@ -7,6 +7,7 @@ import { copyToolJson, TOOL_RECORD_BYTES } from "./tool-journal.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
 import { parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 import { parseAgentModelOutputProfile, agentModelOutputLimit, agentModelRequestFormat, type AgentModelOutputProfile } from "./agent-model-output.js";
+import {parseAgentWorkspaceToolNames} from './agent-runtime-startup.js';
 
 export interface AgentRuntimeModelResponse {
  content: ({type:"text";text:string}|{type:"tool-call";tool_call_id:string;tool_name:string;arguments:string})[];
@@ -47,6 +48,7 @@ export function assertAgentRuntimeModelOriginalMode(raw:unknown,parent:boolean,p
  const header=raw as Record<string,unknown>,evidence=parseAgentModelOriginalEvidence(header.original_evidence);
  const profile=parseAgentModelOutputProfile(header.output_profile);
  if(header.format!==modelOriginalFormat(parent,evidence,profile)||providerOptions!==undefined&&profile!==parseAgentModelOutputProfile(providerOptions.model_output_profile)||!Array.isArray(header.permitted)||(parent?header.parent_skill_tools!=='fixed_parent_skill/1.0.0'||!isAgentParentSkillToolSet(header.permitted):header.parent_skill_tools!==undefined||isAgentParentSkillToolSet(header.permitted)))fail('agent_model_original_mode_unproven');
+ if(providerOptions!==undefined&&Object.hasOwn(providerOptions,'workspace_tool_names')&&(parent||!profile||!isDeepStrictEqual(header.permitted,parseAgentWorkspaceToolNames(providerOptions.workspace_tool_names))))fail('agent_model_original_mode_unproven');
 }
 function waitOriginal<T>(promise:Promise<T>,signal?:AbortSignal):Promise<T> {
  if(!signal)return promise;

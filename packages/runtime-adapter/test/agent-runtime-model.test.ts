@@ -7,6 +7,7 @@ import { digest } from "../src/files.js";
 import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.js";
 import { claimAgentRuntimeOperation, readAgentRuntimeOriginalIdentity, requestAgentRuntimeCancellation } from "../src/agent-runtime-operation.js";
 import { AgentRuntimeModelHost, parseAgentRuntimeModelRequest, readAgentRuntimeModelOriginals, type AgentRuntimeModelPort, type AgentRuntimeModelResponse } from "../src/agent-runtime-model.js";
+import {agentRuntimeProviderOptions} from '../src/opencode-workspace-runtime.js';
 
 describe("original host model dispatch", () => {
  const roots: string[]=[];
@@ -22,6 +23,10 @@ describe("original host model dispatch", () => {
   let initialized=false;
   return {root,scope,frame,response,port,sends:()=>sends,revoke:()=>{allowed=false;},open:async()=>{if(!initialized){initialized=true;return AgentRuntimeModelHost.initialize(root,scope,port,["cimi_read"]);}return AgentRuntimeModelHost.open(root,scope,port,["cimi_read"]);}};
  }
+ it('narrows Native provider metadata to the exact admitted ordinary model catalog',async()=>{
+  const f=fixture();Object.assign(f.port,{output_profile:'bounded_2048/1.0.0',original_evidence:{kind:'codex_login/1.0.0',header_digest:digest('PUBLIC Codex header').value}});const host=await f.open(),options=agentRuntimeProviderOptions(host);
+  expect(options).toEqual({admission_digest:f.port.admission_digest,model_output_profile:'bounded_2048/1.0.0',workspace_tool_names:['cimi_read']});
+ });
  it("freezes an explicit new output profile and replays full 688-token usage without upgrading a legacy Host",async()=>{
   const f=fixture();Object.assign(f.port,{output_profile:'bounded_2048/1.0.0',original_evidence:{kind:'codex_login/1.0.0',header_digest:digest('PUBLIC Codex header').value}});f.response.usage.output_tokens=688;
   const host=await f.open(),request={...f.frame,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048};

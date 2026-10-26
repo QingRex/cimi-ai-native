@@ -8,12 +8,16 @@ export function createCimiHostGateway(options) {
  const parentMode=options.parent_skill_tools;if(parentMode!==undefined&&parentMode!=="fixed_parent_skill/1.0.0")throw Error("agent_model_binding_denied");
  const outputProfile=options.model_output_profile;if(outputProfile!==undefined&&outputProfile!=='bounded_2048/1.0.0')throw Error('agent_model_binding_denied');
  const outputLimit=outputProfile?2048:512;
+ const rawNames=options.workspace_tool_names;
+ if(rawNames!==undefined&&(!outputProfile||parentMode||!Array.isArray(rawNames)||rawNames.length<1||rawNames.length>3||new Set(rawNames).size!==rawNames.length||rawNames.some(name=>!['cimi_read','cimi_replace','cimi_check'].includes(name))))throw Error('agent_model_binding_denied');
+ const workspaceNames=rawNames===undefined?undefined:Object.freeze([...rawNames]);
  const exchange=parentMode?exchangeAgentParentSkillModelFrame:exchangeAgentWorkspaceModelFrame;
  const admissionDigest=options.admission_digest;let step=0;const originals=new Map();
  return { languageModel(modelId) {
   if(modelId!=="host-approved")throw Error("agent_model_binding_denied");
   return {specificationVersion:"v3",provider:"cimiloop-host-gateway",modelId,supportedUrls:{},async doStream(input){
    const tools=(input.tools??[]).filter(tool=>tool.name!=="invalid"),maximum=Math.min(input.maxOutputTokens??outputLimit,outputLimit);
+   if(workspaceNames&&(tools.length!==workspaceNames.length||new Set(tools.map(tool=>tool.name)).size!==tools.length||workspaceNames.some(name=>!tools.some(tool=>tool.name===name))))throw Error('agent_model_binding_denied');
    const key=JSON.stringify([input.prompt,tools,maximum]);let callId=originals.get(key);
    if(!callId){if(step>=64)throw Error("agent_model_call_limit");callId="model_"+String(++step).padStart(4,"0");originals.set(key,callId);}
    const reply=await exchange(process.env.CIMILOOP_AGENT_WORKSPACE_PIPE,{format:`cimiloop/agent-runtime-model-request/${outputProfile?(parentMode?4:3):(parentMode?2:1)}.0.0`,

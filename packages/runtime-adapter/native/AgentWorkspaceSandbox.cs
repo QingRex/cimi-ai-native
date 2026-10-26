@@ -63,10 +63,12 @@ partial class AppContainer {
   // original ambient semantics and cannot acquire this policy by an extra key.
   static string AgentStartupFormat(Dictionary<string,object> config) {
     string format=config["format"] as string;int version;
-    bool privateWrites=format=="cimiloop/agent-workspace-sandbox-config/14.0.0"||format=="cimiloop/agent-workspace-sandbox-config/15.0.0"||format=="cimiloop/agent-workspace-sandbox-config/16.0.0";
+    bool privateWrites=format=="cimiloop/agent-workspace-sandbox-config/14.0.0"||format=="cimiloop/agent-workspace-sandbox-config/15.0.0"||format=="cimiloop/agent-workspace-sandbox-config/16.0.0"||format=="cimiloop/agent-workspace-sandbox-config/17.0.0";
     if(privateWrites?(!config.ContainsKey("writable_storage_profile")||config["writable_storage_profile"] as string!="private_state_only/1.0.0"):config.ContainsKey("writable_storage_profile"))throw new InvalidDataException();
     bool bounded=privateWrites||format=="cimiloop/agent-workspace-sandbox-config/11.0.0"||format=="cimiloop/agent-workspace-sandbox-config/12.0.0"||format=="cimiloop/agent-workspace-sandbox-config/13.0.0";
     var options=config["provider_options"] as Dictionary<string,object>;
+    bool scoped=format=="cimiloop/agent-workspace-sandbox-config/17.0.0";
+    if(scoped){AgentWorkspaceToolNames(config);}else if(options!=null&&options.ContainsKey("workspace_tool_names"))throw new InvalidDataException();
     if(bounded?(options==null||!options.ContainsKey("model_output_profile")||options["model_output_profile"] as string!="bounded_2048/1.0.0"):(options!=null&&options.ContainsKey("model_output_profile")))throw new InvalidDataException();
     if(format=="cimiloop/agent-workspace-sandbox-config/8.0.0")version=5;
     else if(format=="cimiloop/agent-workspace-sandbox-config/9.0.0")version=6;
@@ -77,6 +79,7 @@ partial class AppContainer {
     else if(format=="cimiloop/agent-workspace-sandbox-config/14.0.0")version=5;
     else if(format=="cimiloop/agent-workspace-sandbox-config/15.0.0")version=7;
     else if(format=="cimiloop/agent-workspace-sandbox-config/16.0.0")version=6;
+    else if(format=="cimiloop/agent-workspace-sandbox-config/17.0.0")version=5;
     else {if(config.ContainsKey("startup_profile"))throw new InvalidDataException();return format;}
     if(!config.ContainsKey("startup_profile")||config["startup_profile"] as string!="bun_interpreter/1.0.0")throw new InvalidDataException();
     return "cimiloop/agent-workspace-sandbox-config/"+version.ToString()+".0.0";
@@ -146,10 +149,19 @@ partial class AppContainer {
       if(!seen.Add((string)entry["skill_alias"]+"\0"+(string)entry["method_name"]+"\0"+(string)entry["input_alias"]))throw new InvalidDataException();
     }
   }
+  static List<string> AgentWorkspaceToolNames(Dictionary<string,object> config) {
+    var options=config["provider_options"] as Dictionary<string,object>;if(options==null)throw new InvalidDataException();
+    AgentKeys(options,"admission_digest","model_output_profile","workspace_tool_names");
+    var raw=options["workspace_tool_names"] as System.Collections.ArrayList;if(raw==null||raw.Count<1||raw.Count>3)throw new InvalidDataException();
+    var names=new List<string>();foreach(object value in raw){string name=value as string;if((name!="cimi_read"&&name!="cimi_replace"&&name!="cimi_check")||names.Contains(name))throw new InvalidDataException();names.Add(name);}return names;
+  }
   static Dictionary<string,object> AgentWorkspacePermissions(Dictionary<string,object> config,bool production,bool checksOnly) {
     AgentConfigDeadline(config);
     var permission=new Dictionary<string,object>{{"*","deny"}};
     bool parent=config.ContainsKey("parent_skill_tools"),named=config.ContainsKey("method_tools")&&config["method_tools"] as string=="fixed_named_method/1.0.0";
+    if(config["format"] as string=="cimiloop/agent-workspace-sandbox-config/17.0.0"){
+      if(!production||checksOnly||parent||named)throw new InvalidDataException();foreach(string name in AgentWorkspaceToolNames(config))permission.Add(name,"allow");return permission;
+    }
     if(parent){if(!production||checksOnly||named||AgentStartupFormat(config)!="cimiloop/agent-workspace-sandbox-config/7.0.0")throw new InvalidDataException();}
     if(named){if(!production)throw new InvalidDataException();permission.Add("cimi_invoke_skill","allow");permission.Add("cimi_read_method_resource","allow");}
     else if(!checksOnly){permission.Add("cimi_read","allow");permission.Add("cimi_replace","allow");}
@@ -331,7 +343,7 @@ partial class AppContainer {
         bool boundedOutput=AgentModelOutputLimit(config)==2048;
         if(AgentStartupFormat(config)=="cimiloop/agent-workspace-sandbox-config/7.0.0"){
           if(boundedOutput)AgentKeys(options,"admission_digest","parent_skill_tools","model_output_profile");else AgentKeys(options,"admission_digest","parent_skill_tools");if(options["parent_skill_tools"] as string!="fixed_parent_skill/1.0.0")throw new InvalidDataException();AgentParentSkillCatalog(config,modules);
-        }else if(boundedOutput)AgentKeys(options,"admission_digest","model_output_profile");else AgentKeys(options,"admission_digest");
+        }else if(config["format"] as string=="cimiloop/agent-workspace-sandbox-config/17.0.0")AgentWorkspaceToolNames(config);else if(boundedOutput)AgentKeys(options,"admission_digest","model_output_profile");else AgentKeys(options,"admission_digest");
         if(!(options["admission_digest"] is string)||!System.Text.RegularExpressions.Regex.IsMatch((string)options["admission_digest"],"^[a-f0-9]{64}$")||agentTaskDeadline==0) throw new InvalidDataException();
         string prompt=config["prompt"] as string;
         if(String.IsNullOrWhiteSpace(prompt)||new UTF8Encoding(false,true).GetByteCount(prompt)>32768||File.ReadAllText(Path.Combine(modules,"task-packet.txt"),new UTF8Encoding(false,true))!=prompt) throw new InvalidDataException();

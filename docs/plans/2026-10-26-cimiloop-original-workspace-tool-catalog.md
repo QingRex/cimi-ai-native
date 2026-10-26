@@ -1,0 +1,37 @@
+# 原 Context 到实际 SDK 的普通工作区工具目录
+
+接续 `a35a03f4356c19a9754e3f82633077058bdab4dd`，完整S1五组继续。本批修正默认普通Codex Run的真实执行路径，不用扩大WorkItem权限消除失败。
+
+## 原失败与选择
+
+上一批真实Run `01a17870-00f8-7540-85fa-0eddc0087740` 完成2轮Luna调用和2次Native文件读取，随后模型建议替换query.ts。原Context只允许read_files／run_checks，Kernel因此拒绝；源码保持原摘要。该Run仍保留原失败与Unknown，不改写为成功、不重开、不删除被拒绝的调用。
+
+源码确认普通模型Host和Native权限固定包含cimi_read／cimi_replace／cimi_check，存在支持目录与本次已授权目录的差异。仅改提示不能消除这一差异，扩大WorkItem权限则改变原请求。采用现有Kernel生成的原Context.allowed_actions派生本次普通工具目录，沿共享应用服务、Codex原模型头、模型Host、Native配置、实际SDK和网关保持同一目录。目录是缩小暴露范围的元数据，每次工具效果仍须通过Kernel当前核验。
+
+固定对应为read_files→cimi_read、edit_files→cimi_replace、run_checks→cimi_check，顺序固定；资源路径、输入摘要和固定检查ID继续由原Context、catalog和原工具服务约束。没有可用普通工具时拒绝组装，不补出一个能力。
+
+## 实际组合与兼容
+
+默认openCodex从原Run/Context读取动作，生成原Codex模型允许目录。共享prepare使用已脱离外部引用的同一原Context，生成Host允许目录。新bounded2048普通Runtime的Native配置显式使用内部`cimiloop/agent-workspace-sandbox-config/17.0.0`，在provider_options中固定workspace_tool_names。它继续采用解释器启动、私有状态目录、原Task期限和原二进制／模块证据。
+
+实际C#只向OpenCode授予该目录中的工具，默认拒绝其它工具。SDK网关在发送模型请求前要求实际工具与保存的目录集合完全相同，拒绝缺失、多出或重复；它复制保存列表，之后修改原options不能改变目录。模型Host仍检查请求是否在其原允许目录内，Codex回复不能建议实际SDK未提供的工具。最后独立结果读取器还复核Native目录与原模型头一致。
+
+旧Native配置1—16不获得此策略；往旧配置添加workspace_tool_names会被拒绝，不作静默升级。旧原件、旧低层512模式和既有父Skill四工具协议保持原解释。父Skill工具子集需要显式协议扩展，此处不把普通Run修复当作父Skill、完整Skill或S1完成。项目Schema242／库10／Host1不变，没有用户库迁移。
+
+## 本批验证计划与边界
+
+先运行真实反例：默认生产组装错误包含替换工具、Native不识别新的固定子集、元数据丢失目录、网关错误接受外来工具或非法策略。初轮仅选新增用例，1通过／5失败／59过滤；过滤项不能当完整文件通过。Native配置检查实际编译C#并反射调用原方法；网关测试实际经过Windows命名管道，模型／资格仍为PUBLIC。
+
+完整受影响验证分阶段10文件122项通过，0失败、0跳过；包含新增反例所在四文件65项及另外六文件57项，不把早期筛选通过重复累计。类型检查、CLI与工作台帮助通过。
+
+另行PUBLIC模型／真实Windows-AppContainer完整文件为3通过／1失败／0跳过：新Native17模式、取消和缺失模型端口场景通过；旧512模式预期3次模型步骤，实际2次。旧模式原180000ms Task到期，Native退出12，原清理报告明确resources_disposed=true／cleanup_errors=[]；未修改旧模式预算、没有把到期当作成功，也没有据此判定具体耗时因果。原失败在自有uCqMGD目录保留。独立选中旧模式用相同源码、原期限和新自有Run复验为1通过／3过滤；没有真实模型调用。它证明本次独立运行完成，不覆盖完整文件失败，也不能单凭独立通过把耗时归因为并行或环境。旧模式时限稳定性仍需关闭。
+
+新的真实Codex/Windows-AppContainer场景1文件1项通过、0跳过，原Run为`01a17889-7512-710c-8c9a-fddc6efaa97a`。使用已授权的当前Codex登录和gpt-6-luna，原600000ms Task、最多6个模型入口保持；实际调用3轮。保存的Native17目录为cimi_read／cimi_check，三份实际SDK模型请求均只包含这两个工具，未向模型暴露替换工具。真实执行两次文件读取和一次固定query_test，独立Native核验为Verified、matched_calls=3、无未匹配／待核对Native调用。独立领域结果读取器验证结构化输出及所引原证据、固定检查和模型／SDK／IPC对应关系。
+
+同一Run再次start不增加模型调用；工作台RecordRunObservation实际成功，事件序号25→26，同一命令重放原响应、增加事件0。观察仍是unknown／cost_known=false，原费用预约继续待核对。三份Codex Job原件、Host完成票与SDK原件对应验证通过。所有这些来自新Run，不改变上一批被拒绝调用的失败结论。
+
+真实性边界：上述真实模型场景使用PUBLIC领域资格／预算及受控装配，不是默认生产入口完整准入或普通业务Change交付。Task结果的task_acceptance_proven、current_workspace_applicability_proven、model_account_custody_proven及costs_reconciled仍为false。模型摘要中的“人工复核”文字是模型输出，不是Human操作或独立人工验收证据；原始字节保留，不改写为Human事实。源码读取、固定检查及模型请求是真实的，但不从模型措辞推出领域验收或费用结清。
+
+本批完整文件统计为分阶段12文件126通过／1失败／0跳过，包含上述真实Luna1项和PUBLIC Native4项；不是单次整轮、不是全仓pnpm test，也不是全部原生回归通过。旧模式单项复验另列，不重复累计到完整文件通过数。634份源码与传输模块在验证期间无漂移；242份公共Schema、项目库10／Host1保持，文档UTF-8／本地链接及git diff检查在提交前完成。最终证据与失败报告保留在本机忽略目录，不把本机原件随Git迁移。
+
+默认完整生产门禁仍要求四项真实Runtime依据、原账户／预算／固定卷／登录根及模型准入。真实账单、物理配额、历史容量、异常恢复矩阵、Human/Matt澄清、真实Skill、普通Change交付与最终Matt／Superpowers／S1继续；不push。

@@ -5,7 +5,7 @@ import { LocalAgentWorkspaceToolService, type AgentWorkspaceToolLocalContext } f
 import { LocalAgentStartCustody } from "./agent-start-custody-local.js";
 import { LocalAgentCheckAdmission } from "./agent-check-admission-local.js";
 import { openLocalAgentRunBudget } from "./agent-run-budget-local.js";
-import { originalAgentWorkspaceScope } from "./agent-workspace-tools-local.js";
+import { originalAgentWorkspaceScope,readOriginalAgentRunInputs } from "./agent-workspace-tools-local.js";
 import { LocalProjectError } from "./errors.js";
 import {DedicatedAgentAccountLedger} from '@cimiloop/runtime-adapter';
 import {LocalAgentDedicatedAccount,type AgentDedicatedModelContext} from './agent-dedicated-account-local.js';
@@ -17,6 +17,7 @@ import {bytesAt,digest,CodexOriginalMethodRuntime,createBudgetedCodexAgentRuntim
 import type{InstalledCodexUsageBudget}from './agent-codex-usage-budget-local.js';
 import {LocalAgentCodexModelAuthority,type AgentCodexModelContext} from './agent-codex-authority-local.js';
 import {join} from 'node:path';
+const workspaceModelTools=(actions:readonly string[])=>[['read_files','cimi_read'],['edit_files','cimi_replace'],['run_checks','cimi_check']].filter(([action])=>actions.includes(action!)).map(([,tool])=>tool!);
 const unavailable=()=>new LocalProjectError("原 Runtime 应用身份或父 Skill 目录不可证明","CAPABILITY_UNAVAILABLE","conflict");
 
 interface Options {
@@ -64,7 +65,7 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
   };guard();const scope=originalAgentWorkspaceScope(options.local,options.runId);
   const authority=LocalAgentCodexModelAuthority.open(options.local,options.runId),check=authority.check.bind(authority),beforeEffect=authority.beforeEffect.bind(authority);
   const transport=new CodexOriginalMethodRuntime({root:join(options.local.location.dataDirectory,'codex-runtime-originals',scope.project_id,scope.run_id),command:{file:installed.binary,args:[],sha256:digest(bytesAt(installed.binary,512*1024*1024)).value},account_digest:installed.account_digest,disabled_mcp_servers:[...installed.disabled_mcp_servers],timeout_ms:180000,state_policy:'private_login_home/2.0.0',login_home:assertCodexRuntimeLoginHome(options.loginHome,options.local,installed,storage!),process_custody:'owner_job/1.0.0',process_root:join(options.local.location.dataDirectory,'codex-processes')},false,installed.origin);
-  const model=createBudgetedCodexAgentRuntimeModel({root:options.local.location.dataDirectory,scope,runtime:transport,model:installed.model,account_digest:installed.account_digest,quota_account_digest:installed.quota_account_digest,output_profile:installed.output_profile,usage_policy:installed.usage_policy,origin:'external_model',admission_digest:digest(JSON.stringify({scope,installation:installed.installation_digest})).value,permitted_tools:options.parentSkill?[...AGENT_PARENT_SKILL_TOOLS]:['cimi_read','cimi_replace','cimi_check'],authority:{async check(current){guard();await check(current);guard();},beforeEffect(current){guard();const result:unknown=beforeEffect(current);if(result!==undefined){void Promise.resolve(result).catch(()=>{});throw unavailable();}guard();}}},account.budget);
+  const model=createBudgetedCodexAgentRuntimeModel({root:options.local.location.dataDirectory,scope,runtime:transport,model:installed.model,account_digest:installed.account_digest,quota_account_digest:installed.quota_account_digest,output_profile:installed.output_profile,usage_policy:installed.usage_policy,origin:'external_model',admission_digest:digest(JSON.stringify({scope,installation:installed.installation_digest})).value,permitted_tools:options.parentSkill?[...AGENT_PARENT_SKILL_TOOLS]:workspaceModelTools(readOriginalAgentRunInputs(options.local,options.runId).context.allowed_actions),authority:{async check(current){guard();await check(current);guard();},beforeEffect(current){guard();const result:unknown=beforeEffect(current);if(result!==undefined){void Promise.resolve(result).catch(()=>{});throw unavailable();}guard();}}},account.budget);
   guard();return this.open({local:options.local,binary:installed.native_binary,custody:options.custody,checks:options.checks,model,runtimeGuard:guard,...(options.parentSkill?{parentSkill:options.parentSkill}:{})});
  }
  originalScope(runId:string){this.assertIdentity();return structuredClone(originalAgentWorkspaceScope(this.options.local,runId));}
@@ -102,7 +103,8 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
     task:input.task,work_item:input.work_item,definition:input.definition,contract:input.contract,plan:input.plan,context:input.context,check_catalog:catalog,
     result_contract:originalTaskResultContract(input.scope,input.record.definition_ref,input.definition.body.outputs,catalog.recipes.map(recipe=>recipe.check_id))},null,1);
    if(Buffer.byteLength(prompt)>32768||Buffer.byteLength(JSON.stringify({prompt}))>48000||prompt.split(/\r?\n/).length>1000||prompt.split(/\r?\n/).some(line=>Buffer.byteLength(line)>1800))throw new LocalProjectError("原任务资料超出当前 Runtime 输入容量；保留原 Run","CAPABILITY_UNAVAILABLE","conflict");
-   const model=await AgentRuntimeModelHost.initialize(this.options.local.location.dataDirectory,input.scope,this.options.model,parent?[...AGENT_PARENT_SKILL_TOOLS]:["cimi_read","cimi_replace","cimi_check"],prompt,signal);
+   const tools=parent?[...AGENT_PARENT_SKILL_TOOLS]:this.options.model.output_profile?workspaceModelTools(input.context.allowed_actions):['cimi_read','cimi_replace','cimi_check'];
+   const model=await AgentRuntimeModelHost.initialize(this.options.local.location.dataDirectory,input.scope,this.options.model,tools,prompt,signal);
    guard(signal);
    return {launch:async()=>{
     guard();
