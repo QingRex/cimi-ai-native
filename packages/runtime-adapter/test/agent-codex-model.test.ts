@@ -42,12 +42,15 @@ if(r.method==='mcpServerStatus/list')ok({data:[],nextCursor:null});if(r.method==
   return { root, scope, options, transport, originalRoot, control, log, request, create, open, read, revoke() { allowed = false; }, turns() { return existsSync(log) ? readFileSync(log, "utf8").trimEnd().split("\n").length : 0; } };
 }
 describe("Codex model behind the original Agent SDK host", () => {
-  it('uses bounded-login header15 for the ordinary SDK bridge and replays without the live login directory',async()=>{
-    const f=fixture(),path=join(f.root,'private-login');mkdirSync(path);const stat=lstatSync(path,{bigint:true}),login_home={path,identity:{dev:String(stat.dev),ino:String(stat.ino),birth:String(stat.birthtimeNs)}},transport=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_login_home/2.0.0',login_home} as unknown as runtime.CodexOriginalMethodOptions);
+  it.each(process.platform==='win32'&&process.arch==='x64'?[false,true]:[false])('uses bounded-login header15 for the ordinary SDK bridge and historical replay (owner Job=%s)',async job=>{
+    const f=fixture(),path=join(f.root,'private-login');mkdirSync(path);const stat=lstatSync(path,{bigint:true}),login_home={path,identity:{dev:String(stat.dev),ino:String(stat.ino),birth:String(stat.birthtimeNs)}},origin=job?runtime.AgentStartLedger.initialize(join(f.root,'process-origin'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC user').value}):undefined;
+    try{const transport=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_login_home/2.0.0',login_home,...(job?{process_custody:'owner_job/1.0.0' as const,process_root:join(f.root,'processes')}:{})},false,origin);
     const options={...f.options,runtime:transport,output_profile:'bounded_2048/1.0.0' as const,usage_policy:'require_ordinary_permission/1.0.0' as const,quota_account_digest:digest('PUBLIC-account').value},model=runtime.createCodexAgentRuntimeModel(options),host=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']),request={...f.request,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048};
     const reply=await host.execute(request);expect(reply.receipt.content).toMatchObject([{type:'tool-call',tool_name:'cimi_read'}]);expect(f.read().status).toBe('Observed');
     const headerPath=join(f.root,'agent-codex-model-originals',f.scope.project_id,f.scope.run_id,'header.json'),header=JSON.parse(readFileSync(headerPath,'utf8'));expect(header.format).toBe('cimiloop/codex-agent-model/15.0.0');expect(header.runtime.login_home).toEqual(login_home);
+    if(job){expect(header.runtime.process_custody).toBe('owner_job/1.0.0');expect(f.read().artifacts.some((file:{name:string})=>file.name.endsWith('/process-job/ended.json'))).toBe(true);expect(origin!.listExclusive('codex_process_job_complete')).toHaveLength(1);}
     renameSync(path,path+'.retained');expect((await host.execute(request)).receipt).toEqual(reply.receipt);expect(f.read().status).toBe('Observed');expect(f.turns()).toBe(1);writeFileSync(headerPath,JSON.stringify({...header,format:'cimiloop/codex-agent-model/14.0.0'}));expect(()=>f.read()).toThrow();
+    }finally{origin?.close();}
   });
   it('keeps private-state header14 on the ordinary SDK bridge with unchanged original replay',async()=>{
     const f=fixture(),transport=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_operation_state/1.0.0'});
@@ -131,17 +134,20 @@ describe("Codex model behind the original Agent SDK host", () => {
     const open = () => AgentRuntimeModelHost.initialize(f.root, f.scope, f.create(), f.options.permitted_tools);
     return { ...f, request, open };
   }
-  it('uses bounded-login header16 for named Skill tools and results without changing historical replay',async()=>{
+  it.each(process.platform==='win32'&&process.arch==='x64'?[false,true]:[false])('uses bounded-login header16 for named Skill tools and historical replay (owner Job=%s)',async job=>{
     const f=namedFixture(),path=join(f.root,'private-login');mkdirSync(path);
     const stat=lstatSync(path,{bigint:true}),login_home={path,identity:{dev:String(stat.dev),ino:String(stat.ino),birth:String(stat.birthtimeNs)}};
-    f.options.runtime=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_login_home/2.0.0',login_home});
+    const origin=job?runtime.AgentStartLedger.initialize(join(f.root,'process-origin'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC user').value}):undefined;
+    try{f.options.runtime=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_login_home/2.0.0',login_home,...(job?{process_custody:'owner_job/1.0.0' as const,process_root:join(f.root,'processes')}:{})},false,origin);
     const result={purpose:'clarification',questions:['Which business scope?'],unresolved:['No Human answer yet']};
     writeFileSync(f.control,JSON.stringify({PUBLIC_proxy:{tool:'cimiloop_skill_result',arguments:{result}}}));
     const host=await f.open(),reply=await host.execute(f.request);expect(reply.receipt).toMatchObject({finish:'stop',content:[{type:'text',text:JSON.stringify(result)}]});
     const paths=['agent-codex-model-originals','agent-codex-model-starts'].map(kind=>join(f.root,kind,f.scope.project_id,f.scope.run_id,'header.json')),saved=paths.map(p=>readFileSync(p));
     expect(JSON.parse(saved[0]!.toString())).toMatchObject({format:'cimiloop/codex-agent-model/16.0.0',permitted:f.options.permitted_tools,runtime:{login_home}});
+    if(job){expect(f.read().artifacts.some((file:{name:string})=>file.name.endsWith('/process-job/ended.json'))).toBe(true);expect(origin!.listExclusive('codex_process_job_complete')).toHaveLength(1);}
     renameSync(path,path+'.retained');expect((await host.execute(f.request)).receipt).toEqual(reply.receipt);expect(f.read().status).toBe('Observed');expect(f.turns()).toBe(1);
     for(const version of[13,15]){try{for(const p of paths){const header=JSON.parse(readFileSync(p,'utf8'));header.format=`cimiloop/codex-agent-model/${version}.0.0`;writeFileSync(p,JSON.stringify(header));}expect(()=>f.read()).toThrow();}finally{paths.forEach((p,i)=>writeFileSync(p,saved[i]!));}}
+    }finally{origin?.close();}
   });
   it('authenticates the named consumer against real stdio originals and collection2 blobs without another model turn',async()=>{
     const f=namedFixture(),host=await f.open();claimAgentRuntimeOperation(f.root,f.scope,{purpose:'agent_runtime',model_original_binding:host.originalBinding,provider_options:{model_output_profile:'bounded_2048/1.0.0'}},{pid:process.pid,creation_ticks:'1',image:process.execPath});

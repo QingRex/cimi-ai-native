@@ -8,6 +8,7 @@ import { prepareDedicatedAgentRequest, type DedicatedAgentReply } from "./agent-
 import { parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
 import { AGENT_PARENT_SKILL_TOOLS, isAgentParentSkillToolSet, isAgentNamedMethodToolSet, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals, type AgentRuntimeModelPort, type AgentRuntimeModelResponse } from "./agent-runtime-model.js";
 import { CodexOriginalMethodRuntime, type CodexMethodRequest, type CodexMethodOriginal, type CodexOriginalMethodOptions } from "./codex-original-method.js";
+import {codexProcessLayout} from './codex-process-job.js';
 import { parseAgentModelOutputProfile, type AgentModelOutputProfile } from "./agent-model-output.js";
 import {parseCodexUsagePolicy,type CodexOrdinaryUsagePolicy} from './codex-ordinary-quota.js';
 import {CodexAgentUsageBudget} from './codex-agent-usage-budget.js';
@@ -245,6 +246,7 @@ export function readCodexAgentModelOriginals(root: string, rawScope: unknown): C
     if (!same(read(dispatch), pinned)) fail(); capture(name + "/dispatch.json", dispatch);
     const original = CodexOriginalMethodRuntime.readRetained(header.runtime, expected.codex), originalRoot = join(header.runtime.root, expected.codex.operation_key);
     for (const file of ["start.json", "stdio.jsonl", "seal.json"]) if (existsSync(join(originalRoot, file))) capture(name + "/codex/" + file, join(originalRoot, file), TRANSPORT_MAX);
+    if(header.runtime.process_custody){const job=codexProcessLayout(header.runtime.root,expected.codex.operation_key,header.runtime.process_root).operationRoot;for(const file of ['header.json','config.json','started.json','ended.json'])if(existsSync(join(job,file)))capture(name+'/codex/process-job/'+file,join(job,file),65536);}
     if (!original) { if (outer.response || existsSync(receiptPath) || existsSync(responseAnchor)) fail(); continue; }
     call.original = original;
     let projected: AgentRuntimeModelResponse;

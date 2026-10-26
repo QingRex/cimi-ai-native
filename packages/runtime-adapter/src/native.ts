@@ -202,3 +202,11 @@ export async function buildWindowsFixedVolumeReader(root:string,readOptions:{rea
  if(readOptions.readOnly===true)return readRetainedAgentSandboxBuild(root,recipe);
  return retainAgentSandboxBuild(root,recipe,async build=>{const copied=join(build,'FixedVolumeQuota.cs'),output=join(build,'quota.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+output,copied]);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return output;});
 }
+
+export async function buildWindowsCodexProcessJob(root:string){
+ if(process.platform!=='win32'||process.arch!=='x64')throw new RuntimeAdapterError('windows_x64_codex_process_job_required');
+ assertNativeExecutable(join(root,'runtime-binary-originals','a'.repeat(64),'runtime.exe'));
+ const source=fileURLToPath(new URL('../native/CodexProcessJob.cs',import.meta.url)),frozen=bytesAt(source,1048576),compiler=resolve(process.env.SystemRoot??'C:\\Windows','Microsoft.NET','Framework64','v4.0.30319','csc.exe'),compilerDigest=digest(bytesAt(compiler)),options=['/nologo','/target:exe','/reference:System.Web.Extensions.dll'];
+ const recipe={format:'cimiloop/codex-process-job-build-recipe/1.0.0',platform:'windows_x64',compiler:{path:compiler,digest:compilerDigest},options,sources:[{name:'CodexProcessJob.cs',digest:digest(frozen)}]};
+ return retainAgentSandboxBuild(root,recipe,async build=>{const copied=join(build,'CodexProcessJob.cs'),output=join(build,'job.exe');writeFileSync(copied,frozen,{flag:'wx'});if(digest(bytesAt(compiler)).value!==compilerDigest.value)throw new RuntimeAdapterError('native_compiler_changed');await compileOriginalAgentSandbox(compiler,[...options,'/out:'+output,copied]);if(digest(bytesAt(compiler)).value!==compilerDigest.value||digest(bytesAt(copied)).value!==digest(frozen).value)throw new RuntimeAdapterError('agent_sandbox_build_recipe_changed');return output;});
+}

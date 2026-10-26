@@ -36,6 +36,28 @@ const ddl = [
 ];
 
 interface OriginalHostState{root:string;host:AgentStartHostIdentity;original:Identity;verify?:((root:string)=>void)|undefined}
+export interface AgentStartOriginReference {format:'cimiloop/agent-start-origin-reference/1.0.0';root:string;host:AgentStartHostIdentity;original:Identity}
+// A read reference selects immutable rows, never grants writes or execution.
+// Its caller must pin it in its original admission/configuration evidence.
+export function captureAgentStartOriginReference(ledger:AgentStartLedger):AgentStartOriginReference {
+ const state=originalHosts.get(ledger);if(!state)fail('agent_start_origin_unproven');
+ ledger.readExclusive('original_reference_guard','0'.repeat(64));
+ return structuredClone({format:'cimiloop/agent-start-origin-reference/1.0.0',root:state.root,host:state.host,original:state.original});
+}
+export function readAgentStartOriginalReference(raw:AgentStartOriginReference,names:string[]){
+ const value=structuredClone(raw);
+ if(!value||Object.keys(value).sort().join(',')!=='format,host,original,root'||value.format!=='cimiloop/agent-start-origin-reference/1.0.0'||!value.original||value.original.format!=='cimiloop/agent-start-origin/1.0.0')fail('agent_start_origin_unproven');
+ const root=assertOrdinaryPath(value.root),host=hostCopy(value.host),path=join(root,'starts.sqlite'),selected=new Set(names);
+ if(names.some(name=>!/^[a-z][a-z0-9_]{0,63}$/.test(name)))fail('agent_start_exclusive_identity_invalid');
+ identityAt(root,true);identityAt(path,false);const db=new DatabaseSync(path,{readOnly:true,timeout:30000});
+ try{db.exec('BEGIN');assertStoredOrigin(db,root,host,value.original);const seen=new Set<string>();
+  const result=db.prepare('SELECT id,basis_digest,body FROM tickets').all().flatMap(row=>{
+   const body=object(String(row.body)) as Record<string,unknown>;if(body?.format!=='cimiloop/host-exclusive-ticket/1.0.0'||typeof body.namespace!=='string'||!selected.has(body.namespace))return[];
+   if(Object.keys(body).sort().join(',')!=='basis,format,id,namespace'||typeof body.id!=='string'||!sha.test(body.id)||seen.has(body.namespace+'/'+body.id))fail('agent_start_exclusive_conflict');seen.add(body.namespace+'/'+body.id);
+   return[{namespace:body.namespace,id:body.id,ticket:{format:'cimiloop/agent-start-ticket/1.0.0' as const,identity_digest:digest(encoded(value.original)).value,ticket_id:String(row.id),basis_digest:String(row.basis_digest)},basis:structuredClone(body.basis)}];
+  });assertStoredOrigin(db,root,host,value.original);db.exec('COMMIT');return result;
+ }finally{db.close();}
+}
 export interface AgentStartOriginalTicketSeal{readonly format:'cimiloop/agent-start-original-ticket-seal/1.0.0';readonly identity_digest:string;readonly tickets:readonly {readonly ticket:AgentStartTicket;readonly basis:unknown}[]}
 const originalHosts=new WeakMap<object,OriginalHostState>(),originalTicketSeals=new WeakMap<object,{state:OriginalHostState;tickets:AgentStartTicket[];rows:{ticket:AgentStartTicket;basis:unknown}[]}>();
 function freezeOriginal<T>(raw:T):T{if(raw&&typeof raw==='object'){for(const value of Object.values(raw))freezeOriginal(value);Object.freeze(raw);}return raw;}
