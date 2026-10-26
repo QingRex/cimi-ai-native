@@ -73,6 +73,16 @@ export function assertFixedVolumeRuntimePath(value:unknown,expected:FixedVolumeR
  const state=storageState(value),proof=assertFixedVolumeRuntimeStorage(value,expected),extra=assertOriginalQuotaPath.call(state.quota,path);
  if(!same(proof.policy_ticket,extra.policy_ticket))fail();return assertFixedVolumeRuntimeStorage(value,expected);
 }
+// One bounded original-volume cut for the complete writable set. Recheck the
+// same quota and every ordinary path after the last OS observation; never cache
+// this result across effects or accept a caller-supplied volume proof.
+export function assertFixedVolumeRuntimePaths(value:unknown,expected:FixedVolumeRuntimeScope,rawPaths:readonly string[]){
+ if(!Array.isArray(rawPaths)||!rawPaths.length||rawPaths.length>32||rawPaths.some(path=>typeof path!=='string'))fail();
+ const paths=[...rawPaths],before=assertFixedVolumeRuntimeStorage(value,expected),canonical=paths.map(path=>assertOrdinaryPath(path));
+ if(canonical.some(path=>parse(path).root.toUpperCase()!==before.observation.volume_root))fail();
+ const after=assertFixedVolumeRuntimeStorage(value,expected);
+ if(!same(before,after)||!same(canonical,paths.map(path=>assertOrdinaryPath(path))))fail();return after;
+}
 // A capability created from the real quota and its independent original Host
 // ticket. A copied JSON proof or JavaScript constructor is never sufficient.
 export class FixedVolumeRuntimeStorage {

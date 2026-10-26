@@ -1,4 +1,5 @@
 import {assertCodexRuntimeLoginHome,type CodexRuntimeLoginHome} from './agent-codex-login-home-local.js';
+import {assertCodexRuntimeWritableStorage} from './agent-codex-writable-storage-local.js';
 import { AGENT_PARENT_SKILL_TOOLS, captureAgentParentSkillIpcPort, type AgentParentSkillIpcPort, originalTaskResultContract, runOpenCodeWorkspaceRuntime, withinAgentRuntimeTaskBudget, parseAgentModelOriginalEvidence, AgentRuntimeModelHost, type AgentRuntimeModelPort, createDedicatedAgentRuntimeModel, type DedicatedAgentAccountPort, type DedicatedModelConnection } from "@cimiloop/runtime-adapter";
 import { LocalAgentRuntimeStart, type AgentRuntimeLaunchInputs, type AgentRuntimeStartContext, type AgentRuntimeStartPort } from "./agent-runtime-start-local.js";
 import { LocalAgentWorkspaceToolService, type AgentWorkspaceToolLocalContext } from "./agent-workspace-tools-local.js";
@@ -59,9 +60,7 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
   const account=options.account,installed=account.installation,checks=options.checks,storage=options.storage;
   const guard=()=>{account.guard();checks.assertInstalledConfiguration(installed.node_binary,installed.checks);
    if(!storage)throw new LocalProjectError('Codex Runtime缺少原固定卷运行范围','CAPABILITY_UNAVAILABLE','conflict');
-   const project=options.local.store.getProject();if(!project)throw unavailable();
-   const proof=assertFixedVolumeRuntimeStorage(storage,{project_id:project.id,repository_path:options.local.location.repositoryPath,data_directory:options.local.location.dataDirectory});
-   if(proof.runtime_ticket.identity_digest!==installed.origin.identityDigest)throw unavailable();account.guard();assertCodexRuntimeLoginHome(options.loginHome,options.local,installed,storage);
+   if(!options.loginHome)throw new LocalProjectError('Codex原固定卷登录目录尚未绑定','CAPABILITY_UNAVAILABLE','conflict');assertCodexRuntimeWritableStorage(options.local,account,storage,options.loginHome);account.guard();
   };guard();const scope=originalAgentWorkspaceScope(options.local,options.runId);
   const authority=LocalAgentCodexModelAuthority.open(options.local,options.runId),check=authority.check.bind(authority),beforeEffect=authority.beforeEffect.bind(authority);
   const transport=new CodexOriginalMethodRuntime({root:join(options.local.location.dataDirectory,'codex-runtime-originals',scope.project_id,scope.run_id),command:{file:installed.binary,args:[],sha256:digest(bytesAt(installed.binary,512*1024*1024)).value},account_digest:installed.account_digest,disabled_mcp_servers:[...installed.disabled_mcp_servers],timeout_ms:180000,state_policy:'private_login_home/2.0.0',login_home:assertCodexRuntimeLoginHome(options.loginHome,options.local,installed,storage!),process_custody:'owner_job/1.0.0',process_root:join(options.local.location.dataDirectory,'codex-processes')},false,installed.origin);

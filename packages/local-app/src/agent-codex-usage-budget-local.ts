@@ -9,8 +9,16 @@ import type { LocalProject } from './project.js';
 function fail():never{throw new LocalProjectError('Codex原账户容量政策或预约不可核对；保留原账户和原操作，不自动重建','CAPABILITY_UNAVAILABLE','conflict');}
 function layout(installed:InstalledCodexAgentRuntime){const appData=process.env.LOCALAPPDATA;if(!appData||!isAbsolute(appData))fail();const account={account_digest:installed.account_digest,quota_account_digest:installed.quota_account_digest},id=digest(JSON.stringify(account)).value;return{account,id,root:join(appData!,'CimiLoop','codex-usage-accounts',id),registry:join(appData!,'CimiLoop','codex-usage-registry'),tools:join(appData!,'CimiLoop','codex-usage-tools')};}
 const attachment='codex_usage_account',intentNamespace='codex_usage_account_intent';
+const writableScopes=new WeakMap<object,readonly string[]>();
 export interface CodexUsageBudgetLimits{model_calls:number;output_tokens:number}
 export interface InstalledCodexUsageBudget{installation:InstalledCodexAgentRuntime;budget:CodexAgentUsageBudget;root:string;guard():void;release():void}
+export function codexUsageBudgetWritablePaths(account:InstalledCodexUsageBudget){const paths=writableScopes.get(account);if(!paths||account.root!==paths[0])fail();account.guard();return [...paths!];}
+// Keep the installed source identity when a Runtime adds a stricter lease
+// guard. A copied JSON object or an uninstalled account gets no path authority.
+export function borrowCodexUsageBudget(account:InstalledCodexUsageBudget,guard:()=>void):InstalledCodexUsageBudget{
+ const borrowed=Object.freeze({...account,guard(){const value:unknown=guard();if(value!==undefined){void Promise.resolve(value).catch(()=>{});fail();}account.guard();const after:unknown=guard();if(after!==undefined){void Promise.resolve(after).catch(()=>{});fail();}}});
+ const paths=writableScopes.get(account);if(paths)writableScopes.set(borrowed,paths);return borrowed;
+}
 
 // Explicit operator action. A retained intent whose account root is missing is
 // Unknown, not a fresh account. Query and model start never initialize accounts.
@@ -37,7 +45,8 @@ export async function openInstalledCodexUsageBudget(local:LocalProject):Promise<
   registry=await openWindowsAgentStartLedger(where.registry,where.tools);origin=await openWindowsAgentStartLedger(where.root,where.tools);const accountOrigin=origin,registryOrigin=registry,budget=CodexAgentUsageBudget.open(accountOrigin,where.account),state=budget.snapshot();
   const expectedIntent={format:'cimiloop/codex-usage-account-intent/1.0.0',root:where.root,registry_root:where.registry,account:where.account,limits:state.limits},globalRecord={format:'cimiloop/codex-usage-account-origin/1.0.0',root:where.root,host_identity_digest:accountOrigin.identityDigest,policy_digest:budget.policy_digest},record={...globalRecord,format:'cimiloop/codex-usage-account-attachment/1.0.0',intent:intent!.ticket,registry_identity_digest:registryOrigin.identityDigest,registry_ticket:registryOrigin.readExclusive(attachment,where.id)?.ticket};let released=false;
   const guard=()=>{if(released)fail();installation.guard();budget.assertAccount(where.account);if(!same(installation.origin.readExclusive(attachment,where.id)?.basis,record)||!same(installation.origin.readExclusive(intentNamespace,where.id)?.basis,expectedIntent)||!same(registryOrigin.readExclusive(attachment,where.id)?.basis,globalRecord)||!same(registryOrigin.readExclusive(intentNamespace,where.id)?.basis,expectedIntent))fail();};guard();
-  return Object.freeze({installation,budget,root:where.root,guard,release(){if(!released){released=true;accountOrigin.close();registryOrigin.close();installation.release();}}});
+  const lease=Object.freeze({installation,budget,root:where.root,guard,release(){if(!released){released=true;accountOrigin.close();registryOrigin.close();installation.release();}}});
+  writableScopes.set(lease,Object.freeze([where.root,where.registry,where.tools]));return lease;
  }catch{origin?.close();registry?.close();installed?.release();return fail();}
 }
 

@@ -1,3 +1,14 @@
+// Existing composition tests use PUBLIC storage projections. Keep their old
+// source/identity guards; the complete physical path intersection has its own tests.
+vi.mock('../src/agent-codex-writable-storage-local.js',async()=>{
+ const runtime=await import('@cimiloop/runtime-adapter'),home=await import('../src/agent-codex-login-home-local.js');
+ return{assertCodexRuntimeWritableStorage(local:any,account:any,storage:any,loginHome:any){
+  const project=local.store.getProject();if(!project)throw Error('PUBLIC project unavailable');
+  const proof=runtime.assertFixedVolumeRuntimeStorage(storage,{project_id:project.id,repository_path:local.location.repositoryPath,data_directory:local.location.dataDirectory});
+  if(proof.runtime_ticket.identity_digest!==account.installation.origin.identityDigest)throw Error('PUBLIC storage origin mismatch');
+  home.assertCodexRuntimeLoginHome(loginHome,local,account.installation,storage);return{proof,paths:[]};
+ }};
+});
 import {installConstructedNativeFamilySkill} from '../../../tests/fixtures/agent-run-family-skill.js';
 import type {OriginalNativeParentPreparation} from '../../../tests/fixtures/agent-run-family-native.js';
 import {constructedNamedTranscript} from '../../../tests/fixtures/named-method-transcript.js';

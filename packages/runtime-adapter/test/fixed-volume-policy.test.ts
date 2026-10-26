@@ -6,8 +6,8 @@ import { AgentStartLedger } from '../src/agent-start-ledger.js';
 import { digest } from '../src/files.js';
 import { FixedVolumeQuota, FixedVolumeRuntimeStorage,assertFixedVolumeRuntimeStorage,openWindowsFixedVolumeReader, parseFixedVolumeObservation } from '../src/fixed-volume-quota.js';
 import * as volumeModule from '../src/fixed-volume-quota.js';
-const seam=vi.hoisted(()=>({output:{} as Record<string,unknown>,builds:0}));
-vi.mock('node:child_process',()=>({execFileSync:()=>JSON.stringify(seam.output)}));
+const seam=vi.hoisted(()=>({output:{} as Record<string,unknown>,builds:0,reads:0,onRead:undefined as undefined|(()=>void)}));
+vi.mock('node:child_process',()=>({execFileSync:()=>{seam.reads++;seam.onRead?.();return JSON.stringify(seam.output);}}));
 vi.mock('../src/native.js',()=>({isolatedEnvironment:()=>({}),buildWindowsFixedVolumeReader:async(_root:string,options?:{readOnly?:true})=>{if(!options?.readOnly)seam.builds++;return{path:'PUBLIC-reader.exe',digest:{value:'PUBLIC'},original:{PUBLIC:true}};}}));
 vi.mock('../src/runtime-binary-originals.js',()=>({readRuntimeBinaryOriginal:()=>({PUBLIC:true})}));
 // Actual immutable SQLite, PUBLIC OS facts only. No positive physical quota or
@@ -55,6 +55,14 @@ describe.runIf(process.platform==='win32')('original fixed volume policy project
    expect(()=>assertPath(storage,scope,'D:/PUBLIC/outside')).toThrow();expect(()=>assertPath({...storage.read()},scope,root+'private-login')).toThrow();expect(()=>assertPath(storage,{...scope,project_id:'22222222-2222-7222-8222-222222222222'},root+'private-login')).toThrow();
    expect(origin.listExclusive('fixed_volume_runtime')).toHaveLength(1);seam.output.volume_serial='5';expect(()=>assertPath(storage,scope,root+'private-login')).toThrow();
   }finally{origin.close();}
+ });
+ it('checks the whole writable set with four fresh OS reads and rejects off-volume or substituted capabilities',async()=>{
+  const origin=ledger(),reader=await openWindowsFixedVolumeReader('PUBLIC');try{
+   const quota=FixedVolumeQuota.initialize(origin,reader,{image,volume_root:root,maximum_bytes:maximum}),scope={project_id:'11111111-1111-7111-8111-111111111111',repository_path:root+'project',data_directory:root+'project\\.git\\cimiloop'},storage=quota.bindRuntime(scope),paths=['host','tools','account','registry','account-tools','login'].map(name=>root+name),before=seam.reads;
+   expect(volumeModule.assertFixedVolumeRuntimePaths(storage,scope,paths)).toHaveProperty('runtime_ticket');expect(seam.reads-before).toBe(4);
+   expect(()=>volumeModule.assertFixedVolumeRuntimePaths(storage,scope,[...paths,'D:\\PUBLIC\\outside'])).toThrow();expect(()=>volumeModule.assertFixedVolumeRuntimePaths(storage.read(),scope,paths)).toThrow();
+   const started=seam.reads;seam.onRead=()=>{if(seam.reads===started+3)seam.output.volume_serial='5';};expect(()=>volumeModule.assertFixedVolumeRuntimePaths(storage,scope,paths)).toThrow();
+  }finally{seam.onRead=undefined;origin.close();}
  });
  it('never creates a runtime scope during read and refuses changing a previously bound project root',async()=>{
   const origin=ledger(),reader=await openWindowsFixedVolumeReader('PUBLIC');try{

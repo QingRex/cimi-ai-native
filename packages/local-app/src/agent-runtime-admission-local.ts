@@ -12,7 +12,7 @@ import { LocalAgentRuntimeComposition } from './agent-runtime-composition-local.
 import { LocalEvidenceVerifier } from './evidence-local.js';
 import { LocalProviderVerifier } from './providers-local.js';
 import { readOriginalAgentRunInputs } from './agent-workspace-tools-local.js';
-import type { InstalledCodexUsageBudget } from './agent-codex-usage-budget-local.js';
+import {borrowCodexUsageBudget,type InstalledCodexUsageBudget} from './agent-codex-usage-budget-local.js';
 import type {LocalAgentParentSkillResultPort} from './agent-parent-skill-results-local.js';
 import {LocalAgentRunResultVerifier} from './agent-runtime-observation-local.js';
 import {LocalAgentRuntimeSkills,type AgentRuntimeSkillInstallation} from './agent-runtime-skills-local.js';
@@ -121,7 +121,7 @@ export class LocalAgentRuntimeAdmission {
    const runtime=(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome)=>{
     guard();account.guard();if(account.installation.origin.identityDigest!==origin.identityDigest||parent&&!parentResults)throw unavailable();checks.assertInstalledConfiguration(account.installation.node_binary,account.installation.checks);
     const context=contextFor(runId);
-    const borrowed={...account,guard:()=>{guard();account.guard();guard();}};
+    const borrowed=borrowCodexUsageBudget(account,guard);
     if(skills){if(parent||!storage||!loginHome)throw unavailable();parent=skills.parentForRun(runId,{account:borrowed,storage,loginHome});}
     const result=LocalAgentRuntimeComposition.openCodex({local:context,runId,account:borrowed,custody,checks,...(storage?{storage}:{}),...(loginHome?{loginHome}:{}),...(parent?{parentSkill:parent}:{})});guard();return result;
    };

@@ -130,4 +130,4 @@ export {createBudgetedCodexAgentRuntimeModel} from './agent-codex-model.js';
 export {readCodexAgentRunUsage} from './agent-codex-model.js';
 export {readCodexAgentRunFamilyUsage} from './codex-run-family-usage.js';
 export {CodexAgentUsageBudget,type CodexUsageAccount,type CodexUsageBudgetPolicy,type CodexUsageReservation} from './codex-agent-usage-budget.js';
-export {openWindowsFixedVolumeReader,openHostFixedVolumeReader,parseFixedVolumeObservation,FixedVolumeQuota,FixedVolumeRuntimeStorage,assertFixedVolumeRuntimeStorage,assertFixedVolumeRuntimePath,type FixedVolumeRuntimeScope,type FixedVolumeObservation} from './fixed-volume-quota.js';
+export {openWindowsFixedVolumeReader,openHostFixedVolumeReader,parseFixedVolumeObservation,FixedVolumeQuota,FixedVolumeRuntimeStorage,assertFixedVolumeRuntimeStorage,assertFixedVolumeRuntimePath,assertFixedVolumeRuntimePaths,type FixedVolumeRuntimeScope,type FixedVolumeObservation} from './fixed-volume-quota.js';

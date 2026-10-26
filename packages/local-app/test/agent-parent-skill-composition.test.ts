@@ -1,3 +1,14 @@
+// Existing composition tests use PUBLIC storage projections. Keep their old
+// source/identity guards; the complete physical path intersection has its own tests.
+vi.mock('../src/agent-codex-writable-storage-local.js',async()=>{
+ const runtime=await import('@cimiloop/runtime-adapter'),home=await import('../src/agent-codex-login-home-local.js');
+ return{assertCodexRuntimeWritableStorage(local:any,account:any,storage:any,loginHome:any){
+  const project=local.store.getProject();if(!project)throw Error('PUBLIC project unavailable');
+  const proof=runtime.assertFixedVolumeRuntimeStorage(storage,{project_id:project.id,repository_path:local.location.repositoryPath,data_directory:local.location.dataDirectory});
+  if(proof.runtime_ticket.identity_digest!==account.installation.origin.identityDigest)throw Error('PUBLIC storage origin mismatch');
+  home.assertCodexRuntimeLoginHome(loginHome,local,account.installation,storage);return{proof,paths:[]};
+ }};
+});
 import type{CodexRuntimeLoginHome}from'../src/agent-codex-login-home-local.js';
 import{mkdtempSync,writeFileSync,readFileSync,existsSync}from'node:fs';
 import{tmpdir}from'node:os';import{dirname,join}from'node:path';import{describe,it,expect,vi,afterEach}from'vitest';
@@ -45,7 +56,7 @@ describe('shared production composition installs original parent Skill',()=>{
   expect(()=>LocalAgentRuntimeComposition.openCodex({local:f.local,custody:f.options.custody,checks:f.options.checks,runId:f.scope.run_id,account:{installation:{...installation,checks:[]},budget,root:f.dataDirectory,guard,release(){}}})).toThrow('Agent installed check configuration mismatch');
   const storage={} as FixedVolumeRuntimeStorage;seam.storage=storage;seam.storageOrigin=f.ledger.identityDigest;let volumeAvailable=true;seam.onStorage=()=>{if(!volumeAvailable)throw Error('PUBLIC original volume lost');};
   const account={installation,budget,root:f.dataDirectory,guard,release(){active=false;}};expect(()=>LocalAgentRuntimeComposition.openCodex({local:f.local,custody:f.options.custody,checks:f.options.checks,runId:f.scope.run_id,account,storage})).toThrow('登录目录');seam.home={} as CodexRuntimeLoginHome;const composition=LocalAgentRuntimeComposition.openCodex({local:f.local,custody:f.options.custody,checks:f.options.checks,runId:f.scope.run_id,account,storage,loginHome:seam.home,...(parent?{parentSkill:f.parentSkill}:{})}),staged=await composition.prepare(f.inputs);close.push(()=>staged.dispose());
-  expect(f.header()).toMatchObject({format:parent?'cimiloop/agent-runtime-model-originals/8.0.0':'cimiloop/agent-runtime-model-originals/7.0.0',original_evidence:{kind:'codex_login/1.0.0'}});expect(budget.snapshot().held.model_calls).toBe(0);
+  expect(f.header()).toMatchObject({format:parent?'cimiloop/agent-runtime-model-originals/9.0.0':'cimiloop/agent-runtime-model-originals/7.0.0',permitted:['cimi_read','cimi_check',...(parent?['cimi_run_skill']:[])],...(parent?{parent_skill_tools:'fixed_parent_skill/2.0.0'}:{}),original_evidence:{kind:'codex_login/1.0.0'}});expect(budget.snapshot().held.model_calls).toBe(0);
   volumeAvailable=false;await expect(staged.launch()).rejects.toThrow('PUBLIC original volume lost');expect(seam.launches).toHaveLength(0);volumeAvailable=true;
   active=false;await expect(staged.launch()).rejects.toThrow('PUBLIC account custody lost');expect(seam.launches).toHaveLength(0);
  });

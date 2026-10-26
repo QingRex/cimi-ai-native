@@ -6,6 +6,7 @@ import{AgentStartLedger,assertOrdinaryPath,bytesAt,digest,directory,initializeWi
 import type{LocalProject}from'./project.js';import{readInstance}from'./instance.js';import{LocalProjectError}from'./errors.js';
 
 const namespace='codex_runtime_installation',requestNamespace='codex_runtime_install_request';
+const writableScopes=new WeakMap<object,readonly string[]>();
 const sha=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
 function fail():never{throw new LocalProjectError('Codex账户与Runtime原安装尚不可核对；保留原登记和原操作','CAPABILITY_UNAVAILABLE','conflict');}
 const exact=(v:unknown,keys:string[]):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join(',')===[...keys].sort().join(',');
@@ -70,6 +71,7 @@ export async function installCodexAgentRuntime(local:LocalProject,raw:CodexAgent
 }
 
 export interface InstalledCodexAgentRuntime{origin:AgentStartLedger;root:string;binary:string;native_binary:string;node_binary:string;model:string;account_digest:string;quota_account_digest:string;output_profile:'bounded_2048/1.0.0';usage_policy:'require_ordinary_permission/1.0.0';disabled_mcp_servers:string[];checks:WorkspaceCheckTemplate[];installation_digest:string;guard():void;release():void}
+export function codexRuntimeInstallationWritablePaths(installed:InstalledCodexAgentRuntime){const paths=writableScopes.get(installed);if(!paths)fail();installed.guard();return [...paths!];}
 // Presence chooses the already installed provider only. It never grants
 // execution, repairs missing bytes, or opens login credentials.
 export function hasInstalledCodexAgentRuntime(local:LocalProject){return !!process.env.LOCALAPPDATA&&existsSync(layout(local).root);}
@@ -79,7 +81,8 @@ export async function openInstalledCodexAgentRuntime(local:LocalProject):Promise
  if(!process.env.LOCALAPPDATA)return undefined;const where=layout(local);if(!existsSync(where.root))return undefined;let origin:AgentStartLedger|undefined;
  try{const fixedBinding=binding(local);origin=await openWindowsAgentStartLedger(where.root,where.tools);const fixed=readInstalled(origin,local,where.root,fixedBinding),seal=requestDigest(fixed);let released=false;
   const guard=()=>{if(released||requestDigest(readInstalled(origin!,local,where.root,fixedBinding))!==seal)fail();};
-  return Object.freeze({origin,root:where.root,binary:join(where.root,'codex.exe'),native_binary:join(where.root,'opencode.exe'),node_binary:join(where.root,'node.exe'),model:fixed.request.model,account_digest:fixed.request.account_digest,quota_account_digest:fixed.request.quota_account_digest,output_profile:fixed.request.output_profile,usage_policy:fixed.request.usage_policy,disabled_mcp_servers:freezeJson([...fixed.request.disabled_mcp_servers]),checks:freezeJson(catalog(copy(parseGatewayJson(bytesAt(join(where.root,'checks.json'),65536).toString('utf8'),65536)) as WorkspaceCheckTemplate[])),installation_digest:seal,guard,release(){if(!released){released=true;origin!.close();}}});
+  const lease=Object.freeze({origin,root:where.root,binary:join(where.root,'codex.exe'),native_binary:join(where.root,'opencode.exe'),node_binary:join(where.root,'node.exe'),model:fixed.request.model,account_digest:fixed.request.account_digest,quota_account_digest:fixed.request.quota_account_digest,output_profile:fixed.request.output_profile,usage_policy:fixed.request.usage_policy,disabled_mcp_servers:freezeJson([...fixed.request.disabled_mcp_servers]),checks:freezeJson(catalog(copy(parseGatewayJson(bytesAt(join(where.root,'checks.json'),65536).toString('utf8'),65536)) as WorkspaceCheckTemplate[])),installation_digest:seal,guard,release(){if(!released){released=true;origin!.close();}}});
+  writableScopes.set(lease,Object.freeze([where.root,where.tools]));return lease;
  }catch{origin?.close();return fail();}
 }
 
