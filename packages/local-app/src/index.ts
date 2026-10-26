@@ -92,6 +92,7 @@ export type {LocalAgentParentSkillResultPort} from './agent-parent-skill-results
 export{LocalAgentParentSkillCandidate}from'./agent-parent-skill-candidate-local.js';
 
 export type {AgentRuntimeSkillInstallation} from './agent-runtime-skills-local.js';
+export {createCodexAgentRuntimeSkillInstallation} from './agent-codex-runtime-skills-local.js';
 export {readOriginalLocalCodexRunUsage} from './agent-codex-run-family-usage-local.js';
 export{executeLocalCommandAsync,installedProviderVerifier}from'./project.js';
 export{executeProviderCommandWithSources}from'./provider-command-sources-local.js';

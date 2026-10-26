@@ -20,13 +20,14 @@ import type { LocalAgentParentSkillHost } from './agent-parent-skill-host-local.
 import { captureLocalAgentParentSkillResults } from './agent-parent-skill-results-local.js';
 import { LocalProjectError } from './errors.js';
 import { agentPreparationWorkItem, humanAgentPreparation } from './agent-human-preparation-local.js';
+import {createCodexAgentRuntimeSkillInstallation} from './agent-codex-runtime-skills-local.js';
 
 type Reference=AgentContextManifest['host_admission_ref'];
 export interface AgentProductionCustodyPort extends AgentStartFullCustodyPort {
  verifyModel:NonNullable<AgentStartFullCustodyPort['verifyModel']>;
  verifyTool(project:Project,input:AgentRunToolAuthorityInput,original:Reference):Digest;
 }
-interface Options {origin:AgentStartLedger;nodeBinary:string;templates:WorkspaceCheckTemplate[];full:AgentProductionCustodyPort;guard?:()=>void;skills?:AgentRuntimeSkillInstallation}
+interface Options {origin:AgentStartLedger;nodeBinary:string;templates:WorkspaceCheckTemplate[];full:AgentProductionCustodyPort;guard?:()=>void;skills?:AgentRuntimeSkillInstallation;codexAccount?:InstalledCodexUsageBudget}
 const owners=new WeakMap<LocalProject['store'],object>();
 const active=new WeakMap<LocalProject['store'],{local:LocalProject;lease:LocalAgentRuntimeAdmission}>();
 const baseKeys=['admitContext','checkRunAuthority','checkToolAuthority','checkModelAuthority'] as const;
@@ -67,7 +68,8 @@ export class LocalAgentRuntimeAdmission {
   const owner={},store=local.store,kernel=local.kernel,location=structuredClone(local.location),instance=structuredClone(local.instance),agent=verifier.agent,full=raw.full,hostGuard=raw.guard,origin=raw.origin,nodeBinary=raw.nodeBinary,templates=structuredClone(raw.templates);
   const methods={admit:full?.admit,verifyLaunch:full?.verifyLaunch,verifyModel:full?.verifyModel,verifyTool:full?.verifyTool};
   if(Object.values(methods).some(method=>typeof method!=='function')||hostGuard!==undefined&&typeof hostGuard!=='function')throw unavailable();
-  const skillsInstallation=raw.skills,keys=[...baseKeys,...(skillsInstallation?['skills','readRunResult'] as const:[])];
+  const codexAccount=raw.codexAccount,codexAccountGuard=codexAccount?.guard,codexInstallation=codexAccount?.installation,codexBudget=codexAccount?.budget,
+   skillsInstallation=raw.skills??(codexAccount?createCodexAgentRuntimeSkillInstallation(local,codexAccount):undefined),keys=[...baseKeys,...(skillsInstallation?['skills','readRunResult'] as const:[])];
   const previousParent=Object.getOwnPropertyDescriptor(local,'agentParentSkillResults'),externalParents=local.agentParentSkillResults;let installedParent:PropertyDescriptor|undefined,parentInstalled=false,skills:LocalAgentRuntimeSkills|undefined;
   if(skillsInstallation&&(previousParent?!('value'in previousParent)||!previousParent.writable:!Object.isExtensible(local)))throw unavailable();
   const prior=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(agent,key)]));let closed=false,installed=false,lease:LocalAgentRuntimeAdmission|undefined;
@@ -76,6 +78,7 @@ export class LocalAgentRuntimeAdmission {
   const guard=()=>{
    if(closed||owners.get(store)!==owner||local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance)||installedRunVerifier(local)!==verifier||verifier.agent!==agent||Object.entries(methods).some(([key,method])=>Reflect.get(full,key)!==method))throw unavailable();
    if(hostGuard){const result:unknown=hostGuard();if(synchronous(result)!==undefined)throw unavailable();}
+   if(codexAccount){if(codexAccount.guard!==codexAccountGuard||codexAccount.installation!==codexInstallation||codexAccount.budget!==codexBudget||synchronous(codexAccount.guard())!==undefined||codexAccount.installation.origin.identityDigest!==origin.identityDigest||codexAccount.guard!==codexAccountGuard||codexAccount.installation!==codexInstallation||codexAccount.budget!==codexBudget)throw unavailable();}
    if(local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance)||installedRunVerifier(local)!==verifier||verifier.agent!==agent||owners.get(store)!==owner||Object.entries(methods).some(([key,method])=>Reflect.get(full,key)!==method))throw unavailable();
    skills?.assertInstallation();if(skillsInstallation&&!same(Object.getOwnPropertyDescriptor(local,'agentParentSkillResults'),parentInstalled?installedParent:previousParent))throw unavailable();
    for(const key of keys){const expected=installed?installedSlots.get(key):prior.get(key);if(!same(Object.getOwnPropertyDescriptor(agent,key),expected))throw unavailable();}
@@ -101,7 +104,7 @@ export class LocalAgentRuntimeAdmission {
    const modelAdmissions=new Map<string,LocalAgentModelAdmission>();
    const parentPort:LocalAgentParentSkillResultPort=Object.freeze({forOriginal(...[scope,writer]:Parameters<LocalAgentParentSkillResultPort['forOriginal']>){guard();const result=skills?.forOriginal(scope,writer)??externalParents?.forOriginal(scope,writer);guard();return result;}});
    const parentResults=captureLocalAgentParentSkillResults(skillsInstallation?parentPort:externalParents);
-   const modelFor=(scope:Parameters<NonNullable<typeof parentResults>>[0])=>{let model=modelAdmissions.get(scope.run_id);if(!model){model=new LocalAgentModelAdmission(location.repositoryPath,location.dataDirectory,custody,checks,parentResults?reader=>{const result=parentResults(scope,reader);if(!result)throw unavailable();return result;}:undefined);modelAdmissions.set(scope.run_id,model);}return model;};
+   const modelFor=(scope:Parameters<NonNullable<typeof parentResults>>[0])=>{let model=modelAdmissions.get(scope.run_id);if(!model){model=new LocalAgentModelAdmission(location.repositoryPath,location.dataDirectory,custody,checks,parentResults&&scope.skill_bindings.length?reader=>{const result=parentResults(scope,reader);if(!result)throw unavailable();return result;}:undefined);modelAdmissions.set(scope.run_id,model);}return model;};
    const contextFor=(runId:string)=>{const identified=readOriginalAgentRunInputs(local,runId),caller={kind:'agent' as const,project_id:identified.project.id,actor_id:identified.actor.id,provider_identity_ref:structuredClone(identified.actor.provider_identity_ref)},agentKernel=new CimiLoopKernel({store,caller,runVerifier:verifier,evidenceVerifier:new LocalEvidenceVerifier(location.repositoryPath,location.dataDirectory),providerVerifier:new LocalProviderVerifier(location.repositoryPath,location.dataDirectory)});return {location:structuredClone(location),store,caller,kernel:agentKernel};};
    if(skillsInstallation)skills=new LocalAgentRuntimeSkills({local,origin,installation:skillsInstallation,checks,custody,guard,context:contextFor,model:modelFor,verifyModel:custody.checkModelAuthority.bind(custody),parentResults:parentPort});
    Object.assign(assigned,{
@@ -120,9 +123,10 @@ export class LocalAgentRuntimeAdmission {
    installed=true;guard();
    const runtime=(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome)=>{
     guard();account.guard();if(account.installation.origin.identityDigest!==origin.identityDigest||parent&&!parentResults)throw unavailable();checks.assertInstalledConfiguration(account.installation.node_binary,account.installation.checks);
+    if(codexAccount&&(account.budget.policy_digest!==codexAccount.budget.policy_digest||account.installation.installation_digest!==codexAccount.installation.installation_digest||account.root!==codexAccount.root))throw unavailable();
     const context=contextFor(runId);
     const borrowed=borrowCodexUsageBudget(account,guard);
-    if(skills){if(parent||!storage||!loginHome)throw unavailable();parent=skills.parentForRun(runId,{account:borrowed,storage,loginHome});}
+    if(skills&&readOriginalAgentRunInputs(local,runId).scope.skill_bindings.length){if(parent||!storage||!loginHome)throw unavailable();parent=skills.parentForRun(runId,{account:borrowed,storage,loginHome});}
     const result=LocalAgentRuntimeComposition.openCodex({local:context,runId,account:borrowed,custody,checks,...(storage?{storage}:{}),...(loginHome?{loginHome}:{}),...(parent?{parentSkill:parent}:{})});guard();return result;
    };
    lease=new LocalAgentRuntimeAdmission(custody,checks,guard,release,runtime,humanAgentPreparation(local,verifier,origin,guard));active.set(store,{local,lease});return lease;

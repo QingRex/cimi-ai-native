@@ -1,6 +1,7 @@
 export * from "./canonical.js";
 export * from "./change.js";
 export * from "./kernel.js";
+export {currentAgentSkillMethodProblems,type CurrentAgentSkillMethodInput} from './agent-skill-method-current.js';
 export * from "./authorization.js";
 export { providerBindingIdentity } from "./providers.js";
 export type { EvidenceVerifierPort } from "./verification.js";

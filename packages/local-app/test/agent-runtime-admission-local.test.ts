@@ -14,6 +14,7 @@ import type {OriginalNativeParentPreparation} from '../../../tests/fixtures/agen
 import {constructedNamedTranscript} from '../../../tests/fixtures/named-method-transcript.js';
 import {createInternalId} from '@cimiloop/protocol/v2';
 import {readOriginalAgentRunInputs} from '../src/agent-workspace-tools-local.js';
+import {LocalCodexNamedMethodOriginals} from '../src/codex-named-method-originals-local.js';
 import { existsSync,mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -63,8 +64,58 @@ function installMethodFixture(f:ReturnType<typeof fixture>){
  Reflect.set(f.options,'skills',{methods,catalog(_project:unknown,record:{run_id:string}){const scope=readOriginalAgentRunInputs(f.local,record.run_id).scope,body={format:'cimiloop/agent-parent-skill-catalog/2.0.0',scope_digest:digest(JSON.stringify(scope)).value,entries:[{skill_alias:'review',method_name:'entry',input_alias:'current',skill_binding:scope.skill_bindings[0],input_recipe:{format:'cimiloop/original-run-candidate/1.0.0',goal:'Review complete original current source',spec:'PUBLIC fixture specification',standards:'PUBLIC fixture standards',required_check_ids:['query_test']}}]};return{...body,catalog_digest:digest(JSON.stringify(body)).value};}});
  return{s,methods,admits:()=>admits,setAvailable:(value:boolean)=>{available=value;}};
 }
+function catalogAccount(f:ReturnType<typeof fixture>){
+ const account_digest=digest('PUBLIC catalog account').value,quota_account_digest=digest('PUBLIC catalog quota').value,budget=CodexAgentUsageBudget.initialize(f.origin,{account_digest,quota_account_digest,model_calls:2,output_tokens:4096});let live=true;
+ const guard=()=>{if(!live)throw Error('PUBLIC account released');};
+ return{root:'PUBLIC catalog account',budget,installation:{origin:f.origin,root:'PUBLIC bundle',binary:process.execPath,native_binary:process.execPath,node_binary:process.execPath,model:'gpt-6-luna',account_digest,quota_account_digest,output_profile:'bounded_2048/1.0.0' as const,usage_policy:'require_ordinary_permission/1.0.0' as const,disabled_mcp_servers:[],checks:f.options.templates,installation_digest:digest('PUBLIC bundle').value,guard,release(){}},guard,release(){live=false;}} satisfies InstalledCodexUsageBudget;
+}
+function pinMethodEvidence(f:ReturnType<typeof fixture>,method:ReturnType<typeof installMethodFixture>){
+ // Real immutable content and SQLite relationships; Provider approval remains
+ // explicitly constructed. These samples have no actual Native/model originals.
+ const original=method.s.binding,oldEvidence=f.local.store.getProviderEvidence(original.probe_evidence_refs[0]!.id)!,oldEvaluation=f.local.store.getProviderEvaluation(original.approval!.evaluation_ref.id)!,ref=method.methods.evidence();
+ const evidence={...oldEvidence,id:createInternalId(),raw_result_ref:{...ref,resource_type:'provider_probe_snapshot' as const}},evaluation={...oldEvaluation,id:createInternalId(),evidence_refs:[{object_type:'evidence' as const,id:evidence.id}],input_digest:{algorithm:'sha256' as const,value:requestDigest({PUBLIC_constructed:evidence.id})}},binding={...original,id:createInternalId(),probe_evidence_refs:evaluation.evidence_refs,approval:{...original.approval!,evaluation_ref:{object_type:'evaluation' as const,id:evaluation.id},input_digest:evaluation.input_digest}};
+ f.local.store.transaction(tx=>{tx.insertProviderEvidence(evidence);tx.insertProviderEvaluation(evaluation);tx.insertProviderBinding(binding);});f.f.pins.skill_bindings=[{binding_ref:{object_type:'provider_binding',id:binding.id},digest:{algorithm:'sha256',value:requestDigest(binding)}}];return ref;
+}
 
 describe('shared original Runtime admission lease',()=>{
+ it('builds the installed review catalog from the original approved task and contract without caller recipes or business effects',async()=>{
+  const f=fixture(),method=installMethodFixture(f),evidence=pinMethodEvidence(f,method),lease=await f.open();try{
+   const prepared=flowSuccess(f.prepare());if(prepared.command_type!=='PrepareRunContext'||!('runtime_binding'in prepared.data.context))throw Error('Agent expected');
+   const reserved=flowSuccess(f.agent.execute(f.f.reserveCommand({...prepared.data,context:prepared.data.context})));if(reserved.command_type!=='ReserveRun'||reserved.data.record.run_kind!=='agent')throw Error('Run expected');
+   const create=Reflect.get(Public,'createCodexAgentRuntimeSkillInstallation');expect(create).toBeTypeOf('function');
+   const account=catalogAccount(f),budget=account.budget;
+   const project=f.local.store.getProject()!,record=reserved.data.record,installed=Reflect.apply(create,undefined,[f.local,account]) as Public.AgentRuntimeSkillInstallation,sequence=f.local.store.asOfEventSequence(),catalog=installed.catalog(project,record);
+   const definition=f.local.store.getExecutionRecord('task_definition',reserved.data.record.definition_ref.id)!,contract=f.local.store.getIntentRecord('contract_version',reserved.data.record.contract_ref.id)!;
+   expect(catalog).toMatchObject({format:'cimiloop/agent-parent-skill-catalog/2.0.0',entries:[{skill_alias:'review_1',method_name:'entry',input_alias:'current',skill_binding:f.f.pins.skill_bindings[0],input_recipe:{goal:definition.body.goal,spec:expect.stringContaining(contract.body.goal),standards:expect.stringContaining(definition.body.verification.method),required_check_ids:['query_test']}}]});
+   expect(catalog).toEqual(installed.catalog(project,record));expect(f.local.store.asOfEventSequence()).toBe(sequence);expect(budget.snapshot().held.model_calls).toBe(0);
+   expect(installed.methods.evidence(project,method.s.descriptor,'entry')).toEqual(evidence);
+   expect(()=>installed.methods.evidence(project,method.s.descriptor,'another_method')).toThrow();
+   account.release();expect(()=>installed.catalog(project,record)).toThrow('PUBLIC account released');
+  }finally{lease.release();}
+ });
+ it('rejects a changed original record rather than generating review instructions for another input',async()=>{
+  const f=fixture();installMethodFixture(f);const lease=await f.open();try{
+   const prepared=flowSuccess(f.prepare());if(prepared.command_type!=='PrepareRunContext'||!('runtime_binding'in prepared.data.context))throw Error('Agent expected');
+   const reserved=flowSuccess(f.agent.execute(f.f.reserveCommand({...prepared.data,context:prepared.data.context})));if(reserved.command_type!=='ReserveRun'||reserved.data.record.run_kind!=='agent')throw Error('Run expected');
+   const create=Reflect.get(Public,'createCodexAgentRuntimeSkillInstallation');expect(create).toBeTypeOf('function');
+   const project=f.local.store.getProject()!,record=reserved.data.record,account=catalogAccount(f),installed=Reflect.apply(create,undefined,[f.local,account]) as Public.AgentRuntimeSkillInstallation;
+   expect(()=>installed.catalog(project,{...record,operation_key:createInternalId()})).toThrow();
+   expect(()=>installed.catalog({...project,id:createInternalId()},record)).toThrow();
+  }finally{lease.release();}
+ });
+ it('installs concrete Skill defaults from the borrowed account and rejects constructed qualification before a model request',async()=>{
+  const f=fixture(),method=installMethodFixture(f);pinMethodEvidence(f,method);Reflect.deleteProperty(f.options,'skills');const account=catalogAccount(f);Reflect.set(f.options,'codexAccount',account);
+  const before=f.verifier.agent.skills,originals=vi.spyOn(LocalCodexNamedMethodOriginals.prototype,'verify'),lease=await f.open();try{
+   expect(f.verifier.agent.skills).not.toBe(before);expect(f.verifier.agent.skills?.prepare).toBeTypeOf('function');
+   const prepared=flowSuccess(f.prepare());if(prepared.command_type!=='PrepareRunContext'||!('runtime_binding'in prepared.data.context))throw Error('Agent expected');
+   const reserved=flowSuccess(f.agent.execute(f.f.reserveCommand({...prepared.data,context:prepared.data.context})));if(reserved.command_type!=='ReserveRun')throw Error('Run expected');
+   const sequence=f.local.store.asOfEventSequence();seam.account=account;seam.storage={} as FixedVolumeRuntimeStorage;seam.home={} as CodexRuntimeLoginHome;
+   await expect(Public.productionAgentRuntime(reserved.data.run.id,f.local)).rejects.toThrow();
+   expect(originals).toHaveBeenCalled();
+   expect(seam.launches).toEqual([]);expect(account.budget.snapshot().held.model_calls).toBe(0);expect(f.local.store.asOfEventSequence()).toBe(sequence);
+   expect(f.local.store.listRuntimeRecords('skill_invocation',f.f.change.id)).toEqual([]);expect(existsSync(join(f.local.location.dataDirectory,'codex-runtime-originals',f.local.instance.project_id,reserved.data.run.id))).toBe(false);
+  }finally{originals.mockRestore();lease.release();}expect(f.verifier.agent.skills).toBe(before);
+ });
  it('keeps the Human original in Host1, prepares as the fixed Agent and reserves only once across host reopening',async()=>{const f=fixture();let lease=await f.open();try{
   const original={...f.f.prepareCommand(),actor_id:f.f.actor.id,acting_role:'technical_owner',source:{origin:'human_ui',producer:'cimiloop-workbench',repository_path:f.local.location.repositoryPath},payload:{...f.f.pins,source_snapshot_ref:{object_type:'source_snapshot',id:f.f.capture().id}}};
   const input=(command:typeof original)=>({command_id:command.command_id,requested_at:command.requested_at,acting_role:command.acting_role,command_type:command.command_type,target:command.target,expected_revision:command.expected_revision,payload:command.payload});

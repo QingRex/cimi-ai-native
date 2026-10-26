@@ -27,3 +27,5 @@
 现有本机安装和共享账户目录实际仍可能在系统盘，本批不会把它们自动搬到配额卷。完整可用接入还须提供显式兼容的安装／共享账户放置或迁移，保留原账户容量、Unknown预约、Host身份与历史读取；不能通过换环境目录重新初始化预算来冒充迁移。真实固定卷prepared.json和同卷仓库外官方登录目录仍待提供；只填写镜像路径不替代这项实现。
 
 本批也不证明Windows管理的所有资源、历史容量策略、Runtime网络限制、费用结清、完整恢复或受控方法行为已经验收。默认完整Runtime准入与真实控制来源、首批隔离方法资格、默认Skill执行／Human/Matt澄清、普通Change到ReadyForDelivery、接入指南实际执行及最终Matt／Superpowers仍属于同一个未完成S1目标。按用户节奏在主链接齐后集中跑完整Native／真实模型／Skill／S1，本批不发真实模型请求、不push。
+
+后续接线见[已安装 Codex 账户与默认评审 Skill 组合](2026-10-27-cimiloop-installed-skill-composition.md)。
