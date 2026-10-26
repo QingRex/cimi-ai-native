@@ -310,8 +310,13 @@ const taskPanel = (task, data) => {
         output.replaceChildren(paragraph(response.operation.outcome==='unknown'?'原技能资源状态尚待核对，继续保留原运行与预算。':'已读取原技能资源事实；技能结果、费用和任务验收仍待独立核对。'),details('原技能资源核对',response));
       }catch(error){if(selected!==generation||!output.isConnected)return;output.replaceChildren(paragraph('原技能资源查询未确认，继续保留原运行与预算。'));throw error;}
     };
+    const capture=async()=>{const selected=++generation;try{
+      const response=await api('/api/skill-invocations/'+encodeURIComponent(invocation.id)+'/capture-original',{});if(selected!==generation||!output.isConnected)return;
+      if(response.starts_run!==false||response.provider_qualification_proven!==false||response.evidence?.samples?.length!==1||response.evidence.samples[0].invocation_key!==invocation.invocation_key)throw new Error('原技能证据身份不符。');
+      output.replaceChildren(paragraph('已保存原技能证据。证据仍须独立评估和批准，费用与任务验收继续单独核对。'),details('原技能证据',response));
+    }catch(error){if(selected!==generation||!output.isConnected)return;output.replaceChildren(paragraph('尚未取得完整原技能证据，保留原调用。'));throw error;}};
     result.append(panel(`技能调用 · ${invocation.request.method_name}`,paragraph(`已记录 ${observations.length} 项观测。费用在父运行中累计核对。`),
-      node('div',{class:'actions'},button('查询原技能调用',()=>observe('')),button('采集原技能资料',()=>observe('collect')),
+      node('div',{class:'actions'},button('查询原技能调用',()=>observe('')),button('采集原技能资料',()=>observe('collect')),button('保存原技能证据',capture),
         ...(originalRun?.cancel_requested?[button('重试原技能取消',()=>observe('cancel')),button('回收原技能资源',()=>observe('recover'))]:[])),
       originalRun?form(values=>mutation('CancelRun',{reason:values.reason},{object_type:'run',id:originalRun.id},originalRun.revision,'technical_owner',false,false,false,invocation.id),input('reason','停止原技能调用原因',{required:true}),submit('请求停止原技能调用')):null,
       paragraph('停止请求由项目记录确认，再传给同一原技能操作。资源已停止不代表技能已完成或费用已结清。'),output,details('固定调用与结果',{invocation,observations})));

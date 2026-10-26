@@ -93,7 +93,7 @@ export class LocalNamedSkillMethodAssessment {
       if (plan.request.input.purpose !== evidence.purpose) throw new Error("Named method purpose mismatch");
       const read=()=>{
         const body=this.json(this.bytes(sample.transcript_ref,4*1024*1024),4*1024*1024);
-        if(body&&typeof body==='object'&&'format'in body&&body.format==='cimiloop/native-named-method-sample/1.0.0'){
+        if(body&&typeof body==='object'&&'format'in body&&['cimiloop/native-named-method-sample/1.0.0','cimiloop/native-named-method-sample/2.0.0'].includes(String(body.format))){
           const native=this.native.read(project,descriptor,evidence,sample,plan);return{replay:native,effects:native.effects};
         }
         const replay=replayFixedMethodTranscript(plan.profile,plan.files,body,plan.prompt);

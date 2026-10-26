@@ -4,7 +4,8 @@ import {readHumanOriginalAgentRunInputs,type AgentRuntimeControlPort} from './ag
 import {readOriginalSkillInvocationMetadataFromReader} from './skill-invocation-execution-local.js';
 import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
 import {executeLocalCommand,type LocalProject} from './project.js';import {LocalProjectError} from './errors.js';
-export interface SkillRuntimeControlLease {custody:LocalSkillInvocationStartCustody;release():void|Promise<void>}
+import {productionSkillRuntimeOriginals} from './skill-runtime-originals-local.js';
+export interface SkillRuntimeControlLease {custody:LocalSkillInvocationStartCustody;guard?():void;release():void|Promise<void>}
 // Trusted original custody only. No staging/launch/model/account factory exists.
 export type HumanSkillRuntimeFactory=(invocationId:string,local:LocalProject)=>SkillRuntimeControlLease|Promise<SkillRuntimeControlLease>;
 const defaults:AgentRuntimeControlPort={query:queryAgentRuntimeOperation,collect:collectAgentRuntimeOperation,requestCancellation:requestAgentRuntimeCancellation,recover:recoverAgentRuntimeOperation};
@@ -15,7 +16,7 @@ const fail=()=>new LocalProjectError('原 Skill 身份或宿主登记不可核�
 // Kernel owns all business mutations. Resource observations never generate a
 // domain result, a bill, a new Run or an implicit never-started proof.
 export class LocalHumanSkillInvocationControl {
- constructor(private readonly local:LocalProject,private readonly factory?:HumanSkillRuntimeFactory,private readonly port:AgentRuntimeControlPort=defaults){}
+ constructor(private readonly local:LocalProject,private readonly factory:HumanSkillRuntimeFactory=productionSkillRuntimeOriginals,private readonly port:AgentRuntimeControlPort=defaults){}
  private original(id:string){
   const original=this.local.store.readSnapshot(reader=>readOriginalSkillInvocationMetadataFromReader(this.local,reader,id)).value;
   const human=readHumanOriginalAgentRunInputs(this.local,original.invocation.run_ref.id);
@@ -33,7 +34,7 @@ export class LocalHumanSkillInvocationControl {
   try{
    if(this.factory){const lease=await this.factory(id,this.local);if(typeof lease?.release!=='function')throw fail();release=lease.release.bind(lease);fresh();
     if(!(lease.custody instanceof LocalSkillInvocationStartCustody))throw fail();
-    const read=()=>{fresh();const state=physical?lease.custody.closeUndispatched(original.project,original.invocation,original.request.parent,original.record_id,fresh):lease.custody.inspect(original.project,original.invocation,original.request.parent,original.record_id);if(state.state==='closed')return {closure:state.closure};if(!('material_digest'in state))throw fail();
+    const read=()=>{fresh();if(lease.guard)synchronous(lease.guard.bind(lease));fresh();const state=physical?lease.custody.closeUndispatched(original.project,original.invocation,original.request.parent,original.record_id,fresh):lease.custody.inspect(original.project,original.invocation,original.request.parent,original.record_id);if(state.state==='closed')return {closure:state.closure};if(!('material_digest'in state))throw fail();
      const relation=lease.custody.accountScope(original.project,original.invocation,original.request.parent,original.record_id);
      return {root:join(this.local.location.dataDirectory,'skill-runtime-originals',original.project.id,original.invocation.invocation_key),scope:relation.child};};
     const selected=read();fresh();let result:unknown;

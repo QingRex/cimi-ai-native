@@ -34,7 +34,7 @@ export class LocalCodexNamedMethodOriginals implements NamedSkillMethodOriginals
   let current:{origin:'external_model'|'public_fixture';native_job_observed:boolean}|undefined;
   const binaryDigest=digestRuntimeBinaryFile(this.basis.binary);
   for(const sample of evidence.samples){
-   const plan=this.samplesPlan(project,input,sample),replay=this.samples.read(project,descriptor,evidence,sample,plan),original=readCodexAgentModelOriginals(this.originalsRoot,replay.marker.scope);
+   const plan=this.samplesPlan(project,input,sample),replay=this.samples.read(project,descriptor,evidence,sample,plan),original=readCodexAgentModelOriginals(replay.originalsRoot,replay.marker.scope);
    if(sessions.has(replay.effects.session_id)||profiles.has(replay.effects.native_profile))fail();sessions.add(replay.effects.session_id);profiles.add(replay.effects.native_profile);
    if(original.status!=='Observed'||!original.original_requirement_pinned||!['external_model','public_fixture'].includes(original.origin??'')||original.scope_digest!==digest(JSON.stringify(replay.marker.scope)).value||original.output_profile!=='bounded_2048/1.0.0'||original.usage_policy!=='require_ordinary_permission/1.0.0'||original.quota_account_digest!==this.basis.quota_account_digest||!original.calls.length||original.origin==='external_model'&&original.real_model_turns!==original.calls.length)fail();
    const headers=original.artifacts.filter(a=>a.name==='header.json');if(headers.length!==1)fail();

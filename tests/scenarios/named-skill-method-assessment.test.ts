@@ -9,10 +9,10 @@ import * as application from '../../packages/local-app/src/index.js';
 const nativeSamples=vi.hoisted(()=>({entries:new Map<string,any>()}));
 vi.mock('../../packages/runtime-adapter/dist/index.js',async load=>{
  const actual=await load<typeof import('../../packages/runtime-adapter/dist/index.js')>();
- const entry=(scope:any)=>{const value=nativeSamples.entries.get(scope.operation_key);if(!value)throw Error('PUBLIC Native original missing');return value;};
- return {...actual,readAgentRuntimeOriginalIdentity:(_root:string,scope:any)=>structuredClone(entry(scope).identity),
-  readAgentRuntimeNamedMethodResult:(_root:string,scope:any,plan:any)=>{const value=entry(scope);if(JSON.stringify(plan)!==JSON.stringify({profile:value.plan.profile,files:value.plan.files}))throw Error('PUBLIC original fixed plan changed');return structuredClone(value.result);},
-  readCodexAgentModelOriginals:(_root:string,scope:any)=>structuredClone(entry(scope).codex)};
+ const entry=(root:string,scope:any)=>{const value=nativeSamples.entries.get(scope.operation_key);if(!value||value.originalsRoot!==root)throw Error('PUBLIC Native original missing at selected root');return value;};
+ return {...actual,readAgentRuntimeOriginalIdentity:(root:string,scope:any)=>structuredClone(entry(root,scope).identity),
+  readAgentRuntimeNamedMethodResult:(root:string,scope:any,plan:any)=>{const value=entry(root,scope);if(JSON.stringify(plan)!==JSON.stringify({profile:value.plan.profile,files:value.plan.files}))throw Error('PUBLIC original fixed plan changed');return structuredClone(value.result);},
+  readCodexAgentModelOriginals:(root:string,scope:any)=>structuredClone(entry(root,scope).codex)};
 });
 import { createInternalId, compileValidator, NamedSkillMethodAssessmentSchema, type SkillImportSpec, type NamedSkillMethodEvidence,
   type NamedSkillMethodSample, type ProviderDescriptor, type AgentRunRecord, type AgentContextManifest, type ProviderBinding } from "../../packages/protocol/src/v2/index.js";
@@ -34,7 +34,7 @@ const artifact = (value: unknown, version: string) => ({ ...store(value, "provid
 const evidenceRef = () => store(evidence, "named_skill_method_evidence");
 // PUBLIC projections isolate the new bridge. Imported bytes/real Git/assessment
 // are exercised; Native/model custody is mocked and is never S1 evidence.
-const nativeSample=()=>{
+const nativeSample=(child=false)=>{
  const input_ref=store({purpose:'clarification',requirement:'Fixed',background:'PUBLIC Native sample',constraints:[]},'skill_method_input'),invocation_key=createInternalId();
  const plan=assessor.inputs.read(f.project,descriptor,{invocation_key,method_name:'entry',input_ref});
  const scope={project_id:f.project.id,run_id:createInternalId(),operation_key:invocation_key,executor_actor_id:createInternalId(),context_digest:digest('PUBLIC context'),runtime_binding:evidence.runtime_binding,skill_bindings:[],host_admission_ref:{...store({PUBLIC:true},'agent_host_admission')}};
@@ -45,10 +45,10 @@ const nativeSample=()=>{
  const artifacts=Object.entries(values).map(([name,value])=>{const bytes=Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value));const file=join(path,name);writeFileSync(file,bytes);return{name,path:file,digest:requestDigest('unused')};});
  for(const item of artifacts){const bytes=readFileSync(item.path);item.digest=applicationDigest(bytes);}
  const output={purpose:'clarification',questions:['Which business requirement?'],unresolved:['PUBLIC harness']};
- const value:any={plan,identity:{scope,operation:path,identity_digest:digest('PUBLIC original '+invocation_key),input:{prompt:JSON.stringify({format:'cimiloop/agent-runtime-named-method-packet/1.0.0',method_profile:plan.profile,instructions:plan.prompt},null,1)}},result:{status:'Observed',method_result_reverified:true,output,output_digest:{algorithm:'sha256',value:applicationDigest(Buffer.from(JSON.stringify(output)))},artifacts},codex:{status:'NotRegistered',calls:[],artifacts:[]}};
+ const value:any={plan,originalsRoot:child?join(root,'skill-runtime-originals',f.project.id,invocation_key):root,identity:{scope,operation:path,identity_digest:digest('PUBLIC original '+invocation_key),input:{prompt:JSON.stringify({format:'cimiloop/agent-runtime-named-method-packet/1.0.0',method_profile:plan.profile,instructions:plan.prompt},null,1)}},result:{status:'Observed',method_result_reverified:true,output,output_digest:{algorithm:'sha256',value:applicationDigest(Buffer.from(JSON.stringify(output)))},artifacts},codex:{status:'NotRegistered',calls:[],artifacts:[]}};
  nativeSamples.entries.set(invocation_key,value);
  const Class=Reflect.get(application,'LocalNativeNamedMethodSamples');expect(Class).toBeTypeOf('function');const reader=new Class(root,root);
- return{reader,value,scope,plan,input_ref,invocation_key,capture:()=>reader.capture(f.project,descriptor,{invocation_key,method_name:'entry',input_ref},scope)};
+ return{reader,value,scope,plan,input_ref,invocation_key,capture:()=>child?reader.captureChild(f.project,descriptor,{invocation_key,method_name:'entry',input_ref},scope):reader.capture(f.project,descriptor,{invocation_key,method_name:'entry',input_ref},scope)};
 };
 const sample = (purpose: "clarification" | "review" = "clarification"): NamedSkillMethodSample => {
   const input = purpose === "clarification" ? { purpose, requirement: "Fixed", background: "Constructed review", constraints: [] } :
@@ -121,8 +121,8 @@ it('rejects refreshed original artifact bytes even when the imported output and 
  writeFileSync(artifact.path,JSON.stringify(JSON.parse(readFileSync(artifact.path,'utf8')),null,2));artifact.digest=applicationDigest(readFileSync(artifact.path));
  expect(()=>assessor.evaluate(f.project,descriptor,evidenceRef())).toThrow();
 });
-const codexNativeOriginals=()=>{
- const first=nativeSample(),second=nativeSample(),binary=join(root,'PUBLIC-codex.exe');writeFileSync(binary,'PUBLIC executable, never launched');
+const codexNativeOriginals=(child=false)=>{
+ const first=nativeSample(child),second=nativeSample(child),binary=join(root,'PUBLIC-codex.exe');writeFileSync(binary,'PUBLIC executable, never launched');
  const installed:any={binary,model:'gpt-6-luna',account_digest:'1'.repeat(64),quota_account_digest:'2'.repeat(64),disabled_mcp_servers:[],installation_digest:'3'.repeat(64),guard:()=>{}};
  for(const item of [first,second]){
   const header={model:installed.model,account_digest:installed.account_digest,quota_account_digest:installed.quota_account_digest,runtime:{account_digest:installed.account_digest,command:{file:binary,args:[],sha256:applicationDigest(readFileSync(binary))},disabled_mcp_servers:[]}};
@@ -137,6 +137,22 @@ it('reads pinned Codex/Native method originals while keeping bills, current perm
  expect(result.outcome).toBe('NEED_MORE_EVIDENCE');expect(result.assessments).toContainEqual({key:'sample_0_real_model',result:'passed'});expect(result.assessments).toContainEqual({key:'sample_1_independent_context',result:'passed'});
  for(const key of ['cost_accounting_and_cap','permission_intersection','behavior','invocation_recovery'])expect(result.assessments).toContainEqual({key:'sample_0_'+key,result:'inconclusive'});
  expect(f.store.asOfEventSequence()).toBe(before);
+});
+it('reads child Native and Codex originals from their fixed operation roots through the default assessor',()=>{
+ const {first,second,port}=codexNativeOriginals(true),before=f.store.asOfEventSequence();
+ const marker=JSON.parse(assessor.inputs.packages.content.readContent(evidence.samples[0]!.transcript_ref).toString());
+ expect(marker).toMatchObject({format:'cimiloop/native-named-method-sample/2.0.0',layout:'skill_invocation',scope:first.scope});expect(marker).not.toHaveProperty('root');
+ const result=assessor.evaluate(f.project,descriptor,evidenceRef(),'controlled_execution',port);
+ expect(result.outcome).toBe('NEED_MORE_EVIDENCE');expect(result.assessments).toContainEqual({key:'sample_1_real_model',result:'passed'});
+ expect(first.value.originalsRoot).not.toBe(second.value.originalsRoot);expect(f.store.asOfEventSequence()).toBe(before);
+});
+it('does not relocate legacy samples to a child directory when the old root is missing',()=>{
+ const original=nativeSample(),captured=original.capture();evidence.samples=[captured];original.value.originalsRoot=join(root,'skill-runtime-originals',f.project.id,original.invocation_key);
+ expect(()=>assessor.evaluate(f.project,descriptor,evidenceRef())).toThrow();
+});
+it('rejects a child marker containing a caller-selected root or substituted layout',()=>{
+ const original=nativeSample(true),captured=original.capture(),marker=JSON.parse(assessor.inputs.packages.content.readContent(captured.transcript_ref).toString());
+ for(const changed of [{...marker,root:root},{...marker,layout:'../other'}]){evidence.samples=[{...captured,transcript_ref:artifact(changed,'child-marker.json')}];expect(()=>assessor.evaluate(f.project,descriptor,evidenceRef())).toThrow();}
 });
 it.each(['account','binary','context','quota','guard'] as const)('rejects original Codex %s mismatch before issuing method qualification',kind=>{
  const {first,second,installed,port}=codexNativeOriginals();

@@ -1,4 +1,4 @@
-import {LocalHumanSkillInvocationControl,type HumanSkillRuntimeFactory,LocalHumanSkillInvocationReconciliation,type HumanSkillReconciliationFactory} from '@cimiloop/local-app';
+import {LocalHumanNamedSkillCapture,LocalHumanSkillInvocationControl,type HumanSkillRuntimeFactory,LocalHumanSkillInvocationReconciliation,type HumanSkillReconciliationFactory} from '@cimiloop/local-app';
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -65,6 +65,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   const clarification = new LocalPrePlanClarification(context, matt);
   const skillReconciliation=new LocalHumanSkillInvocationReconciliation(context,options.skillReconciliationForInvocation);
   const skillRuntime=new LocalHumanSkillInvocationControl(context,options.skillRuntimeForInvocation);
+  const skillCapture=new LocalHumanNamedSkillCapture(context,options.skillRuntimeForInvocation);
   const agentRuntime = new LocalAgentRuntimeControl(context);
   const agentObservation = new LocalAgentRuntimeObservation(context);
   const runtimeForRun=options.agentRuntimeForRun??productionAgentRuntime;
@@ -177,6 +178,13 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         const result = await awaitCurrentSession(async () => clarificationMatch[2] ? clarification.advanceAsync(changeId, decodeURIComponent(clarificationMatch[2]), body, guard) : clarification.begin(changeId, body), guard);
         const commandResult = "command_result" in result ? result.command_result as ReturnType<typeof executeLocalCommand> | undefined : undefined;
         send(response, commandResult && "code" in commandResult ? statusFor(commandResult) : 200, result); return;
+      }
+      const skillCaptureMatch=/^\/api\/skill-invocations\/([^/]{1,200})\/capture-original$/.exec(url.pathname);
+      if(skillCaptureMatch&&request.method==='POST'){
+        const guard=()=>{if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,true);};
+        guard();const body=await readBody(request);guard();
+        if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).length)throw new HttpFailure(400,'INVALID_COMMAND');
+        const result=await awaitCurrentSession(()=>skillCapture.capture([decodeURIComponent(skillCaptureMatch[1]!)],guard),guard);send(response,200,result);return;
       }
       const skillControlMatch=/^\/api\/skill-invocations\/([^/]{1,200})(?:\/(stop|cancel|recover|collect))?$/.exec(url.pathname);
       if(skillControlMatch){
