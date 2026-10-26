@@ -6,9 +6,11 @@ import type { ProviderReader, StoreTransaction } from "@cimiloop/store";
 import { resolveAssignment } from "./authorization.js";
 import { contentDigest, IntentFailure } from "./intent.js";
 import { assessSkillProvider, readSkillSample, skillRuntimeBinding, skillAssessmentRule } from "./skill-assessment.js";
+import {readRuntimeControlEvidence,runtimeControlKeys,type RuntimeControlEvidencePort} from './runtime-control-evidence.js';
+export type {RuntimeControlEvidencePort,RuntimeControlEvidence,RuntimeControlKey} from './runtime-control-evidence.js';
 
 // Trusted host IO only. Commands cannot supply verified flags or install a port.
-export interface ProviderVerifierPort {
+export interface ProviderVerifierPort extends Partial<RuntimeControlEvidencePort> {
   readProbe(project: Project, ref: ProviderProbeReference): unknown;
   readArtifact(project: Project, ref: ExternalReference): Uint8Array;
   sourceDigest(project: Project, descriptor: ProviderDescriptor): Digest;
@@ -22,6 +24,8 @@ const same = (a: unknown, b: unknown) => contentDigest(a).value === contentDiges
 const parseProbe = compileValidator<RuntimeProbeResult>(RuntimeProbeResultSchema);
 const text = (bytes: Uint8Array): string => Buffer.from(bytes).toString("utf8");
 const rule = "provider-assessment/1.0.0" as const;
+const controlRule = "runtime-control-evidence/1.0.0" as const;
+const usesControlEvidence=(evaluation:ProviderEvaluation)=>evaluation.assessments.some(check=>check.key===controlRule);
 const allRefs = (probe: RuntimeProbeResult) => [...probe.evidence_refs, ...probe.boundaries.flatMap(b => b.raw_refs), ...probe.model_operations.flatMap(o => [...o.raw_refs, ...o.outputs])];
 const readSample = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence) => {
   const probe = parseProbe(port.readProbe(project, evidence.raw_result_ref));
@@ -79,10 +83,10 @@ const verifySkillRuntime = (port: ProviderVerifierPort, reader: ProviderReader, 
   const descriptor = reader.getProviderDescriptor(binding.descriptor_ref.id)!, evaluation = reader.getProviderEvaluation(binding.approval!.evaluation_ref.id)!;
   const evidence = evaluation.evidence_refs.map(ref => reader.getProviderEvidence(ref.id));
   if (evidence.some(value => !value)) throw new Error("Runtime probe evidence missing");
-  const computed = assessProvider(port, project, descriptor, evidence as ProviderEvidence[], evaluation.profile, reader);
+  const computed = assessProvider(port, project, descriptor, evidence as ProviderEvidence[], evaluation.profile, reader, usesControlEvidence(evaluation)?controlRule:rule);
   if (!same(computed, { input_digest: evaluation.input_digest, outcome: evaluation.outcome, reasons: evaluation.reasons, assessments: evaluation.assessments })) throw new Error("Runtime qualification changed");
 };
-export const assessProvider = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence[], profile: ProviderEvaluation["profile"], reader?: ProviderReader): Pick<ProviderEvaluation, "input_digest" | "outcome" | "reasons" | "assessments"> => {
+export const assessProvider = (port: ProviderVerifierPort, project: Project, descriptor: ProviderDescriptor, evidence: ProviderEvidence[], profile: ProviderEvaluation["profile"], reader?: ProviderReader, ruleVersion:typeof rule|typeof controlRule=rule): Pick<ProviderEvaluation, "input_digest" | "outcome" | "reasons" | "assessments"> => {
   if (descriptor.provider_kind === "skill") {
     if (!reader) throw new Error("Native Skill binding reader required");
     return assessSkillProvider(port, reader, project, descriptor, evidence, profile, binding => verifySkillRuntime(port, reader, project, binding));
@@ -92,21 +96,23 @@ export const assessProvider = (port: ProviderVerifierPort, project: Project, des
   for (const key of ["version", "boundary_write", "boundary_read", "real_edit", "independent_review"]) checks.push({ key,
     result: samples.some(s => s.values[key] === false) ? "refutes" : samples.some(s => s.values[key] === undefined) ? "inconclusive" : "supports",
     evidence_refs: evidence.map(e => ({ object_type: "evidence", id: e.id })) });
+  let control:ReturnType<typeof readRuntimeControlEvidence>|undefined;
+  if(ruleVersion===controlRule&&profile!=='controlled_execution')throw Error('Controlled Runtime rule requires controlled_execution');
   if (profile === "controlled_execution") {
-    // These boundaries have no trusted observation format yet. Clearing a gap in
-    // a JSON report, or an ALLOW task evaluation, cannot make them verified.
-    for (const key of ["network_host_limits", "cost_accounting_and_cap", "disk_limit", "crash_recovery"]) checks.push({ key, result: "inconclusive", evidence_refs: [] });
+    if(ruleVersion===controlRule){control=readRuntimeControlEvidence(port,project,descriptor,evidence);checks.push(...control.checks,{key:controlRule,result:'supports',evidence_refs:evidence.map(e=>({object_type:'evidence',id:e.id}))});}
+    else for (const key of runtimeControlKeys) checks.push({ key, result: "inconclusive", evidence_refs: [] });
   }
   const outcome = checks.some(c => c.result === "refutes") ? "DENY" : checks.some(c => c.result === "inconclusive") ? "NEED_MORE_EVIDENCE" : "ALLOW";
   const reasons = checks.filter(c => c.result !== "supports").map(c => c.key);
   const input_digest = contentDigest({ rule_version: rule, profile, descriptor_digest: contentDigest(descriptor),
-    evidence: evidence.map(e => ({ id: e.id, digest: contentDigest(e) })), assessments: checks });
+    evidence: evidence.map(e => ({ id: e.id, digest: contentDigest(e) })), assessments: checks,...(control?{control_rule:controlRule,control_evidence:control.basis}:{}) });
   return { input_digest, outcome, reasons, assessments: checks } as Pick<ProviderEvaluation, "input_digest" | "outcome" | "reasons" | "assessments">;
 };
 export const providerEvaluationStatus = (reader: ProviderReader, descriptor: ProviderDescriptor, evaluation: ProviderEvaluation | undefined): string[] => {
   if (!evaluation || evaluation.purpose !== "provider_assessment" || evaluation.project_id !== descriptor.project_id ||
     evaluation.descriptor_ref.id !== descriptor.id || !same(evaluation.descriptor_digest, contentDigest(descriptor))) return ["PROVIDER_EVALUATION_NOT_FOUND_OR_STALE"];
   if (evaluation.rule_version !== (descriptor.provider_kind === "skill" ? skillAssessmentRule : rule)) return ["PROVIDER_ASSESSMENT_RULE_UNSUPPORTED"];
+  if(usesControlEvidence(evaluation)&&(descriptor.provider_kind!=='runtime'||evaluation.profile!=='controlled_execution'))return ['PROVIDER_ASSESSMENT_PROFILE_MISMATCH'];
   if (evaluation.evidence_refs.some(ref => { const e = reader.getProviderEvidence(ref.id); return !e || e.project_id !== descriptor.project_id || e.descriptor_ref.id !== descriptor.id || !same(e.descriptor_digest, contentDigest(descriptor)); })) return ["PROVIDER_PROBE_EVIDENCE_NOT_FOUND_OR_STALE"];
   return evaluation.outcome === "ALLOW" ? [] : ["PROVIDER_NOT_EVALUATED", ...evaluation.reasons];
 };
@@ -143,8 +149,14 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
     const records = evidence as ProviderEvidence[];
     const profile = command.command_type === "EvaluateProvider" ? command.payload.profile : evaluation?.profile;
     if (!profile) return fail("PROVIDER_NOT_EVALUATED", "未找到正式 Provider 评测");
+    const runtimeRule=descriptor.provider_kind==='runtime'&&(command.command_type==='EvaluateProvider'
+      ? profile==='controlled_execution'&&typeof port.readRuntimeControlEvidence==='function'
+      : evaluation&&usesControlEvidence(evaluation))?controlRule:rule;
     let computed: ReturnType<typeof assessProvider>;
-    try { computed = assessProvider(port, context.project, descriptor, records, profile, tx); }
+    try {
+      computed = assessProvider(port, context.project, descriptor, records, profile, tx,runtimeRule);
+      if(runtimeRule===controlRule&&!same(computed,assessProvider(port,context.project,descriptor,records,profile,tx,runtimeRule)))throw Error('Runtime control evidence changed during evaluation');
+    }
     catch { return fail("PROVIDER_OUTPUT_INVALID", "Provider 原始来源或证据已失效"); }
     if (command.command_type === "EvaluateProvider") {
       const value: ProviderEvaluation = { ...metadata, purpose: "provider_assessment", descriptor_ref: command.payload.descriptor_ref,
@@ -153,9 +165,10 @@ export const executeProviderAssessment = (tx: StoreTransaction, command: Command
     } else {
       if (!evaluation || providerEvaluationStatus(tx, descriptor, evaluation).length || !same(computed, { input_digest: evaluation.input_digest,
         outcome: evaluation.outcome, reasons: evaluation.reasons, assessments: evaluation.assessments }) || !same(command.payload.input_digest, computed.input_digest)) return fail("PROVIDER_NOT_EVALUATED", "须使用当前、完整且允许的 Provider 评测", { blockers: computed.reasons });
-      if (command.payload.binding_scope !== "isolated_provider_probe" || profile !== "technical_contract") return fail("CAPABILITY_UNAVAILABLE", "完整执行权限边界尚未落实，不能批准 Task 执行绑定");
+      const taskExecution=command.payload.binding_scope==='task_execution';
+      if(taskExecution?(descriptor.provider_kind!=='runtime'||profile!=='controlled_execution'||runtimeRule!==controlRule||command.payload.capability.capability_id!=='runtime.execute'):profile!=='technical_contract')return fail('CAPABILITY_UNAVAILABLE','Task 执行绑定需要完整 Runtime 受控评估与执行能力；Skill 正式绑定尚未装载');
       if (!descriptor.capabilities.some(c => same(c, command.payload.capability))) fail("CAPABILITY_UNAVAILABLE", "Provider 未声明该能力");
-      if (!same(descriptor.required_permissions, command.payload.effective_permissions)) fail("CAPABILITY_PERMISSION_DENIED", "探针绑定须精确保持声明权限；不能扩权或伪称落实上层授权交集");
+      if (!same(descriptor.required_permissions, command.payload.effective_permissions)) fail("CAPABILITY_PERMISSION_DENIED", "Provider 绑定须精确保持声明权限；Task 当前授权交集仍须逐次核验");
       if (descriptor.dependencies.length) fail("DEPENDENCY_UNSATISFIED", "本批 Runtime 探针不支持依赖装配");
       let runtimeBinding: ProviderBinding | undefined;
       if (descriptor.provider_kind === "skill") {

@@ -150,8 +150,11 @@ it("reports Agent binding blockers before context preparation and leaves the act
   const agent = registered.data.actor, wi = f.authorize(3, undefined, ["src/query.ts"], agent.id);
   const task = f.task(), events = f.store.listEvents(), agentKernel = new CimiLoopKernel({ store: f.store,
     caller: { kind: "agent", project_id: f.project.id, actor_id: agent.id, provider_identity_ref: agent.provider_identity_ref }, now: () => flowTime, runVerifier: f.runPort });
-  const command = f.command("PrepareRunContext", "work_item", wi.id, { source_snapshot_ref: { object_type: "source_snapshot", id: source.id } }, "executor", agent.id);
-  expect(agentKernel.execute({ ...command, source: { origin: "agent", producer: "metadata-fixture" } })).toMatchObject({ code: "CAPABILITY_UNAVAILABLE", details: { blockers: expect.arrayContaining(["PROVIDER_BINDING_NOT_FOUND"]) } });
+  // Use the actual Agent command shape. The Human-only shape is rejected as
+  // INPUT_CHANGED before the provider binding can be checked.
+  const command = f.command("PrepareRunContext", "work_item", wi.id, { source_snapshot_ref: { object_type: "source_snapshot", id: source.id },
+    runtime_binding: { binding_ref: { object_type: "provider_binding", id: v2.createInternalId() }, digest: contentDigest("PUBLIC absent binding") }, skill_bindings: [] }, "executor", agent.id);
+  expect(agentKernel.execute({ ...command, source: { origin: "agent", producer: "metadata-fixture" } })).toMatchObject({ code: "CAPABILITY_UNAVAILABLE", details: { blockers: expect.arrayContaining(["PROVIDER_BINDING_NOT_FOUND_OR_STALE"]) } });
   expect(f.task()).toEqual(task); expect(f.store.listEvents()).toEqual(events); expect(f.store.listRuns(f.change.id)).toEqual([]);
 }, 45_000);
 
