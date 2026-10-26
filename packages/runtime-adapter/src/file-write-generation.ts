@@ -1,65 +1,72 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, renameSync } from "node:fs";
+import { existsSync, renameSync, mkdirSync, writeFileSync,lstatSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
-import { atomicJson, bytesAt, digest, directory, readJson } from "./files.js";
+import { assertOrdinaryPath, bytesAt, digest } from "./files.js";
+import {privateNativeEnvironment} from './native-process-environment.js';
+import {executeWindowsCompilerSync} from './windows-compiler.js';
 
 // NTFS records a write generation on the file. A later proof can read that
 // generation again. The same generation means the sealed bytes were not
 // written. A changed, missing, or unreadable generation is not a proof: the
 // caller hashes. This process does not keep the generation across calls.
 const floorBytes = 1024 * 1024;
-let compiled: { path: string; digest: string } | undefined, compileFailed = false;
+type Helper={path:string;digest:string;environment:NodeJS.ProcessEnv;cwd:string;verify():void};
+const compiled=new Map<string,Helper>(),compileFailed=new Set<string>();
+const identity=(path:string)=>{const s=lstatSync(assertOrdinaryPath(path),{bigint:true});if(!s.isFile()||s.nlink!==1n||s.size<1n)throw Error();return{dev:String(s.dev),ino:String(s.ino),birth:String(s.birthtimeNs),bytes:Number(s.size)};};
 
-const helperEnvironment = (): NodeJS.ProcessEnv => {
+const helperEnvironment = (scope:ReturnType<typeof privateNativeEnvironment>): NodeJS.ProcessEnv => {
   const systemRoot = process.env.SystemRoot ?? "C:\\Windows";
   return {
     SystemRoot: systemRoot, WINDIR: systemRoot, PATH: join(systemRoot, "System32"),
-    TEMP: process.env.TEMP, TMP: process.env.TMP
+    ...scope.environment
   };
 };
 
-function helper(): { path: string; digest: string } | undefined {
-  if (compileFailed || process.platform !== "win32") return undefined;
+function helper(root:string): Helper | undefined {
+  if (compileFailed.has(root) || process.platform !== "win32") return undefined;
   try {
-    if (compiled) {
-      if (digest(bytesAt(compiled.path)).value !== compiled.digest) { compileFailed = true; return undefined; }
-      return compiled;
-    }
-    const source = fileURLToPath(new URL("../native/FileWriteGeneration.cs", import.meta.url));
-    const build = directory(join(tmpdir(), "cimiloop-file-write-generation-" + digest(bytesAt(source)).value));
+    const cached=compiled.get(root);if(cached){cached.verify();return cached;}
+    const source = fileURLToPath(new URL("../native/FileWriteGeneration.cs", import.meta.url)),frozen=bytesAt(source),sourceDigest=digest(frozen).value;
+    const tools=assertOrdinaryPath(join(root,'tools'));try{mkdirSync(tools);}catch(error){if(!(error&&typeof error==='object'&&'code'in error&&error.code==='EEXIST'))throw error;}if(!lstatSync(tools).isDirectory())throw Error();
+    const build=join(tools,'file-write-generation-v2-'+sourceDigest);
+    let created=false;try{mkdirSync(assertOrdinaryPath(build));created=true;}catch(error){if(!(error&&typeof error==='object'&&'code'in error&&error.code==='EEXIST'))throw error;}
     const binary = join(build, "FileWriteGeneration.exe"), metadata = join(build, "build.json");
-    if (!existsSync(binary) || !existsSync(metadata)) {
-      if (existsSync(binary) || existsSync(metadata)) { compileFailed = true; return undefined; }
+    const scope=privateNativeEnvironment(join(build,'host-environment'),created?{}:{readOnly:true});
+    if (created) {
       const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
-      if (!existsSync(compiler)) { compileFailed = true; return undefined; }
-      const candidate = join(build, randomUUID() + ".exe");
-      execFileSync(compiler, ["/nologo", "/target:exe", "/out:" + candidate, source], { windowsHide: true, timeout: 30000, maxBuffer: 1048576, env: helperEnvironment() });
+      if (!existsSync(compiler)) throw Error();
+      const candidate = join(build, randomUUID() + ".exe"),copied=join(build,'FileWriteGeneration.cs'),compilerDigest=digest(bytesAt(compiler)).value;
+      writeFileSync(copied,frozen,{flag:'wx'});
+      executeWindowsCompilerSync(compiler, ["/nologo", "/target:exe", "/out:" + candidate, copied], { windowsHide: true, timeout: 30000, maxBuffer: 1048576 },root);
+      if(digest(bytesAt(compiler)).value!==compilerDigest||!bytesAt(copied).equals(frozen)||!bytesAt(source).equals(frozen))throw Error();
       renameSync(candidate, binary);
-      atomicJson(metadata, { digest: digest(bytesAt(binary)).value });
+      writeFileSync(metadata,JSON.stringify({format:'cimiloop/file-write-generation-build/2.0.0',digest:digest(bytesAt(binary)).value,binary_identity:identity(binary),source_digest:sourceDigest,environment:scope.basis}),{flag:'wx'});
     }
-    const expected = (readJson(metadata) as { digest?: string }).digest;
-    if (!expected || digest(bytesAt(binary)).value !== expected) { compileFailed = true; return undefined; }
-    compiled = { path: binary, digest: expected };
-    return compiled;
-  } catch { compileFailed = true; return undefined; }
+    const original=bytesAt(metadata),expected=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(original)) as {digest?:unknown};
+    const binaryIdentity=identity(binary);
+    if(typeof expected.digest!=='string'||!/^[a-f0-9]{64}$/.test(expected.digest)||JSON.stringify(expected)!==JSON.stringify({format:'cimiloop/file-write-generation-build/2.0.0',digest:expected.digest,binary_identity:binaryIdentity,source_digest:sourceDigest,environment:scope.basis}))throw Error();
+    const verify=()=>{scope.verify();if(!bytesAt(metadata).equals(original)||JSON.stringify(identity(binary))!==JSON.stringify(binaryIdentity)||['.config','.manifest','.local'].some(suffix=>existsSync(binary+suffix))||digest(bytesAt(binary)).value!==expected.digest)throw Error();};
+    verify();const value:Helper={path:binary,digest:expected.digest,environment:helperEnvironment(scope),cwd:scope.basis.root,verify};compiled.set(root,value);return value;
+  } catch { compileFailed.add(root); return undefined; }
 }
 
 // One synchronous query for the large originals in a proof. Undefined means
 // every caller must hash. A generation is never reused as an ALLOW decision.
-export function readFileWriteGenerations(paths: readonly string[]): Map<string, string> | undefined {
+export function readFileWriteGenerations(paths: readonly string[],ownedRoot?:string): Map<string, string> | undefined {
+  if(!ownedRoot)return undefined;
   const wanted = [...new Set(paths.map(path => resolve(path)))].filter(path => path.length > 0);
   if (wanted.length === 0 || wanted.length > 128) return undefined;
-  const current = helper();
+  let current:Helper|undefined;try{const root=assertOrdinaryPath(ownedRoot);if(!lstatSync(root).isDirectory())return undefined;current=helper(root);}catch{return undefined;}
   if (!current) return undefined;
   try {
-    if (digest(bytesAt(current.path)).value !== current.digest) return undefined;
+    current.verify();
     const output = execFileSync(current.path, ["query"], {
       input: wanted.join("\n"), encoding: "utf8", windowsHide: true, timeout: 5000,
-      maxBuffer: 65536, env: helperEnvironment(), stdio: ["pipe", "pipe", "pipe"]
+      maxBuffer: 65536, env: current.environment,cwd:current.cwd, stdio: ["pipe", "pipe", "pipe"]
     });
+    current.verify();
     const lines = output.split(/\n/).map(line => line.endsWith("\r") ? line.slice(0, -1) : line).filter((_line, index, all) => index < all.length - 1 || _line.length > 0);
     if (lines.length !== wanted.length) return undefined;
     const generations = new Map<string, string>();

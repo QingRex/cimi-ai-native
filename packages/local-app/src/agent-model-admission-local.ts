@@ -103,8 +103,8 @@ export class LocalAgentModelAdmission {
   // The sealed survey is compared again. Afterwards the NTFS write generation is
   // read, and a missing or changed generation hashes the bytes. This does not
   // keep an ALLOW decision across the account await.
-  if(repeat){try{const proven=withRetainedBinaryRecheck(this.sealed!.identities,()=>{this.checks.verifyInstallation();return finish(false);});return {algorithm:'sha256' as const,value:requestDigest({original:proven.before,live:proven.live})};}catch{/* The sealed survey does not describe this read. The full proof below reads it again. */}}
-  const turned=withRuntimeBinaryProofTurn(()=>{childRequired=false;this.checks.verifyInstallation();const proven=finish(true);return {proven,identities:snapshotRuntimeBinaryProofIdentities(),childRequired};});
+  if(repeat){try{const proven=withRetainedBinaryRecheck(this.sealed!.identities,()=>{this.checks.verifyInstallation();return finish(false);},this.dataDirectory);return {algorithm:'sha256' as const,value:requestDigest({original:proven.before,live:proven.live})};}catch{/* The sealed survey does not describe this read. The full proof below reads it again. */}}
+  const turned=withRuntimeBinaryProofTurn(()=>{childRequired=false;this.checks.verifyInstallation();const proven=finish(true);return {proven,identities:snapshotRuntimeBinaryProofIdentities(this.dataDirectory),childRequired};});
   this.sealed={key,survey:structuredClone(turned.proven.before),identities:turned.identities,childRequired:turned.childRequired};
   return {algorithm:'sha256' as const,value:requestDigest({original:turned.proven.before,live:turned.proven.live})};
  });}

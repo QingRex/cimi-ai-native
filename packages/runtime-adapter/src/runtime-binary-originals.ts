@@ -51,15 +51,15 @@ export type RetainedBinaryProofIdentity={path:string;dev:string;ino:string;birth
 // callback. The snapshot is only valid inside the turn that hashed the files.
 // bytes_usn is the NTFS write generation observed with that hash. It is absent
 // when the generation cannot be read; absence never skips the byte hash.
-export function snapshotRuntimeBinaryProofIdentities():RetainedBinaryProofIdentity[]{
+export function snapshotRuntimeBinaryProofIdentities(ownedHelperRoot?:string):RetainedBinaryProofIdentity[]{
  if(!binaryTurn)fail();
  const entries=[...binaryTurn.entries()],large=entries.filter(([,hit])=>hit.bytes>=retainedBinaryWriteGenerationFloor).map(([path])=>path);
- const generations=large.length?readFileWriteGenerations(large):undefined;
+ const generations=large.length?readFileWriteGenerations(large,ownedHelperRoot):undefined;
  return entries.map(([path,hit])=>{const usn=hit.bytes>=retainedBinaryWriteGenerationFloor?generations?.get(path):undefined;return {path,dev:hit.dev,ino:hit.ino,birthtime_ns:hit.birthtime_ns,bytes:hit.bytes,bytes_sha:hit.sha,...(usn?{bytes_usn:usn}:{})};});
 }
-export function proveRetainedBinaryProof(hits:readonly RetainedBinaryProofIdentity[]):void{
+export function proveRetainedBinaryProof(hits:readonly RetainedBinaryProofIdentity[],ownedHelperRoot?:string):void{
  const large=hits.filter(hit=>hit.bytes>=retainedBinaryWriteGenerationFloor&&hit.bytes_usn).map(hit=>hit.path);
- const generations=large.length?readFileWriteGenerations(large):undefined;
+ const generations=large.length?readFileWriteGenerations(large,ownedHelperRoot):undefined;
  for(const hit of hits){
   const id=identity(hit.path);if(id.dev!==hit.dev||id.ino!==hit.ino||id.birthtime_ns!==hit.birthtime_ns||id.bytes!==hit.bytes)fail();
   // Same write generation after the survey: the sealed bytes were not written.
@@ -73,7 +73,7 @@ export function proveRetainedBinaryProof(hits:readonly RetainedBinaryProofIdenti
 // the same survey. Physical identity is checked before that reuse. After the
 // survey, the sealed NTFS write generation is read again. Unchanged generation
 // closes that file; any other result hashes it. Neither result is kept.
-export function withRetainedBinaryRecheck<T>(hits:readonly RetainedBinaryProofIdentity[],run:()=>T):T{
+export function withRetainedBinaryRecheck<T>(hits:readonly RetainedBinaryProofIdentity[],run:()=>T,ownedHelperRoot?:string):T{
  if(retainedFresh)fail();
  const installed=new Map<string,BinaryHit>();
  for(const hit of hits){const id=identity(hit.path);if(id.dev!==hit.dev||id.ino!==hit.ino||id.birthtime_ns!==hit.birthtime_ns||id.bytes!==hit.bytes)fail();installed.set(resolve(hit.path),{dev:hit.dev,ino:hit.ino,birthtime_ns:hit.birthtime_ns,bytes:hit.bytes,sha:hit.bytes_sha});}
@@ -83,7 +83,7 @@ export function withRetainedBinaryRecheck<T>(hits:readonly RetainedBinaryProofId
   const pending=recheckProofs? [...recheckProofs.values()]:[];
   recheckProofs=undefined;
   for(const hit of pending)if(!isDeepStrictEqual(readRuntimeBinaryOriginal(hit.root,hit.path,hit.sha),hit.proof))fail();
-  proveRetainedBinaryProof(hits);return value;
+  proveRetainedBinaryProof(hits,ownedHelperRoot);return value;
  }
  finally{retainedFresh=undefined;recheckProofs=undefined;}
 }

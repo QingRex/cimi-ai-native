@@ -26,3 +26,5 @@ Node24.22.1／pnpm12.4.2，本批真实模型请求0。
 ## 剩余范围
 
 本批尚未覆盖全局文件写入代次辅助器的编译／查询，以及所有Native控制进程的用户目录环境。官方程序系统API的实际写入范围、全部历史容量、网络、真实费用和完整恢复也仍需实现与核验。环境映射与PUBLIC写入测试不能成为完整 `disk_limit` 的supports，也不能替代真实Skill、Human回答、普通Change到ReadyForDelivery、指南实走及最终Matt／Superpowers评审。
+
+后续已把文件写入代次辅助器接到明确项目根，并在不可用时保持字节散列，见[所属根与原件重核](2026-10-27-cimiloop-owned-write-generation.md)。该后续范围不改变本批原验证报告或扩大为完整配额验收。

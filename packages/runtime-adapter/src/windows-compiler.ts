@@ -1,7 +1,7 @@
 import {mkdtempSync,writeFileSync,copyFileSync,lstatSync,readdirSync,rmSync,constants} from 'node:fs';
 import {join,dirname,basename,resolve,isAbsolute,relative} from 'node:path';
 import {randomUUID} from 'node:crypto';
-import {execFile,type ExecFileOptions} from 'node:child_process';
+import {execFile,execFileSync,type ExecFileOptions} from 'node:child_process';
 import {promisify} from 'node:util';
 import {assertOrdinaryPath,bytesAt,digest,directory,RuntimeAdapterError} from './files.js';
 import {privateNativeEnvironment} from './native-process-environment.js';
@@ -45,8 +45,7 @@ export async function projectWindowsCompiler<T>(compiler:string,rawArgs:readonly
 // Every compiler invocation, including the short-path case, gets its own cwd
 // and directory environment beneath the explicit build owner. Never inherit
 // the host user's AppData/TEMP and never mutate the parent's environment.
-export async function executeWindowsCompiler(compiler:string,args:string[],options:ExecFileOptions,ownedRoot?:string){
- options.signal?.throwIfAborted();
+function compilerInvocation(compiler:string,args:string[],ownedRoot?:string){
  const outputs=args.filter(arg=>arg.startsWith('/out:'));if(outputs.length!==1||!isAbsolute(outputs[0]!.slice(5)))fail();
  if(ownedRoot&&!within(ownedRoot,outputs[0]!.slice(5)))fail();
  const root=directory(ownedRoot??dirname(outputs[0]!.slice(5))),invocation=mkdtempSync(join(directory(join(root,'compiler-operations')),'c-'));
@@ -54,7 +53,21 @@ export async function executeWindowsCompiler(compiler:string,args:string[],optio
  const environment={SystemRoot:systemRoot,WINDIR:systemRoot,PATH:join(systemRoot,'System32'),...scope.environment};
  const request={format:'cimiloop/native-compiler-invocation/1.0.0',compiler,args,cwd:invocation,environment:scope.basis};
  const record=join(invocation,'request.json'),bytes=Buffer.from(JSON.stringify(request));writeFileSync(record,bytes,{flag:'wx'});
- const verify=()=>{scope.verify();if(!bytesAt(record).equals(bytes))fail();options.signal?.throwIfAborted();};
- try{verify();const result=await projectWindowsCompiler(compiler,args,async projected=>{verify();const output=await promisify(execFile)(compiler,projected,{...options,env:environment,cwd:invocation});verify();return output;},root);verify();writeFileSync(join(invocation,'completed.json'),JSON.stringify({format:request.format,request_digest:digest(bytes)}),{flag:'wx'});return result;}
- catch(error){try{writeFileSync(join(invocation,'failed.json'),JSON.stringify({format:request.format,request_digest:digest(bytes),resources_disposed:false}),{flag:'wx'});}catch{}throw error;}
+ const verify=()=>{scope.verify();if(!bytesAt(record).equals(bytes))fail();};
+ const completed=()=>writeFileSync(join(invocation,'completed.json'),JSON.stringify({format:request.format,request_digest:digest(bytes)}),{flag:'wx'});
+ const failed=()=>{try{writeFileSync(join(invocation,'failed.json'),JSON.stringify({format:request.format,request_digest:digest(bytes),resources_disposed:false}),{flag:'wx'});}catch{}};
+ return{root,invocation,environment,verify,completed,failed};
+}
+export async function executeWindowsCompiler(compiler:string,args:string[],options:ExecFileOptions,ownedRoot?:string){
+ options.signal?.throwIfAborted();const invocation=compilerInvocation(compiler,args,ownedRoot);
+ const verify=()=>{invocation.verify();options.signal?.throwIfAborted();};
+ try{verify();const result=await projectWindowsCompiler(compiler,args,async projected=>{verify();const output=await promisify(execFile)(compiler,projected,{...options,env:invocation.environment,cwd:invocation.invocation});verify();return output;},invocation.root);verify();invocation.completed();return result;}
+ catch(error){invocation.failed();throw error;}
+}
+// Optional synchronous NTFS-generation helper only. Unsupported long paths
+// fail back to hashing bytes, never to a global compiler/cache directory.
+export function executeWindowsCompilerSync(compiler:string,args:string[],options:{windowsHide?:boolean;timeout:number;maxBuffer:number},ownedRoot:string){
+ if(args.some(arg=>arg.length>240))fail();const invocation=compilerInvocation(compiler,args,ownedRoot),started=performance.now();
+ try{invocation.verify();const result=execFileSync(compiler,args,{...options,env:invocation.environment,cwd:invocation.invocation});invocation.verify();if(performance.now()-started>=options.timeout)fail();invocation.completed();return result;}
+ catch(error){invocation.failed();throw error;}
 }
