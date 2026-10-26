@@ -55,7 +55,11 @@ describe.runIf(process.platform === "win32" && process.arch === "x64" && !!confi
       console.error("Retain actual Codex Native original: " + root);
       expect(await runtime.start(scope.run_id)).toMatchObject({ outcome: "original" });
       const original = readCodexAgentModelOriginals(dataDirectory, scope), collected = await collectAgentRuntimeOperation(dataDirectory, scope, { project: f.project, record: reserved.data.record });
-      expect(original.status).toBe("Observed"); expect(original.real_model_turns).toBeGreaterThanOrEqual(2); expect(collected.codex_model).toMatchObject({ status: "Observed", output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0', original_requirement_pinned: true, costs_reconciled: false });
+      expect(original.status).toBe("Observed");
+      const modelHeader=JSON.parse(bytesAt(join(dataDirectory,'agent-codex-model-originals',scope.project_id,scope.run_id,'header.json'),262144).toString('utf8'));
+      expect(modelHeader).toMatchObject({format:'cimiloop/codex-agent-model/18.0.0',permitted:['cimi_read','cimi_check']});
+      for(const call of original.calls){expect(call.original?.tool_calls).toHaveLength(1);expect(['cimi_read','cimi_check','cimiloop_task_result']).toContain(call.original!.tool_calls[0]!.tool);expect(JSON.parse(call.original!.tool_calls[0]!.output)).toMatchObject({sdk_effect_executed:false,response_submitted:true});}
+      expect(original.real_model_turns).toBeGreaterThanOrEqual(2); expect(collected.codex_model).toMatchObject({ status: "Observed", output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0', original_requirement_pinned: true, costs_reconciled: false });
       for(const call of original.calls){const operation=dirname(call.original!.original_ref.locator),start=JSON.parse(bytesAt(join(operation,'start.json'),65536).toString('utf8'));expect(start).toMatchObject({format:'cimiloop/codex-method-start/10.0.0',state_policy:'private_operation_state/1.0.0',process_custody:'owner_job/1.0.0',config:{sqlite_home:join(operation,'state','sqlite'),log_dir:join(operation,'state','log'),history:{persistence:'none'}}});}
       expect(original.artifacts.some(file=>file.name.endsWith('/process-job/ended.json'))).toBe(true);
       expect(ledger.listExclusive('codex_process_job_complete')).toHaveLength(original.calls.length);
