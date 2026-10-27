@@ -1,10 +1,11 @@
 import {isDeepStrictEqual as same} from 'node:util';import {join} from 'node:path';
 import {compileValidator,InternalIdSchema,ProviderDescriptorSchema,createInternalId,type ProviderDescriptor} from '@cimiloop/protocol/v2';
 import {requestDigest} from '@cimiloop/kernel';
-import {AgentStartLedger,parseAgentWorkspaceToolScope,readRuntimeContractPhase,requestAgentRuntimeCancellation,recoverAgentRuntimeOperation,bytesAt,digest,parseRuntimeProbe,type AgentWorkspaceToolScope,type RuntimeContractMode,type RuntimeContractPhaseResult} from '@cimiloop/runtime-adapter';
+import {AgentStartLedger,CodexAgentUsageBudget,readCodexAgentRunUsage,parseAgentWorkspaceToolScope,readRuntimeContractPhase,requestAgentRuntimeCancellation,recoverAgentRuntimeOperation,bytesAt,digest,parseRuntimeProbe,type AgentWorkspaceToolScope,type RuntimeContractMode,type RuntimeContractPhaseResult} from '@cimiloop/runtime-adapter';
 import type {LocalProject} from './project.js';import {LocalProjectError} from './errors.js';import {LocalEvidenceVerifier} from './evidence-local.js';
 import {openInstalledCodexAgentRuntime} from './agent-codex-installation-local.js';import {openRuntimeContractExecution} from './runtime-contract-native-local.js';
 import {LocalProviderVerifier} from './providers-local.js';import type {RuntimeSdkContractMarker} from './codex-runtime-sdk-originals-local.js';
+import {openInstalledCodexUsageBudget,type InstalledCodexUsageBudget} from './agent-codex-usage-budget-local.js';
 
 const namespace='runtime_contract_request',phaseNamespace='runtime_contract_phase',cancelNamespace='runtime_contract_cancel';
 const id=compileValidator<string>(InternalIdSchema),hash=(value:unknown)=>({algorithm:'sha256' as const,value:requestDigest(value)});
@@ -17,7 +18,7 @@ export interface RuntimeContractPhase{mode:RuntimeContractMode;scope:AgentWorksp
 export interface RuntimeContractOriginal{format:'cimiloop/runtime-contract-original/1.0.0';request:RuntimeContractRequest;authority:Permission;started_at:string;installation_digest:string;phases:RuntimeContractPhase[]}
 type OriginLease=Pick<NonNullable<Awaited<ReturnType<typeof openInstalledCodexAgentRuntime>>>,'origin'|'guard'|'release'|'installation_digest'>;
 export interface RuntimeContractExecutionLease{installation_digest:string;guard():void;release():void|Promise<void>;execute(original:RuntimeContractOriginal,phase:RuntimeContractPhase,beforeEffect:()=>void):Promise<void>}
-interface Services{openOrigin?:(local:LocalProject)=>Promise<OriginLease|undefined>;execution?:(local:LocalProject)=>Promise<RuntimeContractExecutionLease>;readPhase?:(root:string,scope:AgentWorkspaceToolScope,origin:AgentStartLedger,mode:RuntimeContractMode)=>RuntimeContractPhaseResult;beforeEffect?:()=>void}
+interface Services{openOrigin?:(local:LocalProject)=>Promise<OriginLease|undefined>;openUsageBudget?:(local:LocalProject)=>Promise<InstalledCodexUsageBudget|undefined>;execution?:(local:LocalProject)=>Promise<RuntimeContractExecutionLease>;readPhase?:(root:string,scope:AgentWorkspaceToolScope,origin:AgentStartLedger,mode:RuntimeContractMode)=>RuntimeContractPhaseResult;beforeEffect?:()=>void}
 export const runtimeContractPhaseRoot=(local:Pick<LocalProject,'location'>,phase:RuntimeContractPhase)=>join(local.location.dataDirectory,'rt-contract',phase.scope.operation_key);
 export const runtimeContractRequestRoot=(local:Pick<LocalProject,'location'>,original:RuntimeContractOriginal)=>join(local.location.dataDirectory,'rt-contract',original.request.request_id);
 function request(raw:unknown):RuntimeContractRequest{if(!exact(raw,['request_id','descriptor_id','max_elapsed_ms'])||!Number.isSafeInteger(raw.max_elapsed_ms)||Number(raw.max_elapsed_ms)<1000||Number(raw.max_elapsed_ms)>600000)fail();return{request_id:id(raw.request_id),descriptor_id:id(raw.descriptor_id),max_elapsed_ms:Number(raw.max_elapsed_ms)};}
@@ -28,7 +29,7 @@ function request(raw:unknown):RuntimeContractRequest{if(!exact(raw,['request_id'
 // an execution grant. Business Kernel requests cannot resolve this carrier.
 export class LocalHumanRuntimeContract{
  private readonly identity;private readonly ownerMethod;private readonly permissionMethod;private readonly services;private readonly content;
- constructor(private readonly local:LocalProject,services:Services={}){this.identity={store:local.store,kernel:local.kernel,instance:structuredClone(local.instance),location:structuredClone(local.location)};this.ownerMethod=local.kernel.authorizeProviderProbeControl;this.permissionMethod=local.kernel.authorizeRuntimeContractProbe;this.services={openOrigin:services.openOrigin??openInstalledCodexAgentRuntime,execution:services.execution??openRuntimeContractExecution,readPhase:services.readPhase??readRuntimeContractPhase,beforeEffect:services.beforeEffect??(()=>{})};this.content=new LocalEvidenceVerifier(local.location.repositoryPath,local.location.dataDirectory);}
+ constructor(private readonly local:LocalProject,services:Services={}){this.identity={store:local.store,kernel:local.kernel,instance:structuredClone(local.instance),location:structuredClone(local.location)};this.ownerMethod=local.kernel.authorizeProviderProbeControl;this.permissionMethod=local.kernel.authorizeRuntimeContractProbe;this.services={openOrigin:services.openOrigin??openInstalledCodexAgentRuntime,openUsageBudget:services.openUsageBudget??openInstalledCodexUsageBudget,execution:services.execution??openRuntimeContractExecution,readPhase:services.readPhase??readRuntimeContractPhase,beforeEffect:services.beforeEffect??(()=>{})};this.content=new LocalEvidenceVerifier(local.location.repositoryPath,local.location.dataDirectory);}
  private current(){sync(this.services.beforeEffect);const o=this.identity,l=this.local;if(l.store!==o.store||l.kernel!==o.kernel||!same(l.instance,o.instance)||!same(l.location,o.location)||l.kernel.authorizeProviderProbeControl!==this.ownerMethod||l.kernel.authorizeRuntimeContractProbe!==this.permissionMethod)fail();}
  private owner(){this.current();const value=this.ownerMethod.call(this.local.kernel);this.current();if('code'in value)throw value;return value;}
  private permission(q:RuntimeContractRequest){this.current();const value=this.permissionMethod.call(this.local.kernel,q.descriptor_id);this.current();if('code'in value)throw value;return value;}
@@ -64,6 +65,24 @@ export class LocalHumanRuntimeContract{
   if(!hold.created){const old=this.read(lease,q.request_id);if(!old||!same(old.request,q))fail();return this.observe(lease,old,guard);}lease.origin.issueExclusive(namespace,key,o);return this.advance(lease,o,guard);
  });}
  query(requestId:string){return this.withOrigin(async(lease,guard)=>{const o=this.read(lease,id(requestId));if(!o)fail();return this.observe(lease,o,guard);});}
+ // Query the two original technical scopes through the installed account.
+ // Missing/corrupt model originals stay unavailable; a held reservation is
+ // neither an invoice nor permission to release capacity or dispatch again.
+ usage(requestId:string){return this.withOrigin(async(lease,guard)=>{
+  const o=this.read(lease,id(requestId));if(!o)fail();const account=await this.services.openUsageBudget(this.local);
+  try{
+   guard();if(!account||account.installation.installation_digest!==o.installation_digest||!(account.budget instanceof CodexAgentUsageBudget))fail();
+   const budget=account.budget,installation=account.installation,method=account.guard;
+   const current=()=>{guard();if(account.budget!==budget||account.installation!==installation||account.guard!==method||installation.installation_digest!==o.installation_digest)fail();sync(()=>method.call(account));guard();};
+   current();const before=budget.snapshot();
+   const read=()=>o.phases.map(p=>{const requested=!!this.intent(lease,o,p);let usage:ReturnType<typeof readCodexAgentRunUsage>|null=null;
+    try{usage=readCodexAgentRunUsage(runtimeContractPhaseRoot(this.local,p),p.scope,budget);}catch{/* Unavailable original usage remains Unknown. */}
+    if(usage&&!requested)fail();return{mode:p.mode,operation_key:p.scope.operation_key,requested,usage};
+   });
+   const phases=read();current();if(!same(before,budget.snapshot())||!same(phases,read())||!same(before,budget.snapshot())||!same(o,this.read(lease,o.request.request_id)))fail();
+   return{ok:true as const,request_id:o.request.request_id,policy_digest:before.policy_digest,capacity:{scope:'installed_account' as const,limits:before.limits,held:before.held,remaining:before.remaining},phases,usage_complete:phases.every(p=>p.usage?.usage_complete===true),cost_known:false as const,cash_charged_micros:null,credit_charged_micro_units:null,costs_reconciled:false as const,provider_qualification_proven:false as const,starts_model:false as const,run_created:false as const};
+  }finally{try{await account?.release();}finally{guard();}}
+ });}
  continue(requestId:string){return this.withOrigin(async(lease,guard)=>{const o=this.read(lease,id(requestId));if(!o)fail();return this.advance(lease,o,guard);});}
  private control(requestId:string,action:'cancel'|'recover'){return this.withOrigin(async(lease,guard)=>{const o=this.read(lease,id(requestId));if(!o)fail();if(action==='cancel')lease.origin.issueExclusive(cancelNamespace,requestDigest(o.request.request_id),{format:'cimiloop/runtime-contract-cancel/1.0.0',request_digest:hash(o)});if(!this.cancelled(lease,o))fail();
   const operations=[];for(const p of o.phases){guard();if(!this.intent(lease,o,p))continue;try{operations.push(action==='cancel'?requestAgentRuntimeCancellation(runtimeContractPhaseRoot(this.local,p),p.scope):await recoverAgentRuntimeOperation(runtimeContractPhaseRoot(this.local,p),p.scope));}catch{operations.push({outcome:'unknown'});}guard();}return{...this.observe(lease,o,guard),operations};});}

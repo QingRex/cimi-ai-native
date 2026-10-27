@@ -316,7 +316,7 @@ export function readCodexAgentRunUsage(root:string,rawScope:unknown,budget:Codex
 // complete Kernel/start-custody relation; a scope list grants no effect rights.
 export function readCodexAgentScopeUsage(root:string,rawScope:unknown,budget:CodexAgentUsageBudget,family:AgentWorkspaceToolScope[],allowEmpty=false){
   if(!(budget instanceof CodexAgentUsageBudget))fail('codex_usage_budget_unproven');
-  const scope=parseAgentWorkspaceToolScope(rawScope),state=budget.snapshot();
+  const scope=parseAgentWorkspaceToolScope(rawScope),state=budget.modelSnapshot();
   const select=(snapshot:ReturnType<CodexAgentUsageBudget['snapshot']>)=>snapshot.reservations.flatMap(row=>{
     const raw=row.basis;
     if(!exact(raw,['scope','call_id','request_digest','model_header_digest']))fail('codex_usage_reservation_unproven');
@@ -350,7 +350,7 @@ export function readCodexAgentScopeUsage(root:string,rawScope:unknown,budget:Cod
     for(const name of Object.keys(sum) as (keyof typeof sum)[]){sum[name]+=usage[name];if(!Number.isSafeInteger(sum[name]))fail('codex_usage_total_unproven');}return sum;
   },{inputTokens:0,cachedInputTokens:0,outputTokens:0,totalTokens:0,reasoningOutputTokens:0,cacheWriteInputTokens:0}):null;
   const unresolved=calls.filter(call=>call.state!=='reply_recorded').length;
-  if(!same(held,select(budget.snapshot()))||!same(original,readCodexAgentModelOriginals(root,scope)))fail('codex_usage_original_changed');
+  if(!same(held,select(budget.modelSnapshot()))||!same(original,readCodexAgentModelOriginals(root,scope)))fail('codex_usage_original_changed');
   return{format:'cimiloop/codex-run-usage/1.0.0' as const,coverage:'this_run_only' as const,state:unresolved||!held.length?'unknown' as const:'observed' as const,
     scope_digest:original.scope_digest,origin:original.origin??null,model:header?.model??null,policy_digest:state.policy_digest,
     holds:held.length,held_output_tokens:held.reduce((sum,row)=>sum+row.output_tokens,0),unresolved,calls,observed_tokens:observedTokens,

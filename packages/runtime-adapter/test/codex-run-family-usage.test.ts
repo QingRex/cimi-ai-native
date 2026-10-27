@@ -17,7 +17,7 @@ function fixture(){
  const child={...parent,operation_key:createInternalId(),context_digest:runtime.digest('PUBLIC child')};
  const reserve=(scope:typeof parent)=>budget.reserve({scope,call_id:'model_0001',request_digest:'4'.repeat(64),model_header_digest:'5'.repeat(64)},2048);
  const read=(children:typeof parent[]= [child])=>{const method=Reflect.get(runtime,'readCodexAgentRunFamilyUsage');expect(method).toBeTypeOf('function');return method(root,parent,budget,children);};
- return{root,budget,parent,child,reserve,read};
+ return{root,origin,budget,parent,child,reserve,read};
 }
 it('includes interrupted parent and legitimate child reservations once without claiming fees, releasing holds or repairing originals',()=>{
  const f=fixture();f.reserve(f.parent);f.reserve(f.child);const before=f.budget.snapshot(),result=f.read();
@@ -36,4 +36,16 @@ it('does not disclose reservations from another project or Run',()=>{
 it('refuses duplicate, foreign and unrelated child scopes rather than widening the declared family',()=>{
  const f=fixture();f.reserve(f.parent);
  for(const children of [[f.child,f.child],[f.parent],[{...f.child,run_id:createInternalId()}],[{...f.child,executor_actor_id:createInternalId()}],[{...f.child,runtime_binding:{...f.child.runtime_binding,digest:runtime.digest('PUBLIC other runtime')}}]])expect(()=>f.read(children)).toThrow();
+});
+
+it('keeps allocated project capacity held while reading only actual model reservations',()=>{
+ const f=fixture(),childOrigin=runtime.AgentStartLedger.initialize(join(f.root,'delegated-account'),{machine_digest:runtime.digest('PUBLIC machine').value,principal_digest:runtime.digest('PUBLIC user').value});close.push(()=>childOrigin.close());
+ const child=runtime.CodexAgentUsageBudget.initializeDelegated(childOrigin,{account_digest:'1'.repeat(64),quota_account_digest:'2'.repeat(64),model_calls:2,output_tokens:4096},{request_id:createInternalId(),source_project_id:f.parent.project_id,target_project_id:createInternalId(),target_installation_digest:'6'.repeat(64),parent_policy_digest:f.budget.policy_digest,parent_identity_digest:f.origin.identityDigest});
+ f.reserve(f.parent);child.fund(f.budget.allocateTo(child));const before=f.budget.snapshot(),result=f.read([]);
+ expect(result).toMatchObject({holds:1,held_output_tokens:2048,usage_complete:false,costs_reconciled:false});expect(before.held).toEqual({model_calls:3,output_tokens:6144});expect(f.budget.snapshot()).toEqual(before);
+});
+it('does not hide an unproven capacity row merely because it names the allocation format',()=>{
+ const f=fixture();f.reserve(f.parent);const policy=f.origin.listExclusive('capacity_policy')[0]!;
+ f.origin.reserveCapacity(policy.ticket,runtime.digest('PUBLIC-invalid-allocation').value,{model_calls:1,output_tokens:2048},{format:'cimiloop/codex-usage-allocation/1.0.0'});
+ expect(()=>f.read([])).toThrow('codex_usage_allocation_original_changed');expect(f.budget.snapshot().held.model_calls).toBe(2);
 });

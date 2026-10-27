@@ -39,12 +39,17 @@ pnpm cimiloop runtime contract start <descriptor-id> --request-id $runtimeContra
 ```powershell
 pnpm cimiloop runtime contract list --json
 pnpm cimiloop runtime contract query $runtimeContractRequest --json
+pnpm cimiloop runtime contract usage $runtimeContractRequest --json
 pnpm cimiloop runtime contract continue $runtimeContractRequest --json
 pnpm cimiloop runtime contract cancel $runtimeContractRequest --json
 pnpm cimiloop runtime contract recover $runtimeContractRequest --json
 ```
 
 重复 `start` 只查同一原请求；响应丢失先 `query`。`continue` 只允许在前阶段原件完整可核验后，启动尚未登记过的原阶段。已登记但 Unknown 的阶段不重派，不换 ID 把它伪装成恢复。`recover` 先要求原取消标记，只核对和处理原操作资源；找不到不能证明已清理。
+
+`usage` 从原安装关联的现有账户读取容量，并按原编辑／评审 scope 核对预约、模型原件及 token 用量；不启动模型，不读取令牌，不释放预约。`capacity.scope: installed_account` 是账户总体容量，可能包含其他项目和已分配容量；`phases` 才是这个请求的两阶段明细，不返回其他项目的调用身份。`requested:false` 表示该阶段尚未登记；`usage:null` 表示目前不能核对完整用量，不是零消费。孤立预约保持 Unknown，`usage_complete:false`。合法跨项目容量分配先核原凭据再从模型明细中排除，仍计入账户占用。
+
+工作台“Runtime 契约验证”的原请求旁提供“查询用量”；HTTP 为有会话的只读 `GET /api/runtime-contracts/<原请求ID>/usage`，不接受 POST 派发。查询没有财务认证能力，`cost_known:false`、现金／积分金额为 null、`costs_reconciled:false`；不能以 token 用量、剩余额度或重复查询成功结清费用。
 
 工作台用 `pnpm workbench --project-dir <目录>` 启动，打开返回的本地链接并进入“Runtime 契约验证”。页面在发送前把原 ID 保存到当前项目／Human 的 sessionStorage；存储不可用时禁止新启动，保留已有 ID 查询。查询、接续、停止、恢复和采集走同一个应用服务，HTTP 会话及 CSRF 权限在等待后重新核对。
 
@@ -76,4 +81,4 @@ pnpm cimiloop runtime contract capture $runtimeContractRequest --json
 
 默认正式 Codex 宿主还要求本契约标记及网络、真实费用与上限、全部物理配额、完整异常恢复四项独立控制来源。旧 OpenCode 技术资格按旧规则读取，不能直接当作当前 Codex 正式资格。Schema242、项目库10、Host1保持；没有自动升级或修改历史评估。
 
-当前实现与验证范围见[实施记录](../plans/2026-10-27-cimiloop-runtime-sdk-contract.md)。完整五组 S1、真实普通 Change 到 ReadyForDelivery、真实 Skill／Human／Matt、账单核对与最终新鲜评审继续未完成。
+当前实现与验证范围见[契约实施记录](../plans/2026-10-27-cimiloop-runtime-sdk-contract.md)和[用量查询及分配容量修复](../plans/2026-10-27-cimiloop-runtime-contract-usage.md)。完整五组 S1、真实普通 Change 到 ReadyForDelivery、真实 Skill／Human／Matt、账单核对与最终新鲜评审继续未完成。

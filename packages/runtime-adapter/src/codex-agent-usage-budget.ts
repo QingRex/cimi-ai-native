@@ -12,6 +12,7 @@ export interface CodexUsageAllocation {created:boolean;allocation_id:string;proo
 const capabilities=new WeakMap<CodexUsageAllocation,{parent:CodexAgentUsageBudget;child:CodexAgentUsageBudget}>();
 const delegationNamespace='codex_usage_budget_delegation',fundingNamespace='codex_usage_budget_funding';
 const sha=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
+const exact=(v:unknown,keys:string[]):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join(',')===[...keys].sort().join(',');
 function fail(reason='codex_usage_budget_unproven'):never{throw new RuntimeAdapterError(reason);}
 function account(raw:CodexUsageAccount){if(!raw||!sha(raw.account_digest)||!sha(raw.quota_account_digest))fail();return{account_digest:raw.account_digest,quota_account_digest:raw.quota_account_digest};}
 const binding=(raw:CodexUsageAccount)=>({format:'cimiloop/codex-usage-budget/1.0.0',...account(raw)});
@@ -63,6 +64,19 @@ export class CodexAgentUsageBudget {
   return{ticket:structuredClone(row.ticket),basis:body};
  }
  snapshot(){const state=this.origin.readCapacity(this.ticket);if(!same(state.binding,this.fixed))fail();return{...state,policy_digest:this.policy_digest,costs_reconciled:false as const,provider_quota_reserved:false as const};}
+ // Keep allocations in account totals, but do not reinterpret their protected
+ // capacity proofs as model calls. Only exact original allocation bodies may
+ // be excluded from a per-model read; a format flag alone grants no omission.
+ modelSnapshot(){
+  const state=this.snapshot();return{...state,reservations:state.reservations.filter(row=>{
+   const raw=row.basis;if(!raw||typeof raw!=='object'||!('format'in raw)||raw.format!=='cimiloop/codex-usage-allocation/1.0.0')return true;
+   if(!exact(raw,['format','account','parent_policy_digest','parent_identity_digest','child_policy_digest','child_identity_digest','limits','context']))fail('codex_usage_allocation_original_changed');
+   const proof=raw as unknown as AllocationProof;if(!exact(proof.account,['account_digest','quota_account_digest'])||!exact(proof.limits,['model_calls','output_tokens']))fail('codex_usage_allocation_original_changed');
+   const context=delegation(proof.context);policy({...proof.account,...proof.limits});
+   if(!same(account(proof.account),account(this.fixed))||proof.parent_policy_digest!==this.policy_digest||proof.parent_identity_digest!==this.origin.identityDigest||!sha(proof.child_policy_digest)||!sha(proof.child_identity_digest)||proof.child_identity_digest===this.origin.identityDigest||context.parent_policy_digest!==this.policy_digest||context.parent_identity_digest!==this.origin.identityDigest||this.delegated&&context.source_project_id!==this.delegated.target_project_id||row.id!==allocationHash(proof)||!same(row.units,proof.limits))fail('codex_usage_allocation_original_changed');
+   return false;
+  })};
+ }
  reserve(raw:CodexUsageReservation,maximumOutput:number){
   if(this.delegated)this.allocationProof();
   if(!raw||Object.keys(raw).sort().join(',')!=='call_id,model_header_digest,request_digest,scope'||typeof raw.call_id!=='string'||!/^[a-zA-Z0-9_-]{1,128}$/.test(raw.call_id)||!sha(raw.request_digest)||!sha(raw.model_header_digest)||!Number.isSafeInteger(maximumOutput)||maximumOutput<1||maximumOutput>2048)fail('codex_usage_request_invalid');

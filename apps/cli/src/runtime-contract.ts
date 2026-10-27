@@ -10,6 +10,6 @@ export function createRuntimeContractCommand(){
  };
  group.command('start').argument('<descriptor-id>').requiredOption('--request-id <uuidv7>','先保存此原请求 ID；响应丢失后不得换 ID 重提').option('--max-elapsed-ms <ms>','原请求累计期限1000—600000毫秒','600000').description('验证真实版本／隔离边界，再使用原账户额度执行固定编辑及独立只读评审')
   .action(async(descriptorId:string,options:{requestId:string;maxElapsedMs:string},command:Command)=>run(command,service=>service.start({request_id:options.requestId,descriptor_id:descriptorId,max_elapsed_ms:Number(options.maxElapsedMs)})));
- for(const action of['query','continue','cancel','recover','capture'] as const)group.command(action).argument('<request-id>').description(action==='continue'?'只接续尚未登记的原阶段；已登记 Unknown 阶段不重派':action==='capture'?'重读完整原件并固定证据引用；采集不等于批准':'只操作已登记的原请求，不创建业务 Run').action(async(value:string,_options:unknown,command:Command)=>run(command,service=>service[action](value)));
+ for(const action of['query','usage','continue','cancel','recover','capture'] as const)group.command(action).argument('<request-id>').description(action==='usage'?'只读查询原两阶段容量预约和真实用量；用量不是费用结清':action==='continue'?'只接续尚未登记的原阶段；已登记 Unknown 阶段不重派':action==='capture'?'重读完整原件并固定证据引用；采集不等于批准':'只操作已登记的原请求，不创建业务 Run').action(async(value:string,_options:unknown,command:Command)=>run(command,service=>service[action](value)));
  group.command('list').description('只读列出原契约请求，不启动模型').action(async(_options:unknown,command:Command)=>run(command,service=>service.list()));return group;
 }
