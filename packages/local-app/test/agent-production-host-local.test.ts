@@ -46,9 +46,9 @@ it('reads the active trusted host original on a lost response without requiring 
  const f=fixture(),admission=await app.LocalAgentRuntimeAdmission.open(f.local,{origin:f.origin,nodeBinary:process.execPath,templates:seam.installation!.checks,full:seam.full!});
  try{const first=app.executeHumanAgentRunCommand(f.local,f.command);expect(first).toHaveProperty('command_type','PrepareRunContext');seam.installation=undefined;seam.full!.verifyModel=()=>{throw Error('PUBLIC qualification removed');};expect(()=>admission.guard()).toThrow();const before=f.local.store.asOfEventSequence();expect(await entry()(f.local,f.command)).toEqual(first);expect(seam.opens).toBe(0);expect(f.local.store.asOfEventSequence()).toBe(before);expect(()=>admission.guard()).toThrow();}finally{admission.release();}
 });
-it('refuses default installation when real independent control readers are absent, without installing verifier slots or consuming capacity',async()=>{
+it('refuses default installation while the installed control source set is incomplete, without installing verifier slots or consuming capacity',async()=>{
  const f=fixture(),prior=Object.getOwnPropertyDescriptor(f.verifier.agent,'admitContext'),before=f.local.store.asOfEventSequence();
- await expect(app.openInstalledCodexProductionHost(f.local)).rejects.toMatchObject({details:{production_admission:'unapproved',missing:['网络／费用／全部物理配额／完整恢复的独立 Runtime 读取器']}});
+ await expect(app.openInstalledCodexProductionHost(f.local)).rejects.toMatchObject({details:{production_admission:'unapproved',missing:['cost_accounting_and_cap','disk_limit','crash_recovery']}});
  expect(Object.getOwnPropertyDescriptor(f.verifier.agent,'admitContext')).toEqual(prior);expect(seam.closed).toBe(1);expect(f.budget.snapshot().held.model_calls).toBe(0);expect(f.local.store.asOfEventSequence()).toBe(before);
 });
 it('shares one cold host across concurrent borrowers and restores slots only after its last reference closes',async()=>{

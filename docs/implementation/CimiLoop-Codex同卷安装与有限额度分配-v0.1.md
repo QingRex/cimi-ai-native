@@ -52,6 +52,8 @@ pnpm cimiloop runtime codex-budget --project-dir R:\projects\example --json
 
 默认Native辅助程序的主要编译入口已将私有cwd／用户目录和长路径投影放入原构建根；普通模型准入的可选NTFS写入代次辅助器也显式使用项目数据根。新增的 `compiler-operations` 与工具环境仍属于对应原根的容量，不另放全局Temp。辅助器不可用或原目录丢失时重新散列字节，不重建、不跳过核验。当前尚有其他Native控制进程和实际OS写入范围需核验，不能据此批准完整物理配额；见[Native编译路径](../plans/2026-10-27-cimiloop-private-native-compiler.md)及[代次辅助器](../plans/2026-10-27-cimiloop-owned-write-generation.md)。
 
+模型Job现已接入实际2 GiB总提交内存／8进程硬限制及只读原件，网络／宿主控制来源也已接入Provider评测。完整生产宿主仍要求四项实际读取函数齐备；费用、全部物理配额和恢复未完成时不能安装执行适配器。原程序／固定卷／登录的布置不等于控制已全部验收。真实官方CLI的无账户初始化仍存在AppContainer路径转换失败，不能据版本查询成功宣称可执行任务；见[硬限制、生产来源及验证范围](../plans/2026-10-27-cimiloop-codex-bounded-job-control-source.md)。
+
 新准备的Native控制进程、IPC／文件broker、固定检查、Host1／时钟、卷读取器和隔离后台调用，也已自动选用原根中的私有用户目录。旧运行查询只读重开已有观察器和环境，不通过补文件把Unknown变成已清理；缺少观察器时可继续查看Unknown并采集原件。旧只读卷观测不因读取而取得新的环境／全部写根证明。现有目录策略仍需与实际OS写入约束共同验收，见[控制进程接入与验证范围](../plans/2026-10-27-cimiloop-native-control-environment.md)。
 
 固定 Skill 的隔离执行见[接入指南](CimiLoop-固定Skill隔离调用接入指南-v0.1.md)。同卷容量安装成功不会自动启用正式 Agent，不等于方法资格、真实权限/费用/恢复验证或 S1 通过。
