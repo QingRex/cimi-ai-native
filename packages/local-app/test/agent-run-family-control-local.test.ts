@@ -14,7 +14,7 @@ function fixture(count=2){
  const parentPort:app.AgentRuntimeControlPort={query:vi.fn(async()=>({...proof,status:'Stopped'})),collect:vi.fn(async()=>({PUBLIC:'original collection'})),requestCancellation:vi.fn(()=>({requested:true,stopped_proven:false})),recover:vi.fn(async()=>({...proof,outcome:'recovered'}))},childPort:app.AgentRuntimeControlPort={query:vi.fn(async()=>({...proof,status:'Stopped'})),collect:vi.fn(async()=>({PUBLIC:'child collection'})),requestCancellation:vi.fn(()=>({requested:true,stopped_proven:false})),recover:vi.fn(async()=>({...proof,outcome:'recovered'}))};
  const factory=vi.fn(async()=>({custody,release(){}})),parentControl=new app.LocalAgentRuntimeControl(local,parentPort),childControl=new app.LocalHumanSkillInvocationControl(local,factory,childPort);
  const service=()=>{const Constructor=Reflect.get(app,'LocalHumanAgentRunFamilyControl');expect(Constructor).toBeTypeOf('function');return new Constructor(local,parentControl,childControl);};
- const command=()=>({command_id:createInternalId(),requested_at:flowTime,acting_role:'technical_owner',command_type:'CancelRun',target:{object_type:'run',id:f.currentRun().id},expected_revision:f.currentRun().revision,payload:{reason:'PUBLIC stop complete original family'}});return{f,local,invocations,parentPort,childPort,factory,service,command};
+ const command=()=>({command_id:createInternalId(),requested_at:flowTime,acting_role:'technical_owner',command_type:'CancelRun',target:{object_type:'run',id:f.currentRun().id},expected_revision:f.currentRun().revision,payload:{reason:'PUBLIC stop complete original family'}});return{f,local,invocations,parentPort,childPort,childControl,factory,service,command};
 }
 let t:ReturnType<typeof fixture>;beforeAll(()=>{t=fixture();},120000);
 it('queries the complete original child set without dispatch, domain changes or new preparation',async()=>{const before=t.f.store.asOfEventSequence(),prepared=t.f.skillState.prepare_calls,result=await t.service().query(t.f.currentRun().id);
@@ -40,3 +40,26 @@ it('retains the first root-control guard failure even if an adapter catches it',
 });
 it('preserves the historical no-child response without opening child custody',async()=>{const f=fixture(0),result=await f.service().query(f.f.currentRun().id);expect(result).not.toHaveProperty('family');expect(f.factory).not.toHaveBeenCalled();});
 it('rejects a child-set change during the parent read instead of omitting the new reservation',async()=>{const f=fixture(0);vi.mocked(f.parentPort.query).mockImplementation(async()=>{f.f.reserveSkill();return{...proof,status:'Stopped'};});await expect(f.service().query(f.f.currentRun().id)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(f.factory).not.toHaveBeenCalled();});
+it('stopping one original Skill also controls the parent and every original sibling under one Kernel receipt',async()=>{
+ const input=t.command(),id=t.invocations[0]!.id,before=t.f.store.asOfEventSequence(),calls=vi.mocked(t.childPort.requestCancellation).mock.calls.length,observations=t.f.store.listRuntimeRecords('skill_invocation_observation',t.f.change.id),parent=vi.spyOn(app.LocalAgentRuntimeControl.prototype,'retryCancellation');
+ try{
+  const first=await t.childControl.stop(id,input),replay=await t.childControl.stop(id,input);
+  expect(first).toMatchObject({invocation_id:id,parent_operation:{outcome:'unknown'},family:{resources_disposed:false,completion_proven:false,costs_reconciled:false,children:expect.arrayContaining(t.invocations.map(v=>expect.objectContaining({invocation_id:v.id})))}});
+  if('code'in first||'code'in replay)throw Error('PUBLIC expected original cancellation receipt');
+  expect(replay.command_result).toEqual(first.command_result);expect(parent).toHaveBeenCalledTimes(2);
+  const delivered=vi.mocked(t.childPort.requestCancellation).mock.calls.slice(calls).map(row=>row[1].operation_key);expect(delivered).toHaveLength(4);for(const invocation of t.invocations)expect(delivered.filter(key=>key===invocation.invocation_key)).toHaveLength(2);
+  expect(t.f.store.asOfEventSequence()).toBe(before+1);expect(t.f.store.listRuns(t.f.change.id)).toHaveLength(1);expect(t.f.task().usage.pending_reconciliation).toBe(true);expect(t.f.store.listRuntimeRecords('skill_invocation_observation',t.f.change.id)).toEqual(observations);
+ }finally{parent.mockRestore();}
+});
+it('pins the selected-stop command before deferred family composition and replays its exact receipt',async()=>{
+ const input=t.command(),fixed=structuredClone(input),id=t.invocations[0]!.id,before=t.f.store.asOfEventSequence();let queued=false;
+ const first=await t.childControl.stop(id,input,()=>{if(!queued){queued=true;queueMicrotask(()=>{input.command_id=createInternalId();input.target.id=createInternalId();input.payload.reason='PUBLIC mutated during composition';});}});
+ if('code'in first)throw Error(first.code);expect(t.f.store.transaction(tx=>tx.getCommandReceipt(fixed.command_id))).toBeDefined();expect(t.f.store.transaction(tx=>tx.getCommandReceipt(input.command_id))).toBeUndefined();
+ const replay=await t.childControl.stop(id,fixed);if('code'in replay)throw Error(replay.code);expect(replay.command_result).toEqual(first.command_result);expect(t.f.store.asOfEventSequence()).toBe(before+1);
+});
+it('refuses local identity changes across deferred selected-stop composition before any Kernel or physical effect',async()=>{
+ const input=t.command(),before=t.f.store.asOfEventSequence(),path=t.local.location.dataDirectory,calls=t.factory.mock.calls.length;let queued=false;
+ try{await expect(t.childControl.stop(t.invocations[0]!.id,input,()=>{if(!queued){queued=true;queueMicrotask(()=>{t.local.location.dataDirectory=join(path,'PUBLIC-substituted');});}})).rejects.toMatchObject({code:'INPUT_CHANGED'});}
+ finally{t.local.location.dataDirectory=path;}
+ expect(t.f.store.asOfEventSequence()).toBe(before);expect(t.factory.mock.calls.length).toBe(calls);expect(t.f.store.transaction(tx=>tx.getCommandReceipt(input.command_id))).toBeUndefined();
+});

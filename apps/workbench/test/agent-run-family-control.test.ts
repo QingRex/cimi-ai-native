@@ -73,3 +73,9 @@ it.each([false,true])('shows complete-family resource status in the browser when
   expect(dom.window.document.querySelector('#content')?.textContent).toContain(disposed?'任务结果与费用仍待核对':'原运行与预算继续保留');
  }finally{dom.window.close();}
 },30000);
+it('uses the same parent-family cancellation from the selected Skill HTTP endpoint and replays one receipt',async()=>{
+ const command={command_id:createInternalId(),requested_at:flowTime,acting_role:'technical_owner',command_type:'CancelRun',target:{object_type:'run',id:f.currentRun().id},expected_revision:f.currentRun().revision,payload:{reason:'PUBLIC selected Skill stop'}},before=f.store.asOfEventSequence(),calls=leases;
+ const send=async()=>{const response=await fetch(`${server.origin}/api/skill-invocations/${invocationId}/stop`,{method:'POST',headers:{Cookie:cookie,Connection:'close',Origin:server.origin,'Content-Type':'application/json','X-CimiLoop-CSRF':csrf},body:JSON.stringify(command)});return{status:response.status,body:await response.json() as Record<string,any>};};
+ const first=await send(),replay=await send();for(const result of[first,replay])expect(result).toMatchObject({status:200,body:{invocation_id:invocationId,parent_operation:{outcome:'unknown'},family:{resources_disposed:false,completion_proven:false,costs_reconciled:false,children:[{invocation_id:invocationId}]}}});
+ expect(replay.body.command_result).toEqual(first.body.command_result);expect(leases).toBe(calls+2);expect(f.store.asOfEventSequence()).toBe(before+1);expect(f.store.listRuns(f.change.id)).toHaveLength(1);expect(f.task().usage.pending_reconciliation).toBe(true);
+});

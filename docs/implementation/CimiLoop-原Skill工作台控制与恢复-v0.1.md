@@ -1,8 +1,10 @@
 # CimiLoop 原 Skill 工作台控制与恢复 v0.1
 
+2026-10-27 完整父子停止续接：从所选 Skill 提交的 `CancelRun` 现在复用父 Run 的完整原集合控制，同时处理父操作与全部原子 Skill，不再只向所选子调用重送。保留所选原响应，附 `parent_operation` 与 `family`；子取消应答不能覆盖父原件 Unknown 或释放预算。请求在新增模块等待前固定，等待后的身份变化拒绝；会话／权限失败保持。实现与实际验证范围见[本批记录](../plans/2026-10-27-cimiloop-selected-skill-family-stop.md)。这不启用正式执行或完成 S1。
+
 2026-10-11，D-277。接续 [D-276 原 Skill 方法失败](CimiLoop-原Skill方法输出失败与费用核对-v0.1.md)，完整 V1-09/21/22/10/11 范围保持，尚未完成。正式默认 Agent 关闭；242 Schema、用户库格式10保持，无真实凭据读取、无付费请求、无 push。
 
-已有原 Skill 子调用现在可从共享 Human 应用服务、工作台 HTTP 和页面查询、采集、请求停止、重试原取消及回收原资源。停止先由 Kernel 提交原父 Run 的 CancelRun，再传递给同一原 child operation。Native 缺失、响应丢失或释放失败保留 Kernel 原取消回执；查询和恢复没有执行、模型或账户工厂，不能重开 Run。资源 Stopped/已回收不等于 Skill Cancelled/NotStarted、账单结清、父预算释放或 Task 验收。
+已有原 Skill 子调用现在可从共享 Human 应用服务、工作台 HTTP 和页面查询、采集、请求停止、重试原取消及回收原资源。请求停止先由共享父子服务提交或重放 Kernel 原父 Run 的 CancelRun，再对父原操作及其全部原子调用传递原取消。Native 缺失、响应丢失或释放失败保留 Kernel 原取消回执；查询和恢复没有执行、模型或账户工厂，不能重开 Run。资源 Stopped/已回收不等于 Skill Cancelled/NotStarted、账单结清、父预算释放或 Task 验收。
 
 ## 身份、权限与原件
 
@@ -24,7 +26,7 @@ Agent 执行入口仍校验真实 Agent caller。新增只读 Skill metadata rea
 | --- | --- | --- |
 | GET /api/skill-invocations/:id | 无 body | 只读原 Skill 子调用的物理状态；不打开执行入口 |
 | POST /api/skill-invocations/:id/collect | 空对象 | 采集原Native及原取消资料；不写领域观测 |
-| POST /api/skill-invocations/:id/stop | 原 CancelRun 命令 | Kernel先提交原父Run取消，再传递原child取消marker |
+| POST /api/skill-invocations/:id/stop | 原 CancelRun 命令 | Kernel先提交／重放原父Run取消，再控制父及全部原子调用；保留所选子响应 |
 | POST /api/skill-invocations/:id/cancel | 空对象 | 已有Kernel取消时重试同一原marker |
 | POST /api/skill-invocations/:id/recover | 空对象 | 已有Kernel取消时调用原资源恢复；不恢复SDK执行 |
 

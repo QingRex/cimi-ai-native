@@ -1,9 +1,9 @@
 import {join} from 'node:path';import {isDeepStrictEqual as same} from 'node:util';
 import {queryAgentRuntimeOperation,collectAgentRuntimeOperation,requestAgentRuntimeCancellation,recoverAgentRuntimeOperation} from '@cimiloop/runtime-adapter';
-import {readHumanOriginalAgentRunInputs,type AgentRuntimeControlPort} from './agent-runtime-control-local.js';
+import {LocalAgentRuntimeControl,readHumanOriginalAgentRunInputs,type AgentRuntimeControlPort} from './agent-runtime-control-local.js';
 import {readOriginalSkillInvocationMetadataFromReader} from './skill-invocation-execution-local.js';
 import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
-import {executeLocalCommand,type LocalProject} from './project.js';import {LocalProjectError} from './errors.js';
+import type {LocalProject} from './project.js';import {LocalProjectError} from './errors.js';
 import {productionSkillRuntimeOriginals} from './skill-runtime-originals-local.js';
 export interface SkillRuntimeControlLease {custody:LocalSkillInvocationStartCustody;guard?():void;release():void|Promise<void>}
 // Trusted original custody only. No staging/launch/model/account factory exists.
@@ -53,12 +53,24 @@ export class LocalHumanSkillInvocationControl {
  collect(id:string,guard:()=>void=()=>{}){return this.operate(id,'collect',guard);}
  retryCancellation(id:string,guard:()=>void=()=>{}){return this.operate(id,'cancel',guard);}
  recover(id:string,guard:()=>void=()=>{}){return this.operate(id,'recover',guard);}
- async stop(id:string,input:unknown,guard:()=>void=()=>{}){
-  synchronous(guard);const original=this.original(id),keys=['acting_role','command_id','command_type','expected_revision','payload','requested_at','target'];
-  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).sort().join(',')!==keys.sort().join(',')||!('command_type'in input)||input.command_type!=='CancelRun'||!('target'in input)||!input.target||typeof input.target!=='object'||!('object_type'in input.target)||input.target.object_type!=='run'||!('id'in input.target)||input.target.id!==original.invocation.run_ref.id)throw new LocalProjectError('仅支持当前原 Skill 父 Run 的取消命令','INVALID_COMMAND');
-  synchronous(guard);const command_result=executeLocalCommand(this.local,input);if('code'in command_result)return command_result;
-  // A missing Native original/factory never prevents the authorized Kernel
-  // command. Its receipt remains the same after acknowledgement loss/replay.
-  return {...await this.retryCancellation(id,guard),command_result};
+ async stop(id:string,input:unknown,beforeEffect:()=>void=()=>{}){
+  const command=structuredClone(input),local=this.local,identity={store:local.store,kernel:local.kernel,authorize:local.kernel.authorizeAgentRunControl,instance:structuredClone(local.instance),location:structuredClone(local.location)};
+  const changed=()=>new LocalProjectError('原 Skill 停止入口或固定关系发生变化','INPUT_CHANGED','conflict');
+  const identityGuard=()=>{if(local.store!==identity.store||local.kernel!==identity.kernel||local.kernel.authorizeAgentRunControl!==identity.authorize||!same(local.instance,identity.instance)||!same(local.location,identity.location))throw changed();};
+  const external=()=>{identityGuard();synchronous(beforeEffect);identityGuard();};
+  external();const original=this.original(id),keys=['acting_role','command_id','command_type','expected_revision','payload','requested_at','target'];
+  if(!command||typeof command!=='object'||Array.isArray(command)||Object.keys(command).sort().join(',')!==keys.sort().join(',')||!('command_type'in command)||command.command_type!=='CancelRun'||!('target'in command)||!command.target||typeof command.target!=='object'||!('object_type'in command.target)||command.target.object_type!=='run'||!('id'in command.target)||command.target.id!==original.invocation.run_ref.id)throw new LocalProjectError('仅支持当前原 Skill 父 Run 的取消命令','INVALID_COMMAND');
+  let failed=false,failure:unknown;
+  const guard=()=>{if(failed)throw failure;try{external();if(!same(this.original(id),original))throw changed();}catch(error){failed=true;failure=error;throw error;}};
+  guard();
+  // Compose lazily to avoid a module-initialization cycle. Family control calls
+  // retryCancellation on each original child, never recursively calls stop.
+  const {LocalHumanAgentRunFamilyControl}=await import('./agent-run-family-control-local.js');guard();
+  const result=await new LocalHumanAgentRunFamilyControl(local,new LocalAgentRuntimeControl(local),this).stop(command,guard);guard();
+  if('code'in result)return result;
+  const family=result.family;if(!family)throw changed();const selected=family.children.find(child=>child.invocation_id===id);if(!selected)throw changed();
+  // Keep the selected-child envelope for historical callers while exposing
+  // the parent and complete set. Unknown resources never release any budget.
+  return{...selected,command_result:result.command_result,parent_operation:result.operation,family};
  }
 }
