@@ -1,3 +1,4 @@
+import {assertCodexProgramBundle,readCodexProgramBundle,type CodexProgramBundle,type CodexProgramBundleSnapshot} from './codex-program-bundle.js';
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { closeSync, existsSync, fsyncSync, lstatSync, openSync, realpathSync, writeFileSync } from "node:fs";
 import { dirname,isAbsolute,join, resolve } from "node:path";
@@ -85,6 +86,7 @@ export interface CodexOriginalMethodOptions {
   // code-owned FixedVolumeRuntimeStorage supplied to the constructor.
   write_confinement?:CodexWriteConfinement;
   network_policy?:typeof CODEX_CONTAINED_PROXY_POLICY;
+  program_bundle?:CodexProgramBundleSnapshot;
   // Every new delegated method uses this trusted transport policy. Legacy
   // sealed originals keep their recorded policy during read-only replay.
   usage_policy?: CodexOrdinaryUsagePolicy;
@@ -110,7 +112,7 @@ function checkedLoginHome(raw:unknown):CodexLoginHome {
  if(!value||Object.keys(value).sort().join(',')!=='identity,path'||typeof value.path!=='string'||!isAbsolute(value.path)||resolve(value.path)!==value.path||!value.identity||Object.keys(value.identity).sort().join(',')!=='birth,dev,ino'||Object.values(value.identity).some(v=>typeof v!=='string'||!/^\d+$/.test(v))||BigInt(value.identity.ino)<=0n)fail('codex_installation_denied');
  return structuredClone(value);
 }
-type StartVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
+type StartVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14;
 type Frame = { direction: "in" | "out"; bytes: string };
 
 // Non-secret account metadata supplied by the CLI itself. Never read auth.json,
@@ -327,8 +329,13 @@ function originalFromFrames(request: CodexMethodRequest, cwd: string, frames: Fr
 
 export class CodexOriginalMethodRuntime {
   private readonly options: CodexOriginalMethodOptions;
-  constructor(raw: CodexOriginalMethodOptions, private readonly readOnly = false, private readonly policyOrigin?: AgentStartLedger, private readonly writeStorage?:FixedVolumeRuntimeStorage) {
+  constructor(raw: CodexOriginalMethodOptions, private readonly readOnly = false, private readonly policyOrigin?: AgentStartLedger, private readonly writeStorage?:FixedVolumeRuntimeStorage,private readonly programs?:CodexProgramBundle) {
     this.options = structuredClone(raw);
+    if(programs!==undefined||Object.hasOwn(raw,'program_bundle')){
+      if(raw.network_policy!==CODEX_CONTAINED_PROXY_POLICY)fail('codex_program_bundle_unproven');
+      const bundle=readOnly?readCodexProgramBundle(raw.program_bundle,raw.command):assertCodexProgramBundle(programs,raw.command);
+      if(raw.program_bundle&&!same(raw.program_bundle,bundle))fail('codex_program_bundle_unproven');this.options.program_bundle=bundle;
+    }
     if(Object.hasOwn(raw,'network_policy')&&(raw.network_policy!==CODEX_CONTAINED_PROXY_POLICY||!readOnly&&!writeStorage||readOnly&&!raw.write_confinement))fail('codex_network_boundary_unproven');
     if(writeStorage!==undefined||Object.hasOwn(raw,'write_confinement')){
       try{
@@ -377,13 +384,14 @@ export class CodexOriginalMethodRuntime {
     const root = assertOrdinaryPath(join(this.options.root, request.operation_key));
     return { root, cwd: join(root, "workspace"), claim: join(root, "start.json"), transcript: join(root, "stdio.jsonl"), seal: join(root, "seal.json") };
   }
-  private startVersion(request:CodexMethodRequest):StartVersion{return this.options.network_policy?13:this.options.write_confinement?12:this.options.environment_policy?11:this.options.process_custody?10:this.options.state_policy==='private_login_home/2.0.0'?9:this.options.state_policy?8:this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
+  private startVersion(request:CodexMethodRequest):StartVersion{return this.options.program_bundle?14:this.options.network_policy?13:this.options.write_confinement?12:this.options.environment_policy?11:this.options.process_custody?10:this.options.state_policy==='private_login_home/2.0.0'?9:this.options.state_policy?8:this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
   private processArgs(request:CodexMethodRequest){const cwd=this.paths(request).cwd,configValue=stateConfig(this.options.disabled_mcp_servers!,cwd,!!this.options.login_home);return[...this.options.command.args,'app-server','--stdio',...Object.entries(configValue).flatMap(([key,value])=>['-c',key+'='+toml(value)])];}
   private processLayout(request:CodexMethodRequest){return codexProcessLayout(this.options.root,request.operation_key,this.options.process_root);}
   private processRows(request:CodexMethodRequest){return readAgentStartOriginalReference(this.options.process_origin!,['codex_process_job_intent','codex_process_job_complete','codex_process_job_prepared','codex_process_job_started']).filter(row=>row.id===this.policyKey(request));}
   private processBasis(request:CodexMethodRequest){return{format:'cimiloop/codex-process-job-intent/1.0.0',request_digest:digest(encode(request)).value,claim_digest:digest(encode(this.claim(request))).value,root_identity:directoryIdentity(this.options.root),operation_identity:directoryIdentity(this.paths(request).root),...(this.options.process_root?{process_root_identity:directoryIdentity(this.processLayout(request).helperRoot)}:{})};}
   private writeRoots(request:CodexMethodRequest){return[join(this.paths(request).root,'state'),this.options.login_home!.path];}
   private assertConfinement(request:CodexMethodRequest){
+    if(this.options.program_bundle&&!same(this.options.program_bundle,assertCodexProgramBundle(this.programs,this.options.command)))fail('codex_program_bundle_unproven');
     if(!this.options.write_confinement)return;
     try{
       const layout=this.processLayout(request),proof=assertOwnedFixedVolumeRuntimePaths(this.writeStorage,[this.options.root,this.paths(request).cwd,...this.writeRoots(request),layout.helperRoot,layout.operationRoot]);
@@ -391,7 +399,8 @@ export class CodexOriginalMethodRuntime {
     }catch{fail('codex_write_confinement_unproven');}
   }
   private assertProcessConfinement(request:CodexMethodRequest,launch:ReturnType<typeof readCodexProcessLaunch>){
-    if(this.options.write_confinement&&(launch.config.format!==(this.options.network_policy?'cimiloop/codex-process-launch/5.0.0':'cimiloop/codex-process-launch/4.0.0')||this.options.network_policy&&!same(launch.config.proxy,{policy:this.options.network_policy,timeout_ms:this.options.timeout_ms??180000})||!same(launch.config.write_scope,{format:'cimiloop/codex-write-roots/2.0.0',roots:this.writeRoots(request),network_mode:this.options.write_confinement.network_mode})))fail('codex_write_confinement_unproven');
+    if(this.options.program_bundle&&!same(launch.config.program_bundle,this.options.program_bundle))fail('codex_program_bundle_unproven');
+    if(this.options.write_confinement&&(launch.config.format!==(this.options.program_bundle?'cimiloop/codex-process-launch/6.0.0':this.options.network_policy?'cimiloop/codex-process-launch/5.0.0':'cimiloop/codex-process-launch/4.0.0')||this.options.network_policy&&!same(launch.config.proxy,{policy:this.options.network_policy,timeout_ms:this.options.timeout_ms??180000})||!same(launch.config.write_scope,{format:'cimiloop/codex-write-roots/2.0.0',roots:this.writeRoots(request),network_mode:this.options.write_confinement.network_mode})))fail('codex_write_confinement_unproven');
   }
   private policyKey(request: CodexMethodRequest) {
     // Real Windows long names collapse 8.3 aliases; case folding also keeps the
@@ -407,8 +416,8 @@ export class CodexOriginalMethodRuntime {
   }
   private claim(request: CodexMethodRequest, version: StartVersion = this.startVersion(request)) {
     const login=version===9||version>=10&&this.options.state_policy==='private_login_home/2.0.0';
-    if((version>=10)!==!!this.options.process_custody||(version>=10)!==!!this.options.process_origin||(version>=11)!==Object.hasOwn(this.options,'environment_policy')||(version>=12)!==Object.hasOwn(this.options,'write_confinement')||(version===13)!==Object.hasOwn(this.options,'network_policy')||(version>=8)!==Object.hasOwn(this.options,'state_policy')||login!==Object.hasOwn(this.options,'login_home')||version>=8&&this.options.state_policy!==(login?'private_login_home/2.0.0':'private_operation_state/1.0.0')||(version>=8?!parseCodexUsagePolicy(request.usage_policy):version===7?this.options.usage_policy!=='require_ordinary_permission/1.0.0':(version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined))) fail("codex_original_input_changed");
-    return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version>=12?{write_confinement:this.options.write_confinement,write_roots:this.writeRoots(request)}:{}),...(version===13?{network_policy:this.options.network_policy}:{}),...(version>=11?{environment_policy:this.options.environment_policy,environment:codexPrivateUserEnvironment(this.paths(request).cwd,this.options.login_home!.path)}:{}),...(version>=8?{state_policy:this.options.state_policy}:{}),...(login?{login_home:this.options.login_home}:{}),...(version>=10?{process_custody:this.options.process_custody,process_origin:this.options.process_origin,...(this.options.process_root?{process_root:this.options.process_root}:{})}:{}),...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
+    if((version>=10)!==!!this.options.process_custody||(version>=10)!==!!this.options.process_origin||(version>=11)!==Object.hasOwn(this.options,'environment_policy')||(version>=12)!==Object.hasOwn(this.options,'write_confinement')||(version>=14)!==Object.hasOwn(this.options,'program_bundle')||(version>=13)!==Object.hasOwn(this.options,'network_policy')||(version>=8)!==Object.hasOwn(this.options,'state_policy')||login!==Object.hasOwn(this.options,'login_home')||version>=8&&this.options.state_policy!==(login?'private_login_home/2.0.0':'private_operation_state/1.0.0')||(version>=8?!parseCodexUsagePolicy(request.usage_policy):version===7?this.options.usage_policy!=='require_ordinary_permission/1.0.0':(version >= 5)!==!!parseCodexUsagePolicy(request.usage_policy)||(version===6)!==Object.hasOwn(request,'quota_account_digest')||version<5&&(version === 4) !== (request.reasoning_effort !== undefined))) fail("codex_original_input_changed");
+    return { format: `cimiloop/codex-method-start/${version}.0.0`,...(version>=12?{write_confinement:this.options.write_confinement,write_roots:this.writeRoots(request)}:{}),...(version>=13?{network_policy:this.options.network_policy}:{}),...(version>=14?{program_bundle:this.options.program_bundle}:{}),...(version>=11?{environment_policy:this.options.environment_policy,environment:codexPrivateUserEnvironment(this.paths(request).cwd,this.options.login_home!.path)}:{}),...(version>=8?{state_policy:this.options.state_policy}:{}),...(login?{login_home:this.options.login_home}:{}),...(version>=10?{process_custody:this.options.process_custody,process_origin:this.options.process_origin,...(this.options.process_root?{process_root:this.options.process_root}:{})}:{}),...(version===7?{transport_usage_policy:this.options.usage_policy}:{}), request, command: this.options.command,
     account_digest: this.options.account_digest ?? null, config: version >= 8 ? stateConfig(this.options.disabled_mcp_servers!,this.paths(request).cwd,login) : version === 1 ? legacyConfig() : version === 2 ? version2Config(this.options.disabled_mcp_servers!) : config(this.options.disabled_mcp_servers!),
     ...(version >= 2 ? { disabled_mcp_servers: this.options.disabled_mcp_servers } : {}) }; }
   private readProcessResources(raw:CodexMethodRequest){
@@ -432,7 +441,7 @@ export class CodexOriginalMethodRuntime {
     const request = requestCopy(raw), paths = this.paths(request);
     if (!existsSync(paths.claim)) return null;
     const claimBytes = bytesAt(paths.claim);
-    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:claim.format==='cimiloop/codex-method-start/7.0.0'?7:claim.format==='cimiloop/codex-method-start/8.0.0'?8:claim.format==='cimiloop/codex-method-start/9.0.0'?9:claim.format==='cimiloop/codex-method-start/10.0.0'?10:claim.format==='cimiloop/codex-method-start/11.0.0'?11:claim.format==='cimiloop/codex-method-start/12.0.0'?12:claim.format==='cimiloop/codex-method-start/13.0.0'?13:fail();
+    const claim = parse(claimBytes), version = claim.format === "cimiloop/codex-method-start/1.0.0" ? 1 : claim.format === "cimiloop/codex-method-start/2.0.0" ? 2 : claim.format === "cimiloop/codex-method-start/3.0.0" ? 3 : claim.format === "cimiloop/codex-method-start/4.0.0" ? 4 : claim.format === 'cimiloop/codex-method-start/5.0.0'?5:claim.format==='cimiloop/codex-method-start/6.0.0'?6:claim.format==='cimiloop/codex-method-start/7.0.0'?7:claim.format==='cimiloop/codex-method-start/8.0.0'?8:claim.format==='cimiloop/codex-method-start/9.0.0'?9:claim.format==='cimiloop/codex-method-start/10.0.0'?10:claim.format==='cimiloop/codex-method-start/11.0.0'?11:claim.format==='cimiloop/codex-method-start/12.0.0'?12:claim.format==='cimiloop/codex-method-start/13.0.0'?13:claim.format==='cimiloop/codex-method-start/14.0.0'?14:fail();
     const policy = this.policyOrigin?.readExclusive(policyNamespace, this.policyKey(request));
     if (policy ? version !== 7 || !same(policy.basis, this.policyBasis(request)) : version === 7) fail('codex_original_input_changed');
     if (!same(claim, this.claim(request, version))) fail("codex_original_input_changed");
@@ -475,7 +484,7 @@ export class CodexOriginalMethodRuntime {
     if(this.options.process_custody){
       const layout=this.processLayout(request);if(this.options.process_root)directory(layout.helperRoot);
       if(!this.policyOrigin!.claimExclusiveOnce('codex_process_job_intent',this.policyKey(request),this.processBasis(request)).created)fail('codex_original_pending');
-      processLaunch=await prepareCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd,this.options.write_confinement?{roots:this.writeRoots(request),network_mode:'deny_all'}:undefined,this.options.network_policy?{policy:this.options.network_policy,timeout_ms:this.options.timeout_ms??180000}:undefined);guardNow(beforeEffect);assertHome();this.assertConfinement(request);this.assertProcessConfinement(request,processLaunch);signal?.throwIfAborted();
+      processLaunch=await prepareCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd,this.options.write_confinement?{roots:this.writeRoots(request),network_mode:'deny_all'}:undefined,this.options.network_policy?{policy:this.options.network_policy,timeout_ms:this.options.timeout_ms??180000}:undefined,this.programs);guardNow(beforeEffect);assertHome();this.assertConfinement(request);this.assertProcessConfinement(request,processLaunch);signal?.throwIfAborted();
       const intent=this.processRows(request).find(row=>row.namespace==='codex_process_job_intent');if(!intent||!same(intent.basis,this.processBasis(request)))fail('codex_process_custody_unproven');
       this.policyOrigin!.issueExclusive('codex_process_job_prepared',this.policyKey(request),{format:'cimiloop/codex-process-job-prepared/1.0.0',intent_ticket:intent.ticket,original:{header_original:processLaunch.header_original,config_original:processLaunch.config_original}});
     }

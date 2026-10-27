@@ -22,11 +22,13 @@ import {createSkillInvocationProject} from '../../../tests/fixtures/skill-invoca
 import {flowSuccess,flowTime} from '../../../tests/fixtures/flow-project.js';
 const seam=vi.hoisted(()=>({storage:undefined as unknown,home:undefined as unknown,homePath:'',identity:'',launches:[] as any[],transports:[] as unknown[],onClock:undefined as undefined|(()=>void)}));
 vi.mock('../src/agent-codex-login-home-local.js',async load=>({...await load<typeof import('../src/agent-codex-login-home-local.js')>(),assertCodexRuntimeLoginHome(value:unknown){if(value!==seam.home)throw Error('PUBLIC home unavailable');return captureCodexLoginHome(seam.homePath);}}));
+const PUBLIC_PROGRAM_CAPABILITY=vi.hoisted(()=>Object.freeze({kind:'codex_program_bundle/1.0.0'}));
+vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),codexRuntimeInstallationProgramBundle(){return PUBLIC_PROGRAM_CAPABILITY;}}));
 vi.mock('@cimiloop/runtime-adapter',async load=>{const original=await load<typeof import('@cimiloop/runtime-adapter')>();return{...original,
  // PUBLIC staging projection only. Assert capability forwarding, preserve
  // legacy header checks, and prohibit any model dispatch from this fixture.
  CodexOriginalMethodRuntime:class extends original.CodexOriginalMethodRuntime{
-  constructor(...args:ConstructorParameters<typeof original.CodexOriginalMethodRuntime>){if(args[3]!==seam.storage||!args[3])throw Error('PUBLIC missing forwarded storage');const {network_policy,...legacy}=args[0];if(network_policy!=='codex_chatgpt_tunnel/1.0.0')throw Error('PUBLIC missing forwarded network policy');super(legacy,args[1],args[2]);seam.transports.push(args[3]);}
+  constructor(...args:ConstructorParameters<typeof original.CodexOriginalMethodRuntime>){if(args[4]!==PUBLIC_PROGRAM_CAPABILITY)throw Error('PUBLIC missing forwarded programs');if(args[3]!==seam.storage||!args[3])throw Error('PUBLIC missing forwarded storage');const {network_policy,...legacy}=args[0];if(network_policy!=='codex_chatgpt_tunnel/1.0.0')throw Error('PUBLIC missing forwarded network policy');super(legacy,args[1],args[2]);seam.transports.push(args[3]);}
   override async execute(..._args:Parameters<InstanceType<typeof original.CodexOriginalMethodRuntime>['execute']>):Promise<never>{throw Error('PUBLIC staging cannot dispatch a model');}
  },
  assertFixedVolumeRuntimeStorage(value:unknown){if(value!==seam.storage)throw Error('PUBLIC storage unavailable');return{runtime_ticket:{identity_digest:seam.identity}};},

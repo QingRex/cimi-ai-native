@@ -131,5 +131,6 @@ export type { CodexAgentModelOptions, CodexAgentModelAuthority, CodexAgentModelO
 export {createBudgetedCodexAgentRuntimeModel} from './agent-codex-model.js';
 export {readCodexAgentRunUsage} from './agent-codex-model.js';
 export {readCodexAgentRunFamilyUsage} from './codex-run-family-usage.js';
+export {captureCodexProgramBundle,assertCodexProgramBundle,readCodexProgramBundle,type CodexProgramBundle,type CodexProgramBundleSnapshot} from './codex-program-bundle.js';
 export {CodexAgentUsageBudget,type CodexUsageAccount,type CodexUsageBudgetPolicy,type CodexUsageReservation,type CodexUsageDelegationContext,type CodexUsageAllocation} from './codex-agent-usage-budget.js';
 export {openWindowsFixedVolumeReader,openHostFixedVolumeReader,parseFixedVolumeObservation,FixedVolumeQuota,FixedVolumeRuntimeStorage,assertFixedVolumeRuntimeStorage,assertFixedVolumeRuntimePath,assertFixedVolumeRuntimePaths,type FixedVolumeRuntimeScope,type FixedVolumeObservation} from './fixed-volume-quota.js';

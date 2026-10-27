@@ -5,9 +5,11 @@ import{requestDigest}from'@cimiloop/kernel';
 import{AgentStartLedger,assertOrdinaryPath,bytesAt,digest,directory,initializeWindowsAgentStartLedger,openWindowsAgentStartLedger,inspectCodexMethodLogin,parseGatewayJson,parseWorkspaceCheckTemplate,type WorkspaceCheckTemplate}from'@cimiloop/runtime-adapter';
 import type{LocalProject}from'./project.js';import{readInstance}from'./instance.js';import{LocalProjectError}from'./errors.js';
 import {codexRuntimePlacement} from './agent-codex-placement-local.js';
+import {captureCodexProgramBundle,type CodexProgramBundle} from '@cimiloop/runtime-adapter';
 
 const namespace='codex_runtime_installation',requestNamespace='codex_runtime_install_request';
 const writableScopes=new WeakMap<object,readonly string[]>();
+const programBundles=new WeakMap<object,CodexProgramBundle>();
 const sha=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
 function fail():never{throw new LocalProjectError('Codex账户与Runtime原安装尚不可核对；保留原登记和原操作','CAPABILITY_UNAVAILABLE','conflict');}
 const exact=(v:unknown,keys:string[]):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join(',')===[...keys].sort().join(',');
@@ -70,6 +72,12 @@ export async function installCodexAgentRuntime(local:LocalProject,raw:CodexAgent
 
 export interface InstalledCodexAgentRuntime{origin:AgentStartLedger;root:string;binary:string;native_binary:string;node_binary:string;model:string;account_digest:string;quota_account_digest:string;output_profile:'bounded_2048/1.0.0';usage_policy:'require_ordinary_permission/1.0.0';disabled_mcp_servers:string[];checks:WorkspaceCheckTemplate[];installation_digest:string;guard():void;release():void}
 export function codexRuntimeInstallationWritablePaths(installed:InstalledCodexAgentRuntime){const paths=writableScopes.get(installed);if(!paths)fail();installed.guard();return [...paths!];}
+// Only an opened original installation may lend its two pinned programs.
+// A serialized/spread lease cannot select additional read or execute paths.
+export function codexRuntimeInstallationProgramBundle(installed:InstalledCodexAgentRuntime):CodexProgramBundle{
+ if(!writableScopes.has(installed))fail();installed.guard();let capability=programBundles.get(installed);
+ if(!capability){capability=captureCodexProgramBundle({file:installed.binary,args:[],sha256:digest(bytesAt(installed.binary,512*1024*1024)).value},()=>installed.guard());programBundles.set(installed,capability);}return capability;
+}
 // Presence chooses the already installed provider only. It never grants
 // execution, repairs missing bytes, or opens login credentials.
 export function hasInstalledCodexAgentRuntime(local:LocalProject){return !!process.env.LOCALAPPDATA&&existsSync(layout(local).root);}
