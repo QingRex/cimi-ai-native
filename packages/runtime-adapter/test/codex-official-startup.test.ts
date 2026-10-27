@@ -8,10 +8,11 @@ import {captureCodexProgramBundle} from '../src/codex-program-bundle.js';
 import {prepareCodexProcessJob,spawnCodexProcessJob,readStartedCodexProcessJob,readCompletedCodexProcessJob,readCodexProcessJobResources,requestCodexProcessJobCancellation} from '../src/codex-process-job.js';
 
 // Explicit program path only. Never discover/read the real login or inherit
-// CODEX_HOME. This proves offline official-binary compatibility, not a model,
+// CODEX_HOME. This checks the explicitly selected binary (official or locally
+// built compatibility version), not a model,
 // account, physical-quota, cost, provider-qualification or S1 acceptance.
 const program=process.env.CIMILOOP_OFFICIAL_CODEX_BINARY;
-describe.runIf(process.platform==='win32'&&process.arch==='x64'&&!!program)('official Codex offline contained startup',()=>{
+describe.runIf(process.platform==='win32'&&process.arch==='x64'&&!!program)('selected Codex offline contained startup',()=>{
  it.each(['version','initialize'])('starts %s with empty private user directories',async mode=>{
   expect(isAbsolute(program!)).toBe(true);
   const root=mkdtempSync(join(tmpdir(),'co-')),bin=join(root,'bin'),state=join(root,'state');mkdirSync(bin);mkdirSync(state);
@@ -19,7 +20,7 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64'&&!!program)('off
   const paths=Object.fromEntries(['home','local','roaming','temp','codex'].map(name=>{const path=join(state,name);mkdirSync(path);return[name,path];}));
   const env={...isolatedEnvironment(),HOME:paths.home,USERPROFILE:paths.home,LOCALAPPDATA:paths.local,APPDATA:paths.roaming,TEMP:paths.temp,TMP:paths.temp,CODEX_HOME:paths.codex};
   const args=mode==='version'?['--version']:['app-server','--stdio'],command={file:binary,sha256:digest(readFileSync(binary)).value,args:[]},job=join(root,'job'),helper=join(root,'helpers');
-  const launch=await prepareCodexProcessJob(job,helper,command,args,root,{roots:[state]},{policy:'codex_chatgpt_tunnel/1.0.0',timeout_ms:30000},captureCodexProgramBundle(command,()=>{}),'codex_memory_process/1.0.0');
+  const launch=await prepareCodexProcessJob(job,helper,command,args,root,{roots:[state]},{policy:'codex_chatgpt_tunnel/1.0.0',timeout_ms:30000},captureCodexProgramBundle(command,()=>{}),'codex_memory_process/1.0.0','original_volume_handles/1.0.0');
   const child=spawnCodexProcessJob(launch,{cwd:root,env}),chunks:Buffer[]=[],errors:Buffer[]=[];
   child.stdout.on('data',(bytes:Buffer)=>{chunks.push(bytes);if(mode==='initialize'&&Buffer.concat(chunks).toString().split('\n').some(line=>{try{return JSON.parse(line).id===1;}catch{return false;}}))child.stdin.end();});child.stderr.on('data',(bytes:Buffer)=>errors.push(bytes));
   const closed=new Promise<number|null>((done,reject)=>{const timer=setTimeout(()=>{requestCodexProcessJobCancellation(launch);reject(Error('PUBLIC offline startup timed out; retain '+root));},45000);child.once('close',code=>{clearTimeout(timer);done(code);});child.once('error',error=>{clearTimeout(timer);reject(error);});});
