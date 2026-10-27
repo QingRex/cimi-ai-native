@@ -67,6 +67,23 @@ node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source-pipe --pr
 
 此片段须与实际工具字段合并，不是完整配置。各阶段追加 `--tools <build-root>/build-tools-pipe.json` 来显式选择；不修改旧配置。
 
+### 将编译输出放在另一个盘
+
+源码／工具链所在盘余量不足、其他盘有容量时，可另外保存格式3工具配置。保留格式2的全部实际字段与原归档，改为以下格式并增加目标目录：
+
+```json
+{
+  "format": "cimiloop/private-codex-build-tools/3.0.0",
+  "target_directory": "D:/private-codex-target"
+}
+```
+
+这仍是需与原工具字段合并的片段。目标目录必须显式预先创建，不能是盘根、文件、符号链接或带链接父目录；它与原构建根、开发工具仓库均不能相互包含。`source-pipe`、归档、工具链、原 Job 及阶段记录仍在原构建根；只有 Cargo target 改用该目录。读取旧格式配置不改变旧 target。
+
+需要复用旧缓存时，先核对原构建已终止且资源 disposed，再将明确属于本批的旧 target **复制**到新目标；保留旧缓存和失败记录，不在原阶段仍运行时复制或移动。新空目标也可直接构建。Cargo 的实际离线构建仍须成功；复制缓存不作成功证据。
+
+源盘和目标盘均受各自空间停止线约束，完整构建仍为2GiB，有限阶段仍为512MiB；目标盘有空间不允许耗尽源盘。新阶段结果增加 `target_directory`，产物位置对应 `<target-directory>/x86_64-pc-windows-msvc/release`，后续模块夹具也从同一目标读取。显式选择新配置和全新阶段名运行，不覆盖旧工具配置或收据。
+
 ## 执行各阶段
 
 从主仓库运行。每次阶段名必须全新；已有阶段拒绝覆盖。首次 `fetch` 访问固定 Cargo 依赖来源，后续测试及构建使用 `--locked --offline`：

@@ -70,6 +70,8 @@ pnpm cimiloop clarification attach-codex-runtime --project-dir $s1ProjectDir --j
 
 **目前 `model_dispatch_available:false`，原因 `codex_pre_plan_output_budget_unavailable`。** 固定官方客户端没有可核对的整个 turn 输出上界；一次 turn 可含多个模型 Response 和内部重试。预约2048 token、提示短答及事后用量断言均不能替代服务端输出／思考上界。因此新受控 Matt 请求在发送和预约前拒绝，原请求／历史核验仍保留。必须落实全发送路径上界及真实费用／方法资格后，才能继续 G4／G5；不能把 attachment 成功称为真实澄清已跑通。
 
+2026-10-27另核对了官方公开的 [ChatGPT 登录接入限制](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations)：该文档明确将 `max_output_tokens` 列为此接入方式不支持的字段，并说明 app-server RPC 不接受任意 Responses 参数。这是公开接入契约的限制；不能据普通 [Responses API 的 token 上界说明](https://developers.openai.com/api/docs/guides/token-counting)推导当前 Codex 登录路径已支持同一控制。未通过添加不受支持参数或真实模型试错放行。官方[用量与积分说明](https://learn.chatgpt.com/docs/pricing)也不能替代本项目每个原请求对应的认证财务原件。
+
 ## 4. 先取得 Runtime 与 Skill 的真实资格
 
 按[Runtime 原 SDK 契约指南](CimiLoop-Runtime原SDK契约接入指南-v0.1.md)登记固定候选。生成并在证据目录**保存**原请求 ID，再调用；不在重试时重新运行 ID 生成器。

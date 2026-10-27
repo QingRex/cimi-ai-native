@@ -5,6 +5,7 @@ import {mkdirSync,readFileSync,writeFileSync,openSync,closeSync,writeSync,lstatS
 import {resolve,join,dirname,isAbsolute,relative} from 'node:path';
 import {prepareSource} from './prepare-source.mjs';
 import {preparePipeModuleSource,verifyPipeModuleSource} from './prepare-pipe-modules.mjs';
+import {privateBuildTarget} from './build-target.mjs';
 import {fileURLToPath} from 'node:url';
 
 const [rawRoot,stage,action,toolsFlag,toolsPath]=process.argv.slice(2);
@@ -13,8 +14,9 @@ function ordinary(path){path=resolve(path);for(let current=path;;current=dirname
 const root=realpathSync.native(ordinary(rawRoot)),configPath=ordinary(toolsPath??join(root,'build-tools.json'));
 const configRelative=relative(root,configPath);if(isAbsolute(configRelative)||configRelative==='..'||configRelative.startsWith('..\\'))throw Error('Build tools file must be in the private build root');
 const config=JSON.parse(readFileSync(configPath,'utf8'));
-const pipeSource=config.format==='cimiloop/private-codex-build-tools/2.0.0',keys=['format','git','python','visual_studio','msvc_environment',...(pipeSource?['source_policy','reqwest_archives']:[])];
+const separateTarget=config.format==='cimiloop/private-codex-build-tools/3.0.0',pipeSource=separateTarget||config.format==='cimiloop/private-codex-build-tools/2.0.0',keys=['format','git','python','visual_studio','msvc_environment',...(pipeSource?['source_policy','reqwest_archives']:[]),...(separateTarget?['target_directory']:[])];
 if(Object.keys(config).sort().join(',')!==keys.sort().join(',')||!pipeSource&&config.format!=='cimiloop/private-codex-build-tools/1.0.0'||pipeSource&&config.source_policy!=='original_named_pipe_tls/1.0.0')throw Error('Invalid private build tool configuration');
+const targetRoot=privateBuildTarget(root,config);
 for(const key of ['git','python','visual_studio','msvc_environment'])if(typeof config[key]!=='string'||!isAbsolute(config[key]))throw Error('Build tool paths must be absolute');
 const sourceOptions=pipeSource?{privatePipe:true,reqwestArchives:config.reqwest_archives}:{};
 // The original .1 checkout remains immutable. Full .2 builds use a separate
@@ -26,7 +28,7 @@ for(const key of ['git','python'])if(!lstatSync(ordinary(config[key])).isFile())
 const vs=ordinary(config.visual_studio),vsCommand=join(vs,'Common7/Tools/VsDevCmd.bat');
 if(!existsSync(vsCommand)||/["%\r\n&|<>!]/.test(vsCommand))throw Error('Unsupported Visual Studio path');
 const envRelative=relative(root,config.msvc_environment);if(isAbsolute(envRelative)||envRelative==='..'||envRelative.startsWith('..\\'))throw Error('MSVC environment must be in the private build root');
-const system=process.env.SystemRoot??'C:\\Windows',env={SystemRoot:system,WINDIR:system,ComSpec:join(system,'System32/cmd.exe'),PATH:join(system,'System32')+';'+dirname(config.git),HOME:join(root,'home'),USERPROFILE:join(root,'home'),LOCALAPPDATA:join(root,'local'),APPDATA:join(root,'roaming'),TEMP:join(root,'temp'),TMP:join(root,'temp'),CARGO_HOME:join(root,'cargo'),RUSTUP_HOME:join(root,'rustup'),CARGO_TARGET_DIR:join(root,'target'),RUSTUP_TOOLCHAIN:'1.95.0',CARGO_INCREMENTAL:'0',CARGO_BUILD_JOBS:'2',CARGO_PROFILE_DEV_DEBUG:'0',CARGO_PROFILE_TEST_DEBUG:'0',CARGO_PROFILE_RELEASE_DEBUG:'0',CARGO_PROFILE_RELEASE_LTO:'false',CARGO_PROFILE_RELEASE_OPT_LEVEL:'1',CARGO_PROFILE_RELEASE_CODEGEN_UNITS:'16',CARGO_PROFILE_RELEASE_STRIP:'debuginfo',GIT_TERMINAL_PROMPT:'0',VSCMD_SKIP_SENDTELEMETRY:'1',DOTNET_CLI_TELEMETRY_OPTOUT:'1',PYTHON:config.python,PYTHONNOUSERSITE:'1',PYTHONDONTWRITEBYTECODE:'1'};
+const system=process.env.SystemRoot??'C:\\Windows',env={SystemRoot:system,WINDIR:system,ComSpec:join(system,'System32/cmd.exe'),PATH:join(system,'System32')+';'+dirname(config.git),HOME:join(root,'home'),USERPROFILE:join(root,'home'),LOCALAPPDATA:join(root,'local'),APPDATA:join(root,'roaming'),TEMP:join(root,'temp'),TMP:join(root,'temp'),CARGO_HOME:join(root,'cargo'),RUSTUP_HOME:join(root,'rustup'),CARGO_TARGET_DIR:targetRoot,RUSTUP_TOOLCHAIN:'1.95.0',CARGO_INCREMENTAL:'0',CARGO_BUILD_JOBS:'2',CARGO_PROFILE_DEV_DEBUG:'0',CARGO_PROFILE_TEST_DEBUG:'0',CARGO_PROFILE_RELEASE_DEBUG:'0',CARGO_PROFILE_RELEASE_LTO:'false',CARGO_PROFILE_RELEASE_OPT_LEVEL:'1',CARGO_PROFILE_RELEASE_CODEGEN_UNITS:'16',CARGO_PROFILE_RELEASE_STRIP:'debuginfo',GIT_TERMINAL_PROMPT:'0',VSCMD_SKIP_SENDTELEMETRY:'1',DOTNET_CLI_TELEMETRY_OPTOUT:'1',PYTHON:config.python,PYTHONNOUSERSITE:'1',PYTHONDONTWRITEBYTECODE:'1'};
 if(action==='check-pipe-modules')env.CARGO_BUILD_JOBS='1';
 for(const key of ['HOME','LOCALAPPDATA','APPDATA','TEMP','CARGO_HOME','RUSTUP_HOME','CARGO_TARGET_DIR'])mkdirSync(env[key],{recursive:true});
 // Discard keys/tokens, user Cargo/Git settings, Python paths, and Codex homes.
@@ -55,11 +57,11 @@ else if(action==='check-pipe-modules'){
 else if(action==='pipe-acceptance'){
  // A small direct-rustc harness reuses already-built, original dependency
  // libraries. It does not run Cargo or rebuild the Codex workspace.
- const dependencies=join(root,'target/x86_64-pc-windows-msvc/release/deps'),names=readdirSync(ordinary(dependencies)),source=fileURLToPath(new URL('./pipe_acceptance.rs',import.meta.url)),helper=fileURLToPath(new URL('./pipe_windows.rs',import.meta.url)),output=join(directory,'bin');mkdirSync(output);
+ const dependencies=join(targetRoot,'x86_64-pc-windows-msvc/release/deps'),names=readdirSync(ordinary(dependencies)),source=fileURLToPath(new URL('./pipe_acceptance.rs',import.meta.url)),helper=fileURLToPath(new URL('./pipe_windows.rs',import.meta.url)),output=join(directory,'bin');mkdirSync(output);
  file=join(root,'rustup/toolchains/1.95.0-x86_64-pc-windows-msvc/bin/rustc.exe');
- args=[source,'--crate-name','cimiloop_pipe_acceptance','--crate-type','bin','--edition=2024','--target','x86_64-pc-windows-msvc','-C','opt-level=1','-C','debuginfo=0','-C','target-feature=+crt-static','--out-dir',output,'-L','dependency='+dependencies,'-L','dependency='+ordinary(join(root,'target/release/deps'))];
+ args=[source,'--crate-name','cimiloop_pipe_acceptance','--crate-type','bin','--edition=2024','--target','x86_64-pc-windows-msvc','-C','opt-level=1','-C','debuginfo=0','-C','target-feature=+crt-static','--out-dir',output,'-L','dependency='+dependencies,'-L','dependency='+ordinary(join(targetRoot,'release/deps'))];
  const libraries=[];for(const name of ['rustls','rustls_native_certs','codex_utils_rustls_provider']){const found=names.filter(file=>file.startsWith('lib'+name+'-')&&file.endsWith('.rlib'));if(found.length!==1)throw Error('Cached acceptance dependency missing or ambiguous: '+name);const path=join(dependencies,found[0]);libraries.push(path);args.push('--extern',name+'='+path);}
- const nativeBuild=join(root,'target/x86_64-pc-windows-msvc/release/build');for(const name of readdirSync(ordinary(nativeBuild))){if(/^(?:aws-lc-sys|ring)-/.test(name)){const path=join(nativeBuild,name,'out');if(existsSync(path))args.push('-L','native='+ordinary(path));}}
+ const nativeBuild=join(targetRoot,'x86_64-pc-windows-msvc/release/build');for(const name of readdirSync(ordinary(nativeBuild))){if(/^(?:aws-lc-sys|ring)-/.test(name)){const path=join(nativeBuild,name,'out');if(existsSync(path))args.push('-L','native='+ordinary(path));}}
  fixtureBefore={format:'cimiloop/private-pipe-acceptance-source/1.0.0',scope:'transport_module_fixture_only',materials:[source,helper,...libraries].map(fingerprint),codex_client_build_proven:false};writeFileSync(join(directory,'fixture-before.json'),JSON.stringify(fixtureBefore,null,2),{flag:'wx'});
 }
 else{
@@ -67,7 +69,7 @@ else{
  args=action==='fetch'?['+1.95.0','fetch','--locked','--target','x86_64-pc-windows-msvc']:action==='test-paths'?['+1.95.0','test','--locked','--offline','--target','x86_64-pc-windows-msvc','-p','codex-utils-absolute-path','-p','codex-utils-home-dir','--lib']:['+1.95.0','build','--release','--locked','--offline','--target','x86_64-pc-windows-msvc','-p','codex-cli','--bin','codex','-p','codex-code-mode-host','--bin','codex-code-mode-host'];
 }
 const freeFloor=['pipe-acceptance','check-pipe-modules'].includes(action)?512*1024**2:2*1024**3;
-ordinary(file);const sha256=createHash('sha256').update(readFileSync(file)).digest('hex'),free=()=>{const value=statfsSync(root);return value.bavail*value.bsize;};if(free()<freeFloor)throw Error('Build free-space floor reached before launch');
+ordinary(file);const sha256=createHash('sha256').update(readFileSync(file)).digest('hex'),free=()=>Math.min(...[root,targetRoot].map(path=>{const value=statfsSync(path);return value.bavail*value.bsize;}));if(free()<freeFloor)throw Error('Build free-space floor reached before launch');
 const {prepareCodexProcessJob,spawnCodexProcessJob,readStartedCodexProcessJob,readCompletedCodexProcessJob,readCodexProcessJobResources,requestCodexProcessJobCancellation}=await import(new URL('../../packages/runtime-adapter/dist/codex-process-job.js',import.meta.url));
 // Build tools run in a developer Job (launch2), not in the model AppContainer.
 // The Job owns the entire process tree and kills it if this runner disappears.
@@ -80,5 +82,5 @@ const code=await new Promise((done,reject)=>{child.once('close',done);child.once
 const started=readStartedCodexProcessJob(job,helpers,command,args,cwd),resources=readCodexProcessJobResources(started);if(code===0&&!stopped)readCompletedCodexProcessJob(job,helpers,command,args,cwd);
 let sourceAfter,sourceError,fixtureAfter,moduleAfter;
 try{if(sourceBefore){sourceAfter=prepareSource(sourceRoot,{...sourceOptions,verify:true});if(JSON.stringify(sourceAfter)!==JSON.stringify(sourceBefore))throw Error('Original build source changed during stage');}if(fixtureBefore){fixtureAfter={...fixtureBefore,materials:fixtureBefore.materials.map(value=>fingerprint(value.path))};if(JSON.stringify(fixtureBefore)!==JSON.stringify(fixtureAfter))throw Error('Original pipe acceptance source changed during stage');}if(moduleBefore)moduleAfter=verifyPipeModuleSource(moduleBefore);}catch(error){sourceError=String(error);}
-writeFileSync(join(directory,'result.json'),JSON.stringify({format:'cimiloop/portable-codex-build-stage/2.0.0',stage,action,code,stopped,command:{file,sha256,args},resources,source_before:sourceBefore,source_after:sourceAfter,fixture_before:fixtureBefore,fixture_after:fixtureAfter,module_before:moduleBefore,module_after:moduleAfter,source_error:sourceError,free_bytes:free(),free_floor_bytes:freeFloor,model_requests:0,credentials_read:false},null,2),{flag:'wx'});
+writeFileSync(join(directory,'result.json'),JSON.stringify({format:'cimiloop/portable-codex-build-stage/2.0.0',stage,action,code,stopped,command:{file,sha256,args},resources,source_before:sourceBefore,source_after:sourceAfter,fixture_before:fixtureBefore,fixture_after:fixtureAfter,module_before:moduleBefore,module_after:moduleAfter,source_error:sourceError,free_bytes:free(),free_floor_bytes:freeFloor,...(separateTarget?{target_directory:targetRoot}:{}),model_requests:0,credentials_read:false},null,2),{flag:'wx'});
 if(code!==0||stopped||sourceError||resources.status!=='disposed')process.exitCode=1;
