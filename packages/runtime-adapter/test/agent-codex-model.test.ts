@@ -11,6 +11,7 @@ import { digest } from "../src/files.js";
 import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.js";
 import {readNamedMethodCodexOriginals} from '../src/agent-named-method-model-originals.js';
 import {agentRuntimeProviderOptions} from '../src/opencode-workspace-runtime.js';
+import {codexProcessLayout} from '../src/codex-process-job.js';
 
 // Real stdio processes and original Host files, PUBLIC account/model replies.
 // These tests never read a user login or qualify actual model/account behavior.
@@ -61,6 +62,34 @@ describe("Codex model behind the original Agent SDK host", () => {
       expect(runtime.readCodexAgentModelProcessResources(f.root,f.scope)).toMatchObject({status:'Observed',resources_disposed:true,completion_proven:false,costs_reconciled:false,family_resources_disposed:false,calls:[{status:'disposed'}]});expect(f.turns()).toBe(1);expect(origin.listExclusive('codex_process_job_intent')).toHaveLength(before);
     }finally{origin.close();}
   },90000);
+  it.runIf(process.platform==='win32'&&process.arch==='x64').each(['seal','receipt','reply','dispatch'])('controls the original active second Job despite a missing historical %s without replay or budget release',async missing=>{
+    const f=fixture(),origin=runtime.AgentStartLedger.initialize(join(f.root,'process-origin'),{machine_digest:digest('PUBLIC machine').value,principal_digest:digest('PUBLIC owner').value}),abort=new AbortController();let pending:Promise<unknown>|undefined;
+    try{
+      const quota=digest('PUBLIC-account').value,budget=runtime.CodexAgentUsageBudget.initialize(origin,{account_digest:f.options.account_digest,quota_account_digest:quota,model_calls:2,output_tokens:4096});
+      const transport=new runtime.CodexOriginalMethodRuntime({...f.transport.originalConfiguration,state_policy:'private_operation_state/1.0.0',process_custody:'owner_job/1.0.0',process_root:join(f.root,'processes')},false,origin);
+      const port=runtime.createBudgetedCodexAgentRuntimeModel({...f.options,runtime:transport,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:quota},budget),host=await AgentRuntimeModelHost.initialize(f.root,f.scope,port,['cimi_read']);
+      const header=join(f.root,'agent-runtime-model-starts',f.scope.project_id,f.scope.run_id,'header.json');
+      claimAgentRuntimeOperation(f.root,f.scope,{purpose:'agent_runtime',model_original_binding:{format:'cimiloop/agent-model-original-binding/1.0.0',header_digest:digest(readFileSync(header)).value,original_evidence:port.original_evidence}},{pid:process.pid,creation_ticks:'1',image:process.execPath});
+      const request={...f.request,admission_digest:port.admission_digest,format:'cimiloop/agent-runtime-model-request/3.0.0',max_output_tokens:2048},first=await host.execute(request),tool=first.receipt.content[0]!;
+      if(tool.type!=='tool-call')throw Error('PUBLIC original tool call expected');
+      const next={...request,call_id:'model_0002',prompt:[...request.prompt,{role:'assistant',content:[{type:'tool-call',toolCallId:tool.tool_call_id,toolName:tool.tool_name,input:JSON.parse(tool.arguments)}]},{role:'tool',content:[{type:'tool-result',toolCallId:tool.tool_call_id,toolName:tool.tool_name,output:{type:'text',value:'PUBLIC fixed file bytes'}}]}]};
+      writeFileSync(f.control,JSON.stringify({stall:true}));pending=host.execute(next,abort.signal);void pending.catch(()=>{});
+      await expect.poll(()=>f.turns(),{timeout:15000}).toBe(2);
+      const body=join(f.root,'agent-codex-model-originals',f.scope.project_id,f.scope.run_id),spine=join(f.root,'agent-runtime-model-starts',f.scope.project_id,f.scope.run_id);
+      const one=JSON.parse(readFileSync(join(body,'model_0001','request.json'),'utf8')),two=JSON.parse(readFileSync(join(body,'model_0002','request.json'),'utf8'));
+      const job=codexProcessLayout(transport.originalConfiguration.root,two.codex_request.operation_key,transport.originalConfiguration.process_root).operationRoot,cancel=join(job,'cancel.json'),end=join(job,'ended.json');
+      const lost=missing==='seal'?join(transport.originalConfiguration.root,one.codex_request.operation_key,'seal.json'):missing==='receipt'?join(body,'model_0001','receipt.json'):missing==='reply'?join(f.root,'agent-runtime-model-originals',f.scope.project_id,f.scope.run_id,'model_0001','reply.json'):join(spine,'model_0001','codex-dispatch.json');
+      renameSync(lost,join(f.root,'retained-historical-'+missing));if(missing==='reply')writeFileSync(lost,'PUBLIC damaged original reply');
+      const before=budget.snapshot();expect(()=>f.read()).toThrow();
+      expect(runtime.readCodexAgentModelProcessResources(f.root,f.scope)).toMatchObject({status:'Unknown',resources_disposed:false,calls:[{call_id:'model_0001',status:missing==='dispatch'?'unknown':'disposed'},{call_id:'model_0002',status:'active'}]});
+      expect(()=>runtime.requestCodexAgentModelCancellation(f.root,f.scope,()=>{throw Error('PUBLIC Human revoked');})).toThrow('PUBLIC Human revoked');expect(existsSync(cancel)).toBe(false);
+      const result=runtime.requestAgentRuntimeCancellation(f.root,f.scope);expect(result).toMatchObject({requested:true,stopped_proven:false,model_cancellation:{calls:[{call_id:'model_0001',requested:missing!=='dispatch'},{call_id:'model_0002',requested:true,stopped_proven:false}]}});expect(existsSync(cancel)).toBe(true);
+      await expect(pending).rejects.toThrow();expect(existsSync(end)).toBe(true);
+      expect(runtime.readCodexAgentModelProcessResources(f.root,f.scope)).toMatchObject({resources_disposed:missing!=='dispatch',completion_proven:false,costs_reconciled:false,calls:[{call_id:'model_0001',status:missing==='dispatch'?'unknown':'disposed'},{call_id:'model_0002',status:'disposed'}]});
+      const marker=readFileSync(cancel);runtime.requestAgentRuntimeCancellation(f.root,f.scope);expect(readFileSync(cancel)).toEqual(marker);
+      expect(budget.snapshot()).toEqual(before);expect(before.held.model_calls).toBe(2);expect(f.turns()).toBe(2);expect(()=>f.read()).toThrow();
+    }finally{abort.abort();await pending?.catch(()=>{});origin.close();}
+  },120000);
   it.each(['cimi_read','cimi_replace','cimi_check','cimi_run_skill','cimiloop_task_result'])('accepts one typed workspace proxy %s and replays its original advice without another turn',async tool=>{
     const args=tool==='cimiloop_task_result'?{text:'{"status":"candidate_only"}'}:{path:'src/query.ts'};
     const f=fixture({PUBLIC_proxy:{tool,arguments:args}}),path=join(f.root,'typed-login');mkdirSync(path);

@@ -6,7 +6,7 @@ import { assertOrdinaryPath, bytesAt, digest, directory, RuntimeAdapterError } f
 import { parseGatewayFunctionCalls, parseGatewayJson } from "./gateway-conversation.js";
 import { prepareDedicatedAgentRequest, type DedicatedAgentReply } from "./agent-dedicated-codec.js";
 import { parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from "./agent-workspace-authority.js";
-import { AGENT_PARENT_SKILL_TOOLS, isAgentParentSkillToolSet, isAgentParentSkillModelTools, isAgentNamedMethodToolSet, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals, type AgentRuntimeModelPort, type AgentRuntimeModelResponse } from "./agent-runtime-model.js";
+import { AGENT_PARENT_SKILL_TOOLS, isAgentParentSkillToolSet, isAgentParentSkillModelTools, isAgentNamedMethodToolSet, parseAgentRuntimeModelRequest, parseAgentRuntimeModelResponse, readAgentRuntimeModelOriginals, readAgentRuntimeModelRequestOriginals, type AgentRuntimeModelPort, type AgentRuntimeModelResponse } from "./agent-runtime-model.js";
 import { CodexOriginalMethodRuntime, type CodexMethodRequest, type CodexMethodOriginal, type CodexOriginalMethodOptions } from "./codex-original-method.js";
 import {codexProcessLayout} from './codex-process-job.js';
 import { parseAgentModelOutputProfile, type AgentModelOutputProfile } from "./agent-model-output.js";
@@ -293,18 +293,56 @@ export interface CodexAgentModelProcessResources {
  calls:{call_id:string;status:'active'|'unknown'|'disposed';resources_disposed:boolean;reason:string;basis_digest?:string}[];
  completion_proven:false;costs_reconciled:false;family_resources_disposed:false;
 }
+// Resource custody needs the immutable dispatch and the original Host1 Job,
+// not a successful provider result. Each retained controller independently
+// verifies the exact request/configuration against protected Host1 records.
+// This view must never be used for result validation or financial settlement.
+function readCodexAgentModelDispatches(root:string,scope:AgentWorkspaceToolScope){
+ root=resolve(assertOrdinaryPath(root));const paths=headerPaths(root,scope),hostHeaderPath=join(paths.host,'header.json');
+ const hostHeader=existsSync(hostHeaderPath)?read(hostHeaderPath):undefined;
+ if(hostHeader?.original_evidence?.kind!=='codex_login/1.0.0'&&!existsSync(paths.body)&&!existsSync(paths.spine))return undefined;
+ const header=checkedHeader(read(join(paths.body,'header.json'))),host=readAgentRuntimeModelRequestOriginals(root,scope);
+ if(!same(header.scope,scope)||host.output_profile!==header.output_profile||!same(host.original_evidence,proof(header))||!same(read(join(paths.spine,'header.json')),header)||host.admission_digest!==header.admission_digest||!same(hostHeader.permitted,header.permitted))fail();
+ const artifacts:{path:string;digest:string;identity:ReturnType<typeof identity>}[]=[],capture=(path:string,max=MAX)=>{
+  const before=identity(path),bytes=bytesAt(path,max);if(!same(before,identity(path)))fail();artifacts.push({path,digest:digest(bytes).value,identity:before});return json(new TextDecoder('utf-8',{fatal:true}).decode(bytes),max);
+ };
+ for(const file of host.artifacts)capture(file.path,TRANSPORT_MAX);
+ capture(join(paths.body,'header.json'));capture(join(paths.spine,'header.json'));
+ const runRoot=join(root,'agent-runtime-claims',scope.project_id,'runs',scope.run_id),keyRoot=join(root,'agent-runtime-claims',scope.project_id,'keys',scope.operation_key);
+ if(existsSync(runRoot)||existsSync(keyRoot)){
+  const inputPath=join(runRoot,'input.json'),input=capture(inputPath,65536),claim=capture(join(runRoot,'claim.json'),65536),key=capture(join(keyRoot,'original.json'),65536);
+  if(!['cimiloop/agent-runtime-operation-claim/1.0.0','cimiloop/agent-runtime-operation-claim/2.0.0','cimiloop/agent-runtime-operation-claim/3.0.0','cimiloop/agent-runtime-operation-claim/4.0.0'].includes(claim.format)||claim.input_digest!==digest(bytesAt(inputPath,65536)).value||!same(claim.scope,scope)||!same(key,{run_id:scope.run_id,operation_id:claim.operation_id,scope_digest:digest(JSON.stringify(scope)).value,input_digest:claim.input_digest})||!same(input.model_original_binding,{format:'cimiloop/agent-model-original-binding/1.0.0',header_digest:digest(bytesAt(hostHeaderPath)).value,original_evidence:host.original_evidence}))fail();
+ }
+ const listing=(path:string)=>{const names=readdirSync(assertOrdinaryPath(path)).sort();if(names.length>65)fail();return names;};
+ const bodyNames=listing(paths.body),spineNames=listing(paths.spine),allowed=['header.json',...host.calls.map(call=>call.call_id)];if([...bodyNames,...spineNames].some(name=>!allowed.includes(name)))fail();
+ const calls=host.calls.map(outer=>{
+  const name=outer.call_id,body=join(paths.body,name),spine=join(paths.spine,name);
+  try{
+   if(listing(spine).some(file=>file!=='request.json')||listing(body).some(file=>!['request.json','receipt.json'].includes(file)))fail();
+   const a=join(spine,'request.json'),b=join(body,'request.json'),record=capture(a);
+   if(!exact(record,['format','sdk_request','codex_request'])||record.format!=='cimiloop/codex-agent-dispatch/1.0.0'||!same(record.sdk_request,outer.request)||!same(capture(b),record))fail();
+   const request=record.codex_request as CodexMethodRequest;if(request?.operation_key!==digest(JSON.stringify({scope,admission:header.admission_digest,call_id:name})).value||request?.model!==header.model)fail();
+   const pinned={format:'cimiloop/codex-agent-dispatch-anchor/1.0.0',header_digest:proof(header).header_digest,request_digest:digest(JSON.stringify(record)).value,spine_identity:identity(a),body_identity:identity(b)};
+   if(!same(capture(join(paths.host,name,'codex-dispatch.json')),pinned))fail();
+   return{call_id:name,request};
+  }catch{return{call_id:name,request:null};}
+ });
+ for(const file of artifacts)if(!same(file.identity,identity(file.path))||digest(bytesAt(file.path,TRANSPORT_MAX)).value!==file.digest)fail('agent_codex_original_changed');
+ if(!same(host,readAgentRuntimeModelRequestOriginals(root,scope))||!same(bodyNames,listing(paths.body))||!same(spineNames,listing(paths.spine)))fail('agent_codex_original_changed');
+ return{header,calls,artifacts};
+}
 // Resource-only reads deliberately do not require successful model output.
 // A completed Native sandbox says nothing about a pending Codex owner Job.
 export function readCodexAgentModelProcessResources(root:string,rawScope:unknown):CodexAgentModelProcessResources{
- const scope=parseAgentWorkspaceToolScope(rawScope),original=readCodexAgentModelOriginals(root,scope),result:CodexAgentModelProcessResources={status:'NotRegistered',resource_scope:'current_codex_run',resources_disposed:false,calls:[],completion_proven:false,costs_reconciled:false,family_resources_disposed:false};
- if(original.status==='NotRegistered')return result;
- const paths=headerPaths(root,scope),header=checkedHeader(read(join(paths.body,'header.json')));result.status='Unknown';
+ const scope=parseAgentWorkspaceToolScope(rawScope),original=readCodexAgentModelDispatches(root,scope),result:CodexAgentModelProcessResources={status:'NotRegistered',resource_scope:'current_codex_run',resources_disposed:false,calls:[],completion_proven:false,costs_reconciled:false,family_resources_disposed:false};
+ if(!original)return result;
+ result.status='Unknown';
  for(const call of original.calls){
-  const record=original.artifacts.find(file=>file.name===call.call_id+'/request.json');
-  if(!record){result.calls.push({call_id:call.call_id,status:'unknown',resources_disposed:false,reason:'codex_original_dispatch_unavailable'});continue;}
-  const body=read(record.path),resource=CodexOriginalMethodRuntime.readProcessResourcesRetained(header.runtime,body.codex_request);result.calls.push({call_id:call.call_id,...resource});
+  if(!call.request){result.calls.push({call_id:call.call_id,status:'unknown',resources_disposed:false,reason:'codex_original_dispatch_unavailable'});continue;}
+  try{const resource=CodexOriginalMethodRuntime.readProcessResourcesRetained(original.header.runtime,call.request);result.calls.push({call_id:call.call_id,...resource});}
+  catch{result.calls.push({call_id:call.call_id,status:'unknown',resources_disposed:false,reason:'codex_original_process_observation_unavailable'});}
  }
- if(!same(header,checkedHeader(read(join(paths.body,'header.json'))))||!same(original,readCodexAgentModelOriginals(root,scope)))fail('agent_codex_original_changed');
+ if(!same(original,readCodexAgentModelDispatches(root,scope)))fail('agent_codex_original_changed');
  result.resources_disposed=result.calls.every(call=>call.resources_disposed);if(result.resources_disposed)result.status='Observed';return result;
 }
 // The application supplies the original scope and current control guard. No
@@ -312,20 +350,18 @@ export function readCodexAgentModelProcessResources(root:string,rawScope:unknown
 // already-registered Job. Partial delivery remains retryable on these identities.
 export function requestCodexAgentModelCancellation(root:string,rawScope:unknown,beforeEffect:()=>void=()=>{}){
  let guardError:unknown,guardFailed=false;const guard=()=>{try{const value:unknown=beforeEffect();if(value!==undefined){void Promise.resolve(value).catch(()=>{});fail('agent_codex_effect_denied');}}catch(error){guardError=error;guardFailed=true;throw error;}};
- guard();const scope=parseAgentWorkspaceToolScope(rawScope),original=readCodexAgentModelOriginals(root,scope),calls:{call_id:string;requested:boolean;stopped_proven:false;completion_proven:false;costs_reconciled:false;reason:string;basis_digest?:string}[]=[];
+ guard();const scope=parseAgentWorkspaceToolScope(rawScope),original=readCodexAgentModelDispatches(root,scope),calls:{call_id:string;requested:boolean;stopped_proven:false;completion_proven:false;costs_reconciled:false;reason:string;basis_digest?:string}[]=[];
  const base={resource_scope:'current_codex_run' as const,stopped_proven:false as const,completion_proven:false as const,costs_reconciled:false as const,family_resources_disposed:false as const};
- if(original.status==='NotRegistered')return{...base,status:'NotRegistered' as const,calls};
- const header=checkedHeader(read(join(headerPaths(root,scope).body,'header.json')));
- const basis=(value:CodexAgentModelOriginals)=>{const names=new Set(['header.json','start/header.json',...value.calls.flatMap(call=>[call.call_id+'/request.json','start/'+call.call_id+'/request.json'])]);return{scope_digest:value.scope_digest,header_digest:value.header_digest,call_ids:value.calls.map(call=>call.call_id),requests:value.artifacts.filter(file=>names.has(file.name)).map(file=>({...file,identity:identity(file.path)}))};},before=basis(original);
- for(const call of original.calls){guard();const record=original.artifacts.find(file=>file.name===call.call_id+'/request.json');
-  if(!record){calls.push({call_id:call.call_id,requested:false,stopped_proven:false,completion_proven:false,costs_reconciled:false,reason:'codex_original_dispatch_unavailable'});continue;}
-  try{const body=read(record.path);calls.push({call_id:call.call_id,...CodexOriginalMethodRuntime.requestProcessCancellationRetained(header.runtime,body.codex_request,guard)});}
+ if(!original)return{...base,status:'NotRegistered' as const,calls};
+ for(const call of original.calls){guard();
+  if(!call.request){calls.push({call_id:call.call_id,requested:false,stopped_proven:false,completion_proven:false,costs_reconciled:false,reason:'codex_original_dispatch_unavailable'});continue;}
+  try{calls.push({call_id:call.call_id,...CodexOriginalMethodRuntime.requestProcessCancellationRetained(original.header.runtime,call.request,guard)});}
   catch(error){if(guardFailed&&error===guardError)throw error;calls.push({call_id:call.call_id,requested:false,stopped_proven:false,completion_proven:false,costs_reconciled:false,reason:'codex_original_process_cancellation_unavailable'});}
  }
  // Ending the requested Job legitimately adds end evidence. Recheck only the
  // complete original request identities; new/changed requests still refuse an
  // all-delivered acknowledgement and must be queried on the original scope.
- guard();if(!same(header,checkedHeader(read(join(headerPaths(root,scope).body,'header.json'))))||!same(before,basis(readCodexAgentModelOriginals(root,scope))))fail('agent_codex_original_changed');
+ guard();if(!same(original,readCodexAgentModelDispatches(root,scope)))fail('agent_codex_original_changed');
  return{...base,status:calls.length&&calls.every(call=>call.requested)?'Requested' as const:'Unknown' as const,calls};
 }
 // Read-only per-Run accounting facts. Capacity and provider token usage are

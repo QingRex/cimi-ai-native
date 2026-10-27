@@ -185,7 +185,14 @@ export function readAgentRuntimeModelOriginals(root:string,rawScope:unknown) {
  let key:string|undefined;try{key="runtime-model\0"+resolve(root)+"\0"+digest(JSON.stringify(rawScope)).value;}catch{key=undefined;}
  return key?rememberOriginalObservation(key,()=>readAgentRuntimeModelOriginalsNow(root,rawScope)):readAgentRuntimeModelOriginalsNow(root,rawScope);
 }
-function readAgentRuntimeModelOriginalsNow(root:string,rawScope:unknown) {
+// Internal resource-control view only. It shares the exact header/request
+// checks, but never reads a reply or supplies completion/accounting evidence.
+export function readAgentRuntimeModelRequestOriginals(root:string,rawScope:unknown){
+ const value=readAgentRuntimeModelOriginalsNow(root,rawScope,true);
+ return{original_evidence:value.original_evidence,output_profile:value.output_profile,admission_digest:value.admission_digest,
+  calls:value.calls.map(call=>({call_id:call.call_id,request:call.request})),artifacts:value.artifacts};
+}
+function readAgentRuntimeModelOriginalsNow(root:string,rawScope:unknown,requestsOnly=false) {
  const scope=parseAgentWorkspaceToolScope(rawScope),path=assertOrdinaryPath(join(root,"agent-runtime-model-originals",scope.project_id,scope.run_id)),spine=assertOrdinaryPath(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id));
  const header=read(join(path,"header.json"));
  if(!exact(header,["format","scope","admission_digest","permitted","maximum_calls","task_packet_digest",...(header&&typeof header==="object"&&"original_evidence" in header?["original_evidence"]:[]),...(header&&typeof header==="object"&&"parent_skill_tools" in header?["parent_skill_tools"]:[]),...(header&&typeof header==="object"&&"output_profile" in header?["output_profile"]:[])])||!Array.isArray(header.permitted)||!header.permitted.length||new Set(header.permitted).size!==header.permitted.length||!header.permitted.every(n=>typeof n==="string")||!permittedTools(header.permitted as string[])||header.permitted.length>(isAgentParentSkillModelTools(header.permitted)?4:3)||!isDeepStrictEqual(header.scope,scope)||!sha(header.admission_digest)||header.maximum_calls!==64||(header.task_packet_digest!==null&&!sha(header.task_packet_digest))||!isDeepStrictEqual(read(join(spine,"header.json")),header))fail("agent_model_original_unproven");
@@ -203,7 +210,7 @@ function readAgentRuntimeModelOriginalsNow(root:string,rawScope:unknown) {
   const bodyPath=join(path,name,"request.json"),replyPath=join(path,name,"reply.json");let response:AgentRuntimeModelResponse|null=null;
   if(existsSync(bodyPath)){
    if(!isDeepStrictEqual(capture(name+"/request.json",bodyPath),original))fail("agent_model_original_unproven");
-   if(existsSync(replyPath)){const reply=capture(name+"/reply.json",replyPath);if(!exact(reply,["request_digest","response_digest","response"])||reply.request_digest!==digest(JSON.stringify(original)).value||reply.response_digest!==digest(JSON.stringify(reply.response)).value)fail("agent_model_original_unproven");response=parseAgentRuntimeModelResponse(reply.response,original);}
+   if(!requestsOnly&&existsSync(replyPath)){const reply=capture(name+"/reply.json",replyPath);if(!exact(reply,["request_digest","response_digest","response"])||reply.request_digest!==digest(JSON.stringify(original)).value||reply.response_digest!==digest(JSON.stringify(reply.response)).value)fail("agent_model_original_unproven");response=parseAgentRuntimeModelResponse(reply.response,original);}
   }
   calls.push({call_id:name,state:response?"reply_recorded":"unknown",request:original,response});
  }

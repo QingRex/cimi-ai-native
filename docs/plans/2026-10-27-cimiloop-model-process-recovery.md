@@ -54,3 +54,21 @@ Node24.22.1／pnpm12.4.2。测试中的模型／账户／资格仍为PUBLIC；�
 Node24.22.1／pnpm12.4.2，产品修补与测试准备预算修补后的 `pnpm check` 分别通过。独立定向源码复核未发现快照修补问题，并确认测试预算修正保留业务断言及生产限制。实际范围为共享应用服务、真实Kernel／SQLite及Host1，Native端口、模型和资格仍为PUBLIC；不证明真实模型、费用结清、全Native或S1。未运行全仓 `pnpm test`，没有真实模型请求或凭据读取。
 
 原完整客户端构建13在本批期间持续推进，仍以其原Job、日志和最终result为准，不能由本批控制服务测试推定成功。完整五组S1范围、Schema242／项目库10／Host1、六个既有未知文件及历史Unknown保持；只本地提交，不push。
+
+## 历史模型结果损坏后仍停止可核对的原 Job
+
+接续 `f75dcd2` 的独立工程复核发现：资源查询与取消在逐调用控制前先读取全部成功模型结果。历史调用的 seal／receipt／SDK reply 损坏，或该项 dispatch 丢失时，会连带阻断同一 Run 后续身份完整的活动模型 Job；外层 Native 停止及 SDK 取消标记不能代替模型取消投递。
+
+现新增内部请求专用读取，沿用原 SDK header／request 校验，但不读取 reply；完整结果读取仍按原规则校验。资源路径逐项核对 SDK 原请求、Codex 双份请求、dispatch 摘要和物理身份，保留 Run／operation-key 与原模型绑定；实际进程控制仍由原 Host1 对完整请求、配置和原 Job 身份独立复核。资源路径不重建需要历史成功结果的模型 prompt，也不凭本地请求 JSON 取得进程权限。单项缺件或原 Job 资料损坏只让该项 Unknown，继续处理其余可核对原调用；结束再次核对完整请求集合及文件身份。完整结果、财务和生产准入不使用这一部分视图。
+
+四项新增反例分别保留丢失的 seal、receipt、dispatch 原文件，或损坏 SDK reply；都先执行一个已记录调用，再令同 Run 第二个原 Job 实际活动，经正式 SDK 原取消入口验证后者结束。撤权拒绝、相同取消标记重放、两个原请求的有限账户占用不变、没有第三次发送、损坏结果仍拒绝核验同时成立。账户与模型为 PUBLIC 夹具，实际使用 Windows Job、进程和 Host1；不读取用户登录，不发送真实模型请求，不形成费用结清或 S1 证据。
+
+实际验证记录均在 `.cimiloop/codex-2026-10-27-`：
+
+- `historical-model-resource-red.json` 首次4失败源于新增夹具沿用了包装前 admission，不作产品反例；修正为实际 port admission 后，`historical-model-resource-red-02.json` 为0通过、4失败、64过滤未运行，四项均实际失败于原资源读取依赖历史结果／dispatch。
+- 首轮修补后的 `historical-model-resource-green.json` 为3通过、1失败、64过滤未运行；第4项在实际辅助程序编译阶段报 `agent_sandbox_build_failed`，尚未到达新增控制断言。失败原材料保持；未找到对应时间窗的Windows Application错误事件，不猜测具体原因。同批原C#源通过既有编译封装在全新私有目录独立诊断退出0，原失败缓存未修复或覆盖；原件在 `C:/CimiBuild/cp-20261027/compiler-diag-YJLzLT`，该本机路径不是跨机器配置。
+- 最终 `historical-model-resource-final.json`：4个完整文件113通过、0失败、0跳过、exit0。模型原件68、原进程Job21、通用模型16、SDK取消8。新增四项全部实际通过；原Job文件还覆盖宿主突然退出、原资源取消和响应丢失。只运行受影响范围，未运行全仓 `pnpm test` 或完整 AppContainer／真实模型／费用／S1验收。
+
+Node24.22.1／pnpm12.4.2。初次类型检查暴露未知JSON字段的TypeScript类型错误，修正后最终 `pnpm check` 通过；diff检查通过。两次独立定向源码复核未发现新增确定问题，范围限本修补，不作最终 V1-22 评审。操作指南同步说明历史结果损坏时的原控制行为和完整调用族入口。Schema242／项目库10／Host1保持，不迁移用户库、不释放Unknown预算、不处理六个未知文件、不push。
+
+完整客户端13仍沿原会话70718编译V8，尚无result终态；本批113项不证明该构建成功，也不代替随后须执行的新产物双场景 AppContainer 离线启动。持续目标保持active；用户确认只有现有Codex登录，不再要求其提供其他API或凭据。现金／积分硬控制与逐请求官方账单缺项保持，不以技术进程处置冒充结清。
