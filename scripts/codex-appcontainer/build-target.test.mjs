@@ -51,3 +51,12 @@ test('V8 uses the selected Visual Studio installation instead of rediscovering a
  assert.deepEqual(build.privateVisualStudioSourceEnvironment(vs,'visualstudioversion=18.0'),{GYP_MSVS_OVERRIDE_PATH:vs,GYP_MSVS_VERSION:'2026',vs2026_install:vs});
  for(const text of ['', 'VisualStudioVersion=unknown', 'VisualStudioVersion=19.0', 'VisualStudioVersion=17.0\nvisualstudioversion=18.0', 'VisualStudioVersion=17.0\nVisualStudioVersion=17.0'])assert.throws(()=>build.privateVisualStudioSourceEnvironment(vs,text));
 });
+test('a pinned compiler can use a separately installed libclang for binding generation',()=>{
+ const base=mkdtempSync(join(tmpdir(),'cimi-v8-binding-')),compiler=join(base,'compiler'),binding=join(base,'binding');mkdirSync(join(compiler,'bin'),{recursive:true});mkdirSync(join(binding,'bin'),{recursive:true});
+ for(const name of ['clang.exe','clang-cl.exe','lld-link.exe'])writeFileSync(join(compiler,'bin',name),'MZ PUBLIC pinned '+name);
+ writeFileSync(join(binding,'bin','libclang.dll'),'MZ PUBLIC binding library');
+ const policy={format:'cimiloop/locked-v8-sandbox-source/1.0.0',clang_root:compiler,binding_clang_root:binding};
+ const original=build.privateV8SourceBuild({v8_source_build:policy});assert.equal(original.environment.CLANG_BASE_PATH,compiler);assert.equal(original.environment.LIBCLANG_PATH,join(binding,'bin'));assert.equal(original.materials[2].path,join(binding,'bin','libclang.dll'));
+ assert.throws(()=>build.privateV8SourceBuild({v8_source_build:{...policy,binding_clang_root:'relative'}}));
+ writeFileSync(join(binding,'bin','libclang.dll'),'MZ PUBLIC replaced binding library');assert.notDeepEqual(build.privateV8SourceBuild({v8_source_build:policy}),original);
+});

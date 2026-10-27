@@ -102,3 +102,17 @@ Node目录／链接检查2项和固定来源／归档／模块核验4项合计6�
 最终配置／固定来源／归档／模块检查共9项通过、0失败0跳过，约33秒；脚本语法及diff检查通过。独立两轴确认重复缺陷已关闭，无新的确定问题。新配置的实际 `v8-tools-rust-version-01` 退出0、原资源disposed、六材料后验相同，确认非build动作不误要求MSVC年份。当前无完整客户端或Native启动成功；不以工具就绪、构造MZ测试或有限阶段代替完整S1。
 
 SDK调试组件继续准备：已核对本机26100.3916 SDK安装程序Microsoft有效签名；通过开发Job执行的纯离线布局尝试返回120、资源disposed，未取得布局包。当前改为从微软官方26100.3916 ISO链接下载原镜像到本批私有目录，后续须核实具体MSI／DLL签名再使用，不安装或升级全局用户库，不拿System32中的DLL冒充SDK组件。凭据与真实模型请求均为0，当前Codex登录及官方财务缺项保持。
+
+## SDK原组件与固定Clang版本的实际补齐
+
+此前GN／VS接线批次已提交 `81e8ffe`，未push。随后已实际取得微软26100.3916官方ISO：1,142,861,824字节，下载原件SHA256 `c2651a57e6413137d212504df5963d44bc3e10b71367b9ec28f05d9979504ad0`。该摘要是本机原件封存，不冒称为微软独立公布的摘要。列出UDF并仅提取 `X64 Debuggers And Tools-x64_en-us.msi`；MSI经Windows Authenticode核对为Valid、Microsoft Corporation。以只读WindowsInstaller数据库读取Media／File／Component／Directory原表，从已签MSI内嵌原cab中定位Debuggers/x64的三项，未执行MSI安装。
+
+取得的dbgcore／dbghelp／symsrv均为10.0.26100.3916，三项Microsoft签名均Valid，文件大小与原表一致，摘要及提取前后MSI／工具身份保持。具体来源、cab、文件ID和摘要在本机 `sdk-debuggers-iso-20261027` 原收据内。提取使用本机已有7-Zip24.08；它未签名，仅封存本机所选工具前后原件，不能冒称Microsoft工具签名。包与实际DLL的Microsoft签名另行核验。
+
+为保持原SDK目录，将任务私有SDK根中的11个标准目录明确投影到当前已安装的真实SDK目录，复制1个原根文件，并保留实际签名Debuggers/x64。未修改原目录或把System32 DLL当SDK组件；新链接仅在任务目录创建，来源及目标实路径／原目录身份均记录。另存派生MSVC环境，只改三项SDK根／bin路径，原VS、头文件和库保持实际安装来源；原环境文件未覆盖。固定原 `vs_toolchain.py copy_dlls` 在新私有输出运行退出0，三份输出与已签原DLL摘要一致，DIA原文件实际存在。
+
+使用新配置的完整09已真实完成GN生成：782 targets／221 files，实际args.gn中 `v8_enable_sandbox=true`、`v8_enable_pointer_compression=true`。随后Ninja拒绝LLVM20目录中缺少固定Clang23的builtins库；终态101、原资源disposed、107源码及六项工具后验相同。未复制旧库伪装Clang23，也未改GN安全参数。
+
+继而按固定DEPS从官方Chromium存储取得Clang23编译归档：50,194,108字节，SHA256 `855e4a23cfd89e0fa9a6899ccb343a7c28fd3d26f045a89cc40cc4c29cb6a85c`吻合，安全解包350项／231,712,717字节。该精简包不含libclang.dll，因此新增明确 `binding_clang_root`，只将绑定DLL与LIBCLANG_PATH固定到既有LLVM20；编译器、链接器及23版库均从原Chromium包取得。原包只有clang-cl驱动，复制同一原字节到上游版本探测需要的clang.exe，原SHA及复制来源封存，两个入口实际版本均为23.0.0git／20b6ec66。没有伪造版本或库目录。
+
+新配置／绑定根反例先红后绿，最终helper完整6项通过、0跳过；固定来源4项在此前本轮完整9项中通过，本次没有把两轮相加成一次完整结果。脚本语法检查通过，独立Spec／Standards对绑定根增量未发现确定问题；兼容性仍待真实构建。以新配置 `build-tools-pipe-v8source-04.json` 启动完整 `pipe-client-full-10`，原会话19664。后续查询此原阶段，不在运行中重开；只有实际完整成功、全部后验及资源处置成立后，才继续无登录Native启动。当前无完整客户端／Native／S1通过结论，无模型请求或凭据读取，不push，六个未知文件和历史Unknown保持。

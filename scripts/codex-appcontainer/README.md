@@ -105,6 +105,8 @@ GN分发端点不可用时，可在上述 `v8_source_build` 内成对指定 `gn_
 
 完整V8源码构建将所选 `visual_studio` 显式传给上游发现脚本，年份来自同一次读取的原MSVC环境文件中的唯一 `VisualStudioVersion`：15／16／17／18分别对应2017／2019／2022／2026。缺失、未知版本、同名或大小写不同的重复原行均拒绝；不先合并环境再丢失重复信息。该派生环境另记入阶段结果，非build动作保持原行为。所选Windows SDK还须包含 [Debugging Tools for Windows](https://learn.microsoft.com/en-us/windows-hardware/drivers/debugger/debugger-download-tools)；缺 `Debuggers/x64/dbghelp.dll` 等原组件时按实际失败准备官方组件，不用系统DLL冒充SDK组件，不关闭固定V8检查。
 
+如果固定V8要求的Clang版本库与用于绑定生成的libclang发行版不同，可在 `v8_source_build` 中显式增加 `binding_clang_root`。`clang_root` 仍选择真实编译器、链接器及对应版本的内置库；新字段只选择另一普通目录中的 `bin/libclang.dll` 和 `LIBCLANG_PATH`，默认仍使用同一个根。四项／六项封存顺序和前后复查保持，不能把旧版库改名成要求的新版本。Windows Chromium精简编译包只有 `clang-cl.exe` 时，上游版本探测还要求 `bin/clang.exe`；可复制同一原驱动字节作为该入口，记录原字节摘要及来源。编译器归档须与固定DEPS原摘要匹配，绑定DLL须满足上游最低版本；配置通过不证明两者实际兼容，仍以完整构建结果为准。
+
 ## 执行各阶段
 
 从主仓库运行。每次阶段名必须全新；已有阶段拒绝覆盖。首次 `fetch` 访问固定 Cargo 依赖来源，后续测试及构建使用 `--locked --offline`：
