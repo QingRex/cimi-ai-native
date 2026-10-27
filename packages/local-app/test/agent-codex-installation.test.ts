@@ -15,10 +15,30 @@ describe.runIf(process.platform==='win32')('protected installed Codex Agent runt
  afterAll(()=>{for(const local of locals)local.store.close();for(const f of fixtures)f.store.close();if(prior===undefined)delete process.env.LOCALAPPDATA;else process.env.LOCALAPPDATA=prior;});
  const installer=()=>{const fn=Reflect.get(app,'installCodexAgentRuntime');expect(fn).toBeTypeOf('function');return fn;};
  const opener=()=>{const fn=Reflect.get(app,'openInstalledCodexAgentRuntime');expect(fn).toBeTypeOf('function');return fn;};
+ const custodyOpener=()=>{const fn=Reflect.get(app,'openOriginalCodexRuntimeCustody');expect(fn).toBeTypeOf('function');return fn;};
  function project(){const path=mkdtempSync(join(root,'project-')),f=createIntentProject(path,{databasePath:join(path,'.cimiloop','project.db')});fixtures.push(f);app.writeInstance(join(path,'.cimiloop','instance.json'),{schema_version:'1.0.0',instance_id:f.project.instance_id,project_id:f.project.id,actor_id:f.actor.id,created_at:f.project.created_at});const local=app.openLocalProject({projectDir:path});locals.push(local);return local;}
  const input=()=>({binary:join(root,'binaries','codex.exe'),native_binary:join(root,'binaries','opencode.exe'),node_binary:join(root,'binaries','node.exe'),model:'gpt-6-luna',disabled_mcp_servers:[],checks:[{check_id:'query_test',profile:'node_test' as const,entry:'src/check.mjs',inputs:[{path:'src/check.mjs',expected_digest:'4'.repeat(64)},{path:'src/query.ts'}],max_elapsed_ms:4000,max_output_bytes:32768}]});
  const login=(allowed:boolean|null=true)=>({account_digest:'1'.repeat(64),quota_snapshot:{format:'cimiloop/codex-ordinary-quota/1.0.0' as const,ordinary_usage_allowed:allowed,account_id_digest:'2'.repeat(64),primary:null,secondary:null,credits:null}});
  const where=(local:ReturnType<typeof app.openLocalProject>)=>join(process.env.LOCALAPPDATA!,'CimiLoop','runtime-codex',local.instance.project_id,local.instance.actor_id);
+ it('opens only the original protected custody after execution materials are lost, while full execution stays unavailable',async()=>{
+  const local=project(),installed=await installer()(local,input(),{async inspectLogin(){return login();}}),files=['codex.exe','codex-code-mode-host.exe','opencode.exe','node.exe','checks.json'].map(name=>join(where(local),name)),before=local.store.asOfEventSequence();
+  for(const file of files)renameSync(file,file+'.retained-custody-test');
+  let lease:any;
+  try{
+   await expect(opener()(local)).rejects.toThrow();lease=await custodyOpener()(local);expect(lease).toMatchObject({installation_digest:installed.installation_digest,root:where(local)});lease.guard();
+   expect(Object.keys(lease).sort()).toEqual(['guard','installation_digest','origin','release','root']);
+   expect(()=>codexRuntimeInstallationWritablePaths(lease)).toThrow();expect(()=>codexRuntimeInstallationProgramBundle(lease)).toThrow();
+   expect(files.every(file=>!existsSync(file))).toBe(true);expect(local.store.asOfEventSequence()).toBe(before);
+  }finally{lease?.release();for(const file of files)renameSync(file+'.retained-custody-test',file);}
+ },120000);
+ it('retains the original custody identity across reads and refuses a missing originals directory without repair',async()=>{
+  const local=project();await installer()(local,input(),{async inspectLogin(){return login();}});const lease=await custodyOpener()(local),path=join(where(local),'originals');if(!lease)throw Error('Expected original custody');
+  try{renameSync(path,path+'.retained-custody-test');try{expect(()=>lease.guard()).toThrow();await expect(custodyOpener()(local)).rejects.toThrow();expect(existsSync(path)).toBe(false);}finally{renameSync(path+'.retained-custody-test',path);}lease.guard();}
+  finally{lease.release();}expect(()=>lease.guard()).toThrow();
+ },120000);
+ it('does not create a custody origin when no Runtime has been installed',async()=>{
+  const local=project(),path=where(local);expect(await custodyOpener()(local)).toBeUndefined();expect(existsSync(path)).toBe(false);
+ });
  it('places a new installation outside the repository on its own volume without changing LOCALAPPDATA or creating a second legacy origin',async()=>{
   const local=project(),placement=join(root,'fixed-volume-installations');let inspections=0;const result=await installer()(local,{...input(),placement_root:placement},{async inspectLogin(){inspections++;return login();}});
   const lease=await opener()(local);if(!lease)throw Error('Expected placed installation');try{expect(lease.root).toBe(join(placement,'runtime-codex',local.instance.project_id,local.instance.actor_id));expect(codexRuntimeInstallationWritablePaths(lease)).toEqual([lease.root,join(placement,'runtime-codex-tools')]);expect(existsSync(where(local))).toBe(false);expect(await installer()(local,input(),{async inspectLogin(){throw Error('Do not inspect again');}})).toMatchObject({created:false,installation_digest:result.installation_digest});expect(inspections).toBe(1);

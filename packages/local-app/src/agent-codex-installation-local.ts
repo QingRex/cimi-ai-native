@@ -39,12 +39,18 @@ function decode(raw:unknown):Request{
  if(!exact(v,['format','binding','model','account_digest','quota_account_digest','output_profile','usage_policy','disabled_mcp_servers','materials','originals_identity'])||v.format!=='cimiloop/codex-runtime-install-request/1.0.0'||!['gpt-6.1-sol','gpt-6-luna'].includes(String(v.model))||!sha(v.account_digest)||!sha(v.quota_account_digest)||v.output_profile!=='bounded_2048/1.0.0'||v.usage_policy!=='require_ordinary_permission/1.0.0'||!Array.isArray(v.disabled_mcp_servers)||v.disabled_mcp_servers.length>64||new Set(v.disabled_mcp_servers).size!==v.disabled_mcp_servers.length||v.disabled_mcp_servers.some(s=>typeof s!=='string'||!/^[A-Za-z0-9_-]{1,64}$/.test(s)||['__proto__','constructor','prototype'].includes(s))||!Array.isArray(v.materials)||v.materials.length!==names.length||new Set(v.materials.map(m=>(m as Material).name)).size!==names.length||names.some(name=>!(v.materials as Material[]).some(m=>m.name===name)))fail();
  return v as unknown as Request;
 }
-function readInstalled(origin:AgentStartLedger,local:LocalProject,root:string,fixedBinding:ReturnType<typeof binding>){
+function readCustodyOriginal(origin:AgentStartLedger,local:LocalProject,root:string,fixedBinding:ReturnType<typeof binding>){
  if(!same(binding(local),fixedBinding))fail();const key=requestDigest(fixedBinding),row=origin.readExclusive(namespace,key);if(!row)fail();const installed=copy(row!.basis);
  if(!exact(installed,['format','request'])||installed.format!=='cimiloop/codex-runtime-installation/1.0.0')fail();const request=decode(installed.request);
- if(!same(request.binding,fixedBinding)||!same(origin.readExclusive(requestNamespace,key)?.basis,request)||!same(request.materials,request.materials.map(m=>material(root,m.name)))||!same(request.originals_identity,identity(join(root,'originals'),true)))fail();
- catalog(copy(parseGatewayJson(bytesAt(join(root,'checks.json'),65536).toString('utf8'),65536)) as WorkspaceCheckTemplate[]);
+ if(!same(request.binding,fixedBinding)||!same(origin.readExclusive(requestNamespace,key)?.basis,request)||!same(request.originals_identity,identity(join(root,'originals'),true)))fail();
  return{format:'cimiloop/codex-runtime-installation/1.0.0' as const,request};
+}
+function readInstalled(origin:AgentStartLedger,local:LocalProject,root:string,fixedBinding:ReturnType<typeof binding>){
+ const fixed=readCustodyOriginal(origin,local,root,fixedBinding),request=fixed.request;
+ if(!same(request.materials,request.materials.map(m=>material(root,m.name))))fail();
+ catalog(copy(parseGatewayJson(bytesAt(join(root,'checks.json'),65536).toString('utf8'),65536)) as WorkspaceCheckTemplate[]);
+ if(!same(readCustodyOriginal(origin,local,root,fixedBinding),fixed))fail();
+ return fixed;
 }
 
 // Explicit local Human installation. Pinning bytes does not qualify a provider,
@@ -81,6 +87,20 @@ export function codexRuntimeInstallationProgramBundle(installed:InstalledCodexAg
 // Presence chooses the already installed provider only. It never grants
 // execution, repairs missing bytes, or opens login credentials.
 export function hasInstalledCodexAgentRuntime(local:LocalProject){return !!process.env.LOCALAPPDATA&&existsSync(layout(local).root);}
+export interface OriginalCodexRuntimeCustody {origin:AgentStartLedger;root:string;installation_digest:string;guard():void;release():void}
+// Historical resource control borrows only the existing protected identity.
+// Losing execution files cannot turn an owned child into an unowned process.
+// This lease carries no programs, checks, model/account or writable capability;
+// Result readers still verify their original execution bytes independently;
+// new execution continues to require the full installation.
+export async function openOriginalCodexRuntimeCustody(local:LocalProject):Promise<OriginalCodexRuntimeCustody|undefined>{
+ if(!process.env.LOCALAPPDATA)return undefined;const placement=codexRuntimePlacement(local),where={root:placement.root,tools:placement.tools};if(!existsSync(where.root)){if(placement.registered)fail();return undefined;}let origin:AgentStartLedger|undefined;
+ try{
+  const fixedBinding=binding(local);origin=await openWindowsAgentStartLedger(where.root,where.tools);const original=origin,fixed=readCustodyOriginal(original,local,where.root,fixedBinding),seal=requestDigest(fixed);let released=false;
+  const guard=()=>{if(released||!same(layout(local),where)||requestDigest(readCustodyOriginal(original,local,where.root,fixedBinding))!==seal)fail();};
+  guard();return Object.freeze({origin:original,root:where.root,installation_digest:seal,guard,release(){if(!released){released=true;original.close();}}});
+ }catch{origin?.close();return fail();}
+}
 // Discovery reads only the existing protected origin and exact physical bundle.
 // Missing/corrupt originals are never recreated or reapproved by a query.
 export async function openInstalledCodexAgentRuntime(local:LocalProject):Promise<InstalledCodexAgentRuntime|undefined>{

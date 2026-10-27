@@ -8,7 +8,7 @@ import {contentDigest} from '../../kernel/src/intent.js';
 import {createSkillInvocationProject} from '../../../tests/fixtures/skill-invocation-project.js';
 import {flowTime} from '../../../tests/fixtures/flow-project.js';
 const source=vi.hoisted(()=>({installed:undefined as any}));
-vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),openInstalledCodexAgentRuntime:async()=>source.installed}));
+vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),openOriginalCodexRuntimeCustody:async()=>source.installed}));
 
 // Real Kernel/SQLite/Host admission and dispatch. Native capture is a PUBLIC
 // projection here; the original reader is tested separately, never S1 evidence.

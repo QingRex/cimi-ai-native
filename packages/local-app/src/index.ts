@@ -47,7 +47,7 @@ export type { MattClarificationHost, MattClarificationInput, MattClarificationOr
 export { CodexMattClarificationHost } from "./clarification-codex-host-local.js";
 export type { CodexMattClarificationOptions } from "./clarification-codex-host-local.js";
 export { installCodexMatt, openInstalledCodexMatt } from "./clarification-codex-installation-local.js";
-export {installCodexAgentRuntime,openInstalledCodexAgentRuntime,inspectCodexAgentRuntimeInstallation,type CodexAgentRuntimeInstallInput,type InstalledCodexAgentRuntime} from './agent-codex-installation-local.js';
+export {installCodexAgentRuntime,openInstalledCodexAgentRuntime,openOriginalCodexRuntimeCustody,inspectCodexAgentRuntimeInstallation,type CodexAgentRuntimeInstallInput,type InstalledCodexAgentRuntime,type OriginalCodexRuntimeCustody} from './agent-codex-installation-local.js';
 export {installCodexUsageBudget,allocateCodexUsageBudget,openInstalledCodexUsageBudget,inspectCodexUsageBudget,type CodexUsageAllocationInput,type CodexUsageBudgetLimits,type InstalledCodexUsageBudget} from './agent-codex-usage-budget-local.js';
 export {LocalAgentCodexModelAuthority,type AgentCodexModelContext} from './agent-codex-authority-local.js';
 export {installCodexRuntimeStorage,inspectCodexRuntimeStorage,openCodexRuntimeStorage,type CodexRuntimeStorageInput} from './agent-codex-storage-local.js';

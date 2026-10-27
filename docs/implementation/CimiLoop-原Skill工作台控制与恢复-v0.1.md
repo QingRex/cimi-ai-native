@@ -20,7 +20,7 @@ Agent 执行入口仍校验真实 Agent caller。新增只读 Skill metadata rea
 
 宿主原登记不随 Git 迁移。新电脑必须从原可信 Host custody 取得原 ledger路径及原 Host identity；打不开原件就保留Unknown，不能用本机缺文件证明旧电脑已结束。只在原准备时创建出生/准入，控制工厂不补新ticket、不复制旧绝对路径、不初始化新ledger替代原ledger。凭据、套餐和模型审批也不由这项租约建立。
 
-工作台代码配置增加 skillRuntimeForInvocation。函数接原 invocation id及当前Human LocalProject，返回原 custody及 release。接线核心使用 AgentStartLedger.open(hostDirectory, trustedHostIdentity)，随后 new LocalSkillInvocationStartCustody(local.location.repositoryPath, local.location.dataDirectory, ledger)，release关闭该句柄。hostDirectory和trustedHostIdentity必须来自已核定的原Host配置；此例的变量不能改为新初始化、HTTP参数或自称ALLOW。普通默认工作台未安装该原工厂时，查询为Unknown；授权的Kernel停止仍可登记，后续通过原工厂重试。
+工作台代码配置支持 skillRuntimeForInvocation。函数接原 invocation id及当前Human LocalProject，返回原 custody及 release。受信接线使用原 hostDirectory／trustedHostIdentity 打开已有账本，随后 new LocalSkillInvocationStartCustody(local.location.repositoryPath, local.location.dataDirectory, ledger)，release关闭该句柄。路径和身份必须来自已核定的原Host配置；不能改为新初始化、HTTP参数或自称ALLOW。当前默认工厂为 productionSkillRuntimeOriginals，经 openOriginalCodexRuntimeCustody 借用原受保护Host1；程序／检查材料丢失不再阻断原保管记录读取。原Host或子登记不可证仍Unknown；完整执行及独立结果核验不因此获批。实现与验证边界见[原保管与资源控制记录](../plans/2026-10-27-cimiloop-original-custody-recovery.md)。
 
 | 入口 | 请求 | 实际行为 |
 | --- | --- | --- |

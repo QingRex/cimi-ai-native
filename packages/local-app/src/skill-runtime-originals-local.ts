@@ -1,5 +1,5 @@
 import {isDeepStrictEqual as same} from 'node:util';
-import {openInstalledCodexAgentRuntime} from './agent-codex-installation-local.js';
+import {openOriginalCodexRuntimeCustody} from './agent-codex-installation-local.js';
 import {readHumanOriginalAgentRunInputs} from './agent-runtime-control-local.js';
 import {readOriginalSkillInvocationMetadataFromReader} from './skill-invocation-execution-local.js';
 import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
@@ -18,7 +18,7 @@ export const productionSkillRuntimeOriginals:HumanSkillRuntimeFactory=async(id,l
   if(!same(readHumanOriginalAgentRunInputs(local,original.invocation.run_ref.id).scope,original.request.parent))throw unavailable();
   return original;
  };
- const original=read(),installed=await openInstalledCodexAgentRuntime(local);
+ const original=read(),installed=await openOriginalCodexRuntimeCustody(local);
  try{
   if(!installed)throw unavailable();
   const guard=()=>{installed.guard();if(!same(read(),original))throw unavailable();};guard();
