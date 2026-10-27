@@ -8,9 +8,10 @@ using System.Text;
 using System.Threading;
 using System.Web.Script.Serialization;
 
-// No credentials or protocol interpretation. The worker inherits only stdio,
-// enters the private Job at creation, and never inherits the Job handle.
-public static class CodexProcessJob {
+// Model stdio remains opaque. The optional contained proxy checks CONNECT and
+// TLS routing only, never credentials or TLS plaintext. Children enter the
+// original private Job and never inherit its handle.
+public static partial class CodexProcessJob {
   [StructLayout(LayoutKind.Sequential)] struct Times { public uint Low, High; public ulong Value { get { return ((ulong)High << 32) | Low; } } }
   [StructLayout(LayoutKind.Sequential)] struct BasicProcess { public IntPtr Reserved1,Peb,Reserved2a,Reserved2b,Pid,ParentPid; }
   [StructLayout(LayoutKind.Sequential)] struct BasicLimit { public long PerProcess,PerJob; public uint Flags; public UIntPtr Min,Max; public uint Active; public UIntPtr Affinity; public uint Priority,Scheduling; }
@@ -55,7 +56,7 @@ public static class CodexProcessJob {
     }catch{return false;}
   }
   static int Inspect(string text) {
-    Need(text.Length<=4096);var values=Json.DeserializeObject(text) as object[];Need(values!=null&&values.Length==2);var states=new List<object>();
+    Need(text.Length<=4096);var values=Json.DeserializeObject(text) as object[];Need(values!=null&&values.Length>=2&&values.Length<=3);var states=new List<object>();
     foreach(object raw in values){var value=raw as Dictionary<string,object>;Need(value!=null&&value.Count==3);uint pid=Convert.ToUInt32(value["pid"]);ulong created=UInt64.Parse(Convert.ToString(value["creation_ticks"]));string image=Path.GetFullPath(Convert.ToString(value["image"]));Need(pid>0&&created>0);
       string state="unknown";IntPtr handle=OpenProcess(0x100000|0x1000,false,pid);
       if(handle==IntPtr.Zero){if(Marshal.GetLastWin32Error()==87)state="absent";}
@@ -66,7 +67,7 @@ public static class CodexProcessJob {
   }
   static int Run(string[] args) {
     Need(args.Length==4);byte[] config=File.ReadAllBytes(args[0]);Need(config.Length<=65536&&Hash(config)==args[1]);
-    var input=Json.DeserializeObject(new UTF8Encoding(false,true).GetString(config)) as Dictionary<string,object>;Need(input!=null);string format=Convert.ToString(input["format"]);bool scoped=format=="cimiloop/codex-process-launch/4.0.0",cancellable=scoped||format=="cimiloop/codex-process-launch/2.0.0";Need(scoped?input.Count==9:cancellable?input.Count==8:input.Count==7&&format=="cimiloop/codex-process-launch/1.0.0");
+    var input=Json.DeserializeObject(new UTF8Encoding(false,true).GetString(config)) as Dictionary<string,object>;Need(input!=null);string format=Convert.ToString(input["format"]);if(format=="cimiloop/codex-process-launch/5.0.0")return RunProxy(args,input);bool scoped=format=="cimiloop/codex-process-launch/4.0.0",cancellable=scoped||format=="cimiloop/codex-process-launch/2.0.0";Need(scoped?input.Count==9:cancellable?input.Count==8:input.Count==7&&format=="cimiloop/codex-process-launch/1.0.0");
     string[] writeRoots=null;string network=null;if(scoped){var scope=input["write_scope"] as Dictionary<string,object>;Need(scope!=null&&scope.Count==3&&Convert.ToString(scope["format"])=="cimiloop/codex-write-roots/2.0.0");var values=scope["roots"] as object[];Need(values!=null&&values.Length>0&&values.Length<=2);writeRoots=Array.ConvertAll(values,item=>{Need(item is string);return Path.GetFullPath((string)item);});network=Convert.ToString(scope["network_mode"]);}
     uint ownerPid=Convert.ToUInt32(input["owner_pid"]);string binary=Path.GetFullPath(Convert.ToString(input["binary"])),cwd=Path.GetFullPath(Convert.ToString(input["cwd"])),expected=Convert.ToString(input["binary_digest"]),nonce=Convert.ToString(input["nonce"]);
     string cancel=cancellable?Path.GetFullPath(Convert.ToString(input["cancel_path"])):null;Need(!cancellable||String.Equals(cancel,Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[0])),"cancel.json"),StringComparison.OrdinalIgnoreCase));
@@ -105,5 +106,5 @@ public static class CodexProcessJob {
       foreach(IntPtr handle in std)if(handle!=IntPtr.Zero)CloseHandle(handle);if(attrsReady)DeleteProcThreadAttributeList(attributes);if(attributes!=IntPtr.Zero)Marshal.FreeHGlobal(attributes);if(handles!=IntPtr.Zero)Marshal.FreeHGlobal(handles);if(jobList!=IntPtr.Zero)Marshal.FreeHGlobal(jobList);if(owner!=IntPtr.Zero)CloseHandle(owner);
     }
   }
-  public static int Main(string[] args) { try {return args.Length==2&&args[0]=="--inspect-identities"?Inspect(args[1]):Run(args);}catch{return 121;} }
+  public static int Main(string[] args) { try {if(args.Length==3&&args[0]=="--codex-proxy-inner")return InnerProxy(args[1],args[2]);return args.Length==2&&args[0]=="--inspect-identities"?Inspect(args[1]):Run(args);}catch(Exception error){if(args.Length==3&&args[0]=="--codex-proxy-inner")try{var native=error as System.ComponentModel.Win32Exception;Console.Error.WriteLine(Json.Serialize(new{format="cimiloop/codex-proxy-worker-failure/1.0.0",stage=CodexWriteScope.Stage,win32_error=native==null?Marshal.GetLastWin32Error():native.NativeErrorCode,hresult=error.HResult}));}catch{}return 121;} }
 }

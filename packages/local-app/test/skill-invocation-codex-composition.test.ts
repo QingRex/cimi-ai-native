@@ -26,7 +26,7 @@ vi.mock('@cimiloop/runtime-adapter',async load=>{const original=await load<typeo
  // PUBLIC staging projection only. Assert capability forwarding, preserve
  // legacy header checks, and prohibit any model dispatch from this fixture.
  CodexOriginalMethodRuntime:class extends original.CodexOriginalMethodRuntime{
-  constructor(...args:ConstructorParameters<typeof original.CodexOriginalMethodRuntime>){if(args[3]!==seam.storage||!args[3])throw Error('PUBLIC missing forwarded storage');super(args[0],args[1],args[2]);seam.transports.push(args[3]);}
+  constructor(...args:ConstructorParameters<typeof original.CodexOriginalMethodRuntime>){if(args[3]!==seam.storage||!args[3])throw Error('PUBLIC missing forwarded storage');const {network_policy,...legacy}=args[0];if(network_policy!=='codex_chatgpt_tunnel/1.0.0')throw Error('PUBLIC missing forwarded network policy');super(legacy,args[1],args[2]);seam.transports.push(args[3]);}
   override async execute(..._args:Parameters<InstanceType<typeof original.CodexOriginalMethodRuntime>['execute']>):Promise<never>{throw Error('PUBLIC staging cannot dispatch a model');}
  },
  assertFixedVolumeRuntimeStorage(value:unknown){if(value!==seam.storage)throw Error('PUBLIC storage unavailable');return{runtime_ticket:{identity_digest:seam.identity}};},

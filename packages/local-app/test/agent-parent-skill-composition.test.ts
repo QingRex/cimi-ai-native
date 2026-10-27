@@ -22,7 +22,7 @@ vi.mock('../src/agent-codex-login-home-local.js',async load=>{const original=awa
 vi.mock('@cimiloop/runtime-adapter',async load=>{const original=await load<typeof import('@cimiloop/runtime-adapter')>();return{...original,
  // PUBLIC staging projection only; it verifies forwarding and cannot dispatch.
  CodexOriginalMethodRuntime:class extends original.CodexOriginalMethodRuntime{
-  constructor(...args:ConstructorParameters<typeof original.CodexOriginalMethodRuntime>){if(args[3]!==seam.storage||!args[3])throw Error('PUBLIC missing forwarded storage');super(args[0],args[1],args[2]);seam.transports.push(args[3]);}
+  constructor(...args:ConstructorParameters<typeof original.CodexOriginalMethodRuntime>){if(args[3]!==seam.storage||!args[3])throw Error('PUBLIC missing forwarded storage');const {network_policy,...legacy}=args[0];if(network_policy!=='codex_chatgpt_tunnel/1.0.0')throw Error('PUBLIC missing forwarded network policy');super(legacy,args[1],args[2]);seam.transports.push(args[3]);}
   override async execute(..._args:Parameters<InstanceType<typeof original.CodexOriginalMethodRuntime>['execute']>):Promise<never>{throw Error('PUBLIC staging cannot dispatch a model');}
  },assertFixedVolumeRuntimeStorage(value:unknown,scope:Parameters<typeof original.assertFixedVolumeRuntimeStorage>[1]){if(value!==undefined&&value===seam.storage){seam.onStorage?.();return{runtime_ticket:{identity_digest:seam.storageOrigin}};}return original.assertFixedVolumeRuntimeStorage(value,scope);},async runOpenCodeWorkspaceRuntime(input:unknown){seam.launches.push(input);}};});
 vi.setConfig({testTimeout:120000,hookTimeout:120000});

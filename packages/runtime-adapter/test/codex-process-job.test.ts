@@ -34,6 +34,10 @@ send({method:'turn/completed',params:{threadId:'PUBLIC_THREAD',turn:{id:'PUBLIC_
 }
 const alive=(pid:number)=>{try{process.kill(pid,0);return true;}catch{return false;}};
 describe.runIf(process.platform==='win32'&&process.arch==='x64')('owner-bound Codex process Job',()=>{
+ it.each(['missing_capability','unknown_policy'])('refuses a model network policy without the code-owned confined execution: %s',mode=>{
+  const f=fixture(),options={...f.options,root:join(f.root,'network-must-not-create')};Reflect.set(options,'network_policy',mode==='unknown_policy'?'PUBLIC unknown network':'codex_chatgpt_tunnel/1.0.0');
+  try{expect(()=>new CodexOriginalMethodRuntime(options,false,f.origin)).toThrow('codex_network_boundary_unproven');expect(existsSync(options.root)).toBe(false);expect(f.origin.listExclusive('codex_process_job_intent')).toEqual([]);expect(existsSync(f.state)).toBe(false);}finally{f.origin.close();}
+ });
  it.each(['missing_storage','copied_storage','unknown_policy','missing_environment'])('refuses serialized write confinement without its live fixed-volume capability: %s',mode=>{
   const f=fixture(),home=join(f.root,'PUBLIC-confinement-login');mkdirSync(home);
   const options:CodexOriginalMethodOptions={...f.options,root:join(f.root,'must-not-create'),state_policy:'private_login_home/2.0.0',login_home:captureCodexLoginHome(home),environment_policy:'private_user_directories/1.0.0'};Reflect.set(options,'write_confinement','appcontainer_fixed_volume/1.0.0');

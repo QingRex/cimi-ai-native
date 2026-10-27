@@ -58,6 +58,8 @@ pnpm cimiloop runtime codex-budget --project-dir R:\projects\example --json
 
 四处默认 Codex 执行组合现消费真实同卷能力并选择原 AppContainer Job，绑定原 state 与已批准登录目录；配置文件中的复制票据不能授权执行，旧 pending 不升级。Windows 重写的包 TEMP 也在原 state 内按原 nonce 准备，默认网络继续拒绝。完整共享写入覆盖、网络宿主限制、费用和异常恢复仍需实际验收，见[模型 OS 边界接入](../plans/2026-10-27-cimiloop-codex-appcontainer-wiring.md)。
 
+后续默认组合已接[同容器受控 TLS 出口](../plans/2026-10-27-cimiloop-codex-contained-proxy.md)：模型进程仍无外网 capability，通过原 Job 内代理和原命名管道访问固定的两个 TLS 域名，未添加整机网络豁免。公开证书握手通过不等于真实登录／模型请求或完整生产准入；当前仍须完成正式二进制兼容和四项完整控制来源，不直接执行普通 Agent 任务。
+
 ## 验证边界
 
 本指南是新接入入口和恢复步骤，不是已经在当前电脑完整执行成功的 S1 指南。应用测试使用真实 Windows 受保护 Host1 与 SQLite，但程序、登录及卷观测是明确 PUBLIC 夹具；独立物理卷、真实模型/技能、真实账单和全部异常恢复仍须在最终配置上实际验证。
