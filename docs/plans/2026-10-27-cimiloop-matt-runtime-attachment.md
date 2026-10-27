@@ -115,4 +115,20 @@ SDK调试组件继续准备：已核对本机26100.3916 SDK安装程序Microsoft
 
 继而按固定DEPS从官方Chromium存储取得Clang23编译归档：50,194,108字节，SHA256 `855e4a23cfd89e0fa9a6899ccb343a7c28fd3d26f045a89cc40cc4c29cb6a85c`吻合，安全解包350项／231,712,717字节。该精简包不含libclang.dll，因此新增明确 `binding_clang_root`，只将绑定DLL与LIBCLANG_PATH固定到既有LLVM20；编译器、链接器及23版库均从原Chromium包取得。原包只有clang-cl驱动，复制同一原字节到上游版本探测需要的clang.exe，原SHA及复制来源封存，两个入口实际版本均为23.0.0git／20b6ec66。没有伪造版本或库目录。
 
-新配置／绑定根反例先红后绿，最终helper完整6项通过、0跳过；固定来源4项在此前本轮完整9项中通过，本次没有把两轮相加成一次完整结果。脚本语法检查通过，独立Spec／Standards对绑定根增量未发现确定问题；兼容性仍待真实构建。以新配置 `build-tools-pipe-v8source-04.json` 启动完整 `pipe-client-full-10`，原会话19664。后续查询此原阶段，不在运行中重开；只有实际完整成功、全部后验及资源处置成立后，才继续无登录Native启动。当前无完整客户端／Native／S1通过结论，无模型请求或凭据读取，不push，六个未知文件和历史Unknown保持。
+新配置／绑定根反例先红后绿，最终helper完整6项通过、0跳过；固定来源4项在此前本轮完整9项中通过，本次没有把两轮相加成一次完整结果。脚本语法检查通过，独立Spec／Standards对绑定根增量未发现确定问题。以新配置 `build-tools-pipe-v8source-04.json` 执行完整 `pipe-client-full-10`；该阶段随后已失败，实际结果见下，不再记作运行中。当前无完整客户端／Native／S1通过结论，无模型请求或凭据读取，不push，六个未知文件和历史Unknown保持。
+
+## 补齐固定原依赖并修复 Win32 构建工作目录
+
+完整10终态101、非空间停止、原资源disposed；107源码及六份工具前后完全相同，source_error为空。本次缺失 `third_party/icu/common/icudtl.dat`，并非Clang23库不匹配。固定Cargo包明确排除了两份ICU原数据。
+
+直接从固定DEPS指定的官方ICU提交 `ee5f27adc28bd3f15b2c293f726d14d2e336cbd5` 取得原提交／目录元数据及两份数据。重建并核对根树 `91ad4eed896c4db6f09da1fce2025722ebeb2bcf`、common树及blob：小端 `d1a12cb93065157498a11ff5f4b9a6501ee22506`，大端 `b180ee3c2281d04f1fb5d928ff0c2c73e9996445`。每份10,822,192字节，SHA256分别为 `1cf67874b5a87a8363a86fb3f81e3cbbed54d389062dab8fb52308d5cf8c8612`、`c58e1567b34e12a672b24ff4a5f21efa4c4481ab64a213dde059309b01aacde2`。只向不存在的原缺件位置复制，DEPS及Cargo元数据身份／摘要未变，原始响应与复制收据留在本批仓库外目录。
+
+完整重试前的Ninja输入扫描另发现812份缺失外部输入，全部来自45个Chromium Rust vendor crate。按固定 `third_party/rust` 提交 `26e8ff47f18a8d28d6187a04b6a16cb7332356f8`，从官方Gitiles取得每个完整crate子树归档，逐级重建Git tree并核对45个子树；1,763份文件、25,677,482字节。一次性脚本01在元数据解析阶段失败，未复制；02已核完全部原树，但Windows长测试快照路径导致复制中断。03使用Win32扩展绝对路径，逐份核对342份已存在文件相同，仅补1,421份缺件，不覆盖或删除。最终全部安装子树与原Git树一致。原脚本、失败、归档、完整复制结果保留，不当作方法或模型证据。
+
+补齐后Ninja列出的7,643项输入中4,432项在输出目录外，扫描缺件为0；这只是预检。完整11仍退出101：Ninja报缺实际存在的Rust内建源文件；原资源disposed、源码及工具前后相同。进一步实测Win32原相对路径拼接长度276，GetFileAttributesA/W和Python stat均返回路径不存在；同一文件规范绝对路径219，三项读取均成功。原Ninja1.12.1及官方1.13.2均复现；后者归档及官方摘要已封存，但没有因此替换成它。
+
+同一原Ninja使用系统返回的既有短目录名运行，2,421步原GN图dry-run退出0。因此新增 `scripts/codex-appcontainer/ninja-short-cwd.patch`：只在Windows的 `-C`／chdir前读取同一现有目录的短路径，API无可用结果则保持原行为；不创建短名／链接／映射，不改注册表、Codex .2源码、Cargo锁或GN参数。上游固定Ninja1.13.2提交 `3441b633c2fe2c494e958780ba0f4227b1327634`、树 `70dd1324a3997a3ce38bfe70a8291b2ef4a0bf65`，Git fsck通过；只修改入口和明确本地兼容版本。
+
+实际补丁编译、版本、同一原长路径GN图dry-run三个开发Job均code0、未触发空间停止、资源disposed；原源码补丁摘要未变。实际程序版本 `1.13.2+cimiloop-short-cwd.1`，SHA256 `9351fbc70b0178c0206ac18927238f7c8528d777eafbaa81410b13d0fd2ca455`。独立Spec只读复核未发现确定问题；范围仅本补丁，不是最终S1评审。补丁README给出固定来源、应用与复验步骤；未重跑无关TypeScript或完整仓库测试。
+
+使用显式新工具配置 `build-tools-pipe-v8source-05.json` 已启动完整12，原会话34182；只替换明确的Ninja程序，其他五份工具、原源码、原target及2GiB停止线保持。继续查询此原阶段，不在运行中重开。只有完整code0、原件后验、实际两个产物和资源处置均成立后，才执行空登录Native启动两场景。本批无模型请求、登录读取或费用结清，S1仍未完成，现有Codex登录及真实财务缺项保持。

@@ -107,6 +107,22 @@ GN分发端点不可用时，可在上述 `v8_source_build` 内成对指定 `gn_
 
 如果固定V8要求的Clang版本库与用于绑定生成的libclang发行版不同，可在 `v8_source_build` 中显式增加 `binding_clang_root`。`clang_root` 仍选择真实编译器、链接器及对应版本的内置库；新字段只选择另一普通目录中的 `bin/libclang.dll` 和 `LIBCLANG_PATH`，默认仍使用同一个根。四项／六项封存顺序和前后复查保持，不能把旧版库改名成要求的新版本。Windows Chromium精简编译包只有 `clang-cl.exe` 时，上游版本探测还要求 `bin/clang.exe`；可复制同一原驱动字节作为该入口，记录原字节摘要及来源。编译器归档须与固定DEPS原摘要匹配，绑定DLL须满足上游最低版本；配置通过不证明两者实际兼容，仍以完整构建结果为准。
 
+### 补齐发布包未携带的构建输入
+
+固定 `v8-150.4.0` 的 crates.io 包没有携带完整源码构建输入。实际构建需要的 `third_party/icu/common/icudtl.dat`／`icudtb.dat` 被 Cargo 包显式排除，`third_party/rust/chromium_crates_io/vendor` 也须另行准备。先从本机固定包的 `v8/DEPS` 读取对应 Git 提交；本批分别为 ICU `ee5f27adc28bd3f15b2c293f726d14d2e336cbd5` 和 Rust 依赖树 `26e8ff47f18a8d28d6187a04b6a16cb7332356f8`。只从对应不可变官方对象补齐缺件，不覆盖包内已有文件或改 Cargo 元数据，不以当前最新版替代。
+
+可从 [ICU 固定对象](https://chromium.googlesource.com/chromium/deps/icu.git/+/ee5f27adc28bd3f15b2c293f726d14d2e336cbd5)和 [Rust 固定对象](https://chromium.googlesource.com/chromium/src/third_party/rust/+/26e8ff47f18a8d28d6187a04b6a16cb7332356f8)取得材料。保存原提交／目录元数据，重建 Git tree 与 blob 身份校验后再复制缺件；归档解包拒绝绝对路径、越界、链接及重复文件，保留2GiB线。Rust 只需本次实际 GN 图要求的完整 crate 子树，不能仅拿同版本 crates.io 包代替 Chromium 已修补原树。中途复制失败时，先逐份复核既有文件与同一原树相同，再仅补缺件；不删除失败材料或覆盖不符文件。
+
+生成 GN 图后用所选 `ninja -C <实际gn_out> -t inputs rusty_v8` 检查缺失外部输入；这只证明所列输入存在，不代替实际构建。路径需同时核对实际 Win32 调用：文件的规范绝对路径存在，不代表带多层 `..` 的相对路径在同一工作目录可读。
+
+### Windows 相对路径长度兼容
+
+本机已复现：原 Ninja1.12.1 和官方1.13.2对同一 GN 图报告不存在的文件，实际原件存在；Win32 对拼接前超长相对路径返回路径不存在。同一原 Ninja 从该目录的系统8.3短路径运行时，完整构建图预演通过。
+
+遇到同一问题，可显式构建本仓库的 [Ninja 短工作目录补丁](ninja-short-cwd.patch)。固定上游为 Ninja1.13.2／提交 `3441b633c2fe2c494e958780ba0f4227b1327634`；核对 Git 对象后，在单独私有源码目录执行 `git apply --check <补丁绝对路径>`、`git apply <补丁绝对路径>`，再以实际 MSVC 环境及已固定 Python 执行 `python configure.py --bootstrap --with-python=<实际Python绝对路径>`。构建过程也应由原开发 Job 持有并保留空间保护、源码和工具前后核对。
+
+版本须实际返回 `1.13.2+cimiloop-short-cwd.1`。补丁只在 Windows 的 `-C`／`chdir` 前读取系统已有短目录名；失败时继续原路径。不会创建短名、链接或映射，不修改全局设置或 GN／sandbox 参数。在原长路径上重新执行 `-n rusty_v8` 成功后，才将这个明确的本地兼容程序设为 `v8_source_build.ninja_binary`；封存实际程序及补丁来源，不称它为官方未修改 Ninja。没有可用短目录名时，该方法不保证解决长度问题。预演成功仍须完整构建及原 Job 处置通过。
+
 ## 执行各阶段
 
 从主仓库运行。每次阶段名必须全新；已有阶段拒绝覆盖。首次 `fetch` 访问固定 Cargo 依赖来源，后续测试及构建使用 `--locked --offline`：
