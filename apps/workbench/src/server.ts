@@ -3,7 +3,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { fileURLToPath } from "node:url";
-import { executeLocalCommand, LocalPrePlanClarification, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions,type LocalAgentParentSkillResultPort } from "@cimiloop/local-app";
+import { executeLocalCommand, LocalPrePlanClarification, LocalHumanAgentRunFamilyControl, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions,type LocalAgentParentSkillResultPort } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
 import { productionAgentRuntime, productionAgentAccount, productionAgentCosts, hasReadableProductionAgentCosts, hasProductionAgentBillAccount, openInstalledCodexMatt, inspectCodexAgentRuntimeInstallation, LocalAgentRuntimeAdmission, type InstalledCodexMatt, type MattClarificationHost } from "@cimiloop/local-app";
 
@@ -66,7 +66,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   const skillReconciliation=new LocalHumanSkillInvocationReconciliation(context,options.skillReconciliationForInvocation);
   const skillRuntime=new LocalHumanSkillInvocationControl(context,options.skillRuntimeForInvocation);
   const skillCapture=new LocalHumanNamedSkillCapture(context,options.skillRuntimeForInvocation);
-  const agentRuntime = new LocalAgentRuntimeControl(context);
+  const agentRuntime = new LocalHumanAgentRunFamilyControl(context,new LocalAgentRuntimeControl(context),skillRuntime);
   const agentObservation = new LocalAgentRuntimeObservation(context);
   const runtimeForRun=options.agentRuntimeForRun??productionAgentRuntime;
   const agentStart = new LocalHumanAgentRuntimeStart(context,runtimeForRun);
@@ -254,7 +254,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       const agentMatch = /^\/api\/agent-runs\/([^/]{1,200})(?:\/(collect|stop|cancel|recover|observe|start))?$/.exec(url.pathname);
       if (agentMatch && request.method === "GET" && !agentMatch[2]) {
         const guard=()=>{if(closing)throw new HttpFailure(503,"WORKBENCH_CLOSING");requireSession(request,false);};
-        const result=await awaitCurrentSession(()=>agentRuntime.query(decodeURIComponent(agentMatch[1]!)),guard);
+        const result=await awaitCurrentSession(()=>agentRuntime.query(decodeURIComponent(agentMatch[1]!),guard),guard);
         send(response,200,result);return;
       }
       if (agentMatch && request.method === "POST" && agentMatch[2]) {
@@ -266,12 +266,12 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
           if (!body || typeof body !== "object" || Array.isArray(body) || !("target" in body) || !body.target || typeof body.target !== "object" ||
             !("id" in body.target) || body.target.id !== runId) throw new HttpFailure(400, "INVALID_COMMAND");
           const guard=()=>{if(closing)throw new HttpFailure(503,"WORKBENCH_CLOSING");requireSession(request,true);};
-          const result=await awaitCurrentSession(()=>action === "observe" ? agentObservation.record(body,guard) : agentRuntime.stop(body),guard);
+          const result=await awaitCurrentSession(()=>action === "observe" ? agentObservation.record(body,guard) : agentRuntime.stop(body,guard),guard);
           send(response, "code" in result ? statusFor(result) : 200, result); return;
         }
         if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length) throw new HttpFailure(400, "INVALID_COMMAND");
         const guard=()=>{if(closing)throw new HttpFailure(503,"WORKBENCH_CLOSING");requireSession(request,true);};
-        const result=await awaitCurrentSession(()=>action === "start" ? agentStart.start(runId,guard) : action === "collect" ? agentRuntime.collect(runId) : action === "cancel" ? agentRuntime.retryCancellation(runId) : agentRuntime.recover(runId),guard);
+        const result=await awaitCurrentSession(()=>action === "start" ? agentStart.start(runId,guard) : action === "collect" ? agentRuntime.collect(runId,guard) : action === "cancel" ? agentRuntime.retryCancellation(runId,guard) : agentRuntime.recover(runId,guard),guard);
         send(response, 200, result); return;
       }
       if (url.pathname === "/api/commands" && request.method === "POST") {

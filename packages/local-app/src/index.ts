@@ -4,6 +4,8 @@ export {openInstalledCodexProductionHost} from './agent-production-host-local.js
 export { agentPreparationWorkItem } from './agent-human-preparation-local.js';
 export type { LocalProject, LocalCommandInput } from "./project.js";
 export { LocalProjectError } from "./errors.js";
+export {LocalHumanAgentRunFamilyControl} from './agent-run-family-control-local.js';
+export type {LocalAgentRunFamilyControlResult} from './agent-run-family-control-local.js';
 export { locateProject, readGitIdentity, registryDatabasePath } from "./location.js";
 export type { ProjectLocation } from "./location.js";
 export { readInstance, writeInstance } from "./instance.js";

@@ -8,6 +8,13 @@ const labels = { Draft: "待澄清", IntentReady: "约定已确认", Executing: 
   implementation: "实施", verification: "独立验证", knowledge: "知识", synchronization: "同步", requirement: "需求", bug: "缺陷", open: "开放", closed: "已关闭",
   requirement_owner: "需求负责人", technical_owner: "技术负责人", quality_owner: "质量负责人", flow_owner: "推进协调人", project_owner: "项目负责人" };
 const label = value => labels[value] ?? value ?? "—";
+const agentFamilyNotice = result => {
+  const family=result.family;
+  if(!family||!Array.isArray(family.children)||!family.children.length)return null;
+  return family.resources_disposed===true
+    ? `父运行及 ${family.children.length} 个子 Skill 的资源已核对处置；任务结果与费用仍待核对。`
+    : `父运行及 ${family.children.length} 个子 Skill 的资源尚未全部核对处置；原运行与预算继续保留。`;
+};
 const lines = value => String(value ?? "").split(/\r?\n/).map(item => item.trim()).filter(Boolean);
 const node = (tag, attributes = {}, ...children) => {
   const element = document.createElement(tag);
@@ -132,7 +139,7 @@ const replay = async () => {
     }
     const result = await api(path, command); state.pending = null; committed = true;
     try { sessionStorage.removeItem(`cimiloop.pending.${state.context.project_id}`); } catch {}
-    showNotice(result.operation?.outcome === "unknown" ? "停止请求已记录，原运行状态仍待核对。正在刷新项目事实。" : "动作已记录，正在刷新项目事实。");
+    showNotice(agentFamilyNotice(result) ?? (result.operation?.outcome === "unknown" ? "停止请求已记录，原运行状态仍待核对。正在刷新项目事实。" : "动作已记录，正在刷新项目事实。"));
   }
   catch (error) {
     // An expired session only rejects this transport attempt. It cannot prove
@@ -291,7 +298,7 @@ const taskPanel = (task, data) => {
         const response = await api(`/api/agent-runs/${encodeURIComponent(run.id)}${action ? `/${action}` : ""}`, action ? {} : undefined);
         const interruption=response.operation.result?.interruption;
         const resources=response.operation.result?.status?.resource_scope?response.operation.result.status:response.operation.result,modelPending=resources?.native_resources_disposed===true&&resources?.model_resources?.resources_disposed===false;
-        output.replaceChildren(paragraph(modelPending?"沙箱资源已停止，模型进程仍待核对；继续保留原运行与预算。":interruption?.status === "Observed" ? (interruption.runtime_resumed ? "原输入关闭时 SDK 已恢复运行；原中断资料已核对，任务结果和费用仍待核对。" : "原输入在 SDK 恢复前关闭；原中断资料已核对，任务结果和费用仍待核对。") : response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。"), details("原操作核对结果", response));
+        output.replaceChildren(paragraph(agentFamilyNotice(response) ?? (modelPending?"沙箱资源已停止，模型进程仍待核对；继续保留原运行与预算。":interruption?.status === "Observed" ? (interruption.runtime_resumed ? "原输入关闭时 SDK 已恢复运行；原中断资料已核对，任务结果和费用仍待核对。" : "原输入在 SDK 恢复前关闭；原中断资料已核对，任务结果和费用仍待核对。") : response.operation.outcome === "unknown" ? "原操作资料尚未确认，继续保留待核对。" : "已读取原操作事实；任务结果与费用仍以项目记录为准。")), details("原操作核对结果", response));
       };
       const pendingStart=originalStartPending(run.id);
       const costOutput=node('div',{'data-agent-costs':run.id},paragraph('尚未读取原运行费用。'));

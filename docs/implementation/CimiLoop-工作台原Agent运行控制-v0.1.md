@@ -1,5 +1,9 @@
 # CimiLoop 工作台原 Agent 运行控制 v0.1
 
+2026-10-27 父子原操作控制续接：默认父 Run 入口现经共享 `LocalHumanAgentRunFamilyControl` 枚举 Kernel 全部原子 Skill，再复用现有父／子控制器逐项查询、重试取消或恢复。单个子调用原件缺失显示 Unknown 并继续处理其他原调用；会话、权限或完整集合变化则中止余下工作。页面显示完整集合资源状态，不能把父操作停止或取消应答当作全族已处置。实施、验证范围及未完成条件见[本批记录](../plans/2026-10-27-cimiloop-parent-child-original-control.md)。
+
+CLI 使用已有原入口：`pnpm cimiloop run query-original <run-id> --project-dir <目录> --json`；须先由 Kernel 记录 `CancelRun` 才能调用 `cancel-original` 或 `recover-original`。有子调用时响应附 `family.children` 与保守的 `family.resources_disposed`；集合未完整处置时 CLI 非零退出，不释放预算。`collect-original` 继续采集原父证据，不制造子结果。无子调用的历史响应保持原结构。这些操作仍不启动／接续执行 Agent，也不结算费用或证明 S1 完成。
+
 2026-10-10 D-262：原取消控制帧与独立Native取消证明已接入原采集、共享Human／CLI／HTTP／工作台ReconcileRun。Kernel原cancel_requested、完整调用账本与原认证费用同时成立时结清Cancelled原Run，启动次数不返还、Task不自动满足、原命令不重开账户或Run。实际Windows准备／挂起取消、普通EOF及错误取消帧通过；运行中SDK取消与费用结清仍是受控组合，真实模型／Skill／Matt／Superpowers及完整S1未通过。默认正式Agent关闭，库10／242 Schema、零付费及完整五组持续目标保持。 [实施记录](CimiLoop-原取消证明与终态核对-v0.1.md)。
 
 2026-10-10 D-261：原Native终态、独立SDK／领域结果、原IPC／模型调用和认证账单已接入共享Human ReconcileRun、同一编译CLI与工作台原请求恢复。受控组合验证原Run成功／失败、现金12及剩余预算结清，保留启动次数且不自动满足Task；真实Windows已知账单但缺Native原件时拒绝结清，88继续冻结。受控Native／SDK及公开批准／账单不是实际智谱、真实Skill／Matt／Superpowers或S1证据，完整Native故障与四项账户确认仍未解决。默认正式Agent关闭，库10／242 Schema及完整五组目标保持。 [实施记录](CimiLoop-原执行终态与账单核对-v0.1.md)。
