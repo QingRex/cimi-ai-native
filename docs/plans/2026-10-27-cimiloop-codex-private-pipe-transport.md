@@ -1,5 +1,7 @@
 # 原模型 Job 的显式包权限与私有 TLS 管道
 
+后续[客户端源码适配及模块验证](2026-10-27-cimiloop-codex-private-pipe-client.md)已完成：独立 `.2` 源码的两个HTTP依赖及实际WebSocket库编译通过，共用Rust模块的真实AppContainer软件TLS认证3项通过。下文为本批历史边界；完整CLI构建／初始化／真实执行仍未完成，旧.NET失败和七文件空间停止不改判。
+
 接续 `8aa69af`。本批将实际模型 Job 的共享包 opt-out 接入默认普通 Run、父 Skill、具名方法和 Runtime 技术契约四个组合，并提供同一原监督器下的私有 TLS 管道。正式 Codex 客户端尚未适配此管道，完整 S1 不成立。
 
 ## 执行路径与兼容

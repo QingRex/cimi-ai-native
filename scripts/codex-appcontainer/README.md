@@ -2,19 +2,21 @@
 
 这是开发构建入口，不会修改本机已有 Codex、读取已有登录、发送模型请求或授予生产资格。生成程序必须标为本地兼容版本，不能称作原官方二进制。完整 S1 的账户、账单、配额、异常恢复、真实 Skill 和业务交付仍须另行完成。
 
-当前脚本的兼容版本仅包含下述路径修复，尚未包含新模型Job的私有TLS管道客户端。[新原生入口及验证边界](../../docs/plans/2026-10-27-cimiloop-codex-private-pipe-transport.md)不能由该版本的构建／版本输出代替；客户端适配和完整证书认证仍须继续实施。
+脚本保留原路径兼容版本 `.1`，并提供独立的私有管道源码版本 `.2`。`.2` 将两个 HTTP 依赖及 WebSocket 实际连接入口接到原管道，不能以源码准备、模块编译或传输夹具代替完整客户端构建及真实执行。[原生入口及验证边界](../../docs/plans/2026-10-27-cimiloop-codex-private-pipe-transport.md)。
 
 ## 固定来源
 
 - 上游：`https://github.com/openai/codex.git`
 - tag：`rust-v0.162.0`
 - commit：`c1382380de69521303b416720a52f42d51af6248`
-- 本地版本：`0.162.0+cimiloop-lowbox.1`
+- 本地版本：`0.162.0+cimiloop-lowbox.1`（仅路径兼容）或 `0.162.0+cimiloop-lowbox.2`（显式私有管道源码）。
 - 工具链：Rust `1.95.0`，Windows x64 MSVC，Node `>=24.15 <25`。
 
 `prepare-source.mjs` 只接受该提交，拒绝脏的初始源码和链接目录。它调整六个文件：本地 workspace／lock 版本、Windows 路径兼容函数，以及 absolute-path、home-dir、config 的三个调用位置。上游 lock 中161个本地包仍为 `0.0.0`，所以显式同步这些本地版本；不重新解析或升级外部依赖。`--verify` 逐份核对固定补丁，任何额外源码变更均拒绝。
 
 低盒中的 Rust canonicalize 只有在实际 AppContainer token 且原错误为 error5 时才进入兼容函数。函数打开实际目标、查询真实 NT 路径，并核对监督器继承的原卷根元数据句柄。句柄 access 为0，不授予枚举、读内容、写入或更改 ACL 的能力。缺少原映射、跨卷、不完整查询或对象变化时返回原错误，不用未经核对的 absolute 字符串代替 canonicalize。
+
+`.2` 另外核对上游 Cargo.lock 中 reqwest `0.12.28` 和 `0.13.4` 的 `.crate` 归档摘要，在内存中拒绝链接、路径穿越及重复条目后生成独立 vendor 源码，不信任已解包缓存。HTTP 与 WebSocket 共用 `pipe_windows.rs`：三项原管道环境必须同时有效，只在实际 AppContainer 内以精确 `0x0012019b` 权限打开，核实际服务器 PID 和非继承句柄；不回退 TCP。HTTP 强制软件 TLS、证书/主机名/SNI 校验和 HTTPS，禁用系统代理与详细连接日志；WebSocket 只接受固定模型域名的 WSS443。完整环境缺席时保持原客户端行为，部分或非法环境拒绝。
 
 ## 准备私有目录
 
@@ -26,6 +28,15 @@
 node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source
 node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source --verify
 ```
+
+选择 `.2` 时改用另一个全新、干净的固定提交 checkout 和以下入口；不要在已有 `.1` 上原位升级，不覆盖旧源码、收据或产物。两个 archive 参数均为实际绝对路径：
+
+```powershell
+node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source --private-pipe --reqwest-012 <reqwest-0.12.28.crate> --reqwest-013 <reqwest-0.13.4.crate>
+node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source --private-pipe --reqwest-012 <reqwest-0.12.28.crate> --reqwest-013 <reqwest-0.13.4.crate> --verify
+```
+
+`.2` 收据格式2另存传输模块和依赖摘要；版本标识与固定 `--cimiloop-transport-capabilities` 输出都不是资格证据。
 
 在私有目录中准备 Rust 1.95.0 minimal 工具链：`CARGO_HOME=<build-root>/cargo`、`RUSTUP_HOME=<build-root>/rustup`，用官方 rustup 安装器的 `--no-modify-path --profile minimal --default-toolchain 1.95.0` 选项。不要改现有用户目录或全局 PATH。另需 Visual Studio Build Tools（C++ x64、Windows SDK、CMake／Ninja）、Git、Python；将实际安装位置写入下面文件。若所选上游依赖需要额外工具，依据实际构建错误安装到本批私有目录，不能跳过该依赖后称完整构建成功。
 
@@ -40,6 +51,21 @@ node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source --verify
   "msvc_environment": "C:/private-codex-build/stages/msvc-01/stdout.log"
 }
 ```
+
+`.2` 使用独立的 `<build-root>/build-tools-pipe.json`，保留上述工具字段，修改 `format` 并添加以下字段；两份归档都必须在同一个私有构建根内：
+
+```json
+{
+  "format": "cimiloop/private-codex-build-tools/2.0.0",
+  "source_policy": "original_named_pipe_tls/1.0.0",
+  "reqwest_archives": {
+    "0.12.28": "C:/private-codex-build/cargo/reqwest-0.12.28.crate",
+    "0.13.4": "C:/private-codex-build/cargo/reqwest-0.13.4.crate"
+  }
+}
+```
+
+此片段须与实际工具字段合并，不是完整配置。各阶段追加 `--tools <build-root>/build-tools-pipe.json` 来显式选择；不修改旧配置。
 
 ## 执行各阶段
 
@@ -56,6 +82,21 @@ node scripts/codex-appcontainer/run-build-stage.mjs <build-root> build-01 build
 运行器清空继承环境，设置私有 HOME／AppData／TEMP／Cargo／Rustup；只从私有 `msvc_environment` 接纳 PATH、INCLUDE、LIB 等明确的构建变量。它不会沿用当前 Codex、Python 或 Git 配置。开发构建由 launch2 原 Job 持有整个子树，父宿主退出后回收；这不是模型 AppContainer，也不作为模型隔离证据。私有卷空闲空间低于2 GiB时通过原取消文件停止原 Job，不删除目录来腾空间。
 
 每阶段保留 `stages/<stage>/stdout.log`、`stderr.log`、原 Job 记录和 `result.json`；源码阶段另有前后来源核对。`result.json` 的 code0、未触发空间停止、原资源 disposed 及源码后验均须成立，才算该阶段完成。观察超时后继续查询同一实际进程句柄；仅当原阶段已终止且资源证明成立，才用新阶段名重试。崩溃、取消、缺工具和原件保留，不覆盖失败记录。
+
+## 有限模块验证
+
+在已有固定源码和缓存库的私有构建根，可先执行小范围验证；不需要原位准备 `.2` checkout：
+
+```powershell
+node scripts/codex-appcontainer/run-build-stage.mjs <build-root> pipe-modules-01 check-pipe-modules --tools <build-root>/build-tools-pipe.json
+node scripts/codex-appcontainer/run-build-stage.mjs <build-root> pipe-rust-01 pipe-acceptance
+```
+
+`check-pipe-modules` 从固定 Git 对象和已认证归档生成全新阶段源码，只编译两个 reqwest 版本及实际 HTTP/WebSocket 库；离线、单 Cargo job。夹具 lock 可裁剪未用依赖，后验拒绝任何新增外部来源/版本/摘要，并逐文件核原物理身份和内容。它不是完整 CLI 构建，也不安装 Provider。
+
+`pipe-acceptance` 用直接 rustc 和已有原库编译共用管道模块的传输夹具，核源码/库的前后身份和摘要。可通过 `CIMILOOP_PRIVATE_PIPE_RUST_BINARY=<阶段>/bin/cimiloop_pipe_acceptance.exe`、`CIMILOOP_PUBLIC_TLS_ACCEPTANCE=1` 运行 `packages/runtime-adapter/test/codex-rust-pipe.test.ts`，覆盖真实 AppContainer 管道、软件 TLS 证书/主机名认证、错误服务器身份及原资源处置；不发送应用请求。
+
+这两个有限阶段的磁盘余量保护为512 MiB；完整 fetch/test/build 仍为2 GiB。有限阶段失败或空间停止不算通过，夹具及模块通过也不能证明完整 Codex、登录、模型、Skill、费用、物理配额或 S1。
 
 构建使用 release、opt-level1、无 LTO、无 debug、无 incremental、两个 Cargo jobs，保留上游 static CRT 设置。两个预期产物在：
 
