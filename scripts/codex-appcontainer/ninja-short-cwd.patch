@@ -2,10 +2,7 @@ diff --git a/src/ninja.cc b/src/ninja.cc
 index 92d0761..8670912 100644
 --- a/src/ninja.cc
 +++ b/src/ninja.cc
-@@ -1800,6 +1800,20 @@ NORETURN void real_main(int argc, char** argv) {
- 
-   Status* status = Status::factory(config);
- 
+@@ -1802,0 +1803,14 @@ NORETURN void real_main(int argc, char** argv) {
 +#ifdef _WIN32
 +  // Keep the same directory while avoiding Win32's pre-normalization limit
 +  // for long relative source paths. Do not create aliases or mappings.
@@ -20,19 +17,10 @@ index 92d0761..8670912 100644
 +    }
 +  }
 +#endif
-   if (options.working_dir) {
-     // The formatting of this string, complete with funny quotes, is
-     // so Emacs can properly identify that the cwd has changed for
 diff --git a/src/version.cc b/src/version.cc
 index b108660..aed5fc6 100644
 --- a/src/version.cc
 +++ b/src/version.cc
-@@ -20,7 +20,7 @@
- 
- using namespace std;
- 
+@@ -23 +23 @@ using namespace std;
 -const char* kNinjaVersion = "1.13.2";
 +const char* kNinjaVersion = "1.13.2+cimiloop-short-cwd.1";
- 
- void ParseVersion(const string& version, int* major, int* minor) {
-   size_t end = version.find('.');

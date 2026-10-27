@@ -119,7 +119,7 @@ GN分发端点不可用时，可在上述 `v8_source_build` 内成对指定 `gn_
 
 本机已复现：原 Ninja1.12.1 和官方1.13.2对同一 GN 图报告不存在的文件，实际原件存在；Win32 对拼接前超长相对路径返回路径不存在。同一原 Ninja 从该目录的系统8.3短路径运行时，完整构建图预演通过。
 
-遇到同一问题，可显式构建本仓库的 [Ninja 短工作目录补丁](ninja-short-cwd.patch)。固定上游为 Ninja1.13.2／提交 `3441b633c2fe2c494e958780ba0f4227b1327634`；核对 Git 对象后，在单独私有源码目录执行 `git apply --check <补丁绝对路径>`、`git apply <补丁绝对路径>`，再以实际 MSVC 环境及已固定 Python 执行 `python configure.py --bootstrap --with-python=<实际Python绝对路径>`。构建过程也应由原开发 Job 持有并保留空间保护、源码和工具前后核对。
+遇到同一问题，可显式构建本仓库的 [Ninja 短工作目录补丁](ninja-short-cwd.patch)。固定上游为 Ninja1.13.2／提交 `3441b633c2fe2c494e958780ba0f4227b1327634`；核对 Git 对象后，在单独私有源码目录执行 `git apply --unidiff-zero --check <补丁绝对路径>`、`git apply --unidiff-zero <补丁绝对路径>`，再以实际 MSVC 环境及已固定 Python 执行 `python configure.py --bootstrap --with-python=<实际Python绝对路径>`。构建过程也应由原开发 Job 持有并保留空间保护、源码和工具前后核对。
 
 版本须实际返回 `1.13.2+cimiloop-short-cwd.1`。补丁只在 Windows 的 `-C`／`chdir` 前读取系统已有短目录名；失败时继续原路径。不会创建短名、链接或映射，不修改全局设置或 GN／sandbox 参数。在原长路径上重新执行 `-n rusty_v8` 成功后，才将这个明确的本地兼容程序设为 `v8_source_build.ninja_binary`；封存实际程序及补丁来源，不称它为官方未修改 Ninja。没有可用短目录名时，该方法不保证解决长度问题。预演成功仍须完整构建及原 Job 处置通过。
 
