@@ -7,6 +7,13 @@ import {pathToFileURL} from 'node:url';
 import {describe,expect,it} from 'vitest';
 import {AgentStartLedger} from '../src/agent-start-ledger.js';
 import {CodexOriginalMethodRuntime,captureCodexLoginHome,type CodexOriginalMethodOptions} from '../src/codex-original-method.js';
+import {createInternalId} from '@cimiloop/protocol/v2';
+import {CodexAgentUsageBudget} from '../src/codex-agent-usage-budget.js';
+import {createBudgetedCodexAgentRuntimeModel} from '../src/agent-codex-model.js';
+import {AgentRuntimeModelHost} from '../src/agent-runtime-model.js';
+import {claimAgentRuntimeOperation,requestAgentRuntimeCancellation,recoverAgentRuntimeOperation} from '../src/agent-runtime-operation.js';
+import {codexChatGptAccountDigest} from '../src/codex-original-method.js';
+import {codexProcessLayout} from '../src/codex-process-job.js';
 
 // Actual Windows Job/process tree and immutable Host1. The app-server is PUBLIC
 // Node stdio, with no login, model, bill, Provider qualification or S1 claim.
@@ -34,6 +41,30 @@ send({method:'turn/completed',params:{threadId:'PUBLIC_THREAD',turn:{id:'PUBLIC_
 }
 const alive=(pid:number)=>{try{process.kill(pid,0);return true;}catch{return false;}};
 describe.runIf(process.platform==='win32'&&process.arch==='x64')('owner-bound Codex process Job',()=>{
+ it.each(['cancel','recover'] as const)('delivers original SDK cancellation while model Job end originals arrive via %s without replaying or freeing its hold',async kind=>{
+  const f=fixture('stall');try{const scope={project_id:createInternalId(),run_id:createInternalId(),operation_key:createInternalId(),executor_actor_id:createInternalId(),context_digest:{algorithm:'sha256' as const,value:hash('PUBLIC context')},runtime_binding:{binding_ref:{object_type:'provider_binding' as const,id:createInternalId()},digest:{algorithm:'sha256' as const,value:hash('PUBLIC runtime')}},skill_bindings:[],host_admission_ref:{provider:'local_content' as const,resource_type:'agent_host_admission' as const,locator:hash('PUBLIC admission'),digest:{algorithm:'sha256' as const,value:hash('PUBLIC admission')}}};
+  const account=codexChatGptAccountDigest({account:{type:'chatgpt',email:'PUBLIC@example.test'}}),quota=hash('PUBLIC-account'),budget=CodexAgentUsageBudget.initialize(f.origin,{account_digest:account,quota_account_digest:quota,model_calls:2,output_tokens:4096}),transport=new CodexOriginalMethodRuntime({...f.options,account_digest:account},false,f.origin),model=createBudgetedCodexAgentRuntimeModel({root:f.root,scope,runtime:transport,model:'gpt-6-luna',account_digest:account,quota_account_digest:quota,output_profile:'bounded_2048/1.0.0',usage_policy:'require_ordinary_permission/1.0.0',origin:'public_fixture',admission_digest:hash('PUBLIC qualification'),permitted_tools:['cimi_read'],authority:{async check(){},beforeEffect(){}}},budget);
+  const host=await AgentRuntimeModelHost.initialize(f.root,scope,model,['cimi_read']),header=join(f.root,'agent-runtime-model-starts',scope.project_id,scope.run_id,'header.json');
+  claimAgentRuntimeOperation(f.root,scope,{purpose:'agent_runtime',model_original_binding:{format:'cimiloop/agent-model-original-binding/1.0.0',header_digest:hash(readFileSync(header)),original_evidence:model.original_evidence}},{pid:process.pid,creation_ticks:'1',image:process.execPath});
+  const abort=new AbortController(),pending=host.execute({format:'cimiloop/agent-runtime-model-request/3.0.0',scope_digest:hash(JSON.stringify(scope)),admission_digest:model.admission_digest,call_id:'model_0001',tool:'model_step',prompt:[{role:'user',content:[{type:'text',text:'PUBLIC bounded read'}]}],tools:[{type:'function',name:'cimi_read',description:'PUBLIC read',inputSchema:{type:'object',properties:{path:{type:'string'}},required:['path'],additionalProperties:false}}],max_output_tokens:2048},abort.signal);void pending.catch(()=>{});
+  try{await until(()=>existsSync(f.state));const dispatch=JSON.parse(readFileSync(join(f.root,'agent-codex-model-originals',scope.project_id,scope.run_id,'model_0001','request.json'),'utf8')),job=codexProcessLayout(f.options.root,dispatch.codex_request.operation_key).operationRoot,cancel=join(job,'cancel.json'),end=join(job,'ended.json'),before=budget.snapshot();
+   if(kind==='recover'){const sdk=join(f.root,'agent-runtime-claims',scope.project_id,'runs',scope.run_id,'cancel.json');expect(()=>requestAgentRuntimeCancellation(f.root,scope,()=>{if(existsSync(sdk))throw Error('PUBLIC lost cancellation delivery');})).toThrow('PUBLIC lost cancellation delivery');expect(existsSync(sdk)).toBe(true);expect(existsSync(cancel)).toBe(false);}
+   const guard=()=>{if(existsSync(cancel)){const deadline=Date.now()+10000,wait=new Int32Array(new SharedArrayBuffer(4));while(!existsSync(end)&&Date.now()<deadline)Atomics.wait(wait,0,0,10);expect(existsSync(end)).toBe(true);}};
+   const result=kind==='cancel'?requestAgentRuntimeCancellation(f.root,scope,guard):await recoverAgentRuntimeOperation(f.root,scope,guard);expect(existsSync(cancel)).toBe(true);expect(existsSync(end)).toBe(true);expect(result).toMatchObject({model_cancellation:{status:'Requested',calls:[{call_id:'model_0001',requested:true}]}});if(kind==='cancel')expect(result).toMatchObject({requested:true,stopped_proven:false});else expect(result).toMatchObject({outcome:'unknown',resources_disposed:false,completion_proven:false});await expect(pending).rejects.toThrow();expect(budget.snapshot()).toEqual(before);expect(budget.snapshot().held.model_calls).toBe(1);expect(JSON.parse(readFileSync(f.state,'utf8')).turns).toBe(1);expect(JSON.parse(readFileSync(end,'utf8'))).toMatchObject({active_processes:0,job_closed:true});
+  }finally{abort.abort();await pending.catch(()=>{});}
+  }finally{f.origin.close();}
+ },120000);
+ it('delivers cancellation through retained process custody without model replay or cost completion',async()=>{
+  const cancel=Reflect.get(CodexOriginalMethodRuntime,'requestProcessCancellationRetained');expect(cancel).toBeTypeOf('function');
+  const f=fixture('stall'),abort=new AbortController(),pending=f.adapter.execute(request,()=>'',()=>{},abort.signal);void pending.catch(()=>{});
+  try{await until(()=>existsSync(f.state));const options=f.adapter.originalConfiguration,path=join(f.job,'cancel.json'),started=join(f.job,'started.json');
+   expect(()=>cancel(options,request,()=>{throw Error('PUBLIC Human revoked');})).toThrow('PUBLIC Human revoked');expect(existsSync(path)).toBe(false);
+   renameSync(started,started+'.retained');try{expect(()=>cancel(options,request,()=>{})).toThrow();expect(existsSync(path)).toBe(false);}finally{renameSync(started+'.retained',started);}
+   expect(cancel(options,request,()=>{})).toMatchObject({requested:true,stopped_proven:false,completion_proven:false,costs_reconciled:false});const bytes=readFileSync(path);
+   await expect(pending).rejects.toThrow();expect(CodexOriginalMethodRuntime.readProcessResourcesRetained(options,request)).toMatchObject({status:'disposed',resources_disposed:true});
+   expect(cancel(options,request,()=>{})).toMatchObject({requested:true,stopped_proven:false});expect(readFileSync(path)).toEqual(bytes);expect(f.adapter.readOriginal(request)).toBe(null);await expect(f.adapter.execute(request,()=>'',()=>{})).rejects.toThrow('codex_original_pending');expect(JSON.parse(readFileSync(f.state,'utf8')).turns).toBe(1);expect(f.origin.listExclusive('codex_process_job_intent')).toHaveLength(1);expect(f.origin.listExclusive('codex_process_job_complete')).toEqual([]);
+  }finally{abort.abort();await pending.catch(()=>{});f.origin.close();}
+ },120000);
  it.each(['missing_capability','unknown_policy'])('refuses a model network policy without the code-owned confined execution: %s',mode=>{
   const f=fixture(),options={...f.options,root:join(f.root,'network-must-not-create')};Reflect.set(options,'network_policy',mode==='unknown_policy'?'PUBLIC unknown network':'codex_chatgpt_tunnel/1.0.0');
   try{expect(()=>new CodexOriginalMethodRuntime(options,false,f.origin)).toThrow('codex_network_boundary_unproven');expect(existsSync(options.root)).toBe(false);expect(f.origin.listExclusive('codex_process_job_intent')).toEqual([]);expect(existsSync(f.state)).toBe(false);}finally{f.origin.close();}

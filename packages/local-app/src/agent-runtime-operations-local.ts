@@ -11,7 +11,7 @@ export class LocalAgentRuntimeOperations {
     const scope = this.scope(runId), result = await queryAgentRuntimeOperation(this.local.location.dataDirectory, scope);
     if (!isDeepStrictEqual(this.scope(runId), scope)) throw Error("Agent original Runtime scope changed"); return result;
   }
-  requestCancellation(runId: string) { return requestAgentRuntimeCancellation(this.local.location.dataDirectory, this.scope(runId)); }
+  requestCancellation(runId: string) { const scope=this.scope(runId);return requestAgentRuntimeCancellation(this.local.location.dataDirectory,scope,()=>{if(!isDeepStrictEqual(this.scope(runId),scope))throw Error('Agent original Runtime scope changed');}); }
   async collect(runId: string) {
     const scope = this.scope(runId), project = this.local.store.getProject(), run = this.local.store.getRun(runId),
       record = run && this.local.store.getRuntimeRecord("run_record", run.record_ref.id);
@@ -20,7 +20,7 @@ export class LocalAgentRuntimeOperations {
     if (!isDeepStrictEqual(this.scope(runId), scope)) throw Error("Agent original Runtime scope changed"); return result;
   }
   async recover(runId: string) {
-    const scope = this.scope(runId), result = await recoverAgentRuntimeOperation(this.local.location.dataDirectory, scope);
+    const scope = this.scope(runId), result = await recoverAgentRuntimeOperation(this.local.location.dataDirectory, scope,()=>{if(!isDeepStrictEqual(this.scope(runId),scope))throw Error('Agent original Runtime scope changed');});
     if (!isDeepStrictEqual(this.scope(runId), scope)) throw Error("Agent original Runtime scope changed"); return result;
   }
 }

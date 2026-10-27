@@ -307,6 +307,27 @@ export function readCodexAgentModelProcessResources(root:string,rawScope:unknown
  if(!same(header,checkedHeader(read(join(paths.body,'header.json'))))||!same(original,readCodexAgentModelOriginals(root,scope)))fail('agent_codex_original_changed');
  result.resources_disposed=result.calls.every(call=>call.resources_disposed);if(result.resources_disposed)result.status='Observed';return result;
 }
+// The application supplies the original scope and current control guard. No
+// model or account factory is involved; each retained request selects only its
+// already-registered Job. Partial delivery remains retryable on these identities.
+export function requestCodexAgentModelCancellation(root:string,rawScope:unknown,beforeEffect:()=>void=()=>{}){
+ let guardError:unknown,guardFailed=false;const guard=()=>{try{const value:unknown=beforeEffect();if(value!==undefined){void Promise.resolve(value).catch(()=>{});fail('agent_codex_effect_denied');}}catch(error){guardError=error;guardFailed=true;throw error;}};
+ guard();const scope=parseAgentWorkspaceToolScope(rawScope),original=readCodexAgentModelOriginals(root,scope),calls:{call_id:string;requested:boolean;stopped_proven:false;completion_proven:false;costs_reconciled:false;reason:string;basis_digest?:string}[]=[];
+ const base={resource_scope:'current_codex_run' as const,stopped_proven:false as const,completion_proven:false as const,costs_reconciled:false as const,family_resources_disposed:false as const};
+ if(original.status==='NotRegistered')return{...base,status:'NotRegistered' as const,calls};
+ const header=checkedHeader(read(join(headerPaths(root,scope).body,'header.json')));
+ const basis=(value:CodexAgentModelOriginals)=>{const names=new Set(['header.json','start/header.json',...value.calls.flatMap(call=>[call.call_id+'/request.json','start/'+call.call_id+'/request.json'])]);return{scope_digest:value.scope_digest,header_digest:value.header_digest,call_ids:value.calls.map(call=>call.call_id),requests:value.artifacts.filter(file=>names.has(file.name)).map(file=>({...file,identity:identity(file.path)}))};},before=basis(original);
+ for(const call of original.calls){guard();const record=original.artifacts.find(file=>file.name===call.call_id+'/request.json');
+  if(!record){calls.push({call_id:call.call_id,requested:false,stopped_proven:false,completion_proven:false,costs_reconciled:false,reason:'codex_original_dispatch_unavailable'});continue;}
+  try{const body=read(record.path);calls.push({call_id:call.call_id,...CodexOriginalMethodRuntime.requestProcessCancellationRetained(header.runtime,body.codex_request,guard)});}
+  catch(error){if(guardFailed&&error===guardError)throw error;calls.push({call_id:call.call_id,requested:false,stopped_proven:false,completion_proven:false,costs_reconciled:false,reason:'codex_original_process_cancellation_unavailable'});}
+ }
+ // Ending the requested Job legitimately adds end evidence. Recheck only the
+ // complete original request identities; new/changed requests still refuse an
+ // all-delivered acknowledgement and must be queried on the original scope.
+ guard();if(!same(header,checkedHeader(read(join(headerPaths(root,scope).body,'header.json'))))||!same(before,basis(readCodexAgentModelOriginals(root,scope))))fail('agent_codex_original_changed');
+ return{...base,status:calls.length&&calls.every(call=>call.requested)?'Requested' as const:'Unknown' as const,calls};
+}
 // Read-only per-Run accounting facts. Capacity and provider token usage are
 // deliberately not invoices or authority to reconcile a Kernel/Skill family.
 export function readCodexAgentRunUsage(root:string,rawScope:unknown,budget:CodexAgentUsageBudget){

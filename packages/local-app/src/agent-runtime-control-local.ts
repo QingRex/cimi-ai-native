@@ -11,8 +11,8 @@ import {readAgentRuntimeOriginalIdentity} from '@cimiloop/runtime-adapter';
 export interface AgentRuntimeControlPort {
   query(root: string, scope: AgentWorkspaceToolScope): Promise<unknown>;
   collect(root: string, scope: AgentWorkspaceToolScope, inputs: { project: Project; record: AgentRunRecord },named?:Parameters<typeof collectAgentRuntimeOperation>[3],parent?:Parameters<typeof collectAgentRuntimeOperation>[4]): Promise<unknown>;
-  requestCancellation(root: string, scope: AgentWorkspaceToolScope): unknown;
-  recover(root: string, scope: AgentWorkspaceToolScope): Promise<unknown>;
+  requestCancellation(root: string, scope: AgentWorkspaceToolScope,beforeEffect?:()=>void): unknown;
+  recover(root: string, scope: AgentWorkspaceToolScope,beforeEffect?:()=>void): Promise<unknown>;
 }
 type Operation = { outcome: "observed"; result: unknown } | { outcome: "unknown"; reason: string };
 export type AgentRuntimeControlContext = Pick<LocalProject, "location" | "instance" | "agentParentSkillResults"> & {
@@ -108,7 +108,7 @@ export class LocalAgentRuntimeControl {
     return original;
   }
   async retryCancellation(runId: string) { const original = this.cancelled(runId); return this.observe(original,
-    () => this.port.requestCancellation(original.controlIdentity.location.dataDirectory, original.scope), true); }
+    () => this.port.requestCancellation(original.controlIdentity.location.dataDirectory, original.scope,()=>this.authorizeControl(original)), true); }
   async recover(runId: string) { const original = this.cancelled(runId); return this.observe(original,
-    () => this.port.recover(original.controlIdentity.location.dataDirectory, original.scope), true); }
+    () => this.port.recover(original.controlIdentity.location.dataDirectory, original.scope,()=>this.authorizeControl(original)), true); }
 }

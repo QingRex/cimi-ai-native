@@ -47,6 +47,8 @@ pnpm cimiloop runtime contract recover $runtimeContractRequest --json
 
 重复 `start` 只查同一原请求；响应丢失先 `query`。`continue` 只允许在前阶段原件完整可核验后，启动尚未登记过的原阶段。已登记但 Unknown 的阶段不重派，不换 ID 把它伪装成恢复。`recover` 先要求原取消标记，只核对和处理原操作资源；找不到不能证明已清理。
 
+`cancel` 现在先保存原 SDK 取消，再向该原 scope 已登记的 Codex 模型 Job 投递同 nonce／config 的原取消；重复请求只验证原标记。模型原件缺失时 SDK 取消仍保留，模型送达状态为 Unknown，不能重开Run。`recover` 对已有原 SDK 取消先重试模型送达，再核 SDK 资源；即使模型退出，缺 SDK 处置原件时整体仍Unknown。没有原 SDK 取消标记时先重试原 `cancel`。`requested:true` 不表示已停止：继续按原ID查询资源，费用及完整恢复分别核验。实现与实际Windows验证边界见[原模型取消与恢复投递](../plans/2026-10-27-cimiloop-original-model-cancellation.md)。
+
 `usage` 从原安装关联的现有账户读取容量，并按原编辑／评审 scope 核对预约、模型原件及 token 用量；不启动模型，不读取令牌，不释放预约。`capacity.scope: installed_account` 是账户总体容量，可能包含其他项目和已分配容量；`phases` 才是这个请求的两阶段明细，不返回其他项目的调用身份。`requested:false` 表示该阶段尚未登记；`usage:null` 表示目前不能核对完整用量，不是零消费。孤立预约保持 Unknown，`usage_complete:false`。合法跨项目容量分配先核原凭据再从模型明细中排除，仍计入账户占用。
 
 工作台“Runtime 契约验证”的原请求旁提供“查询用量”；HTTP 为有会话的只读 `GET /api/runtime-contracts/<原请求ID>/usage`，不接受 POST 派发。查询没有财务认证能力，`cost_known:false`、现金／积分金额为 null、`costs_reconciled:false`；不能以 token 用量、剩余额度或重复查询成功结清费用。

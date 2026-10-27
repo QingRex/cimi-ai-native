@@ -41,8 +41,8 @@ export class LocalHumanSkillInvocationControl {
     if('closure'in selected)result=selected.closure;
     else if(kind==='query')result=await this.port.query(selected.root,selected.scope);
     else if(kind==='collect'){const record=this.local.store.getRuntimeRecord('run_record',original.record_id);if(!record||record.run_kind!=='agent')throw fail();result=await this.port.collect(selected.root,selected.scope,{project:original.project,record});}
-    else if(kind==='cancel')result=await this.port.requestCancellation(selected.root,selected.scope);
-    else result=await this.port.recover(selected.root,selected.scope);
+    else if(kind==='cancel')result=await this.port.requestCancellation(selected.root,selected.scope,fresh);
+    else result=await this.port.recover(selected.root,selected.scope,fresh);
     if(!same(read(),selected))throw fail();operation={outcome:'observed',result};
    }
   }catch(error){if(guardFailed&&error===guardError)throw error;fresh();operation=unavailable();}

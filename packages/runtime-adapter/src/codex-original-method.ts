@@ -392,6 +392,21 @@ export class CodexOriginalMethodRuntime {
     return{network_policy:runtime.options.network_policy??null,write_confinement:runtime.options.write_confinement??null,...readCodexProcessJobControlOriginals(layout.operationRoot,layout.helperRoot,runtime.options.command,runtime.processArgs(request),runtime.paths(request).cwd)};
   }
   static readProcessResourcesRetained(options:CodexOriginalMethodOptions,raw:CodexMethodRequest){return new CodexOriginalMethodRuntime(options,true).readProcessResources(raw);}
+  // Original physical cancellation only. Retained custody cannot install an
+  // executor, inspect a login, seal output, release capacity or select a PID.
+  static requestProcessCancellationRetained(options:CodexOriginalMethodOptions,raw:CodexMethodRequest,beforeEffect:()=>void=()=>{}){
+    guardNow(beforeEffect);const runtime=new CodexOriginalMethodRuntime(options,true),request=requestCopy(raw),paths=runtime.paths(request),unavailable={requested:false as const,stopped_proven:false as const,completion_proven:false as const,costs_reconciled:false as const};
+    if(!runtime.options.process_custody)return{...unavailable,reason:'codex_original_process_policy_unavailable'};
+    const rows=runtime.processRows(request),intent=rows.find(row=>row.namespace==='codex_process_job_intent'),prepared=rows.find(row=>row.namespace==='codex_process_job_prepared');
+    if(!intent||!prepared||!existsSync(paths.claim))return{...unavailable,reason:'codex_original_process_registration_unavailable'};
+    const claim=runtime.claim(request);if(!same(intent.basis,runtime.processBasis(request))||!same(parse(bytesAt(paths.claim)),claim))fail('codex_process_custody_unproven');
+    const layout=runtime.processLayout(request),launch=readCodexProcessLaunch(layout.operationRoot,layout.helperRoot,runtime.options.command,runtime.processArgs(request),paths.cwd);runtime.assertProcessConfinement(request,launch);
+    if(!same(prepared.basis,{format:'cimiloop/codex-process-job-prepared/1.0.0',intent_ticket:intent.ticket,original:{header_original:launch.header_original,config_original:launch.config_original}}))fail('codex_process_custody_unproven');
+    const started=rows.find(row=>row.namespace==='codex_process_job_started');if(started){const original=readStartedCodexProcessJob(layout.operationRoot,layout.helperRoot,runtime.options.command,runtime.processArgs(request),paths.cwd);if(!same(started.basis,{format:'cimiloop/codex-process-job-started/1.0.0',prepared_ticket:prepared.ticket,original:original.original}))fail('codex_process_custody_unproven');}
+    guardNow(beforeEffect);if(!same(rows,runtime.processRows(request))||!same(parse(bytesAt(paths.claim)),claim)||!same(intent.basis,runtime.processBasis(request)))fail('codex_process_custody_unproven');
+    requestCodexProcessJobCancellation(launch);guardNow(beforeEffect);
+    return{requested:true as const,stopped_proven:false as const,completion_proven:false as const,costs_reconciled:false as const,reason:'codex_original_process_cancellation_requested',basis_digest:digest(encode({prepared:prepared.ticket,header:launch.header_original,config:launch.config_original})).value};
+  }
   private paths(request: CodexMethodRequest) {
     const root = assertOrdinaryPath(join(this.options.root, request.operation_key));
     return { root, cwd: join(root, "workspace"), claim: join(root, "start.json"), transcript: join(root, "stdio.jsonl"), seal: join(root, "seal.json") };

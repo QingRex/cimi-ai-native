@@ -99,6 +99,10 @@ describe("Human controls original Agent operations through Kernel cancellation",
     expect(cancel).not.toHaveBeenCalled(); expect(f.store.transaction(tx => tx.getCommandReceipt(input.command_id))).toEqual(receipt);
     expect(f.store.asOfEventSequence()).toBe(sequence); expect(f.store.listRuns(f.change.id)).toHaveLength(1);
   });
+  it.each(['retryCancellation','recover'] as const)('passes current Human authority into each model effect during %s',async action=>{
+    await control.stop(command());cancel.mockClear();let effects=0;const effect:AgentRuntimeControlPort['requestCancellation']=(_root,_scope,guard)=>{expect(guard).toBeTypeOf('function');revokeControl();guard!();effects++;return{requested:true};};if(action==='retryCancellation')cancel.mockImplementation(effect);else recover.mockImplementation(async(...args)=>effect(...args));
+    await expect(control[action](runId)).rejects.toMatchObject({code:'ROLE_NOT_ASSIGNED'});expect(effects).toBe(0);expect(f.store.getRun(runId)!.cancel_requested).toBe(true);
+  });
   it.each(["retryCancellation", "recover"] as const)("rechecks current Human control after awaiting %s", async action => {
     await control.stop(command()); cancel.mockClear(); recover.mockClear();
     const result = async () => { revokeControl(); return { requested: true }; };

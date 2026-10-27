@@ -4,7 +4,7 @@ import {agentRuntimeClaimFormat} from './agent-job-policy.js';
 import {readAgentRuntimeNamedMethodResult,type AgentNamedMethodResultInputs} from './agent-named-method-result.js';
 import {assertAgentNamedMethodConfig} from './agent-named-method-config.js';
 import { readDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary } from "./agent-dedicated-model.js";
-import { readCodexAgentModelOriginals,readCodexAgentModelProcessResources, codexAgentModelSummary, type CodexAgentModelSummary } from "./agent-codex-model.js";
+import { readCodexAgentModelOriginals,readCodexAgentModelProcessResources,requestCodexAgentModelCancellation, codexAgentModelSummary, type CodexAgentModelSummary } from "./agent-codex-model.js";
 import { verifyAgentRuntimeInterruption } from "./agent-runtime-interruption.js";
 import {verifyAgentRuntimeCancellation} from './agent-runtime-cancellation.js';
 import { readAgentRuntimeModelOriginals } from "./agent-runtime-model.js";
@@ -130,11 +130,20 @@ export function readAgentRuntimeCancellationOriginal(root:string,rawScope:unknow
   return {record:{format:'cimiloop/agent-runtime-cancel/1.0.0' as const,operation_id:original.claim.operation_id,scope_digest:agentWorkspaceIpcScopeDigest(original.claim.scope)},bytes,digest:digest(bytes)};
 }
 export function agentRuntimeCancellationRequested(root: string, rawScope: unknown): boolean {return readAgentRuntimeCancellationOriginal(root,rawScope)!==null;}
-export function requestAgentRuntimeCancellation(root: string, rawScope: unknown) {
+export function requestAgentRuntimeCancellation(root: string, rawScope: unknown,beforeEffect:()=>void=()=>{}) {
+  let guardError:unknown,guardFailed=false;const guard=()=>{try{const value:unknown=beforeEffect();if(value!==undefined){void Promise.resolve(value).catch(()=>{});fail('agent_runtime_cancellation_unproven');}}catch(error){guardError=error;guardFailed=true;throw error;}};guard();
   const original = load(root, rawScope), path = join(original.location.run, "cancel.json");
+  guard();
   try { save(path, { format: "cimiloop/agent-runtime-cancel/1.0.0", operation_id: original.claim.operation_id, scope_digest: agentWorkspaceIpcScopeDigest(original.claim.scope) }); }
   catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "EEXIST")) throw error; }
   if (!agentRuntimeCancellationRequested(root, rawScope)) fail("agent_runtime_cancellation_unproven");
+  const input=read(join(original.location.run,'input.json')) as {model_original_binding?:{original_evidence?:{kind?:string}}};
+  if(input.model_original_binding?.original_evidence?.kind==='codex_login/1.0.0'){
+    let model_cancellation:ReturnType<typeof requestCodexAgentModelCancellation>|{status:'Unknown';stopped_proven:false;completion_proven:false;costs_reconciled:false;reason:string};
+    try{model_cancellation=requestCodexAgentModelCancellation(root,original.claim.scope,guard);}catch(error){if(guardFailed&&error===guardError)throw error;model_cancellation={status:'Unknown',stopped_proven:false,completion_proven:false,costs_reconciled:false,reason:'codex_original_process_cancellation_unavailable'};}
+    guard();return{requested:true as const,operation:original.operation,stopped_proven:false as const,formal_agent_execution_enabled:false as const,model_cancellation};
+  }
+  guard();
   return { requested: true as const, operation: original.operation, stopped_proven: false as const, formal_agent_execution_enabled: false as const };
 }
 async function queryAgentRuntimeNativeOperation(root: string, rawScope: unknown) {
@@ -187,13 +196,15 @@ export async function queryAgentRuntimeOperation(root:string,rawScope:unknown){
  const resources_disposed=native.resources_disposed&&model_resources.resources_disposed;
  return{...native,resource_scope:'native_and_current_codex_run' as const,native_resources_disposed:native.resources_disposed,model_resources,resources_disposed,...(native.status==='Stopped'&&!resources_disposed?{status:'Unknown' as const,reason:'agent_original_model_resources_unproven'}:{})};
 }
-export async function recoverAgentRuntimeOperation(root: string, rawScope: unknown) {
+export async function recoverAgentRuntimeOperation(root: string, rawScope: unknown,beforeEffect:()=>void=()=>{}) {
+  const guard=()=>{const value:unknown=beforeEffect();if(value!==undefined){void Promise.resolve(value).catch(()=>{});fail('agent_runtime_cancellation_unproven');}};guard();
   const original = load(root, rawScope);
-  if (!existsSync(join(original.operation, "original-config.json"))) return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const };
-  const native=await recoverOpenCodeWorkspaceToolRehearsal({ root, operation: original.operation, scope: original.claim.scope }),model_resources=originalModelResources(root,rawScope);
-  if(!model_resources)return{...native,resource_scope:'native_only' as const};
+  const cancellation=agentRuntimeCancellationRequested(root,rawScope)?requestAgentRuntimeCancellation(root,rawScope,guard):undefined,delivery=cancellation&&'model_cancellation'in cancellation?{model_cancellation:cancellation.model_cancellation}:{};guard();
+  if (!existsSync(join(original.operation, "original-config.json"))) return { outcome: "unknown" as const, reason: "agent_original_registration_missing", resources_disposed: false, completion_proven: false as const,...delivery };
+  const native=await recoverOpenCodeWorkspaceToolRehearsal({ root, operation: original.operation, scope: original.claim.scope });guard();const model_resources=originalModelResources(root,rawScope);
+  if(!model_resources)return{...native,resource_scope:'native_only' as const,...delivery};
   const resources_disposed=native.resources_disposed&&model_resources.resources_disposed;
-  return{...native,resource_scope:'native_and_current_codex_run' as const,native_resources_disposed:native.resources_disposed,model_resources,resources_disposed,...(native.outcome==='recovered'&&!resources_disposed?{outcome:'unknown' as const,reason:'agent_original_model_resources_unproven'}:{})};
+  return{...native,resource_scope:'native_and_current_codex_run' as const,native_resources_disposed:native.resources_disposed,model_resources,resources_disposed,...delivery,...(native.outcome==='recovered'&&!resources_disposed?{outcome:'unknown' as const,reason:'agent_original_model_resources_unproven'}:{})};
 }
 export async function collectAgentRuntimeOperation(root: string, rawScope: unknown, nativeInputs?: { project: Project; record: AgentRunRecord },namedMethodInputs?:AgentNamedMethodResultInputs,parentReader?:AgentParentSkillHistoricalResultReader) {
   const original=load(root,rawScope),parentClaim=Object.hasOwn(read(join(original.location.run,'input.json')) as object,'parent_skill_original_binding');

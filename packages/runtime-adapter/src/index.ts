@@ -126,7 +126,7 @@ export { CodexFixedClarificationMethod } from "./codex-fixed-method.js";
 export type { CodexFixedClarificationOriginal, CodexFixedClarificationOptions } from "./codex-fixed-method.js";
 export { CodexFactInvestigator } from "./codex-fact-investigation.js";
 export type { CodexFactParent, CodexFactSnapshot, CodexFactOutput, CodexFactOriginal } from "./codex-fact-investigation.js";
-export { createCodexAgentRuntimeModel, readCodexAgentModelOriginals, readCodexAgentModelProcessResources,codexAgentModelSummary, verifyCollectedCodexAgentModelOriginals } from "./agent-codex-model.js";
+export { createCodexAgentRuntimeModel, readCodexAgentModelOriginals, readCodexAgentModelProcessResources,requestCodexAgentModelCancellation,codexAgentModelSummary, verifyCollectedCodexAgentModelOriginals } from "./agent-codex-model.js";
 export type { CodexAgentModelOptions, CodexAgentModelAuthority, CodexAgentModelOriginals, CodexAgentModelSummary,CodexAgentModelProcessResources } from "./agent-codex-model.js";
 export {createBudgetedCodexAgentRuntimeModel} from './agent-codex-model.js';
 export {readCodexAgentRunUsage} from './agent-codex-model.js';
