@@ -99,7 +99,11 @@ node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source-pipe --pr
 
 此片段须与实际工具字段合并。先从 [LLVM 官方发行版](https://github.com/llvm/llvm-project/releases/tag/llvmorg-20.1.8)取得 Windows 工具归档，核对官方摘要并解包到本批私有普通目录，不安装到全局。目录须包含实际 `bin/clang.exe`、`clang-cl.exe`、`libclang.dll`、`lld-link.exe`；最后一项由固定 V8 工具链用于链接及 `/lib` 静态归档。版本和依赖需在本机实际核验。运行器封存这四份文件的摘要与物理身份，并在阶段结束复读；不声称封存整个 LLVM 发行版及全部依赖。
 
-该选项只设置 `V8_FROM_SOURCE=1`、单 Cargo job、`CLANG_BASE_PATH` 和 `LIBCLANG_PATH`，拒绝其他字段及任意 GN 参数。固定 Cargo 锁和 sandbox feature 保持。上游源码构建脚本可能下载其固定 GN／Ninja／Chromium Rust 工具；Cargo 的 `--offline` 只约束 Cargo 依赖解析，不能解释为整个构建零网络。仍在不继承登录／用户配置的开发 Job 内运行，保留空间停止线、失败原件与源码后验。新结果额外记录 `v8_source_originals`，实际源码构建失败不能由配置通过代替。
+该选项设置 `V8_FROM_SOURCE=1`、单 Cargo job、`CLANG_BASE_PATH` 和 `LIBCLANG_PATH`；除下述成对工具路径外，拒绝其他字段及任意 GN 参数。固定 Cargo 锁和 sandbox feature 保持。上游源码构建脚本可能下载其固定 GN／Ninja／Chromium Rust 工具；Cargo 的 `--offline` 只约束 Cargo 依赖解析，不能解释为整个构建零网络。仍在不继承登录／用户配置的开发 Job 内运行，保留空间停止线、失败原件与源码后验。新结果额外记录 `v8_source_originals`，实际源码构建失败不能由配置通过代替。
+
+GN分发端点不可用时，可在上述 `v8_source_build` 内成对指定 `gn_binary` 与 `ninja_binary`，分别为实际工具的绝对路径。两项必须同时存在，均核对普通文件、无链接父目录、MZ、摘要和物理身份，加入阶段前后材料；缺省仍用原上游发现／下载方式。这两个字段只映射GN／NINJA，不开放GN参数、源码版本或安全开关。自行构建GN须使用固定V8 `v8/DEPS` 的 `gn_version` 提交，核对完整Git对象和源码；镜像只能传输同一固定Git对象。Ninja须是实际已核验的本机工具。不能以下载失败为由使用来源未知程序。
+
+完整V8源码构建将所选 `visual_studio` 显式传给上游发现脚本，年份来自同一次读取的原MSVC环境文件中的唯一 `VisualStudioVersion`：15／16／17／18分别对应2017／2019／2022／2026。缺失、未知版本、同名或大小写不同的重复原行均拒绝；不先合并环境再丢失重复信息。该派生环境另记入阶段结果，非build动作保持原行为。所选Windows SDK还须包含 [Debugging Tools for Windows](https://learn.microsoft.com/en-us/windows-hardware/drivers/debugger/debugger-download-tools)；缺 `Debuggers/x64/dbghelp.dll` 等原组件时按实际失败准备官方组件，不用系统DLL冒充SDK组件，不关闭固定V8检查。
 
 ## 执行各阶段
 

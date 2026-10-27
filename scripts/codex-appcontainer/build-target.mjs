@@ -1,6 +1,6 @@
 import {lstatSync,realpathSync,readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {dirname,isAbsolute,join,parse,relative,resolve} from 'node:path';
+import {basename,dirname,isAbsolute,join,parse,relative,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const external=(parent,child)=>{const path=relative(parent,child);return isAbsolute(path)||path==='..'||path.startsWith('..\\')||path.startsWith('../');};
@@ -17,19 +17,35 @@ export function privateBuildTarget(root,config){
  if(target===parse(target).root||!external(build,target)||!external(target,build)||!external(repository,target)||!external(target,repository))throw Error('Separate target must be outside the build root and repository');
  return target;
 }
+export function privateVisualStudioSourceEnvironment(path,originalText){
+ const vs=ordinaryDirectory(path);
+ if(typeof originalText!=='string')throw Error('Original Visual Studio environment unavailable');
+ // Inspect original lines before the general environment merge can collapse
+ // exact or differently-cased duplicate version records.
+ const version=originalText.split(/\r?\n/).filter(line=>line.slice(0,line.indexOf('=')).toLowerCase()==='visualstudioversion');
+ if(version.length!==1)throw Error('Original Visual Studio version unavailable');
+ const major=/^(15|16|17|18)\.\d+$/.exec(version[0].slice(version[0].indexOf('=')+1))?.[1],year=({15:'2017',16:'2019',17:'2022',18:'2026'})[major];
+ if(!year)throw Error('Unsupported original Visual Studio version');
+ return{GYP_MSVS_OVERRIDE_PATH:vs,GYP_MSVS_VERSION:year,['vs'+year+'_install']:vs};
+}
 export function privateV8SourceBuild(config){
  if(!Object.hasOwn(config,'v8_source_build'))return undefined;
  const selected=config.v8_source_build;
- if(!selected||Object.keys(selected).sort().join(',')!=='clang_root,format'||selected.format!=='cimiloop/locked-v8-sandbox-source/1.0.0')throw Error('Explicit locked V8 source build required');
+ const explicitTools=selected&&(Object.hasOwn(selected,'gn_binary')||Object.hasOwn(selected,'ninja_binary'));
+ const keys=['clang_root','format',...(explicitTools?['gn_binary','ninja_binary']:[])];
+ if(!selected||Object.keys(selected).sort().join(',')!==keys.sort().join(',')||selected.format!=='cimiloop/locked-v8-sandbox-source/1.0.0')throw Error('Explicit locked V8 source build required');
  const clang=ordinaryDirectory(selected.clang_root),bin=join(clang,'bin');
- const materials=['clang.exe','clang-cl.exe','libclang.dll','lld-link.exe'].map(name=>{
-  const path=join(bin,name);ordinaryDirectory(bin);const before=lstatSync(path,{bigint:true});
+ const seal=raw=>{
+  if(typeof raw!=='string'||!isAbsolute(raw))throw Error('Original V8 build tool must be absolute');
+  const path=join(ordinaryDirectory(dirname(raw)),basename(raw)),before=lstatSync(path,{bigint:true});
   if(!before.isFile()||before.isSymbolicLink()||before.size<2n||before.size>512n*1024n**2n)throw Error('Original V8 Clang tool unavailable');
   const bytes=readFileSync(path),after=lstatSync(path,{bigint:true});
   if(bytes.subarray(0,2).toString()!=='MZ'||before.dev!==after.dev||before.ino!==after.ino||before.birthtimeNs!==after.birthtimeNs||before.mtimeNs!==after.mtimeNs||before.size!==after.size||BigInt(bytes.length)!==before.size)throw Error('Original V8 Clang tool changed');
   return{path,sha256:createHash('sha256').update(bytes).digest('hex'),identity:{dev:String(before.dev),ino:String(before.ino),birth:String(before.birthtimeNs)}};
- });
+ };
+ const materials=['clang.exe','clang-cl.exe','libclang.dll','lld-link.exe'].map(name=>seal(join(bin,name)));
+ if(explicitTools)materials.push(seal(selected.gn_binary),seal(selected.ninja_binary));
  // The pinned Cargo feature still selects v8_enable_sandbox. No arbitrary GN
  // arguments or prebuilt substitutions are accepted by this configuration.
- return{environment:{V8_FROM_SOURCE:'1',CARGO_BUILD_JOBS:'1',CLANG_BASE_PATH:clang,LIBCLANG_PATH:bin},materials};
+ return{environment:{V8_FROM_SOURCE:'1',CARGO_BUILD_JOBS:'1',CLANG_BASE_PATH:clang,LIBCLANG_PATH:bin,...(explicitTools?{GN:materials[4].path,NINJA:materials[5].path}:{})},materials};
 }

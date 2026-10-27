@@ -5,7 +5,7 @@ import {mkdirSync,readFileSync,writeFileSync,openSync,closeSync,writeSync,lstatS
 import {resolve,join,dirname,isAbsolute,relative} from 'node:path';
 import {prepareSource} from './prepare-source.mjs';
 import {preparePipeModuleSource,verifyPipeModuleSource} from './prepare-pipe-modules.mjs';
-import {privateBuildTarget,privateV8SourceBuild} from './build-target.mjs';
+import {privateBuildTarget,privateV8SourceBuild,privateVisualStudioSourceEnvironment} from './build-target.mjs';
 import {fileURLToPath} from 'node:url';
 
 const [rawRoot,stage,action,toolsFlag,toolsPath]=process.argv.slice(2);
@@ -39,13 +39,16 @@ mkdirSync(join(root,'stages'),{recursive:true});
 const directory=join(root,'stages',stage);mkdirSync(directory,{recursive:false});
 let sourceBefore;
 if(['fetch','test-paths','build'].includes(action)){sourceBefore=prepareSource(sourceRoot,{...sourceOptions,verify:true});writeFileSync(join(directory,'source-before.json'),JSON.stringify(sourceBefore,null,2),{flag:'wx'});}
+let msvcEnvironment;
 if(['test-paths','build','pipe-acceptance','check-pipe-modules'].includes(action)){
  const allowed=new Set(['path','include','lib','libpath','vctoolsinstalldir','vctoolsversion','vsinstalldir','vcinstalldir','windowssdkdir','windowssdkversion','universalcrtsdkdir','ucrtversion','windowssdkbinpath','windowssdkverbinpath','vscmd_arg_tgt_arch','vscmd_arg_host_arch','visualstudioversion']);
- for(const line of readFileSync(ordinary(config.msvc_environment),'utf8').split(/\r?\n/)){const at=line.indexOf('=');if(at<1)continue;const key=line.slice(0,at);if(allowed.has(key.toLowerCase())){for(const prior of Object.keys(env))if(prior.toLowerCase()===key.toLowerCase())delete env[prior];env[key]=line.slice(at+1);}}
+ msvcEnvironment=readFileSync(ordinary(config.msvc_environment),'utf8');
+ for(const line of msvcEnvironment.split(/\r?\n/)){const at=line.indexOf('=');if(at<1)continue;const key=line.slice(0,at);if(allowed.has(key.toLowerCase())){for(const prior of Object.keys(env))if(prior.toLowerCase()===key.toLowerCase())delete env[prior];env[key]=line.slice(at+1);}}
  const pathKey=Object.keys(env).find(key=>key.toLowerCase()==='path');env[pathKey]+=';'+dirname(config.python)+';'+join(vs,'Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin')+';'+join(vs,'Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja');
  env.CARGO_NET_OFFLINE='true';
 }
-if(v8BuildBefore){const pathKey=Object.keys(env).find(key=>key.toLowerCase()==='path');env[pathKey]+=';'+v8BuildBefore.environment.LIBCLANG_PATH;}
+const v8VisualStudioEnvironment=v8BuildBefore&&action==='build'?privateVisualStudioSourceEnvironment(vs,msvcEnvironment):undefined;
+if(v8BuildBefore){Object.assign(env,v8VisualStudioEnvironment);const pathKey=Object.keys(env).find(key=>key.toLowerCase()==='path');env[pathKey]+=';'+v8BuildBefore.environment.LIBCLANG_PATH;}
 let file=join(root,'cargo/bin/cargo.exe'),args,cwd=root,fixtureBefore,moduleBefore;
 const fingerprint=path=>{ordinary(path);const value=lstatSync(path,{bigint:true});if(!value.isFile()||value.nlink!==1n||value.size>512n*1024n**2n)throw Error('Original fixture material unavailable');return{path,sha256:createHash('sha256').update(readFileSync(path)).digest('hex'),identity:{dev:String(value.dev),ino:String(value.ino),birth:String(value.birthtimeNs)}};};
 if(action==='msvc-env'){
@@ -86,5 +89,5 @@ const started=readStartedCodexProcessJob(job,helpers,command,args,cwd),resources
 let sourceAfter,sourceError,fixtureAfter,moduleAfter,v8BuildAfter;
 try{if(sourceBefore){sourceAfter=prepareSource(sourceRoot,{...sourceOptions,verify:true});if(JSON.stringify(sourceAfter)!==JSON.stringify(sourceBefore))throw Error('Original build source changed during stage');}if(fixtureBefore){fixtureAfter={...fixtureBefore,materials:fixtureBefore.materials.map(value=>fingerprint(value.path))};if(JSON.stringify(fixtureBefore)!==JSON.stringify(fixtureAfter))throw Error('Original pipe acceptance source changed during stage');}if(moduleBefore)moduleAfter=verifyPipeModuleSource(moduleBefore);}catch(error){sourceError=String(error);}
 try{if(v8BuildBefore){v8BuildAfter=privateV8SourceBuild(config);if(JSON.stringify(v8BuildAfter)!==JSON.stringify(v8BuildBefore))throw Error('Original V8 Clang tools changed during stage');}}catch(error){sourceError=sourceError??String(error);}
-writeFileSync(join(directory,'result.json'),JSON.stringify({format:'cimiloop/portable-codex-build-stage/2.0.0',stage,action,code,stopped,command:{file,sha256,args},resources,source_before:sourceBefore,source_after:sourceAfter,fixture_before:fixtureBefore,fixture_after:fixtureAfter,module_before:moduleBefore,module_after:moduleAfter,...(v8BuildBefore?{v8_source_originals:{before:v8BuildBefore,after:v8BuildAfter}}:{}),source_error:sourceError,free_bytes:free(),free_floor_bytes:freeFloor,...(separateTarget?{target_directory:targetRoot}:{}),model_requests:0,credentials_read:false},null,2),{flag:'wx'});
+writeFileSync(join(directory,'result.json'),JSON.stringify({format:'cimiloop/portable-codex-build-stage/2.0.0',stage,action,code,stopped,command:{file,sha256,args},resources,source_before:sourceBefore,source_after:sourceAfter,fixture_before:fixtureBefore,fixture_after:fixtureAfter,module_before:moduleBefore,module_after:moduleAfter,...(v8BuildBefore?{v8_source_originals:{before:v8BuildBefore,after:v8BuildAfter,visual_studio_environment:v8VisualStudioEnvironment}}:{}),source_error:sourceError,free_bytes:free(),free_floor_bytes:freeFloor,...(separateTarget?{target_directory:targetRoot}:{}),model_requests:0,credentials_read:false},null,2),{flag:'wx'});
 if(code!==0||stopped||sourceError||resources.status!=='disposed')process.exitCode=1;

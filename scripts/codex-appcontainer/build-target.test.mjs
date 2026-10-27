@@ -32,3 +32,22 @@ test('V8 source builds require explicit complete Clang tools and keep sandbox fe
  writeFileSync(join(bin,'libclang.dll'),'MZ PUBLIC replacement');assert.notDeepEqual(build.privateV8SourceBuild(config),original);
  const priorLinker=build.privateV8SourceBuild(config);writeFileSync(join(bin,'lld-link.exe'),'MZ PUBLIC replaced linker');assert.notDeepEqual(build.privateV8SourceBuild(config),priorLinker);
 });
+test('explicit GN and Ninja replace an unavailable download without accepting arbitrary build arguments',()=>{
+ const base=mkdtempSync(join(tmpdir(),'cimi-v8-tools-')),bin=join(base,'llvm','bin');mkdirSync(bin,{recursive:true});
+ for(const name of ['clang.exe','clang-cl.exe','libclang.dll','lld-link.exe'])writeFileSync(join(bin,name),'MZ PUBLIC '+name);
+ const gn=join(base,'gn.exe'),ninja=join(base,'ninja.exe');writeFileSync(gn,'MZ PUBLIC pinned GN');writeFileSync(ninja,'MZ PUBLIC installed Ninja');
+ const policy={format:'cimiloop/locked-v8-sandbox-source/1.0.0',clang_root:join(base,'llvm'),gn_binary:gn,ninja_binary:ninja};
+ const original=build.privateV8SourceBuild({v8_source_build:policy});
+ assert.equal(original.environment.GN,gn);assert.equal(original.environment.NINJA,ninja);assert.equal(original.materials.length,6);
+ assert.throws(()=>build.privateV8SourceBuild({v8_source_build:{...policy,ninja_binary:join(base,'missing.exe')}}));
+ assert.throws(()=>build.privateV8SourceBuild({v8_source_build:{format:policy.format,clang_root:policy.clang_root,gn_binary:gn}}));
+ assert.throws(()=>build.privateV8SourceBuild({v8_source_build:{...policy,EXTRA_GN_ARGS:'v8_enable_sandbox=false'}}));
+ writeFileSync(gn,'MZ PUBLIC replaced GN');assert.notDeepEqual(build.privateV8SourceBuild({v8_source_build:policy}),original);
+});
+test('V8 uses the selected Visual Studio installation instead of rediscovering an absent default location',()=>{
+ assert.equal(typeof build.privateVisualStudioSourceEnvironment,'function');
+ const base=mkdtempSync(join(tmpdir(),'cimi-v8-vs-')),vs=join(base,'selected-build-tools');mkdirSync(vs);
+ assert.deepEqual(build.privateVisualStudioSourceEnvironment(vs,'PATH=PUBLIC\r\nVisualStudioVersion=17.0\r\n'),{GYP_MSVS_OVERRIDE_PATH:vs,GYP_MSVS_VERSION:'2022',vs2022_install:vs});
+ assert.deepEqual(build.privateVisualStudioSourceEnvironment(vs,'visualstudioversion=18.0'),{GYP_MSVS_OVERRIDE_PATH:vs,GYP_MSVS_VERSION:'2026',vs2026_install:vs});
+ for(const text of ['', 'VisualStudioVersion=unknown', 'VisualStudioVersion=19.0', 'VisualStudioVersion=17.0\nvisualstudioversion=18.0', 'VisualStudioVersion=17.0\nVisualStudioVersion=17.0'])assert.throws(()=>build.privateVisualStudioSourceEnvironment(vs,text));
+});
