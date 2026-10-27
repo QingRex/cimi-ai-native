@@ -5,7 +5,8 @@ import {readOriginalSkillInvocationMetadataFromReader} from './skill-invocation-
 import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
 import type {LocalProject} from './project.js';import {LocalProjectError} from './errors.js';
 import {productionSkillRuntimeOriginals} from './skill-runtime-originals-local.js';
-export interface SkillRuntimeControlLease {custody:LocalSkillInvocationStartCustody;guard?():void;release():void|Promise<void>}
+import type {LocalSkillMethodInputs} from './skill-methods-local.js';
+export interface SkillRuntimeControlLease {custody:LocalSkillInvocationStartCustody;inputs?:Pick<LocalSkillMethodInputs,'readInvocation'>;guard?():void;release():void|Promise<void>}
 // Trusted original custody only. No staging/launch/model/account factory exists.
 export type HumanSkillRuntimeFactory=(invocationId:string,local:LocalProject)=>SkillRuntimeControlLease|Promise<SkillRuntimeControlLease>;
 const defaults:AgentRuntimeControlPort={query:queryAgentRuntimeOperation,collect:collectAgentRuntimeOperation,requestCancellation:requestAgentRuntimeCancellation,recover:recoverAgentRuntimeOperation};
@@ -40,7 +41,23 @@ export class LocalHumanSkillInvocationControl {
     const selected=read();fresh();let result:unknown;
     if('closure'in selected)result=selected.closure;
     else if(kind==='query')result=await this.port.query(selected.root,selected.scope);
-    else if(kind==='collect'){const record=this.local.store.getRuntimeRecord('run_record',original.record_id);if(!record||record.run_kind!=='agent')throw fail();result=await this.port.collect(selected.root,selected.scope,{project:original.project,record});}
+    else if(kind==='collect'){
+     const record=this.local.store.getRuntimeRecord('run_record',original.record_id);if(!record||record.run_kind!=='agent')throw fail();
+     const source=lease.inputs,method=source?.readInvocation;
+     if(source&&typeof method!=='function')throw fail();
+     // Rebuild from the immutable invocation/package, never from model output
+     // or a caller's collection payload. Old source leases remain partial.
+     const readPlan=()=>{
+      fresh();if(lease.inputs!==source||source?.readInvocation!==method)throw fail();
+      if(!source||!method)return undefined;
+      const value=method.call(source,structuredClone(original.project),structuredClone(original.descriptor),structuredClone(original.invocation));
+      if(value instanceof Promise){void Promise.prototype.then.call(value,undefined,()=>{});throw fail();}
+      const plan=structuredClone(value);if(!plan||!Object.hasOwn(plan,'profile')||!Array.isArray(plan.files))throw fail();fresh();return plan;
+     };
+     const plan=readPlan();
+     result=await this.port.collect(selected.root,selected.scope,{project:original.project,record},plan?{profile:plan.profile,files:plan.files}:undefined);
+     if(!same(plan,readPlan()))throw fail();
+    }
     else if(kind==='cancel')result=await this.port.requestCancellation(selected.root,selected.scope,fresh);
     else result=await this.port.recover(selected.root,selected.scope,fresh);
     if(!same(read(),selected))throw fail();operation={outcome:'observed',result};

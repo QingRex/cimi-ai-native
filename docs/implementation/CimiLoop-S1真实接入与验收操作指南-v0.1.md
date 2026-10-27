@@ -130,7 +130,9 @@ pnpm cimiloop run recover-original <run-id> --project-dir $s1ProjectDir --json
 pnpm cimiloop skill query-original <invocation-id> --project-dir $s1ProjectDir --json
 ```
 
-核对完整 `family.children`。父已停、子缺原件或旧 Native-only 结果均不能证明全族已处置；requested／observed 也不能证明已停。资源处置、任务完成和费用结清分别需要原件。`recover-original` 只恢复原资源，不继续 SDK 执行；技术契约 continue 也只允许尚未登记的阶段。对已登记 Unknown 不提供重派捷径，保留原占用。
+核对完整 `family.children`。`run collect-original` 及工作台父运行采集会采集父和全部已登记子调用；单项缺原件保留 Unknown，并继续其余原调用。默认子采集从固定包及原 SkillInvocation 重建方法输入，在采集前后复查，再交给独立方法结果读取器；缺少原包或输入变化时不返回已核验方法结果。无子调用保留原响应。采集不是领域观察或费用结清，重复采集不重开 Run。
+
+父已停、子缺原件或旧 Native-only 结果均不能证明全族已处置；requested／observed 也不能证明已停。资源处置、任务完成和费用结清分别需要原件。`recover-original` 只恢复原资源，不继续 SDK 执行；技术契约 continue 也只允许尚未登记的阶段。对已登记 Unknown 不提供重派捷径，保留原占用。
 
 同 ID 原命令重放须只有一份领域回执／效果；重复原模型请求不得多一份真实模型效果／费用。记录新旧事件序列、原 Run／子调用集合、启动登记、OS 资源及原账户预约集合，不能只比终端显示。迁移机器后看不到旧资源不能证明旧电脑资源已清理。
 

@@ -64,7 +64,7 @@ export class LocalHumanAgentRunFamilyControl {
     };
     return{original,guard};
   }
-  private async join<T extends Awaited<ReturnType<LocalAgentRuntimeControl['query']>>>(parent:T,kind:'query'|'retryCancellation'|'recover',state:ReturnType<LocalHumanAgentRunFamilyControl['operation']>):Promise<T&{family?:LocalAgentRunFamilyControlResult}>{
+  private async join<T extends Awaited<ReturnType<LocalAgentRuntimeControl['query']>>>(parent:T,kind:'query'|'collect'|'retryCancellation'|'recover',state:ReturnType<LocalHumanAgentRunFamilyControl['operation']>):Promise<T&{family?:LocalAgentRunFamilyControlResult}>{
     const {original,guard}=state;guard();
     if(!original.children.length)return parent;
     const children:Child[]=[];
@@ -82,10 +82,10 @@ export class LocalHumanAgentRunFamilyControl {
   async query(runId:string,guard:()=>void=()=>{}){
     const state=this.operation(runId,guard,false);return this.join(await this.parent.query(runId,state.guard),'query',state);
   }
-  // Collection retains the historical parent collector and its immutable
-  // artifacts; it does not manufacture child evidence or family completion.
+  // Every member retains its own existing original collector and custody.
+  // Partial collection never proves family completion or releases resources.
   async collect(runId:string,guard:()=>void=()=>{}){
-    const state=this.operation(runId,guard,false),result=await this.parent.collect(runId,state.guard);state.guard();return result;
+    const state=this.operation(runId,guard,false);return this.join(await this.parent.collect(runId,state.guard),'collect',state);
   }
   async stop(input:unknown,guard:()=>void=()=>{}){
     synchronous(guard);

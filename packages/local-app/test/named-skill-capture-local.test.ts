@@ -53,6 +53,12 @@ it('opens the original installed Host for default child control without model or
   expect(query.mock.calls[0]?.[0]).toBe(join(dirname(f.path),'skill-runtime-originals',f.project.id,invocation.invocation_key));expect(released).toHaveBeenCalledTimes(1);expect(checked.mock.calls.length).toBeGreaterThan(1);expect(f.store.asOfEventSequence()).toBe(before);
  }finally{source.installed=undefined;}
 });
+it('keeps default child collection Unknown when its pinned method package is unavailable, without accepting collector output',async()=>{
+ const released=vi.fn(),collect=vi.fn(async()=>({named_method:{status:'Observed',method_result_reverified:true}}));source.installed={origin:ledger,guard(){},release:released};
+ try{const before=f.store.asOfEventSequence(),control=new app.LocalHumanSkillInvocationControl(local,undefined,{query:vi.fn(),collect,requestCancellation:vi.fn(),recover:vi.fn()});
+  expect(await control.collect(invocation.id)).toMatchObject({operation:{outcome:'unknown'},domain_observation_produced:false});expect(collect).not.toHaveBeenCalled();expect(released).toHaveBeenCalledTimes(1);expect(f.store.asOfEventSequence()).toBe(before);
+ }finally{source.installed=undefined;}
+});
 it('does not use a missing or foreign installed Host to repair original child custody',async()=>{
  const before=f.store.asOfEventSequence();source.installed=undefined;await expect(app.productionSkillRuntimeOriginals(invocation.id,local)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});
  const other=AgentStartLedger.initialize(join(dirname(f.path),'foreign-host'),{machine_digest:contentDigest('PUBLIC other machine').value,principal_digest:contentDigest('PUBLIC other principal').value}),released=vi.fn();source.installed={origin:other,guard(){},release:released};

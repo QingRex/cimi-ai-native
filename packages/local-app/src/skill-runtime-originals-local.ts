@@ -3,6 +3,7 @@ import {openInstalledCodexAgentRuntime} from './agent-codex-installation-local.j
 import {readHumanOriginalAgentRunInputs} from './agent-runtime-control-local.js';
 import {readOriginalSkillInvocationMetadataFromReader} from './skill-invocation-execution-local.js';
 import {LocalSkillInvocationStartCustody} from './skill-invocation-start-custody-local.js';
+import {LocalSkillMethodInputs} from './skill-methods-local.js';
 import type {HumanSkillRuntimeFactory} from './skill-invocation-control-local.js';
 import {LocalProjectError} from './errors.js';
 
@@ -23,6 +24,6 @@ export const productionSkillRuntimeOriginals:HumanSkillRuntimeFactory=async(id,l
   const guard=()=>{installed.guard();if(!same(read(),original))throw unavailable();};guard();
   const custody=new LocalSkillInvocationStartCustody(location.repositoryPath,location.dataDirectory,installed.origin);
   custody.accountScope(original.project,original.invocation,original.request.parent,original.record_id);guard();
-  return{custody,guard,release:()=>installed.release()};
+  return{custody,inputs:new LocalSkillMethodInputs(location.repositoryPath,location.dataDirectory),guard,release:()=>installed.release()};
  }catch{installed?.release();throw unavailable();}
 };

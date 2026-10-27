@@ -18,6 +18,26 @@ beforeAll(()=>{root=mkdtempSync(join(tmpdir(),'cimiloop-human-child-control-'));
 afterAll(()=>{ledger?.close();f?.store.close();if(root){if(resolve(dirname(root))!==resolve(tmpdir())||!basename(root).startsWith('cimiloop-human-child-control-'))throw Error('Unsafe cleanup');rmSync(root,{recursive:true,force:true});}});
 const service=(factoryOption:any=factory,context=local)=>{expect(typeof (app as any).LocalHumanSkillInvocationControl).toBe('function');return new (app as any).LocalHumanSkillInvocationControl(context,factoryOption,{query,requestCancellation:cancel,recover,collect});};
 const command=(role='technical_owner')=>({command_id:createInternalId(),requested_at:flowTime,acting_role:role,command_type:'CancelRun',target:{object_type:'run',id:invocation.run_ref.id},expected_revision:f.currentRun().revision,payload:{reason:'Stop original child operation'}});
+it('supplies the installed immutable Skill inputs to original method result collection and rereads after await',async()=>{
+ const plan={profile:{PUBLIC:'fixed original method'},files:[{path:'request.json',content:'PUBLIC fixed input'}]},inputs={readInvocation:vi.fn(()=>structuredClone(plan))},freed=vi.fn(),before=f.store.asOfEventSequence();
+ const result=await service(async()=>({custody,inputs,release:freed})).collect(invocation.id);
+ expect(result.operation.outcome).toBe('observed');expect(collect.mock.calls.at(-1)?.[3]).toEqual(plan);expect(inputs.readInvocation).toHaveBeenCalledTimes(2);
+ for(const [project,descriptor,original] of inputs.readInvocation.mock.calls as unknown as [any,any,any][]){expect(project.id).toBe(f.project.id);expect(descriptor.id).toBe(f.skill.descriptor_ref.id);expect(original).toEqual(invocation);}
+ expect(freed).toHaveBeenCalledTimes(1);expect(f.store.asOfEventSequence()).toBe(before);
+});
+it('suppresses collected method results if fixed inputs drift during original collection',async()=>{
+ let changed=false;const inputs={readInvocation:vi.fn(()=>({profile:{PUBLIC:'original'},files:[{path:'request.json',content:changed?'changed':'original'}]}))},freed=vi.fn();
+ collect.mockImplementationOnce(async()=>{changed=true;return{named_method:{status:'Observed',method_result_reverified:true}};});
+ const result=await service(async()=>({custody,inputs,release:freed})).collect(invocation.id);expect(result).toMatchObject({operation:{outcome:'unknown'}});expect(result.operation).not.toHaveProperty('result');expect(freed).toHaveBeenCalledTimes(1);
+});
+it('does not reconstruct method inputs for read-only status queries',async()=>{
+ const inputs={readInvocation:vi.fn(()=>{throw Error('PUBLIC revoked package');})};
+ expect(await service(async()=>({custody,inputs,release(){}})).query(invocation.id)).toMatchObject({operation:{outcome:'observed'}});expect(inputs.readInvocation).not.toHaveBeenCalled();
+});
+it('checks the installed original-source lease before collecting any child bytes',async()=>{
+ const before=collect.mock.calls.length,freed=vi.fn();const result=await service(async()=>({custody,guard(){throw Error('PUBLIC revoked original lease');},release:freed})).collect(invocation.id);
+ expect(result).toMatchObject({operation:{outcome:'unknown'}});expect(collect).toHaveBeenCalledTimes(before);expect(freed).toHaveBeenCalledTimes(1);
+});
 it('queries the original child root/scope with no Agent impersonation or domain/budget mutation',async()=>{const sequence=f.store.asOfEventSequence(),usage=f.task().usage;expect(await service().query(invocation.id)).toMatchObject({invocation_id:invocation.id,run_id:invocation.run_ref.id,operation:{outcome:'observed',result:{status:'Preparing'}},starts_run:false,domain_observation_produced:false});expect(query.mock.calls[0]).toEqual([join(dirname(f.path),'skill-runtime-originals',f.project.id,invocation.invocation_key),{...parent,operation_key:invocation.invocation_key,context_digest:invocation.input_digest}]);expect(local.instance.actor_id).toBe(f.actor.id);expect(f.store.asOfEventSequence()).toBe(sequence);expect(f.task().usage).toEqual(usage);expect(release).toHaveBeenCalledTimes(1);});
 it('requires Kernel cancellation before physical cancellation or recovery',async()=>{const calls=factory.mock.calls.length;await expect(service().recover(invocation.id)).rejects.toMatchObject({code:'RECOVERY_CONDITIONS_UNMET'});await expect(service().retryCancellation(invocation.id)).rejects.toMatchObject({code:'RECOVERY_CONDITIONS_UNMET'});expect(factory).toHaveBeenCalledTimes(calls);expect(recover).not.toHaveBeenCalled();expect(cancel).not.toHaveBeenCalled();});
 it('rejects a substituted parent, unsupported fields and denied Kernel role before Native custody',async()=>{const calls=factory.mock.calls.length;await expect(service().stop(invocation.id,{...command(),target:{object_type:'run',id:createInternalId()}})).rejects.toMatchObject({code:'INVALID_COMMAND'});await expect(service().stop(invocation.id,{...command(),account_root:root})).rejects.toMatchObject({code:'INVALID_COMMAND'});expect(await service().stop(invocation.id,command('executor'))).toMatchObject({code:'ROLE_NOT_ASSIGNED'});expect(factory).toHaveBeenCalledTimes(calls);expect(f.currentRun().cancel_requested).toBe(false);});

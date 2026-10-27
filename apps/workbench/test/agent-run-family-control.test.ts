@@ -50,9 +50,14 @@ it('stops and recovers through the same child service while replaying one Kernel
  expect(first.body.command_result).toEqual(replay.body.command_result);expect(leases).toBe(before+3);
  expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.store.listRuns(f.change.id)).toHaveLength(1);expect(f.task().usage.pending_reconciliation).toBe(true);
 });
+it('collects every original child through authenticated parent HTTP without creating new business records',async()=>{
+ const before=f.store.asOfEventSequence(),calls=leases,result=await request('collect',{});
+ expect(result.status).toBe(200);expect(result.body.family).toMatchObject({resources_disposed:false,completion_proven:false,costs_reconciled:false,children:[{invocation_id:invocationId,operation:{outcome:'unknown'}}]});
+ expect(leases).toBe(calls+1);expect(f.store.asOfEventSequence()).toBe(before);expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+});
 it('exposes the same complete original child set from the compiled default CLI',()=>{
  const sequence=f.store.asOfEventSequence();
- for(const action of['query-original','cancel-original','recover-original']){
+ for(const action of['query-original','collect-original','cancel-original','recover-original']){
   const result=spawnSync(process.execPath,[resolve('apps/cli/dist/bin.js'),'run',action,f.currentRun().id,'--project-dir',f.project.repository_path,'--json'],{encoding:'utf8',windowsHide:true,timeout:30000});
   expect(result.status).toBe(1);expect(JSON.parse(result.stdout).family).toMatchObject({resources_disposed:false,children:[{invocation_id:invocationId,operation:{outcome:'unknown'}}]});
  }
