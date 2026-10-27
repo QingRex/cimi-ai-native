@@ -14,6 +14,7 @@ using System.Threading;
 using System.Web.Script.Serialization;
 
 partial class AppContainer {
+  static bool privateProbeStorage;
   [StructLayout(LayoutKind.Sequential)] struct STARTUPINFO { public int cb; public IntPtr reserved,desktop,title; public int x,y,xSize,ySize,xChars,yChars,fill,flags; public short show,reserved2; public IntPtr reservedPtr,input,output,error; }
   [StructLayout(LayoutKind.Sequential)] struct STARTUPINFOEX { public STARTUPINFO info; public IntPtr attributes; }
   [StructLayout(LayoutKind.Sequential)] struct PROCESSINFO { public IntPtr process,thread; public int pid,tid; }
@@ -198,7 +199,7 @@ partial class AppContainer {
   static string Json(string arg) { return "\""+arg.Replace("\\","\\\\").Replace("\"","\\\"").Replace("\r","\\r").Replace("\n","\\n").Replace("\t","\\t")+"\""; }
   static void Check(bool success) { if(!success) throw new Win32Exception(Marshal.GetLastWin32Error()); }
   static void Proof(string path,int pid,string profile,string phase,string reason,int code) {
-    var content="{\"pid\":"+pid+",\"profile\":"+Json(profile)+",\"phase\":"+Json(phase)+",\"reason\":"+Json(reason)+",\"exit_code\":"+code+"}";
+    var content="{\"pid\":"+pid+",\"profile\":"+Json(profile)+",\"phase\":"+Json(phase)+",\"reason\":"+Json(reason)+",\"exit_code\":"+code+(privateProbeStorage?",\"profile_storage\":\"read_only_package_storage/1.0.0\",\"all_application_packages_opt_out\":true,\"platform_read_capability_sid\":"+Json(AgentProfileStorage.RegistryReadCapabilitySid):"")+"}";
     Atomic(path,content);
   }
   static string Map(string root) {
@@ -225,7 +226,8 @@ partial class AppContainer {
     try { File.WriteAllText(Path.Combine(workspace,"output.txt"),"inside"); insideWritable=true; } catch(UnauthorizedAccessException) {}
     try { using(var client=new TcpClient()) { var pending=client.BeginConnect("127.0.0.1",port,null,null); if(!pending.AsyncWaitHandle.WaitOne(1500)) loopbackDenied=true; else client.EndConnect(pending); } } catch(SocketException) { loopbackDenied=true; }
     Console.WriteLine("{\"event\":\"sandbox.canary\",\"outside_read_denied\":"+readDenied.ToString().ToLower()+",\"outside_write_denied\":"+writeDenied.ToString().ToLower()+",\"subprocess_denied\":"+childDenied.ToString().ToLower()+",\"inside_readable\":"+insideReadable.ToString().ToLower()+",\"inside_writable\":"+insideWritable.ToString().ToLower()+",\"loopback_denied\":"+loopbackDenied.ToString().ToLower()+"}");
-    return readDenied&&writeDenied&&childDenied&&insideReadable&&loopbackDenied&&(insideWritable==(mode=="write"))?0:10;
+    string shared=Environment.GetEnvironmentVariable("CIMILOOP_SHARED_PACKAGE_CANARY");bool sharedDenied=false,expectedDenied=Environment.GetEnvironmentVariable("CIMILOOP_SHARED_PACKAGE_POLICY")=="deny";if(!String.IsNullOrEmpty(shared)){try{File.AppendAllText(shared,"forbidden");}catch(UnauthorizedAccessException){sharedDenied=true;}Console.WriteLine(serializer.Serialize(new{event_type="sandbox.shared_package_canary",write_denied=sharedDenied}));}
+    return readDenied&&writeDenied&&childDenied&&insideReadable&&loopbackDenied&&(insideWritable==(mode=="write"))&&(String.IsNullOrEmpty(shared)||sharedDenied==expectedDenied)?0:10;
   }
   static int NetworkCanary(string input) {
     var cases=serializer.Deserialize<List<Dictionary<string,object>>>(input); bool passed=true;
@@ -299,6 +301,8 @@ partial class AppContainer {
       if((networkMode!="deny_all"&&networkMode!="unrestricted_probe_only")||(string)((Dictionary<string,object>)policy["cost"])["mode"]!="unmetered_probe_only") return 2;
       argvStart+=2;
     }
+    if(args.Length>argvStart&&args[argvStart]=="--private-storage") { if(!policySupplied||networkMode!="deny_all") return 2;privateProbeStorage=true;argvStart++; }
+    bool probeCanary=args.Length>argvStart&&args[argvStart]=="--probe-canary";if(probeCanary){if(!privateProbeStorage)return 2;argvStart++;}
     ownedNetworkMode=networkMode; SaveOwnership();
     string ipcOperation=null,gatewayPolicy=null,conversationPolicy=null,conversationMethodProfile=null;
     if(args.Length>argvStart+1&&args[argvStart]=="--ipc-probe") {
@@ -317,17 +321,22 @@ partial class AppContainer {
       if(!policySupplied||networkMode!="deny_all"||ownershipPath==null||args[1]!="read") return 2;
       ipcOperation=args[argvStart+1]; conversationPolicy=args[argvStart+2]; argvStart+=3;
     }
-    int capabilityCount=networkMode=="deny_all"?0:1;
-    IntPtr sid=IntPtr.Zero,list=IntPtr.Zero,capsMemory=IntPtr.Zero,networkSid=IntPtr.Zero,capArray=IntPtr.Zero,handles=IntPtr.Zero,job=IntPtr.Zero,jobList=IntPtr.Zero;
+    int networkCapabilityCount=networkMode=="deny_all"?0:1,capabilityCount=networkCapabilityCount+(privateProbeStorage?1:0);
+    IntPtr sid=IntPtr.Zero,list=IntPtr.Zero,capsMemory=IntPtr.Zero,networkSid=IntPtr.Zero,platformReadSid=IntPtr.Zero,capArray=IntPtr.Zero,handles=IntPtr.Zero,job=IntPtr.Zero,jobList=IntPtr.Zero,applicationPolicy=IntPtr.Zero;
     PROCESSINFO process=new PROCESSINFO(); bool started=false,assigned=false; string reason="unavailable"; int exit=11; var cleanupErrors=new List<string>();
     try {
       // No ancestor ACLs, elevation or loopback exemptions.
-      if(capabilityCount>0) { Check(ConvertStringSidToSid("S-1-15-3-1",out networkSid)); capArray=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(SIDATTR))); Marshal.StructureToPtr(new SIDATTR { sid=networkSid,attributes=4 },capArray,false); }
+      if(capabilityCount>0){int stride=Marshal.SizeOf(typeof(SIDATTR)),index=0;capArray=Marshal.AllocHGlobal(stride*capabilityCount);if(networkCapabilityCount>0){Check(ConvertStringSidToSid("S-1-15-3-1",out networkSid));Marshal.StructureToPtr(new SIDATTR{sid=networkSid,attributes=4},IntPtr.Add(capArray,index++*stride),false);}if(privateProbeStorage){Check(ConvertStringSidToSid(AgentProfileStorage.RegistryReadCapabilitySid,out platformReadSid));Marshal.StructureToPtr(new SIDATTR{sid=platformReadSid,attributes=4},IntPtr.Add(capArray,index*stride),false);}}
       int hr=CreateAppContainerProfile(profile,profile,"CimiLoop isolated runtime",capArray,(uint)capabilityCount,out sid); if(hr!=0) Marshal.ThrowExceptionForHR(hr);
+      if(privateProbeStorage)AgentProfileStorage.Protect(sid);
       var principal=new SecurityIdentifier(sid);
       Grant(root,principal,FileSystemRights.ReadAttributes|FileSystemRights.Traverse,true,false);
       Grant(workspace,principal,args[1]=="write"?FileSystemRights.Modify:FileSystemRights.ReadAndExecute,true,true);
       Grant(state,principal,FileSystemRights.Modify,true,true); Grant(binary,principal,FileSystemRights.ReadAndExecute,false,false);
+      Environment.SetEnvironmentVariable("CIMILOOP_SHARED_PACKAGE_CANARY",null);
+      Environment.SetEnvironmentVariable("CIMILOOP_SHARED_PACKAGE_POLICY",privateProbeStorage?"deny":"allow");
+      bool packageCanary=probeCanary||args.Length>argvStart&&args[argvStart]=="--canary";
+      if(packageCanary){string shared=Path.Combine(Path.GetDirectoryName(root),"all-applications-canary.txt");File.WriteAllText(shared,"PUBLIC original");Grant(shared,new SecurityIdentifier("S-1-15-2-1"),FileSystemRights.Modify,false,false);Environment.SetEnvironmentVariable("CIMILOOP_SHARED_PACKAGE_CANARY",shared);}
       if(ipcOperation!=null) {
         string transport=Path.Combine(root,"transport"); Ordinary(transport);
         ownedTransportGranted=Directory.Exists(transport); ownedTransportWriteAttributes=ownedTransportGranted; SaveOwnership();
@@ -349,10 +358,12 @@ partial class AppContainer {
       foreach(string item in new string[] { "TEMP","TMP","USERPROFILE","HOME","OPENCODE_TEST_HOME" }) Environment.SetEnvironmentVariable(item,privateState);
       Environment.SetEnvironmentVariable("APPDATA",privateState+"\\AppData\\Roaming");
       Environment.SetEnvironmentVariable("LOCALAPPDATA",privateState+"\\AppData\\Local");
+      if(privateProbeStorage){Environment.SetEnvironmentVariable("PROGRAMDATA",privateState+"\\ProgramData");foreach(string path in new string[]{privateState+"\\ProgramData",privateState+"\\AppData\\Roaming",privateState+"\\AppData\\Local\\Packages\\"+profile+"\\AC\\Temp"})Directory.CreateDirectory(path);}
       foreach(string item in new string[] { "DATA","CONFIG","CACHE","STATE" }) Environment.SetEnvironmentVariable("XDG_"+item+"_HOME",privateState+"\\"+item.ToLower());
       Environment.SetEnvironmentVariable("OPENCODE_CONFIG_DIR",privateState+"\\config");
       var caps=new CAPS { sid=sid,capabilities=capArray,count=capabilityCount }; capsMemory=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(CAPS))); Marshal.StructureToPtr(caps,capsMemory,false);
-      IntPtr size=IntPtr.Zero; InitializeProcThreadAttributeList(IntPtr.Zero,3,0,ref size); list=Marshal.AllocHGlobal(size); Check(InitializeProcThreadAttributeList(list,3,0,ref size));
+      IntPtr size=IntPtr.Zero;int attributeCount=privateProbeStorage?4:3;InitializeProcThreadAttributeList(IntPtr.Zero,attributeCount,0,ref size); list=Marshal.AllocHGlobal(size); Check(InitializeProcThreadAttributeList(list,attributeCount,0,ref size));
+      if(privateProbeStorage){applicationPolicy=Marshal.AllocHGlobal(4);Marshal.WriteInt32(applicationPolicy,1);Check(UpdateProcThreadAttribute(list,0,new IntPtr(0x2000f),applicationPolicy,new IntPtr(4),IntPtr.Zero,IntPtr.Zero));}
       Check(UpdateProcThreadAttribute(list,0,new IntPtr(0x20009),capsMemory,new IntPtr(Marshal.SizeOf(typeof(CAPS))),IntPtr.Zero,IntPtr.Zero));
       var startup=new STARTUPINFOEX(); startup.info.cb=Marshal.SizeOf(typeof(STARTUPINFOEX)); startup.attributes=list; startup.info.flags=0x100; startup.info.input=GetStdHandle(-10); startup.info.output=GetStdHandle(-11); startup.info.error=GetStdHandle(-12);
       handles=Marshal.AllocHGlobal(IntPtr.Size*3); Marshal.WriteIntPtr(handles,0,startup.info.input); Marshal.WriteIntPtr(handles,IntPtr.Size,startup.info.output); Marshal.WriteIntPtr(handles,IntPtr.Size*2,startup.info.error);
@@ -365,11 +376,12 @@ partial class AppContainer {
       var command=new StringBuilder(Quote(binary)); for(int i=argvStart;i<args.Length;i++) command.Append(" ").Append(Quote(args[i].Replace("{workspace}",mapping+"\\workspace")));
       Check(CreateProcess(binary,command,IntPtr.Zero,IntPtr.Zero,true,0x80000|0x08000000|0x4,IntPtr.Zero,mapping+"\\workspace",ref startup,out process)); started=true;
       assigned=true; if(ownershipPath!=null) { runtimeIdentity=Identity(process.pid); SaveOwnership(); }
+      if(privateProbeStorage)AgentProfileStorage.ProtectRegistry(process.process,sid);
       if(ipcPipe!=null) ipcPipe.Start(runtimeIdentity);
       if(policySupplied) Atomic(Path.Combine(Path.GetDirectoryName(root),"execution-policy-proof.json"),serializer.Serialize(new {
         schema_version="2.0.0",scope="isolated_provider_probe",operation_key=Path.GetFileName(Path.GetDirectoryName(root)),pid=process.pid,
-        network_mode=networkMode,enforcement=capabilityCount==0?"appcontainer_no_network_capabilities":"appcontainer_internet_client",
-        capability_sids=capabilityCount==0?new string[0]:new string[] { "S-1-15-3-1" },cost_mode="unmetered_probe_only",formal_execution_enabled=false }));
+        network_mode=networkMode,enforcement=networkCapabilityCount==0?"appcontainer_no_network_capabilities":"appcontainer_internet_client",
+        capability_sids=networkCapabilityCount==0?new string[0]:new string[] { "S-1-15-3-1" },cost_mode="unmetered_probe_only",formal_execution_enabled=false }));
       Proof(args[4],process.pid,profile,"running","",259);
       Console.WriteLine("{\"event\":\"sandbox.started\",\"pid\":"+process.pid+",\"profile\":"+Json(profile)+"}"); Console.Out.Flush();
       Check(ResumeThread(process.thread)!=0xffffffff);
@@ -404,7 +416,7 @@ partial class AppContainer {
       if(started) { if(assigned) TerminateJobObject(job,125); else TerminateProcess(process.process,125); }
       if(ipcPipe!=null) { try { ipcPipe.Dispose(); } catch { cleanupErrors.Add("ipc"); } }
       if(process.thread!=IntPtr.Zero) CloseHandle(process.thread); if(process.process!=IntPtr.Zero) CloseHandle(process.process); if(job!=IntPtr.Zero) CloseHandle(job);
-      if(list!=IntPtr.Zero) { DeleteProcThreadAttributeList(list); Marshal.FreeHGlobal(list); } if(capsMemory!=IntPtr.Zero) Marshal.FreeHGlobal(capsMemory); if(capArray!=IntPtr.Zero) Marshal.FreeHGlobal(capArray); if(handles!=IntPtr.Zero) Marshal.FreeHGlobal(handles); if(jobList!=IntPtr.Zero) Marshal.FreeHGlobal(jobList); if(networkSid!=IntPtr.Zero) LocalFree(networkSid);
+      if(list!=IntPtr.Zero) { DeleteProcThreadAttributeList(list); Marshal.FreeHGlobal(list); } if(applicationPolicy!=IntPtr.Zero)Marshal.FreeHGlobal(applicationPolicy);if(capsMemory!=IntPtr.Zero) Marshal.FreeHGlobal(capsMemory); if(capArray!=IntPtr.Zero) Marshal.FreeHGlobal(capArray); if(handles!=IntPtr.Zero) Marshal.FreeHGlobal(handles); if(jobList!=IntPtr.Zero) Marshal.FreeHGlobal(jobList); if(networkSid!=IntPtr.Zero) LocalFree(networkSid);if(platformReadSid!=IntPtr.Zero)LocalFree(platformReadSid);
       if(mapping!=null&&!DefineDosDevice(1|2|4|8,mapping,"\\??\\"+root)) cleanupErrors.Add("drive");
       for(int i=grants.Count-1;i>=0;i--) {
         var grant=grants[i];

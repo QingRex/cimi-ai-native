@@ -1,4 +1,4 @@
-import {LocalCodexRuntimeControlOriginals} from './codex-runtime-control-originals-local.js';
+import {openCodexRuntimeControlOriginals} from './codex-runtime-control-originals-local.js';
 import{isDeepStrictEqual as same}from'node:util';import{parseVersionedCommand}from'@cimiloop/protocol';import type{KernelResult}from'@cimiloop/kernel';
 import type{LocalProject}from'./project.js';import type{LocalProviderVerifier}from'./providers-local.js';import{openInstalledCodexAgentRuntime}from'./agent-codex-installation-local.js';import{LocalCodexNamedMethodOriginals}from'./codex-named-method-originals-local.js';import{LocalProjectError}from'./errors.js';
 import{LocalCodexRuntimeSdkOriginals}from'./codex-runtime-sdk-originals-local.js';
@@ -19,6 +19,10 @@ export async function executeProviderCommandWithSources(local:LocalProject,verif
  const descriptor=store.getProviderDescriptor(command.payload.descriptor_ref.id);if(!descriptor||!['skill','runtime'].includes(descriptor.provider_kind))return run();
  const refs=command.command_type==='RecordProviderEvidence'?[command.payload.raw_result_ref]:command.command_type==='EvaluateProvider'?command.payload.evidence_refs.map(ref=>store.getProviderEvidence(ref.id)?.raw_result_ref):store.getProviderEvaluation(command.payload.evaluation_ref.id)?.evidence_refs.map(ref=>store.getProviderEvidence(ref.id)?.raw_result_ref)??[];
  let native=false;try{native=refs.some(ref=>{if(!ref)return false;const body=verifier.readProbe(store.getProject()!,ref);return !!body&&typeof body==='object'&&('format'in body&&body.format==='cimiloop/named-skill-method-evidence/1.0.0'||'evidence_refs'in body&&Array.isArray(body.evidence_refs)&&body.evidence_refs.some((value:unknown)=>!!value&&typeof value==='object'&&'version'in value&&value.version==='runtime-sdk-contract/1.0.0'));});}catch{return run();}if(!native)return run();
- guard();const installed=await openInstalledCodexAgentRuntime(local);
- try{guard();if(!installed)return run();installed.guard();const originals=new LocalCodexNamedMethodOriginals(location.repositoryPath,location.dataDirectory,installed),sdk=new LocalCodexRuntimeSdkOriginals(local,installed);return verifier.withRuntimeSdkOriginals(sdk,guard,()=>descriptor.provider_kind==='skill'?verifier.withNamedOriginals(originals,guard,run):verifier.withRuntimeControlOriginals(new LocalCodexRuntimeControlOriginals(local,installed),guard,run));}finally{installed?.release();}
+ guard();const installed=await openInstalledCodexAgentRuntime(local);let controls:Awaited<ReturnType<typeof openCodexRuntimeControlOriginals>>|undefined;
+ try{guard();if(!installed)return run();installed.guard();const originals=new LocalCodexNamedMethodOriginals(location.repositoryPath,location.dataDirectory,installed),sdk=new LocalCodexRuntimeSdkOriginals(local,installed);
+  if(descriptor.provider_kind==='skill')return verifier.withRuntimeSdkOriginals(sdk,guard,()=>verifier.withNamedOriginals(originals,guard,run));
+  controls=await openCodexRuntimeControlOriginals(local,installed,guard);guard();const borrowed=controls,sourceGuard=()=>{guard();borrowed.guard();};sourceGuard();
+  return verifier.withRuntimeSdkOriginals(sdk,sourceGuard,()=>verifier.withRuntimeControlOriginals(borrowed.source,sourceGuard,run));
+ }finally{try{controls?.release();}finally{installed?.release();}}
 }

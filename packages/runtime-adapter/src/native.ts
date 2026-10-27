@@ -87,8 +87,9 @@ export const buildWindowsLauncher = async (root: string, signal?: AbortSignal,op
   const transport = fileURLToPath(new URL("../native/IpcTransport.cs", import.meta.url));
   const gateway = fileURLToPath(new URL("../native/GatewayTransport.cs", import.meta.url));
   const conversation = fileURLToPath(new URL("../native/ConversationTransport.cs", import.meta.url));
+  const profile = fileURLToPath(new URL("../native/AgentProfileStorage.cs", import.meta.url));
   assertNativeExecutable(join(root,'tools','a'.repeat(64),'AppContainer.exe'));
-  const selected=join(root, "tools", digest(Buffer.concat([bytesAt(source), bytesAt(transport), bytesAt(gateway), bytesAt(conversation)])).value);
+  const selected=join(root, "tools", digest(Buffer.concat([bytesAt(source), bytesAt(transport), bytesAt(gateway), bytesAt(conversation),bytesAt(profile)])).value);
   if(options.readOnly&&(!existsSync(join(selected,'AppContainer.exe'))||!existsSync(join(selected,'build.json'))))throw new RuntimeAdapterError('native_launcher_original_unavailable');
   const build = options.readOnly?selected:directory(selected);
   const output = join(build, "AppContainer.exe"), metadata = join(build, "build.json");
@@ -96,7 +97,7 @@ export const buildWindowsLauncher = async (root: string, signal?: AbortSignal,op
     const compiler = resolve(process.env.SystemRoot ?? "C:\\Windows", "Microsoft.NET", "Framework64", "v4.0.30319", "csc.exe");
     if (!existsSync(compiler)) throw new RuntimeAdapterError("native_compiler_unavailable");
     const candidate = join(build, `${randomUUID()}.exe`);
-    try { await executeCompiler(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source, transport, gateway, conversation], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, signal },root); }
+    try { await executeCompiler(compiler, ["/nologo", "/target:exe", "/reference:System.Web.Extensions.dll", `/out:${candidate}`, source, transport, gateway, conversation,profile], { windowsHide: true, timeout: 30_000, maxBuffer: 1024 * 1024, signal },root); }
     catch { throw new RuntimeAdapterError("native_launcher_build_failed"); }
     renameSync(candidate, output); atomicJson(metadata, { digest: digest(bytesAt(output)) });
   }

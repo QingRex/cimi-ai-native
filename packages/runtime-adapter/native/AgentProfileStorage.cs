@@ -10,6 +10,10 @@ using Microsoft.Win32.SafeHandles;
 // Called only for this controller's fresh Profile: files before child creation,
 // registry before child resume. No CLI paths, old Profile adoption or delete.
 public static class AgentProfileStorage {
+  // Windows registryRead capability. Verified locally with
+  // DeriveCapabilitySidsFromName("registryRead"); no network capability or ACL
+  // modification is added. Winsock and CLR installation keys grant it ReadKey.
+  public const string RegistryReadCapabilitySid="S-1-15-3-1024-1065365936-1281604716-3511738428-1654721687-432734479-3232135806-4053264122-3456934681";
   [DllImport("userenv.dll",CharSet=CharSet.Unicode)] static extern int GetAppContainerFolderPath(string sid,out IntPtr path);
   [DllImport("userenv.dll")] static extern int GetAppContainerRegistryLocation(uint access,out IntPtr key);
   [DllImport("advapi32.dll",SetLastError=true)] static extern bool OpenProcessToken(IntPtr process,uint access,out IntPtr token);

@@ -32,7 +32,7 @@ export async function openRuntimeContractExecution(local:LocalProject):Promise<R
      // completion never elects another boundary probe at the same request id.
      const boundaryId=requestDigest({request:original.request,installation:original.installation_digest}),prior=installed.origin.readExclusive('runtime_contract_boundary_result',boundaryId),boundaryRoot=runtimeContractRequestRoot(local,original);
      if(!prior){if(phase.mode!=='edit'||!installed.origin.claimExclusiveOnce('runtime_contract_boundary_intent',boundaryId,{request_digest:requestDigest(original)}).created)fail();
-      const probe=await runOpenCodeProbe({root:boundaryRoot,binary:installed.native_binary,modelProbe:false,beforeNativeEffect:()=>{current();signal.throwIfAborted();}});current();signal.throwIfAborted();
+      const probe=await runOpenCodeProbe({root:boundaryRoot,binary:installed.native_binary,modelProbe:false,privateStorage:true,beforeNativeEffect:()=>{current();signal.throwIfAborted();}});current();signal.throwIfAborted();
       if(probe.provider.version!==original.authority.descriptor.version||probe.provider.binary_digest.value!==original.authority.descriptor.source_ref.digest?.value||!probe.boundaries.every(value=>value.passed&&value.outside_read_denied&&value.outside_write_denied&&value.subprocess_denied&&value.loopback_denied))fail();
       installed.origin.issueExclusive('runtime_contract_boundary_result',boundaryId,{request_digest:requestDigest(original),probe_digest:digest(bytesAt(join(boundaryRoot,'probe-result.json'),1024*1024)).value});
      }else if(!same(prior.basis,{request_digest:requestDigest(original),probe_digest:digest(bytesAt(join(boundaryRoot,'probe-result.json'),1024*1024)).value}))fail();

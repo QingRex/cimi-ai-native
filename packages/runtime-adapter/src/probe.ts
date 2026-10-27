@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { createServer, createConnection } from "node:net";
 import { randomUUID } from "node:crypto";
+import {fileURLToPath} from 'node:url';
 import { join } from "node:path";
 import { writeFileSync, existsSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
@@ -14,14 +15,14 @@ import { defaultExecutionPolicy, requireSupportedExecutionPolicy } from "./execu
 
 export const parseRuntimeProbe = compileValidator<RuntimeProbeResult>(RuntimeProbeResultSchema);
 function probeAuthority(guard:(()=>void)|undefined){const result:unknown=guard?.();if(result!==undefined){if(result instanceof Promise)void Promise.prototype.then.call(result,undefined,()=>{});throw new RuntimeAdapterError('runtime_probe_authority_changed');}}
-export const nativeProbe = async (root: string, launcher: string, binary: string, mode: "write" | "read", args: string[], elapsed = 20_000, beforeNativeEffect?:()=>void): Promise<{ stdout: string; stderr: string; proof: NativeProof; refs: ExternalReference[] }> => {
+export const nativeProbe = async (root: string, launcher: string, binary: string, mode: "write" | "read", args: string[], elapsed = 20_000, beforeNativeEffect?:()=>void,privateStorage?:true,privateCanary?:true): Promise<{ stdout: string; stderr: string; proof: NativeProof; refs: ExternalReference[] }> => {
   probeAuthority(beforeNativeEffect);
   const operation = directory(join(root, "native-probes", randomUUID())), sandbox = directory(join(operation, "sandbox"));
   directory(join(sandbox, "state")); directory(join(sandbox, "workspace"));
   writeFileSync(join(sandbox, "workspace", "input.txt"), "visible");
   const proofPath = join(operation, "proof.json");
   probeAuthority(beforeNativeEffect);
-  const native = spawn(launcher, [sandbox, mode, String(elapsed), binary, proofPath, join(operation, "cancel"), "--policy", JSON.stringify(defaultExecutionPolicy()), ...args], {
+  const native = spawn(launcher, [sandbox, mode, String(elapsed), binary, proofPath, join(operation, "cancel"), "--policy", JSON.stringify(defaultExecutionPolicy()), ...(privateStorage?['--private-storage']:[]),...(privateCanary?['--probe-canary']:[]),...args], {
     ...nativeHelperProcessOptions(launcher,isolatedEnvironment()), windowsHide: true, stdio: ["ignore", "pipe", "pipe"]
   });
   const output: Buffer[] = [], errors: Buffer[] = []; let count = 0;
@@ -35,7 +36,7 @@ export const nativeProbe = async (root: string, launcher: string, binary: string
   if (existsSync(policyProof)) refs.push(rawReference(root, bytesAt(policyProof), "execution_policy_proof"));
   return { stdout: stdout.toString("utf8"), stderr: stderr.toString("utf8"), proof: readJson(proofPath) as NativeProof, refs };
 };
-export const boundaryProbe = async (root: string, launcher: string, mode: "write" | "read",beforeNativeEffect?:()=>void): Promise<RuntimeBoundaryProbe> => {
+export const boundaryProbe = async (root: string, launcher: string, mode: "write" | "read",beforeNativeEffect?:()=>void,privateStorage?:true): Promise<RuntimeBoundaryProbe> => {
   probeAuthority(beforeNativeEffect);
   const protectedPath = join(directory(join(root, "protected-canaries")), randomUUID());
   writeFileSync(protectedPath, "synthetic-human-secret-and-authority-file");
@@ -46,14 +47,20 @@ export const boundaryProbe = async (root: string, launcher: string, mode: "write
     // A blocked socket is evidence only when the same listener is reachable by
     // the trusted controller; refused connections to an absent service prove nothing.
     await new Promise<void>((done, fail) => { const client = createConnection(address.port, "127.0.0.1"); client.once("connect", () => { client.destroy(); done(); }); client.once("error", fail); });
-    const result = await nativeProbe(root, launcher, launcher, mode, ["--canary", "{workspace}", protectedPath, mode, String(address.port)],20000,beforeNativeEffect);
+    let binary=launcher,args=["--canary","{workspace}",protectedPath,mode,String(address.port)],scriptSource:Buffer|undefined;
+    const extra:ExternalReference[]=[];
+    if(privateStorage){
+      probeAuthority(beforeNativeEffect);const pinned=pinBinary(root,process.execPath),source=bytesAt(fileURLToPath(new URL('../transport/private-storage-canary.mjs',import.meta.url)),65536);scriptSource=source;binary=pinned.path;args=['--input-type=module','-e',source.toString('utf8'),'--','{workspace}',protectedPath,mode,String(address.port)];
+      extra.push(rawReference(root,source,'private_storage_canary_source'),rawReference(root,Buffer.from(JSON.stringify({format:'cimiloop/private-storage-canary-program/1.0.0',binary:pinned.path,digest:pinned.digest})),'private_storage_canary_program'));
+    }
+    const result = await nativeProbe(root, launcher, binary, mode,args,20000,beforeNativeEffect,privateStorage,privateStorage);if(scriptSource&&!bytesAt(fileURLToPath(new URL('../transport/private-storage-canary.mjs',import.meta.url)),65536).equals(scriptSource))throw new RuntimeAdapterError('private_storage_canary_changed');
     const line = result.stdout.split(/\r?\n/).find(line => line.includes('"event":"sandbox.canary"'));
     const values = line ? JSON.parse(line) as Record<string, unknown> : {};
     const flags = { outside_read_denied: values.outside_read_denied === true, outside_write_denied: values.outside_write_denied === true,
       subprocess_denied: values.subprocess_denied === true, inside_readable: values.inside_readable === true,
       inside_writable: values.inside_writable === true, loopback_denied: values.loopback_denied === true };
     const passed = result.proof.phase === "ended" && result.proof.reason === "exited" && result.proof.exit_code === 0 && bytesAt(protectedPath).toString() === "synthetic-human-secret-and-authority-file";
-    return { mode, passed, ...flags, raw_refs: result.refs };
+    return { mode, passed, ...flags, raw_refs:[...result.refs,...extra] };
   } finally { await new Promise<void>(done => server.close(() => done())); }
 };
 export const waitForOperation = async (adapter: IsolatedProbeAdapter, key: string, maximum: number): Promise<ReturnType<IsolatedProbeAdapter["collect"]>> => {
@@ -69,15 +76,16 @@ export const waitForOperation = async (adapter: IsolatedProbeAdapter, key: strin
   adapter.cancel(key);
   return adapter.collect(key);
 };
-export const runOpenCodeProbe = async (options: { root: string; binary: string; modelProbe?: boolean; maxElapsedMs?: number; connectionFile?: string; diskLimits?: RuntimeDiskLimits; executionPolicy?: RuntimeExecutionPolicy;beforeNativeEffect?:()=>void }): Promise<RuntimeProbeResult> => {
+export const runOpenCodeProbe = async (options: { root: string; binary: string; modelProbe?: boolean; maxElapsedMs?: number; connectionFile?: string; diskLimits?: RuntimeDiskLimits; executionPolicy?: RuntimeExecutionPolicy;beforeNativeEffect?:()=>void;privateStorage?:true }): Promise<RuntimeProbeResult> => {
   probeAuthority(options.beforeNativeEffect);
+  if(options.privateStorage&&options.modelProbe)throw new RuntimeAdapterError('private_storage_model_probe_unavailable');
   const connection = options.connectionFile ? loadModelConnection(options.connectionFile) : undefined;
   const executionPolicy = requireSupportedExecutionPolicy(options.executionPolicy ?? defaultExecutionPolicy(), options.modelProbe === true);
   const root = directory(options.root), launcher = await buildWindowsLauncher(root), pinned = pinBinary(root, options.binary);
-  const versionProbe = await nativeProbe(root, launcher, pinned.path, "read", ["--version"],20000,options.beforeNativeEffect);
+  const versionProbe = await nativeProbe(root, launcher, pinned.path, "read", ["--version"],20000,options.beforeNativeEffect,options.privateStorage);
   const version = versionProbe.stdout.split(/\r?\n/).map(line => line.trim()).find(line => /^\d+\.\d+\.\d+$/.test(line));
   if (!version || versionProbe.proof.exit_code !== 0) throw new RuntimeAdapterError("opencode_version_probe_failed");
-  const boundaries = [await boundaryProbe(root, launcher, "write",options.beforeNativeEffect), await boundaryProbe(root, launcher, "read",options.beforeNativeEffect)];
+  const boundaries = [await boundaryProbe(root, launcher, "write",options.beforeNativeEffect,options.privateStorage), await boundaryProbe(root, launcher, "read",options.beforeNativeEffect,options.privateStorage)];
   const model = connection?.model ?? "opencode/big-pickle";
   const result: RuntimeProbeResult = { schema_version: "2.0.0", scope: "isolated_provider_probe", observed_at: new Date().toISOString(),
     provider: { name: "opencode", version, binary_digest: pinned.digest, model }, sandbox: "windows_appcontainer_job", boundaries,

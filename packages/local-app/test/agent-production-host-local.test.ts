@@ -15,6 +15,7 @@ vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<t
 vi.mock('../src/agent-codex-usage-budget-local.js',async load=>({...await load<typeof import('../src/agent-codex-usage-budget-local.js')>(),openInstalledCodexUsageBudget:async()=>{seam.opens++;seam.onOpen?.();return seam.account;}}));
 vi.mock('../src/agent-codex-storage-local.js',async load=>({...await load<typeof import('../src/agent-codex-storage-local.js')>(),openCodexRuntimeStorage:async()=>({PUBLIC:true})}));
 vi.mock('../src/agent-codex-login-home-local.js',async load=>({...await load<typeof import('../src/agent-codex-login-home-local.js')>(),openCodexRuntimeLoginHome:async()=>({PUBLIC:true})}));
+vi.mock('../src/agent-codex-writable-storage-local.js',()=>({assertCodexRuntimeWritableStorage(){return{proof:{PUBLIC:'current full writable-source projection'},paths:[]};}}));
 // The complete custody seam is introduced after the entry-point red run. It is
 // PUBLIC qualification/storage only, never real production admission evidence.
 const closers:(()=>void)[]=[];
@@ -48,7 +49,7 @@ it('reads the active trusted host original on a lost response without requiring 
 });
 it('refuses default installation while the installed control source set is incomplete, without installing verifier slots or consuming capacity',async()=>{
  const f=fixture(),prior=Object.getOwnPropertyDescriptor(f.verifier.agent,'admitContext'),before=f.local.store.asOfEventSequence();
- await expect(app.openInstalledCodexProductionHost(f.local)).rejects.toMatchObject({details:{production_admission:'unapproved',missing:['cost_accounting_and_cap','disk_limit','crash_recovery']}});
+ await expect(app.openInstalledCodexProductionHost(f.local)).rejects.toMatchObject({details:{production_admission:'unapproved',missing:['cost_accounting_and_cap','crash_recovery']}});
  expect(Object.getOwnPropertyDescriptor(f.verifier.agent,'admitContext')).toEqual(prior);expect(seam.closed).toBe(1);expect(f.budget.snapshot().held.model_calls).toBe(0);expect(f.local.store.asOfEventSequence()).toBe(before);
 });
 it('shares one cold host across concurrent borrowers and restores slots only after its last reference closes',async()=>{
