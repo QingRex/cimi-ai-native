@@ -44,7 +44,7 @@ Node 必须 `>=24.15 <25`，pnpm 必须12.4.2。记录实际本地分支、HEAD�
 
 按[兼容客户端构建](../../scripts/codex-appcontainer/README.md)准备固定上游与原归档，旧 `.1/source` 保留，完整 `.2` 使用独立 `source-pipe`。开发构建使用自己的原 Job 和新阶段名；观察超时继续查同一句柄，原阶段终止和处置成立后才可发起另一个开发阶段。它不创建业务 Run。
 
-最新完整 `pipe-client-full-01` 因2GiB保护停止，code125，原 Job 已处置，源码前后一致，**没有构建成功**。2GiB是停止缓冲线；继续建议至少10GB可用空间。先使两个目标均实际成功，再按 README 执行 `codex-official-startup.test.ts` 的无登录版本／初始化；没有新程序时不运行或跳过均不能记通过。
+历史完整 `pipe-client-full-01` 因2GiB保护停止，code125，原 Job 已处置，源码前后一致。后续还出现rustc访问违例及固定V8的Windows sandbox库404；这些失败都保留，不能当成成功。当前阶段以[最新构建记录](../plans/2026-10-27-cimiloop-matt-runtime-attachment.md#固定-v8-sandbox-源码构建)和本机原 `stages/<stage>/result.json` 为准，不沿用本文历史阶段为“当前运行中”。缺sandbox预编译资产时，按README的显式源码构建选项准备私有LLVM，不替换普通库或关闭sandbox。2GiB是停止缓冲线；建议至少10GB可用空间。先使两个目标均实际成功，再按 README 执行 `codex-official-startup.test.ts` 的无登录版本／初始化；没有新程序时不运行或跳过均不能记通过。
 
 随后逐步执行[同卷安装与有限额度分配](CimiLoop-Codex同卷安装与有限额度分配-v0.1.md)。固定检查 JSON 须写真实命令、程序、适用工作范围与摘要，不能用恒返回0的检查替身。官方登录由用户按安全连接方式在仓库外完成；不复制历史 API Key、登录令牌或 auth.json，不写入 Git、日志或 Agent 上下文。
 
