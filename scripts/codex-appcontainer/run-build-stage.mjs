@@ -17,6 +17,9 @@ const pipeSource=config.format==='cimiloop/private-codex-build-tools/2.0.0',keys
 if(Object.keys(config).sort().join(',')!==keys.sort().join(',')||!pipeSource&&config.format!=='cimiloop/private-codex-build-tools/1.0.0'||pipeSource&&config.source_policy!=='original_named_pipe_tls/1.0.0')throw Error('Invalid private build tool configuration');
 for(const key of ['git','python','visual_studio','msvc_environment'])if(typeof config[key]!=='string'||!isAbsolute(config[key]))throw Error('Build tool paths must be absolute');
 const sourceOptions=pipeSource?{privatePipe:true,reqwestArchives:config.reqwest_archives}:{};
+// The original .1 checkout remains immutable. Full .2 builds use a separate
+// pinned working tree while borrowing the same private toolchain/cache.
+const sourceRoot=join(root,pipeSource?'source-pipe':'source');
 if(action==='check-pipe-modules'&&!pipeSource)throw Error('Pipe module check requires explicit source policy2');
 if(pipeSource){if(!config.reqwest_archives||Object.keys(config.reqwest_archives).sort().join(',')!=='0.12.28,0.13.4')throw Error('Pinned dependency archives required');for(const path of Object.values(config.reqwest_archives)){if(typeof path!=='string'||!isAbsolute(path))throw Error('Dependency archive must be absolute');const child=relative(root,ordinary(path));if(isAbsolute(child)||child==='..'||child.startsWith('..\\'))throw Error('Dependency archives must be in the private build root');}}
 for(const key of ['git','python'])if(!lstatSync(ordinary(config[key])).isFile())throw Error('Build tool must be an ordinary file');
@@ -31,7 +34,7 @@ for(const key of Object.keys(process.env))delete process.env[key];Object.assign(
 mkdirSync(join(root,'stages'),{recursive:true});
 const directory=join(root,'stages',stage);mkdirSync(directory,{recursive:false});
 let sourceBefore;
-if(['fetch','test-paths','build'].includes(action)){sourceBefore=prepareSource(join(root,'source'),{...sourceOptions,verify:true});writeFileSync(join(directory,'source-before.json'),JSON.stringify(sourceBefore,null,2),{flag:'wx'});}
+if(['fetch','test-paths','build'].includes(action)){sourceBefore=prepareSource(sourceRoot,{...sourceOptions,verify:true});writeFileSync(join(directory,'source-before.json'),JSON.stringify(sourceBefore,null,2),{flag:'wx'});}
 if(['test-paths','build','pipe-acceptance','check-pipe-modules'].includes(action)){
  const allowed=new Set(['path','include','lib','libpath','vctoolsinstalldir','vctoolsversion','vsinstalldir','vcinstalldir','windowssdkdir','windowssdkversion','universalcrtsdkdir','ucrtversion','windowssdkbinpath','windowssdkverbinpath','vscmd_arg_tgt_arch','vscmd_arg_host_arch','visualstudioversion']);
  for(const line of readFileSync(ordinary(config.msvc_environment),'utf8').split(/\r?\n/)){const at=line.indexOf('=');if(at<1)continue;const key=line.slice(0,at);if(allowed.has(key.toLowerCase())){for(const prior of Object.keys(env))if(prior.toLowerCase()===key.toLowerCase())delete env[prior];env[key]=line.slice(at+1);}}
@@ -60,7 +63,7 @@ else if(action==='pipe-acceptance'){
  fixtureBefore={format:'cimiloop/private-pipe-acceptance-source/1.0.0',scope:'transport_module_fixture_only',materials:[source,helper,...libraries].map(fingerprint),codex_client_build_proven:false};writeFileSync(join(directory,'fixture-before.json'),JSON.stringify(fixtureBefore,null,2),{flag:'wx'});
 }
 else{
- cwd=join(root,'source/codex-rs');
+ cwd=join(sourceRoot,'codex-rs');
  args=action==='fetch'?['+1.95.0','fetch','--locked','--target','x86_64-pc-windows-msvc']:action==='test-paths'?['+1.95.0','test','--locked','--offline','--target','x86_64-pc-windows-msvc','-p','codex-utils-absolute-path','-p','codex-utils-home-dir','--lib']:['+1.95.0','build','--release','--locked','--offline','--target','x86_64-pc-windows-msvc','-p','codex-cli','--bin','codex','-p','codex-code-mode-host','--bin','codex-code-mode-host'];
 }
 const freeFloor=['pipe-acceptance','check-pipe-modules'].includes(action)?512*1024**2:2*1024**3;
@@ -76,6 +79,6 @@ const timer=setInterval(()=>{if(free()<freeFloor&&!stopped){stopped=true;request
 const code=await new Promise((done,reject)=>{child.once('close',done);child.once('error',reject);}).finally(()=>{clearInterval(timer);closeSync(out);closeSync(err);});
 const started=readStartedCodexProcessJob(job,helpers,command,args,cwd),resources=readCodexProcessJobResources(started);if(code===0&&!stopped)readCompletedCodexProcessJob(job,helpers,command,args,cwd);
 let sourceAfter,sourceError,fixtureAfter,moduleAfter;
-try{if(sourceBefore){sourceAfter=prepareSource(join(root,'source'),{...sourceOptions,verify:true});if(JSON.stringify(sourceAfter)!==JSON.stringify(sourceBefore))throw Error('Original build source changed during stage');}if(fixtureBefore){fixtureAfter={...fixtureBefore,materials:fixtureBefore.materials.map(value=>fingerprint(value.path))};if(JSON.stringify(fixtureBefore)!==JSON.stringify(fixtureAfter))throw Error('Original pipe acceptance source changed during stage');}if(moduleBefore)moduleAfter=verifyPipeModuleSource(moduleBefore);}catch(error){sourceError=String(error);}
+try{if(sourceBefore){sourceAfter=prepareSource(sourceRoot,{...sourceOptions,verify:true});if(JSON.stringify(sourceAfter)!==JSON.stringify(sourceBefore))throw Error('Original build source changed during stage');}if(fixtureBefore){fixtureAfter={...fixtureBefore,materials:fixtureBefore.materials.map(value=>fingerprint(value.path))};if(JSON.stringify(fixtureBefore)!==JSON.stringify(fixtureAfter))throw Error('Original pipe acceptance source changed during stage');}if(moduleBefore)moduleAfter=verifyPipeModuleSource(moduleBefore);}catch(error){sourceError=String(error);}
 writeFileSync(join(directory,'result.json'),JSON.stringify({format:'cimiloop/portable-codex-build-stage/2.0.0',stage,action,code,stopped,command:{file,sha256,args},resources,source_before:sourceBefore,source_after:sourceAfter,fixture_before:fixtureBefore,fixture_after:fixtureAfter,module_before:moduleBefore,module_after:moduleAfter,source_error:sourceError,free_bytes:free(),free_floor_bytes:freeFloor,model_requests:0,credentials_read:false},null,2),{flag:'wx'});
 if(code!==0||stopped||sourceError||resources.status!=='disposed')process.exitCode=1;

@@ -29,14 +29,14 @@ node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source
 node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source --verify
 ```
 
-选择 `.2` 时改用另一个全新、干净的固定提交 checkout 和以下入口；不要在已有 `.1` 上原位升级，不覆盖旧源码、收据或产物。两个 archive 参数均为实际绝对路径：
+选择 `.2` 时在 `<build-root>/source-pipe` 准备另一个全新、干净的固定提交 checkout；不要在已有 `.1` 上原位升级，不覆盖旧源码或收据。已有 `<build-root>/source` 的固定上游 Git 对象时，可以执行 `git -C <build-root>/source worktree add --detach <build-root>/source-pipe c1382380de69521303b416720a52f42d51af6248`；原 `.1` 工作区的改动保持。两个 archive 参数均为实际绝对路径：
 
 ```powershell
-node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source --private-pipe --reqwest-012 <reqwest-0.12.28.crate> --reqwest-013 <reqwest-0.13.4.crate>
-node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source --private-pipe --reqwest-012 <reqwest-0.12.28.crate> --reqwest-013 <reqwest-0.13.4.crate> --verify
+node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source-pipe --private-pipe --reqwest-012 <reqwest-0.12.28.crate> --reqwest-013 <reqwest-0.13.4.crate>
+node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source-pipe --private-pipe --reqwest-012 <reqwest-0.12.28.crate> --reqwest-013 <reqwest-0.13.4.crate> --verify
 ```
 
-`.2` 收据格式2另存传输模块和依赖摘要；版本标识与固定 `--cimiloop-transport-capabilities` 输出都不是资格证据。
+`.2` 收据格式2另存传输模块和依赖摘要；版本标识与固定 `--cimiloop-transport-capabilities` 输出都不是资格证据。完整 fetch／test-paths／build 按配置选择固定目录：格式1用 `source`，格式2用 `source-pipe`；两个 checkout 共用本批私有工具链与 Cargo target 缓存。有限模块夹具仍从原 `source` 的固定 Git 对象构造新阶段，不用旧 `.1` 作为完整 `.2` 构建输入。最终程序必须对应本次阶段源码后验及摘要；target 中其他版本的旧文件不能当成本阶段成功产物。
 
 在私有目录中准备 Rust 1.95.0 minimal 工具链：`CARGO_HOME=<build-root>/cargo`、`RUSTUP_HOME=<build-root>/rustup`，用官方 rustup 安装器的 `--no-modify-path --profile minimal --default-toolchain 1.95.0` 选项。不要改现有用户目录或全局 PATH。另需 Visual Studio Build Tools（C++ x64、Windows SDK、CMake／Ninja）、Git、Python；将实际安装位置写入下面文件。若所选上游依赖需要额外工具，依据实际构建错误安装到本批私有目录，不能跳过该依赖后称完整构建成功。
 
