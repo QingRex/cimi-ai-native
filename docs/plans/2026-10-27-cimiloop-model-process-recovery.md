@@ -38,3 +38,19 @@ Node24.22.1／pnpm12.4.2。测试中的模型／账户／资格仍为PUBLIC；�
 ## 完整目标剩余
 
 默认正式Agent仍缺网络／可靠费用与上限／全部物理配额／全部恢复的完整生产控制来源组合；本批只解决当前原Run模型Job这一部分恢复。固定卷、同卷登录目录、真实账单与原Human回答等缺项保持明确。真实Skill／Matt、普通Change到ReadyForDelivery、接入指南实走及最终Matt／Superpowers评审继续实施。本批不发送真实模型请求、不释放Unknown预算、不push。
+
+## 停止命令在首次检查前固定
+
+后续检查确认父Run及全部原子Skill的查询／采集／取消／恢复已由共享 `LocalHumanAgentRunFamilyControl` 组合，CLI和工作台复用该服务，不重做已有恢复实现。实际发现另一项原身份问题：单Run及完整调用族的 `stop` 仍持有调用方可变命令对象；安装的同步guard改写command_id或reason后，Kernel保存的是被改写请求，原ID没有回执，丢响应后无法按原ID重放。
+
+两个入口现在进入时即复制完整命令，后续验证、Kernel取消和物理控制都沿该快照。子Skill停止入口此前已有快照，本批不改变其语义。Kernel仍是唯一取消业务权威，不新增Run、领域结果、账单或预算释放；工作台和受信调用方无需增加操作步骤。
+
+真实Kernel／SQLite反例先得到0通过、2失败、38项过滤未运行，报告 `.cimiloop/codex-2026-10-27-original-human-stop-command-red.json`；两项都失败于原command_id缺回执。修补后复验核对原ID存在回执、回调改写的ID没有回执、用原命令重放同一结果、只有一个取消事件和一个Run，预算保持待核对。
+
+首轮三个完整文件57通过、5失败、0跳过，报告 `original-human-stop-command-final.json`（沿用既有文件名前缀，文件名不作通过证明）。单Run完整19项、子Skill完整22项已通过；完整调用族16项通过，另5项为旧用例15秒测试超时，新增请求快照反例已通过。失败用例均在测试体内创建完整新项目，整项实际17.4—28.4秒；该文件使用共享beforeAll夹具的控制用例多数不足1秒，原beforeAll准备本已有120秒预算。
+
+仅将6个在测试体内创建新Kernel／SQLite／Host1项目的用例预算设为60秒，与单Run既有beforeEach准备预算一致；保留全部原断言及真实原件路径，没有修改生产Runtime期限、配额或空间停止线。随后只重跑受影响调用族整文件，21项通过、0失败0跳过、exit0，报告 `original-human-stop-command-family-final.json`。按各完整文件最新结果，本批3文件62项分轮通过，不将首轮16项再次累计，也不称单轮整仓验证。两份后续报告同样位于 `.cimiloop/codex-2026-10-27-` 前缀下，旧失败保留。
+
+Node24.22.1／pnpm12.4.2，产品修补与测试准备预算修补后的 `pnpm check` 分别通过。独立定向源码复核未发现快照修补问题，并确认测试预算修正保留业务断言及生产限制。实际范围为共享应用服务、真实Kernel／SQLite及Host1，Native端口、模型和资格仍为PUBLIC；不证明真实模型、费用结清、全Native或S1。未运行全仓 `pnpm test`，没有真实模型请求或凭据读取。
+
+原完整客户端构建13在本批期间持续推进，仍以其原Job、日志和最终result为准，不能由本批控制服务测试推定成功。完整五组S1范围、Schema242／项目库10／Host1、六个既有未知文件及历史Unknown保持；只本地提交，不push。

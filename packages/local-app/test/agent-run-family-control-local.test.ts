@@ -38,7 +38,10 @@ it('retains the first root-control guard failure even if an adapter catches it',
  try{await expect(control.retryCancellation(t.f.currentRun().id,()=>{if(expired){expired=false;throw new app.LocalProjectError('PUBLIC expired once','CAPABILITY_UNAVAILABLE','forbidden');}})).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});}
  finally{vi.mocked(t.parentPort.requestCancellation).mockReturnValue({requested:true,stopped_proven:false});}
 });
-it('preserves the historical no-child response without opening child custody',async()=>{const f=fixture(0),result=await f.service().query(f.f.currentRun().id);expect(result).not.toHaveProperty('family');expect(f.factory).not.toHaveBeenCalled();});
+// These cases build a fresh Kernel/SQLite/Host1 project inside the test. Give
+// setup the same 60-second budget used by the single-Run fixture hook; this
+// does not change a production Runtime deadline or any authority assertion.
+it('preserves the historical no-child response without opening child custody',async()=>{const f=fixture(0),result=await f.service().query(f.f.currentRun().id);expect(result).not.toHaveProperty('family');expect(f.factory).not.toHaveBeenCalled();},60000);
 it('collects the parent and every original child without repeating preparation or producing domain observations',async()=>{
  const f=fixture(),before=f.f.store.asOfEventSequence(),prepared=f.f.skillState.prepare_calls,runId=f.f.currentRun().id;
  const first=await f.service().collect(runId),replay=await f.service().collect(runId);
@@ -48,7 +51,7 @@ it('collects the parent and every original child without repeating preparation o
  expect(replay).toEqual(first);expect(f.parentPort.collect).toHaveBeenCalledTimes(2);expect(f.childPort.collect).toHaveBeenCalledTimes(4);
  for(const invocation of f.invocations){const calls=vi.mocked(f.childPort.collect).mock.calls.filter(call=>call[1].operation_key===invocation.invocation_key);expect(calls).toHaveLength(2);for(const call of calls){expect(call[0]).toBe(join(f.local.location.dataDirectory,'skill-runtime-originals',f.f.project.id,invocation.invocation_key));expect(call[1]).toMatchObject({run_id:runId,context_digest:invocation.input_digest});}}
  expect(f.f.store.asOfEventSequence()).toBe(before);expect(f.f.skillState.prepare_calls).toBe(prepared);expect(f.f.store.listRuns(f.f.change.id)).toHaveLength(1);
-});
+},60000);
 it('collects the remaining original children after an unavailable parent and child, preserving partial results and sanitized Unknowns',async()=>{
  const f=fixture(),first=f.invocations[0]!;vi.mocked(f.parentPort.collect).mockRejectedValue(Error('private parent path'));
  vi.mocked(f.childPort.collect).mockImplementation(async(_root,scope)=>{if(scope.operation_key===first.invocation_key)throw Error('private child path');return{PUBLIC:'retained child bytes'};});
@@ -56,17 +59,17 @@ it('collects the remaining original children after an unavailable parent and chi
  expect(result.operation.outcome).toBe('unknown');expect(family.children).toHaveLength(2);
  expect(family.children.find(v=>v.invocation_id===first.id)).toMatchObject({operation:{outcome:'unknown'}});expect(family.children.find(v=>v.invocation_id!==first.id)).toMatchObject({operation:{outcome:'observed',result:{PUBLIC:'retained child bytes'}}});
  expect(JSON.stringify(result)).not.toContain('private');expect(family.resources_disposed).toBe(false);
-});
+},60000);
 it('halts family collection after a child await loses the Human session',async()=>{
  const f=fixture();let expired=false;vi.mocked(f.childPort.collect).mockImplementation(async()=>{expired=true;return{PUBLIC:'child bytes'};});
  await expect(f.service().collect(f.f.currentRun().id,()=>{if(expired)throw new app.LocalProjectError('PUBLIC expired','CAPABILITY_UNAVAILABLE','forbidden');})).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});
  expect(f.childPort.collect).toHaveBeenCalledTimes(1);
-});
+},60000);
 it('rejects a new child reservation during parent collection instead of returning an incomplete family',async()=>{
  const f=fixture(0);vi.mocked(f.parentPort.collect).mockImplementation(async()=>{f.f.reserveSkill();return{PUBLIC:'parent bytes'};});
  await expect(f.service().collect(f.f.currentRun().id)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(f.factory).not.toHaveBeenCalled();
-});
-it('rejects a child-set change during the parent read instead of omitting the new reservation',async()=>{const f=fixture(0);vi.mocked(f.parentPort.query).mockImplementation(async()=>{f.f.reserveSkill();return{...proof,status:'Stopped'};});await expect(f.service().query(f.f.currentRun().id)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(f.factory).not.toHaveBeenCalled();});
+},60000);
+it('rejects a child-set change during the parent read instead of omitting the new reservation',async()=>{const f=fixture(0);vi.mocked(f.parentPort.query).mockImplementation(async()=>{f.f.reserveSkill();return{...proof,status:'Stopped'};});await expect(f.service().query(f.f.currentRun().id)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(f.factory).not.toHaveBeenCalled();},60000);
 it('stopping one original Skill also controls the parent and every original sibling under one Kernel receipt',async()=>{
  const input=t.command(),id=t.invocations[0]!.id,before=t.f.store.asOfEventSequence(),calls=vi.mocked(t.childPort.requestCancellation).mock.calls.length,observations=t.f.store.listRuntimeRecords('skill_invocation_observation',t.f.change.id),parent=vi.spyOn(app.LocalAgentRuntimeControl.prototype,'retryCancellation');
  try{
@@ -83,6 +86,15 @@ it('pins the selected-stop command before deferred family composition and replay
  const first=await t.childControl.stop(id,input,()=>{if(!queued){queued=true;queueMicrotask(()=>{input.command_id=createInternalId();input.target.id=createInternalId();input.payload.reason='PUBLIC mutated during composition';});}});
  if('code'in first)throw Error(first.code);expect(t.f.store.transaction(tx=>tx.getCommandReceipt(fixed.command_id))).toBeDefined();expect(t.f.store.transaction(tx=>tx.getCommandReceipt(input.command_id))).toBeUndefined();
  const replay=await t.childControl.stop(id,fixed);if('code'in replay)throw Error(replay.code);expect(replay.command_result).toEqual(first.command_result);expect(t.f.store.asOfEventSequence()).toBe(before+1);
+});
+it('pins the complete-family stop request before the first installed session guard',async()=>{
+ const input=t.command(),fixed=structuredClone(input),before=t.f.store.asOfEventSequence();let changed=false;
+ const first=await t.service().stop(input,()=>{if(!changed){changed=true;input.command_id=createInternalId();input.payload.reason='PUBLIC family caller changed during guard';}});
+ expect(t.f.store.transaction(tx=>tx.getCommandReceipt(fixed.command_id))).toBeDefined();
+ expect(t.f.store.transaction(tx=>tx.getCommandReceipt(input.command_id))).toBeUndefined();
+ const replay=await t.service().stop(fixed);if('code'in first||'code'in replay)throw Error('PUBLIC expected fixed cancellation');
+ expect(replay.command_result).toEqual(first.command_result);expect(t.f.store.asOfEventSequence()).toBe(before+1);
+ expect(t.f.store.listRuns(t.f.change.id)).toHaveLength(1);expect(t.f.task().usage.pending_reconciliation).toBe(true);
 });
 it('refuses local identity changes across deferred selected-stop composition before any Kernel or physical effect',async()=>{
  const input=t.command(),before=t.f.store.asOfEventSequence(),path=t.local.location.dataDirectory,calls=t.factory.mock.calls.length;let queued=false;

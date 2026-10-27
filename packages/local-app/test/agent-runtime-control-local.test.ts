@@ -59,6 +59,15 @@ describe("Human controls original Agent operations through Kernel cancellation",
     expect(await control.stop(input)).toMatchObject({ ok: true, operation: { outcome: "observed" } });
     expect(f.store.asOfEventSequence()).toBe(sequence + 1); expect(cancel).toHaveBeenCalledTimes(2);
   });
+  it("pins the Human cancellation request before an installed guard can mutate the caller object", async () => {
+    const input=command(),fixed=structuredClone(input),sequence=f.store.asOfEventSequence();let changed=false;
+    const first=await control.stop(input,()=>{if(!changed){changed=true;input.command_id=createInternalId();input.payload.reason='PUBLIC caller changed during guard';}});
+    expect(f.store.transaction(tx=>tx.getCommandReceipt(fixed.command_id))).toBeDefined();
+    expect(f.store.transaction(tx=>tx.getCommandReceipt(input.command_id))).toBeUndefined();
+    expect(await control.stop(fixed)).toEqual(first);
+    expect(f.store.asOfEventSequence()).toBe(sequence+1);expect(f.store.listRuns(f.change.id)).toHaveLength(1);
+    expect(f.task().usage.pending_reconciliation).toBe(true);
+  });
   it("requires Kernel cancellation for resource recovery and never records completion", async () => {
     await expect(control.recover(runId)).rejects.toMatchObject({ code: "RECOVERY_CONDITIONS_UNMET" }); expect(recover).not.toHaveBeenCalled();
     await control.stop(command()); const sequence = f.store.asOfEventSequence();

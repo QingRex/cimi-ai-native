@@ -99,6 +99,7 @@ export class LocalAgentRuntimeControl {
     return parent?this.port.collect(original.controlIdentity.location.dataDirectory,original.scope,{project:original.project,record:original.record},undefined,parent):this.port.collect(original.controlIdentity.location.dataDirectory,original.scope,{project:original.project,record:original.record});
   },false,beforeEffect); }
   async stop(input: unknown,beforeEffect:()=>void=()=>{}) {
+    input=structuredClone(input);
     if (!input || typeof input !== "object" || Array.isArray(input) || !("command_type" in input) || input.command_type !== "CancelRun" ||
       !("target" in input) || !input.target || typeof input.target !== "object" || !("object_type" in input.target) || input.target.object_type !== "run" ||
       !("id" in input.target) || typeof input.target.id !== "string") throw new LocalProjectError("仅支持原 Run 的取消请求", "INVALID_COMMAND");

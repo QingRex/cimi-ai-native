@@ -88,6 +88,7 @@ export class LocalHumanAgentRunFamilyControl {
     const state=this.operation(runId,guard,false);return this.join(await this.parent.collect(runId,state.guard),'collect',state);
   }
   async stop(input:unknown,guard:()=>void=()=>{}){
+    input=structuredClone(input);
     synchronous(guard);
     if(!object(input)||input.command_type!=='CancelRun'||!object(input.target)||input.target.object_type!=='run'||typeof input.target.id!=='string')
       throw new LocalProjectError('仅支持原 Run 的取消请求','INVALID_COMMAND');
