@@ -60,3 +60,15 @@ test('a pinned compiler can use a separately installed libclang for binding gene
  assert.throws(()=>build.privateV8SourceBuild({v8_source_build:{...policy,binding_clang_root:'relative'}}));
  writeFileSync(join(binding,'bin','libclang.dll'),'MZ PUBLIC replaced binding library');assert.notDeepEqual(build.privateV8SourceBuild({v8_source_build:policy}),original);
 });
+
+test('V8 build parallelism is explicit and bounded without opening arbitrary tool arguments',()=>{
+ const base=mkdtempSync(join(tmpdir(),'cimi-v8-jobs-')),bin=join(base,'bin');mkdirSync(bin);
+ for(const name of ['clang.exe','clang-cl.exe','libclang.dll','lld-link.exe'])writeFileSync(join(bin,name),'MZ PUBLIC '+name);
+ const policy={format:'cimiloop/locked-v8-sandbox-source/1.0.0',clang_root:base};
+ const original=build.privateV8SourceBuild({v8_source_build:policy});
+ const parallel=build.privateV8SourceBuild({v8_source_build:{...policy,build_jobs:2}});
+ assert.equal(parallel.environment.CARGO_BUILD_JOBS,'2');assert.deepEqual(parallel.materials,original.materials);
+ assert.equal(build.privateV8SourceBuild({v8_source_build:{...policy,build_jobs:4}}).environment.CARGO_BUILD_JOBS,'4');
+ for(const jobs of [0,5,-1,1.5,'2',null])assert.throws(()=>build.privateV8SourceBuild({v8_source_build:{...policy,build_jobs:jobs}}));
+ assert.throws(()=>build.privateV8SourceBuild({v8_source_build:{...policy,build_jobs:2,GN_ARGS:'v8_enable_sandbox=false'}}));
+});

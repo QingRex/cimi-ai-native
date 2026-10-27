@@ -32,8 +32,10 @@ export function privateV8SourceBuild(config){
  if(!Object.hasOwn(config,'v8_source_build'))return undefined;
  const selected=config.v8_source_build;
  const explicitTools=selected&&(Object.hasOwn(selected,'gn_binary')||Object.hasOwn(selected,'ninja_binary'));
- const keys=['clang_root','format',...(selected&&Object.hasOwn(selected,'binding_clang_root')?['binding_clang_root']:[]),...(explicitTools?['gn_binary','ninja_binary']:[])];
+ const keys=['clang_root','format',...(selected&&Object.hasOwn(selected,'binding_clang_root')?['binding_clang_root']:[]),...(selected&&Object.hasOwn(selected,'build_jobs')?['build_jobs']:[]),...(explicitTools?['gn_binary','ninja_binary']:[])];
  if(!selected||Object.keys(selected).sort().join(',')!==keys.sort().join(',')||selected.format!=='cimiloop/locked-v8-sandbox-source/1.0.0')throw Error('Explicit locked V8 source build required');
+ const jobs=Object.hasOwn(selected,'build_jobs')?selected.build_jobs:1;
+ if(!Number.isInteger(jobs)||jobs<1||jobs>4)throw Error('V8 build jobs must be an explicit integer from 1 to 4');
  const clang=ordinaryDirectory(selected.clang_root),bin=join(clang,'bin'),bindingBin=Object.hasOwn(selected,'binding_clang_root')?join(ordinaryDirectory(selected.binding_clang_root),'bin'):bin;
  const seal=raw=>{
   if(typeof raw!=='string'||!isAbsolute(raw))throw Error('Original V8 build tool must be absolute');
@@ -47,5 +49,5 @@ export function privateV8SourceBuild(config){
  if(explicitTools)materials.push(seal(selected.gn_binary),seal(selected.ninja_binary));
  // The pinned Cargo feature still selects v8_enable_sandbox. No arbitrary GN
  // arguments or prebuilt substitutions are accepted by this configuration.
- return{environment:{V8_FROM_SOURCE:'1',CARGO_BUILD_JOBS:'1',CLANG_BASE_PATH:clang,LIBCLANG_PATH:bindingBin,...(explicitTools?{GN:materials[4].path,NINJA:materials[5].path}:{})},materials};
+ return{environment:{V8_FROM_SOURCE:'1',CARGO_BUILD_JOBS:String(jobs),CLANG_BASE_PATH:clang,LIBCLANG_PATH:bindingBin,...(explicitTools?{GN:materials[4].path,NINJA:materials[5].path}:{})},materials};
 }

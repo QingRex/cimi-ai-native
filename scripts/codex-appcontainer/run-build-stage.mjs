@@ -30,8 +30,10 @@ const vs=ordinary(config.visual_studio),vsCommand=join(vs,'Common7/Tools/VsDevCm
 if(!existsSync(vsCommand)||/["%\r\n&|<>!]/.test(vsCommand))throw Error('Unsupported Visual Studio path');
 const envRelative=relative(root,config.msvc_environment);if(isAbsolute(envRelative)||envRelative==='..'||envRelative.startsWith('..\\'))throw Error('MSVC environment must be in the private build root');
 const system=process.env.SystemRoot??'C:\\Windows',env={SystemRoot:system,WINDIR:system,ComSpec:join(system,'System32/cmd.exe'),PATH:join(system,'System32')+';'+dirname(config.git),HOME:join(root,'home'),USERPROFILE:join(root,'home'),LOCALAPPDATA:join(root,'local'),APPDATA:join(root,'roaming'),TEMP:join(root,'temp'),TMP:join(root,'temp'),CARGO_HOME:join(root,'cargo'),RUSTUP_HOME:join(root,'rustup'),CARGO_TARGET_DIR:targetRoot,RUSTUP_TOOLCHAIN:'1.95.0',CARGO_INCREMENTAL:'0',CARGO_BUILD_JOBS:'2',CARGO_PROFILE_DEV_DEBUG:'0',CARGO_PROFILE_TEST_DEBUG:'0',CARGO_PROFILE_RELEASE_DEBUG:'0',CARGO_PROFILE_RELEASE_LTO:'false',CARGO_PROFILE_RELEASE_OPT_LEVEL:'1',CARGO_PROFILE_RELEASE_CODEGEN_UNITS:'16',CARGO_PROFILE_RELEASE_STRIP:'debuginfo',GIT_TERMINAL_PROMPT:'0',VSCMD_SKIP_SENDTELEMETRY:'1',DOTNET_CLI_TELEMETRY_OPTOUT:'1',PYTHON:config.python,PYTHONNOUSERSITE:'1',PYTHONDONTWRITEBYTECODE:'1'};
-if(action==='check-pipe-modules')env.CARGO_BUILD_JOBS='1';
 if(v8BuildBefore)Object.assign(env,v8BuildBefore.environment);
+// The limited module stage keeps its own single-job resource policy even
+// when a full V8 build explicitly selects more parallel work.
+if(action==='check-pipe-modules')env.CARGO_BUILD_JOBS='1';
 for(const key of ['HOME','LOCALAPPDATA','APPDATA','TEMP','CARGO_HOME','RUSTUP_HOME','CARGO_TARGET_DIR'])mkdirSync(env[key],{recursive:true});
 // Discard keys/tokens, user Cargo/Git settings, Python paths, and Codex homes.
 for(const key of Object.keys(process.env))delete process.env[key];Object.assign(process.env,env);
