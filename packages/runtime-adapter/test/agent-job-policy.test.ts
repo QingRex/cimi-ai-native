@@ -10,6 +10,11 @@ const policy={format:'cimiloop/agent-job-resource-policy/1.0.0',limit_flags:8712
 const basis={policy,owner,supervisor,peer,nonce,scope_digest:'a'.repeat(64),job_name:job,observer_path:observer.image,deadline_uptime_ms:100000};
 const proof=()=>({format:'cimiloop/agent-job-observation/1.0.0',nonce,scope_digest:basis.scope_digest,owner,supervisor,peer,observer,job_name:job,limit_flags:8712,active_process_limit:1,job_memory_limit_bytes:2147483648,process_memory_limit_bytes:0,peer_in_job:true,sampled_uptime_ms:90000});
 describe('independent original Agent Job OS observation',()=>{
+ it('uses claim4 for explicit package access without reinterpreting the original private-directory claim3',()=>{
+  const input={startup_profile:'bun_interpreter/1.0.0',job_resource_policy:policy,job_observer_original:{format:'cimiloop/runtime-binary-original-proof/1.0.0',path:observer.image,sha:'a'.repeat(64),bytes:10}};
+  expect(agentRuntimeClaimFormat({...input,writable_storage_profile:'private_state_only/2.0.0'})).toBe('cimiloop/agent-runtime-operation-claim/4.0.0');
+  expect(agentRuntimeClaimFormat({...input,writable_storage_profile:'private_state_only/1.0.0'})).toBe('cimiloop/agent-runtime-operation-claim/3.0.0');
+ });
  it('versions new interpreter startup claims explicitly while preserving old claim1/2 meaning',()=>{
   const input={job_resource_policy:policy,job_observer_original:{format:'cimiloop/runtime-binary-original-proof/1.0.0',path:observer.image,sha:'a'.repeat(64),bytes:10}};
   expect(agentRuntimeClaimFormat({...input,startup_profile:'bun_interpreter/1.0.0'})).toBe('cimiloop/agent-runtime-operation-claim/3.0.0');

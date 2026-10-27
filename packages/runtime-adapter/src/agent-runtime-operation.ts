@@ -41,7 +41,7 @@ function load(root: string, rawScope: unknown) {
   root = assertOrdinaryPath(root);
   const scope = parseAgentWorkspaceToolScope(rawScope), location = paths(root, scope), raw = read(join(location.run, "claim.json"));
   if (!exact(raw, ["format", "scope", "input_digest", "operation_id", "owner", "synthetic_model_responses", "formal_agent_execution_enabled"]) ||
-    !["cimiloop/agent-runtime-operation-claim/1.0.0","cimiloop/agent-runtime-operation-claim/2.0.0","cimiloop/agent-runtime-operation-claim/3.0.0"].includes(String(raw.format)) || !sha(raw.input_digest) || !uuid(raw.operation_id) || !validWorkspaceWorkerIdentity(raw.owner) ||
+    !["cimiloop/agent-runtime-operation-claim/1.0.0","cimiloop/agent-runtime-operation-claim/2.0.0","cimiloop/agent-runtime-operation-claim/3.0.0","cimiloop/agent-runtime-operation-claim/4.0.0"].includes(String(raw.format)) || !sha(raw.input_digest) || !uuid(raw.operation_id) || !validWorkspaceWorkerIdentity(raw.owner) ||
     (raw.synthetic_model_responses !== true && raw.synthetic_model_responses !== null) || raw.formal_agent_execution_enabled !== false || !isDeepStrictEqual(parseAgentWorkspaceToolScope(raw.scope), scope)) fail("agent_runtime_claim_unproven");
   const claim = raw as unknown as Claim, key = read(join(location.key, "original.json"));
   if (digest(bytesAt(join(location.run, "input.json"), 65536)).value !== claim.input_digest) fail("agent_runtime_input_unproven");

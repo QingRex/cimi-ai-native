@@ -55,7 +55,7 @@ export type { AgentRuntimeModelPort, AgentRuntimeModelResponse } from "./agent-r
 export { selectAgentRuntimeLifetime, withinAgentRuntimeTaskBudget } from "./agent-runtime-lifetime.js";
 
 export {isOriginalAgentNativeSuspension} from "./agent-native-suspension.js";
-export {AGENT_RUNTIME_STARTUP_PROFILE,AGENT_RUNTIME_WRITABLE_STORAGE_PROFILE,agentWorkspaceConfigBaseFormat,assertAgentRuntimeStartupOriginal} from './agent-runtime-startup.js';
+export {AGENT_RUNTIME_STARTUP_PROFILE,AGENT_RUNTIME_WRITABLE_STORAGE_PROFILE,AGENT_RUNTIME_EXPLICIT_PACKAGE_PROFILE,agentWorkspaceConfigBaseFormat,assertAgentRuntimeStartupOriginal} from './agent-runtime-startup.js';
 export { originalTaskResultContract, verifyOriginalTaskExecutionResult, type OriginalTaskExecutionResult, type OriginalParentTaskExecutionResult, type OriginalCurrentParentTaskExecutionResult, type OriginalTaskDomainBasis } from "./agent-runtime-completion.js";
 
 export { createDedicatedAgentRuntimeModel } from "./agent-dedicated-model.js";

@@ -65,7 +65,7 @@ describe.runIf(process.platform === "win32" && process.arch === "x64" && !!confi
       expect(ledger.listExclusive('codex_process_job_complete')).toHaveLength(original.calls.length);
       for(const call of original.calls){expect(call.original).toMatchObject({ordinary_quota:{before:{ordinary_usage_allowed:true,account_id_digest:login.quota_snapshot!.account_id_digest},after:{account_id_digest:login.quota_snapshot!.account_id_digest},costs_reconciled:false}});}
       const identity=readAgentRuntimeOriginalIdentity(dataDirectory,scope),nativeConfig=JSON.parse(bytesAt(join(identity.operation,'original-config.json'),65536).toString('utf8'));
-      expect(nativeConfig).toMatchObject({format:'cimiloop/agent-workspace-sandbox-config/17.0.0',writable_storage_profile:'private_state_only/1.0.0',provider_options:{model_output_profile:'bounded_2048/1.0.0',workspace_tool_names:['cimi_read','cimi_check']}});
+      expect(nativeConfig).toMatchObject({format:'cimiloop/agent-workspace-sandbox-config/17.0.0',writable_storage_profile:'private_state_only/2.0.0',provider_options:{model_output_profile:'bounded_2048/1.0.0',workspace_tool_names:['cimi_read','cimi_check']}});
       expect(collected.native).toMatchObject({ status: "Verified", native_effect_reverified: true }); expect(collected.ipc).toMatchObject({ status: "Observed", correlation: { uncorrelated_exchanges: 0, unmatched_sdk_calls: 0 } });
       verifyCollectedCodexAgentModelOriginals(dataDirectory, scope, collected);
       expect(readWorkspaceFileRunOriginals(dataDirectory, f.project, reserved.data.record).calls).toEqual(expect.arrayContaining([expect.objectContaining({ input: expect.objectContaining({ tool: "read_file", path: "src/query.ts" }), state: "completed" })]));

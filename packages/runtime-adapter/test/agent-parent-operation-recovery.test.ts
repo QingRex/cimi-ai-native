@@ -21,7 +21,7 @@ describe("parent config7 original operation reader and resource-only recovery", 
       rmSync(root, { recursive: true, force: true });
     }
   });
-  const setup = (startup=false,privateWrites=false) => {
+  const setup = (startup=false,privateWrites=false,explicitPackage=false) => {
     const root = mkdtempSync(join(tmpdir(), "cimiloop-parent-operation-original-")); roots.push(root);
     const source = join(root, "constructed-runtime.exe"); writeFileSync(source, "PUBLIC constructed runtime bytes, never executed");
     const binary = pinBinary(root, source), proof = readRuntimeBinaryOriginal(root, binary.path, binary.digest.value);
@@ -31,9 +31,9 @@ describe("parent config7 original operation reader and resource-only recovery", 
     const owner = { pid: 1234, creation_ticks: "123456", image: process.execPath }, scope_digest = agentWorkspaceIpcScopeDigest(scope);
     const binding = { format: "cimiloop/agent-parent-skill-binding/1.0.0", scope_digest, catalog_digest: digest("PUBLIC fixed private catalog").value, sdk_catalog_digest: digest("PUBLIC fixed SDK catalog").value };
     const input = { binary_original: proof, parent_skill_original_binding: binding, prompt: "PUBLIC original parent Task packet", lifetime_policy: "agent_task/1.0.0", deadline_uptime_ms: 123456789,
-      provider_options: { admission_digest: digest("PUBLIC original model admission").value, parent_skill_tools: "fixed_parent_skill/1.0.0",...(privateWrites?{model_output_profile:'bounded_2048/1.0.0'}:{}) },...(startup?{startup_profile:'bun_interpreter/1.0.0',job_resource_policy:AGENT_JOB_RESOURCE_POLICY,job_observer_original:proof}: {}),...(privateWrites?{writable_storage_profile:'private_state_only/1.0.0'}:{}) };
+      provider_options: { admission_digest: digest("PUBLIC original model admission").value, parent_skill_tools: "fixed_parent_skill/1.0.0",...(privateWrites?{model_output_profile:'bounded_2048/1.0.0'}:{}) },...(startup?{startup_profile:'bun_interpreter/1.0.0',job_resource_policy:AGENT_JOB_RESOURCE_POLICY,job_observer_original:proof}: {}),...(privateWrites?{writable_storage_profile:explicitPackage?'private_state_only/2.0.0':'private_state_only/1.0.0'}:{}) };
     const claim = claimAgentRuntimeOperation(root, scope, input, owner), nonce = createInternalId();
-    const config: Record<string, unknown> = { format: privateWrites?"cimiloop/agent-workspace-sandbox-config/15.0.0":startup?"cimiloop/agent-workspace-sandbox-config/10.0.0":"cimiloop/agent-workspace-sandbox-config/7.0.0",...(startup?{startup_profile:'bun_interpreter/1.0.0'}:{}),...(privateWrites?{writable_storage_profile:'private_state_only/1.0.0'}:{}), nonce, root: join(claim.operation, "sandbox"), binary: proof.path, owner, pipe_nonce: createInternalId(), scope_digest,
+    const config: Record<string, unknown> = { format: privateWrites?"cimiloop/agent-workspace-sandbox-config/15.0.0":startup?"cimiloop/agent-workspace-sandbox-config/10.0.0":"cimiloop/agent-workspace-sandbox-config/7.0.0",...(startup?{startup_profile:'bun_interpreter/1.0.0'}:{}),...(privateWrites?{writable_storage_profile:explicitPackage?'private_state_only/2.0.0':'private_state_only/1.0.0'}:{}), nonce, root: join(claim.operation, "sandbox"), binary: proof.path, owner, pipe_nonce: createInternalId(), scope_digest,
       elapsed_ms: 600000, provider_options: input.provider_options, deadline_uptime_ms: input.deadline_uptime_ms, prompt: input.prompt, lifetime_policy: input.lifetime_policy, binary_original: proof,
       parent_skill_tools: "fixed_parent_skill/1.0.0", parent_skill_original_binding: binding };
     mkdirSync(claim.operation, { recursive: true }); const path = join(claim.operation, "original-config.json");
@@ -45,6 +45,13 @@ describe("parent config7 original operation reader and resource-only recovery", 
     expect(f.read()).toMatchObject({ config: { format: "cimiloop/agent-workspace-sandbox-config/7.0.0", parent_skill_original_binding: f.input.parent_skill_original_binding }, launch: null, resources: null });
     expect(readFileSync(f.path)).toEqual(before); expect(readFileSync(join(f.claim.claimDirectory, "claim.json"))).toEqual(claimBytes);
     expect(existsSync(join(f.claim.operation, "original-launcher.json"))).toBe(false);
+  });
+  it('recovers the original claim4 without dispatch and refuses a profile2-to-profile1 downgrade',async()=>{
+    const f=setup(true,true,true),claimPath=join(f.claim.claimDirectory,'claim.json'),before=readFileSync(claimPath);
+    expect(JSON.parse(before.toString()).format).toBe('cimiloop/agent-runtime-operation-claim/4.0.0');
+    expect(f.read()).toMatchObject({config:{writable_storage_profile:'private_state_only/2.0.0'},launch:null,resources:null});
+    expect(await recoverAgentRuntimeOperation(f.root,f.scope)).toMatchObject({outcome:'unknown',resources_disposed:false,completion_proven:false});
+    f.config.writable_storage_profile='private_state_only/1.0.0';f.save();expect(()=>f.read()).toThrow();expect(readFileSync(claimPath)).toEqual(before);
   });
   it('retains config15 private storage in original recovery and refuses erased or historical markers',async()=>{const f=setup(true,true),before=readFileSync(join(f.claim.claimDirectory,'claim.json'));expect(f.read()).toMatchObject({config:{format:'cimiloop/agent-workspace-sandbox-config/15.0.0',writable_storage_profile:'private_state_only/1.0.0'},launch:null,resources:null});expect(await recoverAgentRuntimeOperation(f.root,f.scope)).toMatchObject({outcome:'unknown',resources_disposed:false});delete f.config.writable_storage_profile;f.save();expect(()=>f.read()).toThrow();f.config.writable_storage_profile='private_state_only/1.0.0';f.config.format='cimiloop/agent-workspace-sandbox-config/12.0.0';f.save();expect(()=>f.read()).toThrow();expect(readFileSync(join(f.claim.claimDirectory,'claim.json'))).toEqual(before);});
   it('keeps config10 and claim3 bound to the same original startup policy while missing Native registration stays Unknown',async()=>{

@@ -239,7 +239,7 @@ export function readCodexAgentModelOriginals(root: string, rawScope: unknown): C
   if (existsSync(runRoot) || existsSync(keyRoot)) {
     const source = (path: string) => { frozen.push({ path, digest: digest(bytesAt(path, 65536)).value }); return read(path, 65536); };
     const input = source(join(runRoot, "input.json")), claim = source(join(runRoot, "claim.json")), key = source(join(keyRoot, "original.json"));
-    if (!["cimiloop/agent-runtime-operation-claim/1.0.0", "cimiloop/agent-runtime-operation-claim/2.0.0", "cimiloop/agent-runtime-operation-claim/3.0.0"].includes(claim.format) ||
+    if (!["cimiloop/agent-runtime-operation-claim/1.0.0", "cimiloop/agent-runtime-operation-claim/2.0.0", "cimiloop/agent-runtime-operation-claim/3.0.0","cimiloop/agent-runtime-operation-claim/4.0.0"].includes(claim.format) ||
       claim.input_digest !== frozen[0]!.digest || !same(claim.scope, scope) || !same(key, { run_id: scope.run_id, operation_id: claim.operation_id, scope_digest: result.scope_digest, input_digest: claim.input_digest }) ||
       !same(input.model_original_binding, { format: "cimiloop/agent-model-original-binding/1.0.0", header_digest: digest(bytesAt(hostHeaderPath)).value, original_evidence: host.original_evidence })) fail();
     result.original_requirement_pinned = true;

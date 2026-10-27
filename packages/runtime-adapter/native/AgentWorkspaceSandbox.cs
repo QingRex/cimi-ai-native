@@ -64,7 +64,7 @@ partial class AppContainer {
   static string AgentStartupFormat(Dictionary<string,object> config) {
     string format=config["format"] as string;int version;
     bool privateWrites=format=="cimiloop/agent-workspace-sandbox-config/14.0.0"||format=="cimiloop/agent-workspace-sandbox-config/15.0.0"||format=="cimiloop/agent-workspace-sandbox-config/16.0.0"||format=="cimiloop/agent-workspace-sandbox-config/17.0.0"||format=="cimiloop/agent-workspace-sandbox-config/18.0.0";
-    if(privateWrites?(!config.ContainsKey("writable_storage_profile")||config["writable_storage_profile"] as string!="private_state_only/1.0.0"):config.ContainsKey("writable_storage_profile"))throw new InvalidDataException();
+    if(privateWrites?(!config.ContainsKey("writable_storage_profile")||(config["writable_storage_profile"] as string!="private_state_only/1.0.0"&&config["writable_storage_profile"] as string!="private_state_only/2.0.0")):config.ContainsKey("writable_storage_profile"))throw new InvalidDataException();
     bool bounded=privateWrites||format=="cimiloop/agent-workspace-sandbox-config/11.0.0"||format=="cimiloop/agent-workspace-sandbox-config/12.0.0"||format=="cimiloop/agent-workspace-sandbox-config/13.0.0";
     var options=config["provider_options"] as Dictionary<string,object>;
     bool scoped=format=="cimiloop/agent-workspace-sandbox-config/17.0.0";
@@ -332,11 +332,13 @@ partial class AppContainer {
   }
   internal static int LaunchAgentWorkspace() {
     Console.OutputEncoding=new UTF8Encoding(false);
-    string root=null,binary=null,profile=null,mapping=null,nonce=null; IntPtr sid=IntPtr.Zero,list=IntPtr.Zero,capsMemory=IntPtr.Zero,handles=IntPtr.Zero,job=IntPtr.Zero,jobList=IntPtr.Zero,owner=IntPtr.Zero,nul=IntPtr.Zero;
+    string root=null,binary=null,profile=null,mapping=null,nonce=null; IntPtr sid=IntPtr.Zero,list=IntPtr.Zero,capsMemory=IntPtr.Zero,handles=IntPtr.Zero,job=IntPtr.Zero,jobList=IntPtr.Zero,owner=IntPtr.Zero,nul=IntPtr.Zero,packagePolicy=IntPtr.Zero,platformRead=IntPtr.Zero,platformCapabilities=IntPtr.Zero;
     PROCESSINFO process=new PROCESSINFO(); bool started=false,profileCreated=false,runtimeResumed=false; int exit=12; ulong? runtimeStoppedUptime=null; string reason="agent_sandbox_unavailable"; var cleanupErrors=new List<string>();
     try {
       string originalConfig=AgentLine(65536); var config=serializer.Deserialize<Dictionary<string,object>>(originalConfig);
       agentTaskDeadline=AgentConfigDeadline(config); if(AgentTaskExpired()) throw new InvalidDataException();
+      bool explicitPackageAccess=config.ContainsKey("writable_storage_profile")&&config["writable_storage_profile"] as string=="private_state_only/2.0.0";
+      if(explicitPackageAccess){Check(ConvertStringSidToSid(AgentProfileStorage.RegistryReadCapabilitySid,out platformRead));platformCapabilities=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(SIDATTR)));Marshal.StructureToPtr(new SIDATTR{sid=platformRead,attributes=4},platformCapabilities,false);}
       Guid guid,pipeGuid;
       if(!Guid.TryParseExact(config["nonce"] as string,"D",out guid)||
         !Guid.TryParseExact(config["pipe_nonce"] as string,"D",out pipeGuid)||!System.Text.RegularExpressions.Regex.IsMatch(config["scope_digest"] as string??"","^[a-f0-9]{64}$")) throw new InvalidDataException();
@@ -377,7 +379,7 @@ partial class AppContainer {
       AgentCheckpoint("registered",owner);
       if(!(bool)agentResources["profile_was_absent"]) throw new InvalidDataException();
       agentResources["profile_intent"]=true; AgentCheckpoint("profile_intent",owner);
-      int hr=CreateAppContainerProfile(profile,profile,"CimiLoop fixed workspace tool rehearsal",IntPtr.Zero,0,out sid); if(hr!=0) Marshal.ThrowExceptionForHR(hr); profileCreated=true;
+      int hr=CreateAppContainerProfile(profile,profile,"CimiLoop fixed workspace tool rehearsal",platformCapabilities,explicitPackageAccess?1u:0u,out sid); if(hr!=0) Marshal.ThrowExceptionForHR(hr); profileCreated=true;
       if(config.ContainsKey("writable_storage_profile"))AgentProfileStorage.Protect(sid);
       var principal=new SecurityIdentifier(sid);
       agentResources["grants_intent"]=true; AgentCheckpoint("grants_intent",owner);
@@ -391,6 +393,7 @@ partial class AppContainer {
       AgentConfigureStartupEnvironment(config);
       foreach(string name in new string[] {"TEMP","TMP","USERPROFILE","HOME","OPENCODE_TEST_HOME"}) Environment.SetEnvironmentVariable(name,privateState);
       Environment.SetEnvironmentVariable("APPDATA",privateState+"\\AppData\\Roaming"); Environment.SetEnvironmentVariable("LOCALAPPDATA",privateState+"\\AppData\\Local");
+      if(explicitPackageAccess){Environment.SetEnvironmentVariable("PROGRAMDATA",privateState+"\\ProgramData");foreach(string path in new string[]{privateState+"\\ProgramData",privateState+"\\AppData\\Roaming",privateState+"\\AppData\\Local\\Packages\\"+profile+"\\AC\\Temp"})Directory.CreateDirectory(path);}
       foreach(string name in new string[] {"DATA","CONFIG","CACHE","STATE"}) Environment.SetEnvironmentVariable("XDG_"+name+"_HOME",privateState+"\\"+name.ToLower());
       Environment.SetEnvironmentVariable("XDG_CONFIG_HOME",mapping+"\\config\\global");
       Environment.SetEnvironmentVariable("OPENCODE_CONFIG_DIR",mapping+"\\config");
@@ -413,8 +416,9 @@ partial class AppContainer {
         permission=permission,agent=new { title=new { disable=true },summary=new { disable=true },compaction=new { disable=true },cimi=new { mode="primary",steps=production?64:4,description=production?"Admitted original Agent workspace execution":"Fixed workspace tool rehearsal",permission=permission } },compaction=new { auto=false,prune=false },default_agent="cimi" }));
       // Runtime cannot consume the supervisor's private resume/cancel input.
       var sa=new AgentSA { length=Marshal.SizeOf(typeof(AgentSA)),inherit=true }; nul=CreateFile("NUL",0x80000000,3,ref sa,3,0,IntPtr.Zero); Check(nul!=new IntPtr(-1));
-      var caps=new CAPS { sid=sid }; capsMemory=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(CAPS))); Marshal.StructureToPtr(caps,capsMemory,false);
-      IntPtr size=IntPtr.Zero; InitializeProcThreadAttributeList(IntPtr.Zero,3,0,ref size); list=Marshal.AllocHGlobal(size); Check(InitializeProcThreadAttributeList(list,3,0,ref size));
+      var caps=new CAPS { sid=sid,capabilities=platformCapabilities,count=explicitPackageAccess?1:0 }; capsMemory=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(CAPS))); Marshal.StructureToPtr(caps,capsMemory,false);
+      IntPtr size=IntPtr.Zero;int attributeCount=explicitPackageAccess?4:3;InitializeProcThreadAttributeList(IntPtr.Zero,attributeCount,0,ref size); list=Marshal.AllocHGlobal(size); Check(InitializeProcThreadAttributeList(list,attributeCount,0,ref size));
+      if(explicitPackageAccess){packagePolicy=Marshal.AllocHGlobal(4);Marshal.WriteInt32(packagePolicy,1);Check(UpdateProcThreadAttribute(list,0,new IntPtr(0x2000f),packagePolicy,new IntPtr(4),IntPtr.Zero,IntPtr.Zero));}
       Check(UpdateProcThreadAttribute(list,0,new IntPtr(0x20009),capsMemory,new IntPtr(Marshal.SizeOf(typeof(CAPS))),IntPtr.Zero,IntPtr.Zero));
       var startup=new STARTUPINFOEX(); startup.info.cb=Marshal.SizeOf(typeof(STARTUPINFOEX)); startup.attributes=list; startup.info.flags=0x100; startup.info.input=nul; startup.info.output=GetStdHandle(-11); startup.info.error=GetStdHandle(-12);
       handles=Marshal.AllocHGlobal(IntPtr.Size*3); Marshal.WriteIntPtr(handles,0,nul); Marshal.WriteIntPtr(handles,IntPtr.Size,startup.info.output); Marshal.WriteIntPtr(handles,IntPtr.Size*2,startup.info.error);
@@ -463,7 +467,7 @@ partial class AppContainer {
     finally {
       if(started) { if(!TerminateJobObject(job,125)||WaitForSingleObject(process.process,5000)!=0) cleanupErrors.Add("process"); else if(!runtimeStoppedUptime.HasValue) runtimeStoppedUptime=AgentTickCount(); }
       if(process.thread!=IntPtr.Zero) CloseHandle(process.thread); if(process.process!=IntPtr.Zero) CloseHandle(process.process); if(job!=IntPtr.Zero) CloseHandle(job); if(owner!=IntPtr.Zero) CloseHandle(owner); if(nul!=IntPtr.Zero&&nul!=new IntPtr(-1)) CloseHandle(nul);
-      if(list!=IntPtr.Zero) { DeleteProcThreadAttributeList(list); Marshal.FreeHGlobal(list); } if(capsMemory!=IntPtr.Zero) Marshal.FreeHGlobal(capsMemory); if(handles!=IntPtr.Zero) Marshal.FreeHGlobal(handles); if(jobList!=IntPtr.Zero) Marshal.FreeHGlobal(jobList);
+      if(list!=IntPtr.Zero) { DeleteProcThreadAttributeList(list); Marshal.FreeHGlobal(list); }if(packagePolicy!=IntPtr.Zero)Marshal.FreeHGlobal(packagePolicy);if(platformCapabilities!=IntPtr.Zero)Marshal.FreeHGlobal(platformCapabilities);if(platformRead!=IntPtr.Zero)LocalFree(platformRead);if(capsMemory!=IntPtr.Zero) Marshal.FreeHGlobal(capsMemory); if(handles!=IntPtr.Zero) Marshal.FreeHGlobal(handles); if(jobList!=IntPtr.Zero) Marshal.FreeHGlobal(jobList);
       if(mapping!=null&&!DefineDosDevice(1|2|4|8,mapping,"\\??\\"+root)) cleanupErrors.Add("drive");
       for(int i=grants.Count-1;i>=0;i--) { var grant=grants[i]; try { RemoveGrant(grant.path,new SecurityIdentifier(sid),grant.rule.FileSystemRights,grant.directory,grant.rule.InheritanceFlags!=InheritanceFlags.None); } catch { cleanupErrors.Add("acl"); } }
       if(sid!=IntPtr.Zero) FreeSid(sid); if(profileCreated&&DeleteAppContainerProfile(profile)!=0) cleanupErrors.Add("profile");

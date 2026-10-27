@@ -52,6 +52,10 @@ describe.runIf(process.platform==='win32'&&process.arch==='x64')('parent Skill o
   const named:Record<string,unknown>={...ordinary,format:'cimiloop/agent-workspace-sandbox-config/9.0.0',method_tools:'fixed_named_method/1.0.0',method_original_binding:{format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('header').value,anchor_digest:digest('anchor').value}};
   return {f,ordinary,named,parent};
  }
+ it('compiled Native17 validates explicit package profile2 without downgrading or rewriting historical profile1',()=>{
+  const {ordinary}=currentModes(),config={...ordinary,format:'cimiloop/agent-workspace-sandbox-config/17.0.0',writable_storage_profile:'private_state_only/2.0.0',provider_options:{admission_digest:digest('PUBLIC model').value,model_output_profile:'bounded_2048/1.0.0',workspace_tool_names:['cimi_read','cimi_check']}};
+  expect(read('config',config)).toMatchObject({accepted:true});expect(read('config',{...config,writable_storage_profile:'private_state_only/1.0.0'})).toMatchObject({accepted:true});expect(read('config',{...config,writable_storage_profile:'unknown'})).toMatchObject({accepted:false});
+ });
  it('compiled Native18 grants only the saved parent subset and refuses a legacy or expanded catalog',()=>{
   const {parent}=currentModes(),config={...parent,format:'cimiloop/agent-workspace-sandbox-config/18.0.0',writable_storage_profile:'private_state_only/1.0.0',parent_skill_tools:'fixed_parent_skill/2.0.0',provider_options:{...(parent.provider_options as object),parent_skill_tools:'fixed_parent_skill/2.0.0',model_output_profile:'bounded_2048/1.0.0',workspace_tool_names:['cimi_read','cimi_check','cimi_run_skill']}};
   expect(read('config',config)).toMatchObject({accepted:true,result:123456789});expect(read('permissions',config)).toEqual({accepted:true,result:{'*':'deny',cimi_read:'allow',cimi_check:'allow',cimi_run_skill:'allow'}});expect(assertAgentParentSkillConfig(config,config)).toBe(true);
