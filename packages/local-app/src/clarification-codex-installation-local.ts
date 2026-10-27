@@ -35,7 +35,7 @@ export interface CodexMattInstallInput { source: VerifiedSkillPackage; binary: s
 interface Material { name: "codex.exe" | "codex-code-mode-host.exe" | "skill-package.json" | "facts.json"; digest: string; identity: ReturnType<typeof identity> }
 interface InstallRequest { format: "cimiloop/codex-matt-install-request/2.0.0"; binding: ReturnType<typeof binding>; model: string; account_digest: string; binary_digest: string; source_digest: string; package_digest: string; disabled_mcp_servers: string[]; facts_digest: string | null; materials: Material[]; originals_identity: ReturnType<typeof identity> }
 interface Installed { format: "cimiloop/codex-matt-installation/2.0.0"; request: InstallRequest; materials: Material[]; originals_identity: ReturnType<typeof identity> }
-export interface InstalledCodexMatt { host: MattClarificationHost; model: string; installation_digest: string; release(): void }
+export interface InstalledCodexMatt { host: MattClarificationHost; model: string; account_digest:string;source_digest:string;installation_digest: string;readExecutionControls:CodexMattClarificationHost['readExecutionControls'];guard():void;release(): void }
 
 function material(root: string, name: Material["name"], bytes?: Buffer): Material {
   const path = join(root, name), max = name.endsWith(".exe") ? 512 * 1024 * 1024 : 4 * 1024 * 1024;
@@ -153,6 +153,6 @@ export async function openInstalledCodexMatt(local: LocalProject): Promise<Insta
       async readOriginal(input) { guard(); const result = await concrete.readOriginal(input); guard(); return result; },
       verifyOriginal(input, original) { guard(); concrete.verifyOriginal(input, original); guard(); }
     };
-    return { host: Object.freeze(host), model: fixed.request.model, installation_digest: seal, release() { if (!released) { released = true; origin!.close(); } } };
+    return { host: Object.freeze(host), model: fixed.request.model,account_digest:fixed.request.account_digest,source_digest:fixed.request.source_digest,installation_digest: seal,guard,readExecutionControls(input,original){guard();const result=concrete.readExecutionControls(input,original);guard();return result;}, release() { if (!released) { released = true; origin!.close(); } } };
   } catch { origin?.close(); return fail(); }
 }

@@ -387,7 +387,7 @@ const contractForm = (change, submitCandidate) => form(values => (submitCandidat
 textarea("non_goals", "不包含的工作（每行一项）"), textarea("constraints", "约束（每行一项）"), input("scenario", "验收场景", { required: true }), input("expected", "预期行为", { required: true }),
 textarea("evidence", "验收需要的证据（每行一项）", { required: true }), select("risk", "风险等级", [["ordinary", "普通"], ["high", "高风险"]]), textarea("rationale", "风险说明", { required: true }),
 textarea("questions", "尚未明确的问题（每行一项）"), paragraph("此简表适用于一项验收、无知识影响、other 风险类别的普通候选；多验收项、知识影响或其他风险类别请使用已有 CLI 提交完整候选。"), submit("提交约定候选"));
-const clarifiedPlanForm = (change, contract, submitCandidate) => form(values => {
+const clarifiedPlanForm = (change, contract, submitCandidate, label = "提交计划候选") => form(values => {
   const implementation = uuid(), verification = uuid(), keys = contract.body.acceptance_criteria.map(item => item.key);
   const task = (purpose, id) => ({ task_id: id, version: 1, scope: { kind: "change", id: change.id }, purpose,
     goal: values[purpose === "implementation" ? "implementation_goal" : "verification_goal"], inputs: [],
@@ -402,7 +402,7 @@ const clarifiedPlanForm = (change, contract, submitCandidate) => form(values => 
   textarea("implementation_outputs", "实施产物（每行一项）", { required: true }), textarea("allowed_changes", "允许修改范围（每行一项）"),
   input("verification_goal", "独立验证任务目标", { required: true }), textarea("verification_outputs", "验证产物（每行一项）", { required: true }),
   textarea("verification_method", "验证方法", { required: true }), textarea("verification_evidence", "需要的证据（每行一项）", { required: true }),
-  paragraph("普通计划包含一个实施任务和一个独立验证任务，覆盖当前约定验收项。复杂任务、知识影响或依赖请用现有 CLI 提交完整计划候选。计划仍需人工确认。"), submit("提交计划候选"));
+  paragraph("普通计划包含一个实施任务和一个独立验证任务，覆盖当前约定验收项。复杂任务、知识影响或依赖请用现有 CLI 提交完整计划候选。计划仍需人工确认。"), submit(label));
 const clarificationPanel = (data, change) => {
   if (data.clarification_error) return panel("原澄清记录待核对", paragraph(data.clarification_error.message));
   if (![change.owner_actor_id, change.requirement_owner_actor_id].includes(state.context.actor_id)) return null;
@@ -422,6 +422,8 @@ const clarificationPanel = (data, change) => {
     })),
     (data.clarifications ?? []).map(session => {
       const current = beforePlan && session.head < 64 && !session.pending && !session.submitted && session.basis.change.revision === change.revision;
+      const finalMatt = session.steps.at(-1), reviewed = finalMatt?.request.kind === "matt" && finalMatt.request.review_plan &&
+        finalMatt.method_result?.output.questions.length === 0 && finalMatt.method_result.output.unresolved.length === 0;
       return node("div", { class: "card" }, paragraph(session.basis.request.requirement),
         paragraph(session.basis.request.background), paragraph("约束：" + (session.basis.request.constraints.join("；") || "暂无")),
         button("查看原澄清记录", async () => {
@@ -439,8 +441,12 @@ const clarificationPanel = (data, change) => {
         current ? form(values => clarificationMutation(change.id, session.id, { kind: "question", expected_head: session.head, text: values.question }),
           textarea("question", "需要澄清的问题", { required: true, maxlength: 4000 }), submit("记录问题")) : null,
         current && session.questions.length && !session.unanswered.length ? (session.basis.request.target === "plan" ?
-          node("details", {}, node("summary", {}, "从澄清提交计划候选"), clarifiedPlanForm(change, data.intent.contract_versions.find(version => version.id === change.contract_ref?.id),
-            body => clarificationMutation(change.id, session.id, { kind: "plan_candidate", expected_head: session.head, requested_at: new Date().toISOString(), body }))) :
+          reviewed ? node("div", {}, details("Matt 已复查的计划候选", finalMatt.request.review_plan.body),
+            paragraph("该候选已完成本轮方法复查；提交时仍须核对原件与方法资格，之后再由 Human 确认。"),
+            button("提交已复查的计划候选", () => clarificationMutation(change.id, session.id, { kind: "plan_candidate", expected_head: session.head, requested_at: new Date().toISOString(), body: finalMatt.request.review_plan.body }))) :
+          state.context.matt_host_available ? node("details", {}, node("summary", {}, "准备计划并请 Matt 复查"), clarifiedPlanForm(change, data.intent.contract_versions.find(version => version.id === change.contract_ref?.id),
+            body => clarificationMutation(change.id, session.id, { kind: "matt", expected_head: session.head, review_plan: { body, contract: data.intent.contract_versions.find(version => version.id === change.contract_ref?.id) } }), "请 Matt 复查这份计划")) :
+            paragraph("安装 Matt 方法宿主后，可复查具体计划；当前 Human 问答继续保留。") :
           node("details", {}, node("summary", {}, "从澄清提交约定候选"), contractForm(change, payload => clarificationMutation(change.id, session.id, { kind: "candidate", expected_head: session.head,
             requested_at: new Date().toISOString(), body: payload.body })))) : null,
         session.pending ? node("div", {}, paragraph("原澄清操作待核对，请使用同一原请求采集结果。"),

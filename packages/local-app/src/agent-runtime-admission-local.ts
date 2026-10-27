@@ -1,4 +1,5 @@
 import type {CodexRuntimeLoginHome} from './agent-codex-login-home-local.js';
+import {withInstalledPlanningClarification} from './planning-codex-admission-local.js';
 import { isDeepStrictEqual as same } from 'node:util';
 import { CimiLoopKernel, type KernelResult, type AgentRunAdmissionInput, type AgentRunToolAuthorityInput } from '@cimiloop/kernel';
 import {readAgentRuntimeModelOriginals, AgentStartLedger, type WorkspaceCheckTemplate,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
@@ -60,6 +61,7 @@ export async function executeHumanAgentRunCommandAsync(local:LocalProject,raw:un
  const unchanged=()=>{if(local.store!==original.store||local.kernel!==original.kernel||local.kernel.execute!==original.execute||local.kernel.authorizeAgentRunPreparation!==original.authorize||!same(local.location,original.location)||!same(local.instance,original.instance))throw unavailable();};
  const guard=()=>{unchanged();const result:unknown=beforeCommit();if(result!==undefined){if(result instanceof Promise)void Promise.prototype.then.call(result,undefined,()=>{});throw unavailable();}unchanged();};
  guard();let command;try{command=structuredClone(parseVersionedCommand(raw));}catch{return executeHumanAgentRunCommand(local,raw);}
+ if(command.schema_version==='2.0.0'&&['SubmitPlanProposal','ConfirmPlan','InitializePlanTasks'].includes(command.command_type))return withInstalledPlanningClarification(local,()=>executeHumanAgentRunCommand(local,command),guard,command.command_id);
  if(command.schema_version!=='2.0.0'||(command.command_type!=='PrepareRunContext'&&command.command_type!=='ReserveRun')||command.acting_role!=='technical_owner'||command.actor_id!==local.instance.actor_id||command.project_id!==local.instance.project_id||!['human_cli','human_ui'].includes(command.source.origin))return executeHumanAgentRunCommand(local,command);
  const item=agentPreparationWorkItem(local,command.command_type,'target'in command?command.target?.id:undefined,command.payload);
  if(!item||local.store.getActor(item.executor_ref.id)?.actor_type!=='agent')return executeHumanAgentRunCommand(local,command);

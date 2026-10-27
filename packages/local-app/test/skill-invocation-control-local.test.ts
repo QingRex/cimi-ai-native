@@ -18,6 +18,12 @@ beforeAll(()=>{root=mkdtempSync(join(tmpdir(),'cimiloop-human-child-control-'));
 afterAll(()=>{ledger?.close();f?.store.close();if(root){if(resolve(dirname(root))!==resolve(tmpdir())||!basename(root).startsWith('cimiloop-human-child-control-'))throw Error('Unsafe cleanup');rmSync(root,{recursive:true,force:true});}});
 const service=(factoryOption:any=factory,context=local)=>{expect(typeof (app as any).LocalHumanSkillInvocationControl).toBe('function');return new (app as any).LocalHumanSkillInvocationControl(context,factoryOption,{query,requestCancellation:cancel,recover,collect});};
 const command=(role='technical_owner')=>({command_id:createInternalId(),requested_at:flowTime,acting_role:role,command_type:'CancelRun',target:{object_type:'run',id:invocation.run_ref.id},expected_revision:f.currentRun().revision,payload:{reason:'Stop original child operation'}});
+it.each(['between','await'] as const)('pins the original Kernel authorization method across %s boundaries',async boundary=>{
+ const kernel=local.kernel,method=kernel.authorizeAgentRunControl,permission=method.call(kernel,invocation.run_ref.id),before=query.mock.calls.length,freed=vi.fn();
+ const replace=()=>{kernel.authorizeAgentRunControl=()=>structuredClone(permission);};
+ const selected=service(async()=>{if(boundary==='await')replace();return{custody,release:freed};});
+ try{if(boundary==='between')replace();await expect(selected.query(invocation.id)).rejects.toMatchObject({code:'INPUT_CHANGED'});expect(query).toHaveBeenCalledTimes(before);expect(freed).toHaveBeenCalledTimes(boundary==='await'?1:0);}finally{kernel.authorizeAgentRunControl=method;}
+});
 it('supplies the installed immutable Skill inputs to original method result collection and rereads after await',async()=>{
  const plan={profile:{PUBLIC:'fixed original method'},files:[{path:'request.json',content:'PUBLIC fixed input'}]},inputs={readInvocation:vi.fn(()=>structuredClone(plan))},freed=vi.fn(),before=f.store.asOfEventSequence();
  const result=await service(async()=>({custody,inputs,release:freed})).collect(invocation.id);

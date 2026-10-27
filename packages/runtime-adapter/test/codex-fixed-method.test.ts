@@ -4,7 +4,7 @@ import { fixedMethodFixture } from "./fixed-method-fixture.js";
 
 // Public, constructed receipts only; no upstream Skill or real model evidence.
 describe("Codex fixed clarification method projection", () => {
-  function fixture(frontier = false, delegated = false, maximumQuestions = 16, applicationContext?: string) {
+  function fixture(frontier = false, delegated = false, maximumQuestions = 16, applicationContext?: string,ordinaryQuotaAccountDigest?:string) {
     const f = fixedMethodFixture(), loaded: any[] = [];
     const original: any = { operation_key: f.profile.invocation_key, input_digest: "PUBLIC transport", thread_id: "PUBLIC thread", turn_id: "PUBLIC turn", model: "gpt-6-luna",
       tool_calls: loaded, usage: { inputTokens: 1, outputTokens: 1 }, output_text: JSON.stringify({ purpose: "clarification", questions: ["PUBLIC next decision? 建议：验证可观察结果。", ...(frontier ? ["PUBLIC independent decision? 建议：保留固定边界。"] : [])], unresolved: [] }),
@@ -43,9 +43,15 @@ describe("Codex fixed clarification method projection", () => {
       readOriginal() { return loaded.length ? structuredClone(original) : null; }
     };
     const Constructor = Reflect.get(runtime, "CodexFixedClarificationMethod"); expect(Constructor).toBeTypeOf("function");
-    const host: any = new Constructor(transport, "gpt-6-luna", { ...(delegated ? { facts } : {}), maximum_questions: maximumQuestions, ...(applicationContext ? { application_context: applicationContext } : {}) });
+    const host: any = new Constructor(transport, "gpt-6-luna", { ...(delegated ? { facts } : {}), maximum_questions: maximumQuestions, ...(applicationContext ? { application_context: applicationContext } : {}),...(ordinaryQuotaAccountDigest!==undefined?{ordinary_quota_account_digest:ordinaryQuotaAccountDigest}:{}) });
     return { ...f, host, original, loaded, children, invokes: () => invokes, delegatedInvokes: () => delegatedInvokes };
   }
+  it('pins prospective ordinary quota policy in the exact request without changing legacy packets',()=>{
+    const legacy=fixture(),current=fixture(false,false,16,undefined,'a'.repeat(64));
+    expect(legacy.host.originalRequest(legacy.profile,legacy.files)).not.toHaveProperty('usage_policy');
+    expect(current.host.originalRequest(current.profile,current.files)).toMatchObject({usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:'a'.repeat(64)});
+    expect(current.invokes()).toBe(0);expect(legacy.invokes()).toBe(0);expect(()=>fixture(false,false,16,undefined,'not-an-account-digest')).toThrow();
+  });
   it("executes named entry and dependencies, reads all fixed resources, and returns one Human question", async () => {
     const f = fixture(), result = await f.host.execute(f.profile, f.files, () => {});
     expect(result.output.questions).toEqual(["PUBLIC next decision? 建议：验证可观察结果。"]);

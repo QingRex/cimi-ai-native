@@ -11,9 +11,9 @@ const unavailable=()=>new LocalProjectError('原 Skill 启动账本或 Codex 安
 // Original-source lease only. Opening an existing Host never installs model,
 // credential, dispatch, budget or qualification factories.
 export const productionSkillRuntimeOriginals:HumanSkillRuntimeFactory=async(id,local)=>{
- const store=local.store,kernel=local.kernel,location=structuredClone(local.location),instance=structuredClone(local.instance);
+ const store=local.store,kernel=local.kernel,authorize=kernel.authorizeAgentRunControl,location=structuredClone(local.location),instance=structuredClone(local.instance);
  const read=()=>{
-  if(local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance))throw unavailable();
+  if(local.store!==store||local.kernel!==kernel||kernel.authorizeAgentRunControl!==authorize||!same(local.location,location)||!same(local.instance,instance))throw unavailable();
   const original=store.readSnapshot(reader=>readOriginalSkillInvocationMetadataFromReader(local,reader,id)).value;
   if(!same(readHumanOriginalAgentRunInputs(local,original.invocation.run_ref.id).scope,original.request.parent))throw unavailable();
   return original;

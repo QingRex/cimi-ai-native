@@ -21,6 +21,13 @@ describe('owned original Human startup', () => {
  const runtime=()=>{const r=Object.create(LocalAgentRuntimeComposition.prototype) as LocalAgentRuntimeComposition;r.originalScope=()=>readHumanOriginalAgentRunInputs(local,runId).scope;r.start=vi.fn(async()=>result());return r;};
  const revoke=()=>{for(const a of f.store.listAssignments(f.actor.id).filter(a=>a.role_key==='technical_owner'&&!a.ended_at))flowSuccess(f.humanKernel.execute(f.projectCommand('EndAssignment',{assignment_id:a.id,expected_assignment_revision:a.revision,reason:'Revoke controlled startup'})));};
  const replacementKernel=()=>new CimiLoopKernel({store:local.store,caller:{kind:'local_operator',project_id:local.instance.project_id,actor_id:local.instance.actor_id}});
+ it('refuses non-void request guards before staging without running arbitrary thenables',async()=>{
+  const factory=vi.fn(()=>runtime()),service=new LocalHumanAgentRuntimeStart(local,factory);let assimilations=0;
+  for(const guard of [()=>false,()=>Promise.resolve(),()=>Promise.reject(Error('PUBLIC rejected guard')),()=>({then(){assimilations++;}})]){
+   await expect(service.start(runId,guard)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});
+  }
+  await new Promise<void>(resolve=>setImmediate(resolve));expect(factory).not.toHaveBeenCalled();expect(assimilations).toBe(0);
+ });
  it.each(['start','control'] as const)('cannot replace the private Human authorization helper for %s',async action=>{
   const kernel=local.kernel,permission=action==='start'?kernel.authorizeAgentRunStart(runId):kernel.authorizeAgentRunControl(runId),factory=vi.fn(()=>runtime()),service=new LocalHumanAgentRuntimeStart(local,factory);revoke();Reflect.set(kernel,'authorizeAgentRunHuman',()=>structuredClone(permission));
   if(action==='start')await expect(service.start(runId)).rejects.toMatchObject({code:'ROLE_NOT_ASSIGNED'});else expect(kernel.authorizeAgentRunControl(runId)).toMatchObject({code:'ROLE_NOT_ASSIGNED'});expect(factory).not.toHaveBeenCalled();

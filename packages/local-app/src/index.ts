@@ -56,7 +56,9 @@ export {LocalAgentRuntimeAdmission,type AgentProductionCustodyPort} from './agen
 export type { CodexMattInstallInput, InstalledCodexMatt } from "./clarification-codex-installation-local.js";
 export {readOriginalHumanPlanClarification} from './clarification-local.js';
 export type {OriginalHumanPlanClarification} from './clarification-local.js';
-export {LocalPlanningClarificationAdmission} from './planning-clarification-local.js';
+export {LocalPlanningClarificationAdmission,LocalMattPlanClarificationVerification} from './planning-clarification-local.js';
+export {withPlanningClarificationVerification} from './project.js';
+export {withInstalledPlanningClarification} from './planning-codex-admission-local.js';
 export type {MattPlanClarificationVerification,LocalPlanningClarificationOptions} from './planning-clarification-local.js';
 export { productionAgentRuntime, PRODUCTION_ADMISSION_MISSING, PRODUCTION_ADMISSION_PLAN } from "./agent-production-admission-local.js";
 export { LocalHumanAgentRuntimeStart } from "./agent-runtime-human-start-local.js";

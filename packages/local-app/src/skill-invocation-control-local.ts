@@ -17,7 +17,12 @@ const fail=()=>new LocalProjectError('原 Skill 身份或宿主登记不可核�
 // Kernel owns all business mutations. Resource observations never generate a
 // domain result, a bill, a new Run or an implicit never-started proof.
 export class LocalHumanSkillInvocationControl {
- constructor(private readonly local:LocalProject,private readonly factory:HumanSkillRuntimeFactory=productionSkillRuntimeOriginals,private readonly port:AgentRuntimeControlPort=defaults){}
+ readonly #kernel:LocalProject['kernel'];readonly #store:LocalProject['store'];
+ readonly #method:LocalProject['kernel']['authorizeAgentRunControl'];readonly #authorize:LocalProject['kernel']['authorizeAgentRunControl'];
+ constructor(private readonly local:LocalProject,private readonly factory:HumanSkillRuntimeFactory=productionSkillRuntimeOriginals,private readonly port:AgentRuntimeControlPort=defaults){
+  this.#kernel=local.kernel;this.#store=local.store;this.#method=local.kernel.authorizeAgentRunControl;this.#authorize=this.#method.bind(local.kernel);
+ }
+ #unchanged(){if(this.local.store!==this.#store||this.local.kernel!==this.#kernel||this.#kernel.authorizeAgentRunControl!==this.#method)throw new LocalProjectError('原 Skill Kernel 授权入口发生变化','INPUT_CHANGED','conflict');}
  private original(id:string){
   const original=this.local.store.readSnapshot(reader=>readOriginalSkillInvocationMetadataFromReader(this.local,reader,id)).value;
   const human=readHumanOriginalAgentRunInputs(this.local,original.invocation.run_ref.id);
@@ -25,10 +30,10 @@ export class LocalHumanSkillInvocationControl {
  }
  private async operate(id:string,kind:'query'|'collect'|'cancel'|'recover',beforeEffect:()=>void){
   let guardError:unknown,guardFailed=false;
-  const authorize=()=>{try{synchronous(beforeEffect);}catch(error){guardError=error;guardFailed=true;throw error;}};
+  const authorize=()=>{try{this.#unchanged();synchronous(beforeEffect);this.#unchanged();}catch(error){guardError=error;guardFailed=true;throw error;}};
   authorize();const original=this.original(id),identity=structuredClone(this.local.instance),location=structuredClone(this.local.location),physical=kind==='cancel'||kind==='recover';
   const fresh=()=>{authorize();if(!same(identity,this.local.instance)||!same(location,this.local.location)||!same(this.original(id),original))throw new LocalProjectError('原 Skill 固定关系已变化','INPUT_CHANGED','conflict');
-   if(physical){const permission=this.local.kernel.authorizeAgentRunControl(original.invocation.run_ref.id);if('code'in permission)throw permission;
+   if(physical){const permission=this.#authorize(original.invocation.run_ref.id);this.#unchanged();if('code'in permission)throw permission;
     if(!this.local.store.getRun(original.invocation.run_ref.id)?.cancel_requested)throw new LocalProjectError('须先由 Kernel 记录原父 Run 取消','RECOVERY_CONDITIONS_UNMET','conflict');}
   };
   fresh();let release:(()=>void|Promise<void>)|undefined,operation:Operation=unavailable();
@@ -71,6 +76,7 @@ export class LocalHumanSkillInvocationControl {
  retryCancellation(id:string,guard:()=>void=()=>{}){return this.operate(id,'cancel',guard);}
  recover(id:string,guard:()=>void=()=>{}){return this.operate(id,'recover',guard);}
  async stop(id:string,input:unknown,beforeEffect:()=>void=()=>{}){
+  this.#unchanged();
   const command=structuredClone(input),local=this.local,identity={store:local.store,kernel:local.kernel,authorize:local.kernel.authorizeAgentRunControl,instance:structuredClone(local.instance),location:structuredClone(local.location)};
   const changed=()=>new LocalProjectError('原 Skill 停止入口或固定关系发生变化','INPUT_CHANGED','conflict');
   const identityGuard=()=>{if(local.store!==identity.store||local.kernel!==identity.kernel||local.kernel.authorizeAgentRunControl!==identity.authorize||!same(local.instance,identity.instance)||!same(local.location,identity.location))throw changed();};

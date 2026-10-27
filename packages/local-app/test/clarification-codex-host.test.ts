@@ -92,6 +92,10 @@ describe("concrete Codex pre-plan clarification host", () => {
     const Constructor = Reflect.get(app, "CodexMattClarificationHost"); expect(Constructor).toBeTypeOf("function");
     expect(() => new Constructor({ source: modified, runtime: { async execute() { throw Error("PUBLIC must not execute"); }, readOriginal() { return null; } }, model: "gpt-6-luna", origin: "public_fixture" })).toThrow();
   });
+  it('cannot substitute public method output for actual original execution controls',async()=>{
+    const x=setup();await x.service.advanceAsync(x.change.id,x.session.id,x.request);const input=x.context(),original=await x.host.readOriginal(input),read=Reflect.get(x.host,'readExecutionControls');
+    if(!original)throw Error('PUBLIC original missing');expect(read).toBeTypeOf('function');expect(()=>read.call(x.host,input,original)).toThrow();expect(x.calls()).toBe(1);
+  });
   it("does not label an arbitrary public transport as an external model runtime", () => {
     const Constructor = Reflect.get(app, "CodexMattClarificationHost");
     expect(() => Reflect.construct(Constructor, [{ source, runtime: { async execute() { throw Error("PUBLIC must not execute"); }, readOriginal() { return null; } }, model: "gpt-6-luna", origin: "external_model" }])).toThrow();

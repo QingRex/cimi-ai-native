@@ -13,7 +13,7 @@ import { LocalProviderVerifier } from "./providers-local.js";
 import{executeProviderCommandWithSources}from'./provider-command-sources-local.js';
 import type{DedicatedAgentAccountLedger}from'@cimiloop/runtime-adapter';
 import type{LocalAgentRunFamilyVerification}from'./agent-run-family-costs-local.js';
-import {LocalPlanningClarificationAdmission,type LocalPlanningClarificationOptions} from './planning-clarification-local.js';
+import {LocalPlanningClarificationAdmission,type LocalPlanningClarificationOptions,type MattPlanClarificationVerification} from './planning-clarification-local.js';
 
 import type{LocalAgentParentSkillResultPort}from'./agent-parent-skill-results-local.js';
 import type { MattClarificationHost } from './clarification-matt-local.js';
@@ -28,6 +28,14 @@ export interface LocalProject {
 
 const installedRunVerifiers = new WeakMap<SqliteProjectStore, LocalRunVerifier>();
 const installedProviderVerifiers=new WeakMap<SqliteProjectStore,LocalProviderVerifier>();
+const installedPlanning=new WeakMap<SqliteProjectStore,{kernel:CimiLoopKernel;admission:LocalPlanningClarificationAdmission}>();
+export const needsInstalledPlanningClarification=(local:LocalProject)=>installedPlanning.get(local.store)?.admission.needsInstalledMatt===true;
+// Synchronous code-only window around the existing Kernel transaction. No
+// HTTP option or serialized verdict can install a historical verifier.
+export function withPlanningClarificationVerification<T>(local:LocalProject,verifier:MattPlanClarificationVerification,run:()=>T):T{
+ const installed=installedPlanning.get(local.store);if(!installed||installed.kernel!==local.kernel)throw new LocalProjectError('原计划准入入口发生变化','INPUT_CHANGED','conflict');
+ return installed.admission.withOriginalVerifier(verifier,run);
+}
 export const installedProviderVerifier=(local:Pick<LocalProject,'store'>)=>installedProviderVerifiers.get(local.store);
 export const installedRunVerifier = (local: Pick<LocalProject, "store">) => installedRunVerifiers.get(local.store);
 // Only a trusted local launcher supplies the project directory and operator.
@@ -52,11 +60,13 @@ export const openLocalProject = (options: { projectDir?: string; prePlanMatt?:Ma
     const skillResults=options.skillInvocationResults??options.agentRunFamilySkills;
     if(skillResults){const readResult=skillResults.readResult;if(typeof readResult!=='function')throw Error('Skill historical reader unavailable');runVerifier.agent.skills={prepare:()=>{throw Error('Skill execution unavailable');},readResult:readResult.bind(skillResults)};}
     const providerVerifier=new LocalProviderVerifier(location.repositoryPath,location.dataDirectory);
+    const planning=new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification??{});
     const kernel = new CimiLoopKernel({ store, caller: { kind: "local_operator", project_id: project.id, actor_id: actor.id },
       evidenceVerifier: new LocalEvidenceVerifier(location.repositoryPath, location.dataDirectory),
       runVerifier,
       providerVerifier,
-      ...(options.legacyManualPlanning===true?{legacyManualPlanning:true}:{planningClarification:new LocalPlanningClarificationAdmission(location.dataDirectory,options.planningClarification??{})}) });
+      ...(options.legacyManualPlanning===true?{legacyManualPlanning:true}:{planningClarification:planning}) });
+    if(options.legacyManualPlanning!==true)installedPlanning.set(store,{kernel,admission:planning});
     installedRunVerifiers.set(store, runVerifier);
     installedProviderVerifiers.set(store,providerVerifier);
     return { location, instance, store, kernel,...(options.prePlanMatt?{prePlanMatt:options.prePlanMatt}:{}),...(options.agentParentSkillResults?{agentParentSkillResults:Object.freeze({forOriginal:options.agentParentSkillResults.forOriginal.bind(options.agentParentSkillResults)})}:{}) };

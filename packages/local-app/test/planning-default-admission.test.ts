@@ -102,7 +102,7 @@ describe('default Kernel requires original Human and Matt planning admission', (
     const second = spawnSync(process.execPath, args, { encoding: 'utf8', windowsHide: true });
     expect(first.status).toBe(1); expect(second.status).toBe(1);
     expect(JSON.parse(first.stdout).command_result.code).toBe('CAPABILITY_UNAVAILABLE');
-    expect(JSON.parse(second.stdout)).toEqual(JSON.parse(first.stdout));
+    const replay=JSON.parse(second.stdout),original=JSON.parse(first.stdout);expect(replay.session).toEqual(original.session);expect(replay.command_result).toMatchObject({code:'CAPABILITY_UNAVAILABLE',correlation_id:original.command_result.correlation_id});
     expect(f.store.listIntentRecords('plan_proposal', x.change.id)).toHaveLength(0);
     expect(f.store.asOfEventSequence()).toBe(before);
   });

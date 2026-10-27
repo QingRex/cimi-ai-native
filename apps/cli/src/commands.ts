@@ -15,7 +15,7 @@ import { VerificationShowResultSchema } from "@cimiloop/protocol/v2";
 import { LocalEvidenceVerifier } from "./evidence-local.js";
 import { LocalRunVerifier } from "./runs-local.js";
 import { LocalProviderVerifier } from "./providers-local.js";
-import { openLocalProject, executeHumanAgentRunCommandAsync, agentPreparationWorkItem, LocalPrePlanClarification, LocalSkillPackageStore, openInstalledCodexMatt,executeProviderCommandWithSources,installedProviderVerifier, type InstalledCodexMatt } from "@cimiloop/local-app";
+import { openLocalProject, withInstalledPlanningClarification, executeHumanAgentRunCommandAsync, agentPreparationWorkItem, LocalPrePlanClarification, LocalSkillPackageStore, openInstalledCodexMatt,executeProviderCommandWithSources,installedProviderVerifier, type InstalledCodexMatt } from "@cimiloop/local-app";
 import { SkillPackageInspectionResultSchema, type SkillPackageInspectionResult, type ProviderRegistration } from "@cimiloop/protocol/v2";
 import { RunShowResultSchema, ProviderCatalogResultSchema } from "@cimiloop/protocol/v2";
 import { MigrationRunner, SqliteProjectRegistry, SqliteProjectStore } from "@cimiloop/store-sqlite";
@@ -271,11 +271,15 @@ export const resumeChange = (
 ): void => transitionChange("ResumeChange", idOrKey, undefined, options);
 
 interface GovernanceOptions extends GlobalOptions { expectedRevision?: string; rawFile?: string }
+// Both CLI planning entry families borrow the same original verifier used by UI.
+async function withPlanningProject(options:GlobalOptions,run:(local:ReturnType<typeof openProject>)=>void):Promise<void>{
+ const local=openProject(options);try{await withInstalledPlanningClarification(local,()=>run(local),()=>{},options.commandId);}finally{local.store.close();}
+}
 const runGovernance = (commandType: "RegisterProvider" | "RecordProviderEvidence" | "EvaluateProvider" | "RegisterProviderBinding" | "RegisterActor" | "AssignResponsibility" | "EndAssignment" | "TransferChangeResponsibility" |
   "UpdateProjectSettings" | "CreateTargetVersion" | "CloseTargetVersion" | "ChangePlanning" | "StartChange" |
   "SubmitContractProposal" | "SubmitPlanProposal" | "RecordRiskAssessment" | "RequestDecision" | "RecordDecision" | "ConfirmContract" | "ConfirmPlan",
-  options: GovernanceOptions, payload: Record<string, unknown>, changeKey?: string): void => {
-  const context = openProject(options);
+  options: GovernanceOptions, payload: Record<string, unknown>, changeKey?: string, supplied?:ReturnType<typeof openProject>): void => {
+  const context = supplied??openProject(options);
   try {
     const project = context.store.getProject();
     if (!project) throw new Error("Project 缺失");
@@ -351,7 +355,7 @@ const runGovernance = (commandType: "RegisterProvider" | "RecordProviderEvidence
     if ("decision" in result.data) stdout.write(`决定：${result.data.decision.id}（${result.data.decision.choice}）\n`);
     if ("contract_version" in result.data) stdout.write(`正式约定：${result.data.contract_version.id}（版本${result.data.contract_version.version}）\n`);
     if ("plan_version" in result.data) stdout.write(`正式计划：${result.data.plan_version.id}（版本${result.data.plan_version.version}）\n`);
-  } finally { context.store.close(); }
+  } finally { if(!supplied)context.store.close(); }
 };
 
 export const registerActor = (options: GovernanceOptions & { type: string; name: string; email?: string;
@@ -483,11 +487,12 @@ export const changePlanning = (idOrKey: string, options: GovernanceOptions & { r
 };
 export const startChange = (idOrKey: string, options: GovernanceOptions & { planId: string; planVersion: string; reason: string }): void =>
   runGovernance("StartChange", options, { plan_ref: { object_type: "plan_version", id: options.planId, domain_version: Number(options.planVersion) }, opening_reason: options.reason }, idOrKey);
-export const submitIntentProposal = (kind: "contract" | "plan", id: string, options: GovernanceOptions & { file: string; proposalId?: string; expectedProposalRevision?: string; baseId?: string; baseVersion?: string }): void => {
+export const submitIntentProposal = (kind: "contract" | "plan", id: string, options: GovernanceOptions & { file: string; proposalId?: string; expectedProposalRevision?: string; baseId?: string; baseVersion?: string }): void|Promise<void> => {
   if (!!options.baseId !== !!options.baseVersion) throw new CliInputError("base-id与base-version须同时提供");
-  runGovernance(kind === "contract" ? "SubmitContractProposal" : "SubmitPlanProposal", options, { body: readJsonObject(options.file),
+  const payload = { body: readJsonObject(options.file),
     ...(options.proposalId ? { proposal_id: options.proposalId } : {}), ...(options.expectedProposalRevision !== undefined ? { expected_proposal_revision: Number(options.expectedProposalRevision) } : {}),
-    ...(options.baseId ? { base_version_ref: { object_type: `${kind}_version`, id: options.baseId, domain_version: Number(options.baseVersion) } } : {}) }, id);
+    ...(options.baseId ? { base_version_ref: { object_type: `${kind}_version`, id: options.baseId, domain_version: Number(options.baseVersion) } } : {}) };
+  return kind==='plan'?withPlanningProject(options,context=>runGovernance("SubmitPlanProposal",options,payload,id,context)):runGovernance("SubmitContractProposal",options,payload,id);
 };
 export const assessRisk = (id: string, options: GovernanceOptions & { proposalId: string; proposalRevision: string; level: string; reason: string }): void =>
   runGovernance("RecordRiskAssessment", options, { proposal_ref: { object_type: "contract_proposal", id: options.proposalId, domain_version: Number(options.proposalRevision) }, level: options.level, rationale: options.reason }, id);
@@ -497,9 +502,11 @@ export const requestIntentDecision = (id: string, options: GovernanceOptions & {
     ...(options.riskId ? { risk_ref: { object_type: "risk_assessment", id: options.riskId } } : {}), ...(options.expiresAt ? { expires_at: options.expiresAt } : {}) }, id);
 export const recordIntentDecision = (id: string, options: GovernanceOptions & { requestId: string; inputDigest: string; choice: string; reason: string; condition?: string[] }): void =>
   runGovernance("RecordDecision", options, { request_id: options.requestId, input_digest: { algorithm: "sha256", value: options.inputDigest }, choice: options.choice, reason: options.reason, conditions: options.condition ?? [] }, id);
-export const confirmIntent = (kind: "contract" | "plan", id: string, options: GovernanceOptions & { proposalId: string; proposalRevision: string; requestId: string; decisionId: string; inputDigest: string }): void =>
-  runGovernance(kind === "contract" ? "ConfirmContract" : "ConfirmPlan", options, { proposal_ref: { object_type: `${kind}_proposal`, id: options.proposalId, domain_version: Number(options.proposalRevision) },
-    decision_request_ref: { object_type: "decision_request", id: options.requestId }, decision_ref: { object_type: "decision", id: options.decisionId }, input_digest: { algorithm: "sha256", value: options.inputDigest } }, id);
+export const confirmIntent = (kind: "contract" | "plan", id: string, options: GovernanceOptions & { proposalId: string; proposalRevision: string; requestId: string; decisionId: string; inputDigest: string }): void|Promise<void> => {
+  const payload = { proposal_ref: { object_type: `${kind}_proposal`, id: options.proposalId, domain_version: Number(options.proposalRevision) },
+    decision_request_ref: { object_type: "decision_request", id: options.requestId }, decision_ref: { object_type: "decision", id: options.decisionId }, input_digest: { algorithm: "sha256", value: options.inputDigest } };
+  return kind==='plan'?withPlanningProject(options,context=>runGovernance("ConfirmPlan",options,payload,id,context)):runGovernance("ConfirmContract",options,payload,id);
+};
 export const showIntent = (id: string, options: GlobalOptions): void => {
   const context = openProject(options);
   try {
@@ -514,9 +521,9 @@ export const showIntent = (id: string, options: GlobalOptions): void => {
     for (const decision of result.decisions) stdout.write(`决定 ${decision.id}\t${decision.choice}\t${decision.reason}\t条件：${decision.conditions.join("；") || "无"}\n`);
   } finally { context.store.close(); }
 };
-export const executionMutation = (kind: "InitializePlanTasks" | "PublishStandingAuthorization" | "RevokeStandingAuthorization" | "CreateWorkItem" | "RevokeWorkItem", id: string | undefined,
-  options: GovernanceOptions & { file?: string; planId?: string; planVersion?: string; reason?: string }): void => {
-  const context = openProject(options);
+const executionMutationInContext = (kind: "InitializePlanTasks" | "PublishStandingAuthorization" | "RevokeStandingAuthorization" | "CreateWorkItem" | "RevokeWorkItem", id: string | undefined,
+  options: GovernanceOptions & { file?: string; planId?: string; planVersion?: string; reason?: string },supplied?:ReturnType<typeof openProject>): void => {
+  const context = supplied??openProject(options);
   try {
     const project = context.store.getProject()!;
     const previous = options.commandId ? context.store.transaction(tx => tx.getCommandReceipt(options.commandId!))?.result : undefined;
@@ -541,8 +548,10 @@ export const executionMutation = (kind: "InitializePlanTasks" | "PublishStanding
     if ("work_item" in result.data) stdout.write(`WorkItem：${result.data.work_item.id}\t${result.data.work_item.status}\n`);
     if ("authorization" in result.data) stdout.write(`Authorization：${result.data.authorization.id}\n`);
     if ("authorization_version" in result.data) stdout.write(`精确授权版本：${result.data.authorization_version.id}\t${result.data.authorization_version.version}\n`);
-  } finally { context.store.close(); }
+  } finally { if(!supplied)context.store.close(); }
 };
+export const executionMutation=(...args:Parameters<typeof executionMutationInContext>):void|Promise<void>=>args[0]==='InitializePlanTasks'?withPlanningProject(args[2],context=>executionMutationInContext(args[0],args[1],args[2],context)):executionMutationInContext(...args);
+
 export const showExecution = (mode: "task" | "work_item" | "authorization", change: string | undefined, options: GlobalOptions): void => {
   const context = openProject(options);
   try {

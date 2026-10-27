@@ -3,13 +3,14 @@ import { closeSync, existsSync, lstatSync, openSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { isDeepStrictEqual } from "node:util";
-import { ChangeSchema, ContractBodySchema, PlanBodySchema, compileValidator, type Change, type ContractBody, type PlanBody } from "@cimiloop/protocol/v2";
+import { ChangeSchema, ContractBodySchema, ContractVersionSchema, PlanBodySchema, compileValidator, type Change, type ContractBody, type ContractVersion, type PlanBody } from "@cimiloop/protocol/v2";
 import { assertOrdinaryPath, directory, parseGatewayJson } from "@cimiloop/runtime-adapter";
 import { executeLocalCommand, type LocalProject } from "./project.js";
 import { LocalProjectError } from "./errors.js";
 import {requestDigest,type PlanningClarificationBasis} from '@cimiloop/kernel';
+import {withInstalledPlanningClarification} from './planning-codex-admission-local.js';
 import { mattClarificationInput, mattClarificationQuestions, parseMattClarificationOriginal,
-  type MattClarificationHost, type MattClarificationOriginal } from './clarification-matt-local.js';
+  type MattClarificationHost, type MattClarificationInput, type MattClarificationOriginal } from './clarification-matt-local.js';
 
 const FORMAT = "cimiloop/pre-plan-clarification/1.0.0", APP_ID = 0x43494d43;
 const PLAN_FORMAT = "cimiloop/pre-plan-clarification/2.0.0";
@@ -38,7 +39,7 @@ const strict = (raw: unknown, keys: string[]): Record<string, unknown> => {
 export interface ClarificationBegin { request_id: string; requirement: string; background: string; constraints: string[]; target?: "plan" }
 export type ClarificationAction = { request_id: string; expected_head: number } & (
   { kind: "question"; text: string } | { kind: "answer"; question_id: string; text: string } |
-  { kind: "matt" } | { kind: "candidate"; requested_at: string; body: ContractBody } | { kind: "plan_candidate"; requested_at: string; body: PlanBody });
+  { kind: "matt"; review_plan?: { body: PlanBody; contract: ContractVersion } } | { kind: "candidate"; requested_at: string; body: ContractBody } | { kind: "plan_candidate"; requested_at: string; body: PlanBody });
 interface Basis { format: typeof FORMAT | typeof PLAN_FORMAT; id: string; change_id: string; project_id: string; actor_id: string; change: Change; request: ClarificationBegin }
 const isCandidate = (request: ClarificationAction): request is Extract<ClarificationAction, { kind: "candidate" | "plan_candidate" }> => request.kind === "candidate" || request.kind === "plan_candidate";
 interface Step { request: ClarificationAction; command_result?: ReturnType<typeof executeLocalCommand>; method_result?: MattClarificationOriginal }
@@ -57,11 +58,15 @@ const parseBegin = (raw: unknown): ClarificationBegin => {
 };
 const parseAction = (raw: unknown): ClarificationAction => {
   const value = copy(raw) as Record<string, unknown>, kind = value?.kind;
-  const extras = kind === "question" ? ["text"] : kind === "answer" ? ["question_id", "text"] : kind === "candidate" || kind === "plan_candidate" ? ["requested_at", "body"] : kind === "matt" ? [] : fail("不支持的澄清动作");
+  const extras = kind === "question" ? ["text"] : kind === "answer" ? ["question_id", "text"] : kind === "candidate" || kind === "plan_candidate" ? ["requested_at", "body"] : kind === "matt" ? (Object.hasOwn(value,'review_plan')?['review_plan']:[]) : fail("不支持的澄清动作");
   strict(value, ["request_id", "expected_head", "kind", ...extras]); id(value.request_id);
   if (!Number.isSafeInteger(value.expected_head) || Number(value.expected_head) < 0 || Number(value.expected_head) >= 64) fail("无效澄清轮次");
   if (kind === "question" || kind === "answer") text(value.text);
   if (kind === "answer") id(value.question_id);
+  if(kind==='matt'&&Object.hasOwn(value,'review_plan')){
+    const review=strict(value.review_plan,['body','contract']);
+    try{parsePlan(review.body);compileValidator<ContractVersion>(ContractVersionSchema)(review.contract);}catch{fail('需要完整的原正式约定和计划候选');}
+  }
   if (kind === "candidate" || kind === "plan_candidate") {
     if (typeof value.requested_at !== "string" || !Number.isFinite(Date.parse(value.requested_at)) ||
       new Date(value.requested_at).toISOString() !== value.requested_at) fail("需要固定的原请求时间");
@@ -157,6 +162,7 @@ class ClarificationLedger {
         const request = item.request;
         if (isCandidate(request) && (request.kind !== (basis.request.target === "plan" ? "plan_candidate" : "candidate") ||
           request.kind === "plan_candidate" && !isDeepStrictEqual(request.body.contract_ref, basis.change.contract_ref))) corrupt();
+        if(request.kind==='matt'&&request.review_plan&&(basis.request.target!=='plan'||!isDeepStrictEqual(request.review_plan.body.contract_ref,basis.change.contract_ref)||request.review_plan.contract.id!==basis.change.contract_ref?.id||request.review_plan.contract.version!==basis.change.contract_ref.domain_version||request.review_plan.contract.project_id!==basis.project_id||request.review_plan.contract.change_id!==basis.change_id))corrupt();
         if (!item.step) { session.pending = true; session.pending_request = structuredClone(request); session.head++; continue; }
         if (request.kind === "question") session.questions.push({ id: request.request_id, text: request.text });
         else if (request.kind === "answer") {
@@ -297,6 +303,7 @@ export class LocalPrePlanClarification {
       }
     };
     requestGuard();
+    if(request.kind==='plan_candidate')return withInstalledPlanningClarification(this.context,()=>this.advance(changeId,sessionId,request),requestGuard,request.request_id);
     if (request.kind !== "matt" || !this.matt) {
       const result = this.advance(changeId, sessionId, request); requestGuard(); return result;
     }
@@ -323,6 +330,7 @@ export class LocalPrePlanClarification {
         this.prePlan(changeId, session.basis.change, session.basis.request.target);
         if (session.pending || session.submitted) fail("原会话已有待核对或已提交动作", "RECOVERY_CONDITIONS_UNMET", "conflict");
         if (request.expected_head !== session.head) fail("澄清依据已变化", "REVISION_CONFLICT", "conflict");
+        if(request.review_plan&&(session.basis.request.target!=='plan'||!isDeepStrictEqual(request.review_plan.body.contract_ref,session.basis.change.contract_ref)||!isDeepStrictEqual(request.review_plan.contract,this.context.store.getIntentRecord('contract_version',session.basis.change.contract_ref?.id??''))))fail('Matt 计划复查必须引用原正式约定','EVIDENCE_MISSING','conflict');
         if (62 - session.head - session.unanswered.length < 0)
           fail("原会话剩余轮次不足以完成方法、Human 回答和候选；未调用方法", "RECOVERY_CONDITIONS_UNMET", "conflict");
         // Reject an unexecutable packet before persisting any pending intent.
@@ -421,7 +429,7 @@ export class LocalPrePlanClarification {
       const command_result = executeLocalCommand(this.context, { command_id: request.request_id, requested_at: candidate.requested_at,
         acting_role: candidate.kind === "plan_candidate" ? "technical_owner" : "change_owner", command_type: candidate.kind === "plan_candidate" ? "SubmitPlanProposal" : "SubmitContractProposal", target: { object_type: "change", id: changeId },
         expected_revision: session.basis.change.revision, payload: { base_version_ref: (candidate.kind === "plan_candidate" ? session.basis.change.plan_ref : session.basis.change.contract_ref) ?? null, body: candidate.body } });
-      if ("code" in command_result && (command_result.retryable || ["storage", "internal"].includes(command_result.category))) {
+      if ("code" in command_result && (command_result.retryable || ["storage", "internal"].includes(command_result.category) || candidate.kind==='plan_candidate'&&['CAPABILITY_UNAVAILABLE','EVIDENCE_MISSING'].includes(command_result.code))) {
         return { ok: true, session: ledger.session(sessionId), command_result };
       }
       ledger.transaction(() => {
@@ -441,7 +449,7 @@ export interface OriginalHumanPlanClarification {
 }
 // Reads existing immutable private format 2. This is not a Matt invocation or
 // qualification, and never creates/repairs historical sessions or databases.
-export function readOriginalHumanPlanClarification(dataDirectory:string,basis:PlanningClarificationBasis):OriginalHumanPlanClarification {
+function readPlanClarificationOriginal(dataDirectory:string,basis:PlanningClarificationBasis) {
  const path=join(dataDirectory,'pre-plan-clarifications','originals.sqlite');assertOrdinaryPath(path);if(!existsSync(path))corrupt();
  const ledger=new ClarificationLedger(path,false);
  try {
@@ -468,6 +476,17 @@ export function readOriginalHumanPlanClarification(dataDirectory:string,basis:Pl
    !session.questions.length||session.unanswered.length||session.questions.some(question=>!question.answer)||
    session.steps.some(step=>step.request.expected_head>=candidate.expected_head&&step.request.kind!=='plan_candidate'))corrupt();
   const original={format:'cimiloop/human-plan-clarification-original/1.0.0' as const,session_id:session.id,basis:session.basis,questions:session.questions,candidate};
-  return {...structuredClone(original),input_digest:requestDigest(original)};
+  const human:OriginalHumanPlanClarification={...structuredClone(original),input_digest:requestDigest(original)};
+  const methods=session.steps.flatMap(step=>{
+    if(step.request.kind!=='matt')return[];
+    const input=mattClarificationInput(ledger.session(session.id,step.request.expected_head),step.request);
+    return[{input,original:parseMattClarificationOriginal(input,step.method_result)}];
+  });
+  return {human,methods};
  }finally{ledger.close();}
 }
+export function readOriginalHumanPlanClarification(dataDirectory:string,basis:PlanningClarificationBasis):OriginalHumanPlanClarification{return readPlanClarificationOriginal(dataDirectory,basis).human;}
+export interface OriginalMattPlanClarification {human:OriginalHumanPlanClarification;methods:{input:MattClarificationInput;original:MattClarificationOriginal}[]}
+// Complete original inputs are rebuilt from the private immutable transcript,
+// including every preceding Human answer. No new session or model operation.
+export function readOriginalMattPlanClarification(dataDirectory:string,basis:PlanningClarificationBasis):OriginalMattPlanClarification{return readPlanClarificationOriginal(dataDirectory,basis);}

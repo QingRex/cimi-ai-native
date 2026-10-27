@@ -26,7 +26,7 @@ describe('default strict planning admission in the existing HTTP paths',()=>{
   }finally{local.store.close();}
   const post=await connection(),seq=f.store.asOfEventSequence(),request={request_id:createInternalId(),expected_head:2,kind:'plan_candidate',requested_at:new Date().toISOString(),body:planBody(change.id,current.contract_ref!)};
   const result=await post('/api/changes/'+change.id+'/clarifications/'+sessionId,request);
-  expect(result).toMatchObject({status:409,body:{command_result:{code:'CAPABILITY_UNAVAILABLE'},session:{pending:false,submitted:true}}});
-  expect(await post('/api/changes/'+change.id+'/clarifications/'+sessionId,request)).toEqual(result);expect(f.store.asOfEventSequence()).toBe(seq);expect(f.store.listIntentRecords('plan_proposal',change.id)).toHaveLength(0);
+  expect(result).toMatchObject({status:409,body:{command_result:{code:'CAPABILITY_UNAVAILABLE'},session:{pending:true,submitted:false}}});
+  const replay=await post('/api/changes/'+change.id+'/clarifications/'+sessionId,request);expect(replay).toMatchObject({status:409,body:{session:{pending:true,submitted:false,pending_request:request},command_result:{code:'CAPABILITY_UNAVAILABLE',correlation_id:request.request_id}}});expect(f.store.asOfEventSequence()).toBe(seq);expect(f.store.listIntentRecords('plan_proposal',change.id)).toHaveLength(0);
  });
 });

@@ -32,7 +32,8 @@ export class LocalHumanAgentRuntimeStart {
   let checkError:unknown;
   const check=()=>{try{
    this.#assertIdentity();
-   requestGuard?.();
+   const result:unknown=requestGuard?.();
+   if(result!==undefined){try{void Promise.prototype.then.call(result,undefined,()=>{});}catch{/* Do not execute arbitrary thenables. */}throw unavailable();}
    const fresh=this.#authorize(runId);if('code' in fresh)throw fresh;
    if(!isDeepStrictEqual(fresh,authorized)||!isDeepStrictEqual(readHumanOriginalAgentRunInputs(this.local,runId).scope,original.scope))
     throw new LocalProjectError('原启动请求权限或固定范围已改变','INPUT_CHANGED','conflict');

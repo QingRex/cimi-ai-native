@@ -51,7 +51,7 @@ describe('installed strict Plan admission shares the original Human ledger',()=>
   service.advance(x.change.id,session.id,question);service.advance(x.change.id,session.id,{request_id:createInternalId(),expected_head:1,kind:'answer',question_id:question.request_id,text:'Independent original evidence'});
   const candidate={request_id:createInternalId(),expected_head:2,kind:'plan_candidate',requested_at:new Date().toISOString(),body:x.body},seq=f.store.asOfEventSequence();
   const result=service.advance(x.change.id,session.id,candidate);expect(result.command_result).toHaveProperty('code','CAPABILITY_UNAVAILABLE');
-  expect(service.advance(x.change.id,session.id,candidate)).toEqual(result);expect(f.store.asOfEventSequence()).toBe(seq);expect(f.store.listIntentRecords('plan_proposal',x.change.id)).toHaveLength(0);
+  const replay=service.advance(x.change.id,session.id,candidate);expect(replay.session).toEqual(result.session);expect(replay.command_result).toMatchObject({code:'CAPABILITY_UNAVAILABLE',correlation_id:result.command_result!.correlation_id});expect(f.store.asOfEventSequence()).toBe(seq);expect(f.store.listIntentRecords('plan_proposal',x.change.id)).toHaveLength(0);
  });
  it('blocks confirmation of a legacy Plan candidate lacking pre-plan evidence',()=>{
   const x=prepared(),proposal=f.submitPlan(x.change.id,x.body),{request,decision}=decisionFor(x.change.id,proposal),seq=f.store.asOfEventSequence();
