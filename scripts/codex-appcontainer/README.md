@@ -84,6 +84,23 @@ node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source-pipe --pr
 
 源盘和目标盘均受各自空间停止线约束，完整构建仍为2GiB，有限阶段仍为512MiB；目标盘有空间不允许耗尽源盘。新阶段结果增加 `target_directory`，产物位置对应 `<target-directory>/x86_64-pc-windows-msvc/release`，后续模块夹具也从同一目标读取。显式选择新配置和全新阶段名运行，不覆盖旧工具配置或收据。
 
+### 保留 V8 sandbox 的源码构建
+
+固定 `v8-150.4.0` 的官方 release 缺少 Windows `ptrcomp_sandbox` 预编译库时，不能替换为普通库或关闭源码中的 `v8_enable_sandbox`。可在另存的格式1／2／3配置中显式增加：
+
+```json
+{
+  "v8_source_build": {
+    "format": "cimiloop/locked-v8-sandbox-source/1.0.0",
+    "clang_root": "D:/private-llvm/clang+llvm-20.1.8-x86_64-pc-windows-msvc"
+  }
+}
+```
+
+此片段须与实际工具字段合并。先从 [LLVM 官方发行版](https://github.com/llvm/llvm-project/releases/tag/llvmorg-20.1.8)取得 Windows 工具归档，核对官方摘要并解包到本批私有普通目录，不安装到全局。目录须包含实际 `bin/clang.exe`、`clang-cl.exe`、`libclang.dll`、`lld-link.exe`；最后一项由固定 V8 工具链用于链接及 `/lib` 静态归档。版本和依赖需在本机实际核验。运行器封存这四份文件的摘要与物理身份，并在阶段结束复读；不声称封存整个 LLVM 发行版及全部依赖。
+
+该选项只设置 `V8_FROM_SOURCE=1`、单 Cargo job、`CLANG_BASE_PATH` 和 `LIBCLANG_PATH`，拒绝其他字段及任意 GN 参数。固定 Cargo 锁和 sandbox feature 保持。上游源码构建脚本可能下载其固定 GN／Ninja／Chromium Rust 工具；Cargo 的 `--offline` 只约束 Cargo 依赖解析，不能解释为整个构建零网络。仍在不继承登录／用户配置的开发 Job 内运行，保留空间停止线、失败原件与源码后验。新结果额外记录 `v8_source_originals`，实际源码构建失败不能由配置通过代替。
+
 ## 执行各阶段
 
 从主仓库运行。每次阶段名必须全新；已有阶段拒绝覆盖。首次 `fetch` 访问固定 Cargo 依赖来源，后续测试及构建使用 `--locked --offline`：

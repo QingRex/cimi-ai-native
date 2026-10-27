@@ -5,7 +5,7 @@ import {mkdirSync,readFileSync,writeFileSync,openSync,closeSync,writeSync,lstatS
 import {resolve,join,dirname,isAbsolute,relative} from 'node:path';
 import {prepareSource} from './prepare-source.mjs';
 import {preparePipeModuleSource,verifyPipeModuleSource} from './prepare-pipe-modules.mjs';
-import {privateBuildTarget} from './build-target.mjs';
+import {privateBuildTarget,privateV8SourceBuild} from './build-target.mjs';
 import {fileURLToPath} from 'node:url';
 
 const [rawRoot,stage,action,toolsFlag,toolsPath]=process.argv.slice(2);
@@ -14,9 +14,10 @@ function ordinary(path){path=resolve(path);for(let current=path;;current=dirname
 const root=realpathSync.native(ordinary(rawRoot)),configPath=ordinary(toolsPath??join(root,'build-tools.json'));
 const configRelative=relative(root,configPath);if(isAbsolute(configRelative)||configRelative==='..'||configRelative.startsWith('..\\'))throw Error('Build tools file must be in the private build root');
 const config=JSON.parse(readFileSync(configPath,'utf8'));
-const separateTarget=config.format==='cimiloop/private-codex-build-tools/3.0.0',pipeSource=separateTarget||config.format==='cimiloop/private-codex-build-tools/2.0.0',keys=['format','git','python','visual_studio','msvc_environment',...(pipeSource?['source_policy','reqwest_archives']:[]),...(separateTarget?['target_directory']:[])];
+const separateTarget=config.format==='cimiloop/private-codex-build-tools/3.0.0',pipeSource=separateTarget||config.format==='cimiloop/private-codex-build-tools/2.0.0',keys=['format','git','python','visual_studio','msvc_environment',...(pipeSource?['source_policy','reqwest_archives']:[]),...(separateTarget?['target_directory']:[]),...(Object.hasOwn(config,'v8_source_build')?['v8_source_build']:[])];
 if(Object.keys(config).sort().join(',')!==keys.sort().join(',')||!pipeSource&&config.format!=='cimiloop/private-codex-build-tools/1.0.0'||pipeSource&&config.source_policy!=='original_named_pipe_tls/1.0.0')throw Error('Invalid private build tool configuration');
 const targetRoot=privateBuildTarget(root,config);
+const v8BuildBefore=privateV8SourceBuild(config);
 for(const key of ['git','python','visual_studio','msvc_environment'])if(typeof config[key]!=='string'||!isAbsolute(config[key]))throw Error('Build tool paths must be absolute');
 const sourceOptions=pipeSource?{privatePipe:true,reqwestArchives:config.reqwest_archives}:{};
 // The original .1 checkout remains immutable. Full .2 builds use a separate
@@ -30,6 +31,7 @@ if(!existsSync(vsCommand)||/["%\r\n&|<>!]/.test(vsCommand))throw Error('Unsuppor
 const envRelative=relative(root,config.msvc_environment);if(isAbsolute(envRelative)||envRelative==='..'||envRelative.startsWith('..\\'))throw Error('MSVC environment must be in the private build root');
 const system=process.env.SystemRoot??'C:\\Windows',env={SystemRoot:system,WINDIR:system,ComSpec:join(system,'System32/cmd.exe'),PATH:join(system,'System32')+';'+dirname(config.git),HOME:join(root,'home'),USERPROFILE:join(root,'home'),LOCALAPPDATA:join(root,'local'),APPDATA:join(root,'roaming'),TEMP:join(root,'temp'),TMP:join(root,'temp'),CARGO_HOME:join(root,'cargo'),RUSTUP_HOME:join(root,'rustup'),CARGO_TARGET_DIR:targetRoot,RUSTUP_TOOLCHAIN:'1.95.0',CARGO_INCREMENTAL:'0',CARGO_BUILD_JOBS:'2',CARGO_PROFILE_DEV_DEBUG:'0',CARGO_PROFILE_TEST_DEBUG:'0',CARGO_PROFILE_RELEASE_DEBUG:'0',CARGO_PROFILE_RELEASE_LTO:'false',CARGO_PROFILE_RELEASE_OPT_LEVEL:'1',CARGO_PROFILE_RELEASE_CODEGEN_UNITS:'16',CARGO_PROFILE_RELEASE_STRIP:'debuginfo',GIT_TERMINAL_PROMPT:'0',VSCMD_SKIP_SENDTELEMETRY:'1',DOTNET_CLI_TELEMETRY_OPTOUT:'1',PYTHON:config.python,PYTHONNOUSERSITE:'1',PYTHONDONTWRITEBYTECODE:'1'};
 if(action==='check-pipe-modules')env.CARGO_BUILD_JOBS='1';
+if(v8BuildBefore)Object.assign(env,v8BuildBefore.environment);
 for(const key of ['HOME','LOCALAPPDATA','APPDATA','TEMP','CARGO_HOME','RUSTUP_HOME','CARGO_TARGET_DIR'])mkdirSync(env[key],{recursive:true});
 // Discard keys/tokens, user Cargo/Git settings, Python paths, and Codex homes.
 for(const key of Object.keys(process.env))delete process.env[key];Object.assign(process.env,env);
@@ -43,6 +45,7 @@ if(['test-paths','build','pipe-acceptance','check-pipe-modules'].includes(action
  const pathKey=Object.keys(env).find(key=>key.toLowerCase()==='path');env[pathKey]+=';'+dirname(config.python)+';'+join(vs,'Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin')+';'+join(vs,'Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja');
  env.CARGO_NET_OFFLINE='true';
 }
+if(v8BuildBefore){const pathKey=Object.keys(env).find(key=>key.toLowerCase()==='path');env[pathKey]+=';'+v8BuildBefore.environment.LIBCLANG_PATH;}
 let file=join(root,'cargo/bin/cargo.exe'),args,cwd=root,fixtureBefore,moduleBefore;
 const fingerprint=path=>{ordinary(path);const value=lstatSync(path,{bigint:true});if(!value.isFile()||value.nlink!==1n||value.size>512n*1024n**2n)throw Error('Original fixture material unavailable');return{path,sha256:createHash('sha256').update(readFileSync(path)).digest('hex'),identity:{dev:String(value.dev),ino:String(value.ino),birth:String(value.birthtimeNs)}};};
 if(action==='msvc-env'){
@@ -80,7 +83,8 @@ child.stdout.on('data',bytes=>{writeSync(out,bytes);process.stdout.write(bytes);
 const timer=setInterval(()=>{if(free()<freeFloor&&!stopped){stopped=true;requestCodexProcessJobCancellation(launch);process.stderr.write('PUBLIC build stopped at free-space floor; retain the original Job\n');}},1000);
 const code=await new Promise((done,reject)=>{child.once('close',done);child.once('error',reject);}).finally(()=>{clearInterval(timer);closeSync(out);closeSync(err);});
 const started=readStartedCodexProcessJob(job,helpers,command,args,cwd),resources=readCodexProcessJobResources(started);if(code===0&&!stopped)readCompletedCodexProcessJob(job,helpers,command,args,cwd);
-let sourceAfter,sourceError,fixtureAfter,moduleAfter;
+let sourceAfter,sourceError,fixtureAfter,moduleAfter,v8BuildAfter;
 try{if(sourceBefore){sourceAfter=prepareSource(sourceRoot,{...sourceOptions,verify:true});if(JSON.stringify(sourceAfter)!==JSON.stringify(sourceBefore))throw Error('Original build source changed during stage');}if(fixtureBefore){fixtureAfter={...fixtureBefore,materials:fixtureBefore.materials.map(value=>fingerprint(value.path))};if(JSON.stringify(fixtureBefore)!==JSON.stringify(fixtureAfter))throw Error('Original pipe acceptance source changed during stage');}if(moduleBefore)moduleAfter=verifyPipeModuleSource(moduleBefore);}catch(error){sourceError=String(error);}
-writeFileSync(join(directory,'result.json'),JSON.stringify({format:'cimiloop/portable-codex-build-stage/2.0.0',stage,action,code,stopped,command:{file,sha256,args},resources,source_before:sourceBefore,source_after:sourceAfter,fixture_before:fixtureBefore,fixture_after:fixtureAfter,module_before:moduleBefore,module_after:moduleAfter,source_error:sourceError,free_bytes:free(),free_floor_bytes:freeFloor,...(separateTarget?{target_directory:targetRoot}:{}),model_requests:0,credentials_read:false},null,2),{flag:'wx'});
+try{if(v8BuildBefore){v8BuildAfter=privateV8SourceBuild(config);if(JSON.stringify(v8BuildAfter)!==JSON.stringify(v8BuildBefore))throw Error('Original V8 Clang tools changed during stage');}}catch(error){sourceError=sourceError??String(error);}
+writeFileSync(join(directory,'result.json'),JSON.stringify({format:'cimiloop/portable-codex-build-stage/2.0.0',stage,action,code,stopped,command:{file,sha256,args},resources,source_before:sourceBefore,source_after:sourceAfter,fixture_before:fixtureBefore,fixture_after:fixtureAfter,module_before:moduleBefore,module_after:moduleAfter,...(v8BuildBefore?{v8_source_originals:{before:v8BuildBefore,after:v8BuildAfter}}:{}),source_error:sourceError,free_bytes:free(),free_floor_bytes:freeFloor,...(separateTarget?{target_directory:targetRoot}:{}),model_requests:0,credentials_read:false},null,2),{flag:'wx'});
 if(code!==0||stopped||sourceError||resources.status!=='disposed')process.exitCode=1;

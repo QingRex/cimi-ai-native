@@ -1,4 +1,5 @@
-import {lstatSync,realpathSync} from 'node:fs';
+import {lstatSync,realpathSync,readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {dirname,isAbsolute,join,parse,relative,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -15,4 +16,20 @@ export function privateBuildTarget(root,config){
  const target=ordinaryDirectory(config.target_directory),build=ordinaryDirectory(root),repository=resolve(fileURLToPath(new URL('../..',import.meta.url)));
  if(target===parse(target).root||!external(build,target)||!external(target,build)||!external(repository,target)||!external(target,repository))throw Error('Separate target must be outside the build root and repository');
  return target;
+}
+export function privateV8SourceBuild(config){
+ if(!Object.hasOwn(config,'v8_source_build'))return undefined;
+ const selected=config.v8_source_build;
+ if(!selected||Object.keys(selected).sort().join(',')!=='clang_root,format'||selected.format!=='cimiloop/locked-v8-sandbox-source/1.0.0')throw Error('Explicit locked V8 source build required');
+ const clang=ordinaryDirectory(selected.clang_root),bin=join(clang,'bin');
+ const materials=['clang.exe','clang-cl.exe','libclang.dll','lld-link.exe'].map(name=>{
+  const path=join(bin,name);ordinaryDirectory(bin);const before=lstatSync(path,{bigint:true});
+  if(!before.isFile()||before.isSymbolicLink()||before.size<2n||before.size>512n*1024n**2n)throw Error('Original V8 Clang tool unavailable');
+  const bytes=readFileSync(path),after=lstatSync(path,{bigint:true});
+  if(bytes.subarray(0,2).toString()!=='MZ'||before.dev!==after.dev||before.ino!==after.ino||before.birthtimeNs!==after.birthtimeNs||before.mtimeNs!==after.mtimeNs||before.size!==after.size||BigInt(bytes.length)!==before.size)throw Error('Original V8 Clang tool changed');
+  return{path,sha256:createHash('sha256').update(bytes).digest('hex'),identity:{dev:String(before.dev),ino:String(before.ino),birth:String(before.birthtimeNs)}};
+ });
+ // The pinned Cargo feature still selects v8_enable_sandbox. No arbitrary GN
+ // arguments or prebuilt substitutions are accepted by this configuration.
+ return{environment:{V8_FROM_SOURCE:'1',CARGO_BUILD_JOBS:'1',CLANG_BASE_PATH:clang,LIBCLANG_PATH:bin},materials};
 }
