@@ -9,6 +9,26 @@ const binding={account_digest:hash('PUBLIC account'),quota_account_digest:hash('
 const host={machine_digest:hash('PUBLIC machine'),principal_digest:hash('PUBLIC principal')};
 function fixture(){const root=join(mkdtempSync(join(tmpdir(),'cimiloop-codex-budget-')),'origin'),origin=runtime.AgentStartLedger.initialize(root,host);const scope={project_id:createInternalId(),run_id:createInternalId(),operation_key:createInternalId(),executor_actor_id:createInternalId(),context_digest:runtime.digest('PUBLIC context'),skill_bindings:[],runtime_binding:{binding_ref:{object_type:'provider_binding' as const,id:createInternalId()},digest:runtime.digest('PUBLIC runtime')},host_admission_ref:{provider:'local_content' as const,resource_type:'agent_host_admission' as const,locator:hash('PUBLIC admission'),digest:runtime.digest('PUBLIC admission')}};return{root,origin,scope};}
 describe('Codex account shared original usage budget',()=>{
+ it('shares finite capacity with pre-plan methods without manufacturing a Run or hiding their account usage',()=>{
+  const f=fixture();try{
+   const budget=runtime.CodexAgentUsageBudget.initialize(f.origin,{...binding,model_calls:2,output_tokens:4096}),session=createInternalId(),request={project_id:f.scope.project_id,actor_id:createInternalId(),session_id:session,invocation_key:session+'_'+createInternalId(),call_id:'PUBLIC_pre_plan',request_digest:hash('PUBLIC method request'),installation_digest:hash('PUBLIC installation')};
+   const reserve=Reflect.get(budget,'reservePrePlan');expect(reserve).toBeTypeOf('function');
+   expect(reserve.call(budget,request,2048)).toMatchObject({created:true});expect(reserve.call(budget,request,2048)).toMatchObject({created:false});
+   expect(budget.snapshot().held).toEqual({model_calls:1,output_tokens:2048});expect(budget.modelSnapshot().reservations).toHaveLength(0);expect(budget.snapshot().reservations[0]!.basis).not.toHaveProperty('scope');
+   expect(()=>reserve.call(budget,{...request,request_digest:hash('changed original')},2048)).toThrow();
+   budget.reserve({scope:f.scope,call_id:'actual_run_call',request_digest:hash('PUBLIC run request'),model_header_digest:hash('PUBLIC run header')},2048);
+   expect(budget.modelSnapshot().reservations).toHaveLength(1);expect(budget.snapshot().held.model_calls).toBe(2);
+   expect(()=>reserve.call(budget,{...request,call_id:'over_account_limit'},2048)).toThrow('agent_capacity_exhausted');
+  }finally{f.origin.close();}
+ });
+ it('rejects malformed pre-plan identities before reserving capacity',()=>{
+  const f=fixture();try{
+   const budget=runtime.CodexAgentUsageBudget.initialize(f.origin,{...binding,model_calls:2,output_tokens:4096}),session=createInternalId(),request={project_id:f.scope.project_id,actor_id:createInternalId(),session_id:session,invocation_key:session+'_'+createInternalId(),call_id:'PUBLIC_pre_plan',request_digest:hash('PUBLIC request'),installation_digest:hash('PUBLIC installation')};
+   const reserve=Reflect.get(budget,'reservePrePlan');expect(reserve).toBeTypeOf('function');
+   for(const bad of [{...request,invocation_key:createInternalId()},{...request,session_id:createInternalId()},{...request,run_id:createInternalId()},{...request,request_digest:'invalid'}])expect(()=>reserve.call(budget,bad,2048)).toThrow();
+   expect(budget.snapshot().held.model_calls).toBe(0);
+  }finally{f.origin.close();}
+ });
  it('allocates finite capacity to another original without releasing Unknown or granting an unfunded or copied allocation',()=>{
   const f=fixture(),g=fixture();try{
    const parent=runtime.CodexAgentUsageBudget.initialize(f.origin,{...binding,model_calls:4,output_tokens:8192}),request={scope:f.scope,call_id:'model_old_unknown',request_digest:hash('PUBLIC original request'),model_header_digest:hash('PUBLIC original header')};parent.reserve(request,2048);

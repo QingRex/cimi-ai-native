@@ -46,7 +46,7 @@ export interface CodexFixedClarificationOriginal {
 export interface CodexFixedClarificationOptions {
   ordinary_quota_account_digest?:string;
   maximum_questions?: number;
-  facts?: Pick<CodexFactInvestigator, "execute" | "readOriginal" | "snapshot">;
+  facts?: Pick<CodexFactInvestigator, "execute" | "readOriginal" | "snapshot"> & Partial<Pick<CodexFactInvestigator,'originalRequest'>>;
   application_context?: string;
 }
 

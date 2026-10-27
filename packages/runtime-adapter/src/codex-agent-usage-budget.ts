@@ -6,6 +6,7 @@ import { parseAgentWorkspaceToolScope, type AgentWorkspaceToolScope } from './ag
 export interface CodexUsageAccount {account_digest:string;quota_account_digest:string}
 export interface CodexUsageBudgetPolicy extends CodexUsageAccount {model_calls:number;output_tokens:number}
 export interface CodexUsageReservation {scope:AgentWorkspaceToolScope;call_id:string;request_digest:string;model_header_digest:string}
+export interface CodexPrePlanUsageReservation {project_id:string;actor_id:string;session_id:string;invocation_key:string;call_id:string;request_digest:string;installation_digest:string}
 export interface CodexUsageDelegationContext {request_id:string;source_project_id:string;target_project_id:string;target_installation_digest:string;parent_policy_digest:string;parent_identity_digest:string}
 interface AllocationProof {format:'cimiloop/codex-usage-allocation/1.0.0';account:CodexUsageAccount;parent_policy_digest:string;parent_identity_digest:string;child_policy_digest:string;child_identity_digest:string;limits:{model_calls:number;output_tokens:number};context:CodexUsageDelegationContext}
 export interface CodexUsageAllocation {created:boolean;allocation_id:string;proof:AllocationProof;ticket:AgentStartTicket;allocation_digest:string}
@@ -21,6 +22,13 @@ function policy(raw:CodexUsageBudgetPolicy){if(!raw||Object.keys(raw).sort().joi
 function delegation(raw:CodexUsageDelegationContext){if(!raw||Object.keys(raw).sort().join(',')!=='parent_identity_digest,parent_policy_digest,request_id,source_project_id,target_installation_digest,target_project_id'||![raw.request_id,raw.source_project_id,raw.target_project_id].every(value=>typeof value==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-7[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(value))||raw.source_project_id===raw.target_project_id||![raw.parent_identity_digest,raw.parent_policy_digest,raw.target_installation_digest].every(sha))fail('codex_usage_allocation_context_invalid');return structuredClone(raw);}
 function freeze<T>(value:T):T{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;}
 const allocationHash=(value:unknown):string=>{const canonical=(v:unknown):unknown=>Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,item])=>[k,canonical(item)])):v;return digest(JSON.stringify(canonical(value))).value;};
+const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(v);
+function prePlan(raw:CodexPrePlanUsageReservation):CodexPrePlanUsageReservation{
+ if(!exact(raw,['project_id','actor_id','session_id','invocation_key','call_id','request_digest','installation_digest'])||![raw.project_id,raw.actor_id,raw.session_id].every(uuid)||
+  typeof raw.invocation_key!=='string'||!raw.invocation_key.startsWith(raw.session_id+'_')||!uuid(raw.invocation_key.slice(raw.session_id.length+1))||typeof raw.call_id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(raw.call_id)||!sha(raw.request_digest)||!sha(raw.installation_digest))fail('codex_pre_plan_usage_request_invalid');
+ return{project_id:raw.project_id,actor_id:raw.actor_id,session_id:raw.session_id,invocation_key:raw.invocation_key,call_id:raw.call_id,request_digest:raw.request_digest,installation_digest:raw.installation_digest};
+}
+const prePlanKey=(fixed:ReturnType<typeof binding>,request:CodexPrePlanUsageReservation)=>digest(JSON.stringify({account:fixed,kind:'pre_plan',project_id:request.project_id,invocation_key:request.invocation_key,call_id:request.call_id})).value;
 
 // One account policy shared by all projects/models using the same protected
 // origin. These finite holds are NOT provider quota reservations or invoices.
@@ -69,7 +77,14 @@ export class CodexAgentUsageBudget {
  // be excluded from a per-model read; a format flag alone grants no omission.
  modelSnapshot(){
   const state=this.snapshot();return{...state,reservations:state.reservations.filter(row=>{
-   const raw=row.basis;if(!raw||typeof raw!=='object'||!('format'in raw)||raw.format!=='cimiloop/codex-usage-allocation/1.0.0')return true;
+   const raw=row.basis;
+   if(raw&&typeof raw==='object'&&'format'in raw&&raw.format==='cimiloop/codex-pre-plan-usage/1.0.0'){
+    if(!exact(raw,['format','account','request']))fail('codex_pre_plan_usage_original_changed');const body=raw as Record<string,unknown>;
+    if(!same(body.account,account(this.fixed)))fail('codex_pre_plan_usage_original_changed');const request=prePlan(body.request as CodexPrePlanUsageReservation);
+    if(row.id!==prePlanKey(this.fixed,request)||!same(body.request,request)||Object.keys(row.units).sort().join(',')!=='model_calls,output_tokens'||row.units.model_calls!==1||!Number.isSafeInteger(row.units.output_tokens)||row.units.output_tokens!<1||row.units.output_tokens!>2048||this.delegated&&request.project_id!==this.delegated.target_project_id)fail('codex_pre_plan_usage_original_changed');
+    return false;
+   }
+   if(!raw||typeof raw!=='object'||!('format'in raw)||raw.format!=='cimiloop/codex-usage-allocation/1.0.0')return true;
    if(!exact(raw,['format','account','parent_policy_digest','parent_identity_digest','child_policy_digest','child_identity_digest','limits','context']))fail('codex_usage_allocation_original_changed');
    const proof=raw as unknown as AllocationProof;if(!exact(proof.account,['account_digest','quota_account_digest'])||!exact(proof.limits,['model_calls','output_tokens']))fail('codex_usage_allocation_original_changed');
    const context=delegation(proof.context);policy({...proof.account,...proof.limits});
@@ -84,5 +99,13 @@ export class CodexAgentUsageBudget {
   if(this.delegated&&request.scope.project_id!==this.delegated.target_project_id)fail('codex_usage_allocation_project_mismatch');
   const id=digest(JSON.stringify({account:this.fixed,project_id:request.scope.project_id,run_id:request.scope.run_id,operation_key:request.scope.operation_key,call_id:request.call_id})).value;
   this.snapshot();return this.origin.reserveCapacity(this.ticket,id,{model_calls:1,output_tokens:maximumOutput},request);
+ }
+ // A real pre-plan method has no Run. Reserve in the SAME finite account,
+ // retain Unknown, and keep its explicit original identity out of Run reads.
+ reservePrePlan(raw:CodexPrePlanUsageReservation,maximumOutput:number){
+  if(this.delegated)this.allocationProof();const request=prePlan(raw);
+  if(!Number.isSafeInteger(maximumOutput)||maximumOutput<1||maximumOutput>2048)fail('codex_pre_plan_usage_request_invalid');
+  if(this.delegated&&request.project_id!==this.delegated.target_project_id)fail('codex_usage_allocation_project_mismatch');
+  this.snapshot();return this.origin.reserveCapacity(this.ticket,prePlanKey(this.fixed,request),{model_calls:1,output_tokens:maximumOutput},{format:'cimiloop/codex-pre-plan-usage/1.0.0',account:account(this.fixed),request});
  }
 }

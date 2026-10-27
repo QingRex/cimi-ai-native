@@ -37,7 +37,7 @@ export class CodexMattClarificationHost implements MattClarificationHost {
     if(options.ordinary_quota_account_digest!==undefined&&!/^[a-f0-9]{64}$/.test(options.ordinary_quota_account_digest))unavailable();
     this.ordinaryQuotaAccountDigest=options.ordinary_quota_account_digest;
     this.runtime = Object.freeze({ execute: options.runtime.execute.bind(options.runtime), readOriginal: options.runtime.readOriginal.bind(options.runtime) });
-    if (options.facts) this.facts = Object.freeze({ execute: options.facts.execute.bind(options.facts), readOriginal: options.facts.readOriginal.bind(options.facts), snapshot: options.facts.snapshot.bind(options.facts) });
+    if (options.facts) this.facts = Object.freeze({ execute: options.facts.execute.bind(options.facts), readOriginal: options.facts.readOriginal.bind(options.facts), snapshot: options.facts.snapshot.bind(options.facts),...(options.facts.originalRequest?{originalRequest:options.facts.originalRequest.bind(options.facts)}:{}) });
   }
   private prepared(raw: MattClarificationInput) {
     const body = JSON.stringify(raw);
@@ -68,6 +68,9 @@ export class CodexMattClarificationHost implements MattClarificationHost {
       original_ref: result.original.original_ref, output: result.output, qualification: result.qualification });
   }
   async readOriginal(input: MattClarificationInput): Promise<MattClarificationOriginal | null> {
+    return this.readOriginalSync(input);
+  }
+  readOriginalSync(input: MattClarificationInput): MattClarificationOriginal | null {
     const { method, plan } = this.prepared(input), original = method.readOriginal(plan.profile, plan.files);
     return original ? this.project(input, original) : null;
   }
@@ -75,10 +78,15 @@ export class CodexMattClarificationHost implements MattClarificationHost {
     const { method, plan } = this.prepared(input), retained = method.readOriginal(plan.profile, plan.files);
     if (!retained || !isDeepStrictEqual(this.project(input, retained), parseMattClarificationOriginal(input, original))) unavailable();
   }
-  readExecutionControls(input:MattClarificationInput,original:MattClarificationOriginal):{configuration:CodexOriginalMethodOptions;request:ReturnType<CodexFixedClarificationMethod['originalRequest']>;original:CodexFixedClarificationOriginal['original'];control:ReturnType<typeof CodexOriginalMethodRuntime.readProcessControlRetained>}{
+  readExecutionControls(input:MattClarificationInput,original:MattClarificationOriginal):{configuration:CodexOriginalMethodOptions;request:ReturnType<CodexFixedClarificationMethod['originalRequest']>;original:CodexFixedClarificationOriginal['original'];control:ReturnType<typeof CodexOriginalMethodRuntime.readProcessControlRetained>;investigations:Array<{request:ReturnType<CodexFixedClarificationMethod['originalRequest']>;original:CodexFixedClarificationOriginal['original'];control:ReturnType<typeof CodexOriginalMethodRuntime.readProcessControlRetained>}>}{
     if(!this.configuration)unavailable();this.verifyOriginal(input,original);
     const {method,plan}=this.prepared(input),request=method.originalRequest(plan.profile,plan.files),retained=method.readOriginal(plan.profile,plan.files);if(!retained)unavailable();
     const control=CodexOriginalMethodRuntime.readProcessControlRetained(this.configuration!,request);
-    this.verifyOriginal(input,original);return{configuration:structuredClone(this.configuration!),request,original:retained!.original,control};
+    const investigations=(retained!.fact_investigations??[]).map(child=>{
+      const call=retained!.original.tool_calls.find(call=>call.call_id===child.call_id&&call.tool==='delegate_facts');
+      if(!call||!this.facts?.originalRequest)unavailable();const request=this.facts!.originalRequest!(child.parent,child.call_id,call!.arguments);
+      return{request,original:child.original,control:CodexOriginalMethodRuntime.readProcessControlRetained(this.configuration!,request)};
+    });
+    this.verifyOriginal(input,original);return{configuration:structuredClone(this.configuration!),request,original:retained!.original,control,investigations};
   }
 }

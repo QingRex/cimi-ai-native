@@ -41,16 +41,18 @@ export async function withInstalledPlanningClarification<T>(local:LocalProject,r
    // Re-read this actual operation's completed protected process originals.
    // Legacy unconfined Matt installations fail here; matching model/source/
    // account alone never upgrades them to the contained Runtime qualification.
-   const actual=matt.readExecutionControls(input,method),config=actual.configuration,control=actual.control;
+   const actual=matt.readExecutionControls(input,method),config=actual.configuration;
    const programs=assertCodexProgramBundle(codexRuntimeInstallationProgramBundle(runtime),{file:runtime.binary,args:[],sha256:digestRuntimeBinaryFile(runtime.binary)});
+   for(const member of [actual,...actual.investigations]){const control=member.control;
    if(config.account_digest!==runtime.account_digest||config.command.file!==runtime.binary||config.command.sha256!==programs.programs[0].sha256||!same(config.command.args,[])||
-    !same(config.disabled_mcp_servers??[],runtime.disabled_mcp_servers)||actual.request.usage_policy!==runtime.usage_policy||actual.request.quota_account_digest!==runtime.quota_account_digest||
-    actual.original.ordinary_quota?.before.ordinary_usage_allowed!==true||actual.original.ordinary_quota.before.account_id_digest!==runtime.quota_account_digest||actual.original.ordinary_quota.after.account_id_digest!==runtime.quota_account_digest||
+    !same(config.disabled_mcp_servers??[],runtime.disabled_mcp_servers)||member.request.usage_policy!==runtime.usage_policy||member.request.quota_account_digest!==runtime.quota_account_digest||
+    member.original.ordinary_quota?.before.ordinary_usage_allowed!==true||member.original.ordinary_quota.before.account_id_digest!==runtime.quota_account_digest||member.original.ordinary_quota.after.account_id_digest!==runtime.quota_account_digest||
     config.process_custody!=='owner_job/1.0.0'||config.state_policy!=='private_login_home/2.0.0'||
     config.environment_policy!=='private_user_directories/1.0.0'||config.path_resolution!=='original_volume_handles/1.0.0'||config.package_policy!=='explicit_package_access/1.0.0'||
     control.job_policy!=='codex_memory_process/1.0.0'||!same(control.job_limits,{policy:'codex_memory_process/1.0.0',flags:0x2208,job_memory_bytes:2147483648,active_process_limit:8})||control.network_policy!=='codex_chatgpt_tunnel/1.0.0'||!same(control.program_bundle,programs)||
     !same(control.write_confinement?.scope,{project_id:basis.project.id,repository_path:original.location.repositoryPath,data_directory:original.location.dataDirectory})||
     control.network?.stopped!==true||control.network?.boundary_failed!==false||control.network?.limit_exceeded!==false)fail();
+   }
    const matches=original.store.listProviderBindings().filter(binding=>{
     const descriptor=original.store.getProviderDescriptor(binding.descriptor_ref.id);
     return binding.project_id===basis.project.id&&descriptor?.provider_kind==='skill'&&descriptor.source_ref.digest?.value===method.source_digest.value;

@@ -10,6 +10,7 @@ import type { MattClarificationHost } from "./clarification-matt-local.js";
 import type { LocalProject } from "./project.js";
 import { readInstance } from "./instance.js";
 import { LocalProjectError } from "./errors.js";
+import {openCodexMattRuntime} from './clarification-codex-runtime-local.js';
 
 const namespace = "codex_matt_installation", requestNamespace = "codex_matt_install_request";
 const fail = (): never => { throw new LocalProjectError("Codex Matt 安装资料尚不可核对；保留原登记和原操作", "CAPABILITY_UNAVAILABLE", "conflict"); };
@@ -35,7 +36,7 @@ export interface CodexMattInstallInput { source: VerifiedSkillPackage; binary: s
 interface Material { name: "codex.exe" | "codex-code-mode-host.exe" | "skill-package.json" | "facts.json"; digest: string; identity: ReturnType<typeof identity> }
 interface InstallRequest { format: "cimiloop/codex-matt-install-request/2.0.0"; binding: ReturnType<typeof binding>; model: string; account_digest: string; binary_digest: string; source_digest: string; package_digest: string; disabled_mcp_servers: string[]; facts_digest: string | null; materials: Material[]; originals_identity: ReturnType<typeof identity> }
 interface Installed { format: "cimiloop/codex-matt-installation/2.0.0"; request: InstallRequest; materials: Material[]; originals_identity: ReturnType<typeof identity> }
-export interface InstalledCodexMatt { host: MattClarificationHost; model: string; account_digest:string;source_digest:string;installation_digest: string;readExecutionControls:CodexMattClarificationHost['readExecutionControls'];guard():void;release(): void }
+export interface InstalledCodexMatt {origin:AgentStartLedger;root:string;host: MattClarificationHost; model: string; account_digest:string;source_digest:string;installation_digest: string;readMethodSource():{source:VerifiedSkillPackage;facts?:Facts};readOriginalSync:CodexMattClarificationHost['readOriginalSync'];readExecutionControls:CodexMattClarificationHost['readExecutionControls'];guard():void;release(): void }
 
 function material(root: string, name: Material["name"], bytes?: Buffer): Material {
   const path = join(root, name), max = name.endsWith(".exe") ? 512 * 1024 * 1024 : 4 * 1024 * 1024;
@@ -134,7 +135,7 @@ export async function installCodexMatt(local: LocalProject, raw: CodexMattInstal
   } catch { return fail(); } finally { origin.close(); }
 }
 
-export async function openInstalledCodexMatt(local: LocalProject): Promise<InstalledCodexMatt | undefined> {
+export async function openOriginalCodexMattInstallation(local: LocalProject): Promise<InstalledCodexMatt | undefined> {
   if (!process.env.LOCALAPPDATA) return undefined;
   const where = layout(local); if (!existsSync(where.root)) return undefined;
   let origin: AgentStartLedger | undefined;
@@ -153,6 +154,13 @@ export async function openInstalledCodexMatt(local: LocalProject): Promise<Insta
       async readOriginal(input) { guard(); const result = await concrete.readOriginal(input); guard(); return result; },
       verifyOriginal(input, original) { guard(); concrete.verifyOriginal(input, original); guard(); }
     };
-    return { host: Object.freeze(host), model: fixed.request.model,account_digest:fixed.request.account_digest,source_digest:fixed.request.source_digest,installation_digest: seal,guard,readExecutionControls(input,original){guard();const result=concrete.readExecutionControls(input,original);guard();return result;}, release() { if (!released) { released = true; origin!.close(); } } };
+    return {origin,root:where.root,host: Object.freeze(host), model: fixed.request.model,account_digest:fixed.request.account_digest,source_digest:fixed.request.source_digest,installation_digest: seal,guard,
+      readOriginalSync(input){guard();const result=concrete.readOriginalSync(input);guard();return result;},
+      readMethodSource(){guard();const result=structuredClone({source,...(facts?{facts}:{})});guard();return result;},
+      readExecutionControls(input,original){guard();const result=concrete.readExecutionControls(input,original);guard();return result;}, release() { if (!released) { released = true; origin!.close(); } } };
   } catch { origin?.close(); return fail(); }
+}
+export async function openInstalledCodexMatt(local:LocalProject):Promise<InstalledCodexMatt|undefined>{
+ const original=await openOriginalCodexMattInstallation(local);if(!original)return undefined;
+ try{return await openCodexMattRuntime(local,original)??original;}catch(error){original.release();throw error;}
 }

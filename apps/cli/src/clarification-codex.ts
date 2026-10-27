@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { installCodexMatt, openLocalProject } from "@cimiloop/local-app";
+import { installCodexMatt, installCodexMattRuntime, openLocalProject } from "@cimiloop/local-app";
 import { packageGitSkill } from "@cimiloop/skill-adapter";
 import { digest } from "@cimiloop/runtime-adapter";
 import { CliInputError, readJsonObject } from "./input.js";
@@ -21,3 +21,4 @@ export async function installCodexClarification(options: GlobalOptions & { binar
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");
   } finally { local.store.close(); }
 }
+export async function attachCodexClarificationRuntime(options:GlobalOptions){const local=openLocalProject(options);try{process.stdout.write(JSON.stringify(await installCodexMattRuntime(local),null,2)+'\n');}finally{local.store.close();}}

@@ -28,7 +28,7 @@ import {createSkillOriginalCommand} from './skill-original.js';
 import {createSkillMethodProbeCommand} from './skill-method-probe.js';
 import {createRuntimeContractCommand} from './runtime-contract.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
-import { installCodexClarification } from "./clarification-codex.js";
+import { installCodexClarification,attachCodexClarificationRuntime } from "./clarification-codex.js";
 import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,allocateCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage,installCodexHome,showCodexHome} from './agent-codex-installation.js';
 
 const program = new Command();
@@ -70,6 +70,8 @@ for (const [name, kind] of [["record-evidence", "RecordProviderEvidence"], ["eva
   entry.action((options, command) => providerMutation(kind, { ...globals(command), ...options }));
 }
 const clarification = program.command("clarification").description("计划前 Human/Matt 问答、固定宿主安装与原请求核对");
+clarification.command('attach-codex-runtime').description('将固定Matt来源显式接到已有受控Runtime、固定卷和共享有限账户；不调用模型或批准方法')
+ .action((_options,command)=>attachCodexClarificationRuntime(globals(command)));
 clarification.command("install-codex").description("显式绑定当前Codex登录及固定Matt来源；仅安装，不发送模型请求")
   .requiredOption("--binary <path>", "当前Codex原生可执行文件；与同目录工具宿主一起保留固定副本")
   .requiredOption("--repository <path>", "固定Skill来源的本地Git仓库")

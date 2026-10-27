@@ -58,6 +58,18 @@ pnpm cimiloop provider list --project-dir $s1ProjectDir --json
 
 使用已授权账户，真实测试优先 `gpt-6-luna`；不新增付费服务。已有账户从原剩余额度分配，不因换项目另建更大总额。容量、模型 token 和普通额度不是现金／积分账单；官方财务来源、原请求对应及结清口径缺失时保留未知，不能推断订阅内调用自动为零费用。
 
+### 3.1 将既有 Matt 来源接到同一 Runtime
+
+先按 `clarification install-codex --help` 固定真实 Skill 来源；它与上述 Runtime 必须使用同一模型和账户。然后显式接入：
+
+```powershell
+pnpm cimiloop clarification attach-codex-runtime --project-dir $s1ProjectDir --json
+```
+
+该命令只复用已有来源、Runtime、共享账户、原固定卷和仓库外登录目录，不发送模型请求。成功结果包含 `attachment_digest`；同一安装再次执行复用原登记。默认 CLI／工作台之后从这一装配读取方法及实际父／事实调查子调用控制。原独立来源及历史原件保留，同一原操作两套来源均有原件时，读取、Kernel 核验和控制核验都拒绝；不选择其中一套继续。缺失或替换已登记目录时不重建。
+
+**目前 `model_dispatch_available:false`，原因 `codex_pre_plan_output_budget_unavailable`。** 固定官方客户端没有可核对的整个 turn 输出上界；一次 turn 可含多个模型 Response 和内部重试。预约2048 token、提示短答及事后用量断言均不能替代服务端输出／思考上界。因此新受控 Matt 请求在发送和预约前拒绝，原请求／历史核验仍保留。必须落实全发送路径上界及真实费用／方法资格后，才能继续 G4／G5；不能把 attachment 成功称为真实澄清已跑通。
+
 ## 4. 先取得 Runtime 与 Skill 的真实资格
 
 按[Runtime 原 SDK 契约指南](CimiLoop-Runtime原SDK契约接入指南-v0.1.md)登记固定候选。生成并在证据目录**保存**原请求 ID，再调用；不在重试时重新运行 ID 生成器。

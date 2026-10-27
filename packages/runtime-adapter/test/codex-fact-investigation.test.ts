@@ -4,7 +4,7 @@ import * as runtime from "../src/index.js";
 // Constructed transport receipts and fixed source bytes, not a real model,
 // source snapshot qualification, Native evidence or a business verdict.
 describe("Codex delegated original fact investigation", () => {
-  function fixture(mode = "normal") {
+  function fixture(mode = "normal",ordinaryQuotaAccountDigest?:string) {
     const source = [{ path: "src/rules.ts", content: "PUBLIC: Kernel alone confirms business decisions." }];
     const originals = new Map<string, any>(), requests = new Map<string, any>(); let effects = 0, loaded = "";
     const transport = {
@@ -32,11 +32,17 @@ describe("Codex delegated original fact investigation", () => {
       }
     };
     const Constructor = Reflect.get(runtime, "CodexFactInvestigator"); expect(Constructor).toBeTypeOf("function");
-    const investigator: any = new Constructor(transport, "gpt-6-luna", source, runtime.digest("PUBLIC source identity").value);
+    const investigator: any = new Constructor(transport, "gpt-6-luna", source, runtime.digest("PUBLIC source identity").value,ordinaryQuotaAccountDigest);
     const parent = { operation_key: "PUBLIC_parent", profile_digest: runtime.digest("PUBLIC profile").value, request_digest: runtime.digest("PUBLIC method request").value,
       model: "gpt-6-luna", account_digest: runtime.digest("PUBLIC account").value };
     return { investigator, parent, originals, requests, source, effects: () => effects, loaded: () => loaded };
   }
+  it('fixes the prospective child quota account while preserving legacy child requests',()=>{
+    const old=fixture(),current=fixture('normal','a'.repeat(64)),args={question:'PUBLIC environmental fact?'};
+    expect(old.investigator.originalRequest(old.parent,'fact_1',args)).not.toHaveProperty('usage_policy');
+    expect(current.investigator.originalRequest(current.parent,'fact_1',args)).toMatchObject({usage_policy:'require_ordinary_permission/1.0.0',quota_account_digest:'a'.repeat(64)});
+    expect(()=>fixture('normal','invalid')).toThrow();expect(current.effects()).toBe(0);
+  });
   it("keeps a separate original child bound to its parent and call, with fixed read evidence", async () => {
     const f = fixture(), args = { question: "Who confirms a business decision?" };
     const result = await f.investigator.execute(f.parent, "PUBLIC_call", args, () => {});
