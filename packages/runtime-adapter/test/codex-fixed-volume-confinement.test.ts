@@ -1,5 +1,5 @@
 import {captureCodexProgramBundle} from '../src/codex-program-bundle.js';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,copyFileSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,copyFileSync,renameSync} from 'node:fs';
 import {tmpdir} from 'node:os';import {join,parse} from 'node:path';
 import {describe,it,expect,vi} from 'vitest';
 import {AgentStartLedger} from '../src/agent-start-ledger.js';
@@ -24,8 +24,8 @@ vi.mock('node:child_process',async load=>{
 // Real Host1, compiler, C# stdio and AppContainer Job. ONLY the fixed-volume OS
 // observation is a PUBLIC projection: no VHD, login, model, bill or S1 claim.
 describe.runIf(process.platform==='win32'&&process.arch==='x64')('original Codex confinement wiring',()=>{
- it.each([false,true,'programs','bounded','paths'])('consumes the actual storage capability and original network mode=%s, then replays without a new worker',async network=>{
-  const pathScoped=network==='paths',bounded=pathScoped||network==='bounded',bundled=bounded||network==='programs';const root=mkdtempSync(join(tmpdir(),'cx-')),home=join(root,'PUBLIC-login'),source=join(root,'Public.cs'),binary=join(root,bundled?'codex.exe':'Public.exe');mkdirSync(home);
+ it.each([false,true,'programs','bounded','paths','prestart'])('consumes the actual storage capability and original network mode=%s, then replays without a new worker',async network=>{
+  const prestart=network==='prestart',pathScoped=prestart||network==='paths',bounded=pathScoped||network==='bounded',bundled=bounded||network==='programs';const root=mkdtempSync(join(tmpdir(),'cx-')),home=join(root,'PUBLIC-login'),source=join(root,'Public.cs'),binary=join(root,bundled?'codex.exe':'Public.exe');mkdirSync(home);
   writeFileSync(source,String.raw`using System;using System.IO;using System.Collections.Generic;using System.Web.Script.Serialization;
 class Public {static JavaScriptSerializer json=new JavaScriptSerializer();static void Send(object value){Console.WriteLine(json.Serialize(value));Console.Out.Flush();}
 static void Main(){string line;while((line=Console.ReadLine())!=null){var r=json.DeserializeObject(line) as Dictionary<string,object>;if(!r.ContainsKey("method"))continue;string method=(string)r["method"];object result=null;
@@ -42,14 +42,27 @@ Send(new{method="thread/tokenUsage/updated",@params=new{threadId="PUBLIC_THREAD"
 Send(new{method="turn/completed",@params=new{threadId="PUBLIC_THREAD",turn=new{id="PUBLIC_TURN",status="completed",error=(object)null}}});}}}}
 `);
   await compileOriginalAgentSandbox(join(process.env.SystemRoot!,'Microsoft.NET/Framework64/v4.0.30319/csc.exe'),['/nologo','/target:exe','/reference:System.Web.Extensions.dll','/out:'+binary,source],undefined,root);
+  if(prestart)writeFileSync(binary,'PUBLIC deliberately invalid executable: Windows must refuse startup');
   if(bundled)copyFileSync(binary,join(root,'codex-code-mode-host.exe'));
   const origin=AgentStartLedger.initialize(join(root,'host'),{machine_digest:'1'.repeat(64),principal_digest:'2'.repeat(64)}),maximum=64*1024**2,volume=parse(root).root.toUpperCase();
   seam.image=join(root,'PUBLIC-not-a-vhd.vhdx');seam.observation={format:'cimiloop/fixed-volume-os-observation/1.0.0',image_path:seam.image,volume_root:volume,image_identity:{volume:'1',index:'2',created:'3'},virtual_disk_id:'11111111-1111-1111-1111-111111111111',volume_id:'\\\\?\\Volume{22222222-2222-2222-2222-222222222222}\\',volume_serial:'4',virtual_bytes:maximum,volume_bytes:maximum-2*1024**2,physical_bytes:maximum+4*1024**2,provider_subtype:2,filesystem:'NTFS',physical_device:'\\\\.\\PhysicalDrive9',extent_bytes:maximum-1024**2};
   try{
    const reader=await openWindowsFixedVolumeReader(join(root,'reader')),quota=FixedVolumeQuota.initialize(origin,reader,{image:seam.image,volume_root:volume,maximum_bytes:maximum}),storage=quota.bindRuntime({project_id:'11111111-1111-7111-8111-111111111111',repository_path:root,data_directory:root});
    const account=digest(JSON.stringify({format:'cimiloop/codex-account/1.0.0',type:'chatgpt',email:'public@example.test',workspace:null})).value;
-   const runtime=new CodexOriginalMethodRuntime({root:join(root,'originals'),...(network?{network_policy:'codex_chatgpt_tunnel/1.0.0' as const}:{}),...(bounded?{job_policy:'codex_memory_process/1.0.0' as const}:{}),...(pathScoped?{path_resolution:'original_volume_handles/1.0.0' as const}:{}),account_digest:account,command:{file:binary,args:[],sha256:digest(readFileSync(binary)).value},login_home:captureCodexLoginHome(home),state_policy:'private_login_home/2.0.0',environment_policy:'private_user_directories/1.0.0',process_custody:'owner_job/1.0.0',process_root:join(root,'jobs'),timeout_ms:60000},false,origin,storage,bundled?captureCodexProgramBundle({file:binary,args:[],sha256:digest(readFileSync(binary)).value},()=>{}):undefined);
-   const request={operation_key:'PUBLIC_original',model:'gpt-6-luna',prompt:'PUBLIC input',instructions:'PUBLIC only',tools:[],output_schema:{type:'string'},usage_policy:'require_ordinary_permission/1.0.0' as const},result=await runtime.execute(request,()=>'',()=>{}),options=runtime.originalConfiguration;
+   const command={file:binary,args:[],sha256:digest(readFileSync(binary)).value};
+   const runtime=new CodexOriginalMethodRuntime({root:join(root,'originals'),...(network?{network_policy:'codex_chatgpt_tunnel/1.0.0' as const}:{}),...(bounded?{job_policy:'codex_memory_process/1.0.0' as const}:{}),...(pathScoped?{path_resolution:'original_volume_handles/1.0.0' as const}:{}),account_digest:account,command,login_home:captureCodexLoginHome(home),state_policy:'private_login_home/2.0.0',environment_policy:'private_user_directories/1.0.0',process_custody:'owner_job/1.0.0',process_root:join(root,'jobs'),timeout_ms:60000},false,origin,storage,bundled?captureCodexProgramBundle(command,()=>{}):undefined);
+   const request={operation_key:'PUBLIC_original',model:'gpt-6-luna',prompt:'PUBLIC input',instructions:'PUBLIC only',tools:[],output_schema:{type:'string'},usage_policy:'require_ordinary_permission/1.0.0' as const};
+   if(prestart){
+    await expect(runtime.execute(request,()=>'',()=>{})).rejects.toThrow('codex_original_response_lost');const options=runtime.originalConfiguration;
+    expect(CodexOriginalMethodRuntime.readProcessResourcesRetained(options,request)).toMatchObject({status:'disposed',resources_disposed:true,completion_proven:false,costs_reconciled:false,reason:'codex_original_prestart_resources_disposed'});
+    expect(origin.listExclusive('codex_process_job_started')).toHaveLength(0);expect(origin.listExclusive('codex_process_job_complete')).toHaveLength(0);expect(origin.listExclusive('codex_process_job_start_failed')).toHaveLength(1);expect(CodexOriginalMethodRuntime.readRetained(options,request)).toBeNull();
+    await expect(runtime.execute(request,()=>{throw Error('PUBLIC no repeated tool');},()=>{throw Error('PUBLIC no repeated dispatch');})).rejects.toThrow('codex_original_pending');expect(origin.listExclusive('codex_process_job_intent')).toHaveLength(1);
+    const job=codexProcessLayout(options.root,request.operation_key,options.process_root).operationRoot,path=join(job,'start-failure-resources.json'),original=readFileSync(path),record=JSON.parse(original.toString());
+    record.nonce=createInternalId();writeFileSync(path,JSON.stringify(record));expect(()=>CodexOriginalMethodRuntime.readProcessResourcesRetained(options,request)).toThrow();writeFileSync(path,original);
+    renameSync(path,path+'.original');writeFileSync(path,original,{flag:'wx'});expect(()=>CodexOriginalMethodRuntime.readProcessResourcesRetained(options,request)).toThrow();renameSync(path,path+'.replacement');renameSync(path+'.original',path);
+    expect(CodexOriginalMethodRuntime.readProcessResourcesRetained(options,request)).toMatchObject({status:'disposed',completion_proven:false,costs_reconciled:false});return;
+   }
+   const result=await runtime.execute(request,()=>'',()=>{}),options=runtime.originalConfiguration;
    expect(result.output_text).toBe('PUBLIC response');const start=JSON.parse(readFileSync(join(options.root,request.operation_key,'start.json'),'utf8'));expect(start).toMatchObject({format:pathScoped?'cimiloop/codex-method-start/16.0.0':bounded?'cimiloop/codex-method-start/15.0.0':bundled?'cimiloop/codex-method-start/14.0.0':network?'cimiloop/codex-method-start/13.0.0':'cimiloop/codex-method-start/12.0.0',write_confinement:{network_mode:'deny_all'},write_roots:[join(options.root,request.operation_key,'state'),home]});
    const launch=JSON.parse(readFileSync(join(codexProcessLayout(options.root,request.operation_key,options.process_root).operationRoot,'config.json'),'utf8')),profile='cimiloop.codexwrite.'+launch.nonce.replaceAll('-','');
    expect(launch).toMatchObject({format:pathScoped?'cimiloop/codex-process-launch/8.0.0':bounded?'cimiloop/codex-process-launch/7.0.0':bundled?'cimiloop/codex-process-launch/6.0.0':network?'cimiloop/codex-process-launch/5.0.0':'cimiloop/codex-process-launch/4.0.0',write_scope:{network_mode:'deny_all',roots:start.write_roots}});expect(readFileSync(join(options.root,request.operation_key,'state','user','AppData','Local','Packages',profile,'AC','Temp','PUBLIC-effect.txt'),'utf8')).toBe('PUBLIC original effect');

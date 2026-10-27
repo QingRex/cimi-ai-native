@@ -8,7 +8,7 @@ import { assertOrdinaryPath, bytesAt, digest, directory, RuntimeAdapterError } f
 import { parseGatewayJson } from "./gateway-conversation.js";
 import {parseCodexUsagePolicy,parseCodexOrdinaryQuota,CODEX_QUOTA_READ_PARAMS,type CodexOrdinaryUsagePolicy,type CodexOrdinaryQuotaSnapshot} from './codex-ordinary-quota.js';
 import { AgentStartLedger,captureAgentStartOriginReference,readAgentStartOriginalReference,type AgentStartOriginReference } from './agent-start-ledger.js';
-import {prepareCodexProcessJob,readCodexProcessLaunch,spawnCodexProcessJob,readCompletedCodexProcessJob,readStartedCodexProcessJob,readCodexProcessJobResources,requestCodexProcessJobCancellation,codexProcessLayout,CODEX_CONTAINED_PROXY_POLICY,CODEX_BOUNDED_JOB_POLICY,readCodexProcessJobControlOriginals,CODEX_PATH_ROOT_POLICY} from './codex-process-job.js';
+import {prepareCodexProcessJob,readCodexProcessLaunch,spawnCodexProcessJob,readCompletedCodexProcessJob,readStartedCodexProcessJob,readCodexProcessJobResources,readCodexProcessJobPrestartResources,requestCodexProcessJobCancellation,codexProcessLayout,CODEX_CONTAINED_PROXY_POLICY,CODEX_BOUNDED_JOB_POLICY,readCodexProcessJobControlOriginals,CODEX_PATH_ROOT_POLICY} from './codex-process-job.js';
 import {CODEX_PRIVATE_USER_ENVIRONMENT_POLICY,codexPrivateUserEnvironment,codexPrivateUserDirectories,codexPrivateAppContainerTemp} from './codex-private-environment.js';
 import {assertOwnedFixedVolumeRuntimePaths,type FixedVolumeRuntimeStorage,type FixedVolumeRuntimeScope} from './fixed-volume-quota.js';
 import type {AgentStartTicket} from './agent-start-ledger.js';
@@ -397,7 +397,7 @@ export class CodexOriginalMethodRuntime {
   private startVersion(request:CodexMethodRequest):StartVersion{return this.options.path_resolution?16:this.options.job_policy?15:this.options.program_bundle?14:this.options.network_policy?13:this.options.write_confinement?12:this.options.environment_policy?11:this.options.process_custody?10:this.options.state_policy==='private_login_home/2.0.0'?9:this.options.state_policy?8:this.options.usage_policy?7:request.quota_account_digest?6:request.usage_policy?5:request.reasoning_effort===undefined?3:4;}
   private processArgs(request:CodexMethodRequest){const cwd=this.paths(request).cwd,configValue=stateConfig(this.options.disabled_mcp_servers!,cwd,!!this.options.login_home);return[...this.options.command.args,'app-server','--stdio',...Object.entries(configValue).flatMap(([key,value])=>['-c',key+'='+toml(value)])];}
   private processLayout(request:CodexMethodRequest){return codexProcessLayout(this.options.root,request.operation_key,this.options.process_root);}
-  private processRows(request:CodexMethodRequest){return readAgentStartOriginalReference(this.options.process_origin!,['codex_process_job_intent','codex_process_job_complete','codex_process_job_prepared','codex_process_job_started']).filter(row=>row.id===this.policyKey(request));}
+  private processRows(request:CodexMethodRequest){return readAgentStartOriginalReference(this.options.process_origin!,['codex_process_job_intent','codex_process_job_complete','codex_process_job_prepared','codex_process_job_started','codex_process_job_start_failed']).filter(row=>row.id===this.policyKey(request));}
   private processBasis(request:CodexMethodRequest){return{format:'cimiloop/codex-process-job-intent/1.0.0',request_digest:digest(encode(request)).value,claim_digest:digest(encode(this.claim(request))).value,root_identity:directoryIdentity(this.options.root),operation_identity:directoryIdentity(this.paths(request).root),...(this.options.process_root?{process_root_identity:directoryIdentity(this.processLayout(request).helperRoot)}:{})};}
   private writeRoots(request:CodexMethodRequest){return[join(this.paths(request).root,'state'),this.options.login_home!.path];}
   private assertConfinement(request:CodexMethodRequest){
@@ -442,7 +442,14 @@ export class CodexOriginalMethodRuntime {
     if(completed){this.assertProcessConfinement(request,readCodexProcessLaunch(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd));const original=readCompletedCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd);if(!same(completed.basis,{format:'cimiloop/codex-process-job-complete/1.0.0',intent_ticket:intent.ticket,original})||!same(rows,this.processRows(request)))fail('codex_process_custody_unproven');
       return{status:'disposed' as const,resources_disposed:true,completion_proven:false as const,costs_reconciled:false as const,reason:'codex_original_process_end_pinned',basis_digest:digest(encode(completed)).value};}
     const prepared=rows.find(row=>row.namespace==='codex_process_job_prepared'),started=rows.find(row=>row.namespace==='codex_process_job_started');
-    if(!prepared||!started)return{...unknown,reason:'codex_original_process_observation_unavailable'};
+    if(!prepared)return{...unknown,reason:'codex_original_process_observation_unavailable'};
+    if(!started){
+      const failed=rows.find(row=>row.namespace==='codex_process_job_start_failed');if(!failed)return{...unknown,reason:'codex_original_process_observation_unavailable'};
+      const launch=readCodexProcessLaunch(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd);this.assertProcessConfinement(request,launch);
+      if(!same(prepared.basis,{format:'cimiloop/codex-process-job-prepared/1.0.0',intent_ticket:intent.ticket,original:{header_original:launch.header_original,config_original:launch.config_original}}))fail('codex_process_custody_unproven');
+      const result=readCodexProcessJobPrestartResources(launch);if(!result.basis||!same(failed.basis,{format:'cimiloop/codex-process-start-failure-custody/1.0.0',prepared_ticket:prepared.ticket,original:{receipt:result.basis.original,failure:result.basis.failure_original}})||!same(rows,this.processRows(request)))fail('codex_process_custody_unproven');
+      return{status:result.status,resources_disposed:result.resources_disposed,completion_proven:false as const,costs_reconciled:false as const,reason:result.status==='disposed'?'codex_original_prestart_resources_disposed':'codex_original_process_observation_unavailable',basis_digest:digest(encode({intent,prepared,failed,basis:result.basis})).value};
+    }
     const start=readStartedCodexProcessJob(layout.operationRoot,layout.helperRoot,this.options.command,this.processArgs(request),paths.cwd),launch=start.launch;
     this.assertProcessConfinement(request,launch);
     if(!same(prepared.basis,{format:'cimiloop/codex-process-job-prepared/1.0.0',intent_ticket:intent.ticket,original:{header_original:launch.header_original,config_original:launch.config_original}})||!same(started.basis,{format:'cimiloop/codex-process-job-started/1.0.0',prepared_ticket:prepared.ticket,original:start.original}))fail('codex_process_custody_unproven');
@@ -682,6 +689,10 @@ export class CodexOriginalMethodRuntime {
         if (stopTimer) clearTimeout(stopTimer);
       }
       child?.stdin.destroy();if(child&&!childDidClose)child.kill();
+      if(childDidClose&&processLaunch&&!existsSync(processLaunch.paths.started))try{
+        const prepared=this.processRows(request).find(row=>row.namespace==='codex_process_job_prepared'),result=readCodexProcessJobPrestartResources(processLaunch);
+        if(prepared&&result.status==='disposed'&&result.basis)this.policyOrigin!.issueExclusive('codex_process_job_start_failed',this.policyKey(request),{format:'cimiloop/codex-process-start-failure-custody/1.0.0',prepared_ticket:prepared.ticket,original:{receipt:result.basis.original,failure:result.basis.failure_original}});
+      }catch{/* Missing or changed original custody stays Unknown; never retry. */}
       closeSync(fd);
     }
   }

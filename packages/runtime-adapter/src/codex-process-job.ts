@@ -119,6 +119,33 @@ export function readCodexProcessJobResources(start:ReturnType<typeof readStarted
  return{status,resources_disposed:status==='disposed',basis:{original:start.original,states,...(ended?{ended,ended_original:artifact(launch.paths.ended)}:{})}};
 }
 
+// Read only the original supervisor's refused-start resource receipt. Absence
+// remains Unknown; this cannot seal model output, settle costs or authorize a
+// new dispatch. A started model always follows the existing started/end path.
+export function readCodexProcessJobPrestartResources(launch:ReturnType<typeof readCodexProcessLaunch>){
+ const unknown={status:'unknown' as const,resources_disposed:false,completion_proven:false as const,costs_reconciled:false as const};
+ const root=join(launch.paths.config,'..'),receiptPath=join(root,'start-failure-resources.json'),failurePath=join(root,'write-failure.json');
+ if(existsSync(launch.paths.started)||existsSync(launch.paths.ended)||!existsSync(receiptPath))return{...unknown,basis:null};
+ const current=readCodexProcessLaunch(root,launch.helperRoot,{file:String(launch.config.binary),sha256:String(launch.config.binary_digest),args:[]},launch.config.args as string[],String(launch.config.cwd));
+ if(!same(current,launch))fail();
+ const paths=launch.config.format==='cimiloop/codex-process-launch/8.0.0',bounded=paths||launch.config.format==='cimiloop/codex-process-launch/7.0.0',bundled=bounded||launch.config.format==='cimiloop/codex-process-launch/6.0.0';
+ if(!bundled&&launch.config.format!=='cimiloop/codex-process-launch/5.0.0')fail();
+ const original=artifact(receiptPath),receipt=json(receiptPath),failure=json(failurePath),failureOriginal=artifact(failurePath);
+ if(!exact(receipt,['format','nonce','config_digest','failure_digest','owner','supervisor','proxy','model_resume_authorized','active_processes','job_closed','write_scope','root_grants_removed','profile_deleted','network',...(bundled?['program_bundle']:[]),...(bounded?['job_limits']:[]),...(paths?['path_resolution','volume_handles_closed']:[])])||receipt.format!=='cimiloop/codex-process-start-failure/1.0.0'||receipt.nonce!==launch.config.nonce||receipt.config_digest!==launch.config_original.digest||receipt.failure_digest!==failureOriginal.digest||receipt.model_resume_authorized!==false||receipt.active_processes!==0||receipt.job_closed!==true||receipt.root_grants_removed!==true||receipt.profile_deleted!==true)fail();
+ if(!exact(failure,['format','nonce','config_digest','stage','win32_error'])||failure.format!=='cimiloop/codex-write-failure/1.0.0'||failure.nonce!==receipt.nonce||failure.config_digest!==receipt.config_digest||typeof failure.stage!=='string'||!/^contained_proxy_[a-z_]+$/.test(failure.stage)||!Number.isSafeInteger(failure.win32_error)||Number(failure.win32_error)<0)fail();
+ checkedWriteProof(receipt.write_scope,checkedWriteScope(launch.config.write_scope),String(launch.config.nonce));checkedProxyEnd(receipt.network);
+ if(bundled&&!same(receipt.program_bundle,launch.config.program_bundle))fail();if(bounded)checkedJobLimits(receipt.job_limits);if(paths){checkedVolumeMetadata(receipt.path_resolution,launch.config.path_roots);if(receipt.volume_handles_closed!==true)fail();}
+ const process=(raw:unknown)=>{if(!exact(raw,['pid','creation_ticks','image'])||!Number.isSafeInteger(raw.pid)||Number(raw.pid)<1||typeof raw.creation_ticks!=='string'||!/^\d{1,20}$/.test(raw.creation_ticks)||BigInt(raw.creation_ticks)===0n||typeof raw.image!=='string')fail();return raw as {pid:number;creation_ticks:string;image:string};};
+ const owner=process(receipt.owner),supervisor=process(receipt.supervisor),proxy=process(receipt.proxy);
+ if(owner.pid!==launch.config.owner_pid||new Set([owner.pid,supervisor.pid,proxy.pid]).size!==3||BigInt(owner.creation_ticks)>=BigInt(supervisor.creation_ticks)||BigInt(supervisor.creation_ticks)>BigInt(proxy.creation_ticks)||[supervisor,proxy].some(row=>resolve(row.image).toLowerCase()!==resolve(launch.launcher).toLowerCase()))fail();
+ const binary=launch.header.launcher_original as ReturnType<typeof readRuntimeBinaryOriginal>;if(digest(bytesAt(launch.launcher,512*1024*1024)).value!==binary.sha)fail();restoreNativeProcessEnvironment(launch.helperRoot,launch.launcher);
+ const selected=[supervisor,proxy],bytes=execFileSync(launch.launcher,['--inspect-identities',JSON.stringify(selected)],{windowsHide:true,timeout:10000,maxBuffer:16384,...nativeHelperProcessOptions(launch.launcher,isolatedEnvironment())}),snapshot=structuredClone(parseGatewayJson(bytes.toString('utf8'),16384));verifyNativeProcessEnvironment(launch.launcher);
+ if(!exact(snapshot,['format','states'])||snapshot.format!=='cimiloop/codex-process-identities/1.0.0'||!Array.isArray(snapshot.states)||snapshot.states.length!==selected.length||snapshot.states.some((row,index)=>!exact(row,['identity','state'])||!same(row.identity,selected[index])||!['active','absent','unknown'].includes(String(row.state))))fail();
+ if(existsSync(launch.paths.started)||existsSync(launch.paths.ended)||!same(original,artifact(receiptPath))||!same(failureOriginal,artifact(failurePath))||!same(launch.config_original,artifact(launch.paths.config))||!same(launch.header_original,artifact(launch.paths.header))||digest(bytesAt(launch.launcher,512*1024*1024)).value!==binary.sha)fail();
+ const status=snapshot.states.some(row=>row.state==='active')?'active' as const:snapshot.states.every(row=>row.state==='absent')?'disposed' as const:'unknown' as const;
+ return{...unknown,status,resources_disposed:status==='disposed',basis:{receipt,original,failure_original:failureOriginal,states:snapshot.states}};
+}
+
 // Data-only cut from the original completed Job. This cannot start a Job.
 export function readCodexProcessJobControlOriginals(root:string,helperRoot:string,command:Command,args:string[],cwd:string){
  const completed=readCompletedCodexProcessJob(root,helperRoot,command,args,cwd),start=readStartedCodexProcessJob(root,helperRoot,command,args,cwd),end=readCodexProcessEnd(start.launch,start.started);

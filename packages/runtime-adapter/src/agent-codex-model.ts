@@ -267,7 +267,7 @@ export function readCodexAgentModelOriginals(root: string, rawScope: unknown): C
     if (!same(read(dispatch), pinned)) fail(); capture(name + "/dispatch.json", dispatch);
     const original = CodexOriginalMethodRuntime.readRetained(header.runtime, expected.codex), originalRoot = join(header.runtime.root, expected.codex.operation_key);
     for (const file of ["start.json", "stdio.jsonl", "seal.json"]) if (existsSync(join(originalRoot, file))) capture(name + "/codex/" + file, join(originalRoot, file), TRANSPORT_MAX);
-    if(header.runtime.process_custody){const job=codexProcessLayout(header.runtime.root,expected.codex.operation_key,header.runtime.process_root).operationRoot;for(const file of ['header.json','config.json','started.json','ended.json'])if(existsSync(join(job,file)))capture(name+'/codex/process-job/'+file,join(job,file),65536);}
+    if(header.runtime.process_custody){const job=codexProcessLayout(header.runtime.root,expected.codex.operation_key,header.runtime.process_root).operationRoot;for(const file of ['header.json','config.json','started.json','ended.json','write-failure.json','start-failure-resources.json','start-failure-cleanup-error.json'])if(existsSync(join(job,file)))capture(name+'/codex/process-job/'+file,join(job,file),65536);}
     if (!original) { if (outer.response || existsSync(receiptPath) || existsSync(responseAnchor)) fail(); continue; }
     call.original = original;
     let projected: AgentRuntimeModelResponse;
