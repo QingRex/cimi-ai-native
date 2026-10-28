@@ -106,3 +106,5 @@ export{executeLocalCommandAsync,installedProviderVerifier}from'./project.js';
 export{executeProviderCommandWithSources}from'./provider-command-sources-local.js';
 export {installDedicatedAgentRuntime,openInstalledDedicatedAgentRuntime,openOriginalDedicatedRuntimeCustody,inspectDedicatedAgentRuntimeInstallation,hasInstalledDedicatedAgentRuntime,dedicatedRuntimeInstallationWritablePaths} from './agent-dedicated-installation-local.js';
 export type {DedicatedAgentRuntimeInstallInput,InstalledDedicatedAgentRuntime,OriginalDedicatedRuntimeCustody} from './agent-dedicated-installation-local.js';
+export {installDedicatedRuntimeStorage,openDedicatedRuntimeStorage,inspectDedicatedRuntimeStorage} from './agent-dedicated-storage-local.js';
+export type {DedicatedRuntimeStorageInput} from './agent-dedicated-storage-local.js';

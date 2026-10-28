@@ -30,7 +30,7 @@ import {createRuntimeContractCommand} from './runtime-contract.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 import { installCodexClarification,attachCodexClarificationRuntime } from "./clarification-codex.js";
 import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,allocateCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage,installCodexHome,showCodexHome} from './agent-codex-installation.js';
-import {installDedicatedRuntime,showDedicatedRuntimeInstallation} from './agent-dedicated-installation.js';
+import {installDedicatedRuntime,showDedicatedRuntimeInstallation,installDedicatedStorage,showDedicatedStorage} from './agent-dedicated-installation.js';
 
 const program = new Command();
 const jsonRequested = process.argv.includes("--json");
@@ -105,6 +105,14 @@ runtime.command('install-local-provider').description('固定本地 OpenAI 兼�
  .action((options,command)=>installDedicatedRuntime({...globals(command),...options}));
 runtime.command('local-provider-installation').description('只读核对本地兼容连接的原安装，不启动 Run 或读取密钥')
  .action((_options,command)=>showDedicatedRuntimeInstallation(globals(command)));
+runtime.command('install-local-provider-storage').description('将本地兼容原安装绑定到已有固定卷；不创建或格式化卷')
+ .requiredOption('--image <path>','已准备的原固定 VHDX 镜像')
+ .requiredOption('--volume-root <drive>','原挂载根，例如 R:\\')
+ .requiredOption('--maximum-mib <MiB>','原固定容量，64—8192 MiB')
+ .option('--yes','明确确认原卷及项目绑定')
+ .action((options,command)=>installDedicatedStorage({...globals(command),...options}));
+runtime.command('local-provider-storage').description('只读重核本地兼容原卷与配额票据；不创建或修复 reader')
+ .action((_options,command)=>showDedicatedStorage(globals(command)));
 runtime.command('install-codex').description('显式绑定当前Codex账号、程序和固定检查；安装不调用模型或批准Provider')
  .requiredOption('--binary <path>','当前Codex原生codex.exe；同目录须有工具宿主')
  .requiredOption('--native-binary <path>','固定的原生OpenCode执行程序')

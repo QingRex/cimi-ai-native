@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { executeLocalCommand, LocalPrePlanClarification, LocalHumanAgentRunFamilyControl, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions,type LocalAgentParentSkillResultPort } from "@cimiloop/local-app";
 import type { DomainError } from "@cimiloop/protocol/v2";
 import { productionAgentRuntime, productionAgentAccount, productionAgentCosts, hasReadableProductionAgentCosts, hasProductionAgentBillAccount, openInstalledCodexMatt, inspectCodexAgentRuntimeInstallation, LocalAgentRuntimeAdmission, type InstalledCodexMatt, type MattClarificationHost } from "@cimiloop/local-app";
-import {hasInstalledDedicatedAgentRuntime,inspectDedicatedAgentRuntimeInstallation} from '@cimiloop/local-app';
+import {hasInstalledDedicatedAgentRuntime,inspectDedicatedAgentRuntimeInstallation,inspectDedicatedRuntimeStorage} from '@cimiloop/local-app';
 
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -131,9 +131,10 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       requireSession(request, request.method !== "GET");
       if (url.pathname === "/api/context" && request.method === "GET") {
         const dedicatedInstallation=await inspectDedicatedAgentRuntimeInstallation(context);
+        const dedicatedStorage=dedicatedInstallation.state==='installed'?await inspectDedicatedRuntimeStorage(context):undefined;
         const codexInstallation=await inspectCodexAgentRuntimeInstallation(context);
         if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,false);
-        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, matt_host_available: !!matt&&(!!options.prePlanMatt||!hasInstalledDedicatedAgentRuntime(context)), matt_installation_state: mattState, codex_runtime_installation:codexInstallation,local_provider_runtime_installation:dedicatedInstallation,selected_runtime:hasInstalledDedicatedAgentRuntime(context)?'local OpenAI-compatible':'Codex login', agent_start_available: typeof runtimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasReadableProductionAgentCosts(context), agent_cost_settlement_available:typeof options.agentAccountForRun==='function'||hasProductionAgentBillAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
+        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, matt_host_available: !!matt&&(!!options.prePlanMatt||!hasInstalledDedicatedAgentRuntime(context)), matt_installation_state: mattState, codex_runtime_installation:codexInstallation,local_provider_runtime_installation:dedicatedInstallation,local_provider_runtime_storage:dedicatedStorage,selected_runtime:hasInstalledDedicatedAgentRuntime(context)?'local OpenAI-compatible':'Codex login', agent_start_available: typeof runtimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasReadableProductionAgentCosts(context), agent_cost_settlement_available:typeof options.agentAccountForRun==='function'||hasProductionAgentBillAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
       }
       if (url.pathname === "/api/dashboard" && request.method === "GET") {
         send(response, 200, dashboard(context)); return;

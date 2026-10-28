@@ -87,7 +87,7 @@ describe.runIf(process.platform==='win32')('dedicated local provider installatio
   try{
    const login=await fetch(workbench.origin+'/api/session',{method:'POST',headers:{Origin:workbench.origin,'Content-Type':'application/json',Connection:'close'},body:JSON.stringify({bootstrap:new URL(workbench.bootstrapUrl).hash.slice(1)})});
    const response=await fetch(workbench.origin+'/api/context',{headers:{Cookie:login.headers.get('set-cookie')!.split(';')[0]!,Connection:'close'}});
-   expect(response.status).toBe(200);expect(await response.json()).toMatchObject({selected_runtime:'local OpenAI-compatible',local_provider_runtime_installation:{state:'installed',model_dispatch_available:false}});
+   expect(response.status).toBe(200);expect(await response.json()).toMatchObject({selected_runtime:'local OpenAI-compatible',local_provider_runtime_installation:{state:'installed',model_dispatch_available:false},local_provider_runtime_storage:{state:'missing',starts_run:false}});
    await expect(app.productionAgentRuntime('PUBLIC no business Run',local)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{plan:'local OpenAI-compatible'}});
    expect(local.store.asOfEventSequence()).toBe(before);
   }finally{await workbench.close();}
