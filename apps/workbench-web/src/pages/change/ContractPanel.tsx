@@ -37,7 +37,7 @@ export function ContractPanel({ detail }: { detail: ChangeDetail }) {
               <div><div className="eyebrow">约定候选 · 第 {inFlight.proposal_revision} 版</div><h3 className="block-title">走完确认</h3></div>
               {editable && <Button icon={<EditOutlined />} onClick={() => setEditing(true)}>修改候选</Button>}
             </div>
-            <Steps size="small" current={step} className="confirm-steps" items={[{ title: "风险判断", content: "技术负责人" }, { title: "请求确认", content: "推进负责人" }, { title: "决定", content: "需求负责人" }, { title: "应用", content: "形成正式版本" }]} />
+            <Steps size="small" current={step} className="confirm-steps" items={[{ title: "风险判断", content: "技术负责人" }, { title: "请求确认", content: "推进负责人" }, { title: "决定", content: "需求负责人" }, { title: "应用", content: "形成正式版本" }].map((item, index) => ({ ...item, status: index < step ? "finish" as const : index === step ? "process" as const : "wait" as const }))} />
             {!risk && (
               <Form layout="vertical" requiredMark={false} initialValues={{ level: inFlight.body.risk.level }} className="inline-form"
                 onFinish={(values: { level: "ordinary" | "high"; rationale: string }) => write.command("RecordRiskAssessment", { proposal_ref: proposalRef, level: values.level, rationale: values.rationale.trim() }, "technical_owner", "记录风险判断")}>

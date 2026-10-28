@@ -1,7 +1,7 @@
 import { CheckCircleFilled, CloseCircleFilled, FileTextOutlined, FlagOutlined } from "@ant-design/icons";
 import { Button, Form, Input, Radio, Tag } from "antd";
 import { Link } from "react-router";
-import { useRunResult } from "../../api/hooks";
+import { useDashboard, useRunResult } from "../../api/hooks";
 import type { ChangeDetail, Run, Task } from "../../api/types";
 import { Empty } from "../../components/States";
 import { uuid7 } from "../../lib/ids";
@@ -27,6 +27,8 @@ export function VerifyPanel({ detail }: { detail: ChangeDetail }) {
   // Every evaluation and the delivery check refer to the implementation result being judged.
   const sourceRun = [...runs.runs].filter(run => run.status === "Succeeded").sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
   const [deliverForm] = Form.useForm<{ reason: string }>();
+  // Solo mode: with a single Human, the Kernel lets the implementer verify; say so instead of implying independence.
+  const solo = (useDashboard().data?.governance.actors.filter(actor => actor.actor_type === "human").length ?? 0) === 1;
 
   if (!tasks.length || !contract) return <Empty title="还没有可以验证的结果">Agent 完成实施后，在这里核对修改、检查结果，并逐条对照验收标准记录评价。</Empty>;
 
@@ -56,7 +58,8 @@ export function VerifyPanel({ detail }: { detail: ChangeDetail }) {
             <section key={task.id} className="surface surface--pad verify-task">
               <div className="block-head">
                 <div>
-                  <div className="eyebrow">{PURPOSE[definition?.purpose ?? ""]} · {TASK_STATUS[task.status]}</div>
+                  <div className="eyebrow">{PURPOSE[definition?.purpose ?? ""]} · {TASK_STATUS[task.status]}
+                    {solo && definition?.purpose === "verification" && <Tag bordered={false} color="orange" style={{ marginLeft: 10 }}>单人模式 · 非独立验证</Tag>}</div>
                   <h3 className="block-title">{definition?.goal}</h3>
                 </div>
               </div>
@@ -80,8 +83,10 @@ export function VerifyPanel({ detail }: { detail: ChangeDetail }) {
       </div>
       <aside className="panel-side">
         <div className="side-note">
-          <h4>独立评价</h4>
-          <p>评价逐条对照约定的验收标准。实施者的自检不能代替独立评价；结论只有“支持”“反驳”“无法判断”三种。</p>
+          <h4>{solo ? "单人模式的验证" : "独立评价"}</h4>
+          <p>评价逐条对照约定的验收标准，结论只有“支持”“反驳”“无法判断”三种。</p>
+          {solo ? <p>项目里只有你一个人，验证由你本人完成，记录中如实标注为非独立验证。邀请第二位成员后，验证将恢复为独立评价。</p>
+            : <p>实施者的自检不能代替独立评价，验证须由另一位成员完成。</p>}
         </div>
       </aside>
     </div>

@@ -50,7 +50,7 @@ export function PlanPanel({ detail }: { detail: ChangeDetail }) {
               <div><div className="eyebrow">计划候选 · 第 {inFlight.proposal_revision} 版</div><h3 className="block-title">走完确认</h3></div>
               {editable && <Button icon={<EditOutlined />} onClick={() => setEditing(true)}>修改候选</Button>}
             </div>
-            <Steps size="small" current={step} className="confirm-steps" items={[{ title: "请求确认", content: "技术负责人" }, { title: "决定", content: "技术负责人" }, { title: "应用", content: "形成正式版本" }]} />
+            <Steps size="small" current={step} className="confirm-steps" items={[{ title: "请求确认", content: "技术负责人" }, { title: "决定", content: "技术负责人" }, { title: "应用", content: "形成正式版本" }].map((item, index) => ({ ...item, status: index < step ? "finish" as const : index === step ? "process" as const : "wait" as const }))} />
             {!openRequest && (
               <div className="cta-strip cta-strip--flat">
                 <div><b>计划候选已提交</b><span>发起确认后，技术负责人记录决定。</span></div>

@@ -105,7 +105,7 @@ function TaskCard({ task, index, definition, runs, detail }: {
         )}
       </div>
       <Modal open={starting} title="让 Agent 实施这个任务" okText="开始运行" onCancel={() => setStarting(false)} onOk={start} confirmLoading={write.busy}>
-        <p className="modal-lead">Agent 在独立分支上按约定与任务修改代码，结束时运行固定检查。你可以随时在控制台停止它。</p>
+        <p className="modal-lead">Agent 在独立分支上按约定与任务修改代码，结束时运行固定检查，你可以随时在控制台停止它。这次运行记在你名下，模型是你使用的工具。</p>
         <div className="modal-facts">
           <span>模型 <b className="mono">{provider?.model}</b></span>
           {context.runtime?.limits && <span>上限 <b>{context.runtime.limits.max_turns}</b> 轮 · <b>{(context.runtime.limits.max_tokens / 1000).toFixed(0)}k</b> tokens</span>}
