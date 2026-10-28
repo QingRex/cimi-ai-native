@@ -148,3 +148,5 @@ SDK调试组件继续准备：已核对本机26100.3916 SDK安装程序Microsoft
 先经13的原launch2取消接口结束开发构建，最终code125、stopped=false、reason=cancel_requested、活动进程0、Job关闭、资源disposed；107份源码和六份工具前后相同，source_error为空。该主动取消不是构建成功或空间停止。独立脚本 `verify-after-full13.py` 又核对1,765份ICU／Rust vendor原件，物理身份及摘要零漂移；新收据 `after-full13.json` 保留在原依赖目录，未覆盖12的记录。
 
 随后另存配置08，只将build_jobs由2改4。完整14使用同一源码、工具、归档和target，原会话60123；已实际核对Ninja命令为 `-j 4 rusty_v8`，继续既有缓存。原13及全部失败材料保留，完整构建2GiB停止线、sandbox及pointer compression不变。当前14仍无result终态，尚不能执行新产物的双场景AppContainer启动；最终仍须code0、源码／工具后验、两个产物及原资源处置全部成立。
+
+2026-10-28更新：14及后续15均已完整code0／资源disposed／来源和工具后验不变。15纳入受控启动的可选curated同步修补；两个新程序已独立封存，实际AppContainer空登录版本和stdio初始化2项均通过、0跳过，另有代理4项及来源4项通过。以上“14运行中”为当时历史状态，最新原件、验证边界和下一步以[实际构建与启动记录](2026-10-28-cimiloop-contained-client-startup.md)为准，不再启动新构建替代已成功阶段。

@@ -63,6 +63,7 @@ public static partial class CodexProcessJob {
       // LPAC cannot create TCP sockets on all supported Windows builds. Its
       // compatible client opens the original, nonce-bound pipe directly and
       // keeps TLS inside the model process. No network capability is added.
+      Environment.SetEnvironmentVariable("CIMILOOP_CONTAINED_CODEX","1");
       Environment.SetEnvironmentVariable("CIMILOOP_CODEX_EGRESS_PIPE",explicitPackage?egressName:null);
       Environment.SetEnvironmentVariable("CIMILOOP_CODEX_EGRESS_POLICY",explicitPackage?"original_named_pipe_tls/1.0.0":null);
       Environment.SetEnvironmentVariable("CIMILOOP_CODEX_EGRESS_SERVER_PID",explicitPackage?server.ToString():null);

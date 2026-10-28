@@ -38,6 +38,8 @@ node scripts/codex-appcontainer/prepare-source.mjs <build-root>/source-pipe --pr
 
 `.2` 收据格式2另存传输模块和依赖摘要；版本标识与固定 `--cimiloop-transport-capabilities` 输出都不是资格证据。完整 fetch／test-paths／build 按配置选择固定目录：格式1用 `source`，格式2用 `source-pipe`；两个 checkout 共用本批私有工具链与 Cargo target 缓存。有限模块夹具仍从原 `source` 的固定 Git 对象构造新阶段，不用旧 `.1` 作为完整 `.2` 构建输入。最终程序必须对应本次阶段源码后验及摘要；target 中其他版本的旧文件不能当成本阶段成功产物。
 
+受控网络监督器还在子进程内设置内部标记 `CIMILOOP_CONTAINED_CODEX=1`。当前 `.2` 来源计划据此跳过 curated 插件仓库的可选后台同步，使空登录初始化无需访问 GitHub；插件加载、权限和 marketplace 校验仍执行，原允许域名、TLS、Token、Job及写域不变。该标记由监督器设置，用户无需手工配置。历史 `.1` 的六项材料保持；更新的 `.2` 另将实际修改的 `core-plugins/src/manager.rs` 纳入来源后验，必须按当前完整来源和两个程序摘要核对，不能只比较相同的版本字符串。[本机实际构建与启动记录](../../docs/plans/2026-10-28-cimiloop-contained-client-startup.md)。
+
 在私有目录中准备 Rust 1.95.0 minimal 工具链：`CARGO_HOME=<build-root>/cargo`、`RUSTUP_HOME=<build-root>/rustup`，用官方 rustup 安装器的 `--no-modify-path --profile minimal --default-toolchain 1.95.0` 选项。不要改现有用户目录或全局 PATH。另需 Visual Studio Build Tools（C++ x64、Windows SDK、CMake／Ninja）、Git、Python；将实际安装位置写入下面文件。若所选上游依赖需要额外工具，依据实际构建错误安装到本批私有目录，不能跳过该依赖后称完整构建成功。
 
 创建 `<build-root>/build-tools.json`，字段为实际绝对路径，不包含凭据。以下路径仅为形状示例，必须替换；`msvc_environment` 必须位于同一私有构建根：

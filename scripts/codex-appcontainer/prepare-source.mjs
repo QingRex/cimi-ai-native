@@ -45,6 +45,22 @@ export function sourcePlan(rawRoot,{privatePipe=false,reqwestArchives}={}){
  });
  edit('codex-rs/utils/home-dir/src/lib.rs',text=>replace(text,'let canonical = path.canonicalize()','let canonical = codex_utils_absolute_path::canonicalize(&path)'));
  edit('codex-rs/config/src/loader/mod.rs',text=>replace(text,'use dunce::canonicalize as normalize_path;','use codex_utils_absolute_path::canonicalize as normalize_path;'));
+ if(privatePipe)edit('codex-rs/core-plugins/src/manager.rs',text=>replace(text,`    pub fn maybe_start_curated_repo_sync_for_config(
+        self: &Arc<Self>,
+        config: &PluginsConfigInput,
+        on_effective_plugins_changed: Option<EffectivePluginsChangedCallback>,
+    ) {
+        if config.plugins_enabled`,`    pub fn maybe_start_curated_repo_sync_for_config(
+        self: &Arc<Self>,
+        config: &PluginsConfigInput,
+        on_effective_plugins_changed: Option<EffectivePluginsChangedCallback>,
+    ) {
+        // The contained supervisor can only bridge chatgpt.com and auth.openai.com.
+        // Curated sync starts with GitHub and would open that bridge during empty-login initialize.
+        if std::env::var("CIMILOOP_CONTAINED_CODEX").ok().as_deref() == Some("1") {
+            return;
+        }
+        if config.plugins_enabled`));
  const transport=privatePipe?addPrivatePipeSource({files,edit,blob,archives:reqwestArchives}):undefined;
  const changes=()=>git(['-c','status.renames=false','status','--porcelain=v1','-z','--untracked-files=all']).split('\0').filter(Boolean);
  return{root,files,before,changes,commit:upstreamCommit,version,helper_digest:sha(helper),...(transport?{transport}:{})};

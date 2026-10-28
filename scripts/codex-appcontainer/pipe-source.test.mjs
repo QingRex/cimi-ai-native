@@ -25,6 +25,7 @@ test('builds a distinct pipe client plan covering both HTTP dependency versions 
   assert.match(plan.files.get(base+'src/async_impl/client.rs'),/cimi_pipe::configuration/);
   assert.match(plan.files.get(base+'src/connect.rs'),/cimi_pipe::open/);
  }
+ assert.match(plan.files.get('codex-rs/core-plugins/src/manager.rs'),/CIMILOOP_CONTAINED_CODEX/);
  assert.match(plan.files.get('codex-rs/websocket-client/src/dialer.rs'),/cimi_pipe::configuration/);
  assert.match(plan.files.get('codex-rs/websocket-client/src/dialer.rs'),/ConnectionInner::Right/);
  const lock=plan.files.get('codex-rs/Cargo.lock');

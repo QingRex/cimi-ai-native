@@ -46,6 +46,8 @@ Node 必须 `>=24.15 <25`，pnpm 必须12.4.2。记录实际本地分支、HEAD�
 
 历史完整 `pipe-client-full-01` 因2GiB保护停止，code125，原 Job 已处置，源码前后一致。后续还出现rustc访问违例及固定V8的Windows sandbox库404；这些失败都保留，不能当成成功。当前阶段以[最新构建记录](../plans/2026-10-27-cimiloop-matt-runtime-attachment.md#固定-v8-sandbox-源码构建)和本机原 `stages/<stage>/result.json` 为准，不沿用本文历史阶段为“当前运行中”。缺sandbox预编译资产时，按README的显式源码构建选项准备私有LLVM，不替换普通库或关闭sandbox。2GiB是停止缓冲线；建议至少10GB可用空间。先使两个目标均实际成功，再按 README 执行 `codex-official-startup.test.ts` 的无登录版本／初始化；没有新程序时不运行或跳过均不能记通过。
 
+2026-10-28本机G1已通过：完整15的108份来源与六份选定工具前后相同、原资源disposed，两个程序已封存在新单链接目录；空登录AppContainer版本／初始化两项实际通过、0跳过，网络应用请求0。[原件、程序摘要及验证范围](../plans/2026-10-28-cimiloop-contained-client-startup.md)。这一步不批准账户、费用、Skill或正式Agent；其他电脑须验证自己的实际材料，不能将本机绝对路径作为配置。
+
 随后逐步执行[同卷安装与有限额度分配](CimiLoop-Codex同卷安装与有限额度分配-v0.1.md)。固定检查 JSON 须写真实命令、程序、适用工作范围与摘要，不能用恒返回0的检查替身。官方登录由用户按安全连接方式在仓库外完成；不复制历史 API Key、登录令牌或 auth.json，不写入 Git、日志或 Agent 上下文。
 
 ```powershell
@@ -205,4 +207,4 @@ pnpm cimiloop run reconcile-original <run-id> --help
 
 ## 10. 本指南当前核对范围
 
-2026-10-27 已读取当前源码、编译 CLI 帮助及相关操作指南，确认命令层级、Run／Task／WorkItem／Change 的目标区别和现有停点。只读 doctor 证明开发工具仓库尚不是初始化业务项目；卷／管理员状态和客户端空间失败均按实际状态记录。没有初始化用户库、创建业务 Change／Plan／Task／Run、调用模型或执行整条验收；本指南不得作为已完成接入或五组 S1 证据。
+2026-10-27 已读取当前源码、编译 CLI 帮助及相关操作指南，确认命令层级、Run／Task／WorkItem／Change 的目标区别和现有停点。只读 doctor 证明开发工具仓库尚不是初始化业务项目；卷／管理员状态及历史构建失败按实际记录保留。2026-10-28补充上述完整客户端及真实AppContainer空登录启动的G1证据；G2固定卷目前只有只读准备计划，没有实际创建或挂载。没有初始化用户库、创建业务 Change／Plan／Task／Run、调用真实模型或执行整条验收；本指南不得作为已完成接入或五组 S1 证据。
