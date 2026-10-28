@@ -4,6 +4,7 @@ param(
   [ValidateRange(64,8192)][int]$MaximumMiB=1024,
   [string]$ParentDirectory=(Join-Path $env:ProgramData 'CimiLoopPhysicalQuota'),
   [string]$OwnerSid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value,
+  [string]$ResumeRoot,
   [switch]$Execute
 )
 $ErrorActionPreference='Stop'
@@ -22,6 +23,46 @@ function Assert-PlainPath([string]$Path) {
 function Save-NewJson([string]$Path,$Value) {
   $stream=[IO.File]::Open($Path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
   try { $bytes=[Text.UTF8Encoding]::new($false).GetBytes(($Value|ConvertTo-Json -Depth 8));$stream.Write($bytes,0,$bytes.Length);$stream.Flush($true) } finally { $stream.Dispose() }
+}
+function ConvertTo-DiskPartScriptBytes([string[]]$Commands,[int]$CodePage) {
+  # DiskPart may return 0 without interpreting a UTF-16 script. Use its
+  # system ANSI code page without a BOM, and reject lossy path conversion.
+  $encoding=[Text.Encoding]::GetEncoding($CodePage,[Text.EncoderFallback]::ExceptionFallback,[Text.DecoderFallback]::ExceptionFallback)
+  return ,$encoding.GetBytes(($Commands -join "`r`n")+"`r`n")
+}
+function Get-DiskPartCodePage {
+  if(-not ('CimiLoopQuotaCodePage' -as [type])) {
+    Add-Type -TypeDefinition 'using System.Runtime.InteropServices; public static class CimiLoopQuotaCodePage { [DllImport("kernel32.dll")] public static extern uint GetACP(); }'
+  }
+  return [int][CimiLoopQuotaCodePage]::GetACP()
+}
+function Read-UncreatedQuotaPlan([string]$Root,$Expected) {
+  Assert-PlainPath $Root
+  foreach($name in @('quota.vhdx','prepared.json','resume-before-image-intent.json','resume-diskpart.txt','resume-diskpart-output.txt','resume-diskpart-result.json')) {
+    if(Test-Path -LiteralPath (Join-Path $Root $name)) { throw 'An image or original resume already exists; inspect it instead of repeating preparation.' }
+  }
+  $intent=Join-Path $Root 'prepare-intent.json'
+  $commands=Join-Path $Root 'diskpart.txt'
+  $output=Join-Path $Root 'diskpart-output.txt'
+  foreach($path in @($intent,$commands,$output)) {
+    Assert-PlainPath $path
+    if(-not(Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path).Length -gt 65536) { throw 'The original failed preparation materials are unavailable.' }
+  }
+  $prior=Get-Content -LiteralPath $intent -Raw -Encoding UTF8 | ConvertFrom-Json
+  $keys=@('format','root','image','volume_root','maximum_bytes','owner_sid','commands','executes','runtime_scope_proven')
+  if((@($prior.PSObject.Properties.Name | Sort-Object) -join ',') -cne (($keys|Sort-Object) -join ',')) { throw 'Original preparation fields changed.' }
+  foreach($name in $keys | Where-Object { $_ -ne 'commands' }) {
+    if(($prior.$name|ConvertTo-Json -Compress) -cne ($Expected.$name|ConvertTo-Json -Compress)) { throw 'The original preparation identity or limits changed.' }
+  }
+  # Detect historical UTF-16 BOMs, while decoding new BOM-free scripts with
+  # the same native ANSI code page used to write them.
+  $encoding=[Text.Encoding]::GetEncoding((Get-DiskPartCodePage),[Text.EncoderFallback]::ExceptionFallback,[Text.DecoderFallback]::ExceptionFallback)
+  $reader=[IO.StreamReader]::new($commands,$encoding,$true)
+  $lines=@()
+  try { while($null -ne ($line=$reader.ReadLine())) { $lines+=@($line) } } finally { $reader.Dispose() }
+  if(($prior.commands|ConvertTo-Json -Compress) -cne ($Expected.commands|ConvertTo-Json -Compress) -or
+    ($lines|ConvertTo-Json -Compress) -cne ($Expected.commands|ConvertTo-Json -Compress)) { throw 'The original preparation commands changed.' }
+  return [ordered]@{original_intent_sha256=(Get-FileHash -LiteralPath $intent -Algorithm SHA256).Hash.ToLowerInvariant();original_commands_sha256=(Get-FileHash -LiteralPath $commands -Algorithm SHA256).Hash.ToLowerInvariant();original_output_sha256=(Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant()}
 }
 function Set-QuotaAcl([string]$Path,[bool]$WritableOwner) {
   $directory=(Get-Item -LiteralPath $Path -Force).PSIsContainer
@@ -65,7 +106,9 @@ if([IO.Path]::GetDirectoryName($quotaParent.TrimEnd('\')) -ine $programDataRoot)
 Assert-AdminParent $programDataRoot $false
 Assert-PlainPath $quotaParent
 if(Test-Path -LiteralPath $quotaParent) { Assert-AdminParent $quotaParent $true }
-$quotaRoot=Join-Path $quotaParent ([Guid]::NewGuid().ToString())
+$resuming=$PSBoundParameters.ContainsKey('ResumeRoot')
+$quotaRoot=if($resuming){[IO.Path]::GetFullPath($ResumeRoot)}else{Join-Path $quotaParent ([Guid]::NewGuid().ToString())}
+if($resuming -and [IO.Path]::GetDirectoryName($quotaRoot.TrimEnd('\')) -ine $quotaParent) { throw 'Resume only the original direct child of the quota parent.' }
 $image=Join-Path $quotaRoot 'quota.vhdx'
 $volume=$DriveLetter.ToUpperInvariant()+':\'
 if([Environment]::GetLogicalDrives() -contains $volume -or (Get-PSDrive -PSProvider FileSystem).Name -contains $DriveLetter) { throw 'The requested drive letter is already assigned.' }
@@ -75,6 +118,12 @@ if(-not $Execute) { $plan|ConvertTo-Json -Depth 8;return }
 $principal=[Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
 if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Run this exact reviewed script in an administrator PowerShell. No disk operation was performed.' }
 foreach($command in @('Get-DiskImage','Get-Disk','Get-Partition','Get-Volume')) { $null=Get-Command $command -ErrorAction Stop }
+$commandBytes=ConvertTo-DiskPartScriptBytes $commands (Get-DiskPartCodePage)
+if($resuming) {
+  Assert-AdminParent $quotaParent $true
+  Assert-AdminParent $quotaRoot $true
+  $resumeBasis=Read-UncreatedQuotaPlan $quotaRoot $plan
+}
 if(-not(Test-Path -LiteralPath $quotaParent)) {
   $null=New-Item -ItemType Directory -Path $quotaParent
   Set-QuotaAcl $quotaParent $false
@@ -82,19 +131,26 @@ if(-not(Test-Path -LiteralPath $quotaParent)) {
   if(@(Get-ChildItem -LiteralPath $quotaParent -Force).Count -ne 0) { throw 'The new quota parent is not empty; retain it and inspect it.' }
 }
 Assert-AdminParent $quotaParent $true
-if(Test-Path -LiteralPath $quotaRoot) { throw 'The new installation root already exists; do not reuse it.' }
-$null=New-Item -ItemType Directory -Path $quotaRoot
-Assert-PlainPath $quotaRoot
-Set-QuotaAcl $quotaRoot $false
-if(@(Get-ChildItem -LiteralPath $quotaRoot -Force).Count -ne 0) { throw 'The new quota root is not empty; retain it and inspect it.' }
-Save-NewJson (Join-Path $quotaRoot 'prepare-intent.json') $plan
-$commandFile=Join-Path $quotaRoot 'diskpart.txt'
-[IO.File]::WriteAllLines($commandFile,$commands,[Text.Encoding]::Unicode)
+if($resuming) {
+  Save-NewJson (Join-Path $quotaRoot 'resume-before-image-intent.json') ([ordered]@{format='cimiloop/fixed-volume-before-image-resume/1.0.0';original=$plan;basis=$resumeBasis})
+} else {
+  if(Test-Path -LiteralPath $quotaRoot) { throw 'The new installation root already exists; do not reuse it.' }
+  $null=New-Item -ItemType Directory -Path $quotaRoot
+  Assert-PlainPath $quotaRoot
+  Set-QuotaAcl $quotaRoot $false
+  if(@(Get-ChildItem -LiteralPath $quotaRoot -Force).Count -ne 0) { throw 'The new quota root is not empty; retain it and inspect it.' }
+  Save-NewJson (Join-Path $quotaRoot 'prepare-intent.json') $plan
+}
+$prefix=if($resuming){'resume-diskpart'}else{'diskpart'}
+$commandFile=Join-Path $quotaRoot ($prefix+'.txt')
+$stream=[IO.File]::Open($commandFile,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
+try { $stream.Write($commandBytes,0,$commandBytes.Length);$stream.Flush($true) } finally { $stream.Dispose() }
 # No noerr/clean/select-disk fallback. A failed original retains all materials.
 $diskpart=Join-Path $env:SystemRoot 'System32\diskpart.exe'
 $output=& $diskpart /s $commandFile 2>&1
 $result=$LASTEXITCODE
-[IO.File]::WriteAllLines((Join-Path $quotaRoot 'diskpart-output.txt'),[string[]]$output,[Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllLines((Join-Path $quotaRoot ($prefix+'-output.txt')),[string[]]$output,[Text.UTF8Encoding]::new($false))
+Save-NewJson (Join-Path $quotaRoot ($prefix+'-result.json')) ([ordered]@{exit_code=$result;command_sha256=(Get-FileHash -LiteralPath $commandFile -Algorithm SHA256).Hash.ToLowerInvariant()})
 if($result -ne 0 -or -not(Test-Path -LiteralPath $image) -or -not(Test-Path -LiteralPath $volume)) { throw 'Disk preparation is incomplete. Retain this root and inspect the original; do not rerun or clean it.' }
 # Read the OS relation before touching a volume ACL. Apply the ACL through its
 # stable GUID path, so a drive-letter remap cannot target some other volume.
