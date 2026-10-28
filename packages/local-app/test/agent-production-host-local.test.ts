@@ -11,7 +11,7 @@ import * as productionCustody from '../src/agent-production-custody-local.js';
 vi.setConfig({testTimeout:120000});
 
 const seam=vi.hoisted(()=>({account:undefined as app.InstalledCodexUsageBudget|undefined,onOpen:undefined as (()=>void)|undefined,opens:0,full:undefined as app.AgentProductionCustodyPort|undefined,closed:0,installation:undefined as app.InstalledCodexAgentRuntime|undefined}));
-vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),openInstalledCodexAgentRuntime:async()=>seam.installation}));
+vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),openInstalledCodexAgentRuntime:async()=>seam.installation,openOriginalCodexRuntimeCustody:async()=>seam.installation}));
 vi.mock('../src/agent-codex-usage-budget-local.js',async load=>({...await load<typeof import('../src/agent-codex-usage-budget-local.js')>(),openInstalledCodexUsageBudget:async()=>{seam.opens++;seam.onOpen?.();return seam.account;}}));
 vi.mock('../src/agent-codex-storage-local.js',async load=>({...await load<typeof import('../src/agent-codex-storage-local.js')>(),openCodexRuntimeStorage:async()=>({PUBLIC:true})}));
 vi.mock('../src/agent-codex-login-home-local.js',async load=>({...await load<typeof import('../src/agent-codex-login-home-local.js')>(),openCodexRuntimeLoginHome:async()=>({PUBLIC:true})}));

@@ -12,7 +12,7 @@ import {readAgentNamedMethodOriginals} from './agent-named-method-host.js';
 import {readAgentRuntimeModelOriginals,assertAgentRuntimeModelOriginalMode} from './agent-runtime-model.js';
 import {readAgentWorkspaceIpcOriginals,correlateAgentWorkspaceSdkOriginals} from './agent-workspace-ipc-journal.js';
 import {validateFixedMethodOutput} from './fixed-method.js';
-import {readNamedMethodCodexOriginals} from './agent-named-method-model-originals.js';
+import {readNamedMethodModelOriginals} from './agent-named-method-model-originals.js';
 export interface AgentNamedMethodResultInputs {profile:unknown;files:{path:string;content:string}[]}
 export interface AgentNamedMethodResult {
  status:'Observed'|'Unknown';reason:string;matched_calls:number;method_result_reverified:boolean;
@@ -54,7 +54,7 @@ export function readAgentRuntimeNamedMethodResult(root:string,rawScope:unknown,i
   assertAgentRuntimeModelOriginalMode(originalModelHeader,false,input.provider_options as Record<string,unknown>);
   const modelBinding=model.original_evidence?{format:'cimiloop/agent-model-original-binding/1.0.0',header_digest:modelHeader.digest,original_evidence:model.original_evidence}:undefined;
   if(!same(input.model_original_binding,modelBinding))fail();
-  const codex=readNamedMethodCodexOriginals(root,scope,model,input,config);
+  const modelOriginals=readNamedMethodModelOriginals(root,scope,model,input,config);
   const seen=new Set<string>(),modelSeen=new Set<string>();let firstMethod=true;
   for(const exchange of ipc.exchanges){const request=exchange.request as Record<string,unknown>,reply=exchange.reply as Record<string,unknown>;if(exchange.state!=='reply_recorded'||reply.outcome!=='completed')fail();
    if(request.tool==='model_step'){const call=model.calls.find(c=>c.call_id===request.call_id);if(!call||!same(call.request,request)||!same(call.response,reply.receipt)||reply.replay!==modelSeen.has(call.call_id))fail();modelSeen.add(call.call_id);continue;}
@@ -92,12 +92,14 @@ export function readAgentRuntimeNamedMethodResult(root:string,rawScope:unknown,i
   // Only the original final text contract is negative evidence. Every custody,
   // Native/SDK/IPC/model/Job and reread failure remains Unknown outside this catch.
   try{output=validateFixedMethodOutput(json(Buffer.from(last.text),32768),method.context.request.input);}catch{failure={code:'agent_named_method_output_invalid',returned_text_digest:digest(last.text)};}
+  // The collection owns the provider artifact block. Reverify it here without
+  // duplicating it into method/* and consuming the same bounded capacity twice.
   const artifacts=[...critical.map(({bytes:_,...a})=>a),...method.artifacts.map(a=>({...a,name:'method/'+a.name})),...model.artifacts.map(a=>({...a,name:'model/'+a.name})),...ipc.artifacts.map(a=>({...a,name:'ipc/'+a.name})),{name:'stdout.raw',path:stdoutPath,digest:digest(stdout).value},{name:'agent-sandbox-cleanup.json',path:cleanupPath,digest:digest(cleanupBytes).value}];
   for(const a of artifacts)if(digest(bytesAt(a.path,['stdout.raw','result.json'].includes(a.name)?4*1024*1024:114688)).value!==a.digest)fail();
   if(!same(readAgentRuntimeOriginalIdentity(root,scope),identity)||
     !same(readAgentNamedMethodOriginals(root,scope,inputs.profile,inputs.files,config.method_original_binding),method)||
     !same(readAgentRuntimeModelOriginals(root,scope),model)||!same(readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce)),ipc)||
-    !same(readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}),original)||!same(readNamedMethodCodexOriginals(root,scope,model,input,config),codex))fail();
+    !same(readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}),original)||!same(readNamedMethodModelOriginals(root,scope,model,input,config),modelOriginals))fail();
   if(failure)return {...summary,status:'Observed',reason:'agent_named_method_output_invalid',matched_calls:seen.size,method_failure_reverified:true,failure,artifacts};
   if(!output)fail();return {...summary,status:'Observed',reason:'agent_named_method_result_reverified',matched_calls:seen.size,method_result_reverified:true,output,output_digest:digest(JSON.stringify(output)),artifacts};
   }));}catch{return summary;}

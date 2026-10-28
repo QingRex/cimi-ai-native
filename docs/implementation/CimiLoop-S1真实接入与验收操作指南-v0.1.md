@@ -1,5 +1,7 @@
 # CimiLoop S1 真实接入与验收操作指南 v0.1
 
+2026-10-28后续改由Opus 5.5完成全部S1，Codex持续目标与自动续接已暂停。请按[最新完整交接](../plans/2026-10-28-CimiLoop-S1-Opus-5.5-交接.md)核对源码、原资源和剩余条件；本指南仍未完整实走，不因交接或push改判通过。
+
 本地provider正式组合已要求原安装／账户实际写根与原固定卷，包含账户辅助器及原operation／call的DPAPI私有环境；父子Skill共享守卫。缺原能力仍拒绝，绑定与合成凭据往返不代表完整G2／模型／费用验收。[实际接线及分轮验证](../plans/2026-10-28-cimiloop-dedicated-writable-roots.md)。
 
 本地provider安装的原持久账户已接默认 `run costs <run-id>`／工作台原费用查询：按原scope／hold选择账户，缺程序／凭据可读历史，缺原件保留Unknown。没有真实账单认证或结清授权。[原账户边界与实际验证](../plans/2026-10-28-cimiloop-local-account-original-reader.md)。Runtime契约／隔离Skill新效果也不能在已选本地连接后回退旧登录；工作台显示当前选择，历史原请求仍可核对。[执行选择与页面](../plans/2026-10-28-cimiloop-technical-provider-selection.md)。

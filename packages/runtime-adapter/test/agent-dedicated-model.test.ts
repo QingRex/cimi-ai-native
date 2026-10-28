@@ -12,10 +12,35 @@ import { prepareDedicatedAgentRequest, parseDedicatedAgentResponse } from "../sr
 import * as DedicatedOriginals from "../src/agent-dedicated-model.js";
 import { collectAgentRuntimeOperation, claimAgentRuntimeOperation } from "../src/agent-runtime-operation.js";
 import { rawReference } from "../src/files.js";
+import {readNamedMethodCodexOriginals} from '../src/agent-named-method-model-originals.js';
 import { createDedicatedAgentRuntimeModel, type DedicatedAgentAccountPort } from "../src/agent-dedicated-model.js";
 import { httpFixture, HTTP_FIXTURE_KEY } from "./gateway-http-fixture.js";
 const credentialProcess=vi.hoisted(()=>({options:undefined as any,verified:false}));
 vi.mock('../src/connection.js',async load=>({...await load<typeof import('../src/connection.js')>(),readDedicatedApiKey:async(_connection:unknown,options:any)=>{credentialProcess.options=options;await options?.beforeEffect?.();credentialProcess.verified=typeof options?.beforeEffect==='function';throw Error('PUBLIC stop before decrypt/socket');}}));
+
+it('named result readers refuse lost dedicated provider bytes behind an unchanged completed outer SDK receipt',async()=>{
+ const f=await host();try{
+  const h=await AgentRuntimeModelHost.initialize(f.root,f.scope,f.model,['cimi_read']);await h.execute(f.request);
+  claimAgentRuntimeOperation(f.root,f.scope,{purpose:'agent_runtime',model_original_binding:h.originalBinding},{pid:1234,creation_ticks:'12345',image:process.execPath});
+  const input={model_original_binding:h.originalBinding},config={provider_options:{}},model=readAgentRuntimeModelOriginals(f.root,f.scope),before=f.counts(),network=f.tls.counts();
+  expect(readNamedMethodCodexOriginals(f.root,f.scope,model,input,config)).toBeUndefined();
+  const path=join(f.root,'agent-dedicated-model-originals',f.scope.project_id,f.scope.run_id,'model_0001','provider-response.json');renameSync(path,path+'.retained-original');
+  expect(readAgentRuntimeModelOriginals(f.root,f.scope)).toEqual(model);
+  expect(()=>readNamedMethodCodexOriginals(f.root,f.scope,model,input,config)).toThrow();expect(existsSync(path)).toBe(false);expect(f.counts()).toEqual(before);expect(f.tls.counts()).toEqual(network);
+ }finally{await f.tls.close();}
+});
+
+it('named cancellation readers verify the exact dedicated collection without treating it as legacy or Codex',async()=>{
+ const f=await host();try{
+  const h=await AgentRuntimeModelHost.initialize(f.root,f.scope,f.model,['cimi_read']);await h.execute(f.request);
+  claimAgentRuntimeOperation(f.root,f.scope,{purpose:'agent_runtime',model_original_binding:h.originalBinding},{pid:1234,creation_ticks:'12345',image:process.execPath});
+  const collection=await collectAgentRuntimeOperation(f.root,f.scope),model=readAgentRuntimeModelOriginals(f.root,f.scope),input={model_original_binding:h.originalBinding},config={provider_options:{}};
+  expect(collection.format).toBe('cimiloop/agent-runtime-originals/1.0.0');
+  expect(readNamedMethodCodexOriginals(f.root,f.scope,model,input,config,collection)).toBeUndefined();
+  const saved=collection.artifacts.find(a=>a.name.endsWith('model_0001/provider-response.json'))!;renameSync(saved.reference.locator,saved.reference.locator+'.retained-original');
+  expect(()=>readNamedMethodCodexOriginals(f.root,f.scope,model,input,config,collection)).toThrow();expect(existsSync(saved.reference.locator)).toBe(false);expect(f.counts()).toMatchObject({holds:1,credentials:1});expect(f.tls.observations).toHaveLength(1);
+ }finally{await f.tls.close();}
+});
 
 // Real local TLS/HTTP; account approval, address and credential are constructed.
 // No live credential/provider request, real model qualification or S1 evidence.

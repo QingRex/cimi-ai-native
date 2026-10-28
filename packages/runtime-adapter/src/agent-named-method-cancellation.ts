@@ -11,7 +11,7 @@ import {readAgentNamedMethodOriginals} from './agent-named-method-host.js';
 import {readAgentRuntimeModelOriginals} from './agent-runtime-model.js';
 import {readAgentWorkspaceIpcOriginals,correlateAgentWorkspaceSdkOriginals} from './agent-workspace-ipc-journal.js';
 import type {AgentNamedMethodResultInputs} from './agent-named-method-result.js';
-import {readNamedMethodCodexOriginals} from './agent-named-method-model-originals.js';
+import {readNamedMethodModelOriginals} from './agent-named-method-model-originals.js';
 type Collection=Awaited<ReturnType<typeof collectAgentRuntimeOperation>>;
 export interface OriginalNamedCancellation {
  format:'cimiloop/original-named-cancellation/1.0.0';status:'Observed'|'Unknown';reason:string;cancellation_reverified:boolean;
@@ -53,7 +53,7 @@ export function readAgentRuntimeNamedMethodCancellation(root:string,rawScope:unk
   if(Object.keys(native).sort().join(',')!=='active_process_limit,appcontainer_sid,format,network_capability_sids,nonce,peer,phase,supervisor'||native.format!=='cimiloop/agent-workspace-sandbox/1.0.0'||native.phase!=='suspended'||native.nonce!==config.nonce||native.active_process_limit!==1||!same(native.network_capability_sids,[])||native.appcontainer_sid!==endpoint!.appcontainer_sid||!same(native.peer,endpoint!.peer)||!same(native.supervisor,endpoint!.supervisor)||!same(launch!.supervisor,endpoint!.supervisor)||!same(resources!.runtime,native.peer))fail();
   const header=model.artifacts.find(a=>a.name==='header.json');if(!header)fail();
   if(!same(input.model_original_binding,model.original_evidence?{format:'cimiloop/agent-model-original-binding/1.0.0',header_digest:header!.digest,original_evidence:model.original_evidence}:undefined))fail();
-  const codex=readNamedMethodCodexOriginals(root,scope,model,input,config,collection);
+  const modelOriginals=readNamedMethodModelOriginals(root,scope,model,input,config,collection);
   const stdout=capture('stdout.raw',join(identity.operation,'stdout.raw'),4*1024*1024);capture('stderr.raw',join(identity.operation,'stderr.raw'),4*1024*1024);
   const correlation=correlateAgentWorkspaceSdkOriginals(ipc,stdout);
   if(correlation.uncorrelated_exchanges||correlation.unmatched_sdk_calls||correlation.links.some(l=>!l.correlated))fail();
@@ -103,7 +103,7 @@ export function readAgentRuntimeNamedMethodCancellation(root:string,rawScope:unk
   artifacts.push(...method.artifacts.map(a=>({...a,name:'method/'+a.name})),...model.artifacts.map(a=>({...a,name:'model/'+a.name})),...ipc.artifacts.map(a=>({...a,name:'ipc/'+a.name})));
   if(new Set(artifacts.map(a=>a.name)).size!==artifacts.length)fail();
   for(const a of artifacts){const rel=relative(resolve(root),resolve(a.path));if(!rel||isAbsolute(rel)||rel==='..'||rel.startsWith('..\\')||rel.startsWith('../')||digest(bytesAt(a.path,['stdout.raw','stderr.raw'].includes(a.name)?4*1024*1024:114688)).value!==a.digest)fail();}
-  if(!same(identity,readAgentRuntimeOriginalIdentity(root,scope))||!same(original,readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}))||!same(marker,readAgentRuntimeCancellationOriginal(root,scope))||!same(method,readAgentNamedMethodOriginals(root,scope,inputs.profile,inputs.files,config.method_original_binding))||!same(model,readAgentRuntimeModelOriginals(root,scope))||!same(ipc,readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce)))||!same(readNamedMethodCodexOriginals(root,scope,model,input,config,collection),codex))fail();
+  if(!same(identity,readAgentRuntimeOriginalIdentity(root,scope))||!same(original,readOriginalAgentWorkspaceOperation({root,scope,operation:identity.operation}))||!same(marker,readAgentRuntimeCancellationOriginal(root,scope))||!same(method,readAgentNamedMethodOriginals(root,scope,inputs.profile,inputs.files,config.method_original_binding))||!same(model,readAgentRuntimeModelOriginals(root,scope))||!same(ipc,readAgentWorkspaceIpcOriginals(root,scope,String(config.pipe_nonce)))||!same(readNamedMethodModelOriginals(root,scope,model,input,config,collection),modelOriginals))fail();
   return {...unknown,status:'Observed',reason:'agent_named_cancellation_reverified',cancellation_reverified:true,matched_calls:seen.size,cancellation,artifacts};
  }catch{return unknown;}
 }

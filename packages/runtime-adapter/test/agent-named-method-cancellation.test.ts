@@ -1,8 +1,9 @@
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';import {join,dirname,basename} from 'node:path';
 import {beforeEach,afterEach,it,expect,vi} from 'vitest';
-const original=vi.hoisted(()=>({identity:vi.fn(),marker:vi.fn(),operation:vi.fn(),method:vi.fn(),model:vi.fn(),ipc:vi.fn(),job:vi.fn(),codex:vi.fn(),collectedCodex:vi.fn()}));
+const original=vi.hoisted(()=>({identity:vi.fn(),marker:vi.fn(),operation:vi.fn(),method:vi.fn(),model:vi.fn(),ipc:vi.fn(),job:vi.fn(),codex:vi.fn(),collectedCodex:vi.fn(),dedicated:vi.fn(),collectedDedicated:vi.fn()}));
 vi.mock('../src/agent-codex-model.js',async load=>({...await load<typeof import('../src/agent-codex-model.js')>(),readCodexAgentModelOriginals:original.codex,verifyCollectedCodexAgentModelOriginals:original.collectedCodex}));
+vi.mock('../src/agent-dedicated-model.js',async load=>({...await load<typeof import('../src/agent-dedicated-model.js')>(),readDedicatedAgentModelOriginals:original.dedicated,verifyCollectedDedicatedAgentModelOriginals:original.collectedDedicated}));
 vi.mock('../src/agent-runtime-operation.js',async load=>({...await load<typeof import('../src/agent-runtime-operation.js')>(),readAgentRuntimeOriginalIdentity:original.identity,readAgentRuntimeCancellationOriginal:original.marker}));
 vi.mock('../src/agent-workspace-sandbox-recovery.js',async load=>({...await load<typeof import('../src/agent-workspace-sandbox-recovery.js')>(),readOriginalAgentWorkspaceOperation:original.operation}));
 vi.mock('../src/agent-named-method-host.js',async load=>({...await load<typeof import('../src/agent-named-method-host.js')>(),readAgentNamedMethodOriginals:original.method}));
@@ -19,6 +20,7 @@ function fixture(){
  const method_original_binding={format:'cimiloop/agent-named-method-binding/1.0.0',profile_digest:digest('profile').value,header_digest:digest('method header').value,anchor_digest:digest('anchor').value},binary_original={format:'PUBLIC constructed original SDK'},sandbox_original={format:'PUBLIC original controller'};
  const modelHeader={name:'header.json',path:join(root,'model-header.json'),digest:digest('PUBLIC original model header').value};writeFileSync(modelHeader.path,'PUBLIC original model header');
  const original_evidence={kind:'dedicated_zhipu/1.0.0',header_digest:digest('dedicated').value},model_original_binding={format:'cimiloop/agent-model-original-binding/1.0.0',header_digest:modelHeader.digest,original_evidence};
+ const modelHeaderBytes=Buffer.from(JSON.stringify({format:'cimiloop/agent-runtime-model-originals/2.0.0',original_evidence,permitted:['cimi_invoke_skill','cimi_read_method_resource']}));writeFileSync(modelHeader.path,modelHeaderBytes);modelHeader.digest=digest(modelHeaderBytes).value;model_original_binding.header_digest=modelHeader.digest;
  const input={binary_original,sandbox_original,method_original_binding,model_original_binding,lifetime_policy:'agent_task/1.0.0',deadline_uptime_ms:100000,prompt:'PUBLIC fixed request',provider_options:{admission_digest:digest('admission').value}};
  const config={format:'cimiloop/agent-workspace-sandbox-config/6.0.0',nonce,owner,scope_digest,...input,method_tools:'fixed_named_method/1.0.0',pipe_nonce:nonce};
  const launch={format:'cimiloop/agent-workspace-launcher/2.0.0',nonce,owner,supervisor,launcher_original:sandbox_original};
@@ -40,6 +42,7 @@ function fixture(){
  original.identity.mockReturnValue({scope,operation,input,claim:{owner,operation_id,synthetic_model_responses:null}});original.marker.mockReturnValue({bytes:markerBytes,digest:digest(markerBytes)});original.operation.mockReturnValue({config,launch,resources});original.job.mockReturnValue(null);
  original.method.mockReturnValue({original_binding:method_original_binding,context:{profile:{entry_name:'entry',resources:[{path:'entry/SKILL.md'},{path:'not-yet-read.txt'}]}},calls:[{request,receipt}],artifacts:[]});
  original.model.mockReturnValue({status:'Observed',admission_digest:input.provider_options.admission_digest,task_packet_digest:digest(input.prompt).value,original_evidence,calls:[{call_id:'model_0001',state:'reply_recorded',request:modelRequest,response}],artifacts:[modelHeader]});
+ original.dedicated.mockImplementation(()=>({summary:{status:'Observed',original_requirement_pinned:true,budget_identity_pinned:true,scope_digest,header_digest:original_evidence.header_digest,admission_digest:input.provider_options.admission_digest},calls:original.model().calls.map((call:{call_id:string;state:string})=>({call_id:call.call_id,state:call.state})),artifacts:[]}));
  original.ipc.mockReturnValue({status:'Observed',unresolved:0,header:{scope,endpoint:{scope_digest,appcontainer_sid:native.appcontainer_sid,peer,supervisor,model_admission_digest:input.provider_options.admission_digest}},exchanges:[{ordinal:1,state:'reply_recorded',request:modelRequest,reply:{outcome:'completed',receipt:response,replay:false}},{ordinal:2,state:'reply_recorded',request,reply:{outcome:'completed',receipt,replay:false}}],artifacts:[]});
  return{root,operation,scope,collection,records,events,request,receipt};
 }
@@ -47,7 +50,7 @@ beforeEach(()=>{vi.resetAllMocks();f=fixture();root=f.root;});
 afterEach(()=>{vi.restoreAllMocks();if(dirname(root)!==tmpdir()||!basename(root).startsWith('cimiloop-named-cancel-unit-'))throw Error('Unsafe fresh cleanup');rmSync(root,{recursive:true,force:true});});
 const read=()=>{const reader=Reflect.get(runtime,'readAgentRuntimeNamedMethodCancellation');expect(reader).toBeTypeOf('function');return reader(root,f.scope,{profile:{PUBLIC:true},files:[]},f.collection as unknown as Parameters<typeof runtime.readAgentRuntimeNamedMethodCancellation>[3]);};
 it('reverifies original interrupted method and complete call prefix without inventing success or remaining material reads',()=>{
- expect(read()).toMatchObject({status:'Observed',cancellation_reverified:true,method_result_reverified:false,costs_reconciled:false,domain_observation_produced:false});expect(read()).not.toHaveProperty('output');
+ expect(read()).toMatchObject({status:'Observed',cancellation_reverified:true,method_result_reverified:false,costs_reconciled:false,domain_observation_produced:false});expect(original.dedicated).toHaveBeenCalled();expect(original.collectedDedicated).toHaveBeenCalled();expect(read()).not.toHaveProperty('output');
 });
 function codexFixture(){
  const model=original.model(),identity=original.identity();model.original_evidence={kind:'codex_login/1.0.0',header_digest:digest('PUBLIC Codex original').value};identity.input.model_original_binding.original_evidence=model.original_evidence;
