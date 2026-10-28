@@ -1,5 +1,7 @@
 # CimiLoop S1 真实接入与验收操作指南 v0.1
 
+子调用默认控制读者现按原Host1 ticket／独立anchor支持dedicated及历史Codex原安装；provider切换不迁移旧子调用，不新建登记。查询句柄关闭不是资源回收或费用结清。[原来源路由与验证范围](../plans/2026-10-28-cimiloop-dedicated-skill-original-control.md)。
+
 本地provider原安装后，可用 `runtime install-local-provider-storage` 显式绑定已有固定卷、`runtime local-provider-storage` 只读核对；命令不创建、挂载或格式化卷，绑定仍不代表全部写根G2完成。[原卷接线、命令及验证范围](../plans/2026-10-28-cimiloop-dedicated-fixed-volume-attachment.md)。
 
 本地兼容provider现有 `runtime install-local-provider`／`runtime local-provider-installation` 原安装入口及工作台元数据。它们不读取密钥或发模型请求，安装回执仍为不可派发；默认完整控制与账户准入尚未接齐。不要回退旧Codex账户完成新的澄清或准备。[命令、真实验证和后续接线](../plans/2026-10-28-cimiloop-local-provider-installation.md)。

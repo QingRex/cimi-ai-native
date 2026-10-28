@@ -7,8 +7,9 @@ import {AgentStartLedger} from '@cimiloop/runtime-adapter';
 import {contentDigest} from '../../kernel/src/intent.js';
 import {createSkillInvocationProject} from '../../../tests/fixtures/skill-invocation-project.js';
 import {flowTime} from '../../../tests/fixtures/flow-project.js';
-const source=vi.hoisted(()=>({installed:undefined as any}));
-vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),openOriginalCodexRuntimeCustody:async()=>source.installed}));
+const source=vi.hoisted(()=>({installed:undefined as any,dedicated:undefined as any,legacyReads:0,dedicatedReads:0}));
+vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),openOriginalCodexRuntimeCustody:async()=>{source.legacyReads++;return source.installed;}}));
+vi.mock('../src/agent-dedicated-installation-local.js',async load=>({...await load<typeof import('../src/agent-dedicated-installation-local.js')>(),openOriginalDedicatedRuntimeCustody:async()=>{source.dedicatedReads++;return source.dedicated;}}));
 
 // Real Kernel/SQLite/Host admission and dispatch. Native capture is a PUBLIC
 // projection here; the original reader is tested separately, never S1 evidence.
@@ -63,4 +64,16 @@ it('does not use a missing or foreign installed Host to repair original child cu
  const before=f.store.asOfEventSequence();source.installed=undefined;await expect(app.productionSkillRuntimeOriginals(invocation.id,local)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});
  const other=AgentStartLedger.initialize(join(dirname(f.path),'foreign-host'),{machine_digest:contentDigest('PUBLIC other machine').value,principal_digest:contentDigest('PUBLIC other principal').value}),released=vi.fn();source.installed={origin:other,guard(){},release:released};
  try{await expect(app.productionSkillRuntimeOriginals(invocation.id,local)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(released).toHaveBeenCalledTimes(1);expect(other.listExclusive('skill_invocation_admission')).toHaveLength(0);expect(other.listExclusive('skill_invocation_dispatch')).toHaveLength(0);expect(f.store.asOfEventSequence()).toBe(before);}finally{source.installed=undefined;other.close();}
+});
+it('opens the dedicated original child custody without consulting an unrelated Codex source',async()=>{
+ const freed=vi.fn(),before=f.store.asOfEventSequence(),legacyReads=source.legacyReads;source.dedicated={origin:ledger,guard(){},release:freed};source.installed=undefined;
+ let lease;
+ try{lease=await app.productionSkillRuntimeOriginals(invocation.id,local);lease.guard?.();expect(source.legacyReads).toBe(legacyReads);expect(f.store.asOfEventSequence()).toBe(before);}
+ finally{await lease?.release();source.dedicated=undefined;}expect(freed).toHaveBeenCalledTimes(1);
+});
+it('retains an old child on its original Codex Host while a foreign dedicated Host exists',async()=>{
+ const other=AgentStartLedger.initialize(join(dirname(f.path),'dedicated-foreign-original-host'),{machine_digest:contentDigest('PUBLIC dedicated other machine').value,principal_digest:contentDigest('PUBLIC dedicated other principal').value}),freed=vi.fn(),legacyFreed=vi.fn();
+ source.dedicated={origin:other,guard(){},release:freed};source.installed={origin:ledger,guard(){},release:legacyFreed};let lease;
+ try{lease=await app.productionSkillRuntimeOriginals(invocation.id,local);expect(freed).toHaveBeenCalledTimes(1);expect(other.listExclusive('skill_invocation_admission')).toHaveLength(0);expect(other.listExclusive('skill_invocation_dispatch')).toHaveLength(0);}
+ finally{await lease?.release();source.dedicated=undefined;source.installed=undefined;other.close();}expect(legacyFreed).toHaveBeenCalledTimes(1);
 });
