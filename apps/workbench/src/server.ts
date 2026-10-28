@@ -1,6 +1,7 @@
 import {LocalHumanRuntimeContract,LocalHumanSkillMethodProbe,LocalHumanNamedSkillCapture,LocalHumanSkillInvocationControl,type HumanSkillRuntimeFactory,LocalHumanSkillInvocationReconciliation,type HumanSkillReconciliationFactory} from '@cimiloop/local-app';
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { extname, join, relative, sep } from "node:path";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { fileURLToPath } from "node:url";
 import { executeLocalCommand, LocalPrePlanClarification, LocalHumanAgentRunFamilyControl, LocalAgentRuntimeControl, LocalAgentRuntimeObservation, LocalHumanAgentRunCostObservation, LocalHumanAgentRuntimeStart, LocalHumanAgentAccountBilling, type HumanAgentRuntimeFactory, type HumanAgentAccountFactory, LocalProjectError, openLocalProject, type LocalProject,type LocalPlanningClarificationOptions,type LocalAgentParentSkillResultPort } from "@cimiloop/local-app";
@@ -74,13 +75,9 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   const accountForRun = options.agentAccountForRun ?? productionAgentAccount;
   const agentBilling = new LocalHumanAgentAccountBilling(context,options.agentAccountForRun??productionAgentCosts);
   const agentCostObservation = new LocalHumanAgentRunCostObservation(context,accountForRun);
-  const assets = new Map<string, { type: string; body: Buffer }>();
-  try {
-    for (const [route, file, type] of [["/", "index.html", "text/html; charset=utf-8"], ["/app.js", "app.js", "text/javascript; charset=utf-8"],
-      ["/style.css", "style.css", "text/css; charset=utf-8"]]) {
-      assets.set(route!, { type: type!, body: readFileSync(fileURLToPath(new URL(`../public/${file}`, import.meta.url))) });
-    }
-  } catch (error) { cleanup(); throw error; }
+  let assets: Map<string, { type: string; body: Buffer }>;
+  try { assets = loadWebAssets(); } catch (error) { cleanup(); throw error; }
+  const shell = assets.get("/")!;
   let origin = "", bootstrap: string | undefined = token(), session: string | undefined, csrf: string | undefined, expires = 0;
   let closing = false, failedLogins = 0, cookieName = "";
   const pending = new Set<Promise<void>>();
@@ -105,14 +102,16 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
   const handle = async (request: IncomingMessage, response: ServerResponse) => {
     response.setHeader("Cache-Control", "no-store"); response.setHeader("Referrer-Policy", "no-referrer");
     response.setHeader("X-Content-Type-Options", "nosniff"); response.setHeader("Cross-Origin-Resource-Policy", "same-origin");
-    response.setHeader("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
+    // The React shell's component library injects runtime styles, so styles may be inline; scripts stay same-origin only.
+    response.setHeader("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
     try {
       if (closing) throw new HttpFailure(503, "WORKBENCH_CLOSING");
       requireSource(request, request.method !== "GET");
       if (!request.url?.startsWith("/") || request.url.startsWith("//")) throw new HttpFailure(400, "INVALID_ROUTE");
       const url = new URL(request.url, origin);
       if (url.search || url.hash) throw new HttpFailure(400, "INVALID_ROUTE");
-      const asset = assets.get(url.pathname);
+      // Client-side routes resolve to the SPA shell; unknown /api paths still fall through to ROUTE_NOT_FOUND.
+      const asset = assets.get(url.pathname) ?? (url.pathname.startsWith("/api/") || /\.[a-z0-9]+$/i.test(url.pathname) ? undefined : shell);
       if (asset && request.method === "GET") {
         response.writeHead(200, { "Content-Type": asset.type, "Content-Length": asset.body.length }); response.end(asset.body); return;
       }
@@ -312,6 +311,31 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
     })();
   } };
   }catch(error){cleanup();throw error;}
+};
+
+const WEB_TYPES: Record<string, string> = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon",
+  ".woff2": "font/woff2", ".woff": "font/woff", ".json": "application/json; charset=utf-8" };
+// The workbench-web build (apps/workbench-web) is emitted into dist/web and preloaded once at startup.
+// Resolved from both src (tests) and dist (runtime). Without a build the API still serves behind a placeholder page.
+const loadWebAssets = () => {
+  const root = fileURLToPath(new URL("../dist/web/", import.meta.url));
+  const assets = new Map<string, { type: string; body: Buffer }>();
+  if (!existsSync(join(root, "index.html"))) {
+    assets.set("/", { type: WEB_TYPES[".html"]!, body: Buffer.from('<!doctype html><meta charset="utf-8"><title>CimiLoop</title><p>工作台前端尚未构建：pnpm --filter @cimiloop/workbench-web build</p>') });
+    return assets;
+  }
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) { walk(path); continue; }
+      const type = WEB_TYPES[extname(entry.name).toLowerCase()];
+      if (type) assets.set(`/${relative(root, path).split(sep).join("/")}`, { type, body: readFileSync(path) });
+    }
+  };
+  walk(root);
+  assets.set("/", assets.get("/index.html")!);
+  return assets;
 };
 
 const dashboard = (context: LocalProject) => ({ ok: true, project: checked(context.kernel.getProject()),
