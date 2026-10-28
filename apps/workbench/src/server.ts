@@ -8,6 +8,7 @@ import { executeLocalCommand, LocalPrePlanClarification, LocalHumanAgentRunFamil
 import type { DomainError } from "@cimiloop/protocol/v2";
 import { productionAgentRuntime, productionAgentAccount, productionAgentCosts, hasReadableProductionAgentCosts, hasProductionAgentBillAccount, openInstalledCodexMatt, inspectCodexAgentRuntimeInstallation, LocalAgentRuntimeAdmission, type InstalledCodexMatt, type MattClarificationHost } from "@cimiloop/local-app";
 import {hasInstalledDedicatedAgentRuntime,inspectDedicatedAgentRuntimeInstallation,inspectDedicatedRuntimeStorage} from '@cimiloop/local-app';
+import { LocalLiteWorkbench, type LiteEvent } from '@cimiloop/local-app';
 
 const MAX_BODY_BYTES = 128 * 1024;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -52,15 +53,16 @@ export interface WorkbenchServer { origin: string; bootstrapUrl: string; close()
 
 export const startWorkbench = async (options: WorkbenchOptions): Promise<WorkbenchServer> => {
   if (options.port !== undefined && (!Number.isInteger(options.port) || options.port < 0 || options.port > 65535)) throw new Error("Invalid loopback port");
-  const context = openLocalProject({ projectDir: options.projectDir,...(options.prePlanMatt?{prePlanMatt:options.prePlanMatt}:{}),...(options.planningClarification?{planningClarification:options.planningClarification}:{}),...(options.agentParentSkillResults?{agentParentSkillResults:options.agentParentSkillResults}:{}) });
+  const context = openLocalProject({ projectDir: options.projectDir,...(options.prePlanMatt?{prePlanMatt:options.prePlanMatt}:{}),...(options.planningClarification?{planningClarification:options.planningClarification}:{legacyManualPlanning:true}),...(options.agentParentSkillResults?{agentParentSkillResults:options.agentParentSkillResults}:{}) });
   let installedMatt: InstalledCodexMatt | undefined, matt = options.prePlanMatt;
   let admission:LocalAgentRuntimeAdmission|undefined;
   let cleaned=false;
   const cleanup=()=>{if(cleaned)return;cleaned=true;try{installedMatt?.release();}finally{try{admission?.release();}finally{context.store.close();}}};
   try {
+  const lite = new LocalLiteWorkbench(context);
   try{if(options.runtimeAdmission){admission=await options.runtimeAdmission(context);if(!(admission instanceof LocalAgentRuntimeAdmission)||LocalAgentRuntimeAdmission.current(context)!==admission)throw new LocalProjectError('工作台未取得同一项目的完整准入租约','CAPABILITY_UNAVAILABLE','conflict');admission.guard();}}catch(error){cleanup();throw error;}
   let mattState: "installed" | "missing" | "unavailable" = matt ? "installed" : "missing";
-  if (!matt) {
+  if (!matt && !lite.provider) {
     try { installedMatt = await openInstalledCodexMatt(context); matt = installedMatt?.host; if (matt) mattState = "installed"; }
     catch (error) { if (!(error instanceof LocalProjectError)) { cleanup(); throw error; } mattState = "unavailable"; }
   }
@@ -129,11 +131,17 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       }
       requireSession(request, request.method !== "GET");
       if (url.pathname === "/api/context" && request.method === "GET") {
+        if (lite.provider) {
+          send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id,
+            matt_host_available: !!options.prePlanMatt, matt_installation_state: mattState, selected_runtime: 'lite',
+            agent_start_available: true, agent_costs_available: false, agent_cost_settlement_available: false,
+            runtime: lite.runtime(), csrf, expires_at: new Date(expires).toISOString() }); return;
+        }
         const dedicatedInstallation=await inspectDedicatedAgentRuntimeInstallation(context);
         const dedicatedStorage=dedicatedInstallation.state==='installed'?await inspectDedicatedRuntimeStorage(context):undefined;
         const codexInstallation=await inspectCodexAgentRuntimeInstallation(context);
         if(closing)throw new HttpFailure(503,'WORKBENCH_CLOSING');requireSession(request,false);
-        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, matt_host_available: !!matt&&(!!options.prePlanMatt||!hasInstalledDedicatedAgentRuntime(context)), matt_installation_state: mattState, codex_runtime_installation:codexInstallation,local_provider_runtime_installation:dedicatedInstallation,local_provider_runtime_storage:dedicatedStorage,selected_runtime:hasInstalledDedicatedAgentRuntime(context)?'local OpenAI-compatible':'Codex login', agent_start_available: typeof runtimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasReadableProductionAgentCosts(context), agent_cost_settlement_available:typeof options.agentAccountForRun==='function'||hasProductionAgentBillAccount(context), csrf, expires_at: new Date(expires).toISOString() }); return;
+        send(response, 200, { ok: true, project_id: context.instance.project_id, actor_id: context.instance.actor_id, matt_host_available: !!matt&&(!!options.prePlanMatt||!hasInstalledDedicatedAgentRuntime(context)), matt_installation_state: mattState, codex_runtime_installation:codexInstallation,local_provider_runtime_installation:dedicatedInstallation,local_provider_runtime_storage:dedicatedStorage,selected_runtime:hasInstalledDedicatedAgentRuntime(context)?'local OpenAI-compatible':'Codex login', agent_start_available: typeof runtimeForRun === "function", agent_costs_available: typeof options.agentAccountForRun === "function" || hasReadableProductionAgentCosts(context), agent_cost_settlement_available:typeof options.agentAccountForRun==='function'||hasProductionAgentBillAccount(context), runtime: lite.runtime(), csrf, expires_at: new Date(expires).toISOString() }); return;
       }
       if (url.pathname === "/api/dashboard" && request.method === "GET") {
         send(response, 200, dashboard(context)); return;
@@ -180,6 +188,48 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         const result = await awaitCurrentSession(async () => clarificationMatch[2] ? clarification.advanceAsync(changeId, decodeURIComponent(clarificationMatch[2]), body, guard) : clarification.begin(changeId, body), guard);
         const commandResult = "command_result" in result ? result.command_result as ReturnType<typeof executeLocalCommand> | undefined : undefined;
         send(response, commandResult && "code" in commandResult ? statusFor(commandResult) : 200, result); return;
+      }
+      const liteTaskMatch = /^\/api\/tasks\/([^/]{1,200})\/(agent-runs|evaluations|satisfy)$/.exec(url.pathname);
+      const liteReadyMatch = /^\/api\/changes\/([^/]{1,200})\/ready-for-delivery$/.exec(url.pathname);
+      const liteAdviceMatch = /^\/api\/(changes|agent-runs)\/([^/]{1,200})\/ai\/(clarify|review)$/.exec(url.pathname);
+      if ((liteTaskMatch || liteReadyMatch || liteAdviceMatch) && request.method === 'POST') {
+        const body = await readBody(request);
+        const guard = () => { if (closing) throw new HttpFailure(503, 'WORKBENCH_CLOSING'); requireSession(request, true); };
+        guard();
+        let result: unknown;
+        if (liteTaskMatch) {
+          const taskId = decodeURIComponent(liteTaskMatch[1]!);
+          result = liteTaskMatch[2] === 'agent-runs' ? lite.start(taskId, body) : liteTaskMatch[2] === 'evaluations' ? lite.evaluate(taskId, body) : lite.satisfy(taskId, body);
+        } else if (liteReadyMatch) result = lite.ready(decodeURIComponent(liteReadyMatch[1]!), body);
+        else {
+          if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length ||
+            (liteAdviceMatch![1] === 'changes') !== (liteAdviceMatch![3] === 'clarify')) throw new HttpFailure(400, 'INVALID_COMMAND');
+          result = await awaitCurrentSession(() => lite.advice(liteAdviceMatch![3] as 'clarify' | 'review', decodeURIComponent(liteAdviceMatch![2]!)), guard);
+        }
+        guard(); send(response, 200, result); return;
+      }
+      const liteReadMatch = /^\/api\/agent-runs\/([^/]{1,200})\/(events|result)$/.exec(url.pathname);
+      if (liteReadMatch && request.method === 'GET') {
+        if (header(request, 'transfer-encoding') || header(request, 'content-length') && header(request, 'content-length') !== '0') throw new HttpFailure(400, 'BODY_NOT_ALLOWED');
+        const runId = decodeURIComponent(liteReadMatch[1]!);
+        if (liteReadMatch[2] === 'result') { send(response, 200, lite.result(runId)); return; }
+        const last = header(request, 'last-event-id');
+        if (last !== undefined && !/^\d+$/.test(last)) throw new HttpFailure(400, 'INVALID_EVENT_ID');
+        const events = lite.events(runId, Number(last ?? 0));
+        // requestTimeout limits receipt of the request body, not response time.
+        // GET is fully received here; also disable the socket response timeout.
+        request.setTimeout(0); response.setTimeout(0);
+        response.writeHead(200, { 'Content-Type': 'text/event-stream', Connection: 'keep-alive' }); response.flushHeaders();
+        const write = (event: LiteEvent) => {
+          if (response.destroyed || response.writableEnded) return;
+          response.write(`id: ${event.seq}\ndata: ${JSON.stringify(event)}\n\n`);
+          if (event.type === 'done') response.end();
+        };
+        for (const event of events) write(event);
+        if (response.writableEnded) return;
+        if (lite.result(runId).status !== 'Running') { response.end(); return; }
+        const unsubscribe = lite.subscribe(runId, write);
+        response.once('close', unsubscribe); return;
       }
       const runtimeContractMatch=/^\/api\/runtime-contracts(?:\/([^/]{1,200})(?:\/(start|continue|cancel|recover|capture|usage))?)?$/.exec(url.pathname);
       if(runtimeContractMatch){
@@ -255,6 +305,8 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
       }
       const agentMatch = /^\/api\/agent-runs\/([^/]{1,200})(?:\/(collect|stop|cancel|recover|observe|start))?$/.exec(url.pathname);
       if (agentMatch && request.method === "GET" && !agentMatch[2]) {
+        const runId = decodeURIComponent(agentMatch[1]!);
+        if (lite.has(runId)) { send(response, 200, lite.query(runId)); return; }
         const guard=()=>{if(closing)throw new HttpFailure(503,"WORKBENCH_CLOSING");requireSession(request,false);};
         const result=await awaitCurrentSession(()=>agentRuntime.query(decodeURIComponent(agentMatch[1]!),guard),guard);
         send(response,200,result);return;
@@ -267,6 +319,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
         if (action === "stop" || action === "observe") {
           if (!body || typeof body !== "object" || Array.isArray(body) || !("target" in body) || !body.target || typeof body.target !== "object" ||
             !("id" in body.target) || body.target.id !== runId) throw new HttpFailure(400, "INVALID_COMMAND");
+          if (action === 'stop' && lite.has(runId)) { send(response, 200, lite.stop(runId, body)); return; }
           const guard=()=>{if(closing)throw new HttpFailure(503,"WORKBENCH_CLOSING");requireSession(request,true);};
           const result=await awaitCurrentSession(()=>action === "observe" ? agentObservation.record(body,guard) : agentRuntime.stop(body,guard),guard);
           send(response, "code" in result ? statusFor(result) : 200, result); return;
@@ -307,7 +360,7 @@ export const startWorkbench = async (options: WorkbenchOptions): Promise<Workben
     return closePromise ??= (async () => {
       closing = true; bootstrap = session = csrf = undefined;
       const closed = new Promise<void>((done, reject) => server.close(error => error ? reject(error) : done()));
-      server.closeAllConnections(); await closed; await Promise.allSettled([...pending]); cleanup();
+      server.closeAllConnections(); await closed; await Promise.allSettled([...pending]); await lite.close(); cleanup();
     })();
   } };
   }catch(error){cleanup();throw error;}
