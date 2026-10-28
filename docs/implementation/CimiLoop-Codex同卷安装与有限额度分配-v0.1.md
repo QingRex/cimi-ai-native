@@ -52,7 +52,7 @@ pnpm cimiloop runtime codex-budget --project-dir R:\projects\example --json
 
 默认Native辅助程序的主要编译入口已将私有cwd／用户目录和长路径投影放入原构建根；普通模型准入的可选NTFS写入代次辅助器也显式使用项目数据根。新增的 `compiler-operations` 与工具环境仍属于对应原根的容量，不另放全局Temp。辅助器不可用或原目录丢失时重新散列字节，不重建、不跳过核验。当前尚有其他Native控制进程和实际OS写入范围需核验，不能据此批准完整物理配额；见[Native编译路径](../plans/2026-10-27-cimiloop-private-native-compiler.md)及[代次辅助器](../plans/2026-10-27-cimiloop-owned-write-generation.md)。
 
-模型Job现已接入实际2 GiB总提交内存／8进程硬限制及只读原件，网络／宿主控制来源也已接入Provider评测。完整生产宿主仍要求四项实际读取函数齐备；费用、全部物理配额和恢复未完成时不能安装执行适配器。原程序／固定卷／登录的布置不等于控制已全部验收。真实官方CLI的无账户初始化仍存在AppContainer路径转换失败，不能据版本查询成功宣称可执行任务；见[硬限制、生产来源及验证范围](../plans/2026-10-27-cimiloop-codex-bounded-job-control-source.md)。
+模型Job现已接入实际2 GiB总提交内存／8进程硬限制及只读原件，网络／宿主控制来源也已接入Provider评测。完整生产宿主仍要求四项实际读取函数齐备；费用、全部物理配额和恢复未完成时不能安装执行适配器。原程序／固定卷／登录的布置不等于控制已全部验收。当前固定来源的兼容CLI已在实际AppContainer中分别通过版本查询和空登录 `app-server --stdio` 初始化，两项均实际执行、0跳过；没有读取凭据或调用模型。该结果只完成客户端离线启动停点，见[实际构建及启动原件](../plans/2026-10-28-cimiloop-contained-client-startup.md)；控制来源仍按[硬限制、生产来源及验证范围](../plans/2026-10-27-cimiloop-codex-bounded-job-control-source.md)验收。
 
 新准备的Native控制进程、IPC／文件broker、固定检查、Host1／时钟、卷读取器和隔离后台调用，也已自动选用原根中的私有用户目录。旧运行查询只读重开已有观察器和环境，不通过补文件把Unknown变成已清理；缺少观察器时可继续查看Unknown并采集原件。旧只读卷观测不因读取而取得新的环境／全部写根证明。现有目录策略仍需与实际OS写入约束共同验收，见[控制进程接入与验证范围](../plans/2026-10-27-cimiloop-native-control-environment.md)。
 
@@ -60,10 +60,10 @@ pnpm cimiloop runtime codex-budget --project-dir R:\projects\example --json
 
 四处默认 Codex 执行组合现消费真实同卷能力并选择原 AppContainer Job，绑定原 state 与已批准登录目录；配置文件中的复制票据不能授权执行，旧 pending 不升级。Windows 重写的包 TEMP 也在原 state 内按原 nonce 准备，默认网络继续拒绝。完整共享写入覆盖、网络宿主限制、费用和异常恢复仍需实际验收，见[模型 OS 边界接入](../plans/2026-10-27-cimiloop-codex-appcontainer-wiring.md)。
 
-后续默认组合已接[同容器受控 TLS 出口](../plans/2026-10-27-cimiloop-codex-contained-proxy.md)：模型进程仍无外网 capability，通过原 Job 内代理和原命名管道访问固定的两个 TLS 域名，未添加整机网络豁免。公开证书握手通过不等于真实登录／模型请求或完整生产准入；当前仍须完成正式二进制兼容和四项完整控制来源，不直接执行普通 Agent 任务。
+后续默认组合已接[同容器受控 TLS 出口](../plans/2026-10-27-cimiloop-codex-contained-proxy.md)：模型进程仍无外网 capability，通过原 Job 内代理和原命名管道访问固定的两个 TLS 域名，未添加整机网络豁免。公开证书握手和兼容客户端离线初始化通过不等于真实登录／模型请求或完整生产准入；当前仍须完成同卷实际安装、登录和四项完整控制来源，不直接执行普通 Agent 任务。
 
 ## 验证边界
 
-本指南是新接入入口和恢复步骤，不是已经在当前电脑完整执行成功的 S1 指南。应用测试使用真实 Windows 受保护 Host1 与 SQLite，但程序、登录及卷观测是明确 PUBLIC 夹具；独立物理卷、真实模型/技能、真实账单和全部异常恢复仍须在最终配置上实际验证。
+本指南是新接入入口和恢复步骤，不是已经在当前电脑完整执行成功的 S1 指南。同卷安装应用测试使用真实 Windows 受保护 Host1 与 SQLite，但其中程序、登录及卷观测是明确 PUBLIC 夹具；上述客户端启动另有真实兼容程序及AppContainer原件，不能混同为同卷安装通过。独立物理卷、实际同卷登录、真实模型/技能、真实账单和全部异常恢复仍须在最终配置上实际验证。
 
 沿用 Schema242、项目库10、Host1。附件新增内部 format2，只用于显式新分配；旧 format1 政策和安装继续按原路径打开，不进行用户库迁移。
