@@ -54,6 +54,7 @@ export function VerifyPanel({ detail }: { detail: ChangeDetail }) {
           const definition = definitions.get(task.definition_ref.id);
           const taskRuns = runs.runs.filter(run => run.task_id === task.id).sort((a, b) => b.created_at.localeCompare(a.created_at));
           const evaluations = verification.evaluations.filter(item => "task_id" in item && item.task_id === task.id);
+          const waiting = execution.readiness.find(item => item.task_id === task.id)?.reasons.some(reason => reason.includes("任务依赖")) ?? false;
           return (
             <section key={task.id} className="surface surface--pad verify-task">
               <div className="block-head">
@@ -67,11 +68,12 @@ export function VerifyPanel({ detail }: { detail: ChangeDetail }) {
               {evaluations.map(item => (
                 <div key={item.id} className="evaluation-line">
                   <Tag bordered={false} color={item.outcome === "ALLOW" ? "green" : item.outcome === "DENY" ? "red" : "orange"}>{GATE[item.outcome]}</Tag>
-                  <span>{item.purpose === "independent" ? "独立评价" : "自检"}</span>
+                  <span>{item.purpose === "independent" ? solo ? "验证评价（单人模式 · 非独立）" : "独立评价" : "自检"}</span>
                   {item.reasons.length > 0 && <span className="muted">{item.reasons.join("；")}</span>}
                 </div>
               ))}
-              {task.status !== "Satisfied" && sourceRun && (
+              {task.status !== "Satisfied" && waiting && <p className="muted">前置任务满足后，再在这里验证。</p>}
+              {task.status !== "Satisfied" && sourceRun && !waiting && (
                 <EvaluationForm task={task} runId={sourceRun.id} detail={detail}
                   keys={contract.body.acceptance_criteria.filter(item => definition?.verification.acceptance_keys.includes(item.key) ?? true).map(item => ({ key: item.key, text: `${item.scenario} → ${item.expected}` }))}
                   allowed={[...evaluations].reverse().find(item => item.outcome === "ALLOW")?.id} />
