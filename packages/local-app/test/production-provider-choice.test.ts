@@ -5,10 +5,11 @@ import {digest} from '@cimiloop/runtime-adapter';
 import type {AgentStartLedger,DedicatedAgentAccountPolicy,DedicatedModelConnection} from '@cimiloop/runtime-adapter';
 import type {LocalProject} from '../src/project.js';
 import {productionAgentRuntime,openInstalledProductionRuntime,productionAccountAdmission,productionModelFeeAuthorized} from '../src/agent-production-admission-local.js';
-const state=vi.hoisted(()=>({installed:false,connectionReads:0,connection:undefined as unknown}));
+const state=vi.hoisted(()=>({installed:false,dedicated:false,dedicatedOpens:0,connectionReads:0,connection:undefined as unknown}));
+vi.mock('../src/agent-dedicated-installation-local.js',async load=>({...await load<typeof import('../src/agent-dedicated-installation-local.js')>(),hasInstalledDedicatedAgentRuntime:()=>state.dedicated,openInstalledDedicatedAgentRuntime:async()=>{state.dedicatedOpens++;return undefined;}}));
 vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),hasInstalledCodexAgentRuntime:()=>state.installed}));
 vi.mock('../../runtime-adapter/dist/index.js',async load=>({...await load<typeof import('../../runtime-adapter/dist/index.js')>(),loadModelConnection:()=>{state.connectionReads++;return state.connection;}}));
-afterEach(()=>{state.installed=false;state.connectionReads=0;state.connection=undefined;});
+afterEach(()=>{state.installed=false;state.dedicated=false;state.dedicatedOpens=0;state.connectionReads=0;state.connection=undefined;});
 // PUBLIC metadata only. The test neither opens credentials nor qualifies a
 // Runtime; it proves that a connection file cannot choose a paid provider.
 function fixture(){
@@ -30,4 +31,9 @@ it('refuses a new HTTP account admission even when historical connection and hos
  const {connection}=fixture(),origin={identityDigest:'1'.repeat(64)} as AgentStartLedger;
  const policy={host_identity_digest:origin.identityDigest,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:'deepseek-v4.1-flash',thinking:'disabled'},cash_limit_micros:5_000_000,cash_per_call_upper_micros:5_000_000,credit_limit_micro_units:0,credit_per_call_upper_micro_units:0} as DedicatedAgentAccountPolicy;
  await expect(productionAccountAdmission(origin).check({} as never,connection,policy)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{plan:'Codex login'}});
+});
+it.each([false,true])('keeps an explicitly selected local provider from falling back to Codex with historical installed=%s',async installed=>{
+ const {local}=fixture();state.installed=installed;state.dedicated=true;
+ await expect(productionAgentRuntime('PUBLIC unstarted Run',local)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{plan:'local OpenAI-compatible',production_admission:'unapproved'}});
+ expect(state.dedicatedOpens).toBe(1);expect(state.connectionReads).toBe(0);
 });

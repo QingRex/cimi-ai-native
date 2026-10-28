@@ -34,6 +34,19 @@ describe.runIf(process.platform === "win32")("protected Codex Matt installation"
   const input = () => ({ source, binary: join(root, "public-binaries", "codex.exe"), model: "gpt-6-luna", disabled_mcp_servers: [] });
   const install = () => { const method = Reflect.get(app, "installCodexMatt"); expect(method).toBeTypeOf("function"); return method; };
   const open = () => { const method = Reflect.get(app, "openInstalledCodexMatt"); expect(method).toBeTypeOf("function"); return method; };
+  it('denies new old-account Matt effects after local selection while preserving original-source reads',async()=>{
+    const local=project();await install()(local,input(),{async inspectLogin(){return{account_digest:'6'.repeat(64)};}});
+    const lease=await open()(local);if(!lease)throw Error('Expected old original Matt');
+    try{
+      mkdirSync(join(local.location.dataDirectory,'dedicated-runtime-placement'));
+      const prepare=lease.host.prepare;if(!prepare)throw Error('Expected old Matt preparation');
+      expect(()=>prepare.call(lease.host,undefined as never)).toThrowError(expect.objectContaining({code:'CAPABILITY_UNAVAILABLE',details:expect.objectContaining({plan:'local OpenAI-compatible'})}));
+      await expect(lease.host.invoke(undefined as never,()=>{throw Error('PUBLIC unexpected model effect');})).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{plan:'local OpenAI-compatible'}});
+      lease.guard();expect(lease.readMethodSource().source.source_digest).toEqual(source.source_digest);
+      const reopened=await open()(local);if(!reopened)throw Error('Expected historical Matt source');try{expect(reopened.readMethodSource().source.source_digest).toEqual(source.source_digest);}finally{reopened.release();}
+      expect(await workbenchState(local)).toMatchObject({selected_runtime:'local OpenAI-compatible',matt_host_available:false});
+    }finally{lease.release();}
+  },120000);
   async function workbenchState(local: ReturnType<typeof app.openLocalProject>) {
     const server = await startWorkbench({ projectDir: local.location.repositoryPath });
     try {

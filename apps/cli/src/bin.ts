@@ -30,6 +30,7 @@ import {createRuntimeContractCommand} from './runtime-contract.js';
 import {createAgentCostObservationCommand,createAgentReconcileOriginalCommand} from './agent-run-cost-observation.js';
 import { installCodexClarification,attachCodexClarificationRuntime } from "./clarification-codex.js";
 import {installCodexRuntime,showCodexRuntimeInstallation,installCodexRuntimeBudget,allocateCodexRuntimeBudget,showCodexRuntimeBudget,installCodexStorage,showCodexStorage,installCodexHome,showCodexHome} from './agent-codex-installation.js';
+import {installDedicatedRuntime,showDedicatedRuntimeInstallation} from './agent-dedicated-installation.js';
 
 const program = new Command();
 const jsonRequested = process.argv.includes("--json");
@@ -94,6 +95,16 @@ clarification.command("advance <change> <session>").description("按原请求记
   .action((change, session, options, command) => clarificationOperation("advance", change, session, { ...globals(command), ...options }));
 const runtime = program.command("runtime").description("Runtime安装、原操作核对与隔离验证");
 runtime.addCommand(createRuntimeContractCommand());
+runtime.command('install-local-provider').description('固定本地 OpenAI 兼容连接元数据、程序与检查；不读取密钥或调用模型')
+ .requiredOption('--connection <json>','仓库外的 model-connection.json 元数据文件')
+ .requiredOption('--native-binary <path>','固定的原生 OpenCode 执行程序')
+ .option('--node-binary <path>','固定检查使用的 Node 程序；默认当前 Node')
+ .requiredOption('--checks <json>','固定 WorkspaceCheckTemplate 的 JSON 数组文件')
+ .requiredOption('--placement-root <path>','同卷仓库外的原安装与账户放置根；不迁移历史安装')
+ .option('--yes','明确确认该项目的本地安装')
+ .action((options,command)=>installDedicatedRuntime({...globals(command),...options}));
+runtime.command('local-provider-installation').description('只读核对本地兼容连接的原安装，不启动 Run 或读取密钥')
+ .action((_options,command)=>showDedicatedRuntimeInstallation(globals(command)));
 runtime.command('install-codex').description('显式绑定当前Codex账号、程序和固定检查；安装不调用模型或批准Provider')
  .requiredOption('--binary <path>','当前Codex原生codex.exe；同目录须有工具宿主')
  .requiredOption('--native-binary <path>','固定的原生OpenCode执行程序')

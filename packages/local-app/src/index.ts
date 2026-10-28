@@ -104,3 +104,5 @@ export {LocalHumanRuntimeContract,type RuntimeContractRequest} from './runtime-c
 export {readOriginalLocalCodexRunUsage} from './agent-codex-run-family-usage-local.js';
 export{executeLocalCommandAsync,installedProviderVerifier}from'./project.js';
 export{executeProviderCommandWithSources}from'./provider-command-sources-local.js';
+export {installDedicatedAgentRuntime,openInstalledDedicatedAgentRuntime,openOriginalDedicatedRuntimeCustody,inspectDedicatedAgentRuntimeInstallation,hasInstalledDedicatedAgentRuntime,dedicatedRuntimeInstallationWritablePaths} from './agent-dedicated-installation-local.js';
+export type {DedicatedAgentRuntimeInstallInput,InstalledDedicatedAgentRuntime,OriginalDedicatedRuntimeCustody} from './agent-dedicated-installation-local.js';

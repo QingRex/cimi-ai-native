@@ -14,9 +14,11 @@ import { hasInstalledCodexAgentRuntime } from './agent-codex-installation-local.
 import { openInstalledCodexUsageBudget } from './agent-codex-usage-budget-local.js';
 import {openCodexRuntimeStorage} from './agent-codex-storage-local.js';
 import {openInstalledCodexProductionHost} from './agent-production-host-local.js';
+import {hasInstalledDedicatedAgentRuntime,openInstalledDedicatedAgentRuntime} from './agent-dedicated-installation-local.js';
 
-// New execution uses the chosen Codex login and a complete admission lease.
-// Historical HTTP metadata remains readable, but cannot authorize a new call.
+// Legacy projects retain their original Codex route. Explicit local-provider
+// installation selects the new route; incomplete local admission cannot fall
+// back to a different account. Metadata alone cannot authorize a model call.
 export const PRODUCTION_ADMISSION_PLAN = "Codex login" as const;
 export const PRODUCTION_ADMISSION_GAPS = ["Codex 原安装", "Codex Context 前完整准入"] as const;
 export const PRODUCTION_ADMISSION_MISSING = PRODUCTION_ADMISSION_GAPS;
@@ -113,6 +115,13 @@ export function readProductionAccountDigest(origin: AgentStartLedger, accountRoo
 }
 
 export async function openInstalledProductionRuntime(runId: string, local: LocalProject): Promise<AgentRuntimeLease> {
+  if(hasInstalledDedicatedAgentRuntime(local)){
+    const missing=['本地兼容原安装'];let installed:Awaited<ReturnType<typeof openInstalledDedicatedAgentRuntime>>;
+    try{installed=await openInstalledDedicatedAgentRuntime(local);if(installed){installed.guard();missing.splice(0,missing.length,'本地兼容生产宿主完整控制原件','正式账户预算与账单准入');}}
+    catch{/* A damaged selected installation never selects an old account. */}
+    finally{installed?.release();}
+    throw new LocalProjectError(`已选择本地 OpenAI 兼容连接。缺项：${missing.join('；')}。未读取密钥或发送模型请求。`,'CAPABILITY_UNAVAILABLE','conflict',{production_admission:'unapproved',plan:'local OpenAI-compatible',missing});
+  }
   if(!LocalAgentRuntimeAdmission.current(local)&&!hasInstalledCodexAgentRuntime(local))throw codexProductionAdmissionError([...PRODUCTION_ADMISSION_GAPS]);
   const host=await openInstalledCodexProductionHost(local);
   if(host){try{host.guard();const runtime=host.admission.runtimeForRun(runId,host.account,undefined,host.storage,host.home);host.guard();return{runtime,release:()=>host.release()};}catch(error){host.release();throw error;}}

@@ -69,4 +69,23 @@ describe.runIf(process.platform==='win32')('contained Matt actual source assembl
   const read=vi.spyOn(app.CodexMattClarificationHost.prototype,'readOriginalSync').mockReturnValue(original),verify=vi.spyOn(app.CodexMattClarificationHost.prototype,'verifyOriginal').mockImplementation(()=>{});
   try{await expect(lease.host.readOriginal(input)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});expect(()=>lease.host.verifyOriginal(input,original)).toThrow();expect(()=>lease.readExecutionControls(input,original)).toThrow();expect(verify).not.toHaveBeenCalled();}finally{read.mockRestore();verify.mockRestore();lease.release();}
  },120000);
+ it('preserves contained original routing after local selection while refusing all new old-account effects',async()=>{
+  const {local,fixture}=await setup();await app.installCodexMattRuntime(local);
+  const change=fixture.create(),service=new app.LocalPrePlanClarification(local),session=service.begin(change.id,{request_id:createInternalId(),requirement:'PUBLIC retained original',background:'PUBLIC Human input',constraints:['Preserve contained history']}).session,input=mattClarificationInput(session,{request_id:createInternalId(),kind:'matt',expected_head:0});
+  const original:app.MattClarificationOriginal={format:'cimiloop/pre-plan-matt-original/2.0.0',invocation_key:input.invocation_key,input_digest:input.input_digest,method_name:'grill-me',source_digest:source.source_digest,origin:'external_model',qualification:'unqualified_method_execution',output:{purpose:'clarification',questions:[],unresolved:[]},original_ref:{provider:'codex_app_server',resource_type:'skill_invocation_proof',locator:'PUBLIC contained original routing',digest:source.source_digest}};
+  // PUBLIC result ports check routing only, not original/model authenticity.
+  const contained=(self:app.CodexMattClarificationHost)=>String(Reflect.get(self,'configuration')?.root).includes('matt-runtime-originals');
+  const read=vi.spyOn(app.CodexMattClarificationHost.prototype,'readOriginalSync').mockImplementation(function(this:app.CodexMattClarificationHost){return contained(this)?original:null;}),
+   verify=vi.spyOn(app.CodexMattClarificationHost.prototype,'verifyOriginal').mockImplementation(function(this:app.CodexMattClarificationHost){if(!contained(this))throw Error('PUBLIC wrong legacy reader');}),
+   controls=vi.spyOn(app.CodexMattClarificationHost.prototype,'readExecutionControls').mockImplementation(function(this:app.CodexMattClarificationHost){if(!contained(this))throw Error('PUBLIC wrong legacy controls');return{PUBLIC:'contained routing only'} as never;});
+  let lease:app.InstalledCodexMatt|undefined;
+  try{
+   mkdirSync(join(local.location.dataDirectory,'dedicated-runtime-placement'));lease=await app.openInstalledCodexMatt(local);if(!lease)throw Error('Expected retained original host');
+   expect(await lease.host.readOriginal(input)).toEqual(original);expect(lease.readOriginalSync(input)).toEqual(original);lease.host.verifyOriginal(input,original);expect(lease.readExecutionControls(input,original)).toEqual({PUBLIC:'contained routing only'});
+   const prepare=lease.host.prepare;if(!prepare)throw Error('Expected fenced prepare');expect(()=>prepare(input)).toThrow();await expect(lease.host.invoke(input,()=>{throw Error('PUBLIC no model');})).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE'});
+  }finally{read.mockRestore();verify.mockRestore();controls.mockRestore();lease?.release();}
+ // Four positive original-read entry points repeat the full branded account,
+ // program/home and volume audit. The first full run took 168s on this host;
+ // only this test gets more time, with every production deadline unchanged.
+ },240000);
 });

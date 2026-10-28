@@ -1,4 +1,4 @@
-import {mkdtempSync,writeFileSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {dirname,join} from 'node:path';
 import {afterEach,expect,it,vi} from 'vitest';
@@ -33,6 +33,17 @@ function fixture(){
 }
 const entry=()=>{const method=Reflect.get(app,'executeHumanAgentRunCommandAsync');expect(method).toBeTypeOf('function');return method as (local:app.LocalProject,command:unknown,guard?:()=>void)=>Promise<unknown>;};
 it('provides the shared asynchronous default host entry without requiring callers to construct a full port',()=>{entry();expect(Reflect.get(app,'openInstalledCodexProductionHost')).toBeTypeOf('function');});
+it('rejects a new Codex preparation before account open after explicit local selection',async()=>{
+ const f=fixture(),before=f.local.store.asOfEventSequence();mkdirSync(join(f.local.location.dataDirectory,'dedicated-runtime-placement'));
+ await expect(entry()(f.local,f.command)).rejects.toMatchObject({code:'CAPABILITY_UNAVAILABLE',details:{plan:'local OpenAI-compatible'}});
+ expect(seam.opens).toBe(0);expect(f.local.store.asOfEventSequence()).toBe(before);
+});
+it('revokes an already borrowed Codex execution host when local selection appears',async()=>{
+ const f=fixture();vi.spyOn(productionCustody,'createInstalledCodexProductionCustody').mockReturnValue({...seam.full!,guard(){},release(){}});
+ const host=await app.openInstalledCodexProductionHost(f.local);if(!host)throw Error('Expected old original host');
+ try{mkdirSync(join(f.local.location.dataDirectory,'dedicated-runtime-placement'));expect(()=>host.guard()).toThrow();expect(()=>host.admission.guard()).toThrow();}
+ finally{host.release();}expect(seam.closed).toBe(1);expect(f.budget.snapshot().held.model_calls).toBe(0);
+});
 it('recovers an original Human preparation receipt without reopening the model account or full qualification',async()=>{
  const execute=entry(),f=fixture(),admission=await app.LocalAgentRuntimeAdmission.open(f.local,{origin:f.origin,nodeBinary:process.execPath,templates:seam.installation!.checks,full:seam.full!});let first:unknown;
  try{first=app.executeHumanAgentRunCommand(f.local,f.command);expect(first).toHaveProperty('command_type','PrepareRunContext');}finally{admission.release();}

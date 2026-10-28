@@ -1,5 +1,7 @@
 # CimiLoop S1 真实接入与验收操作指南 v0.1
 
+本地兼容provider现有 `runtime install-local-provider`／`runtime local-provider-installation` 原安装入口及工作台元数据。它们不读取密钥或发模型请求，安装回执仍为不可派发；默认完整控制与账户准入尚未接齐。不要回退旧Codex账户完成新的澄清或准备。[命令、真实验证和后续接线](../plans/2026-10-28-cimiloop-local-provider-installation.md)。
+
 本指南把新电脑准备、Runtime／Skill 资格、Human／Matt 澄清、正式 Agent、原身份恢复及普通 Change 到 ReadyForDelivery 串为一条执行顺序。**当前尚未完整实走，不是 S1 通过报告。** 本机完整客户端构建与离线启动已有实际证据；实际费用与完整恢复依据、完整方法行为等条件仍缺，遇到下表停点即保留现场，不能把后面的操作示例视为已可执行。
 
 当前基线为 Schema242／项目数据库10／Host1。S1 范围包括 V1-09、V1-21、V1-22、V1-10、V1-11；本指南不要求提前实施 S2–S4，OpenSpec 可选，ECC 按需参考。

@@ -13,6 +13,7 @@ import {CodexMattClarificationHost} from './clarification-codex-host-local.js';
 import type {MattClarificationHost,MattClarificationInput,MattClarificationOriginal} from './clarification-matt-local.js';
 import type {LocalProject} from './project.js';
 import {LocalProjectError} from './errors.js';
+import {assertCodexExecutionSelected} from './agent-dedicated-installation-local.js';
 
 const namespace='codex_matt_runtime_attachment',intentNamespace='codex_matt_runtime_attachment_intent';
 const fail=():never=>{throw new LocalProjectError('受控 Matt 的原安装、账户、固定卷或原操作尚不可核对','CAPABILITY_UNAVAILABLE','conflict');};
@@ -73,8 +74,8 @@ async function assemble(local:LocalProject,definition:InstalledCodexMatt,activat
    fullGuard();if(!same(read(input),retained))fail();return selected;
   });
   const lease:InstalledCodexMatt={...definition,host:Object.freeze<MattClarificationHost>({
-   prepare(input){const op=operation(input);runtime.prepareOperation(op);concrete.prepare(input);fullGuard();},
-   async invoke(input,beforeEffect){const op=operation(input);await runtime.withOperation(op,()=>concrete.invoke(input,()=>{fullGuard();sync(beforeEffect);fullGuard();}));fullGuard();},
+   prepare(input){assertCodexExecutionSelected(local);const op=operation(input);runtime.prepareOperation(op);concrete.prepare(input);fullGuard();assertCodexExecutionSelected(local);},
+   async invoke(input,beforeEffect){assertCodexExecutionSelected(local);const op=operation(input);await runtime.withOperation(op,()=>concrete.invoke(input,()=>{assertCodexExecutionSelected(local);fullGuard();sync(beforeEffect);fullGuard();assertCodexExecutionSelected(local);}));fullGuard();assertCodexExecutionSelected(local);},
    async readOriginal(input){return readOriginalSync(input);},
    verifyOriginal(input,value){verify(input,value);}
   }),guard:fullGuard,readOriginalSync,readExecutionControls(input,value){return withStartCustodyVerifyTurn(()=>{const selected=verify(input,value),result=selected==='contained'?concrete.readExecutionControls(input,value):methods.readExecutionControls.call(definition,input,value);fullGuard();verify(input,value);return result;});},

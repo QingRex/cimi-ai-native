@@ -6,12 +6,13 @@ import {openCodexRuntimeStorage} from './agent-codex-storage-local.js';
 import {openCodexRuntimeLoginHome} from './agent-codex-login-home-local.js';
 import {createInstalledCodexProductionCustody} from './agent-production-custody-local.js';
 import {LocalProjectError} from './errors.js';
+import {assertCodexExecutionSelected} from './agent-dedicated-installation-local.js';
 
 const unavailable=(missing:string)=>new LocalProjectError(`正式 Codex 宿主缺少${missing}；保留原操作，不回退另一账户`,'CAPABILITY_UNAVAILABLE','conflict',{production_admission:'unapproved',plan:'Codex login',missing:[missing]});
 async function create(local:LocalProject){
  let account:InstalledCodexUsageBudget|undefined,admission:LocalAgentRuntimeAdmission|undefined,full:ReturnType<typeof createInstalledCodexProductionCustody>|undefined;
  const original={store:local.store,kernel:local.kernel,execute:local.kernel.execute,authorize:local.kernel.authorizeAgentRunPreparation,location:structuredClone(local.location),instance:structuredClone(local.instance)};
- const identity=()=>{if(local.store!==original.store||local.kernel!==original.kernel||local.kernel.execute!==original.execute||local.kernel.authorizeAgentRunPreparation!==original.authorize||!same(local.location,original.location)||!same(local.instance,original.instance))throw unavailable('原项目身份');};
+ const identity=()=>{assertCodexExecutionSelected(local);if(local.store!==original.store||local.kernel!==original.kernel||local.kernel.execute!==original.execute||local.kernel.authorizeAgentRunPreparation!==original.authorize||!same(local.location,original.location)||!same(local.instance,original.instance))throw unavailable('原项目身份');};
  try{
   account=await openInstalledCodexUsageBudget(local);identity();if(!account)throw unavailable('Codex 原账户容量政策');const owned=account;
   const storage=await openCodexRuntimeStorage(local,owned.installation);identity();owned.guard();if(!storage)throw unavailable('Codex 原固定卷运行范围');
@@ -29,6 +30,7 @@ const active=new WeakMap<LocalProject['store'],State>();
 // host; the last borrower restores the owned verifier slots and closes handles.
 // No callback, recipe, caller or full-admission object comes from HTTP/CLI JSON.
 export async function openInstalledCodexProductionHost(local:LocalProject){
+ assertCodexExecutionSelected(local);
  const store=local.store;let state=active.get(store);
  if(!state){if(LocalAgentRuntimeAdmission.current(local))return undefined;state={local,pending:create(local),users:0};active.set(store,state);}
  if(state.local!==local)throw unavailable('同一原应用上下文');const original=state;let host:Host|undefined;

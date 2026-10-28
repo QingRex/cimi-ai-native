@@ -11,6 +11,7 @@ import type { LocalProject } from "./project.js";
 import { readInstance } from "./instance.js";
 import { LocalProjectError } from "./errors.js";
 import {openCodexMattRuntime} from './clarification-codex-runtime-local.js';
+import {assertCodexExecutionSelected} from './agent-dedicated-installation-local.js';
 
 const namespace = "codex_matt_installation", requestNamespace = "codex_matt_install_request";
 const fail = (): never => { throw new LocalProjectError("Codex Matt 安装资料尚不可核对；保留原登记和原操作", "CAPABILITY_UNAVAILABLE", "conflict"); };
@@ -149,8 +150,8 @@ export async function openOriginalCodexMattInstallation(local: LocalProject): Pr
     const facts = fixed.request.facts_digest ? parseGatewayJson(new TextDecoder("utf-8", { fatal: true }).decode(bytesAt(join(where.root, "facts.json"))), 1024 * 1024) as Facts : undefined;
     const concrete = new CodexMattClarificationHost({ source, runtime, model: fixed.request.model, origin: "external_model", ...(facts ? { facts: new CodexFactInvestigator(runtime, fixed.request.model, facts.files, facts.source_identity) } : {}) });
     const host: MattClarificationHost = {
-      prepare(input) { guard(); concrete.prepare(input); guard(); },
-      async invoke(input, beforeEffect) { guard(); await concrete.invoke(input, () => { guard(); beforeEffect(); guard(); }); guard(); },
+      prepare(input) { assertCodexExecutionSelected(local);guard();concrete.prepare(input);guard();assertCodexExecutionSelected(local); },
+      async invoke(input, beforeEffect) { assertCodexExecutionSelected(local);guard();await concrete.invoke(input, () => { assertCodexExecutionSelected(local);guard();beforeEffect();guard();assertCodexExecutionSelected(local); });guard();assertCodexExecutionSelected(local); },
       async readOriginal(input) { guard(); const result = await concrete.readOriginal(input); guard(); return result; },
       verifyOriginal(input, original) { guard(); concrete.verifyOriginal(input, original); guard(); }
     };
@@ -162,5 +163,7 @@ export async function openOriginalCodexMattInstallation(local: LocalProject): Pr
 }
 export async function openInstalledCodexMatt(local:LocalProject):Promise<InstalledCodexMatt|undefined>{
  const original=await openOriginalCodexMattInstallation(local);if(!original)return undefined;
+ // Preserve the contained and legacy original readers across a provider switch.
+ // Their new-effect methods each enforce the current execution selection.
  try{return await openCodexMattRuntime(local,original)??original;}catch(error){original.release();throw error;}
 }
