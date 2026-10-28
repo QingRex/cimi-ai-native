@@ -1,5 +1,7 @@
 # CimiLoop S1 真实接入与验收操作指南 v0.1
 
+本地provider安装的原持久账户已接默认 `run costs <run-id>`／工作台原费用查询：按原scope／hold选择账户，缺程序／凭据可读历史，缺原件保留Unknown。没有真实账单认证或结清授权。[原账户边界与实际验证](../plans/2026-10-28-cimiloop-local-account-original-reader.md)。Runtime契约／隔离Skill新效果也不能在已选本地连接后回退旧登录；工作台显示当前选择，历史原请求仍可核对。[执行选择与页面](../plans/2026-10-28-cimiloop-technical-provider-selection.md)。
+
 子调用默认控制读者现按原Host1 ticket／独立anchor支持dedicated及历史Codex原安装；provider切换不迁移旧子调用，不新建登记。查询句柄关闭不是资源回收或费用结清。[原来源路由与验证范围](../plans/2026-10-28-cimiloop-dedicated-skill-original-control.md)。
 
 本地provider原安装后，可用 `runtime install-local-provider-storage` 显式绑定已有固定卷、`runtime local-provider-storage` 只读核对；命令不创建、挂载或格式化卷，绑定仍不代表全部写根G2完成。[原卷接线、命令及验证范围](../plans/2026-10-28-cimiloop-dedicated-fixed-volume-attachment.md)。

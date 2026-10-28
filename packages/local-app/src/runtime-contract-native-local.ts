@@ -1,4 +1,5 @@
 import {codexRuntimeInstallationProgramBundle} from './agent-codex-installation-local.js';
+import {assertCodexExecutionSelected} from './agent-dedicated-installation-local.js';
 import {join} from 'node:path';import {writeFileSync,existsSync} from 'node:fs';import {isDeepStrictEqual as same} from 'node:util';
 import {AgentRunBudget,AgentRuntimeModelHost,AgentWorkspaceToolIpc,CodexOriginalMethodRuntime,RuntimeContractFileHost,createBudgetedCodexAgentRuntimeModel,openWindowsAgentRunClock,runOpenCodeWorkspaceRuntime,withinAgentRuntimeTaskBudget,assertAgentRuntimeNativeRoot,bytesAt,digest,directory,runOpenCodeProbe} from '@cimiloop/runtime-adapter';
 import type {LocalProject} from './project.js';import {LocalProjectError} from './errors.js';
@@ -13,11 +14,13 @@ function fail():never{throw new LocalProjectError('固定 Runtime 契约需要�
 // production. The sole file authority is the current Kernel technical grant;
 // no fabricated Agent tool assessment or business Task/Binding is installed.
 export async function openRuntimeContractExecution(local:LocalProject):Promise<RuntimeContractExecutionLease>{
+ assertCodexExecutionSelected(local);
  const account=await openInstalledCodexUsageBudget(local);if(!account)fail();
  try{
-  const installed=account.installation,storage=await openCodexRuntimeStorage(local,installed);if(!storage)fail();account.guard();
+  assertCodexExecutionSelected(local);
+  const installed=account.installation,storage=await openCodexRuntimeStorage(local,installed);assertCodexExecutionSelected(local);if(!storage)fail();account.guard();assertCodexExecutionSelected(local);
   const home=await openCodexRuntimeLoginHome(local,installed,storage);if(!home)fail();
-  const guard=()=>{account.guard();assertCodexRuntimeWritableStorage(local,account,storage,home);account.guard();};guard();
+  const guard=()=>{assertCodexExecutionSelected(local);account.guard();assertCodexRuntimeWritableStorage(local,account,storage,home);account.guard();assertCodexExecutionSelected(local);};guard();
   return{installation_digest:installed.installation_digest,guard,release:()=>account.release(),async execute(original,phase,beforeEffect){
    let predecessor:RuntimeContractPhaseResult|undefined;
    const current=()=>{guard();const value:unknown=beforeEffect();if(value!==undefined){if(value instanceof Promise)void Promise.prototype.then.call(value,undefined,()=>{});fail();}guard();const verifier=new LocalProviderVerifier(local.location.repositoryPath,local.location.dataDirectory);if(verifier.sourceDigest(local.store.getProject()!,original.authority.descriptor).value!==digest(bytesAt(installed.native_binary,512*1024*1024)).value)fail();

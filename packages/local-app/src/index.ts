@@ -108,3 +108,4 @@ export {installDedicatedAgentRuntime,openInstalledDedicatedAgentRuntime,openOrig
 export type {DedicatedAgentRuntimeInstallInput,InstalledDedicatedAgentRuntime,OriginalDedicatedRuntimeCustody} from './agent-dedicated-installation-local.js';
 export {installDedicatedRuntimeStorage,openDedicatedRuntimeStorage,inspectDedicatedRuntimeStorage} from './agent-dedicated-storage-local.js';
 export type {DedicatedRuntimeStorageInput} from './agent-dedicated-storage-local.js';
+export {openOriginalDedicatedAccount,type OriginalDedicatedAccount} from './agent-dedicated-account-originals-local.js';

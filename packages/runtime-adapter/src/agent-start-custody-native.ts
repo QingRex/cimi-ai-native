@@ -15,9 +15,9 @@ const custodyResets=new Set<()=>void>(),custodyRechecks=new Set<()=>void>();
 // One synchronous observation may ask Windows to re-verify the same protected
 // directory many times. Repeats reuse that process result. The outermost
 // observation runs the helper again and must see the same digest.
-export function withStartCustodyVerifyTurn<T>(run:()=>T):T{
+export function withStartCustodyVerifyTurn<T>(run:()=>T,recheckNested=false):T{
  const outer=custodyDepth===0;if(outer)for(const reset of custodyResets)reset();custodyDepth++;
- try{const value=run();if(outer)for(const recheck of custodyRechecks)recheck();return value;}
+ try{const value=run();if(outer||recheckNested)for(const recheck of custodyRechecks)recheck();return value;}
  finally{custodyDepth--;}
 }
 export async function openWindowsAgentStartCustody(toolsRoot: string, signal?: AbortSignal) {

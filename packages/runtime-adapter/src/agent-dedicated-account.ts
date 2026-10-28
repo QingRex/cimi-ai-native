@@ -10,7 +10,7 @@ import {parseDedicatedAgentProfile,type DedicatedAgentProfile} from "./agent-ded
 import {parseAgentWorkspaceToolScope,type AgentWorkspaceToolScope} from "./agent-workspace-authority.js";
 import type {DedicatedAgentAccountPort,DedicatedAgentBudgetRequest,DedicatedAgentBudgetHold} from "./agent-dedicated-model.js";
 import {AccountBillingStore,captureBillVerification,type AccountBillingOrigin,type DedicatedAgentBillVerification} from "./agent-account-bills.js";
-import {openWindowsAgentStartCustody} from "./agent-start-custody-native.js";
+import {openWindowsAgentStartCustody,withStartCustodyVerifyTurn} from "./agent-start-custody-native.js";
 import {readOriginalSkillDispatchClosure} from './agent-skill-dispatch-closure.js';
 import {LegacyAccountBillingAttachment} from './agent-legacy-account-billing.js';
 import {DedicatedAgentSkillScopeRegistry,parseDedicatedAgentSkillAccountScope,type DedicatedAgentSkillScope} from './agent-skill-account-scope.js';
@@ -26,7 +26,7 @@ export interface DedicatedAgentAccountPolicy {
 export interface DedicatedAgentAccountAdmission {check(scope:AgentWorkspaceToolScope,connection:DedicatedModelConnection,policy:DedicatedAgentAccountPolicy):Promise<void>;checkSkillScope?(relation:DedicatedAgentSkillScope,connection:DedicatedModelConnection,policy:DedicatedAgentAccountPolicy):Promise<void>}
 export interface DedicatedAgentAccountCustody {protect(root:string):void;verify(root:string):void}
 export interface DedicatedAgentReconciledFamilyChild {state:'executed'|'not_started';relation:DedicatedAgentSkillScope}
-interface OpenOptions {origin:AgentStartLedger;accountDigest:string;connection:DedicatedModelConnection;admission:DedicatedAgentAccountAdmission;custody:DedicatedAgentAccountCustody;billing?:DedicatedAgentBillVerification|undefined}
+interface OpenOptions {origin:AgentStartLedger;accountDigest:string;connection:DedicatedModelConnection;admission:DedicatedAgentAccountAdmission;custody:DedicatedAgentAccountCustody;billing?:DedicatedAgentBillVerification|undefined;guard?:()=>void}
 interface InitializeOptions extends Omit<OpenOptions,"accountDigest"> {repositoryPath:string;root:string;policy:DedicatedAgentAccountPolicy}
 interface AccountOrigin {format:"cimiloop/dedicated-agent-account-origin/1.0.0"|"cimiloop/dedicated-agent-account-origin/2.0.0";billing?:AccountBillingOrigin;account_database_version?:2;root:string;directory_identity:string;file_identity:string;policy:DedicatedAgentAccountPolicy}
 type Row=Record<string,SQLOutputValue>;
@@ -65,6 +65,7 @@ interface FullHoldOwner{scope:AgentWorkspaceToolScope;connection:DedicatedModelC
 const fullHoldOwners=new WeakMap<object,FullHoldOwner>();
 const fixedPromiseThen=Promise.prototype.then;
 function synchronousModelGuard(guard:()=>void){const result:unknown=guard();if(result!==undefined){try{void fixedPromiseThen.call(result,undefined,()=>{});}catch{}fail('agent_account_model_guard_unproven');}}
+function synchronousOriginalGuard(guard:unknown){if(guard===undefined)return;if(typeof guard!=='function')fail('agent_account_original_guard_unproven');const result:unknown=guard();if(result!==undefined){try{void fixedPromiseThen.call(result,undefined,()=>{});}catch{}fail('agent_account_original_guard_unproven');}}
 export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  readonly admission_digest:string;
  readonly #options:OpenOptions;readonly #original:AccountOrigin;readonly #ticket:AgentStartTicket;readonly #db:DatabaseSync;#attachmentRecovery:boolean;
@@ -80,7 +81,7 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   this.#bills=this.#billingOrigin?AccountBillingStore.open(original.root,this.#billingOrigin,original.policy,options.billing,options.origin):undefined;
   if(!this.#bills&&options.billing)fail("agent_account_billing_requires_new_origin");
   }catch(e){this.#attachment?.close();throw e;}
-  this.#options={origin:options.origin,accountDigest:options.accountDigest,connection:copy(options.connection),admission:{check:options.admission.check.bind(options.admission),...(options.admission.checkSkillScope?{checkSkillScope:options.admission.checkSkillScope.bind(options.admission)}:{})},custody:{protect:options.custody.protect.bind(options.custody),verify:options.custody.verify.bind(options.custody)}};
+  this.#options={origin:options.origin,accountDigest:options.accountDigest,connection:copy(options.connection),admission:{check:options.admission.check.bind(options.admission),...(options.admission.checkSkillScope?{checkSkillScope:options.admission.checkSkillScope.bind(options.admission)}:{})},custody:{protect:options.custody.protect.bind(options.custody),verify:options.custody.verify.bind(options.custody)},...(options.guard!==undefined?{guard:options.guard}:{})};
  }
  get profile():DedicatedAgentProfile{return copy(this.#original.policy.profile);}
  assertOriginalHost(origin:AgentStartLedger):void {
@@ -89,6 +90,7 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   });
  }
  static initialize(options:InitializeOptions):DedicatedAgentAccountLedger {
+  options={...options};synchronousOriginalGuard(options.guard);
   if(options.billing)captureBillVerification(options.billing);
   const policy=policyCopy(options.policy),connection=copy(validateModelConnection(options.connection));
   if(!(options.origin instanceof AgentStartLedger)||policy.host_identity_digest!==options.origin.identityDigest||digest(JSON.stringify(connection)).value!==policy.connection_digest||connection.model!==connection.provider+"/"+policy.profile.model||typeof options.admission?.check!=="function"||typeof options.custody?.protect!=="function"||typeof options.custody?.verify!=="function")fail("agent_account_installation_unavailable");
@@ -113,6 +115,7 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  }
  // Explicit trusted installation; no JSON/HTTP field or ordinary-open upgrade.
  static attachOriginalBilling(options:OpenOptions & {billing:DedicatedAgentBillVerification}):DedicatedAgentAccountLedger {
+  options={...options};synchronousOriginalGuard(options.guard);
   if(!(options.origin instanceof AgentStartLedger)||!sha.test(options.accountDigest))fail('agent_account_installation_unavailable');
   captureBillVerification(options.billing);
   if(options.origin.readExclusive('dedicated_account_billing_attachment',options.accountDigest))return this.open(options);
@@ -125,6 +128,7 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   },true);return ledger;}catch(e){ledger.close();throw e;}
  }
  private static openInternal(options:OpenOptions,attachmentRecovery=false):DedicatedAgentAccountLedger {
+  options={...options};synchronousOriginalGuard(options.guard);
   if(!(options.origin instanceof AgentStartLedger)||!sha.test(options.accountDigest)||typeof options.admission?.check!=="function"||typeof options.custody?.verify!=="function")fail("agent_account_installation_unavailable");
   const registration=options.origin.readExclusive(namespace,options.accountDigest);if(!registration)fail("agent_account_original_missing");
   const original=copy(registration.basis) as AccountOrigin;
@@ -182,7 +186,17 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  // Real protected Host audits and four-part child registration contend across
  // processes. Match the Host's bounded 30s writer wait; after acquisition the
  // complete fresh audit and final Kernel effect guard still run. No resend.
- #read<T>(action:(rows:Row[],funds:AccountFunds)=>T,write=false):T {const nested=this.#writerDepth>0;if(!nested){this.#db.exec("BEGIN IMMEDIATE");this.#skillScopes.beginCut();}this.#writerDepth++;try{const {rows,funds}=this.#validate(),out=action(rows,funds);if(write){this.#skillScopes.refreshCut();this.#validate();}if(!nested)this.#db.exec("COMMIT");return out;}catch(error){if(!nested)this.#db.exec("ROLLBACK");throw error;}finally{this.#writerDepth--;if(!nested)this.#skillScopes.endCut();}}
+ #read<T>(action:(rows:Row[],funds:AccountFunds)=>T,write=false):T {
+  // One synchronous cut reuses protected-directory checks and re-verifies all
+  // observed directories BEFORE committing SQL. Never cache across an await/read.
+  const nested=this.#writerDepth>0;
+  if(!nested){this.#db.exec("BEGIN IMMEDIATE");this.#skillScopes.beginCut();}this.#writerDepth++;
+  try{
+   const out=withStartCustodyVerifyTurn(()=>{synchronousOriginalGuard(this.#options.guard);const {rows,funds}=this.#validate(),out=action(rows,funds);if(write){this.#skillScopes.refreshCut();this.#validate();}synchronousOriginalGuard(this.#options.guard);return out;},write);
+   if(!nested)this.#db.exec("COMMIT");return out;
+  }catch(error){if(!nested)this.#db.exec("ROLLBACK");throw error;}
+  finally{this.#writerDepth--;if(!nested)this.#skillScopes.endCut();}
+ }
  async check(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection):Promise<void>{return this.#checkOriginal(raw,connection);}
  async #checkOriginal(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection,verify?:(rows:Row[])=>void):Promise<void>{const scope=parseAgentWorkspaceToolScope(raw),fixed=copy(validateModelConnection(connection));if(!isDeepStrictEqual(fixed,this.#options.connection))fail("agent_account_connection_changed");const budget=(_rows:Row[],funds:AccountFunds)=>{this.#skillScopes.assertOpen(scope);if(funds.overBudget)fail("agent_account_budget_exhausted");};
   const relation=this.#read((rows,funds)=>{budget(rows,funds);this.#skillScopes.assertCompatible(scope,rows.map(r=>parseAgentWorkspaceToolScope(parse(String(r.scope)))));const relation=this.#skillScopes.relation(scope);if(!relation&&this.#skillScopes.isKnownChild(scope))fail("agent_account_skill_scope_unregistered");verify?.(rows);return relation;});
@@ -364,9 +378,16 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  snapshot(){return this.#read((rows,f)=>{const p=this.#original.policy;return{account_digest:p.account_digest,holds:rows.length,billed_holds:f.billed.size,currency:this.#billingOrigin?.currency??null,credit_unit:this.#billingOrigin?.credit_unit??null,cash_limit_micros:p.cash_limit_micros,credit_limit_micro_units:p.credit_limit_micro_units,cash_held_micros:Number(f.cashHeld),credit_held_micro_units:Number(f.creditHeld),cash_charged_micros:Number(f.cashCharged),credit_charged_micro_units:Number(f.creditCharged),cash_remaining_micros:Number(BigInt(p.cash_limit_micros)>f.cashHeld+f.cashCharged?BigInt(p.cash_limit_micros)-f.cashHeld-f.cashCharged:0n),credit_remaining_micro_units:Number(BigInt(p.credit_limit_micro_units)>f.creditHeld+f.creditCharged?BigInt(p.credit_limit_micro_units)-f.creditHeld-f.creditCharged:0n),over_budget:f.overBudget,costs_reconciled:!!this.#bills&&rows.length>0&&f.billed.size===rows.length&&this.#skillScopes.audit().every(r=>[r.parent,r.child].every(scope=>rows.some(row=>isDeepStrictEqual(parse(String(row.scope)),scope)))),formal_agent_execution_enabled:false as const};});}
  close(){if(!this.#closed){this.#closed=true;this.#bills?.close();this.#attachment?.close();this.#db.close();}}
 }
-export async function initializeWindowsDedicatedAgentAccountLedger(options:Omit<InitializeOptions,"custody"> & {toolsRoot:string},signal?:AbortSignal){const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();return DedicatedAgentAccountLedger.initialize({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}
-export async function openWindowsDedicatedAgentAccountLedger(options:Omit<OpenOptions,"custody"> & {toolsRoot:string},signal?:AbortSignal){const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();return DedicatedAgentAccountLedger.open({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}
-export async function attachWindowsDedicatedAgentAccountBilling(options:Omit<OpenOptions,"custody"> & {billing:DedicatedAgentBillVerification;toolsRoot:string},signal?:AbortSignal){const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();return DedicatedAgentAccountLedger.attachOriginalBilling({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}
+export async function initializeWindowsDedicatedAgentAccountLedger(options:Omit<InitializeOptions,"custody"> & {toolsRoot:string},signal?:AbortSignal){options={...options};synchronousOriginalGuard(options.guard);const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();synchronousOriginalGuard(options.guard);return DedicatedAgentAccountLedger.initialize({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}
+// Code-owned live original guard, captured before the helper await. Install it
+// inside the real owner's before/after read boundary, including final callbacks.
+export async function openWindowsDedicatedAgentAccountLedger(options:Omit<OpenOptions,"custody"> & {toolsRoot:string},signal?:AbortSignal){
+ options={...options};const guard=options.guard;
+ const current=()=>synchronousOriginalGuard(guard);
+ current();const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();current();
+ return DedicatedAgentAccountLedger.open({...options,guard:current,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});
+}
+export async function attachWindowsDedicatedAgentAccountBilling(options:Omit<OpenOptions,"custody"> & {billing:DedicatedAgentBillVerification;toolsRoot:string},signal?:AbortSignal){options={...options};synchronousOriginalGuard(options.guard);const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();synchronousOriginalGuard(options.guard);return DedicatedAgentAccountLedger.attachOriginalBilling({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}
 
 // Fixed owner method; a caller cannot replace a public lookup with a fake port.
 const fixedModelAccountPort=DedicatedAgentAccountLedger.prototype.modelAccountPort;

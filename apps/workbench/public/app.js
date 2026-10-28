@@ -28,6 +28,19 @@ const node = (tag, attributes = {}, ...children) => {
   return element;
 };
 const paragraph = (text, className = "muted") => node("p", { class: className }, text);
+const runtimeConnectionStatus = () => {
+  const context=state.context;
+  if(context.selected_runtime==='local OpenAI-compatible'){
+    const installed=context.local_provider_runtime_installation,storage=context.local_provider_runtime_storage;
+    return [paragraph('已选择本地兼容连接。'),paragraph(installed?.state==='installed'
+      ? `所选模型：${String(installed.model ?? '待核对').replace(/^openai-compatible\//,'')}。连接已安装；生产执行与费用仍须核验。`
+      : `${installed?.state==='unavailable'?'本地连接原件待核对':'本地连接尚未安装'}；生产执行与费用仍须核验。`),
+      ...(storage?.state==='installed'?[paragraph('专用存储卷已绑定；完整写入范围仍须核对。')]:[])];
+  }
+  return context.codex_runtime_installation?.state==='installed'
+    ? [paragraph(`Codex 已安装，所选模型为 ${context.codex_runtime_installation.model}。正式 Agent 执行资格仍须核对；安装不代表费用结清。`)]
+    : context.codex_runtime_installation?.state==='unavailable'?[paragraph('Codex 原安装资料待核对。可以继续查询原运行，暂不据此启用执行。')]:[];
+};
 const badge = value => node("span", { class: `badge ${["Satisfied", "Completed", "applied"].includes(value) ? "good" : ["Unknown", "Paused", "pending"].includes(value) ? "warn" : ["Failed", "reject"].includes(value) ? "bad" : ""}` }, label(value));
 const panel = (title, ...children) => node("section", { class: "panel" }, node("h2", {}, title), ...children);
 const facts = entries => node("dl", {}, entries.map(([key, value]) => [node("dt", {}, key), node("dd", {}, value ?? "—")]));
@@ -191,7 +204,7 @@ const runtimeContracts = data => {
     catch(error){showNotice('结果尚未核对：'+error.message,true,button('查询这个原请求',()=>inspect(body.request_id),undefined,true));}finally{state.busy=false;}
   },select('descriptor','固定 Runtime 候选',descriptors.map(value=>[value.id,value.name+' '+value.version])),input('request_id','原请求 ID（响应丢失后仍使用此 ID）',{required:true,value:uuid()}),input('elapsed','累计期限（毫秒）',{required:true,type:'number',min:1000,max:600000,value:600000}),submit('启动一次固定契约验证'));
   start.querySelector('button[type="submit"]').disabled=state.busy||!!storageError||!descriptors.length;
-  return[...heading('Runtime 契约验证','由项目负责人发起，使用已安装账户额度。只在固定材料中编辑和独立评审；不创建业务 Run，不批准正式执行。'),...(data.error?[paragraph(data.error,'error')]:[]),...(storageError?[paragraph(storageError,'error')]:[]),panel('发起验证',start),panel('原请求与接续',
+  return[...heading('Runtime 契约验证','由项目负责人发起，使用已安装账户额度。只在固定材料中编辑和独立评审；不创建业务 Run，不批准正式执行。'),...runtimeConnectionStatus(),...(data.error?[paragraph(data.error,'error')]:[]),...(storageError?[paragraph(storageError,'error')]:[]),panel('发起验证',start),panel('原请求与接续',
     ...[...ids].map(id=>node('div',{'data-runtime-contract-id':id},paragraph(id),button('查询',()=>inspect(id),undefined,true),button('查询用量',()=>inspect(id,'usage'),undefined,true),button('接续未启动阶段',()=>inspect(id,'continue'),undefined,true),button('停止',()=>inspect(id,'cancel'),undefined,true),button('恢复原资源',()=>inspect(id,'recover'),undefined,true),button('采集证据',()=>inspect(id,'capture'),undefined,true))),
     form(values=>inspect(values.id),input('id','已有原请求 ID',{required:true}),submit('查询原请求')),output)];
 };
@@ -337,7 +350,7 @@ const taskPanel = (task, data) => {
         button("记录原运行观测", () => mutation("RecordRunObservation", {}, { object_type: "run", id: run.id }, run.revision, "technical_owner", true)),
         ...(run.cancel_requested ? [button("重送原停止请求", () => observe("cancel")), button("恢复原资源", () => observe("recover"))] : [])), output,costOutput,
         ...(billAccountAvailable?[paragraph('原账单费用记录只更新核定现金用量；执行终态与剩余预算结清继续待核对。')]:[paragraph(state.context.agent_costs_available===true?'可查询原用量；核定账单与费用结算尚未接通，预算继续保留。':'原账户费用查询与记录尚未接入。')]),
-        ...(state.context.codex_runtime_installation?.state==='installed'?[paragraph(`Codex 已安装，所选模型为 ${state.context.codex_runtime_installation.model}。正式 Agent 执行资格仍须核对；安装不代表费用结清。`)]:state.context.codex_runtime_installation?.state==='unavailable'?[paragraph('Codex 原安装资料待核对。可以继续查询原运行，暂不据此启用执行。')]:[]),
+        ...runtimeConnectionStatus(),
         paragraph(state.context.agent_start_available===true ? "启动入口已接入。首次执行仍须核对已安装的 Runtime、固定检查、模型账户、授权和预算。缺项时拒绝执行；结果与费用未结清前继续保留预算。" : "正式 Agent 启动组合尚未安装。原执行失败或待核对事实可记录到项目；费用未结清前，预算继续保留。"));
     }
     result.append(form(values => mutation("CancelRun", { reason: values.reason }, { object_type: "run", id: run.id }, run.revision,

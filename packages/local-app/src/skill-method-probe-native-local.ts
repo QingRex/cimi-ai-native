@@ -1,4 +1,5 @@
 import {codexRuntimeInstallationProgramBundle} from './agent-codex-installation-local.js';
+import {assertCodexExecutionSelected} from './agent-dedicated-installation-local.js';
 import {join} from 'node:path';import {isDeepStrictEqual as same} from 'node:util';
 import {AgentRunBudget,AgentNamedMethodHost,AgentRuntimeModelHost,AgentWorkspaceToolIpc,CodexOriginalMethodRuntime,createBudgetedCodexAgentRuntimeModel,openWindowsAgentRunClock,runOpenCodeWorkspaceRuntime,withinAgentRuntimeTaskBudget,assertAgentRuntimeNativeRoot,bytesAt,digest} from '@cimiloop/runtime-adapter';
 import type {LocalProject} from './project.js';import {LocalProjectError} from './errors.js';
@@ -11,11 +12,13 @@ const fail=():never=>{throw new LocalProjectError('隔离 Skill 方法需要原 
 // A real fixed-material Native execution. The local Human owner authorizes a
 // technical candidate probe, not a business Run or controlled qualification.
 export async function openSkillMethodProbeExecution(local:LocalProject):Promise<SkillMethodProbeExecutionLease>{
+ assertCodexExecutionSelected(local);
  const account=await openInstalledCodexUsageBudget(local);if(!account)fail();
  try{
-  const installed=account!.installation,storage=await openCodexRuntimeStorage(local,installed);if(!storage)fail();account!.guard();
+  assertCodexExecutionSelected(local);
+  const installed=account!.installation,storage=await openCodexRuntimeStorage(local,installed);assertCodexExecutionSelected(local);if(!storage)fail();account!.guard();assertCodexExecutionSelected(local);
   const login=await openCodexRuntimeLoginHome(local,installed,storage!);if(!login)fail();
-  const guard=()=>{account!.guard();assertCodexRuntimeWritableStorage(local,account!,storage!,login!);account!.guard();};guard();
+  const guard=()=>{assertCodexExecutionSelected(local);account!.guard();assertCodexRuntimeWritableStorage(local,account!,storage!,login!);account!.guard();assertCodexExecutionSelected(local);};guard();
   return{installation_digest:installed.installation_digest,guard,release:()=>account!.release(),async prepare(input,beforeEffect){
    let budget:AgentRunBudget|undefined;
    const current=()=>{guard();const value:unknown=beforeEffect();if(value!==undefined){void Promise.resolve(value).catch(()=>{});fail();}guard();

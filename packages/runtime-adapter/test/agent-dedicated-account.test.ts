@@ -1,10 +1,14 @@
 import {mkdtempSync,mkdirSync,renameSync,cpSync,existsSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';import {tmpdir} from 'node:os';
-import {describe,it,expect} from 'vitest';import {createInternalId} from '@cimiloop/protocol/v2';
+import {describe,it,expect,vi} from 'vitest';import {createInternalId} from '@cimiloop/protocol/v2';
 import * as Public from '../src/index.js';import {AgentStartLedger} from '../src/agent-start-ledger.js';
 import type {DedicatedAgentAccountPort,DedicatedAgentBudgetHold} from '../src/agent-dedicated-model.js';
 import {digest} from '../src/files.js';import {parseAgentWorkspaceToolScope,type AgentWorkspaceToolScope} from '../src/agent-workspace-authority.js';
 import {DatabaseSync} from 'node:sqlite';
+const finalCut=vi.hoisted(()=>({reject:false}));
+// PUBLIC failure of the final OS verification tail, after the real synchronous
+// turn body returns. Real SQLite/Host originals must still retain rollback.
+vi.mock('../src/agent-start-custody-native.js',async load=>{const actual=await load<typeof import('../src/agent-start-custody-native.js')>();return{...actual,withStartCustodyVerifyTurn<T>(run:()=>T,recheckNested=false):T{const result=actual.withStartCustodyVerifyTurn(run,recheckNested);if(finalCut.reject)throw Error('PUBLIC directory final verification refused');return result;}};});
 interface AccountAPI extends DedicatedAgentAccountPort {close():void;snapshot():{holds:number;cash_held_micros:number;credit_held_micro_units:number;costs_reconciled:false};readOriginalHold(scope:AgentWorkspaceToolScope,call:string):DedicatedAgentBudgetHold|null}
 // Actual SQLite/files; all approval/tariff/machine/principal are constructed.
 // Owned fixtures retained. No real key/network/qualification/S1.
@@ -19,6 +23,26 @@ function fixture(hostVerify?:()=>void){const root=mkdtempSync(join(tmpdir(),'cim
  const options={origin,repositoryPath:repo,root:join(root,'account'),policy,connection,admission,custody};return {root,repo,origin,connection,policy,scope,input,Factory,options,revoke:()=>{allowed=false;}};
 }
 describe('one original dedicated account budget across Runs',()=>{
+ it('rolls back account SQL when directory final verification fails while retaining the original Host hold',async()=>{
+  const f=fixture(),account=f.Factory().initialize(f.options);
+  const hold=f.origin.claimBudgetHoldBeforeSkillClosure.bind(f.origin);f.origin.claimBudgetHoldBeforeSkillClosure=(...args)=>{const result=hold(...args);finalCut.reject=true;return result;};
+  try{const one=f.input(f.scope());await expect(account.reserve(one.scope,one.request,one.body)).rejects.toThrow('PUBLIC directory final verification refused');
+   finalCut.reject=false;expect(f.origin.listExclusive('dedicated_account_hold')).toHaveLength(1);
+   const db=new DatabaseSync(join(f.options.root,'account.sqlite'),{readOnly:true});try{expect(db.prepare('SELECT count(*) AS n FROM account_holds').get()!.n).toBe(0);}finally{db.close();}
+   expect(()=>account.snapshot()).toThrow('agent_account_hold_original_missing');
+  }finally{finalCut.reject=false;account.close();f.origin.close();}
+ });
+ it('rechecks the captured original guard after all synchronous custody callbacks before returning a read',()=>{
+  const f=fixture();let invalid=false,changeDuringRead=false;
+  const options={...f.options,guard:()=>{if(invalid)throw Error('PUBLIC original changed during read');}};
+  options.custody.verify=()=>{if(changeDuringRead)invalid=true;};
+  const account=f.Factory().initialize(options);
+  try{options.guard=()=>{};changeDuringRead=true;expect(()=>account.snapshot()).toThrow('PUBLIC original changed during read');}
+  finally{changeDuringRead=false;invalid=false;account.close();f.origin.close();}
+ });
+ it('rejects an asynchronous original guard rather than accepting an unawaited approval',()=>{
+  const f=fixture();try{expect(()=>f.Factory().initialize({...f.options,guard:()=>Promise.resolve()})).toThrow('agent_account_original_guard_unproven');expect(existsSync(f.options.root)).toBe(false);}finally{f.origin.close();}
+ });
  it('bounds fresh Host custody work for admission and a model hold without retaining a pre-await view',async()=>{
   let hostAudits=0;const f=fixture(()=>{hostAudits++;}),account=f.Factory().initialize(f.options);try{
    hostAudits=0;await account.check(f.scope(),f.connection);expect(hostAudits).toBeLessThanOrEqual(6);

@@ -11,12 +11,14 @@ import { readHumanOriginalAgentRunInputs } from "./agent-runtime-control-local.j
 import type { LocalProject } from "./project.js";
 import { LocalProjectError } from "./errors.js";
 import {readOriginalAgentCostBackend} from './agent-account-billing-local.js';
+import {openOriginalDedicatedAccount} from './agent-dedicated-account-originals-local.js';
+import {hasInstalledDedicatedAgentRuntime,hasDedicatedRuntimeAccountOriginals} from './agent-dedicated-installation-local.js';
 
 const unavailable = () => new LocalProjectError("原生产账户或账单核验尚不可用；保留原运行与预算", "CAPABILITY_UNAVAILABLE", "conflict");
 
 // Discovery only enables a read button, never bill mutation or execution.
 export function hasReadableProductionAgentCosts(local:LocalProject){
-  try{return hasInstalledCodexAgentRuntime(local)||hasInstalledProductionAccount(local);}catch{return false;}
+  try{return hasInstalledCodexAgentRuntime(local)||hasInstalledDedicatedAgentRuntime(local)||hasInstalledProductionAccount(local);}catch{return false;}
 }
 export function hasProductionAgentBillAccount(local:LocalProject,runId?:string){
   try{return hasInstalledProductionAccount(local)&&(runId===undefined||readOriginalAgentCostBackend(local,runId)!=='codex');}catch{return false;}
@@ -44,6 +46,9 @@ export const productionAgentCosts:HumanAgentCostsFactory=async(runId,local)=>{
 // Availability only, never admission. No binary/check/credential dependency:
 // historical account access must survive model revocation and cancellation.
 export function hasInstalledProductionAccount(local: LocalProject): boolean {
+  return hasDedicatedRuntimeAccountOriginals(local)||hasInstalledLegacyProductionAccount(local);
+}
+function hasInstalledLegacyProductionAccount(local:LocalProject):boolean{
   const layout = productionRuntimeLayout(local);
   const outside = relative(resolve(local.location.repositoryPath), resolve(layout.accountRoot));
   if (!layout.accountRoot || !(outside === ".." || outside.startsWith(`..${sep}`) || isAbsolute(outside))) return false;
@@ -61,9 +66,20 @@ export const productionAgentAccount: HumanAgentAccountFactory = async (runId, lo
   const original = readHumanOriginalAgentRunInputs(local, runId);
   const backend=readOriginalAgentCostBackend(local,runId);if(backend==='codex')throw unavailable();
   const identity = { location: structuredClone(local.location), instance: structuredClone(local.instance), store: local.store, kernel: local.kernel };
-  if (!hasInstalledProductionAccount(local)) throw unavailable();
+  const selectedDedicated=hasInstalledDedicatedAgentRuntime(local),sameOriginal=()=>{
+    if(local.store!==identity.store||local.kernel!==identity.kernel||!isDeepStrictEqual(local.location,identity.location)||!isDeepStrictEqual(local.instance,identity.instance)||hasInstalledDedicatedAgentRuntime(local)!==selectedDedicated||readOriginalAgentCostBackend(local,runId)!==backend)throw unavailable();
+    const fresh=readHumanOriginalAgentRunInputs(local,runId);if(!isDeepStrictEqual({scope:original.scope,record:original.record,context:original.context},{scope:fresh.scope,record:fresh.record,context:fresh.context}))throw unavailable();
+  };
+  let dedicated:Awaited<ReturnType<typeof openOriginalDedicatedAccount>>;
+  try{dedicated=await openOriginalDedicatedAccount(local);}catch{sameOriginal();}
+  if(dedicated){let selected=false;try{
+    sameOriginal();dedicated.guard();const cut=dedicated.account.readRunCostOriginals(original.scope);dedicated.guard();sameOriginal();
+    if(cut.holds.length){selected=true;return{account:dedicated.account,release:()=>dedicated!.release()};}
+  }finally{if(!selected)dedicated.release();}}
+  sameOriginal();if (!hasInstalledLegacyProductionAccount(local)) throw unavailable();
   const layout = productionRuntimeLayout(local), connection = structuredClone(loadModelConnection(layout.connectionPath));
   const current = () => {
+    sameOriginal();
     if(readOriginalAgentCostBackend(local,runId)!==backend)throw unavailable();
     if (local.store !== identity.store || local.kernel !== identity.kernel || !isDeepStrictEqual(local.location, identity.location) ||
       !isDeepStrictEqual(local.instance, identity.instance) || !isDeepStrictEqual(productionRuntimeLayout(local), layout) ||
@@ -79,6 +95,9 @@ export const productionAgentAccount: HumanAgentAccountFactory = async (runId, lo
     account = await openWindowsDedicatedAgentAccountLedger({ origin, accountDigest: readProductionAccountDigest(origin, layout.accountRoot),
       connection, toolsRoot: layout.toolsRoot, admission: { check: async () => { throw unavailable(); } } });
     current();
+    // A newer account's absent/missing original must never become a zero-hold
+    // legacy bill. Only a protected hold for this exact scope selects legacy.
+    if(selectedDedicated&&!account.readRunCostOriginals(original.scope).holds.length)throw unavailable();
     let released = false;
     return { account, release() {
       if (released) return;

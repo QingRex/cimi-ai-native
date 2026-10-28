@@ -15,6 +15,7 @@ import { openInstalledCodexUsageBudget } from './agent-codex-usage-budget-local.
 import {openCodexRuntimeStorage} from './agent-codex-storage-local.js';
 import {openInstalledCodexProductionHost} from './agent-production-host-local.js';
 import {hasInstalledDedicatedAgentRuntime,openInstalledDedicatedAgentRuntime} from './agent-dedicated-installation-local.js';
+export {readProductionAccountDigest} from './agent-account-origin-local.js';
 
 // Legacy projects retain their original Codex route. Explicit local-provider
 // installation selects the new route; incomplete local admission cannot fall
@@ -24,7 +25,6 @@ export const PRODUCTION_ADMISSION_GAPS = ["Codex 原安装", "Codex Context 前�
 export const PRODUCTION_ADMISSION_MISSING = PRODUCTION_ADMISSION_GAPS;
 
 const installName = "production-runtime";
-const accountNamespace = "dedicated_agent_account";
 
 export function productionModelFeeAuthorized(_connection?: DedicatedModelConnection, _policy?: Pick<DedicatedAgentAccountPolicy, "cash_limit_micros" | "cash_per_call_upper_micros" | "credit_limit_micro_units" | "credit_per_call_upper_micro_units" | "profile">): boolean {
   return false;
@@ -101,17 +101,6 @@ export async function inspectProductionRuntime(local: LocalProject): Promise<str
   try { readCheckTemplates(layout.checksPath); }
   catch { missing.push("固定检查"); }
   return missing;
-}
-
-export function readProductionAccountDigest(origin: AgentStartLedger, accountRoot: string) {
-  const root = resolve(accountRoot);
-  const rows = origin.listExclusive(accountNamespace).filter(row => {
-    const basis = row.basis;
-    return !!basis && typeof basis === "object" && "root" in basis && "policy" in basis && resolve(String((basis as { root: unknown }).root)) === root &&
-      typeof (basis as { policy?: { account_digest?: unknown } }).policy?.account_digest === "string";
-  });
-  if (rows.length !== 1) throw new LocalProjectError("历史 HTTP 原账户资料缺失或不唯一", "CAPABILITY_UNAVAILABLE", "conflict");
-  return (rows[0]!.basis as { policy: { account_digest: string } }).policy.account_digest;
 }
 
 export async function openInstalledProductionRuntime(runId: string, local: LocalProject): Promise<AgentRuntimeLease> {

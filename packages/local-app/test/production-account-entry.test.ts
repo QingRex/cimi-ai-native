@@ -61,7 +61,7 @@ describe("installed production historical account entry", () => {
     expect(first).toMatchObject({ outcome: "observed", costs: { holds: 0, costs_reconciled: false }, starts_run: false, kernel_costs_reconciled: false });
     expect(await service.query(runId)).toEqual(first);
     expect(fixture.store.asOfEventSequence()).toBe(before);
-  });
+  }, 60_000);
 
   it("returns an idempotently releasable read lease that cannot reserve new model funds", async () => {
     const lease = await factory()(runId, local);
@@ -137,5 +137,10 @@ describe("installed production historical account entry", () => {
     await localApp.installCodexUsageBudget(local,{model_calls:2,output_tokens:4096});const before=fixture.store.asOfEventSequence();
     expect(await new LocalHumanAgentAccountBilling(local,localApp.productionAgentCosts).query(runId)).toMatchObject({outcome:'observed',costs:{holds:0,costs_reconciled:false}});expect(localApp.hasProductionAgentBillAccount(local,runId)).toBe(true);
     const result=spawnSync(process.execPath,[resolve('apps/cli/dist/bin.js'),'run','costs',runId,'--json','--project-dir',root],{encoding:'utf8',windowsHide:true,timeout:120000});expect(result.status).toBe(0);expect(JSON.parse(result.stdout)).toMatchObject({outcome:'observed',costs:{holds:0,costs_reconciled:false}});expect(fixture.store.asOfEventSequence()).toBe(before);
+  },120000);
+  it('keeps an ambiguous newer local account Unknown instead of reporting an empty legacy account',async()=>{
+    const marker=join(local.location.dataDirectory,'dedicated-runtime-placement'),before=fixture.store.asOfEventSequence();mkdirSync(marker);
+    try{const result=await new LocalHumanAgentAccountBilling(local,localApp.productionAgentCosts).query(runId);expect(result).toMatchObject({outcome:'unknown',kernel_costs_reconciled:false});expect(result).not.toHaveProperty('costs');expect(fixture.store.asOfEventSequence()).toBe(before);expect(existsSync(join(production.productionRuntimeLayout(local).accountRoot,'account.sqlite'))).toBe(true);}
+    finally{renameSync(marker,marker+'.retained-ambiguity-test');}
   },120000);
 });

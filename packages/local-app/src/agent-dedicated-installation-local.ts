@@ -9,6 +9,7 @@ import {LocalProjectError} from './errors.js';
 
 const namespace='dedicated_runtime_installation',requestNamespace='dedicated_runtime_install_request';
 const owned=new WeakSet<object>();
+const originalConnections=new WeakMap<object,()=>DedicatedModelConnection>();
 function freezeJson<T>(value:T):T{if(value&&typeof value==='object'){for(const item of Object.values(value))freezeJson(item);Object.freeze(value);}return value;}
 function fail():never{throw new LocalProjectError('本地 OpenAI 兼容 Runtime 原安装缺失或改变；保留原目录和原操作，不回退登录账户','CAPABILITY_UNAVAILABLE','conflict');}
 // Resolve existing Windows short names without opening file contents; retain
@@ -98,6 +99,9 @@ export async function installDedicatedAgentRuntime(local:LocalProject,raw:Dedica
 export interface OriginalDedicatedRuntimeCustody{origin:AgentStartLedger;root:string;tools:string;account_root:string;installation_digest:string;guard():void;release():void}
 export interface InstalledDedicatedAgentRuntime extends OriginalDedicatedRuntimeCustody{native_binary:string;node_binary:string;connection:DedicatedModelConnection;checks:WorkspaceCheckTemplate[]}
 export function hasInstalledDedicatedAgentRuntime(local:LocalProject){return existsSync(assertOrdinaryPath(join(local.location.dataDirectory,'dedicated-runtime-placement')));}
+// Discovery only, no account opening, qualification or bill authentication.
+export function hasDedicatedRuntimeAccountOriginals(local:LocalProject){try{const where=placement(local).selected;if(!where)return false;const stat=lstatSync(assertOrdinaryPath(join(where.account_root,'account.sqlite')));return stat.isFile()&&stat.nlink===1;}catch{return false;}}
+export function readDedicatedRuntimeOriginalConnection(source:OriginalDedicatedRuntimeCustody){const read=originalConnections.get(source);if(!read)fail();return read();}
 // Selection fences new legacy effects even if the selected installation is
 // incomplete. Historical readers intentionally do not use this effect fence.
 export function assertCodexExecutionSelected(local:LocalProject){if(hasInstalledDedicatedAgentRuntime(local))throw new LocalProjectError('项目已显式选择本地 OpenAI 兼容连接；新执行不能借用旧 Codex 账户','CAPABILITY_UNAVAILABLE','conflict',{production_admission:'unapproved',plan:'local OpenAI-compatible',missing:['当前本地 provider 的完整执行准入']});}
@@ -109,7 +113,9 @@ async function open(local:LocalProject,full:boolean):Promise<OriginalDedicatedRu
   const guard=()=>{if(released||!same(placement(local).selected,where)||requestDigest(read(original,local,where.root,fixedBinding))!==seal)fail();};
   const common={origin:original,root:where.root,tools:where.tools,account_root:where.account_root,installation_digest:seal,guard,release(){if(!released){released=true;original.close();}}};
   const config=full?connection(local,join(where.root,'model-connection.json')):undefined,checks=full?catalog(json(join(where.root,'checks.json')) as WorkspaceCheckTemplate[]):undefined;
-  const lease=Object.freeze(full?{...common,native_binary:join(where.root,'opencode.exe'),node_binary:join(where.root,'node.exe'),connection:freezeJson(config!),checks:freezeJson(checks!)}:common);guard();if(full)owned.add(lease);return lease;
+  const lease=Object.freeze(full?{...common,native_binary:join(where.root,'opencode.exe'),node_binary:join(where.root,'node.exe'),connection:freezeJson(config!),checks:freezeJson(checks!)}:common);
+  originalConnections.set(lease,()=>{guard();const expected=fixed.request.materials.find(m=>m.name==='model-connection.json');if(!same(expected,material(where.root,'model-connection.json')))fail();const result=connection(local,join(where.root,'model-connection.json'));guard();return freezeJson(result);});
+  guard();if(full)owned.add(lease);return lease;
  }catch(error){origin?.close();throw error;}
 }
 export const openOriginalDedicatedRuntimeCustody=(local:LocalProject)=>open(local,false) as Promise<OriginalDedicatedRuntimeCustody|undefined>;
