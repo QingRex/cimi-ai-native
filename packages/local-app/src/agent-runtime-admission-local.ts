@@ -3,6 +3,7 @@ import {withInstalledPlanningClarification} from './planning-codex-admission-loc
 import { isDeepStrictEqual as same } from 'node:util';
 import { CimiLoopKernel, type KernelResult, type AgentRunAdmissionInput, type AgentRunToolAuthorityInput } from '@cimiloop/kernel';
 import {AgentStartLedger, DedicatedAgentAccountLedger,validateModelConnection,type DedicatedModelConnection, type WorkspaceCheckTemplate,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
+import {assertDedicatedRuntimeWritableStorage} from './agent-dedicated-writable-storage-local.js';
 import type { Project, Digest, AgentContextManifest } from '@cimiloop/protocol/v2';
 import { parseVersionedCommand } from '@cimiloop/protocol';
 import { installedRunVerifier, type LocalProject } from './project.js';
@@ -31,7 +32,7 @@ export interface AgentProductionCustodyPort extends AgentStartFullCustodyPort {
 }
 interface Options {origin:AgentStartLedger;nodeBinary:string;templates:WorkspaceCheckTemplate[];full:AgentProductionCustodyPort;guard?:()=>void;skills?:AgentRuntimeSkillInstallation;codexAccount?:InstalledCodexUsageBudget}
 // Code-owned execution lease. JSON/credentials do not supply complete admission.
-export interface DedicatedRuntimeExecution {account:DedicatedAgentAccountLedger;connection:DedicatedModelConnection;binary:string;guard():void}
+export interface DedicatedRuntimeExecution {account:DedicatedAgentAccountLedger;connection:DedicatedModelConnection;binary:string;installation:import('./agent-dedicated-installation-local.js').InstalledDedicatedAgentRuntime;storage:FixedVolumeRuntimeStorage;guard():void}
 const fixedAccountHost=DedicatedAgentAccountLedger.prototype.assertOriginalHost;
 const owners=new WeakMap<LocalProject['store'],object>();
 const active=new WeakMap<LocalProject['store'],{local:LocalProject;lease:LocalAgentRuntimeAdmission}>();
@@ -159,10 +160,13 @@ export class LocalAgentRuntimeAdmission {
     const result=LocalAgentRuntimeComposition.openCodex({local:context,runId,account:borrowed,custody,checks,...(storage?{storage}:{}),...(loginHome?{loginHome}:{}),...(parent?{parentSkill:parent}:{})});guard();return result;
    };
    const dedicatedRuntime=(runId:string,raw:DedicatedRuntimeExecution,parent?:LocalAgentParentSkillHost)=>{
-    guard();const account=raw?.account,connection=structuredClone(validateModelConnection(raw?.connection)),binary=raw?.binary,check=raw?.guard;
+    guard();const account=raw?.account,connection=structuredClone(validateModelConnection(raw?.connection)),binary=raw?.binary,check=raw?.guard,installation=raw?.installation,storage=raw?.storage;
     if(!(account instanceof DedicatedAgentAccountLedger)||typeof binary!=='string'||!binary||typeof check!=='function'||parent&&!parentResults)throw unavailable();
-    const unchanged=()=>{if(raw.account!==account||raw.binary!==binary||raw.guard!==check||!same(raw.connection,connection))throw unavailable();};
-    const current=()=>{guard();unchanged();if(synchronous(Reflect.apply(check,raw,[]))!==undefined)throw unavailable();unchanged();Reflect.apply(fixedAccountHost,account,[origin]);guard();unchanged();};
+    const unchanged=()=>{if(raw.account!==account||raw.binary!==binary||raw.guard!==check||raw.installation!==installation||raw.storage!==storage||!same(raw.connection,connection))throw unavailable();};
+    const current=()=>{guard();unchanged();if(synchronous(Reflect.apply(check,raw,[]))!==undefined)throw unavailable();unchanged();Reflect.apply(fixedAccountHost,account,[origin]);
+     if(!installation||!storage)throw new LocalProjectError('本地兼容 Runtime全部可写范围与原固定卷尚未安装','CAPABILITY_UNAVAILABLE','conflict');
+     if(installation.origin!==origin||installation.native_binary!==binary||!same(installation.connection,connection))throw unavailable();
+     checks.assertInstalledConfiguration(installation.node_binary,installation.checks);assertDedicatedRuntimeWritableStorage(local,installation,account,storage);guard();unchanged();};
     current();const context=contextFor(runId);
     if(skills&&readOriginalAgentRunInputs(local,runId).scope.skill_bindings.length){if(parent)throw unavailable();parent=skills.parentForRun(runId,{kind:'dedicated',account,connection,binary,guard:current});}
     const result=LocalAgentRuntimeComposition.openDedicatedPersistent({local:context,runId,account,connection,binary,custody,checks,runtimeGuard:current,...(parent?{parentSkill:parent}:{})});current();return result;

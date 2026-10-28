@@ -54,6 +54,8 @@ $entropy = [Text.Encoding]::UTF8.GetBytes('CimiLoop runtime agent credential v1'
     expect(bytes.includes(Buffer.from(key))).toBe(false); writeFileSync(file, bytes);
     const connection = { ...base(), credential_file: file, credential_digest: digest(bytes) };
     expect(await readDedicatedApiKey(connection)).toBe(key);
+    const local=validateModelConnection({...connection,format:'cimiloop/dedicated-model/2.0.0',provider:'openai-compatible',model:'openai-compatible/codex/gpt-6-luna',endpoint:'http://127.0.0.1:3425/v1/chat/completions',transport:'loopback_http/1.0.0'});
+    expect(await Reflect.apply(readDedicatedApiKey,undefined,[local,{ownerRoot:join(root,'private-helper')}])).toBe(key);
     writeFileSync(file, "changed"); await expect(readDedicatedApiKey(connection)).rejects.toThrow("dedicated_credential_changed");
   } finally {
     const absolute = resolve(root); if (!absolute.startsWith(`${resolve(tmpdir())}${sep}cimiloop-connection-test-`)) throw new Error("Invalid cleanup target");

@@ -5,6 +5,7 @@ import { isAbsolute, join } from "node:path";
 import type { Digest } from "@cimiloop/protocol/v2";
 import { bytesAt, digest, RuntimeAdapterError } from "./files.js";
 import { isolatedEnvironment } from "./native.js";
+import {privateNativeEnvironment} from './native-process-environment.js';
 
 export interface DedicatedModelConnection {
   format: "cimiloop/dedicated-model/1.0.0" | "cimiloop/dedicated-model/2.0.0";
@@ -69,9 +70,13 @@ $entropy = [Text.Encoding]::UTF8.GetBytes('CimiLoop runtime agent credential v1'
 $plain = [Security.Cryptography.ProtectedData]::Unprotect($cipher, $entropy, [Security.Cryptography.DataProtectionScope]::CurrentUser)
 [Console]::Out.Write([Convert]::ToBase64String($plain))
 [Array]::Clear($plain, 0, $plain.Length)`;
-export const readDedicatedApiKey = async (connection: DedicatedModelConnection): Promise<string> => {
-  validateModelConnection(connection);
+export interface DedicatedCredentialReadOptions{ownerRoot:string;beforeEffect?:()=>void|Promise<void>;signal?:AbortSignal}
+export const readDedicatedApiKey = async (connection: DedicatedModelConnection, options?:DedicatedCredentialReadOptions): Promise<string> => {
+  connection=structuredClone(validateModelConnection(connection));options=options?{...options}:undefined;
+  if(isLoopbackModelConnection(connection)&&(!options||typeof options.ownerRoot!=='string'||!isAbsolute(options.ownerRoot)))throw new RuntimeAdapterError('dedicated_credential_process_root_required');
   if (process.platform !== "win32") throw new RuntimeAdapterError("windows_dpapi_required");
+  const guard=async()=>{options?.signal?.throwIfAborted();const result:unknown=await options?.beforeEffect?.();if(result!==undefined)throw Error();options?.signal?.throwIfAborted();};
+  try{await guard();}catch{throw new RuntimeAdapterError('dedicated_credential_unavailable');}
   const bytes = bytesAt(connection.credential_file, 16 * 1024);
   if (digest(bytes).value !== connection.credential_digest.value) throw new RuntimeAdapterError("dedicated_credential_changed");
   let encrypted: { format: string; ciphertext: string };
@@ -81,9 +86,13 @@ export const readDedicatedApiKey = async (connection: DedicatedModelConnection):
       typeof encrypted.ciphertext !== "string" || !/^[A-Za-z0-9+/]+={0,2}$/.test(encrypted.ciphertext)) throw new Error();
   } catch { throw new RuntimeAdapterError("invalid_dedicated_credential"); }
   try {
+    const environment=options?privateNativeEnvironment(options.ownerRoot):undefined;
+    const current=async()=>{await guard();environment?.verify();if(!bytesAt(connection.credential_file,16*1024).equals(bytes))throw Error();};
+    await current();
     const shell = join(process.env.SystemRoot ?? "C:\\Windows", "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
     const result = await promisify(execFile)(shell, ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(decryptScript, "utf16le").toString("base64")],
-      { windowsHide: true, timeout: 10_000, maxBuffer: 16 * 1024, encoding: "utf8", env: { ...isolatedEnvironment(), CIMILOOP_DPAPI_CIPHERTEXT: encrypted.ciphertext } });
+      { windowsHide: true, timeout: 10_000, maxBuffer: 16 * 1024, encoding: "utf8", ...(options?.signal?{signal:options.signal}:{}),...(environment?{cwd:environment.basis.root}:{}),env: { ...isolatedEnvironment(),...environment?.environment,CIMILOOP_DPAPI_CIPHERTEXT: encrypted.ciphertext } });
+    await current();
     const key = Buffer.from(result.stdout.trim(), "base64").toString("utf8");
     if (!validDedicatedApiKey(connection,key)) throw new Error();
     return key;

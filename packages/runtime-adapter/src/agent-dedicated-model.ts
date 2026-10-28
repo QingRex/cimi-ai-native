@@ -74,7 +74,7 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
  const loopback=isLoopbackModelConnection(connection)?new LoopbackGatewayNetworkBoundary(String(connection.endpoint)):undefined;
  if(loopback&&dependencies.boundary)fail('agent_dedicated_connection_mismatch');
  const boundary=loopback?undefined:dependencies.boundary??new GatewayNetworkBoundary({},path,host);if(boundary&&(!(boundary instanceof GatewayNetworkBoundary)||boundary.path!==path||boundary.host!==host))fail("agent_dedicated_connection_mismatch");
- const transport=new GatewayHttpTransport(loopback??boundary!),credential=dependencies.readCredential??readDedicatedApiKey;
+ const transport=new GatewayHttpTransport(loopback??boundary!),credential=dependencies.readCredential;
  const root=modelRoot,spine=join(root,"agent-dedicated-model-starts",scope.project_id,scope.run_id),originals=join(root,"agent-dedicated-model-originals",scope.project_id,scope.run_id);
  const header={format:parentMode?'cimiloop/agent-dedicated-model-originals/3.0.0':namedMode?'cimiloop/agent-dedicated-model-originals/2.0.0':'cimiloop/agent-dedicated-model-originals/1.0.0',scope,admission_digest:account.admission_digest,connection_digest:connectionDigest,profile,...(parentMode?{parent_skill_tools:parentMode}:{}),...(namedMode?{method_tools:namedMode}:{})};
  const check=async(raw:AgentWorkspaceToolScope)=>{if(!isDeepStrictEqual(parseAgentWorkspaceToolScope(raw),scope))fail("agent_model_scope_mismatch");try{await account.check(structuredClone(scope),structuredClone(connection));}catch{fail("agent_dedicated_account_unavailable");}};
@@ -119,7 +119,7 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
   signal?.throwIfAborted();await checkAndHold(hold);signal?.throwIfAborted();
   verifyCredentialLocation(repositoryPath,modelRoot,connection.credential_file);
  verifyCredentialLocation(repositoryPath,credentialBoundaryRoot,connection.credential_file);
-  let key:string;try{key=await credential(connection);}catch{fail("dedicated_credential_unavailable");}
+  let key:string;try{key=await(credential?credential(connection):readDedicatedApiKey(connection,{ownerRoot:join(credentialBoundaryRoot,'dedicated-credential-processes',scope.operation_key,request.call_id),beforeEffect:()=>checkAndHold(hold),...(signal?{signal}:{})}));}catch{fail("dedicated_credential_unavailable");}
   if(!validDedicatedApiKey(connection,key))fail("invalid_gateway_http_credential");if(prepared.body.includes(Buffer.from(key))||JSON.stringify(parseGatewayJson(prepared.body.toString(),65536)).includes(key))fail("gateway_credential_in_request");
   save(join(body,"provider-request.json"),prepared.body);signal?.throwIfAborted();await checkAndHold(hold);signal?.throwIfAborted();
   const channel=loopback?await loopback.connect(8000,signal):await boundary!.connect(await boundary!.resolve(8000,signal),8000,signal);

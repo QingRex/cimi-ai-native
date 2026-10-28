@@ -23,6 +23,9 @@ function fixture(hostVerify?:()=>void){const root=mkdtempSync(join(tmpdir(),'cim
  const options={origin,repositoryPath:repo,root:join(root,'account'),policy,connection,admission,custody};return {root,repo,origin,connection,policy,scope,input,Factory,options,revoke:()=>{allowed=false;}};
 }
 describe('one original dedicated account budget across Runs',()=>{
+ it('does not grant Windows writable-root authority to a constructed account or a replaced public reader',()=>{
+  const f=fixture(),account=f.Factory().initialize(f.options);try{const read=Reflect.get(Public,'readWindowsDedicatedAgentAccountWritablePaths');expect(read).toBeTypeOf('function');Reflect.set(account,'originalWritablePaths',()=>['R:/PUBLIC claimed']);expect(()=>Reflect.apply(read,undefined,[account,f.origin])).toThrow('agent_account_windows_original_unproven');}finally{account.close();f.origin.close();}
+ });
  it('rolls back account SQL when directory final verification fails while retaining the original Host hold',async()=>{
   const f=fixture(),account=f.Factory().initialize(f.options);
   const hold=f.origin.claimBudgetHoldBeforeSkillClosure.bind(f.origin);f.origin.claimBudgetHoldBeforeSkillClosure=(...args)=>{const result=hold(...args);finalCut.reject=true;return result;};

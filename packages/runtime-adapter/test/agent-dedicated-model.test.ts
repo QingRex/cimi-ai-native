@@ -3,7 +3,7 @@ import{DedicatedAgentAccountLedger,openDedicatedLedgerModelAccountPort}from'../s
 import { mkdtempSync, readFileSync, existsSync, writeFileSync, renameSync, linkSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it,vi } from "vitest";
 import { createInternalId } from "@cimiloop/protocol/v2";
 import { digest } from "../src/files.js";
 import { parseAgentWorkspaceToolScope } from "../src/agent-workspace-authority.js";
@@ -14,6 +14,8 @@ import { collectAgentRuntimeOperation, claimAgentRuntimeOperation } from "../src
 import { rawReference } from "../src/files.js";
 import { createDedicatedAgentRuntimeModel, type DedicatedAgentAccountPort } from "../src/agent-dedicated-model.js";
 import { httpFixture, HTTP_FIXTURE_KEY } from "./gateway-http-fixture.js";
+const credentialProcess=vi.hoisted(()=>({options:undefined as any,verified:false}));
+vi.mock('../src/connection.js',async load=>({...await load<typeof import('../src/connection.js')>(),readDedicatedApiKey:async(_connection:unknown,options:any)=>{credentialProcess.options=options;await options?.beforeEffect?.();credentialProcess.verified=typeof options?.beforeEffect==='function';throw Error('PUBLIC stop before decrypt/socket');}}));
 
 // Real local TLS/HTTP; account approval, address and credential are constructed.
 // No live credential/provider request, real model qualification or S1 evidence.
@@ -52,6 +54,11 @@ async function host(mode:"ok"|"lost"="ok",monotonic?:()=>number){
  return {...f,root,tls,connection,account,model,counts:()=>({credentials,holds,checks}),revoke:()=>{allowed=false;}};
 }
 describe("dedicated Agent host and original account hold boundary",()=>{
+ it('binds the default credential process to this original operation and verifies its held request before decrypt or a socket',async()=>{
+  const f=await host();try{credentialProcess.options=undefined;credentialProcess.verified=false;const model=createDedicatedAgentRuntimeModel({root:f.root,repositoryPath:f.root,scope:f.scope,connection:f.connection,account:f.account},{boundary:f.tls.boundary}),h=await AgentRuntimeModelHost.initialize(f.root,f.scope,model,['cimi_read']);await expect(h.execute(f.request)).rejects.toThrow('dedicated_credential_unavailable');
+   expect(credentialProcess.options?.ownerRoot).toBe(join(f.root,'dedicated-credential-processes',f.scope.operation_key,'model_0001'));expect(credentialProcess.verified).toBe(true);expect(f.counts().holds).toBe(1);expect(f.tls.counts()).toEqual({dns:0,dials:0});
+  }finally{await f.tls.close();}
+ });
  it('preserves an OpenAI namespace in the requested and independently checked model identity',()=>{
   const f=inputs(),profile={model:'codex/gpt-6-luna',thinking:'disabled' as const},p=prepareDedicatedAgentRequest(f.request,profile,[]);
   expect(JSON.parse(p.body.toString()).model).toBe(profile.model);

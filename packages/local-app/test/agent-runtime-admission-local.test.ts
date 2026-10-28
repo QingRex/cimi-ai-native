@@ -9,6 +9,7 @@ vi.mock('../src/agent-codex-writable-storage-local.js',async()=>{
   home.assertCodexRuntimeLoginHome(loginHome,local,account.installation,storage);return{proof,paths:[]};
  }};
 });
+vi.mock('../src/agent-dedicated-writable-storage-local.js',()=>({assertDedicatedRuntimeWritableStorage(_local:any,installed:any,_account:any,storage:any){if(storage?.PUBLIC!=='fixed-scope'||!installed.origin)throw Error('PUBLIC missing original storage');return{proof:{runtime_ticket:{identity_digest:installed.origin.identityDigest}},paths:[]};}}));
 import {installConstructedNativeFamilySkill} from '../../../tests/fixtures/agent-run-family-skill.js';
 import type {OriginalNativeParentPreparation} from '../../../tests/fixtures/agent-run-family-native.js';
 import {constructedNamedTranscript} from '../../../tests/fixtures/named-method-transcript.js';
@@ -104,7 +105,9 @@ describe('shared original Runtime admission lease',()=>{
    const policy={format:'cimiloop/dedicated-agent-account/1.0.0' as const,host_identity_digest:f.origin.identityDigest,account_digest:digest('PUBLIC dedicated account').value,approval_digest:digest('PUBLIC approval').value,package_digest:digest('PUBLIC package').value,tariff_digest:digest('PUBLIC tariff').value,admission_digest:digest('PUBLIC admission').value,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:'codex/gpt-6-luna',thinking:'disabled' as const},cash_limit_micros:60,credit_limit_micro_units:0,cash_per_call_upper_micros:30,credit_per_call_upper_micro_units:0,input_token_limit:1000000,output_token_limit:1024};
    const account=DedicatedAgentAccountLedger.initialize({origin:f.origin,repositoryPath:f.local.location.repositoryPath,root:join(root,'account'),policy,connection,admission:{check:async()=>{}},custody:{protect(){},verify(){}}});close.push(()=>account.close());let live=true;
    const execution={account,connection,binary:process.execPath,guard(){if(!live)throw Error('PUBLIC dedicated installation lost');}};
-   const create=Reflect.get(lease,'runtimeForDedicatedRun');expect(create).toBeTypeOf('function');const runtime=Reflect.apply(create,lease,[reserved.data.run.id,execution]) as Public.LocalAgentRuntimeComposition;
+   const create=Reflect.get(lease,'runtimeForDedicatedRun');expect(create).toBeTypeOf('function');expect(()=>Reflect.apply(create,lease,[reserved.data.run.id,execution])).toThrow('全部可写');
+   const complete={...execution,installation:{origin:f.origin,native_binary:process.execPath,node_binary:process.execPath,connection,checks:f.options.templates},storage:{PUBLIC:'fixed-scope'}};
+   const runtime=Reflect.apply(create,lease,[reserved.data.run.id,complete]) as Public.LocalAgentRuntimeComposition;
    expect(await runtime.start(reserved.data.run.id)).toMatchObject({outcome:'unknown',completion_proven:false});expect(seam.launches).toHaveLength(1);expect(seam.opens).toBe(0);expect(account.snapshot().holds).toBe(0);expect(existsSync(connection.credential_file)).toBe(false);
    live=false;expect(()=>runtime.originalScope(reserved.data.run.id)).toThrow('PUBLIC dedicated installation lost');live=true;lease.release();expect(()=>runtime.originalScope(reserved.data.run.id)).toThrow();expect(account.snapshot().holds).toBe(0);
   }finally{lease.release();}

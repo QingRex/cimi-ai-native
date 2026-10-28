@@ -63,6 +63,7 @@ const billingAccountDdl=[...ddl,
 const ledgerOwners=new WeakSet<object>();
 interface FullHoldOwner{scope:AgentWorkspaceToolScope;connection:DedicatedModelConnection;verify(scope:AgentWorkspaceToolScope,hold:DedicatedAgentBudgetHold):Promise<void>}
 const fullHoldOwners=new WeakMap<object,FullHoldOwner>();
+const windowsAccountTools=new WeakMap<DedicatedAgentAccountLedger,string>();
 const fixedPromiseThen=Promise.prototype.then;
 function synchronousModelGuard(guard:()=>void){const result:unknown=guard();if(result!==undefined){try{void fixedPromiseThen.call(result,undefined,()=>{});}catch{}fail('agent_account_model_guard_unproven');}}
 function synchronousOriginalGuard(guard:unknown){if(guard===undefined)return;if(typeof guard!=='function')fail('agent_account_original_guard_unproven');const result:unknown=guard();if(result!==undefined){try{void fixedPromiseThen.call(result,undefined,()=>{});}catch{}fail('agent_account_original_guard_unproven');}}
@@ -88,6 +89,12 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   this.#read(()=>{
    if(!(origin instanceof AgentStartLedger)||origin.identityDigest!==this.#options.origin.identityDigest||!isDeepStrictEqual(origin.readTicket(this.#ticket),this.#options.origin.readTicket(this.#ticket)))fail('agent_account_host_origin_mismatch');
   });
+ }
+ // Only Windows factories know the actual custody/helper write root. A public
+ // path manifest or constructed account cannot supply that capability.
+ originalWritablePaths(origin:AgentStartLedger):string[]{
+  const tools=windowsAccountTools.get(this);if(!tools)fail('agent_account_windows_original_unproven');
+  return this.#read(()=>{if(!(origin instanceof AgentStartLedger)||origin.identityDigest!==this.#options.origin.identityDigest||!isDeepStrictEqual(origin.readTicket(this.#ticket),this.#options.origin.readTicket(this.#ticket)))fail('agent_account_host_origin_mismatch');return[this.#original.root,tools];});
  }
  static initialize(options:InitializeOptions):DedicatedAgentAccountLedger {
   options={...options};synchronousOriginalGuard(options.guard);
@@ -378,16 +385,19 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
  snapshot(){return this.#read((rows,f)=>{const p=this.#original.policy;return{account_digest:p.account_digest,holds:rows.length,billed_holds:f.billed.size,currency:this.#billingOrigin?.currency??null,credit_unit:this.#billingOrigin?.credit_unit??null,cash_limit_micros:p.cash_limit_micros,credit_limit_micro_units:p.credit_limit_micro_units,cash_held_micros:Number(f.cashHeld),credit_held_micro_units:Number(f.creditHeld),cash_charged_micros:Number(f.cashCharged),credit_charged_micro_units:Number(f.creditCharged),cash_remaining_micros:Number(BigInt(p.cash_limit_micros)>f.cashHeld+f.cashCharged?BigInt(p.cash_limit_micros)-f.cashHeld-f.cashCharged:0n),credit_remaining_micro_units:Number(BigInt(p.credit_limit_micro_units)>f.creditHeld+f.creditCharged?BigInt(p.credit_limit_micro_units)-f.creditHeld-f.creditCharged:0n),over_budget:f.overBudget,costs_reconciled:!!this.#bills&&rows.length>0&&f.billed.size===rows.length&&this.#skillScopes.audit().every(r=>[r.parent,r.child].every(scope=>rows.some(row=>isDeepStrictEqual(parse(String(row.scope)),scope)))),formal_agent_execution_enabled:false as const};});}
  close(){if(!this.#closed){this.#closed=true;this.#bills?.close();this.#attachment?.close();this.#db.close();}}
 }
-export async function initializeWindowsDedicatedAgentAccountLedger(options:Omit<InitializeOptions,"custody"> & {toolsRoot:string},signal?:AbortSignal){options={...options};synchronousOriginalGuard(options.guard);const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();synchronousOriginalGuard(options.guard);return DedicatedAgentAccountLedger.initialize({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}
+export async function initializeWindowsDedicatedAgentAccountLedger(options:Omit<InitializeOptions,"custody"> & {toolsRoot:string},signal?:AbortSignal){options={...options};synchronousOriginalGuard(options.guard);const tools=assertOrdinaryPath(resolve(options.toolsRoot)),port=await openWindowsAgentStartCustody(tools,signal);signal?.throwIfAborted();synchronousOriginalGuard(options.guard);const account=DedicatedAgentAccountLedger.initialize({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});windowsAccountTools.set(account,tools);return account;}
 // Code-owned live original guard, captured before the helper await. Install it
 // inside the real owner's before/after read boundary, including final callbacks.
 export async function openWindowsDedicatedAgentAccountLedger(options:Omit<OpenOptions,"custody"> & {toolsRoot:string},signal?:AbortSignal){
  options={...options};const guard=options.guard;
  const current=()=>synchronousOriginalGuard(guard);
- current();const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();current();
- return DedicatedAgentAccountLedger.open({...options,guard:current,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});
+ current();const tools=assertOrdinaryPath(resolve(options.toolsRoot)),port=await openWindowsAgentStartCustody(tools,signal);signal?.throwIfAborted();current();
+ const account=DedicatedAgentAccountLedger.open({...options,guard:current,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});windowsAccountTools.set(account,tools);return account;
 }
-export async function attachWindowsDedicatedAgentAccountBilling(options:Omit<OpenOptions,"custody"> & {billing:DedicatedAgentBillVerification;toolsRoot:string},signal?:AbortSignal){options={...options};synchronousOriginalGuard(options.guard);const port=await openWindowsAgentStartCustody(options.toolsRoot,signal);signal?.throwIfAborted();synchronousOriginalGuard(options.guard);return DedicatedAgentAccountLedger.attachOriginalBilling({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});}
+export async function attachWindowsDedicatedAgentAccountBilling(options:Omit<OpenOptions,"custody"> & {billing:DedicatedAgentBillVerification;toolsRoot:string},signal?:AbortSignal){options={...options};synchronousOriginalGuard(options.guard);const tools=assertOrdinaryPath(resolve(options.toolsRoot)),port=await openWindowsAgentStartCustody(tools,signal);signal?.throwIfAborted();synchronousOriginalGuard(options.guard);const account=DedicatedAgentAccountLedger.attachOriginalBilling({...options,custody:{protect:root=>{port("protect",root);},verify:root=>{port("verify",root);}}});windowsAccountTools.set(account,tools);return account;}
+
+const fixedOriginalWritablePaths=DedicatedAgentAccountLedger.prototype.originalWritablePaths;
+export function readWindowsDedicatedAgentAccountWritablePaths(account:DedicatedAgentAccountLedger,origin:AgentStartLedger){return fixedOriginalWritablePaths.call(account,origin);}
 
 // Fixed owner method; a caller cannot replace a public lookup with a fake port.
 const fixedModelAccountPort=DedicatedAgentAccountLedger.prototype.modelAccountPort;

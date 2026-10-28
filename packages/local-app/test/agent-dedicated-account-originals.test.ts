@@ -4,6 +4,7 @@ import {dirname,join} from 'node:path';
 import {afterAll,beforeAll,describe,expect,it} from 'vitest';
 import {digest,initializeWindowsDedicatedAgentAccountLedger,type AgentWorkspaceToolScope,type DedicatedModelConnection} from '@cimiloop/runtime-adapter';
 import * as app from '../src/index.js';
+import * as runtime from '@cimiloop/runtime-adapter';
 import {readHumanOriginalAgentRunInputs} from '../src/agent-runtime-control-local.js';
 import {createAgentRunProject} from '../../../tests/fixtures/agent-run-project.js';
 
@@ -33,6 +34,12 @@ describe.runIf(process.platform==='win32')('dedicated installation original acco
  it('uses the shared default Human costs entry for the exact original Run hold',async()=>{
   const before=local.store.asOfEventSequence(),service=new app.LocalHumanAgentAccountBilling(local,app.productionAgentCosts);
   expect(await service.query(scope.run_id)).toMatchObject({outcome:'observed',costs:{holds:1,unresolved:1,costs_reconciled:false},starts_run:false});expect(local.store.asOfEventSequence()).toBe(before);
+ },60000);
+ it('reads writable roots from the genuine Windows account owner and ignores a replaced public method',async()=>{
+  const lease=await open()(local);if(!lease)throw Error('Expected original account');
+  try{const read=Reflect.get(runtime,'readWindowsDedicatedAgentAccountWritablePaths');expect(read).toBeTypeOf('function');Reflect.set(lease.account,'originalWritablePaths',()=>['C:/PUBLIC invented']);
+   const paths=read(lease.account,lease.source.origin);expect(paths).toEqual([accountRoot,lease.source.tools]);paths.push('C:/PUBLIC invented');expect(read(lease.account,lease.source.origin)).toEqual([accountRoot,lease.source.tools]);
+  }finally{lease.release();}
  },60000);
  it.each(['original','production'] as const)('rejects %s account reads after its live connection original is replaced',async kind=>{
   const lease=kind==='original'?await open()(local):await app.productionAgentAccount(scope.run_id,local);if(!lease)throw Error('Expected original account');

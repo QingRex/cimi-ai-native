@@ -60,7 +60,7 @@ export { originalTaskResultContract, verifyOriginalTaskExecutionResult, type Ori
 
 export { createDedicatedAgentRuntimeModel } from "./agent-dedicated-model.js";
 export type { DedicatedAgentAccountPort, DedicatedAgentBudgetRequest, DedicatedAgentBudgetHold } from "./agent-dedicated-model.js";
-export { DedicatedAgentAccountLedger, initializeWindowsDedicatedAgentAccountLedger, openWindowsDedicatedAgentAccountLedger, attachWindowsDedicatedAgentAccountBilling } from "./agent-dedicated-account.js";
+export { DedicatedAgentAccountLedger, initializeWindowsDedicatedAgentAccountLedger, openWindowsDedicatedAgentAccountLedger, attachWindowsDedicatedAgentAccountBilling, readWindowsDedicatedAgentAccountWritablePaths } from "./agent-dedicated-account.js";
 export type { DedicatedAgentAccountPolicy, DedicatedAgentAccountAdmission, DedicatedAgentAccountCustody } from "./agent-dedicated-account.js";
 export type { DedicatedAgentProfile } from "./agent-dedicated-codec.js";
 export { loadModelConnection, validateModelConnection } from "./connection.js";
