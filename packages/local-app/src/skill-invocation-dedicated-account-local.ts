@@ -27,7 +27,7 @@ export class LocalSkillInvocationDedicatedAccount implements DedicatedAgentAccou
  // Trusted code may use controlled transport with the SAME original owner
  // port. This carries no approval, credential or broader parent authority.
  modelAccountPort(){this.#guard(this.#relation.child);return this.#modelAccountPort();}
- #modelAccountPort(){return openDedicatedLedgerModelAccountPort(this.#account,this.#relation.child,()=>{this.#guard(this.#relation.child);});}
+ #modelAccountPort(beforeEffect?:()=>void){const guard=()=>{const value:unknown=beforeEffect?.();if(value!==undefined){try{void Promise.prototype.then.call(value,undefined,()=>{});}catch{}throw fail();}};return openDedicatedLedgerModelAccountPort(this.#account,this.#relation.child,()=>{guard();this.#guard(this.#relation.child);guard();});}
  #assertIdentity(){const local=this.#local,original=this.#identity;if(local.store!==original.store||local.kernel!==original.kernel||local.kernel.assessSkillInvocationExecution!==original.assessment||!isDeepStrictEqual(local.caller,original.caller)||!isDeepStrictEqual(local.location,original.location))throw fail();}
  #guard(raw:AgentWorkspaceToolScope){
   try{
@@ -43,5 +43,5 @@ export class LocalSkillInvocationDedicatedAccount implements DedicatedAgentAccou
  async check(raw:AgentWorkspaceToolScope,connection:DedicatedModelConnection){const scope=this.#guard(raw);await this.#account.check(scope,connection);this.#guard(scope);}
  async reserve(raw:AgentWorkspaceToolScope,request:DedicatedAgentBudgetRequest,body:Uint8Array){const scope=this.#guard(raw),hold=await this.#account.reserve(scope,structuredClone(request),Buffer.from(body),()=>{this.#guard(scope);});this.#guard(scope);return hold;}
  async verifyHold(raw:AgentWorkspaceToolScope,hold:DedicatedAgentBudgetHold){const scope=this.#guard(raw);await this.#account.verifyHold(scope,structuredClone(hold));this.#guard(scope);}
- createModel(connection:DedicatedModelConnection){this.#guard(this.#relation.child);return createDedicatedAgentRuntimeModel({root:this.modelRoot,credentialBoundaryRoot:this.#local.location.dataDirectory,repositoryPath:this.#local.location.repositoryPath,scope:this.scope,connection,account:this.#modelAccountPort(),methodTools:"fixed_named_method/1.0.0"});}
+ createModel(connection:DedicatedModelConnection,beforeEffect?:()=>void){this.#guard(this.#relation.child);return createDedicatedAgentRuntimeModel({root:this.modelRoot,credentialBoundaryRoot:this.#local.location.dataDirectory,repositoryPath:this.#local.location.repositoryPath,scope:this.scope,connection,account:this.#modelAccountPort(beforeEffect),methodTools:"fixed_named_method/1.0.0"});}
 }

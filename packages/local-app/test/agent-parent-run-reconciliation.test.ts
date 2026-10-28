@@ -4,11 +4,26 @@ const ports=vi.hoisted(()=>({identity:vi.fn(),collect:vi.fn(),registered:vi.fn()
 vi.mock('@cimiloop/runtime-adapter',async original=>{const real=await original<typeof import('@cimiloop/runtime-adapter')>();return{...real,readAgentRuntimeOriginalIdentity:ports.identity,collectAgentRuntimeOperation:ports.collect,readOriginalAgentWorkspaceOperation:ports.registered,verifyOriginalTaskExecutionResult:ports.execution,readAgentWorkspaceIpcOriginals:ports.ipc};});
 vi.mock('../src/agent-runtime-terminal-local.js',async original=>({...await original<typeof import('../src/agent-runtime-terminal-local.js')>(),readOriginalAgentTerminal:ports.terminal}));
 import{LocalEvidenceVerifier}from'../src/evidence-local.js';
+import{LocalAgentRunResultVerifier}from'../src/agent-runtime-observation-local.js';
 import*as real from'../../runtime-adapter/dist/index.js';import{readAgentRuntimeOriginalIdentity,collectAgentRuntimeOperation}from'../../runtime-adapter/dist/agent-runtime-operation.js';import{rawReference}from'../../runtime-adapter/dist/files.js';
 import{createInternalId}from'@cimiloop/protocol/v2';import{LocalAgentRuntimeObservation,LocalHumanAgentRunCostObservation,LocalAgentRuntimeControl}from'../src/index.js';import{createAgentRunCostObservation}from'../../../tests/fixtures/agent-run-cost-observation.js';import{startWorkbench}from'../../../apps/workbench/src/server.js';import{requestAgentRuntimeCancellation,readAgentRuntimeCancellationOriginal}from'../../runtime-adapter/src/agent-runtime-operation.js';
 // Real Kernel/SQLite/TLS/model holds/authenticated PUBLIC bills. Controlled
 // Native/SDK terminal ports below ONLY test composition, never qualify S1.
 describe('explicit original parent reconciliation proof through shared service and Kernel',()=>{
+ it('borrows a parent reader on the original billed verifier without losing account checks or leaking the reader',async()=>{
+  const reads=vi.spyOn(LocalAgentRunResultVerifier.prototype,'readRunResult');
+  try{
+   const result=await reconcile(input());expect(result).toMatchObject({ok:true,command_type:'ReconcileRun'});
+   const args=reads.mock.calls[0];if(!args)throw Error('Original Kernel result read required');const [project,record,context,reference,domain]=args,expected=reads.mock.results[0]!.value;let accountReads=0;
+   const reader=new LocalAgentRunResultVerifier(x.root,x.modelRoot,()=>{accountReads++;return x.account;},x.local.store),withParent=Reflect.get(reader,'withParentResults');expect(withParent).toBeTypeOf('function');
+   expect(()=>reader.readRunResult(project,record,context,reference,domain)).toThrow();
+   const value=Reflect.apply(withParent,reader,[x.local.agentParentSkillResults,()=>reader.readRunResult(project,record,context,reference,domain)]);
+   expect(value).toEqual(expected);expect(accountReads).toBeGreaterThan(0);
+   expect(()=>reader.readRunResult(project,record,context,reference,domain)).toThrow();
+   const historical=new LocalAgentRunResultVerifier(x.root,x.modelRoot,()=>{accountReads++;return x.account;},x.local.store,undefined,x.local.agentParentSkillResults),borrow=Reflect.get(historical,'withParentResults');
+   expect(Reflect.apply(borrow,historical,[{forOriginal:()=>undefined},()=>historical.readRunResult(project,record,context,reference,domain)])).toEqual(expected);
+  }finally{reads.mockRestore();}
+ },120000);
  let x:Awaited<ReturnType<typeof createAgentRunCostObservation>>,releases=0,collection:Awaited<ReturnType<typeof real.collectAgentRuntimeOperation>>,identity:ReturnType<typeof readAgentRuntimeOriginalIdentity>,execution:Record<string,unknown>;
  const input=()=>({command_id:createInternalId(),requested_at:new Date().toISOString(),acting_role:'technical_owner',command_type:'ReconcileRun',target:{object_type:'run',id:x.runId},expected_revision:x.f.store.getRun(x.runId)!.revision,payload:{}});
  const installed=()=>new LocalHumanAgentRunCostObservation(x.local,()=>({account:x.account,release(){releases++;}}));

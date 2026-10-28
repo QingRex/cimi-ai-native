@@ -2,7 +2,7 @@ import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {isDeepStrictEqual as same} from 'node:util';
 import {requestDigest,type SkillInvocationVerifierPort} from '@cimiloop/kernel';
-import {bytesAt,digest,parseGatewayJson,parseAgentWorkspaceToolScope,AgentStartLedger,type AgentWorkspaceToolScope,type FixedVolumeRuntimeStorage} from '@cimiloop/runtime-adapter';
+import {bytesAt,digest,parseGatewayJson,parseAgentWorkspaceToolScope,AgentStartLedger,type DedicatedAgentAccountLedger,type DedicatedModelConnection,type AgentWorkspaceToolScope,type FixedVolumeRuntimeStorage} from '@cimiloop/runtime-adapter';
 import type {Project,AgentRunRecord} from '@cimiloop/protocol/v2';
 import type {LocalProject} from './project.js';
 import {LocalSkillMethodInputs} from './skill-methods-local.js';
@@ -39,7 +39,7 @@ interface Options {
  parentResults:LocalAgentParentSkillResultPort;
 }
 type Context=SkillInvocationExecutionContext&{kernel:Pick<LocalProject['kernel'],'execute'|'assessSkillInvocationExecution'>};
-type Execution={account:InstalledCodexUsageBudget;storage:FixedVolumeRuntimeStorage;loginHome:CodexRuntimeLoginHome};
+type Execution={account:InstalledCodexUsageBudget;storage:FixedVolumeRuntimeStorage;loginHome:CodexRuntimeLoginHome}|{kind:'dedicated';account:DedicatedAgentAccountLedger;connection:DedicatedModelConnection;binary:string;guard():void};
 const fail=():never=>{throw new LocalProjectError('完整原 Skill 准入、当前源码目录或父宿主不可证明','CAPABILITY_UNAVAILABLE','conflict');};
 function sync<T>(value:T):T{if(value!==null&&(typeof value==='object'||typeof value==='function')){let then:unknown;try{then=Reflect.get(value,'then');}catch{void Promise.resolve(value).catch(()=>{});fail();}if(typeof then==='function'){void Promise.resolve(value).catch(()=>{});fail();}}return value;}
 
@@ -95,7 +95,15 @@ export class LocalAgentRuntimeSkills {
   const value=structuredClone(parseGatewayJson(new TextDecoder('utf-8',{fatal:true}).decode(bytesAt(path,65536)),65536)) as {format?:unknown;scope?:unknown;catalog?:Catalog};
   if(!value||Object.keys(value).sort().join(',')!=='catalog,format,scope'||value.format!=='cimiloop/agent-parent-skill-call-header/1.0.0'||!same(value.scope,scope)||!value.catalog)fail();return value.catalog;
  }
- forOriginal(raw:AgentWorkspaceToolScope,reader?:ParentSkillOriginalReader){this.guard();const scope=parseAgentWorkspaceToolScope(raw),existing=this.#parents.get(scope.run_id);if(existing){if(!same(existing.scope,scope))fail();return existing.host;}const catalog=this.saved(scope);return catalog?this.build(scope.run_id,catalog,undefined,reader):undefined;}
+ forOriginal(raw:AgentWorkspaceToolScope,reader?:ParentSkillOriginalReader){
+  this.guard();const scope=parseAgentWorkspaceToolScope(raw),existing=this.#parents.get(scope.run_id);if(existing){if(!same(existing.scope,scope))fail();return existing.host;}const catalog=this.saved(scope);
+  if(catalog?.format==='cimiloop/agent-parent-skill-catalog/1.0.0'){
+   // Validate old bytes and pins without claiming a child or invoking it. The
+   // existing historical reader owns catalog1; do not reinterpret it as v2.
+   LocalAgentParentSkillCalls.open({local:this.context(scope.run_id),runId:scope.run_id,catalog,beforeReservation:()=>fail()});this.guard();return undefined;
+  }
+  return catalog?this.build(scope.run_id,catalog,undefined,reader):undefined;
+ }
  parentForRun(runId:string,execution:Execution){
   try{this.guard();const original=readOriginalAgentRunInputs(this.options.local,runId),catalog=sync(Reflect.apply(this.#catalog,this.options.installation,structuredClone([original.project,original.record]))),saved=this.saved(original.scope);
   if(!catalog||catalog.format!=='cimiloop/agent-parent-skill-catalog/2.0.0'||saved&&!same(catalog,saved))fail();
@@ -106,7 +114,7 @@ export class LocalAgentRuntimeSkills {
   if(catalog.format!=='cimiloop/agent-parent-skill-catalog/2.0.0')fail();
   const candidateOptions={local,runId,catalog,checks:this.options.checks,modelAdmission,startCustody:this.options.custody,parentResults:this.options.parentResults};
   const candidate=reader?LocalAgentParentSkillCandidate.openFromOriginalReader(candidateOptions,reader):LocalAgentParentSkillCandidate.open(candidateOptions);
-  const guard=()=>{this.guard();const current=this.#parents.get(runId);if(!execution||!current||current.token!==token)fail();execution!.account.guard();this.guard();};
+  const guard=()=>{this.guard();const current=this.#parents.get(runId);if(!execution||!current||current.token!==token)fail();if('kind'in execution!){if(sync(execution!.guard())!==undefined)fail();}else execution!.account.guard();this.guard();};
   const calls=LocalAgentParentSkillCalls.open({local,runId,catalog,candidates:candidate,beforeReservation:guard});
   if(execution){
    // Reject absent/stale named-method qualification before the parent can send
@@ -120,7 +128,7 @@ export class LocalAgentRuntimeSkills {
     if(!same(binding,this.options.local.store.getProviderBinding(binding!.id))||!same(descriptor,this.options.local.store.getProviderDescriptor(descriptor!.id))||!same(verified,this.inputs.packages.inspect(descriptor!))||!same(reference,this.evidence(project!,descriptor!,entry.method_name))||!same(assessment,structuredClone(this.#assessor.evaluate(project!,descriptor!,reference,'controlled_execution',this.#originals))))fail();this.guard();
    }
   }
-  const child=execution?LocalSkillInvocationNativeComposition.openCodex({local,custody:this.custody,inputs:this.inputs,...execution}):undefined;
+  const child=execution?('kind'in execution?LocalSkillInvocationNativeComposition.open({local,custody:this.custody,inputs:this.inputs,account:execution.account,connection:execution.connection,binary:execution.binary,runtimeGuard:execution.guard}):LocalSkillInvocationNativeComposition.openCodex({local,custody:this.custody,inputs:this.inputs,...execution})):undefined;
   const host=LocalAgentParentSkillHost.open({local,calls,beforeEffect:guard,results:this.collector(runId),execution:{start:async id=>{guard();if(!child)fail();const result=await new LocalSkillInvocationExecution(local,child).start(id);guard();return result;}}});
   this.#parents.set(runId,{scope,host,candidate,token,execution:!!execution});this.guard();return host;
  }

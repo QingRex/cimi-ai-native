@@ -100,8 +100,21 @@ import {captureLocalAgentParentSkillResults,captureOriginalCurrentParentResultSe
 import type {ParentSkillOriginalReader} from './agent-parent-skill-calls-local.js';
 export class LocalAgentRunResultVerifier {
  private readonly parentResults:ReturnType<typeof captureLocalAgentParentSkillResults>;
+ private parentScope:{reader:ReturnType<typeof captureLocalAgentParentSkillResults>}|undefined;
  private readonly content:LocalEvidenceVerifier;
  constructor(private readonly repositoryPath:string,private readonly dataDirectory:string,private readonly accountForRun?:(runId:string)=>DedicatedAgentAccountLedger,private readonly familyReader?:LocalAgentRunFamilyReader,private readonly familySkills?:LocalAgentRunFamilyVerification,parentResults?:LocalAgentParentSkillResultPort){this.content=new LocalEvidenceVerifier(repositoryPath,dataDirectory);this.parentResults=captureLocalAgentParentSkillResults(parentResults);}
+ // Borrow only the parent reader for one synchronous Kernel verification.
+ // Keep this original verifier's account, family, bill and proof-version rules.
+ withParentResults<T>(parent:LocalAgentParentSkillResultPort,read:()=>T):T {
+  const scope={reader:captureLocalAgentParentSkillResults(parent)},previous=this.parentScope;
+  if(!scope.reader||typeof read!=='function')throw Error('Original parent result scope unavailable');this.parentScope=scope;
+  try{
+   const result=read();
+   if(result instanceof Promise){void Promise.prototype.then.call(result,undefined,()=>{});throw Error('Original parent result scope must be synchronous');}
+   if(result!==null&&(typeof result==='object'||typeof result==='function')&&typeof Reflect.get(result,'then')==='function')throw Error('Original parent result scope must be synchronous');
+   if(this.parentScope!==scope)throw Error('Original parent result scope changed');return result;
+  }finally{this.parentScope=previous;}
+ }
  readRunResult(project:Project,record:AgentRunRecord,context:AgentContextManifest,reference:Prepared["raw_result_ref"],domain:OriginalTaskDomainBasis,writer?:ParentSkillOriginalReader):RawAgentRunObservation {
   if(resolve(project.repository_path)!==resolve(this.repositoryPath))throw Error("Original result project mismatch");
   const report=compileValidator<RawAgentRunObservation>(RawAgentRunObservationSchema)(parsed(this.content.readContent(reference)));
@@ -112,7 +125,7 @@ export class LocalAgentRunResultVerifier {
   const prepared=read(join(pathFor(this.dataDirectory,project.id,record.run_id,intent.request.command_id),"prepared.json")) as Prepared;
   if(!isDeepStrictEqual(prepared.raw_result_ref,reference)||!isDeepStrictEqual(prepared.proof_ref,report.result_proof_ref)||
     !isDeepStrictEqual(read(join(pathFor(this.dataDirectory,project.id,record.run_id,intent.request.command_id),"request.json")),intent))throw Error("Original prepared result mismatch");
-  const parentReader=Object.hasOwn(proof.original.input as object,'parent_skill_original_binding')?this.parentResults?.(proof.original.scope,writer):undefined;
+  const parentReader=Object.hasOwn(proof.original.input as object,'parent_skill_original_binding')?(this.parentScope?.reader?.(proof.original.scope,writer)??this.parentResults?.(proof.original.scope,writer)):undefined;
   const collection=parsed(this.content.readContent(proof.collection_ref));
   validateCollection(this.dataDirectory,proof.original,collection);
   if(proof.terminal&&!isDeepStrictEqual(proof.terminal,readOriginalAgentTerminal(this.dataDirectory,project,record,context,proof.original,collection as Awaited<ReturnType<typeof collectAgentRuntimeOperation>>,domain,parentReader)))throw Error('Original terminal unproven');

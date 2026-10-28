@@ -15,12 +15,12 @@ import {constructedNamedTranscript} from '../../../tests/fixtures/named-method-t
 import {createInternalId} from '@cimiloop/protocol/v2';
 import {readOriginalAgentRunInputs} from '../src/agent-workspace-tools-local.js';
 import {LocalCodexNamedMethodOriginals} from '../src/codex-named-method-originals-local.js';
-import { existsSync,mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync,mkdirSync,mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CimiLoopKernel,requestDigest } from '@cimiloop/kernel';
-import { AgentStartLedger, CodexAgentUsageBudget, digest,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
+import { AgentStartLedger, CodexAgentUsageBudget, DedicatedAgentAccountLedger, digest,type DedicatedModelConnection,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
 import type {CodexRuntimeLoginHome} from '../src/agent-codex-login-home-local.js';
 import type { InstalledCodexUsageBudget } from '../src/agent-codex-usage-budget-local.js';
 import type { AgentRuntimeLease } from '../src/agent-runtime-human-start-local.js';
@@ -31,11 +31,18 @@ import { flowSuccess, flowTime } from '../../../tests/fixtures/flow-project.js';
 
 vi.setConfig({testTimeout:120000});
 const seam=vi.hoisted(()=>({installed:false,account:undefined as InstalledCodexUsageBudget|undefined,onOpen:undefined as undefined|(()=>void),opens:0,storage:undefined as FixedVolumeRuntimeStorage|undefined,onStorage:undefined as undefined|(()=>void),home:undefined as CodexRuntimeLoginHome|undefined,onHome:undefined as undefined|(()=>void),launches:[] as any[]}));
-vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),hasInstalledCodexAgentRuntime:()=>seam.installed}));
+const PUBLIC_PROGRAM_CAPABILITY=vi.hoisted(()=>Object.freeze({kind:'codex_program_bundle/1.0.0'}));
+vi.mock('../src/agent-codex-installation-local.js',async load=>({...await load<typeof import('../src/agent-codex-installation-local.js')>(),hasInstalledCodexAgentRuntime:()=>seam.installed,codexRuntimeInstallationProgramBundle:()=>PUBLIC_PROGRAM_CAPABILITY}));
 vi.mock('../src/agent-codex-usage-budget-local.js',async load=>({...await load<typeof import('../src/agent-codex-usage-budget-local.js')>(),openInstalledCodexUsageBudget:async()=>{seam.opens++;seam.onOpen?.();return seam.account;}}));
 vi.mock('../src/agent-codex-storage-local.js',async load=>({...await load<typeof import('../src/agent-codex-storage-local.js')>(),openCodexRuntimeStorage:async()=>{seam.onStorage?.();return seam.storage;}}));
 vi.mock('../src/agent-codex-login-home-local.js',async load=>{const original=await load<typeof import('../src/agent-codex-login-home-local.js')>(),runtime=await import('@cimiloop/runtime-adapter');return{...original,openCodexRuntimeLoginHome:async()=>{seam.onHome?.();return seam.home;},assertCodexRuntimeLoginHome:(...args:Parameters<typeof original.assertCodexRuntimeLoginHome>)=>{if(seam.home&&args[0]===seam.home)return runtime.captureCodexLoginHome(tmpdir());return original.assertCodexRuntimeLoginHome(...args);}};});
-vi.mock('@cimiloop/runtime-adapter',async load=>{const original=await load<typeof import('@cimiloop/runtime-adapter')>();return{...original,openWindowsAgentRunClock:async()=>({read:async()=>({format:'cimiloop/agent-run-clock/1.0.0',utc:flowTime,boot_utc:'2026-10-01T00:00:00.000Z',uptime_ms:100000000,machine_digest:digest('PUBLIC clock').value}),close:async()=>{}}),runOpenCodeWorkspaceRuntime:async(input:unknown)=>{seam.launches.push(input);},assertFixedVolumeRuntimeStorage(value:unknown,scope:Parameters<typeof original.assertFixedVolumeRuntimeStorage>[1]){if(value!==undefined&&value===seam.storage&&seam.account)return{runtime_ticket:{identity_digest:seam.account.installation.origin.identityDigest}};return original.assertFixedVolumeRuntimeStorage(value,scope);}};});
+vi.mock('@cimiloop/runtime-adapter',async load=>{const original=await load<typeof import('@cimiloop/runtime-adapter')>();return{...original,
+ // PUBLIC staging only, matching the existing parent/child composition suites.
+ // Check every forwarded control; this transport can never send a model call.
+ CodexOriginalMethodRuntime:class extends original.CodexOriginalMethodRuntime{
+  constructor(...args:ConstructorParameters<typeof original.CodexOriginalMethodRuntime>){if(args[4]!==PUBLIC_PROGRAM_CAPABILITY||!args[3]||args[3]!==seam.storage)throw Error('PUBLIC missing original programs/storage');const{network_policy,job_policy,path_resolution,package_policy,...legacy}=args[0];if(network_policy!=='codex_chatgpt_tunnel/1.0.0'||job_policy!=='codex_memory_process/1.0.0'||path_resolution!=='original_volume_handles/1.0.0'||package_policy!=='explicit_package_access/1.0.0')throw Error('PUBLIC missing forwarded Runtime controls');super(legacy,args[1],args[2]);}
+  override async execute(..._args:Parameters<InstanceType<typeof original.CodexOriginalMethodRuntime>['execute']>):Promise<never>{throw Error('PUBLIC staging cannot dispatch a model');}
+ },openWindowsAgentRunClock:async()=>({read:async()=>({format:'cimiloop/agent-run-clock/1.0.0',utc:flowTime,boot_utc:'2026-10-01T00:00:00.000Z',uptime_ms:100000000,machine_digest:digest('PUBLIC clock').value}),close:async()=>{}}),runOpenCodeWorkspaceRuntime:async(input:unknown)=>{seam.launches.push(input);},assertFixedVolumeRuntimeStorage(value:unknown,scope:Parameters<typeof original.assertFixedVolumeRuntimeStorage>[1]){if(value!==undefined&&value===seam.storage&&seam.account)return{runtime_ticket:{identity_digest:seam.account.installation.origin.identityDigest}};return original.assertFixedVolumeRuntimeStorage(value,scope);}};});
 // Actual Kernel/project SQLite/check installation/custody. Complete Provider and
 // full host/storage proofs are PUBLIC seams; no model/Native or S1 admission is claimed.
 const close:(()=>void)[]=[];afterEach(()=>{while(close.length)close.pop()!();vi.useRealTimers();seam.account=undefined;seam.onOpen=undefined;seam.installed=false;seam.opens=0;seam.storage=undefined;seam.onStorage=undefined;seam.home=undefined;seam.onHome=undefined;seam.launches=[];});
@@ -78,6 +85,43 @@ function pinMethodEvidence(f:ReturnType<typeof fixture>,method:ReturnType<typeof
 }
 
 describe('shared original Runtime admission lease',()=>{
+ it('delegates a valid legacy parent catalog to its original reader while malformed originals still fail',async()=>{
+  const f=fixture(),method=installMethodFixture(f),legacy=vi.fn(()=>undefined);Reflect.set(f.local,'agentParentSkillResults',{forOriginal:legacy});const lease=await f.open();try{
+   const prepared=flowSuccess(f.prepare());if(prepared.command_type!=='PrepareRunContext'||!('runtime_binding'in prepared.data.context))throw Error('Expected original Context');
+   const reserved=flowSuccess(f.agent.execute(f.f.reserveCommand({...prepared.data,context:prepared.data.context})));if(reserved.command_type!=='ReserveRun')throw Error('Expected original Run');
+   const scope=readOriginalAgentRunInputs(f.local,reserved.data.run.id).scope,body={format:'cimiloop/agent-parent-skill-catalog/1.0.0',scope_digest:digest(JSON.stringify(scope)).value,entries:[{skill_alias:'review',method_name:'entry',input_alias:'original',skill_binding:scope.skill_bindings[0],input_ref:method.s.input_ref}]},catalog={...body,catalog_digest:digest(JSON.stringify(body)).value};
+   const root=join(f.local.location.dataDirectory,'agent-parent-skill-call-originals',scope.project_id,scope.run_id);mkdirSync(root,{recursive:true});const header={format:'cimiloop/agent-parent-skill-call-header/1.0.0',scope,catalog};writeFileSync(join(root,'header.json'),JSON.stringify(header));
+   expect(f.local.agentParentSkillResults!.forOriginal(scope)).toBeUndefined();expect(legacy).toHaveBeenCalledTimes(1);
+   writeFileSync(join(root,'header.json'),JSON.stringify({...header,catalog:{...catalog,catalog_digest:digest('PUBLIC changed legacy bytes').value}}));
+   expect(()=>f.local.agentParentSkillResults!.forOriginal(scope)).toThrow();expect(legacy).toHaveBeenCalledTimes(1);
+  }finally{lease.release();}
+ });
+ it('borrows the original dedicated account for the shared Runtime without login, credential reads or model sends',async()=>{
+  const f=fixture(),lease=await f.open();try{
+   const prepared=flowSuccess(f.prepare());if(prepared.command_type!=='PrepareRunContext'||!('runtime_binding'in prepared.data.context))throw Error('Expected original Context');
+   const reserved=flowSuccess(f.agent.execute(f.f.reserveCommand({...prepared.data,context:prepared.data.context})));if(reserved.command_type!=='ReserveRun')throw Error('Expected original Run');
+   const root=mkdtempSync(join(tmpdir(),'cimiloop-dedicated-assembly-')),connection:DedicatedModelConnection={format:'cimiloop/dedicated-model/2.0.0',provider:'openai-compatible',transport:'loopback_http/1.0.0',endpoint:'http://127.0.0.1:3425/v1/chat/completions',model:'openai-compatible/codex/gpt-6-luna',credential_file:join(root,'PUBLIC-absent.dpapi'),credential_digest:digest('PUBLIC cipher')};
+   const policy={format:'cimiloop/dedicated-agent-account/1.0.0' as const,host_identity_digest:f.origin.identityDigest,account_digest:digest('PUBLIC dedicated account').value,approval_digest:digest('PUBLIC approval').value,package_digest:digest('PUBLIC package').value,tariff_digest:digest('PUBLIC tariff').value,admission_digest:digest('PUBLIC admission').value,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:'codex/gpt-6-luna',thinking:'disabled' as const},cash_limit_micros:60,credit_limit_micro_units:0,cash_per_call_upper_micros:30,credit_per_call_upper_micro_units:0,input_token_limit:1000000,output_token_limit:1024};
+   const account=DedicatedAgentAccountLedger.initialize({origin:f.origin,repositoryPath:f.local.location.repositoryPath,root:join(root,'account'),policy,connection,admission:{check:async()=>{}},custody:{protect(){},verify(){}}});close.push(()=>account.close());let live=true;
+   const execution={account,connection,binary:process.execPath,guard(){if(!live)throw Error('PUBLIC dedicated installation lost');}};
+   const create=Reflect.get(lease,'runtimeForDedicatedRun');expect(create).toBeTypeOf('function');const runtime=Reflect.apply(create,lease,[reserved.data.run.id,execution]) as Public.LocalAgentRuntimeComposition;
+   expect(await runtime.start(reserved.data.run.id)).toMatchObject({outcome:'unknown',completion_proven:false});expect(seam.launches).toHaveLength(1);expect(seam.opens).toBe(0);expect(account.snapshot().holds).toBe(0);expect(existsSync(connection.credential_file)).toBe(false);
+   live=false;expect(()=>runtime.originalScope(reserved.data.run.id)).toThrow('PUBLIC dedicated installation lost');live=true;lease.release();expect(()=>runtime.originalScope(reserved.data.run.id)).toThrow();expect(account.snapshot().holds).toBe(0);
+  }finally{lease.release();}
+ });
+ it('rejects a dedicated account from a different Host before model original creation',async()=>{
+  const f=fixture(),lease=await f.open();try{
+   const prepared=flowSuccess(f.prepare());if(prepared.command_type!=='PrepareRunContext'||!('runtime_binding'in prepared.data.context))throw Error('Expected original Context');
+   const reserved=flowSuccess(f.agent.execute(f.f.reserveCommand({...prepared.data,context:prepared.data.context})));if(reserved.command_type!=='ReserveRun')throw Error('Expected original Run');
+   const root=mkdtempSync(join(tmpdir(),'cimiloop-foreign-dedicated-')),foreign=AgentStartLedger.initialize(join(root,'host'),{machine_digest:digest('PUBLIC other machine').value,principal_digest:digest('PUBLIC user').value});close.push(()=>foreign.close());
+   const connection:DedicatedModelConnection={format:'cimiloop/dedicated-model/2.0.0',provider:'openai-compatible',transport:'loopback_http/1.0.0',endpoint:'http://127.0.0.1:3425/v1/chat/completions',model:'openai-compatible/codex/gpt-6-luna',credential_file:join(root,'PUBLIC-absent.dpapi'),credential_digest:digest('PUBLIC cipher')};
+   const policy={format:'cimiloop/dedicated-agent-account/1.0.0' as const,host_identity_digest:foreign.identityDigest,account_digest:digest('PUBLIC foreign account').value,approval_digest:digest('PUBLIC approval').value,package_digest:digest('PUBLIC package').value,tariff_digest:digest('PUBLIC tariff').value,admission_digest:digest('PUBLIC admission').value,connection_digest:digest(JSON.stringify(connection)).value,profile:{model:'codex/gpt-6-luna',thinking:'disabled' as const},cash_limit_micros:60,credit_limit_micro_units:0,cash_per_call_upper_micros:30,credit_per_call_upper_micro_units:0,input_token_limit:1000000,output_token_limit:1024};
+   const account=DedicatedAgentAccountLedger.initialize({origin:foreign,repositoryPath:f.local.location.repositoryPath,root:join(root,'account'),policy,connection,admission:{check:async()=>{}},custody:{protect(){},verify(){}}});close.push(()=>account.close());
+   Reflect.set(account,'assertOriginalHost',()=>{}); // A replaced public method cannot supply Host custody.
+   const create=Reflect.get(lease,'runtimeForDedicatedRun');expect(create).toBeTypeOf('function');expect(()=>Reflect.apply(create,lease,[reserved.data.run.id,{account,connection,binary:process.execPath,guard(){}}])).toThrow('agent_account_host_origin_mismatch');
+   expect(existsSync(join(f.local.location.dataDirectory,'agent-runtime-model-originals'))).toBe(false);expect(account.snapshot().holds).toBe(0);expect(seam.launches).toHaveLength(0);
+  }finally{lease.release();}
+ });
  it('builds the installed review catalog from the original approved task and contract without caller recipes or business effects',async()=>{
   const f=fixture(),method=installMethodFixture(f),evidence=pinMethodEvidence(f,method),lease=await f.open();try{
    const prepared=flowSuccess(f.prepare());if(prepared.command_type!=='PrepareRunContext'||!('runtime_binding'in prepared.data.context))throw Error('Agent expected');
@@ -198,6 +242,8 @@ describe('shared original Runtime admission lease',()=>{
    const lease=await Public.productionAgentRuntime(reserved.data.run.id,f.local) as AgentRuntimeLease;try{const started=await lease.runtime.start(reserved.data.run.id);/* PUBLIC launch creates no Native claim: it must remain Unknown. */expect(started).toMatchObject({outcome:'unknown',completion_proven:false});expect(seam.launches).toHaveLength(1);const packet=JSON.parse(seam.launches[0].prompt);expect(packet).toMatchObject({format:'cimiloop/agent-runtime-task-packet/3.0.0',parent_skill_catalog:{entries:[{skill_alias:'review',method_name:'entry',input_alias:'current'}]}});expect(seam.launches[0].parentSkill.sdkCatalog).toEqual(packet.parent_skill_catalog);expect(budget.snapshot().held.model_calls).toBe(0);expect(f.local.store.listRuntimeRecords('skill_invocation',f.f.change.id)).toHaveLength(0);expect(m.admits()).toBe(0);}finally{await lease.release();}
    expect(released).toBe(true);admission.guard();
   }finally{admission.release();}
- });
+ // Actual measured fixture + two factories + staging/release takes ~123s.
+ // This test budget does not change a production Runtime or Task deadline.
+ },180000);
 
 });

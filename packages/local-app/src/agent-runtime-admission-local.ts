@@ -2,7 +2,7 @@ import type {CodexRuntimeLoginHome} from './agent-codex-login-home-local.js';
 import {withInstalledPlanningClarification} from './planning-codex-admission-local.js';
 import { isDeepStrictEqual as same } from 'node:util';
 import { CimiLoopKernel, type KernelResult, type AgentRunAdmissionInput, type AgentRunToolAuthorityInput } from '@cimiloop/kernel';
-import {readAgentRuntimeModelOriginals, AgentStartLedger, type WorkspaceCheckTemplate,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
+import {AgentStartLedger, DedicatedAgentAccountLedger,validateModelConnection,type DedicatedModelConnection, type WorkspaceCheckTemplate,type FixedVolumeRuntimeStorage } from '@cimiloop/runtime-adapter';
 import type { Project, Digest, AgentContextManifest } from '@cimiloop/protocol/v2';
 import { parseVersionedCommand } from '@cimiloop/protocol';
 import { installedRunVerifier, type LocalProject } from './project.js';
@@ -15,7 +15,6 @@ import { LocalProviderVerifier } from './providers-local.js';
 import { readOriginalAgentRunInputs } from './agent-workspace-tools-local.js';
 import {borrowCodexUsageBudget,type InstalledCodexUsageBudget} from './agent-codex-usage-budget-local.js';
 import type {LocalAgentParentSkillResultPort} from './agent-parent-skill-results-local.js';
-import {LocalAgentRunResultVerifier} from './agent-runtime-observation-local.js';
 import {LocalAgentRuntimeSkills,type AgentRuntimeSkillInstallation} from './agent-runtime-skills-local.js';
 import type { LocalAgentParentSkillHost } from './agent-parent-skill-host-local.js';
 import { captureLocalAgentParentSkillResults } from './agent-parent-skill-results-local.js';
@@ -31,6 +30,9 @@ export interface AgentProductionCustodyPort extends AgentStartFullCustodyPort {
  verifyTool(project:Project,input:AgentRunToolAuthorityInput,original:Reference):Digest;
 }
 interface Options {origin:AgentStartLedger;nodeBinary:string;templates:WorkspaceCheckTemplate[];full:AgentProductionCustodyPort;guard?:()=>void;skills?:AgentRuntimeSkillInstallation;codexAccount?:InstalledCodexUsageBudget}
+// Code-owned execution lease. JSON/credentials do not supply complete admission.
+export interface DedicatedRuntimeExecution {account:DedicatedAgentAccountLedger;connection:DedicatedModelConnection;binary:string;guard():void}
+const fixedAccountHost=DedicatedAgentAccountLedger.prototype.assertOriginalHost;
 const owners=new WeakMap<LocalProject['store'],object>();
 const active=new WeakMap<LocalProject['store'],{local:LocalProject;lease:LocalAgentRuntimeAdmission}>();
 const baseKeys=['admitContext','checkRunAuthority','checkToolAuthority','checkModelAuthority'] as const;
@@ -79,11 +81,12 @@ export async function executeHumanAgentRunCommandAsync(local:LocalProject,raw:un
 // neither a Codex login, check recipe nor caller JSON can create qualification.
 // Borrowed Host/account objects and original Native operations survive release.
 export class LocalAgentRuntimeAdmission {
- private constructor(readonly custody:LocalAgentStartCustody,readonly checks:LocalAgentCheckAdmission,private readonly assertCurrent:()=>void,private readonly close:()=>void,private readonly runtime:(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome)=>LocalAgentRuntimeComposition,private readonly prepare:(raw:unknown)=>KernelResult,private readonly readReceipt:(raw:unknown,beforeRead:()=>void)=>Promise<KernelResult|undefined>){Object.freeze(this);}
+ private constructor(readonly custody:LocalAgentStartCustody,readonly checks:LocalAgentCheckAdmission,private readonly assertCurrent:()=>void,private readonly close:()=>void,private readonly runtime:(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome)=>LocalAgentRuntimeComposition,private readonly dedicatedRuntime:(runId:string,execution:DedicatedRuntimeExecution,parent?:LocalAgentParentSkillHost)=>LocalAgentRuntimeComposition,private readonly prepare:(raw:unknown)=>KernelResult,private readonly readReceipt:(raw:unknown,beforeRead:()=>void)=>Promise<KernelResult|undefined>){Object.freeze(this);}
  guard(){this.assertCurrent();}
  release(){this.close();}
  executeHumanPreparation(raw:unknown){this.assertCurrent();return this.prepare(raw);}
  runtimeForRun(runId:string,account:InstalledCodexUsageBudget,parent?:LocalAgentParentSkillHost,storage?:FixedVolumeRuntimeStorage,loginHome?:CodexRuntimeLoginHome){this.assertCurrent();return this.runtime(runId,account,parent,storage,loginHome);}
+ runtimeForDedicatedRun(runId:string,execution:DedicatedRuntimeExecution,parent?:LocalAgentParentSkillHost){this.assertCurrent();return this.dedicatedRuntime(runId,execution,parent);}
  static current(local:LocalProject){const entry=active.get(local.store);if(!entry)return undefined;if(entry.local.kernel!==local.kernel||!same(entry.local.location,local.location)||!same(entry.local.instance,local.instance))throw unavailable();entry.lease.guard();return entry.lease;}
  // The retained origin can prove a historical receipt independently of current
  // full execution qualification. This read grants no new Context or effect.
@@ -92,6 +95,7 @@ export class LocalAgentRuntimeAdmission {
   if(owners.has(local.store))throw unavailable();const verifier=installedRunVerifier(local);if(!verifier||!(raw.origin instanceof AgentStartLedger))throw unavailable();
   const owner={},store=local.store,kernel=local.kernel,location=structuredClone(local.location),instance=structuredClone(local.instance),agent=verifier.agent,full=raw.full,hostGuard=raw.guard,origin=raw.origin,nodeBinary=raw.nodeBinary,templates=structuredClone(raw.templates);
   const methods={admit:full?.admit,verifyLaunch:full?.verifyLaunch,verifyModel:full?.verifyModel,verifyTool:full?.verifyTool};
+  const withParentResults=verifier.withAgentParentResults;
   if(Object.values(methods).some(method=>typeof method!=='function')||hostGuard!==undefined&&typeof hostGuard!=='function')throw unavailable();
   const codexAccount=raw.codexAccount,codexAccountGuard=codexAccount?.guard,codexInstallation=codexAccount?.installation,codexBudget=codexAccount?.budget,
    skillsInstallation=raw.skills??(codexAccount?createCodexAgentRuntimeSkillInstallation(local,codexAccount):undefined),keys=[...baseKeys,...(skillsInstallation?['skills','readRunResult'] as const:[])];
@@ -101,10 +105,10 @@ export class LocalAgentRuntimeAdmission {
   const assigned:Partial<typeof agent>={};
   const installedSlots=new Map<typeof keys[number],PropertyDescriptor>();
   const guard=()=>{
-   if(closed||owners.get(store)!==owner||local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance)||installedRunVerifier(local)!==verifier||verifier.agent!==agent||Object.entries(methods).some(([key,method])=>Reflect.get(full,key)!==method))throw unavailable();
+   if(closed||owners.get(store)!==owner||local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance)||installedRunVerifier(local)!==verifier||verifier.agent!==agent||verifier.withAgentParentResults!==withParentResults||Object.entries(methods).some(([key,method])=>Reflect.get(full,key)!==method))throw unavailable();
    if(hostGuard){const result:unknown=hostGuard();if(synchronous(result)!==undefined)throw unavailable();}
    if(codexAccount){if(codexAccount.guard!==codexAccountGuard||codexAccount.installation!==codexInstallation||codexAccount.budget!==codexBudget||synchronous(codexAccount.guard())!==undefined||codexAccount.installation.origin.identityDigest!==origin.identityDigest||codexAccount.guard!==codexAccountGuard||codexAccount.installation!==codexInstallation||codexAccount.budget!==codexBudget)throw unavailable();}
-   if(local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance)||installedRunVerifier(local)!==verifier||verifier.agent!==agent||owners.get(store)!==owner||Object.entries(methods).some(([key,method])=>Reflect.get(full,key)!==method))throw unavailable();
+   if(local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance)||installedRunVerifier(local)!==verifier||verifier.agent!==agent||verifier.withAgentParentResults!==withParentResults||owners.get(store)!==owner||Object.entries(methods).some(([key,method])=>Reflect.get(full,key)!==method))throw unavailable();
    skills?.assertInstallation();if(skillsInstallation&&!same(Object.getOwnPropertyDescriptor(local,'agentParentSkillResults'),parentInstalled?installedParent:previousParent))throw unavailable();
    for(const key of keys){const expected=installed?installedSlots.get(key):prior.get(key);if(!same(Object.getOwnPropertyDescriptor(agent,key),expected))throw unavailable();}
    origin.readExclusive('runtime_admission_guard','0'.repeat(64));
@@ -140,7 +144,7 @@ export class LocalAgentRuntimeAdmission {
      guard();const result=modelFor(args[1].request).checkModelAuthority(...args);guard();return result;
     }
    } satisfies Partial<typeof agent>);
-   if(skills){const results=new LocalAgentRunResultVerifier(location.repositoryPath,location.dataDirectory,undefined,store,undefined,parentPort),oldRead=agent.readRunResult.bind(agent);Object.assign(assigned,{skills:skills.port,readRunResult:(...args:Parameters<typeof agent.readRunResult>)=>{guard();const scope=readOriginalAgentRunInputs(local,args[1].run_id).scope,codex=readAgentRuntimeModelOriginals(location.dataDirectory,scope).original_evidence?.kind==='codex_login/1.0.0',result=codex?results.readRunResult(...args):oldRead(...args);guard();return result;}} satisfies Partial<typeof agent>);}
+   if(skills){const oldRead=agent.readRunResult.bind(agent);Object.assign(assigned,{skills:skills.port,readRunResult:(...args:Parameters<typeof agent.readRunResult>)=>{guard();const result=withParentResults.call(verifier,parentPort,()=>oldRead(...args));guard();return result;}} satisfies Partial<typeof agent>);}
    guard();
    for(const key of keys){const descriptor=prior.get(key);if(descriptor? !('value' in descriptor)||!descriptor.writable:!Object.isExtensible(agent))throw unavailable();}
    for(const key of keys){const descriptor=prior.get(key);Object.defineProperty(agent,key,descriptor?{...descriptor,value:Reflect.get(assigned,key)}:{value:Reflect.get(assigned,key),writable:true,enumerable:true,configurable:true});installedSlots.set(key,Object.getOwnPropertyDescriptor(agent,key)!);}
@@ -154,8 +158,17 @@ export class LocalAgentRuntimeAdmission {
     if(skills&&readOriginalAgentRunInputs(local,runId).scope.skill_bindings.length){if(parent||!storage||!loginHome)throw unavailable();parent=skills.parentForRun(runId,{account:borrowed,storage,loginHome});}
     const result=LocalAgentRuntimeComposition.openCodex({local:context,runId,account:borrowed,custody,checks,...(storage?{storage}:{}),...(loginHome?{loginHome}:{}),...(parent?{parentSkill:parent}:{})});guard();return result;
    };
+   const dedicatedRuntime=(runId:string,raw:DedicatedRuntimeExecution,parent?:LocalAgentParentSkillHost)=>{
+    guard();const account=raw?.account,connection=structuredClone(validateModelConnection(raw?.connection)),binary=raw?.binary,check=raw?.guard;
+    if(!(account instanceof DedicatedAgentAccountLedger)||typeof binary!=='string'||!binary||typeof check!=='function'||parent&&!parentResults)throw unavailable();
+    const unchanged=()=>{if(raw.account!==account||raw.binary!==binary||raw.guard!==check||!same(raw.connection,connection))throw unavailable();};
+    const current=()=>{guard();unchanged();if(synchronous(Reflect.apply(check,raw,[]))!==undefined)throw unavailable();unchanged();Reflect.apply(fixedAccountHost,account,[origin]);guard();unchanged();};
+    current();const context=contextFor(runId);
+    if(skills&&readOriginalAgentRunInputs(local,runId).scope.skill_bindings.length){if(parent)throw unavailable();parent=skills.parentForRun(runId,{kind:'dedicated',account,connection,binary,guard:current});}
+    const result=LocalAgentRuntimeComposition.openDedicatedPersistent({local:context,runId,account,connection,binary,custody,checks,runtimeGuard:current,...(parent?{parentSkill:parent}:{})});current();return result;
+   };
    const readReceipt=(raw:unknown,beforeRead:()=>void)=>readHumanAgentPreparationReceipt(local,raw,beforeRead,{origin,guard(){if(closed||owners.get(store)!==owner||active.get(store)?.lease!==lease||local.store!==store||local.kernel!==kernel||!same(local.location,location)||!same(local.instance,instance))throw unavailable();origin.readExclusive('human_preparation_reader_guard','0'.repeat(64));}});
-   lease=new LocalAgentRuntimeAdmission(custody,checks,guard,release,runtime,humanAgentPreparation(local,verifier,origin,guard),readReceipt);active.set(store,{local,lease});return lease;
+   lease=new LocalAgentRuntimeAdmission(custody,checks,guard,release,runtime,dedicatedRuntime,humanAgentPreparation(local,verifier,origin,guard),readReceipt);active.set(store,{local,lease});return lease;
   }catch(error){release();throw error;}
  }
 }

@@ -29,13 +29,16 @@ export class LocalRunVerifier implements RunVerifierPort {
   #indexDiff?:{head:string;index:string;diff:Buffer};
   readonly content: LocalEvidenceVerifier;
   readonly agent: NonNullable<RunVerifierPort["agent"]>;
+  readonly #agentResults: LocalAgentRunResultVerifier;
   readonly tools: NonNullable<RunVerifierPort["tools"]> = { facts: (project, record) => readWorkspaceToolRunFacts(this.dataDirectory, project, record) };
   constructor(readonly repositoryPath: string, readonly dataDirectory: string,accountForRun?:(runId:string)=>DedicatedAgentAccountLedger,familyReader?:LocalAgentRunFamilyReader,familySkills?:LocalAgentRunFamilyVerification,parentResults?:LocalAgentParentSkillResultPort) {
     this.content = new LocalEvidenceVerifier(repositoryPath, dataDirectory);
     const results = new LocalAgentRunResultVerifier(repositoryPath, dataDirectory,accountForRun,familyReader,familySkills,parentResults);
+    this.#agentResults=results;
     this.agent = { admitContext: () => { throw new Error("Agent live admission unavailable"); },
       readRunResult: (project, record, context, reference, domain, writer) => results.readRunResult(project, record, context, reference, domain, writer) };
   }
+  withAgentParentResults<T>(parent:LocalAgentParentSkillResultPort,read:()=>T):T {return this.#agentResults.withParentResults(parent,read);}
   sourceDigest(project: Project, commitId: string) { return this.content.sourceDigest(project, commitId); }
   sourceIsCurrent(project: Project, snapshot: SourceSnapshot) { return this.content.sourceIsCurrent(project, snapshot); }
   #git(args: string[]): Buffer {

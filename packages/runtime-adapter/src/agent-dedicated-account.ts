@@ -83,6 +83,11 @@ export class DedicatedAgentAccountLedger implements DedicatedAgentAccountPort {
   this.#options={origin:options.origin,accountDigest:options.accountDigest,connection:copy(options.connection),admission:{check:options.admission.check.bind(options.admission),...(options.admission.checkSkillScope?{checkSkillScope:options.admission.checkSkillScope.bind(options.admission)}:{})},custody:{protect:options.custody.protect.bind(options.custody),verify:options.custody.verify.bind(options.custody)}};
  }
  get profile():DedicatedAgentProfile{return copy(this.#original.policy.profile);}
+ assertOriginalHost(origin:AgentStartLedger):void {
+  this.#read(()=>{
+   if(!(origin instanceof AgentStartLedger)||origin.identityDigest!==this.#options.origin.identityDigest||!isDeepStrictEqual(origin.readTicket(this.#ticket),this.#options.origin.readTicket(this.#ticket)))fail('agent_account_host_origin_mismatch');
+  });
+ }
  static initialize(options:InitializeOptions):DedicatedAgentAccountLedger {
   if(options.billing)captureBillVerification(options.billing);
   const policy=policyCopy(options.policy),connection=copy(validateModelConnection(options.connection));

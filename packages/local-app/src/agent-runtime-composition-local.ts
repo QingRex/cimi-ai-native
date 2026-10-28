@@ -49,10 +49,10 @@ export class LocalAgentRuntimeComposition implements AgentRuntimeStartPort {
   const scope=originalAgentWorkspaceScope(options.local,options.runId);
   if(options.parentSkill)captureAgentParentSkillIpcPort(scope,options.parentSkill).assertScope(scope);
   const model=createDedicatedAgentRuntimeModel({root:options.local.location.dataDirectory,repositoryPath:options.local.location.repositoryPath,scope,connection:options.connection,account:options.account,...(options.parentSkill?{parentSkillTools:"fixed_parent_skill/1.0.0" as const}:{})});
-  return this.open({local:options.local,binary:options.binary,custody:options.custody,checks:options.checks,model,...(options.parentSkill?{parentSkill:options.parentSkill}:{})});
+  return this.open({local:options.local,binary:options.binary,custody:options.custody,checks:options.checks,model,...(options.runtimeGuard?{runtimeGuard:options.runtimeGuard}:{}),...(options.parentSkill?{parentSkill:options.parentSkill}:{})});
  }
  static openDedicatedPersistent(options:Omit<Options,"model"> & {local:AgentDedicatedModelContext;runId:string;connection:DedicatedModelConnection;account:DedicatedAgentAccountLedger}){
-  return this.openDedicated({...options,account:LocalAgentDedicatedAccount.open(options.local,options.runId,options.account).modelAccountPort()});
+  return this.openDedicated({...options,account:LocalAgentDedicatedAccount.open(options.local,options.runId,options.account).modelAccountPort(options.runtimeGuard)});
  }
  // Trusted shared assembly, including ordinary and parent-Skill models. The
  // original Agent Kernel supplies CURRENT model qualification checks; a

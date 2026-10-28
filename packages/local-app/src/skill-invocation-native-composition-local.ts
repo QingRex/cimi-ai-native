@@ -11,7 +11,7 @@ import {assertCodexRuntimeLoginHome,type CodexRuntimeLoginHome} from './agent-co
 import type {InstalledCodexUsageBudget} from './agent-codex-usage-budget-local.js';
 import {assertCodexRuntimeWritableStorage} from './agent-codex-writable-storage-local.js';
 interface Base {local:SkillInvocationExecutionContext;custody:LocalSkillInvocationStartCustody;inputs:LocalSkillMethodInputs}
-interface Options extends Base {binary:string;account:DedicatedAgentAccountLedger;connection:DedicatedModelConnection}
+interface Options extends Base {binary:string;account:DedicatedAgentAccountLedger;connection:DedicatedModelConnection;runtimeGuard?:()=>void}
 interface CodexOptions extends Base {account:InstalledCodexUsageBudget;storage:FixedVolumeRuntimeStorage;loginHome:CodexRuntimeLoginHome}
 const fail=()=>new LocalProjectError('原命名方法、账户或 Native 组合准入不可证明','CAPABILITY_UNAVAILABLE','conflict');
 function synchronous(guard:()=>void){const value:unknown=guard();if(value!==undefined){if(value instanceof Promise){try{void Promise.prototype.then.call(value,undefined,()=>{});}catch{}}throw fail();}}
@@ -27,7 +27,7 @@ export class LocalSkillInvocationNativeComposition implements SkillInvocationExe
  // method/Native/account authority; installed login/capacity never supplies ALLOW.
  static openCodex(options:CodexOptions){try{if(Object.hasOwn(options,'connection')||!(options.custody instanceof LocalSkillInvocationStartCustody)||!(options.inputs instanceof LocalSkillMethodInputs)||!(options.account?.budget instanceof CodexAgentUsageBudget))throw fail();const result=new LocalSkillInvocationNativeComposition({...options});result.runtimeGuard();return result;}catch{throw fail();}}
  private assertIdentity(){const local=this.options.local,id=this.#identity;if(local.store!==id.store||local.kernel!==id.kernel||local.kernel.assessSkillInvocationExecution!==id.assess||!same(local.location,id.location)||!same(local.caller,id.caller))throw fail();}
- private runtimeGuard(){this.assertIdentity();if('connection'in this.options)return;const {local,account,storage,loginHome}=this.options;synchronous(account.guard.bind(account));assertCodexRuntimeWritableStorage(local,account,storage,loginHome);synchronous(account.guard.bind(account));this.assertIdentity();}
+ private runtimeGuard(){this.assertIdentity();if('connection'in this.options){if(this.options.runtimeGuard)synchronous(this.options.runtimeGuard);this.assertIdentity();return;}const {local,account,storage,loginHome}=this.options;synchronous(account.guard.bind(account));assertCodexRuntimeWritableStorage(local,account,storage,loginHome);synchronous(account.guard.bind(account));this.assertIdentity();}
  async prepare(input:SkillInvocationExecutionInputs,beforeEffect:()=>void){
   let budget:AgentRunBudget|undefined;
   try {
@@ -50,7 +50,7 @@ export class LocalSkillInvocationNativeComposition implements SkillInvocationExe
    return await withinAgentRuntimeTaskBudget(originalBudget,async signal=>{
     guard();const root=join(this.options.local.location.dataDirectory,'skill-runtime-originals',relation.parent.project_id,relation.child.operation_key),scope=relation.child,options=this.options;
     const port=await(async()=>{
-     if('connection'in options){const account=await LocalSkillInvocationDedicatedAccount.open(options.local,original.invocation.id,options.account,this.custody);signal.throwIfAborted();guard();if(!same(account.scope,scope)||account.modelRoot!==root)throw fail();return account.createModel(options.connection);}
+     if('connection'in options){const account=await LocalSkillInvocationDedicatedAccount.open(options.local,original.invocation.id,options.account,this.custody);signal.throwIfAborted();guard();if(!same(account.scope,scope)||account.modelRoot!==root)throw fail();return account.createModel(options.connection,guard);}
      const {account,storage,loginHome}=options,installed=account.installation;
      const runtime=new CodexOriginalMethodRuntime({root:join(root,'codex-runtime-originals'),command:{file:installed.binary,args:[],sha256:digest(bytesAt(installed.binary,512*1024*1024)).value},account_digest:installed.account_digest,disabled_mcp_servers:[...installed.disabled_mcp_servers],timeout_ms:180000,state_policy:'private_login_home/2.0.0',environment_policy:'private_user_directories/1.0.0',network_policy:'codex_chatgpt_tunnel/1.0.0',job_policy:'codex_memory_process/1.0.0',path_resolution:'original_volume_handles/1.0.0',package_policy:'explicit_package_access/1.0.0',login_home:assertCodexRuntimeLoginHome(loginHome,options.local,installed,storage),process_custody:'owner_job/1.0.0',process_root:join(options.local.location.dataDirectory,'codex-processes')},false,installed.origin,storage,codexRuntimeInstallationProgramBundle(installed));
      const authority={async check(current:typeof scope){if(!same(current,scope))throw fail();guard();},beforeEffect(current:typeof scope){if(!same(current,scope))throw fail();guard();}};

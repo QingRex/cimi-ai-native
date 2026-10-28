@@ -53,7 +53,7 @@ export {installCodexUsageBudget,allocateCodexUsageBudget,openInstalledCodexUsage
 export {LocalAgentCodexModelAuthority,type AgentCodexModelContext} from './agent-codex-authority-local.js';
 export {installCodexRuntimeStorage,inspectCodexRuntimeStorage,openCodexRuntimeStorage,type CodexRuntimeStorageInput} from './agent-codex-storage-local.js';
 export {installCodexRuntimeLoginHome,inspectCodexRuntimeLoginHome,openCodexRuntimeLoginHome,assertCodexRuntimeLoginHome,CodexRuntimeLoginHome} from './agent-codex-login-home-local.js';
-export {LocalAgentRuntimeAdmission,type AgentProductionCustodyPort} from './agent-runtime-admission-local.js';
+export {LocalAgentRuntimeAdmission,type AgentProductionCustodyPort,type DedicatedRuntimeExecution} from './agent-runtime-admission-local.js';
 export type { CodexMattInstallInput, InstalledCodexMatt } from "./clarification-codex-installation-local.js";
 export {readOriginalHumanPlanClarification} from './clarification-local.js';
 export type {OriginalHumanPlanClarification} from './clarification-local.js';

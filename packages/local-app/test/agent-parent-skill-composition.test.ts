@@ -51,6 +51,12 @@ async function fixture(){
  return{f,root,dataDirectory,local,scope,inputs,options,parentSkill,runtime,ledger,templates,header:()=>JSON.parse(readFileSync(join(dataDirectory,'agent-runtime-model-originals',scope.project_id,scope.run_id,'header.json'),'utf8'))};
 }
 describe('shared production composition installs original parent Skill',()=>{
+ it('preserves the dedicated host lease through staging and refuses Native launch after release',async()=>{
+  const f=await fixture(),connection:DedicatedModelConnection={format:'cimiloop/dedicated-model/2.0.0',provider:'openai-compatible',transport:'loopback_http/1.0.0',endpoint:'http://127.0.0.1:3425/v1/chat/completions',model:'openai-compatible/codex/gpt-6-luna',credential_file:join(tmpdir(),'PUBLIC-ABSENT-'+f.scope.run_id+'.dpapi'),credential_digest:digest('PUBLIC absent credential')};let live=true;
+  const account:DedicatedAgentAccountPort={admission_digest:digest('PUBLIC dedicated approval').value,profile:{model:'codex/gpt-6-luna',thinking:'disabled'},check:async()=>{},reserve:async()=>{throw Error('No model send during staging');},verifyHold:async()=>{}},guard=()=>{if(!live)throw Error('PUBLIC dedicated host released');};
+  const {model:_model,...options}=f.options,runtime=LocalAgentRuntimeComposition.openDedicated({...options,runId:f.scope.run_id,connection,account,runtimeGuard:guard}),staged=await runtime.prepare(f.inputs);close.push(()=>staged.dispose());
+  live=false;await expect(staged.launch()).rejects.toThrow('PUBLIC dedicated host released');expect(seam.launches).toHaveLength(0);
+ },60000);
  it('refuses the installed Codex production combination without a physical storage scope before preparing any model header',async()=>{
   const f=await fixture(),accountDigest=digest('PUBLIC Codex account').value,quotaDigest=digest('PUBLIC quota').value,budget=CodexAgentUsageBudget.initialize(f.ledger,{account_digest:accountDigest,quota_account_digest:quotaDigest,model_calls:2,output_tokens:4096});
   const installation={origin:f.ledger,root:f.dataDirectory,binary:process.execPath,native_binary:process.execPath,node_binary:process.execPath,model:'gpt-6-luna',account_digest:accountDigest,quota_account_digest:quotaDigest,output_profile:'bounded_2048/1.0.0' as const,usage_policy:'require_ordinary_permission/1.0.0' as const,disabled_mcp_servers:[],checks:f.templates,installation_digest:digest('PUBLIC installation').value,guard(){},release(){}};

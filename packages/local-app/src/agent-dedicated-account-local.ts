@@ -18,7 +18,10 @@ export class LocalAgentDedicatedAccount implements DedicatedAgentAccountPort {
   if(!(account instanceof DedicatedAgentAccountLedger))throw new LocalProjectError('原持久账户服务尚未安装','CAPABILITY_UNAVAILABLE','conflict');
   return new LocalAgentDedicatedAccount(local,structuredClone(originalAgentWorkspaceScope(local,runId)),account);
  }
- modelAccountPort(){return openDedicatedLedgerModelAccountPort(this.#account,this.#scope,()=>{this.#guard(this.#scope);});}
+ modelAccountPort(beforeEffect?:()=>void){
+  const guard=()=>{const value:unknown=beforeEffect?.();if(value!==undefined){try{void Promise.prototype.then.call(value,undefined,()=>{});}catch{}throw new LocalProjectError('原专用账户宿主租约不可证明','CAPABILITY_UNAVAILABLE','conflict');}};
+  return openDedicatedLedgerModelAccountPort(this.#account,this.#scope,()=>{guard();this.#guard(this.#scope);guard();});
+ }
  get admission_digest(){return this.#account.admission_digest;}
  get profile(){return this.#account.profile;}
  #assertIdentity(){const local=this.#local,original=this.#identity;if(local.store!==original.store||local.kernel!==original.kernel||local.kernel.assessAgentRunModel!==original.assessment||!isDeepStrictEqual(local.caller,original.caller)||!isDeepStrictEqual(local.location,original.location))throw new LocalProjectError('原账户 Kernel 与调用方身份已改变','CAPABILITY_UNAVAILABLE','conflict');}
