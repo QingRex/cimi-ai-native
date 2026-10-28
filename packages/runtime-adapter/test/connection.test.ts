@@ -10,6 +10,11 @@ import { isolatedEnvironment } from "../src/native.js";
 
 const base = (): DedicatedModelConnection => ({ format: "cimiloop/dedicated-model/1.0.0", provider: "zhipuai-coding-plan", model: "zhipuai-coding-plan/glm-5.3",
   credential_file: resolve("synthetic.dpapi.json"), credential_digest: digest("fixture") });
+it('requires an explicit new transport for a literal loopback OpenAI endpoint and namespaced model',()=>{
+ const local={...base(),format:'cimiloop/dedicated-model/2.0.0',provider:'openai-compatible',model:'openai-compatible/codex/gpt-6-luna',endpoint:'http://127.0.0.1:3425/v1/chat/completions',transport:'loopback_http/1.0.0'};
+ expect(validateModelConnection(local)).toEqual(local);expect(()=>modelEndpoint(validateModelConnection(local))).toThrow('loopback_connection_requires_managed_agent');
+ for(const changed of [ {...local,format:'cimiloop/dedicated-model/1.0.0'}, {...local,transport:undefined}, {...local,endpoint:'http://localhost:3425/v1/chat/completions'}, {...local,endpoint:'http://127.1:3425/v1/chat/completions'}, {...local,endpoint:'http://127.0.0.2:3425/v1/chat/completions'}, {...local,endpoint:'http://192.168.1.1:3425/v1/chat/completions'}, {...local,endpoint:'http://127.0.0.1:80/v1/chat/completions'}, {...local,endpoint:'http://127.0.0.1:3425/v1/chat/completions?x=1'}, {...local,endpoint:'http://name:password@127.0.0.1:3425/v1/chat/completions'}, {...local,model:'openai-compatible/codex/../escape'} ])expect(()=>validateModelConnection(changed)).toThrow('invalid_dedicated_model_connection');
+});
 it("limits dedicated connections to fixed official endpoints and disallows plaintext keys, wrong models and extra configuration", () => {
   expect(modelEndpoint(validateModelConnection(base()))).toBe("https://open.bigmodel.cn/api/coding/paas/v4");
   expect(modelEndpoint(validateModelConnection({ ...base(), provider: "zhipuai", model: "zhipuai/glm-5.3" }))).toBe("https://open.bigmodel.cn/api/paas/v4");

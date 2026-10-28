@@ -65,6 +65,7 @@ export type { DedicatedAgentAccountPolicy, DedicatedAgentAccountAdmission, Dedic
 export type { DedicatedAgentProfile } from "./agent-dedicated-codec.js";
 export { loadModelConnection, validateModelConnection } from "./connection.js";
 export type { DedicatedModelConnection } from "./connection.js";
+export {LoopbackGatewayNetworkBoundary} from './loopback-gateway-network.js';
 export { PINNED_CONVERSATION_OPENCODE_SHA } from "./gateway-conversation-probe.js";
 
 export { readDedicatedAgentModelOriginals, verifyCollectedDedicatedAgentModelOriginals, type DedicatedAgentOriginalSummary, type DedicatedAgentOriginalCall } from "./agent-dedicated-model.js";

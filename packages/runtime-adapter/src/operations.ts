@@ -9,7 +9,7 @@ import { isolatedEnvironment } from "./native.js";
 import {nativeHelperProcessOptions} from './native-process-environment.js';
 import { validateFixedMethodContext } from "./fixed-method.js";
 import type { FixedMethodProfile } from "@cimiloop/protocol/v2";
-import { validateModelConnection, type DedicatedModelConnection } from "./connection.js";
+import { isLoopbackModelConnection, validateModelConnection, type DedicatedModelConnection } from "./connection.js";
 import { defaultExecutionPolicy, requireSupportedExecutionPolicy, parseExecutionPolicyObservation } from "./execution-policy.js";
 import { parseIpcTransportObservation } from "./ipc-observation.js";
 import { isGatewayProbeDriver, validateGatewayDriver, readGatewayOwner, parseGatewayTransportObservation, parseGatewayBridgeObservation, type GatewayFixturePolicy } from "./gateway-bridge.js";
@@ -89,8 +89,15 @@ export const skillLoaderConfiguration = (input: ProbeOperationInput, workspace: 
     ...(input.skill_profile ? { skill: { "*": "deny", ...Object.fromEntries(input.skill_profile.skill_names.map(name => [name, "allow"])) } } : {}) };
   return { permission, ...(input.skill_profile ? { skills: { paths: [join(workspace, "skill-source")], urls: [] } } : {}) };
 };
+export const validateNativeDriverConnection = (driver: ProbeDriver): void => {
+  if (!driver.connection) return;
+  const connection = validateModelConnection(driver.connection);
+  if (isLoopbackModelConnection(connection)) throw new RuntimeAdapterError("loopback_connection_requires_managed_agent");
+  if (driver.kind !== "opencode" || connection.model !== driver.model) throw new RuntimeAdapterError("invalid_driver_connection");
+};
 export const validateOperationRequest = (request: OperationRequest): void => {
   validateOperationInput(request.input, request.effective_disk_limits);
+  validateNativeDriverConnection(request.driver);
   // Named projection currently has a synthetic-only host. The ordinary probe
   // supervisor cannot silently run this prompt against a credentialed driver.
   if (request.input.fixed_method_profile) throw new RuntimeAdapterError("named_method_host_not_admitted");
@@ -153,7 +160,7 @@ export class IsolatedProbeAdapter {
   async start(input: ProbeOperationInput): Promise<RuntimeOperationResult> {
     validateOperationInput(input);
     if (input.fixed_method_profile) throw new RuntimeAdapterError("named_method_host_not_admitted");
-    if (this.driver.connection && (this.driver.kind !== "opencode" || validateModelConnection(this.driver.connection).model !== this.driver.model)) throw new RuntimeAdapterError("invalid_driver_connection");
+    validateNativeDriverConnection(this.driver);
     const path = this.operationPath(input.operation_key), inputDigest = digest(JSON.stringify({ input, driver: this.driver }));
     // Existing claims retain their original policy and never launch again.
     if (!existsSync(path)) {

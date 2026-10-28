@@ -7,13 +7,21 @@ import { bytesAt, digest, RuntimeAdapterError } from "./files.js";
 import { isolatedEnvironment } from "./native.js";
 
 export interface DedicatedModelConnection {
-  format: "cimiloop/dedicated-model/1.0.0";
+  format: "cimiloop/dedicated-model/1.0.0" | "cimiloop/dedicated-model/2.0.0";
   provider: "zhipuai-coding-plan" | "zhipuai" | "openai-compatible";
   model: string;
   credential_file: string;
   credential_digest: Digest;
   endpoint?: string;
+  transport?: "loopback_http/1.0.0";
 }
+export const validDedicatedModelName=(value:unknown):value is string=>typeof value==='string'&&value.length<=255&&value.split('/').length<=4&&value.split('/').every(part=>/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(part));
+export function parseLoopbackModelEndpoint(value:unknown):URL {
+  try {const url=new URL(String(value));if(typeof value!=='string'||value!==url.href||url.protocol!=='http:'||url.hostname!=='127.0.0.1'||!/^\d+$/.test(url.port)||Number(url.port)<1024||url.username||url.password||url.search||url.hash||url.pathname!=='/v1/chat/completions')throw Error();return url;}
+  catch {throw new RuntimeAdapterError('invalid_dedicated_model_connection');}
+}
+export const isLoopbackModelConnection=(value:DedicatedModelConnection)=>value.format==='cimiloop/dedicated-model/2.0.0'&&value.transport==='loopback_http/1.0.0';
+export const validDedicatedApiKey=(connection:DedicatedModelConnection,key:unknown):key is string=>typeof key==='string'&&(isLoopbackModelConnection(connection)?/^[A-Za-z0-9._-]{1,512}$/:/^[A-Za-z0-9._-]{8,512}$/).test(key);
 const credentialDigest = (hash: DedicatedModelConnection["credential_digest"]) => !!hash && typeof hash === "object" &&
   Object.keys(hash).sort().join(",") === "algorithm,value" && hash.algorithm === "sha256" && /^[0-9a-f]{64}$/.test(hash.value);
 const modelSuffix = (provider: string, model: string) => model.startsWith(`${provider}/`) ? model.slice(provider.length + 1) : "";
@@ -21,8 +29,12 @@ export const validateModelConnection = (input: unknown): DedicatedModelConnectio
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
   const config = input as DedicatedModelConnection;
   const keys = Object.keys(config).sort().join(","), openai = config.provider === "openai-compatible";
-  if (config.format !== "cimiloop/dedicated-model/1.0.0" || typeof config.model !== "string" || typeof config.credential_file !== "string" ||
+  if (!["cimiloop/dedicated-model/1.0.0","cimiloop/dedicated-model/2.0.0"].includes(config.format) || typeof config.model !== "string" || typeof config.credential_file !== "string" ||
     !isAbsolute(config.credential_file) || !credentialDigest(config.credential_digest) || !modelSuffix(config.provider, config.model)) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
+  if(config.format==='cimiloop/dedicated-model/2.0.0'){
+    if(!openai||!isLoopbackModelConnection(config)||keys!=='credential_digest,credential_file,endpoint,format,model,provider,transport'||!validDedicatedModelName(modelSuffix(config.provider,config.model)))throw new RuntimeAdapterError('invalid_dedicated_model_connection');
+    parseLoopbackModelEndpoint(config.endpoint);return config;
+  }
   if (openai) {
     if (keys !== "credential_digest,credential_file,endpoint,format,model,provider" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(modelSuffix(config.provider, config.model))) throw new RuntimeAdapterError("invalid_dedicated_model_connection");
     let url: URL;
@@ -42,6 +54,9 @@ export const loadModelConnection = (file: string): DedicatedModelConnection => {
 };
 export const modelEndpoint = (connection: DedicatedModelConnection): string => {
   const config = validateModelConnection(connection);
+  // This projection is for the legacy credentialed Native driver. Local HTTP
+  // must use the owned-socket Agent path and its original-request accounting.
+  if (isLoopbackModelConnection(config)) throw new RuntimeAdapterError("loopback_connection_requires_managed_agent");
   if (config.provider === "openai-compatible") {
     const url = new URL(String(config.endpoint));
     return url.hostname === "opencode.ai" && url.pathname === "/inference/go/openai/v1/chat/completions" ? "https://opencode.ai/inference/go/openai/v1" : url.origin;
@@ -70,7 +85,7 @@ export const readDedicatedApiKey = async (connection: DedicatedModelConnection):
     const result = await promisify(execFile)(shell, ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(decryptScript, "utf16le").toString("base64")],
       { windowsHide: true, timeout: 10_000, maxBuffer: 16 * 1024, encoding: "utf8", env: { ...isolatedEnvironment(), CIMILOOP_DPAPI_CIPHERTEXT: encrypted.ciphertext } });
     const key = Buffer.from(result.stdout.trim(), "base64").toString("utf8");
-    if (!/^[a-zA-Z0-9._-]{8,512}$/.test(key)) throw new Error();
+    if (!validDedicatedApiKey(connection,key)) throw new Error();
     return key;
   } catch { throw new RuntimeAdapterError("dedicated_credential_unavailable"); }
 };

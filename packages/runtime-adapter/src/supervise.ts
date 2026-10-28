@@ -6,7 +6,7 @@ import { bytesAt, readJson, directory, digest, atomicJson, RuntimeAdapterError, 
 import { isolatedEnvironment, nativeControl } from "./native.js";
 import {nativeHelperProcessOptions} from './native-process-environment.js';
 import { validateOperationRequest, diskLimitsFor, isIpcProbeDriver, skillLoaderConfiguration, type OperationRequest } from "./operations.js";
-import { readDedicatedApiKey, modelEndpoint, CredentialOutputGuard, validateModelConnection } from "./connection.js";
+import { readDedicatedApiKey, modelEndpoint, CredentialOutputGuard } from "./connection.js";
 import { removePrivateDirectory } from "./private-cleanup.js";
 import { HostGatewayBridge, isGatewayProbeDriver } from "./gateway-bridge.js";
 const workspaceContainsCredential = (path: string, secret: string): boolean => {
@@ -38,7 +38,8 @@ export const supervise = async (path: string): Promise<void> => {
     }
     const limits = request.effective_disk_limits ?? diskLimitsFor(request.input);
     const connection = request.driver.connection;
-    if (connection && (request.driver.kind !== "opencode" || validateModelConnection(connection).model !== request.driver.model)) throw new RuntimeAdapterError("invalid_driver_connection");
+    // validateOperationRequest above rejects local HTTP before any Native effect
+    // or credential read; only the managed Agent transport accepts that format.
     if (connection) apiKey = await readDedicatedApiKey(connection);
     if (digest(bytesAt(request.driver.binary, 512 * 1024 * 1024)).value !== request.driver.binary_digest.value) throw new RuntimeAdapterError("runtime_binary_digest_changed");
     const sandbox = directory(join(path, "sandbox"));

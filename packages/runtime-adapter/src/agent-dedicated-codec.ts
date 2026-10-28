@@ -1,5 +1,6 @@
 import { isDeepStrictEqual } from "node:util";
 import { digest, RuntimeAdapterError } from "./files.js";
+import {validDedicatedModelName} from './connection.js';
 import { parseGatewayJson, validateGatewayToolSchema, parseGatewayFunctionCalls, type GatewayFunctionTool } from "./gateway-conversation.js";
 import { isAgentParentSkillToolSet,isAgentParentSkillModelTools,parseAgentRuntimeModelResponse, type AgentRuntimeModelResponse, type parseAgentRuntimeModelRequest } from "./agent-runtime-model.js";
 
@@ -12,7 +13,7 @@ const text=(v:unknown,max=65536):v is string=>typeof v==="string"&&v.isWellForme
 const id=(v:unknown):v is string=>typeof v==="string"&&/^[a-zA-Z0-9_-]{1,128}$/.test(v);
 function fail():never{throw new RuntimeAdapterError("agent_dedicated_contract_unproven");}
 export function parseDedicatedAgentProfile(raw:unknown):DedicatedAgentProfile{
- if(!fields(raw,["model","thinking"])||typeof raw.model!=="string"||!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(raw.model)||!["enabled","disabled"].includes(String(raw.thinking))||raw.thinking==="disabled"&&/^glm-5\.3(?:-flash)?$/.test(raw.model))fail();
+ if(!fields(raw,["model","thinking"])||!validDedicatedModelName(raw.model)||!["enabled","disabled"].includes(String(raw.thinking))||raw.thinking==="disabled"&&/^glm-5\.3(?:-flash)?$/.test(raw.model))fail();
  return structuredClone(raw) as unknown as DedicatedAgentProfile;
 }
 // Preserved/interleaved reasoning is restored from the host's corresponding

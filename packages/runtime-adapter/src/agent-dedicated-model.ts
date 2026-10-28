@@ -6,7 +6,8 @@ import { existsSync, realpathSync, lstatSync, mkdirSync, openSync, writeFileSync
 import { join, resolve, relative, isAbsolute, sep, dirname, basename } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { assertOrdinaryPath, bytesAt, directory, digest, RuntimeAdapterError } from "./files.js";
-import { validateModelConnection, readDedicatedApiKey, type DedicatedModelConnection } from "./connection.js";
+import { validateModelConnection, readDedicatedApiKey, isLoopbackModelConnection, validDedicatedApiKey, type DedicatedModelConnection } from "./connection.js";
+import {LoopbackGatewayNetworkBoundary} from './loopback-gateway-network.js';
 import { GatewayNetworkBoundary, OPENCODE_GO_CHAT_COMPLETIONS_PATH, type DedicatedGatewayPath } from "./gateway-network.js";
 import { GatewayHttpTransport } from "./gateway-http.js";
 import { parseGatewayJson } from "./gateway-conversation.js";
@@ -70,8 +71,10 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
  const endpoint=connection.provider==="openai-compatible"?new URL(String(connection.endpoint)):undefined;
  const path:DedicatedGatewayPath=endpoint?endpoint.pathname===OPENCODE_GO_CHAT_COMPLETIONS_PATH?OPENCODE_GO_CHAT_COMPLETIONS_PATH:endpoint.pathname==="/v1/chat/completions"?"/v1/chat/completions":fail("agent_dedicated_connection_mismatch"):connection.provider==="zhipuai"?"/api/paas/v4/chat/completions":"/api/coding/paas/v4/chat/completions";
  const host=endpoint?endpoint.hostname:"open.bigmodel.cn";
- const boundary=dependencies.boundary??new GatewayNetworkBoundary({},path,host);if(!(boundary instanceof GatewayNetworkBoundary)||boundary.path!==path||boundary.host!==host)fail("agent_dedicated_connection_mismatch");
- const transport=new GatewayHttpTransport(boundary),credential=dependencies.readCredential??readDedicatedApiKey;
+ const loopback=isLoopbackModelConnection(connection)?new LoopbackGatewayNetworkBoundary(String(connection.endpoint)):undefined;
+ if(loopback&&dependencies.boundary)fail('agent_dedicated_connection_mismatch');
+ const boundary=loopback?undefined:dependencies.boundary??new GatewayNetworkBoundary({},path,host);if(boundary&&(!(boundary instanceof GatewayNetworkBoundary)||boundary.path!==path||boundary.host!==host))fail("agent_dedicated_connection_mismatch");
+ const transport=new GatewayHttpTransport(loopback??boundary!),credential=dependencies.readCredential??readDedicatedApiKey;
  const root=modelRoot,spine=join(root,"agent-dedicated-model-starts",scope.project_id,scope.run_id),originals=join(root,"agent-dedicated-model-originals",scope.project_id,scope.run_id);
  const header={format:parentMode?'cimiloop/agent-dedicated-model-originals/3.0.0':namedMode?'cimiloop/agent-dedicated-model-originals/2.0.0':'cimiloop/agent-dedicated-model-originals/1.0.0',scope,admission_digest:account.admission_digest,connection_digest:connectionDigest,profile,...(parentMode?{parent_skill_tools:parentMode}:{}),...(namedMode?{method_tools:namedMode}:{})};
  const check=async(raw:AgentWorkspaceToolScope)=>{if(!isDeepStrictEqual(parseAgentWorkspaceToolScope(raw),scope))fail("agent_model_scope_mismatch");try{await account.check(structuredClone(scope),structuredClone(connection));}catch{fail("agent_dedicated_account_unavailable");}};
@@ -117,16 +120,16 @@ export function createDedicatedAgentRuntimeModel(options:Options,dependencies:De
   verifyCredentialLocation(repositoryPath,modelRoot,connection.credential_file);
  verifyCredentialLocation(repositoryPath,credentialBoundaryRoot,connection.credential_file);
   let key:string;try{key=await credential(connection);}catch{fail("dedicated_credential_unavailable");}
-  if(!/^[a-zA-Z0-9._-]{8,512}$/.test(key))fail("invalid_gateway_http_credential");if(prepared.body.includes(Buffer.from(key))||JSON.stringify(parseGatewayJson(prepared.body.toString(),65536)).includes(key))fail("gateway_credential_in_request");
+  if(!validDedicatedApiKey(connection,key))fail("invalid_gateway_http_credential");if(prepared.body.includes(Buffer.from(key))||JSON.stringify(parseGatewayJson(prepared.body.toString(),65536)).includes(key))fail("gateway_credential_in_request");
   save(join(body,"provider-request.json"),prepared.body);signal?.throwIfAborted();await checkAndHold(hold);signal?.throwIfAborted();
-  const pin=await boundary.resolve(8000,signal),tls=await boundary.connect(pin,8000,signal);
+  const channel=loopback?await loopback.connect(8000,signal):await boundary!.connect(await boundary!.resolve(8000,signal),8000,signal);
   // Full bound-hold verification includes current account/connection admission.
   // Local service also rechecks Kernel authority on both sides of its await.
-  // Keep the original 30s DNS pin; no second account await may age it out.
+  // Keep the original live socket/pin; no second account await may age it out.
   try{await holdCheck(hold);signal?.throwIfAborted();
    save(join(claim,"dispatch.json"),{request_digest:prepared.input_digest,hold_digest:digest(JSON.stringify(hold)).value});
-   const response=await transport.sendAgentOriginal(prepared,tls,key,8000,signal);save(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id,request.call_id,"dedicated-response.json"),{format:"cimiloop/agent-dedicated-response/1.0.0",response_digest:digest(response.bytes).value,reply_digest:digest(JSON.stringify(response.parsed)).value});save(join(body,"provider-response.json"),response.bytes);save(join(body,"receipt.json"),{response_digest:digest(response.bytes).value,reply:response.parsed});return response.parsed.receipt;
-  }finally{key="";tls.socket.destroy();}
+   const response=await transport.sendAgentOriginal(prepared,channel,key,8000,signal);save(join(root,"agent-runtime-model-starts",scope.project_id,scope.run_id,request.call_id,"dedicated-response.json"),{format:"cimiloop/agent-dedicated-response/1.0.0",response_digest:digest(response.bytes).value,reply_digest:digest(JSON.stringify(response.parsed)).value});save(join(body,"provider-response.json"),response.bytes);save(join(body,"receipt.json"),{response_digest:digest(response.bytes).value,reply:response.parsed});return response.parsed.receipt;
+  }finally{key="";channel.socket.destroy();}
  };
  return {original_evidence:{kind:"dedicated_zhipu/1.0.0",header_digest:digest(JSON.stringify(header)).value},admission_digest:account.admission_digest,check,execute:async(raw,signal)=>{const request=parseAgentRuntimeModelRequest(scope,raw,permitted);if(request.admission_digest!==account.admission_digest)fail("agent_model_admission_mismatch");const running=inflight.get(request.call_id);if(running){if(!isDeepStrictEqual(running.request,request))fail("agent_model_input_conflict");return running.promise;}
   const promise=dispatch(request,signal);inflight.set(request.call_id,{request,promise});try{return await promise;}finally{inflight.delete(request.call_id);}}};

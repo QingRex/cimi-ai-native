@@ -1,9 +1,11 @@
 import { prepareDedicatedAgentRequest, parseDedicatedAgentResponse, type PreparedDedicatedAgentRequest, type DedicatedAgentProfile, type DedicatedAgentReply } from "./agent-dedicated-codec.js";
 import type { parseAgentRuntimeModelRequest } from "./agent-runtime-model.js";
 import { Agent, request as httpsRequest } from "node:https";
+import {Agent as HttpAgent,request as httpRequest} from 'node:http';
 import type { ClientRequest, IncomingMessage } from "node:http";
 import { performance } from "node:perf_hooks";
 import { GatewayNetworkBoundary, type GatewayTlsConnection } from "./gateway-network.js";
+import {LoopbackGatewayNetworkBoundary,type LoopbackGatewayConnection} from './loopback-gateway-network.js';
 import { digest, RuntimeAdapterError } from "./files.js";
 import { prepareGatewayConversation, parseGatewayConversation, createGatewayConversationCacheContract, parseGatewayJson,
   type GatewayConversationCacheContract, type GatewayConversationResponse, type PreparedGatewayConversationRequest } from "./gateway-conversation.js";
@@ -71,13 +73,13 @@ export class GatewayHttpTransport {
   private readonly prepared = new WeakMap<PreparedGatewayHttpRequest, { body: Buffer; consumed: boolean }>();
   private readonly conversations = new WeakMap<PreparedGatewayConversationRequest, { body: Buffer; consumed: boolean; contract?: GatewayConversationCacheContract; parse?: (bytes: Buffer, key: string) => GatewayConversationResponse }>();
   private readonly agents = new WeakMap<PreparedDedicatedAgentRequest,{body:Buffer;consumed:boolean}>();
-  constructor(private readonly boundary: GatewayNetworkBoundary) {}
+  constructor(private readonly boundary: GatewayNetworkBoundary|LoopbackGatewayNetworkBoundary) {}
   prepareAgent(request:ReturnType<typeof parseAgentRuntimeModelRequest>,profile:DedicatedAgentProfile,prior:DedicatedAgentReply[]) {
     const value=prepareDedicatedAgentRequest(request,profile,prior);this.agents.set(value,{body:Buffer.from(value.body),consumed:false});return value;
   }
-  async sendAgentOriginal(prepared:PreparedDedicatedAgentRequest,connection:GatewayTlsConnection,key:string,deadlineMs=8000,signal?:AbortSignal) {
+  async sendAgentOriginal(prepared:PreparedDedicatedAgentRequest,connection:GatewayTlsConnection|LoopbackGatewayConnection,key:string,deadlineMs=8000,signal?:AbortSignal) {
     const owned=this.agents.get(prepared);if(!owned||owned.consumed)fail("gateway_http_request_unowned");
-    return this.exchange(owned,connection,key,deadlineMs,signal,"application/json",bytes=>({parsed:parseDedicatedAgentResponse(bytes,prepared,key),bytes:Buffer.from(bytes)}));
+    return this.exchange(owned,connection,key,deadlineMs,signal,"application/json",bytes=>({parsed:parseDedicatedAgentResponse(bytes,prepared,key),bytes:Buffer.from(bytes)}),true);
   }
   prepare(input: unknown): PreparedGatewayHttpRequest {
     if (!fields(input, ["request_id", "messages", "input_tokens", "max_output_tokens"]) || typeof input.request_id !== "string" || !uuid.test(input.request_id) ||
@@ -136,15 +138,17 @@ export class GatewayHttpTransport {
     if (!owned || owned.consumed) fail("gateway_http_request_unowned");
     return this.exchange(owned, connection, apiKey, deadlineMs, signal, "application/json", bytes => parseResponse(bytes, prepared, apiKey));
   }
-  private async exchange<Response>(owned: { body: Buffer; consumed: boolean }, connection: GatewayTlsConnection, apiKey: string, deadlineMs: number, signal: AbortSignal | undefined,
-    mediaType: "application/json" | "text/event-stream", parse: (bytes: Buffer) => Response): Promise<Response> {
-    if (typeof apiKey !== "string" || !/^[A-Za-z0-9._-]{8,512}$/.test(apiKey)) fail("invalid_gateway_http_credential");
+  private async exchange<Response>(owned: { body: Buffer; consumed: boolean }, connection: GatewayTlsConnection|LoopbackGatewayConnection, apiKey: string, deadlineMs: number, signal: AbortSignal | undefined,
+    mediaType: "application/json" | "text/event-stream", parse: (bytes: Buffer) => Response,allowLoopback=false): Promise<Response> {
+    const local=this.boundary instanceof LoopbackGatewayNetworkBoundary?this.boundary:undefined;
+    if(local&&!allowLoopback)fail('gateway_loopback_agent_only');
+    if (typeof apiKey !== "string" || !(local?/^[A-Za-z0-9._-]{1,512}$/:/^[A-Za-z0-9._-]{8,512}$/).test(apiKey)) fail("invalid_gateway_http_credential");
     if (owned.body.includes(Buffer.from(apiKey))) fail("gateway_credential_in_request");
     if (!integer(deadlineMs, 25, 30000)) fail("invalid_gateway_http_deadline");
     if (signal?.aborted) fail("gateway_http_aborted");
-    const socket = this.boundary.consumeHttpConnection(connection); owned.consumed = true;
+    const socket = this.boundary instanceof GatewayNetworkBoundary?this.boundary.consumeHttpConnection(connection as GatewayTlsConnection):this.boundary.consumeHttpConnection(connection as LoopbackGatewayConnection); owned.consumed = true;
     // Explicit per-operation agent, with no proxyEnv and no default dial path.
-    const agent = new Agent({ keepAlive: false, maxSockets: 1, maxTotalSockets: 1, maxCachedSessions: 0 });
+    const agent:HttpAgent = local?new HttpAgent({keepAlive:false,maxSockets:1,maxTotalSockets:1,proxyEnv:{}}):new Agent({ keepAlive: false, maxSockets: 1, maxTotalSockets: 1, maxCachedSessions: 0 });
     let handedOff = false;
     agent.createConnection = () => {
       if (handedOff || socket.destroyed) fail("gateway_http_reconnect_denied");
@@ -165,9 +169,9 @@ export class GatewayHttpTransport {
       const cancel = () => finish("gateway_http_aborted"), timer = setTimeout(() => finish("gateway_http_deadline_exhausted"), deadlineMs);
       signal?.addEventListener("abort", cancel, { once: true });
       try {
-        upstream = httpsRequest({ hostname: this.boundary.host, port: 443, path: this.boundary.path, method: "POST", agent,
+        upstream = (local?httpRequest:httpsRequest)({ hostname: this.boundary.host, port: local?.port??443, path: this.boundary.path, method: "POST", agent,
           maxHeaderSize: GATEWAY_HTTP_HEADER_BYTES, insecureHTTPParser: false, joinDuplicateHeaders: false,
-          headers: { host: this.boundary.host, "content-type": "application/json", accept: mediaType, "accept-encoding": "identity",
+          headers: { host: local?`${local.host}:${local.port}`:this.boundary.host, "content-type": "application/json", accept: mediaType, "accept-encoding": "identity",
             "content-length": owned.body.length, connection: "close", authorization: `Bearer ${apiKey}` } }, incoming => {
           response = incoming; if (settled) { incoming.destroy(); return; }
           const distinct = incoming.headersDistinct, contentType = distinct["content-type"], length = distinct["content-length"], transfer = distinct["transfer-encoding"];
